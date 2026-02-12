@@ -1,0 +1,83 @@
+name: pulz_app
+description: PUL'Z - Explore ta ville (Day, Sport, Family, Night)
+publish_to: 'none'
+version: 1.0.4+5
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Navigation
+  go_router: ^13.0.0
+
+  # Database
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.18
+
+  # Network
+  dio: ^5.4.0
+
+  # Models (code generation)
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+
+  # Images
+  cached_network_image: ^3.3.0
+  image_picker: ^1.0.7
+
+  # Sharing
+  share_plus: ^7.2.1
+
+  # URL Launcher / Maps
+  url_launcher: ^6.2.2
+
+  # Instagram Auth (Custom Tabs + Deep Links)
+  flutter_custom_tabs: ^2.0.0+1
+  app_links: ^6.3.2
+
+  # Path
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+  # Local storage
+  shared_preferences: ^2.2.2
+
+  # Connectivity
+  connectivity_plus: ^5.0.2
+
+  # Intl (date formatting)
+  intl: ^0.19.0
+
+  # UUID
+  uuid: ^4.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.7
+  freezed: ^2.4.5
+  json_serializable: ^6.7.1
+  drift_dev: ^2.14.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  adaptive_icon_round: "assets/icon/app_icon.png"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/

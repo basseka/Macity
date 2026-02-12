@@ -1,0 +1,55 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/night/data/night_bars_data.dart';
+import 'package:pulz_app/core/database/app_database.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/day/state/user_events_provider.dart';
+
+final nightCategoryProvider = StateProvider<String?>((ref) => null);
+
+/// Tags qui utilisent les donnees curatees au lieu de la base locale.
+const _curatedTags = {'Bar de nuit', 'Bar a cocktails', 'Pub', 'Club Discotheque', 'Epicerie de nuit', 'Tabac de nuit', 'Hotel', 'SOS Apero'};
+
+/// Evenements utilisateur filtres pour la rubrique "night".
+final nightUserEventsProvider = Provider<List<Event>>((ref) {
+  final allUserEvents = ref.watch(userEventsProvider);
+  return allUserEvents
+      .where((ue) => ue.rubrique == 'night')
+      .map((ue) => ue.toEvent())
+      .toList();
+});
+
+final nightCategoryCountProvider =
+    FutureProvider.family<int, String>((ref, searchTag) async {
+  if (searchTag == 'Cette Semaine') {
+    return ref.watch(nightUserEventsProvider).length;
+  }
+  if (_curatedTags.contains(searchTag)) {
+    return NightBarsData.toulouseBars
+        .where((b) => b.categorie == searchTag)
+        .length;
+  }
+  final city = ref.watch(selectedCityProvider);
+  final db = AppDatabase();
+  final repository = CommerceRepository(db: db);
+  final venues = await repository.searchByVille(ville: city, query: searchTag);
+  return venues.length;
+});
+
+final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final category = ref.watch(nightCategoryProvider);
+
+  if (_curatedTags.contains(category)) {
+    return NightBarsData.toulouseBars
+        .where((b) => b.categorie == category)
+        .toList();
+  }
+
+  final db = AppDatabase();
+  final repository = CommerceRepository(db: db);
+  return repository.searchByVille(ville: city, query: category);
+});
+
