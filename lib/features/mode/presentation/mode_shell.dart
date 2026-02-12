@@ -51,18 +51,13 @@ class ModeShell extends ConsumerWidget {
                   child: Row(
                     children: [
                       // Logo
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Center(
-                          child: Text('M', style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold,
-                            color: Color(0xFF7B2D8E),
-                          ),),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Image.asset(
+                          'assets/icon/app_icon.png',
+                          width: 42,
+                          height: 42,
+                          fit: BoxFit.cover,
                         ),
                       ),
                       const SizedBox(width: 10),
