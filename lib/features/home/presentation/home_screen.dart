@@ -393,8 +393,8 @@ class _ShimmerInfoButtonState extends State<_ShimmerInfoButton>
           return Transform.scale(
             scale: _scale.value,
             child: Container(
-              width: 32,
-              height: 32,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.purple,
@@ -407,7 +407,7 @@ class _ShimmerInfoButtonState extends State<_ShimmerInfoButton>
                 ],
               ),
               child: const Center(
-                child: Icon(Icons.cyclone, color: Colors.white, size: 20),
+                child: Icon(Icons.help_outline, color: Colors.white, size: 26),
               ),
             ),
           );
