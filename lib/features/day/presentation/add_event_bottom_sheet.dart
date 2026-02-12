@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:pulz_app/core/helpers/lieu_suggestions.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
@@ -25,6 +26,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
 
   String? _selectedRubrique;
   String? _selectedCategorie;
+  String? _selectedLieu;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? _photoPath;
@@ -127,6 +129,9 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
                   setState(() {
                     _selectedRubrique = value;
                     _selectedCategorie = null;
+                    _selectedLieu = null;
+                    _lieuNomController.clear();
+                    _lieuAdresseController.clear();
                   });
                 },
                 validator: (v) => v == null ? 'La rubrique est requise' : null,
@@ -206,13 +211,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
               const SizedBox(height: 16),
 
               // ── Lieu ──
-              TextFormField(
-                controller: _lieuNomController,
-                decoration: _inputDecoration(
-                  label: 'Lieu (optionnel)',
-                  icon: Icons.place_outlined,
-                ),
-              ),
+              ..._buildLieuFields(),
               const SizedBox(height: 16),
 
               // ── Adresse ──
@@ -302,6 +301,70 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildLieuFields() {
+    final lieux = getLieuxForRubrique(_selectedRubrique ?? '');
+
+    if (lieux.isEmpty) {
+      return [
+        TextFormField(
+          controller: _lieuNomController,
+          decoration: _inputDecoration(
+            label: 'Lieu (optionnel)',
+            icon: Icons.place_outlined,
+          ),
+        ),
+      ];
+    }
+
+    return [
+      DropdownButtonFormField<String>(
+        key: ValueKey('lieu_$_selectedRubrique'),
+        isExpanded: true,
+        value: _selectedLieu,
+        decoration: _inputDecoration(
+          label: 'Lieu (optionnel)',
+          icon: Icons.place_outlined,
+        ),
+        items: [
+          ...lieux.map(
+            (l) => DropdownMenuItem(
+              value: l.nom,
+              child: Text(l.nom, overflow: TextOverflow.ellipsis),
+            ),
+          ),
+          const DropdownMenuItem(
+            value: 'Autre',
+            child: Text('Autre (saisie libre)'),
+          ),
+        ],
+        onChanged: (value) {
+          setState(() {
+            _selectedLieu = value;
+            if (value != null && value != 'Autre') {
+              final match = lieux.where((l) => l.nom == value).firstOrNull;
+              if (match != null) {
+                _lieuAdresseController.text = match.adresse;
+              }
+              _lieuNomController.clear();
+            } else {
+              _lieuAdresseController.clear();
+            }
+          });
+        },
+      ),
+      if (_selectedLieu == 'Autre') ...[
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _lieuNomController,
+          decoration: _inputDecoration(
+            label: 'Nom du lieu',
+            icon: Icons.edit_location_outlined,
+          ),
+        ),
+      ],
+    ];
   }
 
   InputDecoration _inputDecoration({
@@ -412,7 +475,9 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
       rubrique: _rubriqueToModeName[_selectedRubrique!]!,
       date: dateStr,
       heure: timeStr,
-      lieuNom: _lieuNomController.text.trim(),
+      lieuNom: (_selectedLieu != null && _selectedLieu != 'Autre')
+          ? _selectedLieu!
+          : _lieuNomController.text.trim(),
       lieuAdresse: _lieuAdresseController.text.trim(),
       photoPath: _photoPath,
       ville: city,
