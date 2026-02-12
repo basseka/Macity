@@ -36,7 +36,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
     'En Famille': ['Parc', 'Cinema', 'Bowling', 'Spectacle enfant'],
     'Food & lifestyle': ['Restaurant', 'Cafe', 'Brunch', 'Marche'],
     'Gaming': ['Tournoi e-sport', 'Convention', 'Bar a jeux'],
-    'Nuit': ['Bar', 'Club', 'Soiree', 'Concert live'],
+    'Nuit': ['Bar', 'Club', 'Soiree', 'Concert live', 'Showcase'],
   };
 
   /// Maps display rubrique name → AppMode name for storage.
