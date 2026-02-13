@@ -92,6 +92,9 @@ class SpectacleToulouseService {
   //  + infoconcert.com)
   // ─────────────────────────────────────────────
 
+  /// Spectacles curates accessibles publiquement (pour le resolver des likes).
+  static List<Event> get curatedSpectacles => _getCuratedSpectacles();
+
   static List<Event> _getCuratedSpectacles() => [
         const Event(
           identifiant: 'cb_constance',

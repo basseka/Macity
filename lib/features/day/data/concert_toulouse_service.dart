@@ -163,6 +163,9 @@ class ConcertToulouseService {
   // Données curatées – concerts à venir 2026
   // ─────────────────────────────────────────────
 
+  /// Concerts curates accessibles publiquement (pour le resolver des likes).
+  static List<Event> get curatedConcerts => _getCuratedConcerts();
+
   static List<Event> _getCuratedConcerts() => [
         // ── Zenith Toulouse Metropole (source: zenith-toulousemetropole.com) ──
         const Event(

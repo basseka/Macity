@@ -65,6 +65,9 @@ class FestivalToulouseService {
     return upcoming;
   }
 
+  /// Festivals curates accessibles publiquement (pour le resolver des likes).
+  static List<Event> get curatedFestivals => _getCuratedFestivals();
+
   static List<Event> _getCuratedFestivals() => [
         // ── Le Printemps du Rire 2026 (source: festik.net) ──
         const Event(

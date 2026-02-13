@@ -50,5 +50,8 @@ class OperaToulouseService {
     return upcoming;
   }
 
+  /// Operas curates accessibles publiquement (pour le resolver des likes).
+  static List<Event> get curatedOperas => _getCuratedOperas();
+
   static List<Event> _getCuratedOperas() => [];
 }

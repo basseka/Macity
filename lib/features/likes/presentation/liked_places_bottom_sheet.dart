@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/features/likes/data/liked_item_resolver.dart';
+import 'package:pulz_app/features/likes/presentation/liked_item_detail_sheet.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 class LikedPlacesBottomSheet extends ConsumerWidget {
@@ -90,6 +92,7 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
                   final parsed = _parseLikeId(id);
 
                   return ListTile(
+                    onTap: () => _openDetail(context, id),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 8,
                       vertical: 4,
@@ -131,6 +134,30 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _openDetail(BuildContext context, String id) {
+    if (LikedItemResolver.isCommerce(id)) {
+      final commerce = LikedItemResolver.resolveCommerce(id);
+      if (commerce != null) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => LikedItemDetailSheet.forCommerce(commerce),
+        );
+      }
+    } else {
+      final event = LikedItemResolver.resolveEvent(id);
+      if (event != null) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => LikedItemDetailSheet.forEvent(event),
+        );
+      }
+    }
   }
 
   _ParsedLike _parseLikeId(String id) {

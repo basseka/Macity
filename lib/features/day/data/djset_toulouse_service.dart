@@ -96,5 +96,8 @@ class DjSetToulouseService {
   // Données curatées – DJ sets à venir 2026
   // ─────────────────────────────────────────────
 
+  /// DJ sets curates accessibles publiquement (pour le resolver des likes).
+  static List<Event> get curatedDjSets => _getCuratedDjSets();
+
   static List<Event> _getCuratedDjSets() => [];
 }

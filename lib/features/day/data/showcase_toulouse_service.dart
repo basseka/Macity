@@ -91,5 +91,8 @@ class ShowcaseToulouseService {
   // Données curatées – showcases à venir 2026
   // ─────────────────────────────────────────────
 
+  /// Showcases curates accessibles publiquement (pour le resolver des likes).
+  static List<Event> get curatedShowcases => _getCuratedShowcases();
+
   static List<Event> _getCuratedShowcases() => [];
 }
