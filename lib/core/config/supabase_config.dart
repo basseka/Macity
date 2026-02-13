@@ -7,5 +7,7 @@ class SupabaseConfig {
 
   static const String instagramAuthFunction =
       '$supabaseUrl/functions/v1/instagram-auth';
+  static const String sendNotificationsFunction =
+      '$supabaseUrl/functions/v1/send-notifications';
   static const String instagramRedirectUri = 'pulzapp://instagram-callback';
 }

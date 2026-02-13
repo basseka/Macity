@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
@@ -77,8 +78,9 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
     if (event.photoPath != null && event.photoPath!.isNotEmpty) {
       try {
         photoUrl = await _supabase.uploadPhoto(event.photoPath!);
-      } catch (_) {
-        // Upload échoué : on continue sans URL distante
+        debugPrint('[UserEvents] photo upload OK: $photoUrl');
+      } catch (e) {
+        debugPrint('[UserEvents] photo upload FAILED: $e');
       }
     }
 
@@ -88,8 +90,9 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
     // 3. Insérer dans Supabase
     try {
       await _supabase.insertEvent(eventWithUrl);
-    } catch (_) {
-      // Insert échoué : on garde quand même en local
+      debugPrint('[UserEvents] insert Supabase OK');
+    } catch (e) {
+      debugPrint('[UserEvents] insert Supabase FAILED: $e');
     }
 
     // 4. Mettre à jour le state et le cache local

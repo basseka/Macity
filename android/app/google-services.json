@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "935675945253",
+    "project_id": "pulz-app-5c24b",
+    "storage_bucket": "pulz-app-5c24b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:935675945253:android:30b5d3833ef91908613acc",
+        "android_client_info": {
+          "package_name": "com.pulzapp.toulouse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtX3tSN9K0dpHjlncxU1jZLbWcfGcehU0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -93,7 +93,7 @@ class UserEvent {
   // ─────────────────────────────────────────
 
   /// JSON pour insertion PostgREST (table `user_events`).
-  Map<String, dynamic> toSupabaseJson() => {
+  Map<String, dynamic> toSupabaseJson({String? userId}) => {
         'id': id,
         'titre': titre,
         'description': description,
@@ -106,6 +106,7 @@ class UserEvent {
         'photo_url': photoUrl,
         'ville': ville,
         'created_at': createdAt.toIso8601String(),
+        if (userId != null) 'user_id': userId,
       };
 
   /// Depuis une ligne PostgREST.

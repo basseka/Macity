@@ -5,6 +5,7 @@ import 'package:pulz_app/core/config/supabase_config.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
+import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 
 /// Service Supabase pour les événements utilisateur.
@@ -73,11 +74,12 @@ class UserEventSupabaseService {
   // CRUD PostgREST : table `user_events`
   // ───────────────────────────────────────────
 
-  /// Insère un événement utilisateur.
+  /// Insère un événement utilisateur (avec user_id pour les notifications).
   Future<void> insertEvent(UserEvent event) async {
+    final userId = await UserIdentityService.getUserId();
     await _restDio.post(
       'user_events',
-      data: event.toSupabaseJson(),
+      data: event.toSupabaseJson(userId: userId),
       options: Options(
         headers: {'Prefer': 'return=minimal'},
       ),

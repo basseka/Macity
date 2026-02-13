@@ -10,6 +10,9 @@ class LikesNotifier extends StateNotifier<Set<String>> {
 
   Future<void> _load() async {
     state = await _repository.getLikedItems();
+
+    // Sync les likes existants vers Supabase (migration silencieuse)
+    _repository.syncToSupabase();
   }
 
   Future<void> toggle(String id) async {

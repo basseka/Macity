@@ -8,6 +8,8 @@ import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dar
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/presentation/widgets/ad_banner_marquee.dart';
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
+import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
+import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -81,44 +83,54 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
 
-          // City selector
+          // City selector + heart button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: GestureDetector(
-              onTap: () => _showCityPicker(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0D6F7),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF7B2D8E), width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 6, offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const Text('📍', style: TextStyle(fontSize: 16)),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        city,
-                        style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.bold,
-                          color: Color(0xFF4A1259),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _showCityPicker(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0D6F7),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF7B2D8E), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 6, offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('📍', style: TextStyle(fontSize: 16)),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              city,
+                              style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.bold,
+                                color: Color(0xFF4A1259),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down, size: 20, color: Color(0xFF4A1259)),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.keyboard_arrow_down, size: 20, color: Color(0xFF4A1259)),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                _LikeCountButton(
+                  onTap: () => _showLikedPlaces(context),
+                ),
+              ],
             ),
           ),
 
@@ -344,6 +356,75 @@ class HomeScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const AddEventBottomSheet(),
+    );
+  }
+
+  void _showLikedPlaces(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const LikedPlacesBottomSheet(),
+    );
+  }
+}
+
+class _LikeCountButton extends ConsumerWidget {
+  final VoidCallback onTap;
+  const _LikeCountButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(likesProvider).length;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0D6F7),
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFF7B2D8E), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              count > 0 ? Icons.favorite : Icons.favorite_border,
+              color: count > 0 ? Colors.red : const Color(0xFF4A1259),
+              size: 20,
+            ),
+            if (count > 0)
+              Positioned(
+                top: 4,
+                right: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    count > 99 ? '99' : '$count',
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

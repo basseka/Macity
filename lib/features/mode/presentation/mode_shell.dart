@@ -9,6 +9,8 @@ import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/presentation/widgets/swipe_detector.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/home/presentation/widgets/ad_banner_marquee.dart';
+import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
+import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -94,49 +96,61 @@ class ModeShell extends ConsumerWidget {
               ),
             ),
 
-            // City selector
+            // City selector + heart button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: GestureDetector(
-                onTap: () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => const CityPickerBottomSheet(),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: modeTheme.primaryLightColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: modeTheme.primaryColor, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 6, offset: const Offset(0, 2),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const CityPickerBottomSheet(),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const Text('📍', style: TextStyle(fontSize: 16)),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          city,
-                          style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold,
-                            color: modeTheme.primaryDarkColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: modeTheme.primaryLightColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: modeTheme.primaryColor, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 6, offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            const Text('📍', style: TextStyle(fontSize: 16)),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                city,
+                                style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold,
+                                  color: modeTheme.primaryDarkColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.keyboard_arrow_down, size: 20, color: modeTheme.primaryDarkColor),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.keyboard_arrow_down, size: 20, color: modeTheme.primaryDarkColor),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  _ModeShellLikeButton(
+                    primaryColor: modeTheme.primaryColor,
+                    primaryLightColor: modeTheme.primaryLightColor,
+                    primaryDarkColor: modeTheme.primaryDarkColor,
+                  ),
+                ],
               ),
             ),
 
@@ -246,6 +260,15 @@ class ModeShell extends ConsumerWidget {
     );
   }
 
+  void _showLikedPlaces(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const LikedPlacesBottomSheet(),
+    );
+  }
+
   Widget _buildNavButton({
     required IconData icon,
     required Color color,
@@ -276,6 +299,78 @@ class ModeShell extends ConsumerWidget {
             ],
           ),
           child: Icon(icon, color: Colors.white, size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeShellLikeButton extends ConsumerWidget {
+  final Color primaryColor;
+  final Color primaryLightColor;
+  final Color primaryDarkColor;
+
+  const _ModeShellLikeButton({
+    required this.primaryColor,
+    required this.primaryLightColor,
+    required this.primaryDarkColor,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(likesProvider).length;
+
+    return GestureDetector(
+      onTap: () => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => const LikedPlacesBottomSheet(),
+      ),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: primaryLightColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: primaryColor, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              count > 0 ? Icons.favorite : Icons.favorite_border,
+              color: count > 0 ? Colors.red : primaryDarkColor,
+              size: 20,
+            ),
+            if (count > 0)
+              Positioned(
+                top: 4,
+                right: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    count > 99 ? '99' : '$count',
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

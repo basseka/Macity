@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 /// Carte commerce en ligne : image a gauche, infos a droite.
 class CommerceRowCard extends ConsumerWidget {
@@ -300,6 +301,8 @@ class CommerceRowCard extends ConsumerWidget {
                           ),
                         ],
                         const Spacer(),
+                        _buildLikeIcon(ref),
+                        const SizedBox(width: 12),
                         _buildActionIcon(
                           Icons.share_outlined,
                           Colors.grey.shade400,
@@ -342,6 +345,19 @@ class CommerceRowCard extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLikeIcon(WidgetRef ref) {
+    final likeId = 'night_${commerce.nom}';
+    final isLiked = ref.watch(likesProvider).contains(likeId);
+    return GestureDetector(
+      onTap: () => ref.read(likesProvider.notifier).toggle(likeId),
+      child: Icon(
+        isLiked ? Icons.favorite : Icons.favorite_border,
+        size: 20,
+        color: isLiked ? Colors.red : Colors.grey.shade400,
+      ),
     );
   }
 
