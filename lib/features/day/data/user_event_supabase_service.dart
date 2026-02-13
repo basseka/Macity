@@ -75,11 +75,54 @@ class UserEventSupabaseService {
   // ───────────────────────────────────────────
 
   /// Insère un événement utilisateur (avec user_id pour les notifications).
-  Future<void> insertEvent(UserEvent event) async {
+  /// Si [establishmentId] est fourni, insère aussi dans establishment_events
+  /// pour déclencher les notifications aux likers.
+  Future<void> insertEvent(
+    UserEvent event, {
+    String? establishmentId,
+  }) async {
     final userId = await UserIdentityService.getUserId();
     await _restDio.post(
       'user_events',
       data: event.toSupabaseJson(userId: userId),
+      options: Options(
+        headers: {'Prefer': 'return=minimal'},
+      ),
+    );
+
+    if (establishmentId != null) {
+      await insertEstablishmentEvent(
+        establishmentId: establishmentId,
+        title: event.titre,
+        date: event.date,
+        heure: event.heure,
+        description: event.description,
+        createdBy: userId,
+      );
+    }
+  }
+
+  /// Insère dans establishment_events pour notifier les likers du lieu.
+  Future<void> insertEstablishmentEvent({
+    required String establishmentId,
+    required String title,
+    required String date,
+    required String heure,
+    String description = '',
+    required String createdBy,
+  }) async {
+    final time = heure.isNotEmpty ? heure : '00:00';
+    final startsAt = '${date}T$time:00+02:00';
+
+    await _restDio.post(
+      'establishment_events',
+      data: {
+        'establishment_id': establishmentId,
+        'title': title,
+        'starts_at': startsAt,
+        'description': description,
+        'created_by': createdBy,
+      },
       options: Options(
         headers: {'Prefer': 'return=minimal'},
       ),

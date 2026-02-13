@@ -484,7 +484,16 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
       createdAt: DateTime.now(),
     );
 
-    await ref.read(userEventsProvider.notifier).addEvent(event);
+    // Construire l'establishmentId si le lieu est curate (dropdown)
+    String? establishmentId;
+    if (_selectedLieu != null && _selectedLieu != 'Autre') {
+      final modeName = _rubriqueToModeName[_selectedRubrique!]!;
+      establishmentId = '${modeName}_$_selectedLieu';
+    }
+
+    await ref
+        .read(userEventsProvider.notifier)
+        .addEvent(event, establishmentId: establishmentId);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -72,7 +72,12 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
   }
 
   /// Ajoute un événement : upload photo → insert Supabase → update state.
-  Future<void> addEvent(UserEvent event) async {
+  /// Si [establishmentId] est fourni, insère aussi dans establishment_events
+  /// pour déclencher les notifications aux likers du lieu.
+  Future<void> addEvent(
+    UserEvent event, {
+    String? establishmentId,
+  }) async {
     // 1. Upload de la photo si présente
     String? photoUrl;
     if (event.photoPath != null && event.photoPath!.isNotEmpty) {
@@ -87,9 +92,12 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
     // 2. Mettre à jour l'event avec l'URL de la photo
     final eventWithUrl = event.copyWith(photoUrl: photoUrl);
 
-    // 3. Insérer dans Supabase
+    // 3. Insérer dans Supabase (+ establishment_events si lieu curate)
     try {
-      await _supabase.insertEvent(eventWithUrl);
+      await _supabase.insertEvent(
+        eventWithUrl,
+        establishmentId: establishmentId,
+      );
       debugPrint('[UserEvents] insert Supabase OK');
     } catch (e) {
       debugPrint('[UserEvents] insert Supabase FAILED: $e');
