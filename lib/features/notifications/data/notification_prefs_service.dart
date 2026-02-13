@@ -6,13 +6,13 @@ import 'package:pulz_app/core/services/user_identity_service.dart';
 
 class NotificationPrefs {
   final bool enabled;
-  final bool remind2d;
+  final bool remind15d;
   final bool remind1d;
   final bool remind1h;
 
   const NotificationPrefs({
     this.enabled = true,
-    this.remind2d = true,
+    this.remind15d = true,
     this.remind1d = true,
     this.remind1h = true,
   });
@@ -20,7 +20,7 @@ class NotificationPrefs {
   factory NotificationPrefs.fromJson(Map<String, dynamic> json) {
     return NotificationPrefs(
       enabled: json['enabled'] as bool? ?? true,
-      remind2d: json['remind_2d'] as bool? ?? true,
+      remind15d: json['remind_15d'] as bool? ?? true,
       remind1d: json['remind_1d'] as bool? ?? true,
       remind1h: json['remind_1h'] as bool? ?? true,
     );
@@ -28,13 +28,13 @@ class NotificationPrefs {
 
   NotificationPrefs copyWith({
     bool? enabled,
-    bool? remind2d,
+    bool? remind15d,
     bool? remind1d,
     bool? remind1h,
   }) {
     return NotificationPrefs(
       enabled: enabled ?? this.enabled,
-      remind2d: remind2d ?? this.remind2d,
+      remind15d: remind15d ?? this.remind15d,
       remind1d: remind1d ?? this.remind1d,
       remind1h: remind1h ?? this.remind1h,
     );
@@ -73,7 +73,7 @@ class NotificationPrefsService {
       data: {
         'user_id': userId,
         'enabled': prefs.enabled,
-        'remind_2d': prefs.remind2d,
+        'remind_15d': prefs.remind15d,
         'remind_1d': prefs.remind1d,
         'remind_1h': prefs.remind1h,
         'updated_at': DateTime.now().toUtc().toIso8601String(),

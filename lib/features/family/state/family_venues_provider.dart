@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/family/data/animal_park_venues_data.dart';
 import 'package:pulz_app/features/family/data/bowling_venues_data.dart';
@@ -15,9 +17,32 @@ import 'package:pulz_app/core/database/app_database.dart';
 
 final familyCategoryProvider = StateProvider<String?>((ref) => null);
 
+/// Evenements utilisateur filtres pour la rubrique "family".
+final familyUserEventsProvider = Provider<List<Event>>((ref) {
+  final city = ref.watch(selectedCityProvider);
+  final allUserEvents = ref.watch(userEventsProvider);
+  return allUserEvents
+      .where((ue) =>
+          ue.rubrique == 'family' &&
+          ue.ville.toLowerCase() == city.toLowerCase())
+      .map((ue) => ue.toEvent())
+      .toList();
+});
+
+int _familyUserCount(List<Event> events, String searchTag) {
+  if (searchTag == 'Cette Semaine') return events.length;
+  return events.where((e) {
+    final cat = e.categorie.toLowerCase();
+    final tag = searchTag.toLowerCase();
+    return cat.contains(tag) || tag.contains(cat);
+  }).length;
+}
+
 final familyCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
   final city = ref.watch(selectedCityProvider);
+  final userEvents = ref.watch(familyUserEventsProvider);
+  final uc = _familyUserCount(userEvents, searchTag);
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);
   if (searchTag == 'Cette Semaine') {
@@ -29,34 +54,34 @@ final familyCategoryCountProvider =
       final venues = await repository.searchByVille(ville: city, query: tag);
       total += venues.length;
     }
-    return total;
+    return total + uc;
   }
   if (searchTag == "Parc d'attractions") {
-    return ParkVenuesData.venues.length;
+    return ParkVenuesData.venues.length + uc;
   }
   if (searchTag == 'Parc animalier') {
-    return AnimalParkVenuesData.venues.length;
+    return AnimalParkVenuesData.venues.length + uc;
   }
   if (searchTag == 'Cinema') {
-    return CinemaVenuesData.venues.length;
+    return CinemaVenuesData.venues.length + uc;
   }
   if (searchTag == 'Bowling') {
-    return BowlingVenuesData.venues.length;
+    return BowlingVenuesData.venues.length + uc;
   }
   if (searchTag == 'Laser game') {
-    return LaserGameVenuesData.venues.length;
+    return LaserGameVenuesData.venues.length + uc;
   }
   if (searchTag == 'Escape game') {
-    return EscapeGameVenuesData.venues.length;
+    return EscapeGameVenuesData.venues.length + uc;
   }
   if (searchTag == 'Restaurant familial') {
-    return FamilyRestaurantVenuesData.venues.length;
+    return FamilyRestaurantVenuesData.venues.length + uc;
   }
   if (searchTag == 'Aire de jeux') {
-    return PlaygroundVenuesData.venues.length;
+    return PlaygroundVenuesData.venues.length + uc;
   }
   final venues = await repository.searchByVille(ville: city, query: searchTag);
-  return venues.length;
+  return venues.length + uc;
 });
 
 final familyVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {

@@ -14,28 +14,42 @@ const _curatedTags = {'Bar de nuit', 'Bar a cocktails', 'Pub', 'Club Discotheque
 
 /// Evenements utilisateur filtres pour la rubrique "night".
 final nightUserEventsProvider = Provider<List<Event>>((ref) {
+  final city = ref.watch(selectedCityProvider);
   final allUserEvents = ref.watch(userEventsProvider);
   return allUserEvents
-      .where((ue) => ue.rubrique == 'night')
+      .where((ue) =>
+          ue.rubrique == 'night' &&
+          ue.ville.toLowerCase() == city.toLowerCase())
       .map((ue) => ue.toEvent())
       .toList();
 });
 
+int _nightUserCount(List<Event> events, String searchTag) {
+  if (searchTag == 'Cette Semaine') return events.length;
+  return events.where((e) {
+    final cat = e.categorie.toLowerCase();
+    final tag = searchTag.toLowerCase();
+    return cat.contains(tag) || tag.contains(cat);
+  }).length;
+}
+
 final nightCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
+  final userEvents = ref.watch(nightUserEventsProvider);
+  final uc = _nightUserCount(userEvents, searchTag);
   if (searchTag == 'Cette Semaine') {
-    return ref.watch(nightUserEventsProvider).length;
+    return uc;
   }
   if (_curatedTags.contains(searchTag)) {
     return NightBarsData.toulouseBars
         .where((b) => b.categorie == searchTag)
-        .length;
+        .length + uc;
   }
   final city = ref.watch(selectedCityProvider);
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);
   final venues = await repository.searchByVille(ville: city, query: searchTag);
-  return venues.length;
+  return venues.length + uc;
 });
 
 final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {

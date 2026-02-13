@@ -13,9 +13,22 @@ import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 
 final cultureCategoryProvider = StateProvider<String?>((ref) => null);
+
+/// Evenements utilisateur filtres pour la rubrique "culture".
+final cultureUserEventsProvider = Provider<List<Event>>((ref) {
+  final city = ref.watch(selectedCityProvider);
+  final allUserEvents = ref.watch(userEventsProvider);
+  return allUserEvents
+      .where((ue) =>
+          ue.rubrique == 'culture' &&
+          ue.ville.toLowerCase() == city.toLowerCase())
+      .map((ue) => ue.toEvent())
+      .toList();
+});
 
 final cultureMuseumEventsProvider = FutureProvider<List<Event>>((ref) async {
   return MuseumEventsToulouseService().fetchUpcomingMuseumEvents();
@@ -53,21 +66,36 @@ final cultureCategoryCountProvider =
   }
   if (searchTag == 'Visites guidees') {
     final events = await ref.watch(cultureGuidedToursProvider.future);
-    return events.length;
+    final uc = ref.watch(cultureUserEventsProvider).where((e) {
+      final cat = e.categorie.toLowerCase();
+      return cat.contains('visite');
+    }).length;
+    return events.length + uc;
   }
   if (searchTag == 'Exposition') {
     final events = await ref.watch(cultureMeettEventsProvider.future);
-    return events.length;
+    final uc = ref.watch(cultureUserEventsProvider).where((e) {
+      final cat = e.categorie.toLowerCase();
+      return cat.contains('expo');
+    }).length;
+    return events.length + uc;
   }
   if (searchTag == 'Cette Semaine') {
     final events = await ref.watch(cultureMuseumEventsProvider.future);
-    return events.where(_isKnownCultureCategory).length;
+    final userCount = ref.watch(cultureUserEventsProvider).length;
+    return events.where(_isKnownCultureCategory).length + userCount;
   }
+  // Ajouter les user events pour cette sous-categorie
+  final userCount = ref.watch(cultureUserEventsProvider).where((e) {
+    final cat = e.categorie.toLowerCase();
+    final tag = searchTag.toLowerCase();
+    return cat.contains(tag) || tag.contains(cat);
+  }).length;
   final city = ref.watch(selectedCityProvider);
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);
   final venues = await repository.searchByVille(ville: city, query: searchTag);
-  return venues.length;
+  return venues.length + userCount;
 });
 
 final cultureVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {

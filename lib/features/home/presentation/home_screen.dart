@@ -10,6 +10,9 @@ import 'package:pulz_app/features/home/presentation/widgets/ad_banner_marquee.da
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -159,7 +162,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => _showAddEvent(context),
+                          onTap: () => _showAddEvent(context, ref),
                           child: _buildHeaderButton('Ajouter', const Color(0xFF7B2D8E)),
                         ),
                       ],
@@ -326,10 +329,45 @@ class HomeScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: const Text(
-          'Toi aussi rajoute un évènement dans ta ville en utilisant le bouton Ajouter \u{1F60A}',
+        title: const Text(
+          'Bon à savoir \u{1F4A1}',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, height: 1.4),
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF4A1259),
+          ),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('—  ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF7B2D8E))),
+                Flexible(
+                  child: Text(
+                    'Rajoute un évènement dans ta ville avec le bouton Ajouter \u{1F60A}',
+                    style: TextStyle(fontSize: 14, height: 1.5),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('—  ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF7B2D8E))),
+                Flexible(
+                  child: Text(
+                    'Like les évènements avec le \u{2764}\u{FE0F} et reçois les notifications de rappel !',
+                    style: TextStyle(fontSize: 14, height: 1.5),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -350,13 +388,34 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddEvent(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const AddEventBottomSheet(),
-    );
+  void _showAddEvent(BuildContext context, WidgetRef ref) {
+    final status = ref.read(proAuthProvider).status;
+
+    switch (status) {
+      case ProAuthStatus.approved:
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const AddEventBottomSheet(),
+        );
+      case ProAuthStatus.pendingApproval:
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const ProPendingSheet(),
+        );
+      case ProAuthStatus.notConnected:
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const ProLoginSheet(),
+        );
+      case ProAuthStatus.loading:
+        break;
+    }
   }
 
   void _showLikedPlaces(BuildContext context) {

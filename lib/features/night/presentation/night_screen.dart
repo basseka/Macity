@@ -151,19 +151,32 @@ class NightScreen extends ConsumerWidget {
               ? _buildUserEventsList(ref)
               : venuesAsync.when(
                   data: (venues) {
-                    if (venues.isEmpty) {
+                    // Filter matching user events for this subcategory
+                    final matchingEvents = ref.watch(nightUserEventsProvider).where((e) {
+                      final cat = e.categorie.toLowerCase();
+                      final tag = category.toLowerCase();
+                      return cat.contains(tag) || tag.contains(cat);
+                    }).toList();
+
+                    if (venues.isEmpty && matchingEvents.isEmpty) {
                       return const EmptyStateWidget(
                         message: 'Aucun commerce trouve pour cette categorie',
                         icon: Icons.nightlife,
                       );
                     }
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: venues.length,
-                      itemBuilder: (context, index) => Padding(
+                    final items = <Widget>[
+                      ...matchingEvents.map((e) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: CommerceRowCard(commerce: venues[index]),
-                      ),
+                        child: EventRowCard(event: e),
+                      )),
+                      ...venues.map((v) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CommerceRowCard(commerce: v),
+                      )),
+                    ];
+                    return ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: items,
                     );
                   },
                   loading: () =>

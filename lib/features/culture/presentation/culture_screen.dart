@@ -430,15 +430,16 @@ class CultureScreen extends ConsumerWidget {
 
   Widget _buildMuseumEventsList(WidgetRef ref, ModeTheme modeTheme) {
     final eventsAsync = ref.watch(cultureMuseumEventsProvider);
+    final userEvents = ref.watch(cultureUserEventsProvider);
     return eventsAsync.when(
       data: (events) {
-        if (events.isEmpty) {
+        if (events.isEmpty && userEvents.isEmpty) {
           return const EmptyStateWidget(
             message: 'Aucun evenement musee a venir',
             icon: Icons.museum,
           );
         }
-        return _buildGroupedCultureEventsList(events, modeTheme);
+        return _buildGroupedCultureEventsList([...userEvents, ...events], modeTheme);
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(

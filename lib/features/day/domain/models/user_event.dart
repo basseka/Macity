@@ -1,4 +1,5 @@
 import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
 
 class UserEvent {
   final String id;
@@ -133,6 +134,20 @@ class UserEvent {
 
   /// Retourne l'image à utiliser : URL distante prioritaire, sinon chemin local.
   String? get resolvedPhoto => photoUrl ?? photoPath;
+
+  /// Convert to [SupabaseMatch] for display in the sport screen.
+  SupabaseMatch toSupabaseMatch() => SupabaseMatch(
+        id: createdAt.millisecondsSinceEpoch,
+        sport: categorie,
+        competition: '',
+        equipe1: titre,
+        equipe2: '',
+        date: date,
+        heure: heure,
+        lieu: lieuNom,
+        ville: ville,
+        description: description,
+      );
 
   /// Convert to [Event] for unified display in the events list.
   Event toEvent() => Event(

@@ -193,6 +193,8 @@ function formatBody(n: QueueRow): string {
     minute: "2-digit",
   });
   switch (n.type) {
+    case "15_days":
+      return `Dans 15 jours — ${formatted}`;
     case "2_days":
       return `Dans 2 jours — ${formatted}`;
     case "1_day":

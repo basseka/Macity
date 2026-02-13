@@ -9,6 +9,7 @@ import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.
 import 'package:pulz_app/features/gaming/data/gaming_category_data.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/gaming/state/gaming_venues_provider.dart';
 
 
@@ -180,7 +181,7 @@ class GamingScreen extends ConsumerWidget {
   Widget _buildGroupedVenues(WidgetRef ref, ModeTheme modeTheme) {
     final groupedAsync = ref.watch(gamingGroupedVenuesProvider);
     return groupedAsync.when(
-      data: (grouped) => _buildGroupedVenuesList(grouped, modeTheme),
+      data: (grouped) => _buildGroupedVenuesList(grouped, modeTheme, ref),
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
         message: 'Erreur lors du chargement des lieux',
@@ -192,12 +193,61 @@ class GamingScreen extends ConsumerWidget {
   Widget _buildGroupedVenuesList(
     Map<String, List<CommerceModel>> grouped,
     ModeTheme modeTheme,
+    WidgetRef ref,
   ) {
     final subcategories = GamingCategoryData.allSubcategories
         .where((s) => s.searchTag != 'Cette Semaine')
         .toList();
+    final userEvents = ref.watch(gamingUserEventsProvider);
 
     final items = <Widget>[];
+
+    if (userEvents.isNotEmpty) {
+      items.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          child: Row(
+            children: [
+              const Text('\uD83D\uDCC5', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Text(
+                'Evenements',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: modeTheme.primaryDarkColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${userEvents.length}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: modeTheme.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      for (final event in userEvents) {
+        items.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+            child: EventRowCard(event: event),
+          ),
+        );
+      }
+    }
+
     for (final sub in subcategories) {
       final venues = grouped[sub.searchTag] ?? [];
       items.add(

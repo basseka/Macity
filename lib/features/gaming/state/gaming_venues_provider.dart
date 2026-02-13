@@ -2,14 +2,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/gaming/data/gaming_category_data.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 
 final gamingCategoryProvider = StateProvider<String?>((ref) => null);
 
+/// Evenements utilisateur filtres pour la rubrique "gaming".
+final gamingUserEventsProvider = Provider<List<Event>>((ref) {
+  final city = ref.watch(selectedCityProvider);
+  final allUserEvents = ref.watch(userEventsProvider);
+  return allUserEvents
+      .where((ue) =>
+          ue.rubrique == 'gaming' &&
+          ue.ville.toLowerCase() == city.toLowerCase())
+      .map((ue) => ue.toEvent())
+      .toList();
+});
+
+int _gamingUserCount(List<Event> events, String searchTag) {
+  if (searchTag == 'Cette Semaine') return events.length;
+  return events.where((e) {
+    final cat = e.categorie.toLowerCase();
+    final tag = searchTag.toLowerCase();
+    return cat.contains(tag) || tag.contains(cat);
+  }).length;
+}
+
 final gamingCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
   final city = ref.watch(selectedCityProvider);
+  final userEvents = ref.watch(gamingUserEventsProvider);
+  final uc = _gamingUserCount(userEvents, searchTag);
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);
   if (searchTag == 'Cette Semaine') {
@@ -21,10 +46,10 @@ final gamingCategoryCountProvider =
       final venues = await repository.searchByVille(ville: city, query: tag);
       total += venues.length;
     }
-    return total;
+    return total + uc;
   }
   final venues = await repository.searchByVille(ville: city, query: searchTag);
-  return venues.length;
+  return venues.length + uc;
 });
 
 final gamingVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {

@@ -23,8 +23,8 @@ class NotificationPrefsNotifier extends StateNotifier<NotificationPrefs> {
     await _save();
   }
 
-  Future<void> setRemind2d(bool value) async {
-    state = state.copyWith(remind2d: value);
+  Future<void> setRemind15d(bool value) async {
+    state = state.copyWith(remind15d: value);
     await _save();
   }
 
