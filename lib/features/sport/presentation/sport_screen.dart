@@ -25,21 +25,6 @@ class SportScreen extends ConsumerWidget {
     return Column(
       children: [
 
-        // Subtitle
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              modeTheme.subtitleString,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ),
-
         const SizedBox(height: 12),
 
         Expanded(

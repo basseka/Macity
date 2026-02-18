@@ -8,7 +8,7 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/presentation/widgets/swipe_detector.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
-import 'package:pulz_app/features/home/presentation/widgets/ad_banner_marquee.dart';
+import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -154,9 +154,6 @@ class ModeShell extends ConsumerWidget {
               ),
             ),
 
-            // Ad banner
-            const AdBannerMarquee(),
-
             // Mode header: back + arrows + title + dots
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -251,6 +248,9 @@ class ModeShell extends ConsumerWidget {
                 ],
               ),
             ),
+
+            // Video banner
+            const ModeVideoBanner(),
 
             // Child content (mode screen)
             Expanded(child: child),

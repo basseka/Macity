@@ -24,20 +24,6 @@ class GamingScreen extends ConsumerWidget {
     return Column(
       children: [
 
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              modeTheme.subtitleString,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ),
-
         const SizedBox(height: 12),
 
         Expanded(

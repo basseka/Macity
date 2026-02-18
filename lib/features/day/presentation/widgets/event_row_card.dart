@@ -128,13 +128,14 @@ class EventRowCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: 125,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Pochette a gauche ──
             SizedBox(
-              width: 110,
+              width: 95,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -201,7 +202,7 @@ class EventRowCard extends ConsumerWidget {
             // ── Infos a droite ──
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -209,14 +210,14 @@ class EventRowCard extends ConsumerWidget {
                     Text(
                       event.titre,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
 
                     // Date
                     if (event.dateDebut.isNotEmpty)
@@ -231,20 +232,10 @@ class EventRowCard extends ConsumerWidget {
 
                     // Lieu
                     if (event.lieuNom.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       _buildInfoRow(
                         Icons.location_on_outlined,
                         event.lieuNom,
-                        modeTheme.primaryColor,
-                      ),
-                    ],
-
-                    // Horaires
-                    if (event.horaires.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      _buildInfoRow(
-                        Icons.access_time,
-                        event.horaires,
                         modeTheme.primaryColor,
                       ),
                     ],
@@ -261,29 +252,29 @@ class EventRowCard extends ConsumerWidget {
                             onTap: () => _openUrl(event.reservationUrl),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 6,
+                                vertical: 3,
                               ),
                               decoration: BoxDecoration(
                                 border: Border.all(
                                   color: modeTheme.primaryColor,
                                   width: 1,
                                 ),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.confirmation_number_outlined,
-                                    size: 12,
+                                    size: 11,
                                     color: modeTheme.primaryColor,
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 3),
                                   Text(
                                     'Billetterie',
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.w600,
                                       color: modeTheme.primaryColor,
                                     ),
@@ -303,17 +294,17 @@ class EventRowCard extends ConsumerWidget {
                           child: Icon(
                             isLiked ? Icons.favorite : Icons.favorite_border,
                             color: isLiked ? Colors.red : Colors.grey.shade400,
-                            size: 20,
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 8),
                         // Share
                         GestureDetector(
                           onTap: () => _shareEvent(),
                           child: Icon(
                             Icons.share_outlined,
                             color: Colors.grey.shade400,
-                            size: 20,
+                            size: 18,
                           ),
                         ),
                       ],
