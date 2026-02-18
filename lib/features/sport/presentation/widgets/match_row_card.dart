@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
 
 /// Carte match en ligne : image sport a gauche, infos a droite.
@@ -75,7 +76,9 @@ class MatchRowCard extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final image = _resolveImage();
 
-    return Card(
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
@@ -83,7 +86,7 @@ class MatchRowCard extends ConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
-        height: 125,
+        height: 85,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -173,13 +176,13 @@ class MatchRowCard extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
 
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
 
                     // Equipes
                     Text(
                       '${match.equipe1}  vs  ${match.equipe2}',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),
@@ -187,7 +190,7 @@ class MatchRowCard extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
 
                     // Date & heure
                     if (match.date.isNotEmpty)
@@ -199,62 +202,6 @@ class MatchRowCard extends ConsumerWidget {
                         modeTheme.primaryColor,
                       ),
 
-                    // Lieu
-                    if (match.lieu.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      _buildInfoRow(
-                        Icons.location_on_outlined,
-                        match.lieu,
-                        modeTheme.primaryColor,
-                      ),
-                    ],
-
-                    const Spacer(),
-
-                    // Billetterie
-                    if (match.billetterie.isNotEmpty)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () async {
-                            final uri = Uri.parse(match.billetterie);
-                            if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri, mode: LaunchMode.externalApplication);
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
-                              ),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.confirmation_number_outlined,
-                                  size: 11,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 3),
-                                Text(
-                                  'Billetterie',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -262,7 +209,59 @@ class MatchRowCard extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
+  }
+
+  void _openDetail(BuildContext context) {
+    final image = _resolveImage();
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: '${match.equipe1}  vs  ${match.equipe2}',
+        emoji: _sportEmoji(),
+        imageAsset: image,
+        infos: [
+          if (match.sport.isNotEmpty)
+            DetailInfoItem(Icons.sports, match.sport),
+          if (match.competition.isNotEmpty)
+            DetailInfoItem(Icons.emoji_events_outlined, match.competition),
+          if (match.date.isNotEmpty)
+            DetailInfoItem(
+              Icons.calendar_today,
+              match.heure.isNotEmpty
+                  ? '${_formatDate(match.date)} - ${match.heure}'
+                  : _formatDate(match.date),
+            ),
+          if (match.lieu.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, match.lieu),
+          if (match.ville.isNotEmpty)
+            DetailInfoItem(Icons.location_city, match.ville),
+          if (match.description.isNotEmpty)
+            DetailInfoItem(Icons.info_outline, match.description),
+          if (match.gratuit.toLowerCase() == 'oui')
+            DetailInfoItem(Icons.money_off, 'Gratuit'),
+        ],
+        primaryAction: match.billetterie.isNotEmpty
+            ? DetailAction(
+                icon: Icons.confirmation_number_outlined,
+                label: 'Billetterie',
+                url: match.billetterie,
+              )
+            : null,
+        shareText: _buildShareText(),
+      ),
+    );
+  }
+
+  String _buildShareText() {
+    final buffer = StringBuffer();
+    buffer.writeln('${match.equipe1} vs ${match.equipe2}');
+    if (match.competition.isNotEmpty) buffer.writeln(match.competition);
+    if (match.date.isNotEmpty) buffer.writeln('Date: ${match.date}');
+    if (match.lieu.isNotEmpty) buffer.writeln('Lieu: ${match.lieu}');
+    buffer.writeln('\nDecouvre sur MaCity');
+    return buffer.toString();
   }
 
   String _formatDate(String raw) {

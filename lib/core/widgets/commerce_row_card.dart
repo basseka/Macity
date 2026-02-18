@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -73,20 +74,23 @@ class CommerceRowCard extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final image = _resolveImage();
 
-    return Card(
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: 80,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Image a gauche ──
             SizedBox(
-              width: 115,
+              width: 90,
               child: image != null
                   ? Stack(
                       fit: StackFit.expand,
@@ -161,7 +165,7 @@ class CommerceRowCard extends ConsumerWidget {
                         children: [
                           Text(
                             commerce.categoryEmoji,
-                            style: const TextStyle(fontSize: 28),
+                            style: const TextStyle(fontSize: 22),
                           ),
                           const SizedBox(height: 4),
                           Container(
@@ -192,37 +196,21 @@ class CommerceRowCard extends ConsumerWidget {
             // ── Infos a droite ──
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Nom
                     Text(
                       commerce.nom,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-
-                    // Categorie
-                    Text(
-                      commerce.categorie,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: modeTheme.primaryColor,
-                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
-
-                    // Horaires
+                    const SizedBox(height: 2),
                     if (commerce.horaires.isNotEmpty)
                       _buildInfoRow(
                         Icons.access_time,
@@ -230,79 +218,14 @@ class CommerceRowCard extends ConsumerWidget {
                         modeTheme.primaryColor,
                       ),
 
-                    // Adresse
-                    if (commerce.adresse.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      _buildInfoRow(
-                        Icons.location_on_outlined,
-                        commerce.adresse,
-                        modeTheme.primaryColor,
-                      ),
-                    ],
-
-                    // Telephone (cliquable)
-                    if (commerce.telephone.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      GestureDetector(
-                        onTap: () async {
-                          final cleaned = commerce.telephone.replaceAll(' ', '');
-                          final uri = Uri(scheme: 'tel', path: cleaned);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri);
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            Icon(Icons.phone, size: 13, color: modeTheme.primaryColor),
-                            const SizedBox(width: 6),
-                            Text(
-                              commerce.telephone,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: modeTheme.primaryColor,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
                     const Spacer(),
 
                     // Actions
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        if (commerce.lienMaps.isNotEmpty)
-                          _buildActionIcon(
-                            Icons.map_outlined,
-                            modeTheme.primaryColor,
-                            () async {
-                              final uri = Uri.parse(commerce.lienMaps);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri, mode: LaunchMode.externalApplication);
-                              }
-                            },
-                          ),
-                        if (commerce.telephone.isNotEmpty) ...[
-                          const SizedBox(width: 12),
-                          _buildActionIcon(
-                            Icons.phone_outlined,
-                            modeTheme.primaryColor,
-                            () async {
-                              final cleaned = commerce.telephone.replaceAll(' ', '');
-                              final uri = Uri(scheme: 'tel', path: cleaned);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri);
-                              }
-                            },
-                          ),
-                        ],
-                        const Spacer(),
                         _buildLikeIcon(ref),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         _buildActionIcon(
                           Icons.share_outlined,
                           Colors.grey.shade400,
@@ -325,7 +248,64 @@ class CommerceRowCard extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
+  }
+
+  void _openDetail(BuildContext context) {
+    final image = _resolveImage();
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: commerce.nom,
+        emoji: commerce.categoryEmoji,
+        imageAsset: image,
+        likeId: 'night_${commerce.nom}',
+        infos: [
+          if (commerce.categorie.isNotEmpty)
+            DetailInfoItem(Icons.category_outlined, commerce.categorie),
+          if (commerce.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, commerce.horaires),
+          if (commerce.adresse.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, commerce.adresse),
+          if (commerce.telephone.isNotEmpty)
+            DetailInfoItem(Icons.phone_outlined, commerce.telephone),
+        ],
+        primaryAction: commerce.siteWeb.isNotEmpty
+            ? DetailAction(
+                icon: Icons.language,
+                label: 'Site web',
+                url: commerce.siteWeb,
+              )
+            : null,
+        secondaryActions: [
+          if (commerce.lienMaps.isNotEmpty)
+            DetailAction(
+              icon: Icons.map_outlined,
+              label: 'Maps',
+              url: commerce.lienMaps,
+            ),
+          if (commerce.telephone.isNotEmpty)
+            DetailAction(
+              icon: Icons.phone_outlined,
+              label: 'Appeler',
+              url: 'tel:${commerce.telephone.replaceAll(' ', '')}',
+            ),
+        ],
+        shareText: _buildShareText(),
+      ),
+    );
+  }
+
+  String _buildShareText() {
+    final buffer = StringBuffer();
+    buffer.writeln(commerce.nom);
+    if (commerce.adresse.isNotEmpty) buffer.writeln(commerce.adresse);
+    if (commerce.horaires.isNotEmpty) {
+      buffer.writeln('Horaires: ${commerce.horaires}');
+    }
+    buffer.writeln('\nDecouvre sur MaCity');
+    return buffer.toString();
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {
@@ -355,7 +335,7 @@ class CommerceRowCard extends ConsumerWidget {
       onTap: () => ref.read(likesProvider.notifier).toggle(likeId),
       child: Icon(
         isLiked ? Icons.favorite : Icons.favorite_border,
-        size: 20,
+        size: 16,
         color: isLiked ? Colors.red : Colors.grey.shade400,
       ),
     );
@@ -364,7 +344,7 @@ class CommerceRowCard extends ConsumerWidget {
   Widget _buildActionIcon(IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Icon(icon, size: 20, color: color),
+      child: Icon(icon, size: 16, color: color),
     );
   }
 }

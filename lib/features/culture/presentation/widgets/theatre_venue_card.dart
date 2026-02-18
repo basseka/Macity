@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 
 class TheatreVenueCard extends ConsumerWidget {
   final TheatreVenue theatre;
@@ -14,20 +15,23 @@ class TheatreVenueCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
 
-    return Card(
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: 80,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Pochette a gauche ──
             SizedBox(
-              width: 110,
+              width: 90,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -91,96 +95,51 @@ class TheatreVenueCard extends ConsumerWidget {
             // ── Infos a droite ──
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       theatre.name,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
 
-                    _buildInfoRow(
-                      Icons.location_on_outlined,
-                      theatre.city,
-                      modeTheme.primaryColor,
-                    ),
-
-                    if (theatre.description.isNotEmpty) ...[
-                      const SizedBox(height: 3),
+                    if (theatre.horaires.isNotEmpty)
                       _buildInfoRow(
-                        Icons.info_outline,
-                        theatre.description,
+                        Icons.access_time,
+                        theatre.horaires,
                         modeTheme.primaryColor,
                       ),
-                    ],
 
                     const Spacer(),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        if (theatre.hasOnlineTicket && theatre.ticketUrl != null)
-                          GestureDetector(
-                            onTap: () => _openUrl(theatre.ticketUrl!),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: modeTheme.primaryColor,
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.confirmation_number_outlined,
-                                    size: 12,
-                                    color: modeTheme.primaryColor,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Billetterie',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: modeTheme.primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        const Spacer(),
                         if (theatre.websiteUrl != null)
                           GestureDetector(
                             onTap: () => _openUrl(theatre.websiteUrl!),
                             child: Icon(
                               Icons.language,
                               color: modeTheme.primaryColor,
-                              size: 20,
+                              size: 16,
                             ),
                           ),
                         if (theatre.websiteUrl != null)
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _share(),
                           child: Icon(
                             Icons.share_outlined,
                             color: Colors.grey.shade400,
-                            size: 20,
+                            size: 16,
                           ),
                         ),
                       ],
@@ -191,6 +150,30 @@ class TheatreVenueCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: theatre.name,
+        emoji: '\uD83C\uDFAD',
+        imageAsset: theatre.image,
+        infos: [
+          if (theatre.description.isNotEmpty)
+            DetailInfoItem(Icons.info_outline, theatre.description),
+          if (theatre.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, theatre.horaires),
+          if (theatre.city.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, theatre.city),
+        ],
+        primaryAction: theatre.websiteUrl != null
+            ? DetailAction(icon: Icons.language, label: 'Site web', url: theatre.websiteUrl!)
+            : null,
+        shareText: '${theatre.name}\n${theatre.description}\n${theatre.city}\n${theatre.websiteUrl ?? ''}\n\nDecouvre sur MaCity',
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -121,7 +122,9 @@ class EventRowCard extends ConsumerWidget {
     final isLiked = likes.contains(event.identifiant);
     final pochette = _resolveImage();
 
-    return Card(
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
@@ -129,7 +132,7 @@ class EventRowCard extends ConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
-        height: 125,
+        height: 80,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -210,14 +213,14 @@ class EventRowCard extends ConsumerWidget {
                     Text(
                       event.titre,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
 
                     // Date
                     if (event.dateDebut.isNotEmpty)
@@ -230,61 +233,12 @@ class EventRowCard extends ConsumerWidget {
                         modeTheme.primaryColor,
                       ),
 
-                    // Lieu
-                    if (event.lieuNom.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      _buildInfoRow(
-                        Icons.location_on_outlined,
-                        event.lieuNom,
-                        modeTheme.primaryColor,
-                      ),
-                    ],
-
                     const Spacer(),
 
-                    // Actions row
+                    // Like + Share
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Billetterie
-                        if (event.reservationUrl.isNotEmpty)
-                          GestureDetector(
-                            onTap: () => _openUrl(event.reservationUrl),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: modeTheme.primaryColor,
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.confirmation_number_outlined,
-                                    size: 11,
-                                    color: modeTheme.primaryColor,
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    'Billetterie',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w600,
-                                      color: modeTheme.primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        const Spacer(),
-                        // Like
                         GestureDetector(
                           onTap: () {
                             ref
@@ -294,17 +248,16 @@ class EventRowCard extends ConsumerWidget {
                           child: Icon(
                             isLiked ? Icons.favorite : Icons.favorite_border,
                             color: isLiked ? Colors.red : Colors.grey.shade400,
-                            size: 18,
+                            size: 16,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Share
                         GestureDetector(
                           onTap: () => _shareEvent(),
                           child: Icon(
                             Icons.share_outlined,
                             color: Colors.grey.shade400,
-                            size: 18,
+                            size: 16,
                           ),
                         ),
                       ],
@@ -316,7 +269,56 @@ class EventRowCard extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
+  }
+
+  void _openDetail(BuildContext context) {
+    final image = _resolveImage();
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: event.titre,
+        emoji: event.categoryEmoji,
+        imageAsset: image,
+        likeId: event.identifiant,
+        infos: [
+          if (event.categorie.isNotEmpty)
+            DetailInfoItem(Icons.category_outlined, event.categorie),
+          if (event.dateDebut.isNotEmpty)
+            DetailInfoItem(
+              Icons.calendar_today,
+              event.dateFin.isNotEmpty && event.dateFin != event.dateDebut
+                  ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
+                  : _formatDate(event.dateDebut),
+            ),
+          if (event.lieuNom.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, event.lieuNom),
+          if (event.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, event.horaires),
+          if (event.tarifNormal.isNotEmpty)
+            DetailInfoItem(Icons.euro_outlined, event.tarifNormal),
+        ],
+        primaryAction: event.reservationUrl.isNotEmpty
+            ? DetailAction(
+                icon: Icons.confirmation_number_outlined,
+                label: 'Billetterie',
+                url: event.reservationUrl,
+              )
+            : null,
+        shareText: _buildShareText(),
+      ),
+    );
+  }
+
+  String _buildShareText() {
+    final buffer = StringBuffer();
+    buffer.writeln(event.titre);
+    if (event.dateDebut.isNotEmpty) buffer.writeln('Date: ${event.dateDebut}');
+    if (event.lieuNom.isNotEmpty) buffer.writeln('Lieu: ${event.lieuNom}');
+    if (event.isFree) buffer.writeln('Gratuit !');
+    buffer.writeln('\nDecouvre sur MaCity');
+    return buffer.toString();
   }
 
   static const _defaultPochette = 'assets/images/pochette_concert.png';

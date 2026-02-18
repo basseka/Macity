@@ -71,6 +71,7 @@ class FamilyScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
+          blink: sub.label == 'Cette Semaine',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

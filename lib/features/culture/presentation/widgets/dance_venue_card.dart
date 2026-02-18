@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 
 class DanceVenueCard extends ConsumerWidget {
   final DanceVenue dance;
@@ -22,20 +23,23 @@ class DanceVenueCard extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final categoryLabel = _categoryLabels[dance.category] ?? dance.category;
 
-    return Card(
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: 80,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Pochette a gauche ──
             SizedBox(
-              width: 110,
+              width: 90,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -76,72 +80,51 @@ class DanceVenueCard extends ConsumerWidget {
             // ── Infos a droite ──
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       dance.name,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-
-                    Text(
-                      categoryLabel,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: modeTheme.primaryColor,
-                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
 
-                    _buildInfoRow(
-                      Icons.location_on_outlined,
-                      dance.city,
-                      modeTheme.primaryColor,
-                    ),
-
-                    if (dance.description.isNotEmpty) ...[
-                      const SizedBox(height: 3),
+                    if (dance.horaires.isNotEmpty)
                       _buildInfoRow(
-                        Icons.info_outline,
-                        dance.description,
+                        Icons.access_time,
+                        dance.horaires,
                         modeTheme.primaryColor,
                       ),
-                    ],
 
                     const Spacer(),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        const Spacer(),
                         if (dance.websiteUrl != null)
                           GestureDetector(
                             onTap: () => _openUrl(dance.websiteUrl!),
                             child: Icon(
                               Icons.language,
                               color: modeTheme.primaryColor,
-                              size: 20,
+                              size: 16,
                             ),
                           ),
                         if (dance.websiteUrl != null)
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _share(),
                           child: Icon(
                             Icons.share_outlined,
                             color: Colors.grey.shade400,
-                            size: 20,
+                            size: 16,
                           ),
                         ),
                       ],
@@ -152,6 +135,30 @@ class DanceVenueCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: dance.name,
+        emoji: '\uD83D\uDC83',
+        imageAsset: dance.image,
+        infos: [
+          if (dance.description.isNotEmpty)
+            DetailInfoItem(Icons.info_outline, dance.description),
+          if (dance.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, dance.horaires),
+          if (dance.city.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, dance.city),
+        ],
+        primaryAction: dance.websiteUrl != null
+            ? DetailAction(icon: Icons.language, label: 'Site web', url: dance.websiteUrl!)
+            : null,
+        shareText: '${dance.name}\n${dance.description}\n${dance.city}\n${dance.websiteUrl ?? ''}\n\nDecouvre sur MaCity',
       ),
     );
   }

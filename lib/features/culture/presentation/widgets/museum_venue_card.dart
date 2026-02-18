@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 
 class MuseumVenueCard extends ConsumerWidget {
   final MuseumVenue museum;
@@ -30,20 +31,23 @@ class MuseumVenueCard extends ConsumerWidget {
     final emoji = _categoryEmojis[museum.category] ?? '\uD83C\uDFDB\uFE0F';
     final categoryLabel = _categoryLabels[museum.category] ?? museum.category;
 
-    return Card(
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: 80,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Pochette a gauche ──
             SizedBox(
-              width: 110,
+              width: 90,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -110,7 +114,7 @@ class MuseumVenueCard extends ConsumerWidget {
             // ── Infos a droite ──
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -118,44 +122,22 @@ class MuseumVenueCard extends ConsumerWidget {
                     Text(
                       museum.name,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-
-                    // Categorie
-                    Text(
-                      categoryLabel,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: modeTheme.primaryColor,
-                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
 
-                    // Ville
-                    _buildInfoRow(
-                      Icons.location_on_outlined,
-                      museum.city,
-                      modeTheme.primaryColor,
-                    ),
-
-                    // Description
-                    if (museum.description.isNotEmpty) ...[
-                      const SizedBox(height: 3),
+                    // Horaires
+                    if (museum.horaires.isNotEmpty)
                       _buildInfoRow(
-                        Icons.info_outline,
-                        museum.description,
+                        Icons.access_time,
+                        museum.horaires,
                         modeTheme.primaryColor,
                       ),
-                    ],
 
                     const Spacer(),
 
@@ -163,61 +145,21 @@ class MuseumVenueCard extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        // Billetterie
-                        if (museum.hasOnlineTicket && museum.ticketUrl != null)
-                          GestureDetector(
-                            onTap: () => _openUrl(museum.ticketUrl!),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: modeTheme.primaryColor,
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.confirmation_number_outlined,
-                                    size: 12,
-                                    color: modeTheme.primaryColor,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Billetterie',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: modeTheme.primaryColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        const Spacer(),
-                        // Site web
                         GestureDetector(
                           onTap: () => _openUrl(museum.websiteUrl),
                           child: Icon(
                             Icons.language,
                             color: modeTheme.primaryColor,
-                            size: 20,
+                            size: 16,
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        // Share
+                        const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _share(),
                           child: Icon(
                             Icons.share_outlined,
                             color: Colors.grey.shade400,
-                            size: 20,
+                            size: 16,
                           ),
                         ),
                       ],
@@ -228,6 +170,30 @@ class MuseumVenueCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: museum.name,
+        emoji: _categoryEmojis[museum.category] ?? '\uD83C\uDFDB\uFE0F',
+        imageAsset: museum.image,
+        infos: [
+          if (museum.description.isNotEmpty)
+            DetailInfoItem(Icons.info_outline, museum.description),
+          if (museum.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, museum.horaires),
+          if (museum.city.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, museum.city),
+        ],
+        primaryAction: museum.websiteUrl.isNotEmpty
+            ? DetailAction(icon: Icons.language, label: 'Site web', url: museum.websiteUrl)
+            : null,
+        shareText: '${museum.name}\n${museum.description}\n${museum.city}\n${museum.websiteUrl}\n\nDecouvre sur MaCity',
       ),
     );
   }

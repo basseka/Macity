@@ -68,6 +68,7 @@ class CultureScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
+          blink: sub.label == 'Cette Semaine',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -216,148 +217,27 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildLibraryVenuesList(WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
     const libraries = LibraryVenuesData.venues;
-    final items = <Widget>[];
-
-    for (final group in LibraryVenuesData.groupOrder) {
-      final groupLibraries =
-          libraries.where((l) => l.group == group).toList();
-      // Section header
-      items.add(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-          child: Row(
-            children: [
-              Text(
-                group == 'Mediatheques centrales'
-                    ? '\uD83D\uDCDA'
-                    : '\uD83E\uDD13',
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  group,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${groupLibraries.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: modeTheme.primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-      for (final lib in groupLibraries) {
-        items.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-            child: LibraryVenueCard(library: lib),
-          ),
-        );
-      }
-    }
-
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
-      children: items,
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: libraries.length,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: LibraryVenueCard(library: libraries[index]),
+      ),
     );
   }
 
   Widget _buildMonumentVenuesList(WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
     const monuments = MonumentVenuesData.venues;
-    final items = <Widget>[];
-
-    for (final group in MonumentVenuesData.groupOrder) {
-      final groupMonuments =
-          monuments.where((m) => m.group == group).toList();
-      // Section header
-      items.add(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-          child: Row(
-            children: [
-              Text(
-                _monumentGroupEmoji(group),
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  group,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${groupMonuments.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: modeTheme.primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-      for (final monument in groupMonuments) {
-        items.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-            child: MonumentVenueCard(monument: monument),
-          ),
-        );
-      }
-    }
-
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
-      children: items,
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: monuments.length,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: MonumentVenueCard(monument: monuments[index]),
+      ),
     );
-  }
-
-  static String _monumentGroupEmoji(String group) {
-    switch (group) {
-      case 'Hotels particuliers':
-        return '\uD83C\uDFDB\uFE0F';
-      case 'Urbanisme & vestiges historiques':
-        return '\uD83C\uDFF0';
-      case 'Autres elements inscrits':
-        return '\u26EA';
-      default:
-        return '\uD83D\uDCCC';
-    }
   }
 
   Widget _buildGuidedToursList(WidgetRef ref, ModeTheme modeTheme) {

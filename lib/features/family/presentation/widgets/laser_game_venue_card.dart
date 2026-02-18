@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/family/data/laser_game_venues_data.dart';
 
 class LaserGameVenueCard extends ConsumerWidget {
@@ -14,128 +15,109 @@ class LaserGameVenueCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
 
-    return Card(
-      elevation: 2,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 90,
-              child: Container(
-                color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                alignment: Alignment.center,
-                child: const Text('\u{1F52B}', style: TextStyle(fontSize: 30)),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      venue.name,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      venue.description,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    _buildInfoRow(
-                      Icons.access_time,
-                      venue.horaires,
-                      modeTheme.primaryColor,
-                    ),
-                    const SizedBox(height: 3),
-                    _buildInfoRow(
-                      Icons.location_on_outlined,
-                      venue.adresse,
-                      modeTheme.primaryColor,
-                    ),
-                    if (venue.telephone.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      GestureDetector(
-                        onTap: () async {
-                          final cleaned = venue.telephone.replaceAll(' ', '');
-                          final uri = Uri(scheme: 'tel', path: cleaned);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri);
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            Icon(Icons.phone, size: 13, color: modeTheme.primaryColor),
-                            const SizedBox(width: 6),
-                            Text(
-                              venue.telephone,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: modeTheme.primaryColor,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        GestureDetector(
-                          onTap: () => _openUrl(venue.lienMaps),
-                          child: Icon(
-                            Icons.map_outlined,
-                            color: modeTheme.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        GestureDetector(
-                          onTap: () => _openUrl(venue.websiteUrl),
-                          child: Icon(
-                            Icons.language,
-                            color: modeTheme.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => _share(),
-                          child: Icon(
-                            Icons.share_outlined,
-                            color: Colors.grey.shade400,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
+        elevation: 2,
+        shadowColor: Colors.black12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          height: 80,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: 90,
+                child: Container(
+                  color: modeTheme.primaryColor.withValues(alpha: 0.08),
+                  alignment: Alignment.center,
+                  child: const Text('\u{1F52B}', style: TextStyle(fontSize: 30)),
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        venue.name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: modeTheme.primaryDarkColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+
+                      _buildInfoRow(
+                        Icons.access_time,
+                        venue.horaires,
+                        modeTheme.primaryColor,
+                      ),
+
+                      const Spacer(),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _openUrl(venue.websiteUrl),
+                            child: Icon(
+                              Icons.language,
+                              color: modeTheme.primaryColor,
+                              size: 16,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => _share(),
+                            child: Icon(
+                              Icons.share_outlined,
+                              color: Colors.grey.shade400,
+                              size: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: venue.name,
+        emoji: '\u{1F52B}',
+        infos: [
+          if (venue.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, venue.horaires),
+          if (venue.adresse.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, venue.adresse),
+          if (venue.telephone.isNotEmpty)
+            DetailInfoItem(Icons.phone_outlined, venue.telephone),
+        ],
+        primaryAction: venue.websiteUrl.isNotEmpty
+            ? DetailAction(icon: Icons.language, label: 'Site web', url: venue.websiteUrl)
+            : null,
+        secondaryActions: [
+          if (venue.telephone.isNotEmpty)
+            DetailAction(icon: Icons.phone_outlined, label: 'Appeler', url: 'tel:${venue.telephone.replaceAll(' ', '')}'),
+        ],
+        shareText: '${venue.name}\n${venue.adresse}\n${venue.telephone}\n${venue.websiteUrl}\n\nDecouvre sur MaCity',
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 
 class LibraryVenueCard extends ConsumerWidget {
   final LibraryVenue library;
@@ -14,156 +15,103 @@ class LibraryVenueCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
 
-    return Card(
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
       elevation: 2,
       shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
+      child: SizedBox(
+        height: 80,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Pochette a gauche ──
             SizedBox(
               width: 90,
-              child: Container(
-                color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                alignment: Alignment.center,
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('\uD83D\uDCDA', style: TextStyle(fontSize: 30)),
-                    SizedBox(height: 4),
-                    Text(
-                      'Bibliotheque',
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(library.image, fit: BoxFit.cover),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.3),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Positioned(
+                    bottom: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Text(
+                        '\uD83D\uDCDA',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
             // ── Infos a droite ──
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
+                padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Nom
                     Text(
                       library.name,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-
-                    // Description
-                    Text(
-                      library.description,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
+                    if (library.horaires.isNotEmpty)
+                      _buildInfoRow(
+                        Icons.access_time,
+                        library.horaires,
+                        modeTheme.primaryColor,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-
-                    // Horaires
-                    _buildInfoRow(
-                      Icons.access_time,
-                      library.horaires,
-                      modeTheme.primaryColor,
-                    ),
-                    const SizedBox(height: 3),
-
-                    // Services
-                    _buildInfoRow(
-                      Icons.wifi,
-                      library.services,
-                      modeTheme.primaryColor,
-                    ),
-                    const SizedBox(height: 3),
-
-                    // Adresse
-                    _buildInfoRow(
-                      Icons.location_on_outlined,
-                      library.adresse,
-                      modeTheme.primaryColor,
-                    ),
-
-                    // Telephone
-                    if (library.telephone.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      GestureDetector(
-                        onTap: () async {
-                          final cleaned =
-                              library.telephone.replaceAll(' ', '');
-                          final uri = Uri(scheme: 'tel', path: cleaned);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(uri);
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            Icon(Icons.phone, size: 13, color: modeTheme.primaryColor),
-                            const SizedBox(width: 6),
-                            Text(
-                              library.telephone,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: modeTheme.primaryColor,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
                     const Spacer(),
-
-                    // Actions
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        GestureDetector(
-                          onTap: () => _openUrl(library.lienMaps),
-                          child: Icon(
-                            Icons.map_outlined,
-                            color: modeTheme.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
                         GestureDetector(
                           onTap: () => _openUrl(library.websiteUrl),
                           child: Icon(
                             Icons.language,
                             color: modeTheme.primaryColor,
-                            size: 20,
+                            size: 16,
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _share(),
                           child: Icon(
                             Icons.share_outlined,
                             color: Colors.grey.shade400,
-                            size: 20,
+                            size: 16,
                           ),
                         ),
                       ],
@@ -174,6 +122,28 @@ class LibraryVenueCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: library.name,
+        emoji: '\uD83D\uDCDA',
+        imageAsset: library.image,
+        infos: [
+          if (library.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, library.horaires),
+          if (library.adresse.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, library.adresse),
+        ],
+        primaryAction: library.websiteUrl.isNotEmpty
+            ? DetailAction(icon: Icons.language, label: 'Site web', url: library.websiteUrl)
+            : null,
+        shareText: '${library.name}\n${library.adresse}\n${library.horaires}\n${library.websiteUrl}\n\nDecouvre sur MaCity',
       ),
     );
   }
