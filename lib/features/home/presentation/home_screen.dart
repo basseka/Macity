@@ -20,6 +20,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final city = ref.watch(selectedCityProvider);
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F0FA),
@@ -37,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 10),
                 child: Row(
                   children: [
                     // Logo
@@ -45,8 +46,8 @@ class HomeScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(14),
                       child: Image.asset(
                         'assets/icon/app_icon.png',
-                        width: 42,
-                        height: 42,
+                        width: isLandscape ? 32 : 42,
+                        height: isLandscape ? 32 : 42,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -57,28 +58,33 @@ class HomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
+                          Text(
                             'MaCity',
                             style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold,
+                              fontSize: isLandscape ? 18 : 24, fontWeight: FontWeight.bold,
                               color: Colors.white, letterSpacing: 0.06,
                             ),
                           ),
-                          Text(
-                            'Tous les évènements dans ta ville',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12, fontStyle: FontStyle.italic,
-                              color: Colors.white.withValues(alpha: 0.8),
+                          if (!isLandscape)
+                            Text(
+                              'Tous les évènements dans ta ville',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12, fontStyle: FontStyle.italic,
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
                     _ShimmerInfoButton(
                       onTap: () => _showInfoPopup(context),
+                    ),
+                    const SizedBox(width: 8),
+                    _AddEventButton(
+                      onTap: () => _showAddEvent(context, ref),
                     ),
                   ],
                 ),
@@ -88,7 +94,7 @@ class HomeScreen extends ConsumerWidget {
 
           // City selector + heart button
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 10),
             child: Row(
               children: [
                 Expanded(
@@ -129,10 +135,6 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                _LikeCountButton(
-                  onTap: () => _showLikedPlaces(context),
-                ),
               ],
             ),
           ),
@@ -143,11 +145,11 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Ad banner marquee
-                  const AdBannerMarquee(),
-                  const SizedBox(height: 16),
+                  // Ad banner marquee (hidden in landscape)
+                  if (!isLandscape) const AdBannerMarquee(),
+                  SizedBox(height: isLandscape ? 6 : 16),
 
-                  // Header
+                  // Header + heart button
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -161,9 +163,8 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () => _showAddEvent(context, ref),
-                          child: _buildHeaderButton('Ajouter', const Color(0xFF7B2D8E)),
+                        _LikeCountButton(
+                          onTap: () => _showLikedPlaces(context),
                         ),
                       ],
                     ),
@@ -175,7 +176,7 @@ class HomeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       children: AppMode.order.map((mode) {
-                        return _buildModeCard(context, ref, mode);
+                        return _buildModeCard(context, ref, mode, compact: isLandscape);
                       }).toList(),
                     ),
                   ),
@@ -199,12 +200,12 @@ class HomeScreen extends ConsumerWidget {
     'night': 'assets/images/home_bg_night.png',
   };
 
-  Widget _buildModeCard(BuildContext context, WidgetRef ref, AppMode mode) {
+  Widget _buildModeCard(BuildContext context, WidgetRef ref, AppMode mode, {bool compact = false}) {
     final theme = ModeTheme.fromModeName(mode.name);
     final bgImage = _modeBackgroundImages[mode.name];
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: compact ? 6 : 10),
       child: Material(
         borderRadius: BorderRadius.circular(20),
         elevation: 4,
@@ -218,7 +219,7 @@ class HomeScreen extends ConsumerWidget {
             context.go(mode.routePath);
           },
           child: Container(
-            height: 160,
+            height: compact ? 100 : 160,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               gradient: bgImage == null
@@ -309,21 +310,6 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeaderButton(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
-      ),
-    );
-  }
-
   void _showInfoPopup(BuildContext context) {
     showDialog(
       context: context,
@@ -388,8 +374,23 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddEvent(BuildContext context, WidgetRef ref) {
-    final status = ref.read(proAuthProvider).status;
+  Future<void> _showAddEvent(BuildContext context, WidgetRef ref) async {
+    var status = ref.read(proAuthProvider).status;
+
+    // Wait for auth to finish loading
+    if (status == ProAuthStatus.loading) {
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        if (!context.mounted) return;
+        status = ref.read(proAuthProvider).status;
+        if (status != ProAuthStatus.loading) break;
+      }
+      if (status == ProAuthStatus.loading) {
+        status = ProAuthStatus.notConnected;
+      }
+    }
+
+    if (!context.mounted) return;
 
     switch (status) {
       case ProAuthStatus.approved:
@@ -552,6 +553,30 @@ class _ShimmerInfoButtonState extends State<_ShimmerInfoButton>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _AddEventButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AddEventButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: 0.2),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+        ),
+        child: const Center(
+          child: Icon(Icons.add, color: Colors.white, size: 26),
+        ),
       ),
     );
   }
