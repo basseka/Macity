@@ -958,14 +958,15 @@ class NightBarsData {
 
     CommerceModel(
       nom: 'Le Nine Club',
-      adresse: '9 Rue de l\'Etoile, 31000 Toulouse',
+      adresse: '26 Allee des Foulques, 31200 Toulouse',
       ville: 'Toulouse',
       categorie: 'Club Discotheque',
-      horaires: '23h00 - 06h00',
+      horaires: '23h00 - 06h00 (Ven & Sam)',
       ouvert: true,
-      lienMaps: 'https://maps.google.com/?q=Le+Nine+Club+9+Rue+Etoile+Toulouse',
-      latitude: 43.6048,
-      longitude: 1.4462,
+      siteWeb: 'https://www.lenineclub.com/',
+      lienMaps: 'https://maps.google.com/?q=Le+Nine+Club+26+Allee+des+Foulques+Toulouse',
+      latitude: 43.6233,
+      longitude: 1.4378,
     ),
     CommerceModel(
       nom: 'Le Purple',

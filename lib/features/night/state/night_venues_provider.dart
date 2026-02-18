@@ -3,6 +3,7 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/night/data/night_bars_data.dart';
+import 'package:pulz_app/features/night/data/nine_club_events_data.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
@@ -24,8 +25,20 @@ final nightUserEventsProvider = Provider<List<Event>>((ref) {
       .toList();
 });
 
+/// Evenements curates (Nine Club etc.) encore a venir.
+List<Event> _curatedNightEvents() {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return NineClubEventsData.events.where((e) {
+    final d = DateTime.tryParse(e.dateDebut);
+    return d != null && !d.isBefore(today);
+  }).toList();
+}
+
 int _nightUserCount(List<Event> events, String searchTag) {
-  if (searchTag == 'Cette Semaine') return events.length;
+  if (searchTag == 'Cette Semaine') {
+    return events.length + _curatedNightEvents().length;
+  }
   return events.where((e) {
     final cat = e.categorie.toLowerCase();
     final tag = searchTag.toLowerCase();

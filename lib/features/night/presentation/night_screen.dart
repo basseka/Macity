@@ -8,6 +8,7 @@ import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/night/data/night_category_data.dart';
+import 'package:pulz_app/features/night/data/nine_club_events_data.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 
@@ -178,8 +179,19 @@ class NightScreen extends ConsumerWidget {
   }
 
   Widget _buildUserEventsList(WidgetRef ref) {
-    final events = ref.watch(nightUserEventsProvider);
-    if (events.isEmpty) {
+    final userEvents = ref.watch(nightUserEventsProvider);
+
+    // Curated events (Nine Club etc.) – only future dates.
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final curatedEvents = NineClubEventsData.events.where((e) {
+      final d = DateTime.tryParse(e.dateDebut);
+      return d != null && !d.isBefore(today);
+    }).toList();
+
+    final allEvents = [...userEvents, ...curatedEvents];
+
+    if (allEvents.isEmpty) {
       return const EmptyStateWidget(
         message: 'Aucun evenement pour le moment.\nAjoute un evenement avec le bouton +',
         icon: Icons.nightlife,
@@ -187,10 +199,10 @@ class NightScreen extends ConsumerWidget {
     }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: events.length,
+      itemCount: allEvents.length,
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
-        child: EventRowCard(event: events[index]),
+        child: EventRowCard(event: allEvents[index]),
       ),
     );
   }

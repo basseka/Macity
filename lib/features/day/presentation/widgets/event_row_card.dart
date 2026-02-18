@@ -84,6 +84,8 @@ class EventRowCard extends ConsumerWidget {
     'hall 8': 'assets/images/hall8.png',
     'espace job': 'assets/images/espacejob.png',
     'bascala': 'assets/images/bascala.png',
+    // ── Clubs / Discotheques ──
+    'nine club': 'assets/images/sc_discotheque.png',
   };
 
   String _resolveImage() {
