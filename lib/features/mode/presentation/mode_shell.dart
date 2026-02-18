@@ -11,6 +11,10 @@ import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -144,7 +148,13 @@ class ModeShell extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
+                  _ModeShellAddButton(
+                    primaryColor: modeTheme.primaryColor,
+                    primaryLightColor: modeTheme.primaryLightColor,
+                    primaryDarkColor: modeTheme.primaryDarkColor,
+                  ),
+                  const SizedBox(width: 8),
                   _ModeShellLikeButton(
                     primaryColor: modeTheme.primaryColor,
                     primaryLightColor: modeTheme.primaryLightColor,
@@ -302,6 +312,86 @@ class ModeShell extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+class _ModeShellAddButton extends ConsumerWidget {
+  final Color primaryColor;
+  final Color primaryLightColor;
+  final Color primaryDarkColor;
+
+  const _ModeShellAddButton({
+    required this.primaryColor,
+    required this.primaryLightColor,
+    required this.primaryDarkColor,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () => _showAddEvent(context, ref),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: primaryLightColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: primaryColor, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(Icons.add, color: primaryDarkColor, size: 22),
+      ),
+    );
+  }
+
+  Future<void> _showAddEvent(BuildContext context, WidgetRef ref) async {
+    var status = ref.read(proAuthProvider).status;
+
+    if (status == ProAuthStatus.loading) {
+      for (var i = 0; i < 20; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        if (!context.mounted) return;
+        status = ref.read(proAuthProvider).status;
+        if (status != ProAuthStatus.loading) break;
+      }
+      if (status == ProAuthStatus.loading) {
+        status = ProAuthStatus.notConnected;
+      }
+    }
+
+    if (!context.mounted) return;
+
+    switch (status) {
+      case ProAuthStatus.approved:
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const AddEventBottomSheet(),
+        );
+      case ProAuthStatus.pendingApproval:
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const ProPendingSheet(),
+        );
+      case ProAuthStatus.notConnected:
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const ProLoginSheet(),
+        );
+      case ProAuthStatus.loading:
+        break;
+    }
   }
 }
 
