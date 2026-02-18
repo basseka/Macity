@@ -38,6 +38,8 @@ class ModeShell extends ConsumerWidget {
       context.go(newMode.routePath);
     });
 
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       backgroundColor: modeTheme.backgroundColor,
       body: SwipeDetector(
@@ -53,7 +55,7 @@ class ModeShell extends ConsumerWidget {
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 10),
                   child: Row(
                     children: [
                       // Logo
@@ -61,8 +63,8 @@ class ModeShell extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14),
                         child: Image.asset(
                           'assets/icon/app_icon.png',
-                          width: 42,
-                          height: 42,
+                          width: isLandscape ? 32 : 42,
+                          height: isLandscape ? 32 : 42,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -71,20 +73,21 @@ class ModeShell extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
+                          Text(
                             'MaCity',
                             style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold,
+                              fontSize: isLandscape ? 18 : 24, fontWeight: FontWeight.bold,
                               color: Colors.white, letterSpacing: 0.06,
                             ),
                           ),
-                          Text(
-                            'event',
-                            style: TextStyle(
-                              fontSize: 12, fontStyle: FontStyle.italic,
-                              color: Colors.white.withValues(alpha: 0.8),
+                          if (!isLandscape)
+                            Text(
+                              'event',
+                              style: TextStyle(
+                                fontSize: 12, fontStyle: FontStyle.italic,
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                       const Spacer(),
@@ -102,7 +105,7 @@ class ModeShell extends ConsumerWidget {
 
             // City selector + heart button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 2 : 6),
               child: Row(
                 children: [
                   Expanded(
@@ -166,7 +169,7 @@ class ModeShell extends ConsumerWidget {
 
             // Mode header: back + arrows + title + dots
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: isLandscape ? 2 : 8),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -224,29 +227,31 @@ class ModeShell extends ConsumerWidget {
                         const SizedBox(width: 34),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // Dots indicator
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(AppMode.order.length, (i) {
-                      final isActive = i == modeIndex;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        width: isActive ? 20 : 8,
-                        height: 8,
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          gradient: isActive
-                              ? LinearGradient(colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor])
-                              : null,
-                          color: isActive ? null : const Color(0xFFE0E0E0),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 6),
+                  if (!isLandscape) ...[
+                    const SizedBox(height: 8),
+                    // Dots indicator
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(AppMode.order.length, (i) {
+                        final isActive = i == modeIndex;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          width: isActive ? 20 : 8,
+                          height: 8,
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            gradient: isActive
+                                ? LinearGradient(colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor])
+                                : null,
+                            color: isActive ? null : const Color(0xFFE0E0E0),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   // Indicator bar
                   Container(
                     height: 2,
@@ -259,8 +264,8 @@ class ModeShell extends ConsumerWidget {
               ),
             ),
 
-            // Video banner
-            const ModeVideoBanner(),
+            // Video banner (hidden in landscape)
+            if (!isLandscape) const ModeVideoBanner(),
 
             // Child content (mode screen)
             Expanded(child: child),
