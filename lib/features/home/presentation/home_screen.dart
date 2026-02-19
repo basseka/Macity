@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,12 +15,49 @@ import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
+import 'package:pulz_app/features/night/state/night_venues_provider.dart';
+import 'package:pulz_app/features/home/presentation/widgets/treasure_hunt_sheet.dart';
+import 'package:pulz_app/features/home/presentation/widgets/offer_popup.dart';
+import 'package:pulz_app/features/offers/state/offers_provider.dart';
+import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  Timer? _offerTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _offerTimer = Timer(const Duration(seconds: 10), _showOfferPopup);
+  }
+
+  @override
+  void dispose() {
+    _offerTimer?.cancel();
+    super.dispose();
+  }
+
+  void _showOfferPopup() {
+    if (!mounted) return;
+    final offers = ref.read(activeOffersProvider).valueOrNull ?? [];
+    if (offers.isEmpty) return;
+    OfferPopup.show(context, offers.first);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Pre-charger le scraping des clubs des le lancement.
+    ref.read(nineClubEventsProvider);
+    ref.read(etoileEventsProvider);
+    // Pre-charger les offres pour que le popup ait les donnees pretes.
+    ref.watch(activeOffersProvider);
+
     final city = ref.watch(selectedCityProvider);
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
@@ -84,7 +123,7 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     _AddEventButton(
-                      onTap: () => _showAddEvent(context, ref),
+                      onTap: _showAddEvent,
                     ),
                   ],
                 ),
@@ -92,7 +131,7 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
 
-          // City selector + heart button
+          // City selector + treasure button
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 10),
             child: Row(
@@ -135,6 +174,8 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 10),
+                const _TreasureBoxButton(),
               ],
             ),
           ),
@@ -176,7 +217,7 @@ class HomeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       children: AppMode.order.map((mode) {
-                        return _buildModeCard(context, ref, mode, compact: isLandscape);
+                        return _buildModeCard(mode, compact: isLandscape);
                       }).toList(),
                     ),
                   ),
@@ -190,7 +231,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  static const _modeBackgroundImages = {
+  static const _modeBackgroundImages = <String, String>{
     'day': 'assets/images/pochette_concert.png',
     'sport': 'assets/images/home_bg_sport.png',
     'culture': 'assets/images/pochette_culture_art.png',
@@ -200,7 +241,7 @@ class HomeScreen extends ConsumerWidget {
     'night': 'assets/images/home_bg_night.png',
   };
 
-  Widget _buildModeCard(BuildContext context, WidgetRef ref, AppMode mode, {bool compact = false}) {
+  Widget _buildModeCard(AppMode mode, {bool compact = false}) {
     final theme = ModeTheme.fromModeName(mode.name);
     final bgImage = _modeBackgroundImages[mode.name];
 
@@ -374,7 +415,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showAddEvent(BuildContext context, WidgetRef ref) async {
+  Future<void> _showAddEvent() async {
     var status = ref.read(proAuthProvider).status;
 
     // Wait for auth to finish loading
@@ -394,12 +435,7 @@ class HomeScreen extends ConsumerWidget {
 
     switch (status) {
       case ProAuthStatus.approved:
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const AddEventBottomSheet(),
-        );
+        _showProActionChoice();
       case ProAuthStatus.pendingApproval:
         showModalBottomSheet(
           context: context,
@@ -417,6 +453,72 @@ class HomeScreen extends ConsumerWidget {
       case ProAuthStatus.loading:
         break;
     }
+  }
+
+  void _showProActionChoice() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Que souhaitez-vous faire ?',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A1259),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.event, color: Color(0xFF7B2D8E)),
+                title: const Text('Ajouter un evenement'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const AddEventBottomSheet(),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.local_offer, color: Color(0xFFE91E8C)),
+                title: const Text('Creer une offre promotionnelle'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const AddOfferBottomSheet(),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showLikedPlaces(BuildContext context) {
@@ -549,6 +651,75 @@ class _ShimmerInfoButtonState extends State<_ShimmerInfoButton>
               ),
               child: const Center(
                 child: Icon(Icons.help_outline, color: Colors.white, size: 26),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _TreasureBoxButton extends StatefulWidget {
+  const _TreasureBoxButton();
+
+  @override
+  State<_TreasureBoxButton> createState() => _TreasureBoxButtonState();
+}
+
+class _TreasureBoxButtonState extends State<_TreasureBoxButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _glow = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _glow.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => TreasureHuntSheet.show(context),
+      child: AnimatedBuilder(
+        animation: _glow,
+        builder: (context, _) {
+          final t = _glow.value;
+          return Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFD54F), Color(0xFFFF8F00)],
+              ),
+              border: Border.all(
+                color: const Color(0xFFFFB300),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD54F).withValues(alpha: 0.3 + t * 0.4),
+                  blurRadius: 8 + t * 6,
+                  spreadRadius: 1 + t * 2,
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Text(
+                '\u{1F381}',
+                style: TextStyle(fontSize: 22),
               ),
             ),
           );
