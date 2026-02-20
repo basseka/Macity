@@ -45,7 +45,7 @@ class MonumentVenueCard extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(monument.image, fit: BoxFit.cover),
+                  Image.asset(monument.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(

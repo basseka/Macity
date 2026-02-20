@@ -88,6 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         width: isLandscape ? 32 : 42,
                         height: isLandscape ? 32 : 42,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -283,6 +284,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Image.asset(
                         bgImage,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                       ),
                     ),
                   ),

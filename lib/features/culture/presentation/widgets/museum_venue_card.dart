@@ -51,7 +51,7 @@ class MuseumVenueCard extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(museum.image, fit: BoxFit.cover),
+                  Image.asset(museum.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                   // Gradient overlay
                   Positioned.fill(
                     child: Container(

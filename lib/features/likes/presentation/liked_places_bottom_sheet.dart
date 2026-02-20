@@ -83,7 +83,6 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
           else
             Flexible(
               child: ListView.separated(
-                shrinkWrap: true,
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
@@ -140,20 +139,20 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
     if (LikedItemResolver.isCommerce(id)) {
       final commerce = LikedItemResolver.resolveCommerce(id);
       if (commerce != null) {
-        showModalBottomSheet(
+        showDialog(
           context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
+          barrierDismissible: true,
+          barrierColor: Colors.black.withValues(alpha: 0.7),
           builder: (_) => LikedItemDetailSheet.forCommerce(commerce),
         );
       }
     } else {
       final event = LikedItemResolver.resolveEvent(id);
       if (event != null) {
-        showModalBottomSheet(
+        showDialog(
           context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
+          barrierDismissible: true,
+          barrierColor: Colors.black.withValues(alpha: 0.7),
           builder: (_) => LikedItemDetailSheet.forEvent(event),
         );
       }

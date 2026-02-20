@@ -66,35 +66,42 @@ class ModeShell extends ConsumerWidget {
                           width: isLandscape ? 32 : 42,
                           height: isLandscape ? 32 : 42,
                           fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'MaCity',
-                            style: TextStyle(
-                              fontSize: isLandscape ? 18 : 24, fontWeight: FontWeight.bold,
-                              color: Colors.white, letterSpacing: 0.06,
-                            ),
-                          ),
-                          if (!isLandscape)
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Text(
-                              'event',
+                              'MaCity',
                               style: TextStyle(
-                                fontSize: 12, fontStyle: FontStyle.italic,
-                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: isLandscape ? 18 : 24, fontWeight: FontWeight.bold,
+                                color: Colors.white, letterSpacing: 0.06,
                               ),
                             ),
-                        ],
+                            if (!isLandscape)
+                              Text(
+                                'event',
+                                style: TextStyle(
+                                  fontSize: 12, fontStyle: FontStyle.italic,
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       const Spacer(),
-                      Text(
-                        capitalizedDate,
-                        style: TextStyle(
-                          fontSize: 13, color: Colors.white.withValues(alpha: 0.9),
+                      Flexible(
+                        child: Text(
+                          capitalizedDate,
+                          style: TextStyle(
+                            fontSize: 13, color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

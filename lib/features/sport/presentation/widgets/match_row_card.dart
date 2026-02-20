@@ -96,7 +96,7 @@ class MatchRowCard extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(image, fit: BoxFit.cover),
+                  Image.asset(image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(

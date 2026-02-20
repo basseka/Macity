@@ -283,7 +283,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
         emoji: _emojiController.text.trim(),
         totalSpots: int.tryParse(_spotsController.text.trim()) ?? 10,
         startsAt: DateTime.now(),
-        expiresAt: _expiresAt!,
+        expiresAt: _expiresAt ?? DateTime.now().add(const Duration(days: 7)),
         city: city,
         createdAt: DateTime.now(),
       );

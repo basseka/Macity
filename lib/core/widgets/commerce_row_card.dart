@@ -99,6 +99,7 @@ class CommerceRowCard extends ConsumerWidget {
                           image,
                           fit: BoxFit.cover,
                           filterQuality: FilterQuality.medium,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                         ),
                         Positioned.fill(
                           child: Container(
@@ -273,8 +274,8 @@ class CommerceRowCard extends ConsumerWidget {
         ],
         primaryAction: commerce.siteWeb.isNotEmpty
             ? DetailAction(
-                icon: Icons.language,
-                label: 'Site web',
+                icon: commerce.siteWeb.contains('instagram') ? Icons.camera_alt : Icons.language,
+                label: commerce.siteWeb.contains('instagram') ? 'Instagram' : 'Site web',
                 url: commerce.siteWeb,
               )
             : null,

@@ -106,6 +106,7 @@ class EventCard extends ConsumerWidget {
                   child: Image.asset(
                     pochette,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
                   ),
                 ),
                 // Gradient overlay

@@ -178,9 +178,12 @@ class MatchCard extends ConsumerWidget {
   }
 
   Future<void> _openBilletterie() async {
-    final uri = Uri.parse(match.billetterie);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    final uri = Uri.tryParse(match.billetterie);
+    if (uri == null) return;
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 }

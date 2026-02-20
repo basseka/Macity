@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ─── Data helpers ───────────────────────────────────────────────
 
@@ -146,7 +147,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 5600), () {
+    Future.delayed(const Duration(milliseconds: 5600), () async {
+      if (!mounted) return;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('has_seen_splash', true);
       if (mounted) context.go('/home');
     });
   }
@@ -268,6 +272,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   width: 90,
                                   height: 90,
                                   fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const SizedBox(width: 90, height: 90),
                                 ),
                               ),
                             ),

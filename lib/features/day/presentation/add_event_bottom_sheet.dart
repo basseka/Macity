@@ -271,6 +271,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox(width: 48, height: 48),
                       ),
                     ),
                   ],
@@ -292,6 +293,24 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
                 ),
                 child: const Text(
                   'Ajouter',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // ── Cancel ──
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _primaryDarkColor,
+                  side: const BorderSide(color: _primaryColor),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  'Annuler',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -467,12 +486,16 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
         ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
         : '';
 
+    if (_selectedCategorie == null || _selectedRubrique == null) return;
+    final rubrique = _rubriqueToModeName[_selectedRubrique!];
+    if (rubrique == null) return;
+
     final event = UserEvent(
       id: id,
       titre: _titreController.text.trim(),
       description: _descriptionController.text.trim(),
       categorie: _selectedCategorie!,
-      rubrique: _rubriqueToModeName[_selectedRubrique!]!,
+      rubrique: rubrique,
       date: dateStr,
       heure: timeStr,
       lieuNom: (_selectedLieu != null && _selectedLieu != 'Autre')
@@ -487,8 +510,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
     // Construire l'establishmentId si le lieu est curate (dropdown)
     String? establishmentId;
     if (_selectedLieu != null && _selectedLieu != 'Autre') {
-      final modeName = _rubriqueToModeName[_selectedRubrique!]!;
-      establishmentId = '${modeName}_$_selectedLieu';
+      establishmentId = '${rubrique}_$_selectedLieu';
     }
 
     await ref

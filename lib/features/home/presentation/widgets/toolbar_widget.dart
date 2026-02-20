@@ -134,10 +134,13 @@ class ToolbarWidget extends ConsumerWidget {
     final authUrl =
         await ref.read(instagramAuthProvider.notifier).startAuth();
     if (authUrl != null) {
-      final uri = Uri.parse(authUrl);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
+      final uri = Uri.tryParse(authUrl);
+      if (uri == null) return;
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      } catch (_) {}
     }
   }
 

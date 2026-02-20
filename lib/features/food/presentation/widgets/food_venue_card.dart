@@ -138,10 +138,13 @@ class FoodVenueCard extends ConsumerWidget {
                     label: 'Maps',
                     color: modeTheme.primaryColor,
                     onTap: () async {
-                      final uri = Uri.parse(commerce.lienMaps);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
+                      final uri = Uri.tryParse(commerce.lienMaps);
+                      if (uri == null) return;
+                      try {
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      } catch (_) {}
                     },
                   ),
                 if (commerce.telephone.isNotEmpty)
@@ -151,9 +154,11 @@ class FoodVenueCard extends ConsumerWidget {
                     color: modeTheme.primaryColor,
                     onTap: () async {
                       final uri = Uri(scheme: 'tel', path: commerce.telephone);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri);
-                      }
+                      try {
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri);
+                        }
+                      } catch (_) {}
                     },
                   ),
                 _buildAction(

@@ -39,6 +39,7 @@ class AnimalParkVenueCard extends ConsumerWidget {
                       'assets/images/sc_parc_animalier.png',
                       fit: BoxFit.cover,
                       filterQuality: FilterQuality.medium,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                     ),
                     Positioned.fill(
                       child: Container(

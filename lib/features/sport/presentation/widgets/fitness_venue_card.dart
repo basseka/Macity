@@ -47,6 +47,7 @@ class FitnessVenueCard extends ConsumerWidget {
                             width: 48,
                             height: 48,
                             fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const SizedBox(width: 48, height: 48),
                           )
                         : const Text(
                             '\uD83D\uDCAA',
@@ -215,17 +216,23 @@ class FitnessVenueCard extends ConsumerWidget {
   }
 
   Future<void> _openWebsite() async {
-    final uri = Uri.parse(commerce.siteWeb);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    final uri = Uri.tryParse(commerce.siteWeb);
+    if (uri == null) return;
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 
   Future<void> _openMaps() async {
-    final uri = Uri.parse(commerce.lienMaps);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    final uri = Uri.tryParse(commerce.lienMaps);
+    if (uri == null) return;
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 
   void _share() {

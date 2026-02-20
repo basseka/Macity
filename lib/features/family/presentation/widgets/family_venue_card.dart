@@ -175,17 +175,22 @@ class FamilyVenueCard extends ConsumerWidget {
   }
 
   Future<void> _openMaps() async {
-    final uri = Uri.parse(commerce.lienMaps);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    final uri = Uri.tryParse(commerce.lienMaps);
+    if (uri == null) return;
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 
   Future<void> _callPhone() async {
     final uri = Uri(scheme: 'tel', path: commerce.telephone);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    } catch (_) {}
   }
 
   void _share() {

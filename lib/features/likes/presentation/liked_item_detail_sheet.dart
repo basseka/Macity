@@ -177,7 +177,8 @@ class LikedItemDetailSheet extends ConsumerWidget {
         shareText: _buildCommerceShareText(commerce),
       );
     }
-    final event = _event!;
+    final event = _event;
+    if (event == null) return const SizedBox.shrink();
     return _buildPopup(
       context: context,
       ref: ref,
