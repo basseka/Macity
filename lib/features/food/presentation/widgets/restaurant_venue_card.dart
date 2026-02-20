@@ -39,97 +39,43 @@ class RestaurantVenueCard extends ConsumerWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 10, 8),
+                  padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         venue.name,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: modeTheme.primaryDarkColor,
                         ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        venue.description,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
+                      if (venue.horaires.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.access_time,
+                          venue.horaires,
+                          modeTheme.primaryColor,
+                        )
+                      else if (venue.adresse.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.location_on_outlined,
+                          venue.adresse,
+                          modeTheme.primaryColor,
                         ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      _buildInfoRow(
-                        Icons.access_time,
-                        venue.horaires,
-                        modeTheme.primaryColor,
-                      ),
-                      const SizedBox(height: 3),
-                      _buildInfoRow(
-                        Icons.location_on_outlined,
-                        venue.adresse,
-                        modeTheme.primaryColor,
-                      ),
-                      if (venue.telephone.isNotEmpty) ...[
-                        const SizedBox(height: 3),
-                        GestureDetector(
-                          onTap: () async {
-                            final cleaned = venue.telephone.replaceAll(' ', '');
-                            final uri = Uri(scheme: 'tel', path: cleaned);
-                            if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri);
-                            }
-                          },
-                          child: Row(
-                            children: [
-                              Icon(Icons.phone, size: 13, color: modeTheme.primaryColor),
-                              const SizedBox(width: 6),
-                              Text(
-                                venue.telephone,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: modeTheme.primaryColor,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                       const Spacer(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           GestureDetector(
-                            onTap: () => _openUrl(venue.lienMaps),
-                            child: Icon(
-                              Icons.map_outlined,
-                              color: modeTheme.primaryColor,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () => _openUrl(venue.websiteUrl),
-                            child: Icon(
-                              Icons.language,
-                              color: modeTheme.primaryColor,
-                              size: 20,
-                            ),
-                          ),
-                          const Spacer(),
-                          GestureDetector(
                             onTap: () => _share(),
                             child: Icon(
                               Icons.share_outlined,
                               color: Colors.grey.shade400,
-                              size: 20,
+                              size: 16,
                             ),
                           ),
                         ],

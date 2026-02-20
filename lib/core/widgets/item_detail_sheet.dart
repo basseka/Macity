@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 /// Fiche detail generique ouverte au tap sur une carte (commerce, event, match, venue).
+/// Affichee en popup plein ecran avec pochette en fond et infos overlayees.
 class ItemDetailSheet extends ConsumerWidget {
   final String title;
   final String emoji;
@@ -28,14 +32,13 @@ class ItemDetailSheet extends ConsumerWidget {
   });
 
   static const _primaryColor = Color(0xFF7B2D8E);
-  static const _primaryDarkColor = Color(0xFF4A1259);
 
-  /// Ouvre le detail sheet en modal bottom sheet.
+  /// Ouvre le popup plein ecran.
   static void show(BuildContext context, ItemDetailSheet sheet) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (_) => sheet,
     );
   }
@@ -44,186 +47,320 @@ class ItemDetailSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLiked =
         likeId != null ? ref.watch(likesProvider).contains(likeId) : false;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final hasImage = imageAsset != null && imageAsset!.isNotEmpty;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.35,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          const SizedBox(height: 6),
-          Center(
-            child: Container(
-              width: 32,
-              height: 3,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 24,
+                  spreadRadius: 4,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-
-          // Content
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: _primaryDarkColor,
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.passthrough,
+              children: [
+                // ── Fond : image ou gradient ──
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: hasImage
+                          ? Image.asset(
+                              imageAsset!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              errorBuilder: (_, __, ___) =>
+                                  _buildGradientFallback(),
+                            )
+                          : _buildGradientFallback(),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
+                  ],
+                ),
 
-                  // Info rows
-                  ...infos.map(
-                    (info) => Padding(
-                      padding: const EdgeInsets.only(bottom: 3),
-                      child: Row(
-                        children: [
-                          Icon(info.icon, size: 13, color: _primaryColor),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              info.text,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade700,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+                // ── Gradient overlay ──
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.25, 0.55, 1.0],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.3),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.4),
+                          Colors.black.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: 6),
-
-                  // Primary action
-                  if (primaryAction != null)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 32,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _openUrl(primaryAction!.url),
-                        icon: Icon(primaryAction!.icon, size: 14),
-                        label: Text(primaryAction!.label),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                // ── Contenu overlay ──
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Bouton fermer
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12, right: 12),
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
                     ),
 
-                  if (primaryAction != null) const SizedBox(height: 6),
-
-                  // Secondary actions + like + share
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ...secondaryActions.map(
-                        (action) => Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: _buildCircleButton(
-                            icon: action.icon,
-                            label: action.label,
-                            onTap: () => _openUrl(action.url),
-                          ),
+                    // Emoji
+                    if (emoji.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 32),
                         ),
                       ),
-                      if (likeId != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: _buildCircleButton(
-                            icon: isLiked
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            label: isLiked ? 'Retirer' : 'Ajouter',
-                            color: isLiked ? Colors.red : null,
-                            onTap: () {
-                              ref.read(likesProvider.notifier).toggle(likeId!);
-                            },
+
+                    const Spacer(),
+
+                    // ── Infos en bas ──
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                          // Titre
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      if (shareText.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: _buildCircleButton(
-                            icon: Icons.share_outlined,
-                            label: 'Partager',
-                            onTap: () => Share.share(shareText),
+
+                          const SizedBox(height: 10),
+
+                          // Info rows
+                          ...infos.map(
+                            (info) => Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    info.icon,
+                                    size: 15,
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      info.text,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white
+                                            .withValues(alpha: 0.9),
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
+
+                          const SizedBox(height: 14),
+
+                          // ── Boutons actions ──
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            children: [
+                              // Like
+                              if (likeId != null)
+                                _buildPillButton(
+                                  icon: isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  label: isLiked ? 'Aime' : 'Aimer',
+                                  color:
+                                      isLiked ? Colors.red : Colors.white,
+                                  onTap: () => ref
+                                      .read(likesProvider.notifier)
+                                      .toggle(likeId!),
+                                ),
+                              // Share
+                              if (shareText.isNotEmpty)
+                                _buildPillButton(
+                                  icon: Icons.share_outlined,
+                                  label: 'Partager',
+                                  color: Colors.white,
+                                  onTap: () => Share.share(shareText),
+                                ),
+                              // Secondary actions
+                              ...secondaryActions.map(
+                                (action) => _buildPillButton(
+                                  icon: action.icon,
+                                  label: action.label,
+                                  color: Colors.white,
+                                  onTap: () => _openUrl(action.url),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Primary action
+                          if (primaryAction != null) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44,
+                              child: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _openUrl(primaryAction!.url),
+                                icon: Icon(primaryAction!.icon, size: 18),
+                                label: Text(
+                                  primaryAction!.label,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _primaryColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                          ],
+
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildCircleButton({
+  Widget _buildGradientFallback() {
+    return Container(
+      width: double.infinity,
+      height: 450,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF7B2D8E), Color(0xFFE91E8C)],
+        ),
+      ),
+      child: emoji.isNotEmpty
+          ? Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 80)),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildPillButton({
     required IconData icon,
     required String label,
+    required Color color,
     required VoidCallback onTap,
-    Color? color,
   }) {
-    final c = color ?? _primaryColor;
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: c.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            child: Icon(icon, size: 15, color: c),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Future<void> _openUrl(String url) async {
     final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
+    if (uri == null) return;
+
+    // Sur Android, Instagram intercepte les liens instagram.com
+    // et ouvre le feed au lieu du profil. On force l'ouverture
+    // dans le navigateur via un Intent explicite.
+    if (Platform.isAndroid && uri.host.contains('instagram.com')) {
+      try {
+        const channel = MethodChannel('com.pulzapp.toulouse/browser');
+        await channel.invokeMethod('openInBrowser', {'url': url});
+        return;
+      } catch (_) {
+        // Fallback si le channel natif n'existe pas.
+      }
+    }
+
+    try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (_) {}
     }
   }
 }

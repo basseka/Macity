@@ -7,7 +7,7 @@ import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
-/// Fiche detail d'un favori (commerce ou event) avec pochette et lien.
+/// Fiche detail d'un favori (commerce ou event) — popup plein ecran.
 class LikedItemDetailSheet extends ConsumerWidget {
   final CommerceModel? _commerce;
   final Event? _event;
@@ -21,7 +21,6 @@ class LikedItemDetailSheet extends ConsumerWidget {
         _event = event;
 
   static const _primaryColor = Color(0xFF7B2D8E);
-  static const _primaryDarkColor = Color(0xFF4A1259);
 
   static final _displayDateFormat = DateFormat('dd/MM/yyyy');
 
@@ -137,72 +136,52 @@ class LikedItemDetailSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final commerce = _commerce;
     if (commerce != null) {
-      return _buildCommerceSheet(context, ref, commerce);
+      return _buildPopup(
+        context: context,
+        ref: ref,
+        image: _resolveCommerceImage(commerce),
+        title: commerce.nom,
+        emoji: commerce.categoryEmoji,
+        likeId: 'night_${commerce.nom}',
+        infos: [
+          if (commerce.categorie.isNotEmpty)
+            _InfoItem(Icons.category_outlined, commerce.categorie),
+          if (commerce.horaires.isNotEmpty)
+            _InfoItem(Icons.access_time, commerce.horaires),
+          if (commerce.adresse.isNotEmpty)
+            _InfoItem(Icons.location_on_outlined, commerce.adresse),
+          if (commerce.telephone.isNotEmpty)
+            _InfoItem(Icons.phone_outlined, commerce.telephone),
+        ],
+        primaryAction: commerce.siteWeb.isNotEmpty
+            ? _ActionButton(
+                icon: Icons.language,
+                label: 'Site web',
+                url: commerce.siteWeb,
+              )
+            : null,
+        secondaryActions: [
+          if (commerce.lienMaps.isNotEmpty)
+            _ActionButton(
+              icon: Icons.map_outlined,
+              label: 'Maps',
+              url: commerce.lienMaps,
+            ),
+          if (commerce.telephone.isNotEmpty)
+            _ActionButton(
+              icon: Icons.phone_outlined,
+              label: 'Appeler',
+              url: 'tel:${commerce.telephone.replaceAll(' ', '')}',
+            ),
+        ],
+        shareText: _buildCommerceShareText(commerce),
+      );
     }
-    return _buildEventSheet(context, ref, _event!);
-  }
-
-  Widget _buildCommerceSheet(
-    BuildContext context,
-    WidgetRef ref,
-    CommerceModel commerce,
-  ) {
-    final image = _resolveCommerceImage(commerce);
-    final likeId = 'night_${commerce.nom}';
-
-    return _buildSheet(
+    final event = _event!;
+    return _buildPopup(
       context: context,
       ref: ref,
-      image: image,
-      title: commerce.nom,
-      emoji: commerce.categoryEmoji,
-      likeId: likeId,
-      infos: [
-        if (commerce.categorie.isNotEmpty)
-          _InfoItem(Icons.category_outlined, commerce.categorie),
-        if (commerce.horaires.isNotEmpty)
-          _InfoItem(Icons.access_time, commerce.horaires),
-        if (commerce.adresse.isNotEmpty)
-          _InfoItem(Icons.location_on_outlined, commerce.adresse),
-        if (commerce.telephone.isNotEmpty)
-          _InfoItem(Icons.phone_outlined, commerce.telephone),
-      ],
-      primaryAction: commerce.siteWeb.isNotEmpty
-          ? _ActionButton(
-              icon: Icons.language,
-              label: 'Site web',
-              url: commerce.siteWeb,
-            )
-          : null,
-      secondaryActions: [
-        if (commerce.lienMaps.isNotEmpty)
-          _ActionButton(
-            icon: Icons.map_outlined,
-            label: 'Maps',
-            url: commerce.lienMaps,
-          ),
-        if (commerce.telephone.isNotEmpty)
-          _ActionButton(
-            icon: Icons.phone_outlined,
-            label: 'Appeler',
-            url: 'tel:${commerce.telephone.replaceAll(' ', '')}',
-          ),
-      ],
-      shareText: _buildCommerceShareText(commerce),
-    );
-  }
-
-  Widget _buildEventSheet(
-    BuildContext context,
-    WidgetRef ref,
-    Event event,
-  ) {
-    final image = _resolveEventImage(event);
-
-    return _buildSheet(
-      context: context,
-      ref: ref,
-      image: image,
+      image: _resolveEventImage(event),
       title: event.titre,
       emoji: event.categoryEmoji,
       likeId: event.identifiant,
@@ -235,7 +214,7 @@ class LikedItemDetailSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildSheet({
+  Widget _buildPopup({
     required BuildContext context,
     required WidgetRef ref,
     required String image,
@@ -248,192 +227,293 @@ class LikedItemDetailSheet extends ConsumerWidget {
     required String shareText,
   }) {
     final isLiked = ref.watch(likesProvider).contains(likeId);
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Pochette
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: SizedBox(
-              width: double.infinity,
-              height: 200,
-              child: Image.asset(
-                image,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: _primaryColor.withValues(alpha: 0.1),
-                  alignment: Alignment.center,
-                  child: Text(emoji, style: const TextStyle(fontSize: 48)),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 24,
+                  spreadRadius: 4,
                 ),
-              ),
+              ],
             ),
-          ),
-
-          // Content
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: _primaryDarkColor,
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.passthrough,
+              children: [
+                // ── Pochette en fond ──
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Image.asset(
+                        image,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (_, __, ___) =>
+                            _buildGradientFallback(emoji),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                  ],
+                ),
 
-                  // Info rows
-                  ...infos.map(
-                    (info) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        children: [
-                          Icon(info.icon, size: 18, color: _primaryColor),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              info.text,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ),
+                // ── Gradient overlay ──
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: const [0.0, 0.25, 0.55, 1.0],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.3),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.4),
+                          Colors.black.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: 20),
-
-                  // Primary action button
-                  if (primaryAction != null)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _openUrl(primaryAction.url),
-                        icon: Icon(primaryAction.icon, size: 18),
-                        label: Text(primaryAction.label),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                // ── Contenu overlay ──
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Bouton fermer
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12, right: 12),
+                        child: GestureDetector(
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
                     ),
 
-                  if (primaryAction != null) const SizedBox(height: 16),
+                    // Emoji
+                    if (emoji.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                      ),
 
-                  // Secondary actions + unlike + share
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ...secondaryActions.map(
-                        (action) => Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: _buildSecondaryButton(
-                            icon: action.icon,
-                            label: action.label,
-                            onTap: () => _openUrl(action.url),
+                    const Spacer(),
+
+                    // ── Infos en bas ──
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                          // Titre
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
+
+                          const SizedBox(height: 10),
+
+                          // Info rows
+                          ...infos.map(
+                            (info) => Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    info.icon,
+                                    size: 15,
+                                    color:
+                                        Colors.white.withValues(alpha: 0.8),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      info.text,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white
+                                            .withValues(alpha: 0.9),
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // ── Boutons actions ──
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 8,
+                            children: [
+                              // Like
+                              _buildPillButton(
+                                icon: isLiked
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                label: isLiked ? 'Retirer' : 'Aimer',
+                                color: isLiked ? Colors.red : Colors.white,
+                                onTap: () {
+                                  ref
+                                      .read(likesProvider.notifier)
+                                      .toggle(likeId);
+                                  if (isLiked) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                              ),
+                              // Share
+                              _buildPillButton(
+                                icon: Icons.share_outlined,
+                                label: 'Partager',
+                                color: Colors.white,
+                                onTap: () => Share.share(shareText),
+                              ),
+                              // Secondary actions
+                              ...secondaryActions.map(
+                                (action) => _buildPillButton(
+                                  icon: action.icon,
+                                  label: action.label,
+                                  color: Colors.white,
+                                  onTap: () => _openUrl(action.url),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Primary action
+                          if (primaryAction != null) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44,
+                              child: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _openUrl(primaryAction.url),
+                                icon: Icon(primaryAction.icon, size: 18),
+                                label: Text(
+                                  primaryAction.label,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _primaryColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                          ],
+
+                          const SizedBox(height: 16),
+                        ],
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: _buildSecondaryButton(
-                          icon: isLiked
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          label: isLiked ? 'Retirer' : 'Ajouter',
-                          color: isLiked ? Colors.red : null,
-                          onTap: () {
-                            ref.read(likesProvider.notifier).toggle(likeId);
-                            if (isLiked) {
-                              Navigator.of(context).pop();
-                            }
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: _buildSecondaryButton(
-                          icon: Icons.share_outlined,
-                          label: 'Partager',
-                          onTap: () => Share.share(shareText),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildSecondaryButton({
+  Widget _buildGradientFallback(String emoji) {
+    return Container(
+      width: double.infinity,
+      height: 450,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF7B2D8E), Color(0xFFE91E8C)],
+        ),
+      ),
+      child: emoji.isNotEmpty
+          ? Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 80)),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildPillButton({
     required IconData icon,
     required String label,
+    required Color color,
     required VoidCallback onTap,
-    Color? color,
   }) {
-    final c = color ?? _primaryColor;
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: c.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            child: Icon(icon, size: 20, color: c),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

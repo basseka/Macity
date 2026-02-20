@@ -70,11 +70,15 @@ class CommerceCard extends ConsumerWidget {
                               color: Colors.grey.shade500,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              commerce.distance,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
+                            Expanded(
+                              child: Text(
+                                commerce.distance,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

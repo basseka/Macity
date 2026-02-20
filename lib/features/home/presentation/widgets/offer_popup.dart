@@ -16,12 +16,14 @@ class OfferPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Material(
           color: Colors.transparent,
           child: Container(
+            constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: const LinearGradient(
@@ -37,7 +39,8 @@ class OfferPopup extends StatelessWidget {
                 ),
               ],
             ),
-            child: Column(
+            child: SingleChildScrollView(
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Close button
@@ -112,6 +115,8 @@ class OfferPopup extends StatelessWidget {
                   child: Text(
                     offer.title,
                     textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -122,12 +127,17 @@ class OfferPopup extends StatelessWidget {
 
                 if (offer.description.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    offer.description,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.85),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      offer.description,
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
                     ),
                   ),
                 ],
@@ -216,7 +226,8 @@ class OfferPopup extends StatelessWidget {
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      RichText(
+                      Flexible(
+                        child: RichText(
                         text: TextSpan(
                           style: const TextStyle(
                             fontSize: 14,
@@ -233,6 +244,7 @@ class OfferPopup extends StatelessWidget {
                             TextSpan(text: ' sur ${offer.totalSpots}'),
                           ],
                         ),
+                      ),
                       ),
                     ],
                   ),
@@ -269,6 +281,7 @@ class OfferPopup extends StatelessWidget {
 
                 const SizedBox(height: 20),
               ],
+            ),
             ),
           ),
         ),
