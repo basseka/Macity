@@ -261,7 +261,7 @@ class CommerceRowCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: commerce.nom,
-        emoji: commerce.categoryEmoji,
+        emoji: commerce.photo.isEmpty ? commerce.categoryEmoji : '',
         imageAsset: image,
         likeId: 'night_${commerce.nom}',
         infos: [
