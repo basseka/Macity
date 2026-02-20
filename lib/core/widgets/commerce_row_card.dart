@@ -59,6 +59,7 @@ class CommerceRowCard extends ConsumerWidget {
 
   String? _resolveImage() {
     if (imageAsset != null) return imageAsset;
+    if (commerce.photo.isNotEmpty) return commerce.photo;
     final cat = commerce.categorie.toLowerCase();
     final nom = commerce.nom.toLowerCase();
     for (final entry in _defaultImages.entries) {
@@ -115,22 +116,23 @@ class CommerceRowCard extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Emoji badge
-                        Positioned(
-                          bottom: 6,
-                          left: 6,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              commerce.categoryEmoji,
-                              style: const TextStyle(fontSize: 14),
+                        // Emoji badge (hidden when commerce has a dedicated photo)
+                        if (commerce.photo.isEmpty)
+                          Positioned(
+                            bottom: 6,
+                            left: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                commerce.categoryEmoji,
+                                style: const TextStyle(fontSize: 14),
+                              ),
                             ),
                           ),
-                        ),
                         // Status badge
                         Positioned(
                           top: 6,
