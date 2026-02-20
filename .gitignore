@@ -53,6 +53,10 @@ android/app/upload-keystore.jks
 .env.local
 .env.production
 
+# Firebase config
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
 # Generated files
 *.g.dart
 *.freezed.dart

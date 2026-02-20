@@ -11,9 +11,15 @@ class ApiConstants {
   static const String overpassFallbackBaseUrl = 'https://overpass.kumi.systems/api/';
   static const String overpassEndpoint = 'interpreter';
 
-  // Backend (local)
-  static const String backendBaseUrl = 'http://10.0.2.2:3000/';
-  static const String backendIosBaseUrl = 'http://localhost:3000/';
+  // Backend
+  static const String backendBaseUrl = String.fromEnvironment(
+    'BACKEND_URL',
+    defaultValue: 'http://10.0.2.2:3000/',
+  );
+  static const String backendIosBaseUrl = String.fromEnvironment(
+    'BACKEND_IOS_URL',
+    defaultValue: 'http://localhost:3000/',
+  );
 
   // Toulouse OpenData
   static const String toulouseBaseUrl = 'https://data.toulouse-metropole.fr/';
@@ -29,19 +35,21 @@ class ApiConstants {
 
   // Football Data
   static const String footballBaseUrl = 'https://api.football-data.org/';
-  static const String footballApiToken = '568af3e5714f491aaa2f700bcb0c3f54';
+  static const String footballApiToken = String.fromEnvironment('FOOTBALL_API_TOKEN');
 
   // ESPN
   static const String espnBaseUrl = 'https://site.api.espn.com/';
 
   // Supabase REST
-  static const String supabaseRestUrl =
-      'https://dpqxefmwjfvoysacwgef.supabase.co/rest/v1/';
+  static const String supabaseRestUrl = String.fromEnvironment(
+    'SUPABASE_REST_URL',
+    defaultValue: 'https://dpqxefmwjfvoysacwgef.supabase.co/rest/v1/',
+  );
 
   // Ticketmaster Discovery v2
   static const String ticketmasterBaseUrl = 'https://app.ticketmaster.com/';
   static const String ticketmasterEventsEndpoint = 'discovery/v2/events.json';
-  static const String ticketmasterApiKey = 'FZihyhGkVrpCwZmTyz0SEUA9SD1ifi4r';
+  static const String ticketmasterApiKey = String.fromEnvironment('TICKETMASTER_API_KEY');
 
   // Festik (billetterie festivals)
   static const String festikBaseUrl = 'https://billetterie.festik.net/';
