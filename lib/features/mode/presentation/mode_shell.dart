@@ -47,10 +47,14 @@ class ModeShell extends ConsumerWidget {
         onSwipeRight: () => ref.read(currentModeProvider.notifier).previousMode(),
         child: Column(
           children: [
-            // Toolbar with gradient
+            // Toolbar with fixed gradient (same as home)
             Container(
-              decoration: BoxDecoration(
-                gradient: modeTheme.toolbarGradient,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF4A1259), Color(0xFF7B2D8E), Color(0xFFE91E8C)],
+                ),
               ),
               child: SafeArea(
                 bottom: false,
@@ -84,24 +88,15 @@ class ModeShell extends ConsumerWidget {
                             ),
                             if (!isLandscape)
                               Text(
-                                'event',
+                                'Tous les évènements dans ta ville',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 12, fontStyle: FontStyle.italic,
                                   color: Colors.white.withValues(alpha: 0.8),
                                 ),
                               ),
                           ],
-                        ),
-                      ),
-                      const Spacer(),
-                      Flexible(
-                        child: Text(
-                          capitalizedDate,
-                          style: TextStyle(
-                            fontSize: 13, color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

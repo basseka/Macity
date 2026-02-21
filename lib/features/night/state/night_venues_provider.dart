@@ -3,7 +3,8 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/night/data/night_bars_data.dart';
-import 'package:pulz_app/features/night/data/nine_club_events_data.dart';
+import 'package:pulz_app/features/night/data/etoile_scraper.dart';
+import 'package:pulz_app/features/night/data/nine_club_scraper.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
@@ -25,21 +26,32 @@ final nightUserEventsProvider = Provider<List<Event>>((ref) {
       .toList();
 });
 
-/// Evenements curates (Nine Club etc.) encore a venir.
-List<Event> _curatedNightEvents() {
+/// Evenements scrapes du Nine Club (async).
+final nineClubEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return NineClubScraper.fetchUpcomingEvents();
+});
+
+/// Evenements scrapes de L'Etoile Toulouse (async).
+final etoileEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return EtoileScraper.fetchUpcomingEvents();
+});
+
+/// Filtre les events pour ne garder que ceux dans les 7 prochains jours.
+List<Event> _thisWeekOnly(List<Event> events) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  return NineClubEventsData.events.where((e) {
+  final limit = today.add(const Duration(days: 7));
+  return events.where((e) {
     final d = DateTime.tryParse(e.dateDebut);
-    return d != null && !d.isBefore(today);
+    return d != null && !d.isBefore(today) && d.isBefore(limit);
   }).toList();
 }
 
-int _nightUserCount(List<Event> events, String searchTag) {
+int _nightUserCount(List<Event> userEvents, List<Event> scrapedEvents, String searchTag) {
   if (searchTag == 'Cette Semaine') {
-    return events.length + _curatedNightEvents().length;
+    return _thisWeekOnly(userEvents).length + _thisWeekOnly(scrapedEvents).length;
   }
-  return events.where((e) {
+  return userEvents.where((e) {
     final cat = e.categorie.toLowerCase();
     final tag = searchTag.toLowerCase();
     return cat.contains(tag) || tag.contains(cat);
@@ -49,7 +61,11 @@ int _nightUserCount(List<Event> events, String searchTag) {
 final nightCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
   final userEvents = ref.watch(nightUserEventsProvider);
-  final uc = _nightUserCount(userEvents, searchTag);
+  final scrapedEvents = <Event>[
+    ...ref.watch(nineClubEventsProvider).valueOrNull ?? [],
+    ...ref.watch(etoileEventsProvider).valueOrNull ?? [],
+  ];
+  final uc = _nightUserCount(userEvents, scrapedEvents, searchTag);
   if (searchTag == 'Cette Semaine') {
     return uc;
   }
@@ -79,4 +95,3 @@ final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final repository = CommerceRepository(db: db);
   return repository.searchByVille(ville: city, query: category);
 });
-

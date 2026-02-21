@@ -7,8 +7,8 @@ import 'package:pulz_app/core/widgets/loading_indicator.dart';
 
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/data/night_category_data.dart';
-import 'package:pulz_app/features/night/data/nine_club_events_data.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 
@@ -180,16 +180,35 @@ class NightScreen extends ConsumerWidget {
 
   Widget _buildUserEventsList(WidgetRef ref) {
     final userEvents = ref.watch(nightUserEventsProvider);
+    final nineClubAsync = ref.watch(nineClubEventsProvider);
+    final etoileAsync = ref.watch(etoileEventsProvider);
+    final modeTheme = ref.watch(modeThemeProvider);
 
-    // Curated events (Nine Club etc.) – only future dates.
+    // Filtre J+7 glissant.
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final curatedEvents = NineClubEventsData.events.where((e) {
+    final limit = today.add(const Duration(days: 7));
+    bool isThisWeek(Event e) {
       final d = DateTime.tryParse(e.dateDebut);
-      return d != null && !d.isBefore(today);
-    }).toList();
+      return d != null && !d.isBefore(today) && d.isBefore(limit);
+    }
 
-    final allEvents = [...userEvents, ...curatedEvents];
+    final scrapedEvents = <Event>[
+      ...nineClubAsync.valueOrNull ?? [],
+      ...etoileAsync.valueOrNull ?? [],
+    ].where(isThisWeek).toList();
+    final allEvents = <Event>[
+      ...userEvents.where(isThisWeek),
+      ...scrapedEvents,
+    ];
+    // Trier par date.
+    allEvents.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+
+    // Afficher un loader seulement si pas encore d'events du tout.
+    final isLoading = nineClubAsync.isLoading || etoileAsync.isLoading;
+    if (allEvents.isEmpty && isLoading) {
+      return LoadingIndicator(color: modeTheme.primaryColor);
+    }
 
     if (allEvents.isEmpty) {
       return const EmptyStateWidget(

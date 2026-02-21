@@ -1,12 +1,12 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -277,50 +277,7 @@ class EventRowCard extends ConsumerWidget {
 
   void _openDetail(BuildContext context) {
     final image = _resolveImage();
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: event.titre,
-        emoji: event.categoryEmoji,
-        imageAsset: image,
-        likeId: event.identifiant,
-        infos: [
-          if (event.categorie.isNotEmpty)
-            DetailInfoItem(Icons.category_outlined, event.categorie),
-          if (event.dateDebut.isNotEmpty)
-            DetailInfoItem(
-              Icons.calendar_today,
-              event.dateFin.isNotEmpty && event.dateFin != event.dateDebut
-                  ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
-                  : _formatDate(event.dateDebut),
-            ),
-          if (event.lieuNom.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, event.lieuNom),
-          if (event.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, event.horaires),
-          if (event.tarifNormal.isNotEmpty)
-            DetailInfoItem(Icons.euro_outlined, event.tarifNormal),
-        ],
-        primaryAction: event.reservationUrl.isNotEmpty
-            ? DetailAction(
-                icon: Icons.confirmation_number_outlined,
-                label: 'Billetterie',
-                url: event.reservationUrl,
-              )
-            : null,
-        shareText: _buildShareText(),
-      ),
-    );
-  }
-
-  String _buildShareText() {
-    final buffer = StringBuffer();
-    buffer.writeln(event.titre);
-    if (event.dateDebut.isNotEmpty) buffer.writeln('Date: ${event.dateDebut}');
-    if (event.lieuNom.isNotEmpty) buffer.writeln('Lieu: ${event.lieuNom}');
-    if (event.isFree) buffer.writeln('Gratuit !');
-    buffer.writeln('\nDecouvre sur MaCity');
-    return buffer.toString();
+    EventFullscreenPopup.show(context, event, image);
   }
 
   static const _defaultPochette = 'assets/images/pochette_concert.png';
@@ -337,12 +294,19 @@ class EventRowCard extends ConsumerWidget {
       );
     }
 
-    // URL réseau (Supabase Storage ou autre)
+    // URL réseau (Supabase Storage ou autre) — avec cache disque.
     if (photo.startsWith('http')) {
-      return Image.network(
-        photo,
+      return CachedNetworkImage(
+        imageUrl: photo,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Image.asset(
+        fadeInDuration: const Duration(milliseconds: 200),
+        placeholder: (_, __) => Image.asset(
+          fallbackAsset,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              Image.asset(_defaultPochette, fit: BoxFit.cover),
+        ),
+        errorWidget: (_, __, ___) => Image.asset(
           fallbackAsset,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) =>
@@ -382,13 +346,6 @@ class EventRowCard extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _openUrl(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
   }
 
   void _shareEvent() {

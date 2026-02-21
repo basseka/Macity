@@ -35,7 +35,10 @@ class ApiConstants {
 
   // Football Data
   static const String footballBaseUrl = 'https://api.football-data.org/';
-  static const String footballApiToken = String.fromEnvironment('FOOTBALL_API_TOKEN');
+  static const String footballApiToken = String.fromEnvironment(
+    'FOOTBALL_API_TOKEN',
+    defaultValue: '568af3e5714f491aaa2f700bcb0c3f54',
+  );
 
   // ESPN
   static const String espnBaseUrl = 'https://site.api.espn.com/';
@@ -49,7 +52,10 @@ class ApiConstants {
   // Ticketmaster Discovery v2
   static const String ticketmasterBaseUrl = 'https://app.ticketmaster.com/';
   static const String ticketmasterEventsEndpoint = 'discovery/v2/events.json';
-  static const String ticketmasterApiKey = String.fromEnvironment('TICKETMASTER_API_KEY');
+  static const String ticketmasterApiKey = String.fromEnvironment(
+    'TICKETMASTER_API_KEY',
+    defaultValue: 'FZihyhGkVrpCwZmTyz0SEUA9SD1ifi4r',
+  );
 
   // Festik (billetterie festivals)
   static const String festikBaseUrl = 'https://billetterie.festik.net/';

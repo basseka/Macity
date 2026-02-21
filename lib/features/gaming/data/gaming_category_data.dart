@@ -34,43 +34,43 @@ class GamingCategoryData {
       name: 'Cette Semaine',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        GamingSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine'),
+        GamingSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine', image: 'assets/images/pochette_cettesemaine.png'),
       ],
     ),
     GamingCategoryGroup(
       name: 'Jeux video',
       emoji: '\uD83C\uDFAE',
       subcategories: [
-        GamingSubcategory(label: 'Salle d\'arcade', searchTag: 'Salle arcade', emoji: '\uD83D\uDD79\uFE0F', group: 'Jeux video'),
-        GamingSubcategory(label: 'Gaming cafe', searchTag: 'Gaming cafe', emoji: '\uD83C\uDFAE', group: 'Jeux video'),
-        GamingSubcategory(label: 'VR & realite virtuelle', searchTag: 'Realite virtuelle VR', emoji: '\uD83E\uDD7D', group: 'Jeux video'),
+        GamingSubcategory(label: 'Salle d\'arcade', searchTag: 'Salle arcade', emoji: '\uD83D\uDD79\uFE0F', group: 'Jeux video', image: 'assets/images/pochette_sallearcade.png'),
+        GamingSubcategory(label: 'Gaming cafe', searchTag: 'Gaming cafe', emoji: '\uD83C\uDFAE', group: 'Jeux video', image: 'assets/images/pochette_gamingcafe.png'),
+        GamingSubcategory(label: 'VR & realite virtuelle', searchTag: 'Realite virtuelle VR', emoji: '\uD83E\uDD7D', group: 'Jeux video', image: 'assets/images/pochette_VR.png'),
       ],
     ),
     GamingCategoryGroup(
       name: 'Jeux de societe & cartes',
       emoji: '\uD83C\uDFB2',
       subcategories: [
-        GamingSubcategory(label: 'Bar a jeux', searchTag: 'Bar a jeux', emoji: '\uD83C\uDFB2', group: 'Jeux de societe & cartes'),
-        GamingSubcategory(label: 'Boutique jeux', searchTag: 'Boutique jeux', emoji: '\uD83C\uDCCF', group: 'Jeux de societe & cartes'),
-        GamingSubcategory(label: 'Escape game', searchTag: 'Escape game', emoji: '\uD83D\uDD10', group: 'Jeux de societe & cartes'),
+        GamingSubcategory(label: 'Bar a jeux', searchTag: 'Bar a jeux', emoji: '\uD83C\uDFB2', group: 'Jeux de societe & cartes', image: 'assets/images/pochette_barajeux.png'),
+        GamingSubcategory(label: 'Boutique jeux', searchTag: 'Boutique jeux', emoji: '\uD83C\uDCCF', group: 'Jeux de societe & cartes', image: 'assets/images/pochette_gaming.png'),
+        GamingSubcategory(label: 'Escape game', searchTag: 'Escape game', emoji: '\uD83D\uDD10', group: 'Jeux de societe & cartes', image: 'assets/images/pochette_escapegame.png'),
       ],
     ),
     GamingCategoryGroup(
       name: 'Manga, comics & BD',
       emoji: '\uD83D\uDCDA',
       subcategories: [
-        GamingSubcategory(label: 'Boutique manga', searchTag: 'Boutique manga', emoji: '\uD83D\uDCDA', group: 'Manga, comics & BD'),
-        GamingSubcategory(label: 'Comics & BD', searchTag: 'Comics BD', emoji: '\uD83E\uDDB8', group: 'Manga, comics & BD'),
-        GamingSubcategory(label: 'Figurines & goodies', searchTag: 'Figurines goodies', emoji: '\uD83E\uDDF8', group: 'Manga, comics & BD'),
+        GamingSubcategory(label: 'Boutique manga', searchTag: 'Boutique manga', emoji: '\uD83D\uDCDA', group: 'Manga, comics & BD', image: 'assets/images/pochette_boutiquemanga.png'),
+        GamingSubcategory(label: 'Comics & BD', searchTag: 'Comics BD', emoji: '\uD83E\uDDB8', group: 'Manga, comics & BD', image: 'assets/images/pochette_default.png'),
+        GamingSubcategory(label: 'Figurines & goodies', searchTag: 'Figurines goodies', emoji: '\uD83E\uDDF8', group: 'Manga, comics & BD', image: 'assets/images/pochette_default.png'),
       ],
     ),
     GamingCategoryGroup(
       name: 'Evenements & conventions',
       emoji: '\uD83C\uDFAA',
       subcategories: [
-        GamingSubcategory(label: 'Convention & salon', searchTag: 'Convention salon geek', emoji: '\uD83C\uDFAA', group: 'Evenements & conventions'),
-        GamingSubcategory(label: 'Tournoi e-sport', searchTag: 'Tournoi esport', emoji: '\uD83C\uDFC6', group: 'Evenements & conventions'),
-        GamingSubcategory(label: 'Cosplay', searchTag: 'Cosplay', emoji: '\uD83C\uDFAD', group: 'Evenements & conventions'),
+        GamingSubcategory(label: 'Convention & salon', searchTag: 'Convention salon geek', emoji: '\uD83C\uDFAA', group: 'Evenements & conventions', image: 'assets/images/pochette_default.png'),
+        GamingSubcategory(label: 'Tournoi e-sport', searchTag: 'Tournoi esport', emoji: '\uD83C\uDFC6', group: 'Evenements & conventions', image: 'assets/images/pochette_gaming.png'),
+        GamingSubcategory(label: 'Cosplay', searchTag: 'Cosplay', emoji: '\uD83C\uDFAD', group: 'Evenements & conventions', image: 'assets/images/pochette_cosplay.png'),
       ],
     ),
   ];

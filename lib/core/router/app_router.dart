@@ -12,6 +12,9 @@ import 'package:pulz_app/features/food/presentation/food_screen.dart';
 import 'package:pulz_app/features/gaming/presentation/gaming_screen.dart';
 import 'package:pulz_app/features/auth/presentation/instagram_callback_handler.dart';
 
+/// Set to true in main() if the splash has already been shown once.
+bool hasSeenSplash = false;
+
 final GlobalKey<NavigatorState> _rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
 final GlobalKey<NavigatorState> _shellNavigatorKey =
@@ -19,7 +22,7 @@ final GlobalKey<NavigatorState> _shellNavigatorKey =
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/splash',
+  initialLocation: hasSeenSplash ? '/home' : '/splash',
   routes: [
     GoRoute(
       path: '/splash',

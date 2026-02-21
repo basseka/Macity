@@ -34,34 +34,34 @@ class NightCategoryData {
       name: 'Cette Semaine',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        NightSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine', image: 'assets/images/sc_cette_semaine.png'),
+        NightSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine', image: 'assets/images/pochette_default.png'),
       ],
     ),
     NightCategoryGroup(
       name: 'Bars & vie nocturne',
       emoji: '\uD83C\uDF78',
       subcategories: [
-        NightSubcategory(label: 'Bar de nuit', searchTag: 'Bar de nuit', emoji: '\uD83C\uDF19', group: 'Bars & vie nocturne', image: 'assets/images/sc_pub.png'),
-        NightSubcategory(label: 'Club / Discotheque', searchTag: 'Club Discotheque', emoji: '\uD83C\uDF86', group: 'Bars & vie nocturne', image: 'assets/images/sc_discotheque.png'),
-        NightSubcategory(label: 'Bar a cocktails', searchTag: 'Bar a cocktails', emoji: '\uD83C\uDF79', group: 'Bars & vie nocturne', image: 'assets/images/sc_pub.png'),
-        NightSubcategory(label: 'Bar a chicha', searchTag: 'Bar a chicha', emoji: '\uD83D\uDCA8', group: 'Bars & vie nocturne', image: 'assets/images/sc_chicha.png'),
-        NightSubcategory(label: 'Pub', searchTag: 'Pub', emoji: '\uD83C\uDF7B', group: 'Bars & vie nocturne', image: 'assets/images/sc_pub.png'),
+        NightSubcategory(label: 'Bar de nuit', searchTag: 'Bar de nuit', emoji: '\uD83C\uDF19', group: 'Bars & vie nocturne', image: 'assets/images/pochette_pub.png'),
+        NightSubcategory(label: 'Club / Discotheque', searchTag: 'Club Discotheque', emoji: '\uD83C\uDF86', group: 'Bars & vie nocturne', image: 'assets/images/pochette_discotheque.png'),
+        NightSubcategory(label: 'Bar a cocktails', searchTag: 'Bar a cocktails', emoji: '\uD83C\uDF79', group: 'Bars & vie nocturne', image: 'assets/images/pochette_pub.png'),
+        NightSubcategory(label: 'Bar a chicha', searchTag: 'Bar a chicha', emoji: '\uD83D\uDCA8', group: 'Bars & vie nocturne', image: 'assets/images/pochette_chicha.png'),
+        NightSubcategory(label: 'Pub', searchTag: 'Pub', emoji: '\uD83C\uDF7B', group: 'Bars & vie nocturne', image: 'assets/images/pochette_pub.png'),
       ],
     ),
     NightCategoryGroup(
       name: 'Commerces ouverts la nuit',
       emoji: '\uD83D\uDED2',
       subcategories: [
-        NightSubcategory(label: 'Epicerie de nuit', searchTag: 'Epicerie de nuit', emoji: '\uD83C\uDF1C', group: 'Commerces ouverts la nuit', image: 'assets/images/sc_tabac_nuit.png'),
-        NightSubcategory(label: 'SOS Apero', searchTag: 'SOS Apero', emoji: '\uD83C\uDF7B', group: 'Commerces ouverts la nuit', image: 'assets/images/sc_tabac_nuit.png'),
-        NightSubcategory(label: 'Tabac de nuit', searchTag: 'Tabac de nuit', emoji: '\uD83D\uDEAC', group: 'Commerces ouverts la nuit', image: 'assets/images/sc_tabac_nuit.png'),
+        NightSubcategory(label: 'Epicerie de nuit', searchTag: 'Epicerie de nuit', emoji: '\uD83C\uDF1C', group: 'Commerces ouverts la nuit', image: 'assets/images/pochette_tabac.png'),
+        NightSubcategory(label: 'SOS Apero', searchTag: 'SOS Apero', emoji: '\uD83C\uDF7B', group: 'Commerces ouverts la nuit', image: 'assets/images/pochette_default.png'),
+        NightSubcategory(label: 'Tabac de nuit', searchTag: 'Tabac de nuit', emoji: '\uD83D\uDEAC', group: 'Commerces ouverts la nuit', image: 'assets/images/pochette_tabac.png'),
       ],
     ),
     NightCategoryGroup(
       name: 'Hebergement',
       emoji: '\uD83C\uDFE8',
       subcategories: [
-        NightSubcategory(label: 'Hotel', searchTag: 'Hotel', emoji: '\uD83D\uDECF\uFE0F', group: 'Hebergement', image: 'assets/images/sc_hotel.png'),
+        NightSubcategory(label: 'Hotel', searchTag: 'Hotel', emoji: '\uD83D\uDECF\uFE0F', group: 'Hebergement', image: 'assets/images/pochette_hotel.png'),
       ],
     ),
   ];

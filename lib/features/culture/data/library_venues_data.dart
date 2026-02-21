@@ -11,6 +11,7 @@ class LibraryVenue {
   final double longitude;
   final String websiteUrl;
   final String lienMaps;
+  final String image;
 
   const LibraryVenue({
     required this.id,
@@ -25,6 +26,7 @@ class LibraryVenue {
     required this.longitude,
     required this.websiteUrl,
     required this.lienMaps,
+    required this.image,
   });
 }
 
@@ -51,6 +53,7 @@ class LibraryVenuesData {
       longitude: 1.4540,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-jose-cabanis/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Jose+Cabanis+1+Allee+Jacques+Chaban-Delmas+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_grand_m',
@@ -65,6 +68,7 @@ class LibraryVenuesData {
       longitude: 1.3995,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-grand-m/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Grand+M+37+Avenue+Reynerie+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_empalot',
@@ -79,6 +83,7 @@ class LibraryVenuesData {
       longitude: 1.4420,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-empalot/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Empalot+Allee+Bellefontaine+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_saint_cyprien',
@@ -93,6 +98,7 @@ class LibraryVenuesData {
       longitude: 1.4335,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-saint-cyprien/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Saint-Cyprien+Place+Ravelin+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_minimes',
@@ -107,6 +113,7 @@ class LibraryVenuesData {
       longitude: 1.4410,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-des-minimes/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+des+Minimes+Place+Marche+Cochons+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
 
     // ── Bibliotheques de quartier ──
@@ -123,6 +130,7 @@ class LibraryVenuesData {
       longitude: 1.4110,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/bibliotheque-ancely/',
       lienMaps: 'https://maps.google.com/?q=Bibliotheque+Ancely+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'biblio_bonnefoy',
@@ -137,6 +145,7 @@ class LibraryVenuesData {
       longitude: 1.4605,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/bibliotheque-bonnefoy/',
       lienMaps: 'https://maps.google.com/?q=Bibliotheque+Bonnefoy+Faubourg+Bonnefoy+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_cote_pavee',
@@ -151,6 +160,7 @@ class LibraryVenuesData {
       longitude: 1.4690,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-cote-pavee/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Cote+Pavee+164+Avenue+Jean+Rieux+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_daniele_damin',
@@ -165,6 +175,7 @@ class LibraryVenuesData {
       longitude: 1.4020,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-daniele-damin/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Daniele+Damin+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'biblio_duranti',
@@ -179,6 +190,7 @@ class LibraryVenuesData {
       longitude: 1.4470,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/bibliotheque-duranti/',
       lienMaps: 'https://maps.google.com/?q=Bibliotheque+Duranti+6+Rue+Perigord+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_fabre',
@@ -193,6 +205,7 @@ class LibraryVenuesData {
       longitude: 1.4260,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-fabre/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Fabre+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_izards',
@@ -207,6 +220,7 @@ class LibraryVenuesData {
       longitude: 1.4395,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-des-izards/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+des+Izards+55+Rue+Izards+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'biblio_pavillon_pret',
@@ -221,6 +235,7 @@ class LibraryVenuesData {
       longitude: 1.4465,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/pavillon-de-pret/',
       lienMaps: 'https://maps.google.com/?q=Pavillon+de+Pret+Bibliotheque+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'biblio_pinel',
@@ -235,6 +250,7 @@ class LibraryVenuesData {
       longitude: 1.3935,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/bibliotheque-pinel/',
       lienMaps: 'https://maps.google.com/?q=Bibliotheque+Pinel+Chemin+Lardenne+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'biblio_pont_demoiselles',
@@ -249,6 +265,7 @@ class LibraryVenuesData {
       longitude: 1.4560,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/bibliotheque-pont-des-demoiselles/',
       lienMaps: 'https://maps.google.com/?q=Bibliotheque+Pont+des+Demoiselles+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_pradettes',
@@ -263,6 +280,7 @@ class LibraryVenuesData {
       longitude: 1.3870,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-des-pradettes/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+des+Pradettes+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_rangueil',
@@ -277,6 +295,7 @@ class LibraryVenuesData {
       longitude: 1.4535,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-rangueil/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Rangueil+21+Avenue+Rangueil+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'biblio_roseraie',
@@ -291,6 +310,7 @@ class LibraryVenuesData {
       longitude: 1.4715,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/bibliotheque-roseraie/',
       lienMaps: 'https://maps.google.com/?q=Bibliotheque+Roseraie+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_saint_exupery',
@@ -305,6 +325,7 @@ class LibraryVenuesData {
       longitude: 1.4145,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-saint-exupery/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Saint-Exupery+Bagatelle+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
     LibraryVenue(
       id: 'mediatheque_serveyrolles',
@@ -319,6 +340,7 @@ class LibraryVenuesData {
       longitude: 1.4750,
       websiteUrl: 'https://www.bibliotheque.toulouse.fr/bibliotheques/mediatheque-serveyrolles/',
       lienMaps: 'https://maps.google.com/?q=Mediatheque+Serveyrolles+Soupetard+Toulouse',
+      image: 'assets/images/pochette_culture_art.png',
     ),
   ];
 }
