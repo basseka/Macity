@@ -140,10 +140,9 @@ class RugbyTeamConfigs {
 
   /// Find a team config by its ESPN ID.
   static RugbyTeamConfig? findByEspnId(int espnId) {
-    try {
-      return teams.firstWhere((t) => t.espnId == espnId);
-    } catch (_) {
-      return null;
+    for (final t in teams) {
+      if (t.espnId == espnId) return t;
     }
+    return null;
   }
 }

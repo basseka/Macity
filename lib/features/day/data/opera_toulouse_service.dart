@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:pulz_app/features/day/data/event_api_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 
@@ -24,7 +25,9 @@ class OperaToulouseService {
         limit: 100,
       );
       allEvents.addAll(apiEvents);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erreur de chargement: $e');
+    }
 
     // 2. Données curatées
     allEvents.addAll(_getCuratedOperas());

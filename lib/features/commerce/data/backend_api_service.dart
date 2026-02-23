@@ -29,7 +29,7 @@ class BackendApiService {
     required double radius,
     String? query,
   }) async {
-    if (!_hasRealBackend) throw Exception('No backend configured');
+    if (!_hasRealBackend) return [];
     try {
       final response = await _dio.get(
         'api/commerces',
@@ -53,7 +53,7 @@ class BackendApiService {
     required String ville,
     String? query,
   }) async {
-    if (!_hasRealBackend) throw Exception('No backend configured');
+    if (!_hasRealBackend) return [];
     try {
       final response = await _dio.get(
         'api/commerces',
@@ -72,7 +72,7 @@ class BackendApiService {
 
   /// GET sync (incremental)
   Future<List<Map<String, dynamic>>> fetchSync({required int since}) async {
-    if (!_hasRealBackend) throw Exception('No backend configured');
+    if (!_hasRealBackend) return [];
     try {
       final response = await _dio.get(
         'api/commerces/sync',
@@ -88,7 +88,7 @@ class BackendApiService {
 
   /// POST new commerce
   Future<Map<String, dynamic>> addCommerce(Map<String, dynamic> data) async {
-    if (!_hasRealBackend) throw Exception('No backend configured');
+    if (!_hasRealBackend) return {};
     try {
       final response = await _dio.post('api/commerces', data: data);
       return response.data as Map<String, dynamic>;
@@ -104,7 +104,7 @@ class BackendApiService {
     int id,
     Map<String, dynamic> data,
   ) async {
-    if (!_hasRealBackend) throw Exception('No backend configured');
+    if (!_hasRealBackend) return {};
     try {
       final response = await _dio.put('api/commerces/$id', data: data);
       return response.data as Map<String, dynamic>;
@@ -117,7 +117,7 @@ class BackendApiService {
 
   /// GET categories
   Future<List<Map<String, dynamic>>> fetchCategories() async {
-    if (!_hasRealBackend) throw Exception('No backend configured');
+    if (!_hasRealBackend) return [];
     try {
       final response = await _dio.get('api/categories');
       return (response.data as List).cast<Map<String, dynamic>>();
@@ -130,7 +130,7 @@ class BackendApiService {
 
   /// GET villes
   Future<List<Map<String, dynamic>>> fetchVilles() async {
-    if (!_hasRealBackend) throw Exception('No backend configured');
+    if (!_hasRealBackend) return [];
     try {
       final response = await _dio.get('api/villes');
       return (response.data as List).cast<Map<String, dynamic>>();

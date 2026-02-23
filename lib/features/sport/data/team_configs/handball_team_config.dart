@@ -57,12 +57,10 @@ class HandballTeamConfigs {
 
   /// Find a team config by its name.
   static HandballTeamConfig? findByName(String name) {
-    try {
-      return teams.firstWhere(
-        (t) => t.name.toLowerCase().contains(name.toLowerCase()),
-      );
-    } catch (_) {
-      return null;
+    final lowerName = name.toLowerCase();
+    for (final t in teams) {
+      if (t.name.toLowerCase().contains(lowerName)) return t;
     }
+    return null;
   }
 }

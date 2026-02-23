@@ -145,7 +145,9 @@ class RestaurantVenueCard extends ConsumerWidget {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Impossible d\'ouvrir le lien: $e');
+    }
   }
 
   void _share() {

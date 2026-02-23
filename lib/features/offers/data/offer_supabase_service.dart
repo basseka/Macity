@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:pulz_app/core/config/supabase_config.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
@@ -7,16 +10,61 @@ import 'package:pulz_app/features/offers/domain/models/offer.dart';
 /// Service Supabase pour les offres promotionnelles.
 ///
 /// Table PostgREST : `offers`
+/// Bucket Storage  : `offers`
 class OfferSupabaseService {
   final Dio _restDio;
+  final Dio _storageDio;
 
-  OfferSupabaseService({Dio? restDio})
-      : _restDio = restDio ?? _createRestDio();
+  OfferSupabaseService({Dio? restDio, Dio? storageDio})
+      : _restDio = restDio ?? _createRestDio(),
+        _storageDio = storageDio ?? _createStorageDio();
 
   static Dio _createRestDio() {
     final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
     dio.interceptors.add(SupabaseInterceptor());
     return dio;
+  }
+
+  static Dio _createStorageDio() {
+    final dio = DioClient.withBaseUrl(
+      '${SupabaseConfig.supabaseUrl}/storage/v1/',
+    );
+    dio.interceptors.add(SupabaseInterceptor());
+    return dio;
+  }
+
+  // ───────────────────────────────────────────
+  // Storage : upload photo
+  // ───────────────────────────────────────────
+
+  /// Upload une photo locale vers Supabase Storage.
+  /// Retourne l'URL publique de l'image.
+  Future<String> uploadPhoto(String localPath) async {
+    final file = File(localPath);
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${localPath.split('/').last}';
+
+    final bytes = await file.readAsBytes();
+
+    final ext = localPath.split('.').last.toLowerCase();
+    final contentType = switch (ext) {
+      'png' => 'image/png',
+      'gif' => 'image/gif',
+      'webp' => 'image/webp',
+      _ => 'image/jpeg',
+    };
+
+    await _storageDio.post(
+      'object/offers/$fileName',
+      data: bytes,
+      options: Options(
+        headers: {
+          'Content-Type': contentType,
+        },
+      ),
+    );
+
+    return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/offers/$fileName';
   }
 
   /// Recupere les offres actives et non expirees.

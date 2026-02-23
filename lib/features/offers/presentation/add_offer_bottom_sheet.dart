@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/offers/data/offer_supabase_service.dart';
@@ -24,6 +27,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
   final _spotsController = TextEditingController(text: '10');
 
   DateTime? _expiresAt;
+  String? _photoPath;
   bool _isSubmitting = false;
 
   static const _primaryColor = Color(0xFF7B2D8E);
@@ -114,6 +118,53 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   icon: Icons.emoji_emotions_outlined,
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // Photo
+              if (_photoPath == null)
+                OutlinedButton.icon(
+                  onPressed: _pickPhoto,
+                  icon: const Icon(Icons.photo_camera, size: 18),
+                  label: const Text('Ajouter une photo'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _primaryColor,
+                    side: BorderSide(color: _primaryColor.withValues(alpha: 0.3)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                )
+              else
+                Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(_photoPath!),
+                        width: double.infinity,
+                        height: 160,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const SizedBox(height: 160),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _photoPath = null),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(Icons.close, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               const SizedBox(height: 16),
 
               // Adresse
@@ -263,15 +314,51 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
     }
   }
 
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galerie'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    final xFile = await picker.pickImage(source: source, maxWidth: 1024);
+    if (xFile != null) {
+      setState(() => _photoPath = xFile.path);
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
 
     try {
+      final service = OfferSupabaseService();
       final proState = ref.read(proAuthProvider);
       final profile = proState.profile;
       final city = ref.read(selectedCityProvider);
+
+      String? imageUrl;
+      if (_photoPath != null) {
+        imageUrl = await service.uploadPhoto(_photoPath!);
+      }
 
       final offer = Offer(
         id: '',
@@ -281,6 +368,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         emoji: _emojiController.text.trim(),
+        imageUrl: imageUrl ?? '',
         totalSpots: int.tryParse(_spotsController.text.trim()) ?? 10,
         startsAt: DateTime.now(),
         expiresAt: _expiresAt ?? DateTime.now().add(const Duration(days: 7)),
@@ -288,7 +376,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
         createdAt: DateTime.now(),
       );
 
-      await OfferSupabaseService().insertOffer(offer);
+      await service.insertOffer(offer);
 
       // Rafraichir le provider
       ref.invalidate(activeOffersProvider);

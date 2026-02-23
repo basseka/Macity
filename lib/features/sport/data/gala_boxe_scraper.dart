@@ -123,7 +123,10 @@ class GalaBoxeScraper {
     );
     final match = regex.firstMatch(html);
     if (match == null) return null;
-    return '${match.group(1)} ${match.group(2)}';
+    final day = match.group(1);
+    final month = match.group(2);
+    if (day == null || month == null) return null;
+    return '$day $month';
   }
 
   /// Cherche le nom du lieu (texte apres le titre, souvent "Chateau de ...", "Salle ...", etc.)
@@ -139,7 +142,9 @@ class GalaBoxeScraper {
     ];
     for (final pattern in venuePatterns) {
       final match = pattern.firstMatch(html);
-      if (match != null) return _cleanHtml(match.group(1)!.trim());
+      if (match != null && match.group(1) != null) {
+        return _cleanHtml(match.group(1)!.trim());
+      }
     }
     return null;
   }
@@ -152,8 +157,11 @@ class GalaBoxeScraper {
     final match = regex.firstMatch(dateText);
     if (match == null) return null;
 
-    final day = int.tryParse(match.group(1)!);
-    final monthStr = match.group(2)!.toLowerCase();
+    final dayStr = match.group(1);
+    final monthRaw = match.group(2);
+    if (dayStr == null || monthRaw == null) return null;
+    final day = int.tryParse(dayStr);
+    final monthStr = monthRaw.toLowerCase();
     if (day == null) return null;
 
     final month = _frenchMonths[monthStr];

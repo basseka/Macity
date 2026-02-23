@@ -144,7 +144,9 @@ class FoodVenueCard extends ConsumerWidget {
                         if (await canLaunchUrl(uri)) {
                           await launchUrl(uri, mode: LaunchMode.externalApplication);
                         }
-                      } catch (_) {}
+                      } catch (e) {
+                        debugPrint('Impossible d\'ouvrir le lien: $e');
+                      }
                     },
                   ),
                 if (commerce.telephone.isNotEmpty)
@@ -158,7 +160,9 @@ class FoodVenueCard extends ConsumerWidget {
                         if (await canLaunchUrl(uri)) {
                           await launchUrl(uri);
                         }
-                      } catch (_) {}
+                      } catch (e) {
+                        debugPrint('Impossible d\'ouvrir le lien: $e');
+                      }
                     },
                   ),
                 _buildAction(

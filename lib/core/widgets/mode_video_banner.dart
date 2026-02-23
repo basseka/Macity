@@ -70,8 +70,13 @@ class _ModeVideoBannerState extends ConsumerState<ModeVideoBanner> {
     }
 
     final controller = _controller;
-    final isReady =
-        controller != null && controller.value.isInitialized && !_hasError;
+    final size = controller?.value.size;
+    final isReady = controller != null &&
+        controller.value.isInitialized &&
+        !_hasError &&
+        size != null &&
+        size.width > 0 &&
+        size.height > 0;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

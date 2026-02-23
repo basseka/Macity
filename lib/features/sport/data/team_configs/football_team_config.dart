@@ -111,10 +111,9 @@ class FootballTeamConfigs {
 
   /// Find a team config by its football-data.org ID.
   static FootballTeamConfig? findByTeamId(int teamId) {
-    try {
-      return teams.firstWhere((t) => t.teamId == teamId);
-    } catch (_) {
-      return null;
+    for (final t in teams) {
+      if (t.teamId == teamId) return t;
     }
+    return null;
   }
 }

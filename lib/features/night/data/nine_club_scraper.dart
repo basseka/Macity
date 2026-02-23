@@ -72,9 +72,16 @@ class NineClubScraper {
     final xml = response.data;
     if (xml == null || xml.isEmpty) return [];
 
-    final locs = _locRegex.allMatches(xml).map((m) => m.group(1)!).toList();
-    final lastmods =
-        _lastmodRegex.allMatches(xml).map((m) => m.group(1)!).toList();
+    final locs = _locRegex
+        .allMatches(xml)
+        .map((m) => m.group(1) ?? '')
+        .where((s) => s.isNotEmpty)
+        .toList();
+    final lastmods = _lastmodRegex
+        .allMatches(xml)
+        .map((m) => m.group(1) ?? '')
+        .where((s) => s.isNotEmpty)
+        .toList();
 
     final cutoff = DateTime.now().subtract(const Duration(days: 7));
 
@@ -116,7 +123,8 @@ class NineClubScraper {
       final match = _jsonLdRegex.firstMatch(html);
       if (match == null) return null;
 
-      final jsonStr = match.group(1)!.trim();
+      final jsonStr = match.group(1)?.trim() ?? '';
+      if (jsonStr.isEmpty) return null;
       final dynamic decoded = json.decode(jsonStr);
 
       // Le JSON-LD peut etre un objet ou un tableau.

@@ -357,10 +357,13 @@ class ItemDetailSheet extends ConsumerWidget {
 
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Impossible d\'ouvrir le lien: $e');
       try {
         await launchUrl(uri, mode: LaunchMode.platformDefault);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Impossible d\'ouvrir le lien: $e');
+      }
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:pulz_app/features/day/data/event_api_service.dart';
 import 'package:pulz_app/features/day/data/festik_api_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -41,14 +42,18 @@ class SpectacleToulouseService {
       );
       // Exclure les résultats de théâtre
       allEvents.addAll(apiEvents.where((e) => !_isTheatre(e)));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erreur de chargement: $e');
+    }
 
     // 2. Festik (billetterie spectacles)
     try {
       final festikEvents =
           await _festik.fetchToulouseEvents(categorie: 'Spectacle');
       allEvents.addAll(festikEvents.where((e) => !_isTheatre(e)));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erreur de chargement: $e');
+    }
 
     // 3. Donnees curatees
     allEvents.addAll(_getCuratedSpectacles());

@@ -127,7 +127,9 @@ class _AdBannerMarqueeState extends State<AdBannerMarquee>
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Impossible d\'ouvrir le lien: $e');
+    }
   }
 
   @override

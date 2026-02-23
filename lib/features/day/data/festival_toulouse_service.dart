@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:pulz_app/features/day/data/event_api_service.dart';
 import 'package:pulz_app/features/day/data/festik_api_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -33,13 +34,17 @@ class FestivalToulouseService {
         limit: 100,
       );
       allEvents.addAll(apiEvents);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erreur de chargement: $e');
+    }
 
     // 2. Festik (billetterie festivals)
     try {
       final festikEvents = await _festik.fetchToulouseEvents();
       allEvents.addAll(festikEvents);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Erreur de chargement: $e');
+    }
 
     // 3. Données curatées
     allEvents.addAll(_getCuratedFestivals());
