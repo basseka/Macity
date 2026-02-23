@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,9 +14,8 @@ import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
-import 'package:pulz_app/features/home/presentation/widgets/treasure_hunt_sheet.dart';
-import 'package:pulz_app/features/home/presentation/widgets/offer_popup.dart';
-import 'package:pulz_app/features/offers/state/offers_provider.dart';
+import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
+import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -29,25 +26,9 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  Timer? _offerTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _offerTimer = Timer(const Duration(seconds: 10), _showOfferPopup);
-  }
-
-  @override
-  void dispose() {
-    _offerTimer?.cancel();
-    super.dispose();
-  }
-
-  void _showOfferPopup() {
+  void _showBannerCarousel() {
     if (!mounted) return;
-    final offers = ref.read(activeOffersProvider).valueOrNull ?? [];
-    if (offers.isEmpty) return;
-    OfferPopup.show(context, offers.first);
+    BannerCarouselDialog.show(context);
   }
 
   @override
@@ -55,8 +36,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Pre-charger le scraping des clubs des le lancement.
     ref.read(nineClubEventsProvider);
     ref.read(etoileEventsProvider);
-    // Pre-charger les offres pour que le popup ait les donnees pretes.
-    ref.watch(activeOffersProvider);
+    // Pre-charger les bannieres pour que le carrousel ait les donnees pretes.
+    ref.watch(activeBannersProvider);
 
     final city = ref.watch(selectedCityProvider);
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
@@ -176,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                const _TreasureBoxButton(),
+                _TreasureBoxButton(onTap: _showBannerCarousel),
               ],
             ),
           ),
@@ -663,7 +644,8 @@ class _ShimmerInfoButtonState extends State<_ShimmerInfoButton>
 }
 
 class _TreasureBoxButton extends StatefulWidget {
-  const _TreasureBoxButton();
+  final VoidCallback onTap;
+  const _TreasureBoxButton({required this.onTap});
 
   @override
   State<_TreasureBoxButton> createState() => _TreasureBoxButtonState();
@@ -691,7 +673,7 @@ class _TreasureBoxButtonState extends State<_TreasureBoxButton>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => TreasureHuntSheet.show(context),
+      onTap: widget.onTap,
       child: AnimatedBuilder(
         animation: _glow,
         builder: (context, _) {

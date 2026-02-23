@@ -6,6 +6,9 @@ class Offer {
   final String title;
   final String description;
   final String emoji;
+  final String imageUrl;
+  final String imageAsset;
+  final String businessUrl;
   final int totalSpots;
   final int claimedSpots;
   final DateTime startsAt;
@@ -22,6 +25,9 @@ class Offer {
     required this.title,
     this.description = '',
     this.emoji = '',
+    this.imageUrl = '',
+    this.imageAsset = '',
+    this.businessUrl = '',
     this.totalSpots = 10,
     this.claimedSpots = 0,
     required this.startsAt,
@@ -50,6 +56,8 @@ class Offer {
         'title': title,
         'description': description,
         'emoji': emoji,
+        'imageUrl': imageUrl,
+        'businessUrl': businessUrl,
         'totalSpots': totalSpots,
         'claimedSpots': claimedSpots,
         'startsAt': startsAt.toIso8601String(),
@@ -67,6 +75,8 @@ class Offer {
         title: json['title'] as String,
         description: json['description'] as String? ?? '',
         emoji: json['emoji'] as String? ?? '',
+        imageUrl: json['imageUrl'] as String? ?? '',
+        businessUrl: json['businessUrl'] as String? ?? '',
         totalSpots: json['totalSpots'] as int? ?? 10,
         claimedSpots: json['claimedSpots'] as int? ?? 0,
         startsAt: DateTime.parse(json['startsAt'] as String),
@@ -87,6 +97,8 @@ class Offer {
         'title': title,
         'description': description,
         'emoji': emoji,
+        'image_url': imageUrl,
+        'business_url': businessUrl,
         'total_spots': totalSpots,
         'claimed_spots': claimedSpots,
         'starts_at': startsAt.toIso8601String(),
@@ -103,6 +115,8 @@ class Offer {
         title: json['title'] as String,
         description: json['description'] as String? ?? '',
         emoji: json['emoji'] as String? ?? '',
+        imageUrl: json['image_url'] as String? ?? '',
+        businessUrl: json['business_url'] as String? ?? '',
         totalSpots: json['total_spots'] as int? ?? 10,
         claimedSpots: json['claimed_spots'] as int? ?? 0,
         startsAt: json['starts_at'] != null

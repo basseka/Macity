@@ -1,6 +1,7 @@
 import 'package:pulz_app/features/sport/data/supabase_api_service.dart';
 import 'package:pulz_app/features/sport/data/football_api_service.dart';
 import 'package:pulz_app/features/sport/data/espn_rugby_api_service.dart';
+import 'package:pulz_app/features/sport/data/gala_boxe_scraper.dart';
 import 'package:pulz_app/features/sport/data/team_configs/football_team_config.dart';
 import 'package:pulz_app/features/sport/data/team_configs/rugby_team_config.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
@@ -35,11 +36,29 @@ class SportRepository {
     if (sport == 'Cette Semaine') {
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final weekEnd = weekStart.add(const Duration(days: 7));
-      return _supabaseApi.fetchMatches(
-        ville: ville,
-        dateGte: _formatDate(weekStart),
-        dateLt: _formatDate(weekEnd),
-      );
+      final results = await Future.wait([
+        _supabaseApi.fetchMatches(
+          ville: ville,
+          dateGte: _formatDate(weekStart),
+          dateLt: _formatDate(weekEnd),
+        ),
+        GalaBoxeScraper.fetchUpcomingEvents(),
+      ]);
+      final supabaseMatches = results[0];
+      final boxeMatches = results[1].where((m) {
+        final d = DateTime.tryParse(m.date);
+        return d != null && !d.isBefore(weekStart) && d.isBefore(weekEnd);
+      });
+      return [...supabaseMatches, ...boxeMatches];
+    }
+
+    // Boxe → Supabase + scraper galadeboxetoulouse.com
+    if (sport != null && sport.toLowerCase() == 'boxe') {
+      final results = await Future.wait([
+        _supabaseApi.fetchMatches(sport: sport, ville: ville, dateGte: dateStr),
+        GalaBoxeScraper.fetchUpcomingEvents(),
+      ]);
+      return [...results[0], ...results[1]];
     }
 
     // All other sports → query Supabase table (populated by scrapers)
