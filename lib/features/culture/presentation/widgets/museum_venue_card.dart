@@ -91,22 +91,6 @@ class MuseumVenueCard extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  // Emoji badge
-                  Positioned(
-                    bottom: 6,
-                    left: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        emoji,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

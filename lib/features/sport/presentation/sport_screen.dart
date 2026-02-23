@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -182,41 +183,32 @@ class SportScreen extends ConsumerWidget {
     List<SupabaseMatch> matches,
     ModeTheme modeTheme,
   ) {
-    // Group by sport label (exclude "Autres")
+    // Group matches by date
     final grouped = <String, List<SupabaseMatch>>{};
     for (final m in matches) {
-      final label = _sportLabel(m);
-      if (label == 'Autres') continue;
-      grouped.putIfAbsent(label, () => []).add(m);
+      final dateKey = m.date.isNotEmpty ? m.date.substring(0, 10) : '';
+      grouped.putIfAbsent(dateKey, () => []).add(m);
     }
 
-    // Ordre d'affichage fixe — toutes les rubriques, même vides
-    const displayOrder = [
-      'Rugby',
-      'Football',
-      'Basketball',
-      'Handball',
-      'Boxe',
-      'Natation',
-      'Course a pied',
-    ];
+    final sortedDates = grouped.keys.toList()..sort();
 
     final items = <Widget>[];
-    for (final key in displayOrder) {
-      final matchesForKey = grouped[key] ?? [];
-      // Section header
+    for (final dateKey in sortedDates) {
+      final matchesForDate = grouped[dateKey]!;
+      final parsed = DateTime.tryParse(dateKey);
+      final dateLabel = parsed != null
+          ? _capitalize(DateFormatter.formatRelative(parsed))
+          : dateKey;
+
       items.add(
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
           child: Row(
             children: [
-              Text(
-                _sportEmoji(key),
-                style: const TextStyle(fontSize: 18),
-              ),
+              const Text('\uD83D\uDCC5', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 8),
               Text(
-                key,
+                dateLabel,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -232,7 +224,7 @@ class SportScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${matchesForKey.length}',
+                  '${matchesForDate.length}',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -244,8 +236,7 @@ class SportScreen extends ConsumerWidget {
           ),
         ),
       );
-      // Match cards
-      for (final match in matchesForKey) {
+      for (final match in matchesForDate) {
         items.add(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -261,38 +252,8 @@ class SportScreen extends ConsumerWidget {
     );
   }
 
-  static String _sportLabel(SupabaseMatch m) {
-    final s = m.sport.toLowerCase();
-    if (s.contains('rugby')) return 'Rugby';
-    if (s.contains('football')) return 'Football';
-    if (s.contains('basket')) return 'Basketball';
-    if (s.contains('handball') || s.contains('hand')) return 'Handball';
-    if (s.contains('boxe')) return 'Boxe';
-    if (s.contains('natation')) return 'Natation';
-    if (s.contains('course')) return 'Course a pied';
-    return 'Autres';
-  }
-
-  static String _sportEmoji(String label) {
-    switch (label) {
-      case 'Rugby':
-        return '\uD83C\uDFC9';
-      case 'Football':
-        return '\u26BD';
-      case 'Basketball':
-        return '\uD83C\uDFC0';
-      case 'Handball':
-        return '\uD83E\uDD3E';
-      case 'Boxe':
-        return '\uD83E\uDD4A';
-      case 'Natation':
-        return '\uD83C\uDFCA';
-      case 'Course a pied':
-        return '\uD83C\uDFC3';
-      default:
-        return '\uD83C\uDFC6';
-    }
-  }
+  static String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   Widget _buildFitnessVenuesList() {
     final venues = FitnessVenuesData.venues;

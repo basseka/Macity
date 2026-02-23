@@ -167,22 +167,6 @@ class EventCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                // Emoji badge
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      event.categoryEmoji,
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
               ],
             ),
 

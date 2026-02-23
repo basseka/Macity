@@ -5,6 +5,7 @@ import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
+import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/features/day/data/day_category_data.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
@@ -174,41 +175,36 @@ class DayScreen extends ConsumerWidget {
   }
 
   Widget _buildGroupedEventsList(List<Event> events, ModeTheme modeTheme) {
-    // Group events by rubrique label (exclude "Autres")
+    // Group events by date
     final grouped = <String, List<Event>>{};
     for (final e in events) {
       final label = _categoryLabel(e);
       if (label == 'Autres') continue;
-      grouped.putIfAbsent(label, () => []).add(e);
+      final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
+      grouped.putIfAbsent(dateKey, () => []).add(e);
     }
 
-    // Ordre d'affichage fixe
-    const displayOrder = [
-      'Concerts',
-      'Spectacles',
-      'Festivals',
-      'Opera',
-      'Showcases',
-      'DJ Sets',
-    ];
-    // Build a flat list of widgets: section headers + event cards
-    // Afficher toutes les rubriques, même vides (avec compteur 0)
+    // Sort date keys chronologically
+    final sortedDates = grouped.keys.toList()..sort();
+
     final items = <Widget>[];
-    for (final key in displayOrder) {
-      final eventsForKey = grouped[key] ?? [];
-      // Section header
+    for (final dateKey in sortedDates) {
+      final eventsForDate = grouped[dateKey]!;
+      final parsed = DateTime.tryParse(dateKey);
+      final dateLabel = parsed != null
+          ? _capitalize(DateFormatter.formatRelative(parsed))
+          : dateKey;
+
+      // Date section header
       items.add(
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
           child: Row(
             children: [
-              Text(
-                _categoryEmoji(key),
-                style: const TextStyle(fontSize: 18),
-              ),
+              const Text('📅', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 8),
               Text(
-                key,
+                dateLabel,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -223,7 +219,7 @@ class DayScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${eventsForKey.length}',
+                  '${eventsForDate.length}',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -235,8 +231,8 @@ class DayScreen extends ConsumerWidget {
           ),
         ),
       );
-      // Event cards for this section
-      for (final event in eventsForKey) {
+      // Event cards for this date
+      for (final event in eventsForDate) {
         items.add(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -252,6 +248,9 @@ class DayScreen extends ConsumerWidget {
     );
   }
 
+  static String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
   static String _categoryLabel(Event e) {
     final cat = e.categorie.toLowerCase();
     final type = e.type.toLowerCase();
@@ -264,22 +263,4 @@ class DayScreen extends ConsumerWidget {
     return 'Autres';
   }
 
-  static String _categoryEmoji(String label) {
-    switch (label) {
-      case 'Concerts':
-        return '🎵';
-      case 'Festivals':
-        return '🎪';
-      case 'Opera':
-        return '🎭';
-      case 'Spectacles':
-        return '🎭';
-      case 'DJ Sets':
-        return '🎧';
-      case 'Showcases':
-        return '🎤';
-      default:
-        return '📌';
-    }
-  }
 }

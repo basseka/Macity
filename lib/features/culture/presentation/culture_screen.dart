@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -319,39 +320,32 @@ class CultureScreen extends ConsumerWidget {
     List<Event> events,
     ModeTheme modeTheme,
   ) {
-    // Group events by culture category label (exclude "Autres")
+    // Group events by date
     final grouped = <String, List<Event>>{};
     for (final e in events) {
-      final label = _cultureCategoryLabel(e);
-      if (label == 'Autres') continue;
-      grouped.putIfAbsent(label, () => []).add(e);
+      final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
+      grouped.putIfAbsent(dateKey, () => []).add(e);
     }
 
-    // Ordre d'affichage fixe — toutes les rubriques, même vides
-    const displayOrder = [
-      'Expositions',
-      'Visites guidees',
-      'Vernissages',
-      'Ateliers',
-      'Animations culturelles',
-    ];
+    final sortedDates = grouped.keys.toList()..sort();
 
     final items = <Widget>[];
-    for (final key in displayOrder) {
-      final eventsForKey = grouped[key] ?? [];
-      // Section header
+    for (final dateKey in sortedDates) {
+      final eventsForDate = grouped[dateKey]!;
+      final parsed = DateTime.tryParse(dateKey);
+      final dateLabel = parsed != null
+          ? _capitalize(DateFormatter.formatRelative(parsed))
+          : dateKey;
+
       items.add(
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
           child: Row(
             children: [
-              Text(
-                _cultureCategoryEmoji(key),
-                style: const TextStyle(fontSize: 18),
-              ),
+              const Text('\uD83D\uDCC5', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 8),
               Text(
-                key,
+                dateLabel,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -367,7 +361,7 @@ class CultureScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${eventsForKey.length}',
+                  '${eventsForDate.length}',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -379,8 +373,7 @@ class CultureScreen extends ConsumerWidget {
           ),
         ),
       );
-      // Event cards
-      for (final event in eventsForKey) {
+      for (final event in eventsForDate) {
         items.add(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -396,43 +389,8 @@ class CultureScreen extends ConsumerWidget {
     );
   }
 
-  static String _cultureCategoryLabel(Event e) {
-    final cat = e.categorie.toLowerCase();
-    final type = e.type.toLowerCase();
-    if (cat.contains('exposition') || type.contains('exposition')) {
-      return 'Expositions';
-    }
-    if (cat.contains('visite') || type.contains('visite')) {
-      return 'Visites guidees';
-    }
-    if (cat.contains('vernissage') || type.contains('vernissage')) {
-      return 'Vernissages';
-    }
-    if (cat.contains('atelier') || type.contains('atelier')) {
-      return 'Ateliers';
-    }
-    if (cat.contains('animation') || type.contains('animation')) {
-      return 'Animations culturelles';
-    }
-    return 'Autres';
-  }
-
-  static String _cultureCategoryEmoji(String label) {
-    switch (label) {
-      case 'Expositions':
-        return '\uD83D\uDDBC\uFE0F';
-      case 'Visites guidees':
-        return '\uD83E\uDDED';
-      case 'Vernissages':
-        return '\uD83C\uDF7E';
-      case 'Ateliers':
-        return '\uD83C\uDFA8';
-      case 'Animations culturelles':
-        return '\uD83C\uDFAD';
-      default:
-        return '\uD83D\uDCCC';
-    }
-  }
+  static String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   Widget _buildCommerceVenuesList(WidgetRef ref, ModeTheme modeTheme) {
     final venuesAsync = ref.watch(cultureVenuesProvider);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -216,13 +218,77 @@ class NightScreen extends ConsumerWidget {
         icon: Icons.nightlife,
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: allEvents.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: EventRowCard(event: allEvents[index]),
-      ),
+    return _buildDateGroupedEventsList(allEvents, modeTheme);
+  }
+
+  Widget _buildDateGroupedEventsList(List<Event> events, ModeTheme modeTheme) {
+    final grouped = <String, List<Event>>{};
+    for (final e in events) {
+      final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
+      grouped.putIfAbsent(dateKey, () => []).add(e);
+    }
+
+    final sortedDates = grouped.keys.toList()..sort();
+
+    final items = <Widget>[];
+    for (final dateKey in sortedDates) {
+      final eventsForDate = grouped[dateKey]!;
+      final parsed = DateTime.tryParse(dateKey);
+      final dateLabel = parsed != null
+          ? _capitalize(DateFormatter.formatRelative(parsed))
+          : dateKey;
+
+      items.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+          child: Row(
+            children: [
+              const Text('\uD83D\uDCC5', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Text(
+                dateLabel,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: modeTheme.primaryDarkColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${eventsForDate.length}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: modeTheme.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      for (final event in eventsForDate) {
+        items.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+            child: EventRowCard(event: event),
+          ),
+        );
+      }
+    }
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 16),
+      children: items,
     );
   }
+
+  static String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
