@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/features/pro_auth/data/pro_auth_service.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 class ProLoginSheet extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
   String _selectedType = 'association';
   bool _isLoginMode = false;
   bool _obscurePassword = true;
+  bool _isResetting = false;
 
   static const _primaryColor = Color(0xFF7B2D8E);
   static const _primaryDarkColor = Color(0xFF4A1259);
@@ -173,6 +175,23 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'Le mot de passe est requis'
                       : null,
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: _isResetting ? null : _resetPassword,
+                    child: Text(
+                      _isResetting
+                          ? 'Envoi en cours...'
+                          : 'Mot de passe oublie ?',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _isResetting ? Colors.grey : _primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ] else ...[
                 // ── Mode inscription ──
@@ -357,6 +376,40 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
+  }
+
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Entrez votre email d\'abord'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    setState(() => _isResetting = true);
+    try {
+      await ProAuthService().resetPassword(email);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email de reinitialisation envoye !'),
+          backgroundColor: _primaryColor,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erreur lors de l\'envoi. Verifiez votre email.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isResetting = false);
+    }
   }
 
   void _submit() {

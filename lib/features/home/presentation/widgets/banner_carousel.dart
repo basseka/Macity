@@ -56,12 +56,28 @@ class _BannerCarousel extends StatefulWidget {
   State<_BannerCarousel> createState() => _BannerCarouselState();
 }
 
-class _BannerCarouselState extends State<_BannerCarousel> {
+class _BannerCarouselState extends State<_BannerCarousel>
+    with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  late final AnimationController _bounceController;
+  late final Animation<double> _bounceOffset;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _bounceOffset = Tween(begin: 0.0, end: 6.0).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
+    _bounceController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -77,16 +93,17 @@ class _BannerCarouselState extends State<_BannerCarousel> {
   @override
   Widget build(BuildContext context) {
     final banners = widget.banners;
+    final currentBanner = banners[_currentPage];
 
     return Stack(
       children: [
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Carrousel
+            // Carrousel (image seule)
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.65,
+                maxHeight: MediaQuery.of(context).size.height * 0.45,
               ),
               child: PageView.builder(
                 controller: _pageController,
@@ -94,78 +111,97 @@ class _BannerCarouselState extends State<_BannerCarousel> {
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 itemBuilder: (context, index) {
                   final banner = banners[index];
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Image
-                      Flexible(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: CachedNetworkImage(
-                            imageUrl: banner.imageUrl,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => const SizedBox(
-                              height: 200,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) => const SizedBox(
-                              height: 200,
-                              child: Center(
-                                child: Icon(
-                                  Icons.broken_image,
-                                  color: Colors.white54,
-                                  size: 48,
-                                ),
-                              ),
-                            ),
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: CachedNetworkImage(
+                      imageUrl: banner.imageUrl,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
                           ),
                         ),
                       ),
-
-                      // CTA button
-                      if (banner.linkUrl.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              _openLink(banner.linkUrl);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFFD54F),
-                              foregroundColor: const Color(0xFF4E342E),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 4,
-                            ),
-                            child: const Text(
-                              'J\'en profite !',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      errorWidget: (_, __, ___) => const SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.white54,
+                            size: 48,
                           ),
                         ),
-                      ],
-                    ],
+                      ),
+                    ),
                   );
                 },
               ),
             ),
 
-            // Dots indicator
+            // CTA button (sous le carrousel, toujours visible)
+            if (currentBanner.linkUrl.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 40,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _openLink(currentBanner.linkUrl);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD54F),
+                    foregroundColor: const Color(0xFF4E342E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: const Text(
+                    'J\'en profite !',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
+            // Swipe hint + dots
             if (banners.length > 1) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
+              AnimatedBuilder(
+                animation: _bounceOffset,
+                builder: (context, _) => Transform.translate(
+                  offset: Offset(_bounceOffset.value, 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.swipe,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'Glisse pour voir les offres',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(banners.length, (i) {

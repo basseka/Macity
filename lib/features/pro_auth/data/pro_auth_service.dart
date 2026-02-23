@@ -140,6 +140,15 @@ class ProAuthService {
     }
   }
 
+  /// Envoie un email de reinitialisation du mot de passe.
+  Future<void> resetPassword(String email) async {
+    await _authDio.post(
+      'recover',
+      data: {'email': email},
+      options: Options(headers: _authHeaders),
+    );
+  }
+
   /// Rafraichit le token d'acces.
   Future<({String accessToken, String refreshToken})?> refreshToken(
     String currentRefreshToken,

@@ -9,8 +9,8 @@ import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/presentation/widgets/swipe_detector.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
-import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
-import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
+import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
@@ -160,11 +160,7 @@ class ModeShell extends ConsumerWidget {
                     primaryDarkColor: modeTheme.primaryDarkColor,
                   ),
                   const SizedBox(width: 8),
-                  _ModeShellLikeButton(
-                    primaryColor: modeTheme.primaryColor,
-                    primaryLightColor: modeTheme.primaryLightColor,
-                    primaryDarkColor: modeTheme.primaryDarkColor,
-                  ),
+                  const _ModeShellOfferButton(),
                 ],
               ),
             ),
@@ -274,15 +270,6 @@ class ModeShell extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  void _showLikedPlaces(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const LikedPlacesBottomSheet(),
     );
   }
 
@@ -402,73 +389,73 @@ class _ModeShellAddButton extends ConsumerWidget {
   }
 }
 
-class _ModeShellLikeButton extends ConsumerWidget {
-  final Color primaryColor;
-  final Color primaryLightColor;
-  final Color primaryDarkColor;
-
-  const _ModeShellLikeButton({
-    required this.primaryColor,
-    required this.primaryLightColor,
-    required this.primaryDarkColor,
-  });
+class _ModeShellOfferButton extends ConsumerStatefulWidget {
+  const _ModeShellOfferButton();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(likesProvider).length;
+  ConsumerState<_ModeShellOfferButton> createState() =>
+      _ModeShellOfferButtonState();
+}
+
+class _ModeShellOfferButtonState extends ConsumerState<_ModeShellOfferButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _glow = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _glow.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(activeBannersProvider);
 
     return GestureDetector(
-      onTap: () => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const LikedPlacesBottomSheet(),
-      ),
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: primaryLightColor,
-          shape: BoxShape.circle,
-          border: Border.all(color: primaryColor, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(
-              count > 0 ? Icons.favorite : Icons.favorite_border,
-              color: count > 0 ? Colors.red : primaryDarkColor,
-              size: 20,
-            ),
-            if (count > 0)
-              Positioned(
-                top: 4,
-                right: 2,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    count > 99 ? '99' : '$count',
-                    style: const TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+      onTap: () => BannerCarouselDialog.show(context),
+      child: AnimatedBuilder(
+        animation: _glow,
+        builder: (context, _) {
+          final t = _glow.value;
+          return Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFD54F), Color(0xFFFF8F00)],
               ),
-          ],
-        ),
+              border: Border.all(
+                color: const Color(0xFFFFB300),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD54F).withValues(alpha: 0.3 + t * 0.4),
+                  blurRadius: 8 + t * 6,
+                  spreadRadius: 1 + t * 2,
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Text(
+                '\u{1F381}',
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
