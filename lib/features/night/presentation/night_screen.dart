@@ -58,7 +58,7 @@ class NightScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
-          blink: sub.label == 'Cette Semaine',
+          blink: sub.label == 'A venir',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -136,7 +136,7 @@ class NightScreen extends ConsumerWidget {
         const SizedBox(height: 8),
 
         Expanded(
-          child: category == 'Cette Semaine'
+          child: category == 'A venir'
               ? _buildUserEventsList(ref)
               : venuesAsync.when(
                   data: (venues) {

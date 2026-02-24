@@ -31,10 +31,10 @@ class GamingCategoryData {
 
   static const groups = [
     GamingCategoryGroup(
-      name: 'Cette Semaine',
+      name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        GamingSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine', image: 'assets/images/pochette_cettesemaine.png'),
+        GamingSubcategory(label: 'A venir', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_cettesemaine.png'),
       ],
     ),
     GamingCategoryGroup(

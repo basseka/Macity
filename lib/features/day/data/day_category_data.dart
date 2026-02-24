@@ -16,7 +16,7 @@ class DayCategoryData {
   DayCategoryData._();
 
   static const subcategories = [
-    DaySubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '📅', image: 'assets/images/pochette_default.png'),
+    DaySubcategory(label: 'A venir', searchTag: 'A venir', emoji: '📅', image: 'assets/images/pochette_default.png'),
     DaySubcategory(label: 'Concert', searchTag: 'Concert', emoji: '🎵', image: 'assets/images/pochette_concert.png'),
     DaySubcategory(label: 'Festival', searchTag: 'Festival', emoji: '🎪', image: 'assets/images/pochette_festival.png'),
     DaySubcategory(label: 'Opera', searchTag: 'Opera', emoji: '🎶', image: 'assets/images/pochette_spectacle.png'),

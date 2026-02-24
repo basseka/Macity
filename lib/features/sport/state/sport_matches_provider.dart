@@ -26,7 +26,7 @@ final sportSubcategoryCountProvider =
   final userCount = userEvents.where((ue) {
     if (ue.rubrique != 'sport') return false;
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
-    if (searchTag == 'Cette Semaine') {
+    if (searchTag == 'A venir') {
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
       return !eventDate.isBefore(weekStart) && eventDate.isBefore(weekEnd);
@@ -36,7 +36,7 @@ final sportSubcategoryCountProvider =
     return cat.contains(tag) || tag.contains(cat);
   }).length;
 
-  if (searchTag == 'Cette Semaine') {
+  if (searchTag == 'A venir') {
     return matches.where(_isKnownSport).length + userCount;
   }
   return matches.length + userCount;
@@ -61,7 +61,7 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
   final matchingUserEvents = userEvents.where((ue) {
     if (ue.rubrique != 'sport') return false;
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
-    if (subcategory == 'Cette Semaine') {
+    if (subcategory == 'A venir') {
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
       return !eventDate.isBefore(weekStart) && eventDate.isBefore(weekEnd);
@@ -72,8 +72,8 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
     return cat.contains(tag) || tag.contains(cat);
   }).map((ue) => ue.toSupabaseMatch()).toList();
 
-  // Pour "Cette Semaine", exclure les matchs catégorisés "Autres"
-  if (subcategory == 'Cette Semaine') {
+  // Pour "A venir", exclure les matchs catégorisés "Autres"
+  if (subcategory == 'A venir') {
     return [...matchingUserEvents, ...matches.where(_isKnownSport)];
   }
   return [...matchingUserEvents, ...matches];

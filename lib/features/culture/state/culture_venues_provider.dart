@@ -11,6 +11,9 @@ import 'package:pulz_app/features/culture/data/theatre_pont_neuf_scraper.dart';
 import 'package:pulz_app/features/culture/data/cave_poesie_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_garonne_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_cite_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_capitole_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_grand_rond_scraper.dart';
+import 'package:pulz_app/features/culture/data/grenier_theatre_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -74,7 +77,22 @@ final theatreCiteEventsProvider = FutureProvider<List<Event>>((ref) async {
   return TheatreCiteScraper.fetchUpcomingEvents();
 });
 
-/// Combine les 5 scrapers theatre en une seule liste.
+/// Theatre du Capitole — programmation via API REST.
+final theatreCapitoleEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreCapitoleScraper.fetchUpcomingEvents();
+});
+
+/// Theatre du Grand Rond — programmation scrapee.
+final theatreGrandRondEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreGrandRondScraper.fetchUpcomingEvents();
+});
+
+/// Grenier Theatre — programmation scrapee.
+final grenierTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return GrenierTheatreScraper.fetchUpcomingEvents();
+});
+
+/// Combine les 8 scrapers theatre en une seule liste.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   final results = await Future.wait([
     ref.watch(theatreSoranoEventsProvider.future),
@@ -82,13 +100,12 @@ final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
     ref.watch(cavePoesieEventsProvider.future),
     ref.watch(theatreGaronneEventsProvider.future),
     ref.watch(theatreCiteEventsProvider.future),
+    ref.watch(theatreCapitoleEventsProvider.future),
+    ref.watch(theatreGrandRondEventsProvider.future),
+    ref.watch(grenierTheatreEventsProvider.future),
   ]);
   final all = <Event>[
-    ...results[0],
-    ...results[1],
-    ...results[2],
-    ...results[3],
-    ...results[4],
+    for (final r in results) ...r,
   ];
   all.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
   return all;
@@ -101,6 +118,9 @@ const _venueIdToLieuNom = <String, String>{
   'theatre_garonne': 'Garonne',
   'la_cave_poesie': 'Cave Poesie',
   'theatre_du_pont_neuf': 'Pont Neuf',
+  'theatre_du_capitole': 'Capitole',
+  'theatre_du_grand_rond': 'Grand Rond',
+  'grenier_theatre': 'Grenier',
 };
 
 /// Events filtres pour une salle de theatre donnee.
@@ -151,7 +171,7 @@ final cultureCategoryCountProvider =
     }).length;
     return events.length + uc;
   }
-  if (searchTag == 'Cette Semaine') {
+  if (searchTag == 'A venir') {
     final events = await ref.watch(cultureMuseumEventsProvider.future);
     final theatreEvents = await ref.watch(cultureTheatreEventsProvider.future);
     final userCount = ref.watch(cultureUserEventsProvider).length;
@@ -178,9 +198,9 @@ final cultureVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
 
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);
-  if (category == 'Cette Semaine') {
+  if (category == 'A venir') {
     final allCategories = CultureCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'Cette Semaine')
+        .where((s) => s.searchTag != 'A venir')
         .map((s) => s.searchTag);
     final all = <CommerceModel>[];
     for (final tag in allCategories) {

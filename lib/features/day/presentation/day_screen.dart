@@ -59,7 +59,7 @@ class DayScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
-          blink: sub.label == 'Cette Semaine',
+          blink: sub.label == 'A venir',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -151,7 +151,7 @@ class DayScreen extends ConsumerWidget {
                   icon: Icons.event_busy,
                 );
               }
-              if (subcategory == 'Cette Semaine') {
+              if (subcategory == 'A venir') {
                 return _buildGroupedEventsList(events, modeTheme);
               }
               return ListView.builder(

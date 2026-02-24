@@ -69,7 +69,7 @@ class CultureScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
-          blink: sub.label == 'Cette Semaine',
+          blink: sub.label == 'A venir',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -161,7 +161,7 @@ class CultureScreen extends ConsumerWidget {
                                       ? _buildGuidedToursList(ref, modeTheme)
                                       : category == 'Exposition'
                                           ? _buildMeettEventsList(ref, modeTheme)
-                                          : category == 'Cette Semaine'
+                                          : category == 'A venir'
                                   ? _buildCetteSemaineEventsList(ref, modeTheme)
                                   : _buildCommerceVenuesList(ref, modeTheme),
         ),

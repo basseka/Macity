@@ -78,7 +78,7 @@ class EmojiMapper {
     'Expo': '🎨',
     'Vernissage': '🖼️',
     'Animations culturelles': '🎉',
-    'Cette Semaine': '📅',
+    'A venir': '📅',
     'Rugby': '🏉',
     'Football': '⚽',
     'Basketball': '🏀',

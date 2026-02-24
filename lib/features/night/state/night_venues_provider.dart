@@ -48,7 +48,7 @@ List<Event> _thisWeekOnly(List<Event> events) {
 }
 
 int _nightUserCount(List<Event> userEvents, List<Event> scrapedEvents, String searchTag) {
-  if (searchTag == 'Cette Semaine') {
+  if (searchTag == 'A venir') {
     return _thisWeekOnly(userEvents).length + _thisWeekOnly(scrapedEvents).length;
   }
   return userEvents.where((e) {
@@ -66,7 +66,7 @@ final nightCategoryCountProvider =
     ...ref.watch(etoileEventsProvider).valueOrNull ?? [],
   ];
   final uc = _nightUserCount(userEvents, scrapedEvents, searchTag);
-  if (searchTag == 'Cette Semaine') {
+  if (searchTag == 'A venir') {
     return uc;
   }
   if (_curatedTags.contains(searchTag)) {

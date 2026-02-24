@@ -59,7 +59,7 @@ class SportScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
-          blink: sub.label == 'Cette Semaine',
+          blink: sub.label == 'A venir',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -159,7 +159,7 @@ class SportScreen extends ConsumerWidget {
             icon: Icons.sports,
           );
         }
-        if (subcategory == 'Cette Semaine') {
+        if (subcategory == 'A venir') {
           return _buildGroupedMatchesList(matches, modeTheme);
         }
         return ListView.builder(

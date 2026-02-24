@@ -31,10 +31,10 @@ class SportCategoryData {
 
   static const groups = [
     SportCategoryGroup(
-      name: 'Cette Semaine',
+      name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        SportSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine', image: 'assets/images/pochette_default.png'),
+        SportSubcategory(label: 'A venir', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
       ],
     ),
     SportCategoryGroup(

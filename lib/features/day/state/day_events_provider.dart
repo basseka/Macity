@@ -15,8 +15,8 @@ final daySubcategoryCountProvider =
   var apiEvents =
       await repository.fetchEvents(city: city, subcategory: searchTag);
 
-  // Pour "Cette Semaine", exclure les événements catégorisés "Autres"
-  if (searchTag == 'Cette Semaine') {
+  // Pour "A venir", exclure les événements catégorisés "Autres"
+  if (searchTag == 'A venir') {
     apiEvents = apiEvents.where(_isKnownCategory).toList();
   }
 
@@ -29,7 +29,7 @@ final daySubcategoryCountProvider =
   final matchingUserCount = userEvents.where((ue) {
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
 
-    if (searchTag == 'Cette Semaine') {
+    if (searchTag == 'A venir') {
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
       return !eventDate.isBefore(weekStart) && eventDate.isBefore(weekEnd);
@@ -49,8 +49,8 @@ final dayEventsProvider = FutureProvider<List<Event>>((ref) async {
   final repository = EventRepository();
   var apiEvents = await repository.fetchEvents(city: city, subcategory: subcategory);
 
-  // Pour "Cette Semaine", exclure les événements catégorisés "Autres"
-  if (subcategory == 'Cette Semaine') {
+  // Pour "A venir", exclure les événements catégorisés "Autres"
+  if (subcategory == 'A venir') {
     apiEvents = apiEvents.where(_isKnownCategory).toList();
   }
 
@@ -63,7 +63,7 @@ final dayEventsProvider = FutureProvider<List<Event>>((ref) async {
   final matchingUserEvents = userEvents.where((ue) {
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
 
-    if (subcategory == 'Cette Semaine') {
+    if (subcategory == 'A venir') {
       // Show all user events whose date falls in the current week
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;

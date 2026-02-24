@@ -23,7 +23,7 @@ class SportRepository {
 
   /// Fetch matches from Supabase (populated by scrapers via cron job).
   ///
-  /// "Cette Semaine" → all sports for the current week.
+  /// "A venir" → all sports for the current week.
   /// Other sports → filter by sport name (scraper data = home matches only).
   Future<List<SupabaseMatch>> fetchSupabaseMatches({
     String? sport,
@@ -32,8 +32,8 @@ class SportRepository {
     final now = DateTime.now();
     final dateStr = _formatDate(now);
 
-    // "Cette Semaine" → all sports for the current week
-    if (sport == 'Cette Semaine') {
+    // "A venir" → all sports for the current week
+    if (sport == 'A venir') {
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final weekEnd = weekStart.add(const Duration(days: 7));
       final results = await Future.wait([

@@ -75,7 +75,7 @@ class FamilyScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
-          blink: sub.label == 'Cette Semaine',
+          blink: sub.label == 'A venir',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -153,7 +153,7 @@ class FamilyScreen extends ConsumerWidget {
         const SizedBox(height: 8),
 
         Expanded(
-          child: category == 'Cette Semaine'
+          child: category == 'A venir'
               ? _buildGroupedVenues(ref, modeTheme)
               : category == 'Parc animalier'
                   ? _buildAnimalParksList(ref)
@@ -559,7 +559,7 @@ class FamilyScreen extends ConsumerWidget {
     List<Event> balmaEvents = const [],
   }) {
     final subcategories = FamilyCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'Cette Semaine')
+        .where((s) => s.searchTag != 'A venir')
         .toList();
     final userEvents = ref.watch(familyUserEventsProvider);
 

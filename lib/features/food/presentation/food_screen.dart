@@ -61,7 +61,7 @@ class FoodScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: countAsync.valueOrNull,
-          blink: sub.label == 'Cette Semaine',
+          blink: sub.label == 'A venir',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -138,7 +138,7 @@ class FoodScreen extends ConsumerWidget {
         const SizedBox(height: 8),
 
         Expanded(
-          child: category == 'Cette Semaine'
+          child: category == 'A venir'
               ? _buildGroupedVenues(ref, modeTheme)
               : category == 'Restaurant'
                   ? _buildRestaurantsList(ref)
@@ -268,7 +268,7 @@ class FoodScreen extends ConsumerWidget {
     WidgetRef ref,
   ) {
     final subcategories = FoodCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'Cette Semaine')
+        .where((s) => s.searchTag != 'A venir')
         .toList();
     final userEvents = ref.watch(foodUserEventsProvider);
 

@@ -31,10 +31,10 @@ class NightCategoryData {
 
   static const groups = [
     NightCategoryGroup(
-      name: 'Cette Semaine',
+      name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        NightSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine', image: 'assets/images/pochette_default.png'),
+        NightSubcategory(label: 'A venir', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
       ],
     ),
     NightCategoryGroup(

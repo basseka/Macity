@@ -31,10 +31,10 @@ class CultureCategoryData {
 
   static const groups = [
     CultureCategoryGroup(
-      name: 'Cette Semaine',
+      name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        CultureSubcategory(label: 'Cette Semaine', searchTag: 'Cette Semaine', emoji: '\uD83D\uDCC5', group: 'Cette Semaine', image: 'assets/images/pochette_default.png'),
+        CultureSubcategory(label: 'A venir', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
       ],
     ),
     CultureCategoryGroup(

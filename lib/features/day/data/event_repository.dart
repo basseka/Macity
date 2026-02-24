@@ -52,7 +52,7 @@ class EventRepository {
 
   Future<List<Event>> _fetchToulouseEvents(String subcategory) async {
     switch (subcategory) {
-      case 'Cette Semaine':
+      case 'A venir':
         return _fetchThisWeekAll();
       case 'Concert':
         return _concertService.fetchUpcomingConcerts();
@@ -142,7 +142,7 @@ class EventRepository {
     String city,
     String subcategory,
   ) async {
-    final keyword = subcategory == 'Cette Semaine' ? null : subcategory;
+    final keyword = subcategory == 'A venir' ? null : subcategory;
     final openAgendaEvents = await _openAgendaApi.fetchEvents(
       city: city,
       keyword: keyword,

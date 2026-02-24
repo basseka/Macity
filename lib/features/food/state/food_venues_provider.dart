@@ -23,7 +23,7 @@ final foodUserEventsProvider = Provider<List<Event>>((ref) {
 });
 
 int _foodUserCount(List<Event> events, String searchTag) {
-  if (searchTag == 'Cette Semaine') return events.length;
+  if (searchTag == 'A venir') return events.length;
   return events.where((e) {
     final cat = e.categorie.toLowerCase();
     final tag = searchTag.toLowerCase();
@@ -38,9 +38,9 @@ final foodCategoryCountProvider =
   final uc = _foodUserCount(userEvents, searchTag);
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);
-  if (searchTag == 'Cette Semaine') {
+  if (searchTag == 'A venir') {
     final allTags = FoodCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'Cette Semaine')
+        .where((s) => s.searchTag != 'A venir')
         .map((s) => s.searchTag);
     var total = 0;
     for (final tag in allTags) {
@@ -62,9 +62,9 @@ final foodVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
 
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);
-  if (category == 'Cette Semaine') {
+  if (category == 'A venir') {
     final allTags = FoodCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'Cette Semaine')
+        .where((s) => s.searchTag != 'A venir')
         .map((s) => s.searchTag);
     final all = <CommerceModel>[];
     for (final tag in allTags) {
@@ -76,7 +76,7 @@ final foodVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
   return repository.searchByVille(ville: city, query: category);
 });
 
-/// Provider groupé par searchTag pour l'affichage "Cette Semaine".
+/// Provider groupé par searchTag pour l'affichage "A venir".
 final foodGroupedVenuesProvider =
     FutureProvider<Map<String, List<CommerceModel>>>((ref) async {
   final city = ref.watch(selectedCityProvider);
@@ -84,7 +84,7 @@ final foodGroupedVenuesProvider =
   final repository = CommerceRepository(db: db);
   final grouped = <String, List<CommerceModel>>{};
   for (final sub in FoodCategoryData.allSubcategories) {
-    if (sub.searchTag == 'Cette Semaine') continue;
+    if (sub.searchTag == 'A venir') continue;
     grouped[sub.searchTag] =
         await repository.searchByVille(ville: city, query: sub.searchTag);
   }
