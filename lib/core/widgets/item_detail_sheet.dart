@@ -347,7 +347,7 @@ class ItemDetailSheet extends ConsumerWidget {
     // dans le navigateur via un Intent explicite.
     if (Platform.isAndroid && uri.host.contains('instagram.com')) {
       try {
-        const channel = MethodChannel('com.pulzapp.toulouse/browser');
+        const channel = MethodChannel('com.macity.app/browser');
         await channel.invokeMethod('openInBrowser', {'url': url});
         return;
       } catch (_) {

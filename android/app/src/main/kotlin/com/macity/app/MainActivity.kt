@@ -1,4 +1,4 @@
-package com.pulzapp.toulouse
+package com.macity.app
 
 import android.content.Intent
 import android.net.Uri
@@ -10,7 +10,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.pulzapp.toulouse/browser")
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.macity.app/browser")
             .setMethodCallHandler { call, result ->
                 if (call.method == "openInBrowser") {
                     val url = call.argument<String>("url")

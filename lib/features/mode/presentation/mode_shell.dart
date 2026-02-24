@@ -40,7 +40,14 @@ class ModeShell extends ConsumerWidget {
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          context.go('/home');
+        }
+      },
+      child: Scaffold(
       backgroundColor: modeTheme.backgroundColor,
       body: SwipeDetector(
         onSwipeLeft: () => ref.read(currentModeProvider.notifier).nextMode(),
@@ -270,6 +277,7 @@ class ModeShell extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
   }
 

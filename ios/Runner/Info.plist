@@ -28,7 +28,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.pulzapp.toulouse</string>
+			<string>com.macity.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>pulzapp</string>
