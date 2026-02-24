@@ -4,18 +4,25 @@ import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
+import 'package:pulz_app/features/family/data/balma_events_scraper.dart';
 import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/family/data/animal_park_venues_data.dart';
 import 'package:pulz_app/features/family/data/bowling_venues_data.dart';
 import 'package:pulz_app/features/family/data/cinema_venues_data.dart';
 import 'package:pulz_app/features/family/data/escape_game_venues_data.dart';
 import 'package:pulz_app/features/family/data/family_restaurant_venues_data.dart';
+import 'package:pulz_app/features/family/data/ice_rink_venues_data.dart';
 import 'package:pulz_app/features/family/data/laser_game_venues_data.dart';
 import 'package:pulz_app/features/family/data/park_venues_data.dart';
 import 'package:pulz_app/features/family/data/playground_venues_data.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 
 final familyCategoryProvider = StateProvider<String?>((ref) => null);
+
+/// Evenements scrapes depuis le site de la mairie de Balma.
+final balmaEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return BalmaEventsScraper.fetchUpcomingEvents();
+},);
 
 /// Evenements utilisateur filtres pour la rubrique "family".
 final familyUserEventsProvider = Provider<List<Event>>((ref) {
@@ -54,7 +61,8 @@ final familyCategoryCountProvider =
       final venues = await repository.searchByVille(ville: city, query: tag);
       total += venues.length;
     }
-    return total + uc;
+    final balmaEvents = ref.watch(balmaEventsProvider).valueOrNull ?? [];
+    return total + uc + balmaEvents.length;
   }
   if (searchTag == "Parc d'attractions") {
     return ParkVenuesData.venues.length + uc;
@@ -79,6 +87,9 @@ final familyCategoryCountProvider =
   }
   if (searchTag == 'Aire de jeux') {
     return PlaygroundVenuesData.venues.length + uc;
+  }
+  if (searchTag == 'Patinoire') {
+    return IceRinkVenuesData.venues.length + uc;
   }
   final venues = await repository.searchByVille(ville: city, query: searchTag);
   return venues.length + uc;

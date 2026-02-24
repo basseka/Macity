@@ -20,10 +20,12 @@ import 'package:pulz_app/features/family/presentation/widgets/cinema_venue_card.
 import 'package:pulz_app/features/family/data/escape_game_venues_data.dart';
 import 'package:pulz_app/features/family/data/family_restaurant_venues_data.dart';
 import 'package:pulz_app/features/family/data/laser_game_venues_data.dart';
+import 'package:pulz_app/features/family/data/ice_rink_venues_data.dart';
 import 'package:pulz_app/features/family/data/playground_venues_data.dart';
 import 'package:pulz_app/features/family/presentation/widgets/escape_game_venue_card.dart';
 import 'package:pulz_app/features/family/presentation/widgets/family_restaurant_venue_card.dart';
 import 'package:pulz_app/features/family/presentation/widgets/laser_game_venue_card.dart';
+import 'package:pulz_app/features/family/presentation/widgets/ice_rink_venue_card.dart';
 import 'package:pulz_app/features/family/presentation/widgets/playground_venue_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
@@ -167,7 +169,9 @@ class FamilyScreen extends ConsumerWidget {
                                       ? _buildFamilyRestaurantsList(ref)
                                       : category == 'Aire de jeux'
                                           ? _buildPlaygroundsList(ref)
-                                          : venuesAsync.when(
+                                          : category == 'Patinoire'
+                                              ? _buildIceRinksList(ref)
+                                              : venuesAsync.when(
                   data: (venues) {
                     if (venues.isEmpty) {
                       return const EmptyStateWidget(
@@ -265,6 +269,19 @@ class FamilyScreen extends ConsumerWidget {
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: PlaygroundVenueCard(venue: venues[index]),
+      ),
+    );
+  }
+
+  Widget _buildIceRinksList(WidgetRef ref) {
+    const venues = IceRinkVenuesData.venues;
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      itemCount: venues.length,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: IceRinkVenueCard(venue: venues[index]),
       ),
     );
   }
@@ -516,12 +533,21 @@ class FamilyScreen extends ConsumerWidget {
 
   Widget _buildGroupedVenues(WidgetRef ref, ModeTheme modeTheme) {
     final groupedAsync = ref.watch(familyGroupedVenuesProvider);
+    final balmaAsync = ref.watch(balmaEventsProvider);
     return groupedAsync.when(
-      data: (grouped) => _buildGroupedVenuesList(grouped, modeTheme, ref),
+      data: (grouped) => _buildGroupedVenuesList(
+        grouped,
+        modeTheme,
+        ref,
+        balmaEvents: balmaAsync.valueOrNull ?? [],
+      ),
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
         message: 'Erreur lors du chargement des lieux',
-        onRetry: () => ref.invalidate(familyGroupedVenuesProvider),
+        onRetry: () {
+          ref.invalidate(familyGroupedVenuesProvider);
+          ref.invalidate(balmaEventsProvider);
+        },
       ),
     );
   }
@@ -529,19 +555,22 @@ class FamilyScreen extends ConsumerWidget {
   Widget _buildGroupedVenuesList(
     Map<String, List<CommerceModel>> grouped,
     ModeTheme modeTheme,
-    WidgetRef ref,
-  ) {
+    WidgetRef ref, {
+    List<Event> balmaEvents = const [],
+  }) {
     final subcategories = FamilyCategoryData.allSubcategories
         .where((s) => s.searchTag != 'Cette Semaine')
         .toList();
     final userEvents = ref.watch(familyUserEventsProvider);
 
+    // Combiner user events + Balma events, groupes par date.
+    final allEvents = [...userEvents, ...balmaEvents];
+
     final items = <Widget>[];
 
-    // User events grouped by date
-    if (userEvents.isNotEmpty) {
+    if (allEvents.isNotEmpty) {
       final dateGrouped = <String, List<Event>>{};
-      for (final e in userEvents) {
+      for (final e in allEvents) {
         final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
         dateGrouped.putIfAbsent(dateKey, () => []).add(e);
       }
