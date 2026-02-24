@@ -123,40 +123,29 @@ class EventFullscreenPopup extends ConsumerWidget {
                       ),
                     ),
 
-                    // Badge emoji + gratuit
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            event.categoryEmoji,
-                            style: const TextStyle(fontSize: 32),
+                    // Badge gratuit
+                    if (event.isFree)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
                           ),
-                          if (event.isFree) ...[
-                            const SizedBox(width: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE91E8C),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                'GRATUIT',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE91E8C),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            'GRATUIT',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
-                        ],
+                          ),
+                        ),
                       ),
-                    ),
 
                     const Spacer(),
 

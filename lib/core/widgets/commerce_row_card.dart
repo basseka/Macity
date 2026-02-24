@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -92,91 +91,14 @@ class CommerceRowCard extends ConsumerWidget {
             // ── Image a gauche ──
             SizedBox(
               width: 90,
-              child: image != null
-                  ? Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          image,
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.medium,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                        ),
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.08),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Status badge
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: commerce.ouvert
-                                  ? const Color(0xFF059669)
-                                  : Colors.red.shade700,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              commerce.ouvert ? 'Ouvert' : 'Ferme',
-                              style: const TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      color: modeTheme.chipBgColor,
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            commerce.categoryEmoji,
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: commerce.ouvert
-                                  ? const Color(0xFF059669)
-                                  : Colors.red.shade700,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              commerce.ouvert ? 'Ouvert' : 'Ferme',
-                              style: const TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+              child: Image.asset(
+                image ?? 'assets/images/pochette_default.png',
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (_, __, ___) => Container(
+                  color: modeTheme.chipBgColor,
+                ),
+              ),
             ),
 
             // ── Infos a droite ──
@@ -244,7 +166,7 @@ class CommerceRowCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: commerce.nom,
-        emoji: commerce.photo.isEmpty ? commerce.categoryEmoji : '',
+        emoji: '',
         imageAsset: image,
         likeId: 'night_${commerce.nom}',
         infos: [
