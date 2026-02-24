@@ -162,7 +162,7 @@ class CultureScreen extends ConsumerWidget {
                                       : category == 'Exposition'
                                           ? _buildMeettEventsList(ref, modeTheme)
                                           : category == 'Cette Semaine'
-                                  ? _buildMuseumEventsList(ref, modeTheme)
+                                  ? _buildCetteSemaineEventsList(ref, modeTheme)
                                   : _buildCommerceVenuesList(ref, modeTheme),
         ),
       ],
@@ -295,23 +295,56 @@ class CultureScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMuseumEventsList(WidgetRef ref, ModeTheme modeTheme) {
-    final eventsAsync = ref.watch(cultureMuseumEventsProvider);
+  Widget _buildCetteSemaineEventsList(WidgetRef ref, ModeTheme modeTheme) {
+    final museumAsync = ref.watch(cultureMuseumEventsProvider);
+    final theatreAsync = ref.watch(cultureTheatreEventsProvider);
     final userEvents = ref.watch(cultureUserEventsProvider);
-    return eventsAsync.when(
-      data: (events) {
-        if (events.isEmpty && userEvents.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucun evenement musee a venir',
-            icon: Icons.museum,
-          );
-        }
-        return _buildGroupedCultureEventsList([...userEvents, ...events], modeTheme);
+
+    return museumAsync.when(
+      data: (museumEvents) {
+        return theatreAsync.when(
+          data: (theatreEvents) {
+            final allEvents = [
+              ...userEvents,
+              ...museumEvents,
+              ...theatreEvents,
+            ];
+            if (allEvents.isEmpty) {
+              return const EmptyStateWidget(
+                message: 'Aucun evenement culturel a venir',
+                icon: Icons.event,
+              );
+            }
+            return _buildGroupedCultureEventsList(allEvents, modeTheme);
+          },
+          loading: () {
+            // Afficher les musees en attendant les theatres
+            final partial = [...userEvents, ...museumEvents];
+            if (partial.isEmpty) {
+              return LoadingIndicator(color: modeTheme.primaryColor);
+            }
+            return _buildGroupedCultureEventsList(partial, modeTheme);
+          },
+          error: (_, __) {
+            // Fallback sur musees seuls
+            final partial = [...userEvents, ...museumEvents];
+            if (partial.isEmpty) {
+              return const EmptyStateWidget(
+                message: 'Aucun evenement culturel a venir',
+                icon: Icons.event,
+              );
+            }
+            return _buildGroupedCultureEventsList(partial, modeTheme);
+          },
+        );
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des evenements musees',
-        onRetry: () => ref.invalidate(cultureMuseumEventsProvider),
+        message: 'Erreur lors du chargement des evenements culturels',
+        onRetry: () {
+          ref.invalidate(cultureMuseumEventsProvider);
+          ref.invalidate(cultureTheatreEventsProvider);
+        },
       ),
     );
   }

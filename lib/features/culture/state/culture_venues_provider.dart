@@ -6,6 +6,10 @@ import 'package:pulz_app/features/culture/data/culture_category_data.dart';
 import 'package:pulz_app/features/culture/data/museum_events_toulouse_service.dart';
 import 'package:pulz_app/features/culture/data/guided_tours_toulouse_service.dart';
 import 'package:pulz_app/features/culture/data/meett_exhibitor_service.dart';
+import 'package:pulz_app/features/culture/data/theatre_sorano_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_pont_neuf_scraper.dart';
+import 'package:pulz_app/features/culture/data/cave_poesie_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_garonne_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -25,7 +29,7 @@ final cultureUserEventsProvider = Provider<List<Event>>((ref) {
   return allUserEvents
       .where((ue) =>
           ue.rubrique == 'culture' &&
-          ue.ville.toLowerCase() == city.toLowerCase())
+          ue.ville.toLowerCase() == city.toLowerCase(),)
       .map((ue) => ue.toEvent())
       .toList();
 });
@@ -42,6 +46,44 @@ final cultureGuidedToursProvider = FutureProvider<List<Event>>((ref) async {
 /// Expositions / salons du MEETT.
 final cultureMeettEventsProvider = FutureProvider<List<Event>>((ref) async {
   return MeettExhibitorService().fetchExhibitions();
+});
+
+/// Theatre Sorano — programmation scrapee.
+final theatreSoranoEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreSoranoScraper.fetchUpcomingEvents();
+});
+
+/// Theatre du Pont Neuf — programmation scrapee.
+final theatrePontNeufEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatrePontNeufScraper.fetchUpcomingEvents();
+});
+
+/// Cave Poesie Rene Gouzenne — programmation scrapee.
+final cavePoesieEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return CavePoesieScraper.fetchUpcomingEvents();
+});
+
+/// Theatre Garonne — programmation scrapee.
+final theatreGaronneEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreGaronneScraper.fetchUpcomingEvents();
+});
+
+/// Combine les 4 scrapers theatre en une seule liste.
+final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final results = await Future.wait([
+    ref.watch(theatreSoranoEventsProvider.future),
+    ref.watch(theatrePontNeufEventsProvider.future),
+    ref.watch(cavePoesieEventsProvider.future),
+    ref.watch(theatreGaronneEventsProvider.future),
+  ]);
+  final all = <Event>[
+    ...results[0],
+    ...results[1],
+    ...results[2],
+    ...results[3],
+  ];
+  all.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+  return all;
 });
 
 final cultureCategoryCountProvider =
@@ -82,8 +124,11 @@ final cultureCategoryCountProvider =
   }
   if (searchTag == 'Cette Semaine') {
     final events = await ref.watch(cultureMuseumEventsProvider.future);
+    final theatreEvents = await ref.watch(cultureTheatreEventsProvider.future);
     final userCount = ref.watch(cultureUserEventsProvider).length;
-    return events.where(_isKnownCultureCategory).length + userCount;
+    return events.where(_isKnownCultureCategory).length +
+        theatreEvents.length +
+        userCount;
   }
   // Ajouter les user events pour cette sous-categorie
   final userCount = ref.watch(cultureUserEventsProvider).where((e) {
