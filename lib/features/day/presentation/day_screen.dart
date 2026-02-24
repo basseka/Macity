@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -110,6 +112,8 @@ class DayScreen extends ConsumerWidget {
                   ref.read(selectedDaySubcategoryProvider.notifier).state =
                       null;
                   ref.read(daySubcategoryProvider.notifier).state = null;
+                  ref.read(dateRangeFilterProvider.notifier).state =
+                      const DateRangeFilter();
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
@@ -152,7 +156,7 @@ class DayScreen extends ConsumerWidget {
                 );
               }
               if (subcategory == 'A venir') {
-                return _buildGroupedEventsList(events, modeTheme);
+                return _buildGroupedEventsList(events, modeTheme, ref);
               }
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -174,13 +178,17 @@ class DayScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGroupedEventsList(List<Event> events, ModeTheme modeTheme) {
+  Widget _buildGroupedEventsList(List<Event> events, ModeTheme modeTheme, WidgetRef ref) {
+    final filter = ref.watch(dateRangeFilterProvider);
+
     // Group events by date
     final grouped = <String, List<Event>>{};
     for (final e in events) {
       final label = _categoryLabel(e);
       if (label == 'Autres') continue;
       final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
+      final parsed = DateTime.tryParse(dateKey);
+      if (parsed != null && !filter.isInRange(parsed)) continue;
       grouped.putIfAbsent(dateKey, () => []).add(e);
     }
 
@@ -244,7 +252,11 @@ class DayScreen extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 16),
-      children: items,
+      children: [
+        const DateRangeChipBar(),
+        const SizedBox(height: 4),
+        ...items,
+      ],
     );
   }
 

@@ -23,7 +23,7 @@ class SportRepository {
 
   /// Fetch matches from Supabase (populated by scrapers via cron job).
   ///
-  /// "A venir" → all sports for the current week.
+  /// "A venir" → all upcoming sports (no time limit).
   /// Other sports → filter by sport name (scraper data = home matches only).
   Future<List<SupabaseMatch>> fetchSupabaseMatches({
     String? sport,
@@ -32,24 +32,16 @@ class SportRepository {
     final now = DateTime.now();
     final dateStr = _formatDate(now);
 
-    // "A venir" → all sports for the current week
+    // "A venir" → all upcoming sports (no time limit)
     if (sport == 'A venir') {
-      final weekStart = now.subtract(Duration(days: now.weekday - 1));
-      final weekEnd = weekStart.add(const Duration(days: 7));
       final results = await Future.wait([
         _supabaseApi.fetchMatches(
           ville: ville,
-          dateGte: _formatDate(weekStart),
-          dateLt: _formatDate(weekEnd),
+          dateGte: dateStr,
         ),
         GalaBoxeScraper.fetchUpcomingEvents(),
       ]);
-      final supabaseMatches = results[0];
-      final boxeMatches = results[1].where((m) {
-        final d = DateTime.tryParse(m.date);
-        return d != null && !d.isBefore(weekStart) && d.isBefore(weekEnd);
-      });
-      return [...supabaseMatches, ...boxeMatches];
+      return [...results[0], ...results[1]];
     }
 
     // Boxe → Supabase + scraper galadeboxetoulouse.com

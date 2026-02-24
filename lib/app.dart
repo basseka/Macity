@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:pulz_app/core/theme/app_theme.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 
@@ -45,6 +46,16 @@ class _PulzAppState extends State<PulzApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: appRouter,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('fr', 'FR'),
+        Locale('en'),
+      ],
+      locale: const Locale('fr', 'FR'),
     );
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
+import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -104,6 +106,8 @@ class NightScreen extends ConsumerWidget {
               InkWell(
                 onTap: () {
                   ref.read(nightCategoryProvider.notifier).state = null;
+                  ref.read(dateRangeFilterProvider.notifier).state =
+                      const DateRangeFilter();
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
@@ -185,22 +189,20 @@ class NightScreen extends ConsumerWidget {
     final nineClubAsync = ref.watch(nineClubEventsProvider);
     final etoileAsync = ref.watch(etoileEventsProvider);
     final modeTheme = ref.watch(modeThemeProvider);
+    final filter = ref.watch(dateRangeFilterProvider);
 
-    // Filtre J+7 glissant.
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final limit = today.add(const Duration(days: 7));
-    bool isThisWeek(Event e) {
+    // Filtre : uniquement les events a venir (>= aujourd'hui) + filtre temporel.
+    bool isInRange(Event e) {
       final d = DateTime.tryParse(e.dateDebut);
-      return d != null && !d.isBefore(today) && d.isBefore(limit);
+      return d != null && filter.isInRange(d);
     }
 
     final scrapedEvents = <Event>[
       ...nineClubAsync.valueOrNull ?? [],
       ...etoileAsync.valueOrNull ?? [],
-    ].where(isThisWeek).toList();
+    ].where(isInRange).toList();
     final allEvents = <Event>[
-      ...userEvents.where(isThisWeek),
+      ...userEvents.where(isInRange),
       ...scrapedEvents,
     ];
     // Trier par date.
@@ -213,9 +215,16 @@ class NightScreen extends ConsumerWidget {
     }
 
     if (allEvents.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'Aucun evenement pour le moment.\nAjoute un evenement avec le bouton +',
-        icon: Icons.nightlife,
+      return const Column(
+        children: [
+          DateRangeChipBar(),
+          Expanded(
+            child: EmptyStateWidget(
+              message: 'Aucun evenement pour le moment.\nAjoute un evenement avec le bouton +',
+              icon: Icons.nightlife,
+            ),
+          ),
+        ],
       );
     }
     return _buildDateGroupedEventsList(allEvents, modeTheme);
@@ -285,7 +294,11 @@ class NightScreen extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 16),
-      children: items,
+      children: [
+        const DateRangeChipBar(),
+        const SizedBox(height: 4),
+        ...items,
+      ],
     );
   }
 

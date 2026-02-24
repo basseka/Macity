@@ -36,20 +36,19 @@ final etoileEventsProvider = FutureProvider<List<Event>>((ref) async {
   return EtoileScraper.fetchUpcomingEvents();
 });
 
-/// Filtre les events pour ne garder que ceux dans les 7 prochains jours.
-List<Event> _thisWeekOnly(List<Event> events) {
+/// Filtre les events pour ne garder que ceux a venir (>= aujourd'hui).
+List<Event> _upcomingOnly(List<Event> events) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final limit = today.add(const Duration(days: 7));
   return events.where((e) {
     final d = DateTime.tryParse(e.dateDebut);
-    return d != null && !d.isBefore(today) && d.isBefore(limit);
+    return d != null && !d.isBefore(today);
   }).toList();
 }
 
 int _nightUserCount(List<Event> userEvents, List<Event> scrapedEvents, String searchTag) {
   if (searchTag == 'A venir') {
-    return _thisWeekOnly(userEvents).length + _thisWeekOnly(scrapedEvents).length;
+    return _upcomingOnly(userEvents).length + _upcomingOnly(scrapedEvents).length;
   }
   return userEvents.where((e) {
     final cat = e.categorie.toLowerCase();

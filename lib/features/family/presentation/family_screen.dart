@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
+import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -121,6 +123,8 @@ class FamilyScreen extends ConsumerWidget {
               InkWell(
                 onTap: () {
                   ref.read(familyCategoryProvider.notifier).state = null;
+                  ref.read(dateRangeFilterProvider.notifier).state =
+                      const DateRangeFilter();
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
@@ -558,15 +562,22 @@ class FamilyScreen extends ConsumerWidget {
     WidgetRef ref, {
     List<Event> balmaEvents = const [],
   }) {
+    final filter = ref.watch(dateRangeFilterProvider);
     final subcategories = FamilyCategoryData.allSubcategories
         .where((s) => s.searchTag != 'A venir')
         .toList();
     final userEvents = ref.watch(familyUserEventsProvider);
 
-    // Combiner user events + Balma events, groupes par date.
-    final allEvents = [...userEvents, ...balmaEvents];
+    // Combiner user events + Balma events, filtres par date.
+    final allEvents = [...userEvents, ...balmaEvents].where((e) {
+      final d = DateTime.tryParse(e.dateDebut);
+      return d == null || filter.isInRange(d);
+    }).toList();
 
-    final items = <Widget>[];
+    final items = <Widget>[
+      const DateRangeChipBar(),
+      const SizedBox(height: 4),
+    ];
 
     if (allEvents.isNotEmpty) {
       final dateGrouped = <String, List<Event>>{};

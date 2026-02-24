@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
+import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -105,6 +107,8 @@ class SportScreen extends ConsumerWidget {
               InkWell(
                 onTap: () {
                   ref.read(sportSubcategoryProvider.notifier).state = null;
+                  ref.read(dateRangeFilterProvider.notifier).state =
+                      const DateRangeFilter();
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
@@ -160,7 +164,7 @@ class SportScreen extends ConsumerWidget {
           );
         }
         if (subcategory == 'A venir') {
-          return _buildGroupedMatchesList(matches, modeTheme);
+          return _buildGroupedMatchesList(matches, modeTheme, ref);
         }
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -182,11 +186,16 @@ class SportScreen extends ConsumerWidget {
   Widget _buildGroupedMatchesList(
     List<SupabaseMatch> matches,
     ModeTheme modeTheme,
+    WidgetRef ref,
   ) {
+    final filter = ref.watch(dateRangeFilterProvider);
+
     // Group matches by date
     final grouped = <String, List<SupabaseMatch>>{};
     for (final m in matches) {
       final dateKey = m.date.isNotEmpty ? m.date.substring(0, 10) : '';
+      final parsed = DateTime.tryParse(dateKey);
+      if (parsed != null && !filter.isInRange(parsed)) continue;
       grouped.putIfAbsent(dateKey, () => []).add(m);
     }
 
@@ -248,7 +257,11 @@ class SportScreen extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 16),
-      children: items,
+      children: [
+        const DateRangeChipBar(),
+        const SizedBox(height: 4),
+        ...items,
+      ],
     );
   }
 

@@ -53,7 +53,7 @@ class EventRepository {
   Future<List<Event>> _fetchToulouseEvents(String subcategory) async {
     switch (subcategory) {
       case 'A venir':
-        return _fetchThisWeekAll();
+        return _fetchAllUpcoming();
       case 'Concert':
         return _concertService.fetchUpcomingConcerts();
       case 'Festival':
@@ -75,13 +75,12 @@ class EventRepository {
     }
   }
 
-  /// Agrege les resultats des 5 rubriques et filtre sur 7 jours glissants.
-  Future<List<Event>> _fetchThisWeekAll() async {
+  /// Agrege les resultats des 6 rubriques sans limite de temps.
+  Future<List<Event>> _fetchAllUpcoming() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final endDate = today.add(const Duration(days: 7));
 
-    // Agreger les 6 rubriques en parallele (pas de recherche API propre)
+    // Agreger les 6 rubriques en parallele
     final results = await Future.wait([
       _concertService.fetchUpcomingConcerts().catchError((_) => <Event>[]),
       _festivalService.fetchUpcomingFestivals().catchError((_) => <Event>[]),
@@ -97,17 +96,17 @@ class EventRepository {
       all.addAll(list);
     }
 
-    // Filtrer sur 7 jours glissants
-    final thisWeek = all.where((e) {
+    // Filtrer : uniquement les events a venir (>= aujourd'hui)
+    final upcoming = all.where((e) {
       final d = DateTime.tryParse(e.dateDebut);
       if (d == null) return false;
-      return !d.isBefore(today) && d.isBefore(endDate);
+      return !d.isBefore(today);
     }).toList();
 
     // Dedup par titre normalise + date
     final seen = <String>{};
     final deduped = <Event>[];
-    for (final e in thisWeek) {
+    for (final e in upcoming) {
       final key =
           '${e.titre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}|${e.dateDebut}';
       if (seen.add(key)) {

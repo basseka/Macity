@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
+import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -106,6 +108,8 @@ class FoodScreen extends ConsumerWidget {
               InkWell(
                 onTap: () {
                   ref.read(foodCategoryProvider.notifier).state = null;
+                  ref.read(dateRangeFilterProvider.notifier).state =
+                      const DateRangeFilter();
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
@@ -267,12 +271,19 @@ class FoodScreen extends ConsumerWidget {
     ModeTheme modeTheme,
     WidgetRef ref,
   ) {
+    final filter = ref.watch(dateRangeFilterProvider);
     final subcategories = FoodCategoryData.allSubcategories
         .where((s) => s.searchTag != 'A venir')
         .toList();
-    final userEvents = ref.watch(foodUserEventsProvider);
+    final userEvents = ref.watch(foodUserEventsProvider).where((e) {
+      final d = DateTime.tryParse(e.dateDebut);
+      return d == null || filter.isInRange(d);
+    }).toList();
 
-    final items = <Widget>[];
+    final items = <Widget>[
+      const DateRangeChipBar(),
+      const SizedBox(height: 4),
+    ];
 
     // User events grouped by date
     if (userEvents.isNotEmpty) {

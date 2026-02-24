@@ -20,8 +20,7 @@ final sportSubcategoryCountProvider =
   // Compter aussi les user events sport
   final userEvents = ref.watch(userEventsProvider);
   final now = DateTime.now();
-  final weekStart = now.subtract(Duration(days: now.weekday - 1));
-  final weekEnd = weekStart.add(const Duration(days: 7));
+  final today = DateTime(now.year, now.month, now.day);
 
   final userCount = userEvents.where((ue) {
     if (ue.rubrique != 'sport') return false;
@@ -29,7 +28,7 @@ final sportSubcategoryCountProvider =
     if (searchTag == 'A venir') {
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
-      return !eventDate.isBefore(weekStart) && eventDate.isBefore(weekEnd);
+      return !eventDate.isBefore(today);
     }
     final cat = ue.categorie.toLowerCase();
     final tag = searchTag.toLowerCase();
@@ -55,8 +54,7 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
   // Merge user events sport
   final userEvents = ref.watch(userEventsProvider);
   final now = DateTime.now();
-  final weekStart = now.subtract(Duration(days: now.weekday - 1));
-  final weekEnd = weekStart.add(const Duration(days: 7));
+  final today = DateTime(now.year, now.month, now.day);
 
   final matchingUserEvents = userEvents.where((ue) {
     if (ue.rubrique != 'sport') return false;
@@ -64,7 +62,7 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
     if (subcategory == 'A venir') {
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
-      return !eventDate.isBefore(weekStart) && eventDate.isBefore(weekEnd);
+      return !eventDate.isBefore(today);
     }
     if (subcategory == null) return true;
     final cat = ue.categorie.toLowerCase();

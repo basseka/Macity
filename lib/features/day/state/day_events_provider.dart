@@ -23,8 +23,7 @@ final daySubcategoryCountProvider =
   // Compter aussi les user events qui correspondent
   final userEvents = ref.watch(userEventsProvider);
   final now = DateTime.now();
-  final weekStart = now.subtract(Duration(days: now.weekday - 1));
-  final weekEnd = weekStart.add(const Duration(days: 7));
+  final today = DateTime(now.year, now.month, now.day);
 
   final matchingUserCount = userEvents.where((ue) {
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
@@ -32,7 +31,7 @@ final daySubcategoryCountProvider =
     if (searchTag == 'A venir') {
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
-      return !eventDate.isBefore(weekStart) && eventDate.isBefore(weekEnd);
+      return !eventDate.isBefore(today);
     }
 
     return ue.categorie.toLowerCase() == searchTag.toLowerCase();
@@ -57,17 +56,15 @@ final dayEventsProvider = FutureProvider<List<Event>>((ref) async {
   // Merge local user events
   final userEvents = ref.watch(userEventsProvider);
   final now = DateTime.now();
-  final weekStart = now.subtract(Duration(days: now.weekday - 1));
-  final weekEnd = weekStart.add(const Duration(days: 7));
+  final today = DateTime(now.year, now.month, now.day);
 
   final matchingUserEvents = userEvents.where((ue) {
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
 
     if (subcategory == 'A venir') {
-      // Show all user events whose date falls in the current week
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
-      return !eventDate.isBefore(weekStart) && eventDate.isBefore(weekEnd);
+      return !eventDate.isBefore(today);
     }
 
     // Match by categorie (subcategory name)

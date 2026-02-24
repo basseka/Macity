@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
+import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -113,6 +115,8 @@ class CultureScreen extends ConsumerWidget {
               InkWell(
                 onTap: () {
                   ref.read(cultureCategoryProvider.notifier).state = null;
+                  ref.read(dateRangeFilterProvider.notifier).state =
+                      const DateRangeFilter();
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Padding(
@@ -315,7 +319,7 @@ class CultureScreen extends ConsumerWidget {
                 icon: Icons.event,
               );
             }
-            return _buildGroupedCultureEventsList(allEvents, modeTheme);
+            return _buildGroupedCultureEventsList(allEvents, modeTheme, ref);
           },
           loading: () {
             // Afficher les musees en attendant les theatres
@@ -323,7 +327,7 @@ class CultureScreen extends ConsumerWidget {
             if (partial.isEmpty) {
               return LoadingIndicator(color: modeTheme.primaryColor);
             }
-            return _buildGroupedCultureEventsList(partial, modeTheme);
+            return _buildGroupedCultureEventsList(partial, modeTheme, ref);
           },
           error: (_, __) {
             // Fallback sur musees seuls
@@ -334,7 +338,7 @@ class CultureScreen extends ConsumerWidget {
                 icon: Icons.event,
               );
             }
-            return _buildGroupedCultureEventsList(partial, modeTheme);
+            return _buildGroupedCultureEventsList(partial, modeTheme, ref);
           },
         );
       },
@@ -352,11 +356,16 @@ class CultureScreen extends ConsumerWidget {
   Widget _buildGroupedCultureEventsList(
     List<Event> events,
     ModeTheme modeTheme,
+    WidgetRef ref,
   ) {
+    final filter = ref.watch(dateRangeFilterProvider);
+
     // Group events by date
     final grouped = <String, List<Event>>{};
     for (final e in events) {
       final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
+      final parsed = DateTime.tryParse(dateKey);
+      if (parsed != null && !filter.isInRange(parsed)) continue;
       grouped.putIfAbsent(dateKey, () => []).add(e);
     }
 
@@ -418,7 +427,11 @@ class CultureScreen extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 16),
-      children: items,
+      children: [
+        const DateRangeChipBar(),
+        const SizedBox(height: 4),
+        ...items,
+      ],
     );
   }
 
