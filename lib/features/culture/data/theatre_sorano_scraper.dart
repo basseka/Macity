@@ -28,12 +28,29 @@ class TheatreSoranoScraper {
     dotAll: true,
   );
 
-  /// Regex dates : "18 → 19 nov. 2025" ou "le 22 novembre 2025"
-  static final _dateRangeRegex = RegExp(
-    r'(\d{1,2})\s*(?:→|->)\s*(\d{1,2})\s+(\w+)\.?\s+(\d{4})',
+  /// Date ISO depuis l'URL : /spectacles/SLUG/2026-03-11/
+  static final _urlDateRegex = RegExp(r'/(\d{4}-\d{2}-\d{2})/?');
+
+  /// Dates textuelles (sans annee) : "11 → 13 mars", "le 13 avril",
+  /// "31 mars → 2 avril", "6 → 21 mai"
+  static final _datesBlockRegex = RegExp(
+    r'<div\s+class="dates">\s*(.*?)\s*</div>',
+    dotAll: true,
   );
+
+  /// "11 → 13 mars" ou "6 → 21 mai"
+  static final _dateRangeRegex = RegExp(
+    r'(\d{1,2})\s*→\s*(\d{1,2})\s+(\w+)\.?',
+  );
+
+  /// "31 mars → 2 avril"
+  static final _dateRangeCrossRegex = RegExp(
+    r'(\d{1,2})\s+(\w+)\.?\s*→\s*(\d{1,2})\s+(\w+)\.?',
+  );
+
+  /// "le 13 avril"
   static final _dateSingleRegex = RegExp(
-    r'le\s+(\d{1,2})\s+(\w+)\s+(\d{4})',
+    r'le\s+(\d{1,2})\s+(\w+)\.?',
     caseSensitive: false,
   );
 
@@ -83,26 +100,39 @@ class TheatreSoranoScraper {
             ? _cleanHtml(auteurMatch.group(1) ?? '')
             : '';
 
-        // Dates
+        // Date d'affichage brute
+        final datesBlockMatch = _datesBlockRegex.firstMatch(cardHtml);
+        final datesRaw = datesBlockMatch != null
+            ? _cleanHtml(datesBlockMatch.group(1) ?? '')
+            : '';
+
+        // Date ISO : priorite a l'URL (/2026-03-11/), fallback texte
         String? dateDebut;
         String? dateFin;
 
-        final rangeMatch = _dateRangeRegex.firstMatch(cardHtml);
-        if (rangeMatch != null) {
-          final dayStart = rangeMatch.group(1)!;
-          final dayEnd = rangeMatch.group(2)!;
-          final month = rangeMatch.group(3)!;
-          final year = rangeMatch.group(4)!;
-          dateDebut = _buildIsoDate(dayStart, month, year);
-          dateFin = _buildIsoDate(dayEnd, month, year);
+        final urlDateMatch = _urlDateRegex.firstMatch(detailUrl);
+        if (urlDateMatch != null) {
+          dateDebut = urlDateMatch.group(1);
+        }
+
+        // Inferrer l'annee depuis l'URL ou la saison courante
+        final year = dateDebut?.substring(0, 4) ?? _currentSeasonYear();
+
+        // Parser la plage de dates textuelles pour dateFin
+        final crossMatch = _dateRangeCrossRegex.firstMatch(datesRaw);
+        if (crossMatch != null) {
+          dateDebut ??= _buildIsoDate(crossMatch.group(1)!, crossMatch.group(2)!, year);
+          dateFin = _buildIsoDate(crossMatch.group(3)!, crossMatch.group(4)!, year);
         } else {
-          final singleMatch = _dateSingleRegex.firstMatch(cardHtml);
-          if (singleMatch != null) {
-            final day = singleMatch.group(1)!;
-            final month = singleMatch.group(2)!;
-            final year = singleMatch.group(3)!;
-            dateDebut = _buildIsoDate(day, month, year);
-            dateFin = dateDebut;
+          final rangeMatch = _dateRangeRegex.firstMatch(datesRaw);
+          if (rangeMatch != null) {
+            dateDebut ??= _buildIsoDate(rangeMatch.group(1)!, rangeMatch.group(3)!, year);
+            dateFin = _buildIsoDate(rangeMatch.group(2)!, rangeMatch.group(3)!, year);
+          } else {
+            final singleMatch = _dateSingleRegex.firstMatch(datesRaw);
+            if (singleMatch != null) {
+              dateDebut ??= _buildIsoDate(singleMatch.group(1)!, singleMatch.group(2)!, year);
+            }
           }
         }
 
@@ -127,6 +157,7 @@ class TheatreSoranoScraper {
               : '$titre\n$type',
           dateDebut: dateDebut,
           dateFin: dateFin ?? dateDebut,
+          datesAffichageHoraires: datesRaw,
           lieuNom: 'Theatre Sorano',
           lieuAdresse: '35 Allees Jules Guesde',
           commune: 'Toulouse',
@@ -139,14 +170,11 @@ class TheatreSoranoScraper {
 
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final cutoff = today.add(const Duration(days: 30));
 
       final upcoming = events.where((e) {
-        final d = DateTime.tryParse(e.dateDebut);
-        if (d == null) return false;
-        // Garder les events dont la date de fin n'est pas passee
-        final fin = DateTime.tryParse(e.dateFin) ?? d;
-        return !fin.isBefore(today) && d.isBefore(cutoff);
+        final fin = DateTime.tryParse(e.dateFin) ?? DateTime.tryParse(e.dateDebut);
+        if (fin == null) return false;
+        return !fin.isBefore(today);
       }).toList();
 
       upcoming.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
@@ -156,6 +184,7 @@ class TheatreSoranoScraper {
     }
   }
 
+  /// Construit une date ISO a partir du jour, mois francais et annee.
   static String? _buildIsoDate(String day, String month, String year) {
     final d = int.tryParse(day);
     final y = int.tryParse(year);
@@ -163,6 +192,12 @@ class TheatreSoranoScraper {
     final m = _frenchMonths[monthClean];
     if (d == null || y == null || m == null) return null;
     return '$y-${m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
+  }
+
+  /// Annee de la saison en cours (sept→dec = annee+1, jan→aout = annee).
+  static String _currentSeasonYear() {
+    final now = DateTime.now();
+    return now.month >= 9 ? '${now.year + 1}' : '${now.year}';
   }
 
   static const _frenchMonths = {

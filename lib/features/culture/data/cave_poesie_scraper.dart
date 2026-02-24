@@ -68,6 +68,11 @@ class CavePoesieScraper {
     caseSensitive: false,
   );
 
+  /// Nouveau format : "Tuesday 24 02" (DayOfWeek DD MM)
+  static final _shortDateRegex = RegExp(
+    r'(\d{1,2})\s+(\d{2})\s*$',
+  );
+
   /// Horaire : "20 h", "21 h", "19 h 30"
   static final _horaireRegex = RegExp(
     r'(\d{1,2})\s*h\s*(\d{2})?',
@@ -93,13 +98,35 @@ class CavePoesieScraper {
         final dateMatch = _dateRegex.firstMatch(blockHtml);
         if (dateMatch == null) continue;
         final dateText = _cleanHtml(dateMatch.group(1) ?? '');
+
+        String? dateIso;
+
+        // Format classique : "mardi 24 février 2026"
         final fullDateMatch = _fullDateRegex.firstMatch(dateText);
-        if (fullDateMatch == null) continue;
-        final dateIso = _buildIsoDate(
-          fullDateMatch.group(1)!,
-          fullDateMatch.group(2)!,
-          fullDateMatch.group(3)!,
-        );
+        if (fullDateMatch != null) {
+          dateIso = _buildIsoDate(
+            fullDateMatch.group(1)!,
+            fullDateMatch.group(2)!,
+            fullDateMatch.group(3)!,
+          );
+        } else {
+          // Nouveau format : "Tuesday 24 02" (DayOfWeek DD MM)
+          final shortMatch = _shortDateRegex.firstMatch(dateText);
+          if (shortMatch != null) {
+            final day = int.tryParse(shortMatch.group(1) ?? '');
+            final month = int.tryParse(shortMatch.group(2) ?? '');
+            if (day != null && month != null) {
+              final now = DateTime.now();
+              var year = now.year;
+              final candidate = DateTime(year, month, day);
+              if (candidate.isBefore(now.subtract(const Duration(days: 60)))) {
+                year++;
+              }
+              dateIso = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+            }
+          }
+        }
+
         if (dateIso == null) continue;
 
         // Horaire + tarif
@@ -170,6 +197,7 @@ class CavePoesieScraper {
           descriptifLong: titre,
           dateDebut: dateIso,
           dateFin: dateIso,
+          datesAffichageHoraires: dateText,
           horaires: horaires,
           lieuNom: 'Cave Poesie Rene Gouzenne',
           lieuAdresse: '71 Rue du Taur',
@@ -185,12 +213,11 @@ class CavePoesieScraper {
 
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final cutoff = today.add(const Duration(days: 30));
 
       final upcoming = events.where((e) {
         final d = DateTime.tryParse(e.dateDebut);
         if (d == null) return false;
-        return !d.isBefore(today) && d.isBefore(cutoff);
+        return !d.isBefore(today);
       }).toList();
 
       upcoming.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));

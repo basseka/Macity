@@ -18,6 +18,8 @@ class ItemDetailSheet extends ConsumerWidget {
   final List<DetailAction> secondaryActions;
   final String shareText;
   final String? likeId;
+  final Widget? extraContent;
+  final double imageHeightFraction;
 
   const ItemDetailSheet({
     super.key,
@@ -29,6 +31,8 @@ class ItemDetailSheet extends ConsumerWidget {
     this.secondaryActions = const [],
     this.shareText = '',
     this.likeId,
+    this.extraContent,
+    this.imageHeightFraction = 1.0,
   });
 
   static const _primaryColor = Color(0xFF7B2D8E);
@@ -77,12 +81,19 @@ class ItemDetailSheet extends ConsumerWidget {
                   children: [
                     Flexible(
                       child: hasImage
-                          ? Image.asset(
-                              imageAsset!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              errorBuilder: (_, __, ___) =>
-                                  _buildGradientFallback(),
+                          ? ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: imageHeightFraction < 1.0
+                                    ? screenHeight * 0.85 * imageHeightFraction
+                                    : double.infinity,
+                              ),
+                              child: Image.asset(
+                                imageAsset!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                errorBuilder: (_, __, ___) =>
+                                    _buildGradientFallback(),
+                              ),
                             )
                           : _buildGradientFallback(),
                     ),
@@ -136,8 +147,8 @@ class ItemDetailSheet extends ConsumerWidget {
                       ),
                     ),
 
-                    // Emoji
-                    if (emoji.isNotEmpty)
+                    // Emoji (masque si image reduite)
+                    if (emoji.isNotEmpty && imageHeightFraction >= 1.0)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
@@ -146,7 +157,7 @@ class ItemDetailSheet extends ConsumerWidget {
                         ),
                       ),
 
-                    const Spacer(),
+                    if (imageHeightFraction >= 1.0) const Spacer(),
 
                     // ── Infos en bas ──
                     Flexible(
@@ -198,6 +209,12 @@ class ItemDetailSheet extends ConsumerWidget {
                               ),
                             ),
                           ),
+
+                          // ── Contenu supplementaire (ex: programmation) ──
+                          if (extraContent != null) ...[
+                            const SizedBox(height: 10),
+                            extraContent!,
+                          ],
 
                           const SizedBox(height: 14),
 

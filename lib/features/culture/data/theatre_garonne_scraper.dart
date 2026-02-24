@@ -184,13 +184,11 @@ class TheatreGaronneScraper {
 
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final cutoff = today.add(const Duration(days: 30));
 
       final upcoming = events.where((e) {
-        final d = DateTime.tryParse(e.dateDebut);
-        if (d == null) return false;
-        final fin = DateTime.tryParse(e.dateFin) ?? d;
-        return !fin.isBefore(today) && d.isBefore(cutoff);
+        final fin = DateTime.tryParse(e.dateFin) ?? DateTime.tryParse(e.dateDebut);
+        if (fin == null) return false;
+        return !fin.isBefore(today);
       }).toList();
 
       upcoming.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));

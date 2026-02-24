@@ -128,10 +128,12 @@ class TheatrePontNeufScraper {
         // Dates
         String? dateDebut;
         String? dateFin;
+        String dateAffichage = '';
 
         final dateH3 = _dateH3Regex.firstMatch(rightHtml);
         if (dateH3 != null) {
           final dateText = _cleanHtml(dateH3.group(1) ?? '');
+          dateAffichage = dateText;
 
           final rangeMatch = _dateRangeRegex.firstMatch(dateText);
           if (rangeMatch != null) {
@@ -190,6 +192,7 @@ class TheatrePontNeufScraper {
           descriptifLong: description.isNotEmpty ? description : titre,
           dateDebut: dateDebut,
           dateFin: dateFin ?? dateDebut,
+          datesAffichageHoraires: dateAffichage,
           horaires: horaires,
           lieuNom: 'Theatre du Pont Neuf',
           lieuAdresse: '22 Rue des Amidonniers',
@@ -205,13 +208,11 @@ class TheatrePontNeufScraper {
 
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final cutoff = today.add(const Duration(days: 30));
 
       final upcoming = events.where((e) {
-        final d = DateTime.tryParse(e.dateDebut);
-        if (d == null) return false;
-        final fin = DateTime.tryParse(e.dateFin) ?? d;
-        return !fin.isBefore(today) && d.isBefore(cutoff);
+        final fin = DateTime.tryParse(e.dateFin) ?? DateTime.tryParse(e.dateDebut);
+        if (fin == null) return false;
+        return !fin.isBefore(today);
       }).toList();
 
       upcoming.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));

@@ -10,6 +10,7 @@ import 'package:pulz_app/features/culture/data/theatre_sorano_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_pont_neuf_scraper.dart';
 import 'package:pulz_app/features/culture/data/cave_poesie_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_garonne_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_cite_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -68,22 +69,50 @@ final theatreGaronneEventsProvider = FutureProvider<List<Event>>((ref) async {
   return TheatreGaronneScraper.fetchUpcomingEvents();
 });
 
-/// Combine les 4 scrapers theatre en une seule liste.
+/// Theatre de la Cite — programmation scrapee.
+final theatreCiteEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreCiteScraper.fetchUpcomingEvents();
+});
+
+/// Combine les 5 scrapers theatre en une seule liste.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   final results = await Future.wait([
     ref.watch(theatreSoranoEventsProvider.future),
     ref.watch(theatrePontNeufEventsProvider.future),
     ref.watch(cavePoesieEventsProvider.future),
     ref.watch(theatreGaronneEventsProvider.future),
+    ref.watch(theatreCiteEventsProvider.future),
   ]);
   final all = <Event>[
     ...results[0],
     ...results[1],
     ...results[2],
     ...results[3],
+    ...results[4],
   ];
   all.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
   return all;
+});
+
+/// Mapping venue ID → nom du lieu utilise dans les scrapers.
+const _venueIdToLieuNom = <String, String>{
+  'theatre_de_la_cite': 'Theatre de la Cite',
+  'sorano_theatre': 'Sorano',
+  'theatre_garonne': 'Garonne',
+  'la_cave_poesie': 'Cave Poesie',
+  'theatre_du_pont_neuf': 'Pont Neuf',
+};
+
+/// Events filtres pour une salle de theatre donnee.
+final theatreVenueEventsProvider =
+    FutureProvider.family<List<Event>, String>((ref, venueId) async {
+  final keyword = _venueIdToLieuNom[venueId];
+  if (keyword == null) return [];
+
+  final allEvents = await ref.watch(cultureTheatreEventsProvider.future);
+  return allEvents
+      .where((e) => e.lieuNom.toLowerCase().contains(keyword.toLowerCase()))
+      .toList();
 });
 
 final cultureCategoryCountProvider =

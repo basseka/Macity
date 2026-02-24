@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
+import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 
 class TheatreVenueCard extends ConsumerWidget {
@@ -14,7 +16,6 @@ class TheatreVenueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-
     return GestureDetector(
       onTap: () => _openDetail(context),
       child: Card(
@@ -159,6 +160,110 @@ class TheatreVenueCard extends ConsumerWidget {
             ? DetailAction(icon: Icons.language, label: 'Site web', url: theatre.websiteUrl!)
             : null,
         shareText: '${theatre.name}\n${theatre.description}\n${theatre.city}\n${theatre.websiteUrl ?? ''}\n\nDecouvre sur MaCity',
+        imageHeightFraction: 0.15,
+        extraContent: Consumer(
+          builder: (_, ref, __) {
+            final asyncEvents = ref.watch(theatreVenueEventsProvider(theatre.id));
+            return asyncEvents.when(
+              data: (events) => events.isNotEmpty
+                  ? _buildProgrammation(events)
+                  : const SizedBox.shrink(),
+              loading: () => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgrammation(List<Event> events) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Programmation',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.white.withValues(alpha: 0.95),
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...events.map((e) => _buildEventTile(e)),
+      ],
+    );
+  }
+
+  Widget _buildEventTile(Event event) {
+    final hasUrl = event.reservationUrl.isNotEmpty;
+    return GestureDetector(
+      onTap: hasUrl ? () => _openUrl(event.reservationUrl) : null,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.theater_comedy,
+              size: 14,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.titre,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.95),
+                      decoration: hasUrl ? TextDecoration.underline : null,
+                      decorationColor: Colors.white.withValues(alpha: 0.5),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (event.datesAffichageHoraires.isNotEmpty ||
+                      event.type.isNotEmpty)
+                    Text(
+                      [
+                        if (event.datesAffichageHoraires.isNotEmpty)
+                          event.datesAffichageHoraires,
+                        if (event.type.isNotEmpty) event.type,
+                      ].join(' · '),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            if (hasUrl)
+              Icon(
+                Icons.open_in_new,
+                size: 12,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
+          ],
+        ),
       ),
     );
   }
