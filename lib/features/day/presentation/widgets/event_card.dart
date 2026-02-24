@@ -377,8 +377,16 @@ class EventCard extends ConsumerWidget {
 
   Future<void> _openUrl(String url) async {
     final uri = Uri.tryParse(url);
-    if (uri != null && await canLaunchUrl(uri)) {
+    if (uri == null) return;
+    try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('Impossible d\'ouvrir le lien: $e');
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (e) {
+        debugPrint('Impossible d\'ouvrir le lien (fallback): $e');
+      }
     }
   }
 

@@ -409,11 +409,14 @@ class EventFullscreenPopup extends ConsumerWidget {
     final uri = Uri.tryParse(url);
     if (uri == null) return;
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       debugPrint('Impossible d\'ouvrir le lien: $e');
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (e) {
+        debugPrint('Impossible d\'ouvrir le lien (fallback): $e');
+      }
     }
   }
 }
