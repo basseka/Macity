@@ -17,6 +17,8 @@ import 'package:pulz_app/features/culture/data/grenier_theatre_scraper.dart';
 import 'package:pulz_app/features/culture/data/three_t_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_du_pave_scraper.dart';
 import 'package:pulz_app/features/culture/data/fil_a_plomb_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_mazades_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_violette_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -110,7 +112,17 @@ final filAPlombEventsProvider = FutureProvider<List<Event>>((ref) async {
   return FilAPlombScraper.fetchUpcomingEvents();
 });
 
-/// Combine les 11 scrapers theatre en une seule liste.
+/// Theatre des Mazades — programmation scrapee via JSON-LD.
+final theatreMazadesEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreMazadesScraper.fetchUpcomingEvents();
+});
+
+/// Theatre de la Violette — programmation scrapee via seances HTML.
+final theatreVioletteEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreVioletteScraper.fetchUpcomingEvents();
+});
+
+/// Combine les 13 scrapers theatre en une seule liste.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   final results = await Future.wait([
     ref.watch(theatreSoranoEventsProvider.future),
@@ -124,6 +136,8 @@ final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
     ref.watch(threeTEventsProvider.future),
     ref.watch(theatreDuPaveEventsProvider.future),
     ref.watch(filAPlombEventsProvider.future),
+    ref.watch(theatreMazadesEventsProvider.future),
+    ref.watch(theatreVioletteEventsProvider.future),
   ]);
   final all = <Event>[
     for (final r in results) ...r,
@@ -145,6 +159,8 @@ const _venueIdToLieuNom = <String, String>{
   'cafe_theatre_les_3t': '3T',
   'theatre_du_pave': 'Pave',
   'theatre_le_fil_a_plomb': 'Fil a Plomb',
+  'theatre_des_mazades': 'Mazades',
+  'theatre_de_la_violette': 'Violette',
 };
 
 /// Events filtres pour une salle de theatre donnee.
