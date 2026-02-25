@@ -19,6 +19,7 @@ import 'package:pulz_app/features/culture/data/theatre_du_pave_scraper.dart';
 import 'package:pulz_app/features/culture/data/fil_a_plomb_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_mazades_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_violette_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_de_poche_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -122,7 +123,12 @@ final theatreVioletteEventsProvider = FutureProvider<List<Event>>((ref) async {
   return TheatreVioletteScraper.fetchUpcomingEvents();
 });
 
-/// Combine les 13 scrapers theatre en une seule liste.
+/// Theatre de Poche — programmation scrapee via pages mois.
+final theatreDePocheEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreDePocheScraper.fetchUpcomingEvents();
+});
+
+/// Combine les 14 scrapers theatre en une seule liste.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   final results = await Future.wait([
     ref.watch(theatreSoranoEventsProvider.future),
@@ -138,6 +144,7 @@ final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
     ref.watch(filAPlombEventsProvider.future),
     ref.watch(theatreMazadesEventsProvider.future),
     ref.watch(theatreVioletteEventsProvider.future),
+    ref.watch(theatreDePocheEventsProvider.future),
   ]);
   final all = <Event>[
     for (final r in results) ...r,
@@ -161,6 +168,7 @@ const _venueIdToLieuNom = <String, String>{
   'theatre_le_fil_a_plomb': 'Fil a Plomb',
   'theatre_des_mazades': 'Mazades',
   'theatre_de_la_violette': 'Violette',
+  'theatre_de_poche': 'Poche',
 };
 
 /// Events filtres pour une salle de theatre donnee.
