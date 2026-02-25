@@ -2,19 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
-import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/presentation/widgets/swipe_detector.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
-import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
-import 'package:pulz_app/features/home/state/banners_provider.dart';
-import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
-import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
-import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
-import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -25,7 +19,6 @@ class ModeShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMode = ref.watch(currentModeProvider);
     final modeTheme = ref.watch(modeThemeProvider);
-    final city = ref.watch(selectedCityProvider);
     final mode = AppMode.fromName(currentMode);
     final modeIndex = AppMode.order.indexOf(mode);
     final now = DateTime.now();
@@ -44,134 +37,90 @@ class ModeShell extends ConsumerWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) {
-          context.go('/home');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) context.go('/home');
+          });
         }
       },
       child: Scaffold(
       backgroundColor: modeTheme.backgroundColor,
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: -1),
       body: SwipeDetector(
         onSwipeLeft: () => ref.read(currentModeProvider.notifier).nextMode(),
         onSwipeRight: () => ref.read(currentModeProvider.notifier).previousMode(),
-        child: Column(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
           children: [
-            // Toolbar with fixed gradient (same as home)
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF4A1259), Color(0xFF7B2D8E), Color(0xFFE91E8C)],
-                ),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 10),
-                  child: Row(
-                    children: [
-                      // Logo
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Image.asset(
-                          'assets/icon/app_icon.png',
-                          width: isLandscape ? 32 : 42,
-                          height: isLandscape ? 32 : 42,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'MaCity',
-                              style: TextStyle(
-                                fontSize: isLandscape ? 18 : 24, fontWeight: FontWeight.bold,
-                                color: Colors.white, letterSpacing: 0.06,
-                              ),
-                            ),
-                            if (!isLandscape)
-                              Text(
-                                'Tous les évènements dans ta ville',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 12, fontStyle: FontStyle.italic,
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // City selector + heart button
+            // Logo + search bar
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 2 : 6),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 8),
               child: Row(
                 children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'assets/icon/app_icon.png',
+                      width: 14,
+                      height: 14,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'MaCity',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 8,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () => showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => const CityPickerBottomSheet(),
+                    child: Container(
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade300, width: 1),
                       ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: modeTheme.primaryLightColor,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: modeTheme.primaryColor, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 6, offset: const Offset(0, 2),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 12),
+                          Icon(Icons.search, color: Colors.grey.shade400, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Trouve un evenement',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 10,
+                              color: Colors.grey.shade400,
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            const Text('📍', style: TextStyle(fontSize: 16)),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                city,
-                                style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.bold,
-                                  color: modeTheme.primaryDarkColor,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(Icons.keyboard_arrow_down, size: 20, color: modeTheme.primaryDarkColor),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _ModeShellAddButton(
-                    primaryColor: modeTheme.primaryColor,
-                    primaryLightColor: modeTheme.primaryLightColor,
-                    primaryDarkColor: modeTheme.primaryDarkColor,
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => const AppBottomNavBar().showAddEvent(context, ref),
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
+                        ),
+                      ),
+                      child: const Icon(Icons.add, color: Colors.white, size: 12),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  const _ModeShellOfferButton(),
                 ],
               ),
             ),
-
             // Mode header: back + arrows + title + dots
             Container(
               padding: EdgeInsets.symmetric(horizontal: 12, vertical: isLandscape ? 2 : 8),
@@ -181,14 +130,6 @@ class ModeShell extends ConsumerWidget {
                   // Navigation row
                   Row(
                     children: [
-                      // Back to home button
-                      _buildNavButton(
-                        icon: Icons.home_rounded,
-                        color: modeTheme.primaryColor,
-                        darkColor: modeTheme.primaryDarkColor,
-                        onTap: () => context.go('/home'),
-                      ),
-                      const SizedBox(width: 8),
                       // Left arrow
                       if (modeIndex > 0)
                         _buildNavButton(
@@ -210,7 +151,7 @@ class ModeShell extends ConsumerWidget {
                             textAlign: TextAlign.center,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: GoogleFonts.montserrat(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
                               color: modeTheme.primaryDarkColor,
@@ -276,6 +217,7 @@ class ModeShell extends ConsumerWidget {
             Expanded(child: child),
           ],
         ),
+        ),
       ),
     ),
     );
@@ -317,154 +259,3 @@ class ModeShell extends ConsumerWidget {
   }
 }
 
-class _ModeShellAddButton extends ConsumerWidget {
-  final Color primaryColor;
-  final Color primaryLightColor;
-  final Color primaryDarkColor;
-
-  const _ModeShellAddButton({
-    required this.primaryColor,
-    required this.primaryLightColor,
-    required this.primaryDarkColor,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onTap: () => _showAddEvent(context, ref),
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: primaryLightColor,
-          shape: BoxShape.circle,
-          border: Border.all(color: primaryColor, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(Icons.add, color: primaryDarkColor, size: 22),
-      ),
-    );
-  }
-
-  Future<void> _showAddEvent(BuildContext context, WidgetRef ref) async {
-    var status = ref.read(proAuthProvider).status;
-
-    if (status == ProAuthStatus.loading) {
-      for (var i = 0; i < 20; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-        if (!context.mounted) return;
-        status = ref.read(proAuthProvider).status;
-        if (status != ProAuthStatus.loading) break;
-      }
-      if (status == ProAuthStatus.loading) {
-        status = ProAuthStatus.notConnected;
-      }
-    }
-
-    if (!context.mounted) return;
-
-    switch (status) {
-      case ProAuthStatus.approved:
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const AddEventBottomSheet(),
-        );
-      case ProAuthStatus.pendingApproval:
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const ProPendingSheet(),
-        );
-      case ProAuthStatus.notConnected:
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const ProLoginSheet(),
-        );
-      case ProAuthStatus.loading:
-        break;
-    }
-  }
-}
-
-class _ModeShellOfferButton extends ConsumerStatefulWidget {
-  const _ModeShellOfferButton();
-
-  @override
-  ConsumerState<_ModeShellOfferButton> createState() =>
-      _ModeShellOfferButtonState();
-}
-
-class _ModeShellOfferButtonState extends ConsumerState<_ModeShellOfferButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _glow;
-
-  @override
-  void initState() {
-    super.initState();
-    _glow = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _glow.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ref.watch(activeBannersProvider);
-
-    return GestureDetector(
-      onTap: () => BannerCarouselDialog.show(context),
-      child: AnimatedBuilder(
-        animation: _glow,
-        builder: (context, _) {
-          final t = _glow.value;
-          return Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFFFD54F), Color(0xFFFF8F00)],
-              ),
-              border: Border.all(
-                color: const Color(0xFFFFB300),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFFD54F).withValues(alpha: 0.3 + t * 0.4),
-                  blurRadius: 8 + t * 6,
-                  spreadRadius: 1 + t * 2,
-                ),
-              ],
-            ),
-            child: const Center(
-              child: Text(
-                '\u{1F381}',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
