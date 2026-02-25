@@ -14,6 +14,9 @@ import 'package:pulz_app/features/culture/data/theatre_cite_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_capitole_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_grand_rond_scraper.dart';
 import 'package:pulz_app/features/culture/data/grenier_theatre_scraper.dart';
+import 'package:pulz_app/features/culture/data/three_t_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_du_pave_scraper.dart';
+import 'package:pulz_app/features/culture/data/fil_a_plomb_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -92,7 +95,22 @@ final grenierTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   return GrenierTheatreScraper.fetchUpcomingEvents();
 });
 
-/// Combine les 8 scrapers theatre en une seule liste.
+/// 3T Cafe Theatre — programmation via API REST + scraping HTML.
+final threeTEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return ThreeTScraper.fetchUpcomingEvents();
+});
+
+/// Theatre du Pave — programmation via API Tribe Events Calendar.
+final theatreDuPaveEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreDuPaveScraper.fetchUpcomingEvents();
+});
+
+/// Theatre le Fil a Plomb — programmation scrapee.
+final filAPlombEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return FilAPlombScraper.fetchUpcomingEvents();
+});
+
+/// Combine les 11 scrapers theatre en une seule liste.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   final results = await Future.wait([
     ref.watch(theatreSoranoEventsProvider.future),
@@ -103,6 +121,9 @@ final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
     ref.watch(theatreCapitoleEventsProvider.future),
     ref.watch(theatreGrandRondEventsProvider.future),
     ref.watch(grenierTheatreEventsProvider.future),
+    ref.watch(threeTEventsProvider.future),
+    ref.watch(theatreDuPaveEventsProvider.future),
+    ref.watch(filAPlombEventsProvider.future),
   ]);
   final all = <Event>[
     for (final r in results) ...r,
@@ -121,6 +142,9 @@ const _venueIdToLieuNom = <String, String>{
   'theatre_du_capitole': 'Capitole',
   'theatre_du_grand_rond': 'Grand Rond',
   'grenier_theatre': 'Grenier',
+  'cafe_theatre_les_3t': '3T',
+  'theatre_du_pave': 'Pave',
+  'theatre_le_fil_a_plomb': 'Fil a Plomb',
 };
 
 /// Events filtres pour une salle de theatre donnee.
