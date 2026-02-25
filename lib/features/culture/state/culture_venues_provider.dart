@@ -17,10 +17,11 @@ import 'package:pulz_app/features/culture/data/grenier_theatre_scraper.dart';
 import 'package:pulz_app/features/culture/data/three_t_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_du_pave_scraper.dart';
 import 'package:pulz_app/features/culture/data/fil_a_plomb_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_mazades_scraper.dart';
+import 'package:pulz_app/features/culture/data/metropole_toulouse_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_violette_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_de_poche_scraper.dart';
 import 'package:pulz_app/features/culture/data/theatre_chien_blanc_scraper.dart';
+import 'package:pulz_app/features/culture/data/theatre_jules_julien_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -116,7 +117,24 @@ final filAPlombEventsProvider = FutureProvider<List<Event>>((ref) async {
 
 /// Theatre des Mazades — programmation scrapee via JSON-LD.
 final theatreMazadesEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreMazadesScraper.fetchUpcomingEvents();
+  return MetropoleToulouseScraper.fetchUpcomingEvents(const MetropoleVenueConfig(
+    extId: '2029',
+    idPrefix: 'mazades',
+    lieuNom: 'Theatre des Mazades',
+    lieuAdresse: '10 avenue des Mazades',
+    codePostal: 31200,
+  ),);
+});
+
+/// La Brique Rouge — programmation scrapee via JSON-LD.
+final briqueRougeEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return MetropoleToulouseScraper.fetchUpcomingEvents(const MetropoleVenueConfig(
+    extId: '2001',
+    idPrefix: 'briquerouge',
+    lieuNom: 'La Brique Rouge',
+    lieuAdresse: '15 rue Leon Jouhaux',
+    codePostal: 31500,
+  ),);
 });
 
 /// Theatre de la Violette — programmation scrapee via seances HTML.
@@ -134,7 +152,12 @@ final theatreChienBlancEventsProvider = FutureProvider<List<Event>>((ref) async 
   return TheatreChienBlancScraper.fetchUpcomingEvents();
 });
 
-/// Combine les 15 scrapers theatre en une seule liste.
+/// Theatre Jules Julien — programmation via API REST Conservatoire.
+final theatreJulesJulienEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return TheatreJulesJulienScraper.fetchUpcomingEvents();
+});
+
+/// Combine les 17 scrapers theatre en une seule liste.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   final results = await Future.wait([
     ref.watch(theatreSoranoEventsProvider.future),
@@ -152,6 +175,8 @@ final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
     ref.watch(theatreVioletteEventsProvider.future),
     ref.watch(theatreDePocheEventsProvider.future),
     ref.watch(theatreChienBlancEventsProvider.future),
+    ref.watch(briqueRougeEventsProvider.future),
+    ref.watch(theatreJulesJulienEventsProvider.future),
   ]);
   final all = <Event>[
     for (final r in results) ...r,
@@ -177,6 +202,8 @@ const _venueIdToLieuNom = <String, String>{
   'theatre_de_la_violette': 'Violette',
   'theatre_de_poche': 'Poche',
   'theatre_du_chien_blanc': 'Chien Blanc',
+  'theatre_de_la_brique_rouge': 'Brique Rouge',
+  'nouveau_theatre_jules_julien': 'Jules Julien',
 };
 
 /// Events filtres pour une salle de theatre donnee.
