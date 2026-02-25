@@ -27,9 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: const Color(0xFFF8F0FA),
       bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
       body: SafeArea(
@@ -129,7 +127,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
         ],
-      ),
       ),
       ),
     );
