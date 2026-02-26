@@ -121,58 +121,61 @@ async function scrapePontNeuf(): Promise<ScrapedEvent[]> {
   try {
     const html = await fetchHtml("https://www.theatredupontneuf.fr/spectacles25-26/");
     const events: ScrapedEvent[] = [];
+    const year = currentSeasonYear();
 
-    // Parse vc_row sections with spectacle info
-    const rowRegex = /<div[^>]*class="[^"]*vc_row[^"]*"[^>]*>(.*?)<\/div>\s*<\/div>\s*<\/div>/gs;
-    const titleRegex = /<h[23][^>]*>(.*?)<\/h[23]>/s;
-    const dateTextRegex = /(?:du\s+(\d{1,2})\s+au\s+(\d{1,2})\s+(\w+))|(?:les?\s+(\d{1,2})(?:\s+et\s+(\d{1,2}))?\s+(\w+))/gi;
-    const linkRegex = /href="(https?:\/\/[^"]*theatredupontneuf[^"]*)"/;
+    // Structure: <h2><b>Title</b></h2> then <h3>du X au Y mois</h3> as siblings
+    // Strategy: collect all h2/h3 tags in order, pair titles with dates
+    const tagRegex = /<(h[23])[^>]*>(.*?)<\/\1>/gs;
+    const tags: { tag: string; text: string }[] = [];
+    let m;
+    while ((m = tagRegex.exec(html)) !== null) {
+      tags.push({ tag: m[1], text: cleanHtml(m[2]) });
+    }
 
-    // Simpler approach: find spectacle blocks by looking for date patterns near titles
-    const blockRegex = /<(?:h[23]|strong)[^>]*>(.*?)<\/(?:h[23]|strong)>[\s\S]*?(?:du\s+\d|les?\s+\d|le\s+\d)(.*?)(?=<(?:h[23]|strong)|$)/gi;
-    let match;
-    while ((match = blockRegex.exec(html)) !== null) {
-      const titre = cleanHtml(match[1]);
-      if (!titre || titre.length < 3) continue;
+    for (let i = 0; i < tags.length; i++) {
+      const t = tags[i];
+      // Title is in h2, not a link/tarif/empty
+      if (t.tag !== "h2" || !t.text || t.text.length < 3) continue;
+      if (/^tarif|^réserv|^http/i.test(t.text)) continue;
 
-      const dateBlock = match[2];
-      const year = currentSeasonYear();
+      // Look for date in the next h3
+      const next = tags[i + 1];
+      if (!next || next.tag !== "h3") continue;
 
-      // Try to parse dates
-      const dateMatch = /(?:du\s+)?(\d{1,2})(?:\s+(\w+))?\s*(?:au|et|-|→)\s*(\d{1,2})\s+(\w+)/i.exec(match[0]) ??
-                         /le\s+(\d{1,2})\s+(\w+)/i.exec(match[0]);
-      if (!dateMatch) continue;
-
+      const dateText = next.text;
       let dateDebut: string | null = null;
       let dateFin: string | null = null;
 
-      if (dateMatch[3] && dateMatch[4]) {
-        // Range: "du X au Y mois" or "X-Y mois"
-        const monthEnd = dateMatch[4];
-        const monthStart = dateMatch[2] || monthEnd;
-        dateDebut = buildIsoDate(dateMatch[1], monthStart, year);
-        dateFin = buildIsoDate(dateMatch[3], monthEnd, year);
-      } else if (dateMatch[2]) {
-        // Single: "le X mois"
-        dateDebut = buildIsoDate(dateMatch[1], dateMatch[2], year);
-        dateFin = dateDebut;
+      // "du mardi 16 au samedi 20 septembre" or "du 16 au 20 septembre"
+      const rangeMatch = /(?:du\s+)?(?:\w+\s+)?(\d{1,2})\s*(?:au|et)\s*(?:\w+\s+)?(\d{1,2})\s+(\w+)/i.exec(dateText);
+      if (rangeMatch) {
+        dateDebut = buildIsoDate(rangeMatch[1], rangeMatch[3], year);
+        dateFin = buildIsoDate(rangeMatch[2], rangeMatch[3], year);
+      }
+
+      // "les jeudi 18 et vendredi 19 décembre"
+      if (!dateDebut) {
+        const lesMatch = /les?\s+(?:\w+\s+)?(\d{1,2})(?:\s+et\s+(?:\w+\s+)?(\d{1,2}))?\s+(\w+)/i.exec(dateText);
+        if (lesMatch) {
+          dateDebut = buildIsoDate(lesMatch[1], lesMatch[3], year);
+          dateFin = lesMatch[2] ? buildIsoDate(lesMatch[2], lesMatch[3], year) : dateDebut;
+        }
       }
 
       if (!dateDebut || !isUpcoming(dateFin ?? dateDebut, dateDebut)) continue;
 
-      const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+      const slug = t.text.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `pontneuf_${slug}_${dateDebut}`;
-      const lnk = linkRegex.exec(match[0]);
 
       events.push(makeEvent({
         identifiant: id, source: "theatre_pont_neuf", rubrique: "culture",
-        nom_de_la_manifestation: titre,
-        descriptif_court: titre,
+        nom_de_la_manifestation: t.text,
+        descriptif_court: t.text,
         date_debut: dateDebut, date_fin: dateFin ?? dateDebut,
         lieu_nom: "Theatre du Pont Neuf", lieu_adresse_2: "2 Rue Georges Lardenne",
         commune: "Toulouse", code_postal: 31300,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
-        reservation_site_internet: lnk?.[1] ?? "https://www.theatredupontneuf.fr/",
+        reservation_site_internet: "https://www.theatredupontneuf.fr/",
       }));
     }
     return events;
@@ -187,7 +190,7 @@ async function scrapeCavePoesie(): Promise<ScrapedEvent[]> {
     const html = await fetchHtml("https://www.cave-poesie.com/agenda/");
     const events: ScrapedEvent[] = [];
 
-    const eventRegex = /<div\s+class="event\s+all[^"]*">(.*?)<\/div>\s*<\/div>/gs;
+    const eventRegex = /<div\s+class="event\s+all[^"]*">([\s\S]*?)<div\s+class="clear"><\/div>\s*<\/div>/g;
     const h2Regex = /<h2[^>]*>(.*?)<\/h2>/s;
     const h4Regex = /<h4[^>]*>(.*?)<\/h4>/s;
     const h5Regex = /<h5[^>]*>(.*?)<\/h5>/gs;
@@ -195,7 +198,8 @@ async function scrapeCavePoesie(): Promise<ScrapedEvent[]> {
 
     let m;
     while ((m = eventRegex.exec(html)) !== null) {
-      const block = m[1];
+      // Strip HTML comments (hidden English dates are inside <!-- -->)
+      const block = m[1].replace(/<!--[\s\S]*?-->/g, "");
 
       const titreMatch = h2Regex.exec(block);
       h2Regex.lastIndex = 0;
@@ -728,54 +732,59 @@ async function scrapePave(): Promise<ScrapedEvent[]> {
 // ─────────────────────────────────────────────────────────────
 async function scrapeFilAPlomb(): Promise<ScrapedEvent[]> {
   try {
-    const urls = [
-      "https://www.theatrelefilaplomb.fr/tout-public/",
-      "https://www.theatrelefilaplomb.fr/jeune-public/",
-    ];
+    const html = await fetchHtml("https://theatrelefilaplomb.fr/programmation/");
     const events: ScrapedEvent[] = [];
 
-    for (const url of urls) {
-      const html = await fetchHtml(url);
-      // Find links with show info
-      const linkRegex = /<a[^>]*href="(https?:\/\/www\.theatrelefilaplomb\.fr\/[^"]*)"[^>]*>(.*?)<\/a>/gs;
-      let m;
-      while ((m = linkRegex.exec(html)) !== null) {
-        const linkUrl = m[1];
-        const text = cleanHtml(m[2]);
-        if (!text || text.length < 5) continue;
+    // Show info is in image title attributes:
+    // « La glaneuse – Du mardi 24 au samedi 28 février 2026 à 15h30 » — Théâtre Le Fil à plomb
+    const titleRegex = /title="([^"]*(?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)[^"]*)"/gi;
+    const seen = new Set<string>();
 
-        // Split by em-dash: "TITRE -- dates"
-        const parts = text.split(/\s*[–—-]{2,}\s*/);
-        const titre = parts[0]?.trim();
-        if (!titre) continue;
+    let m;
+    while ((m = titleRegex.exec(html)) !== null) {
+      let raw = m[1]
+        .replace(/&amp;/g, "&").replace(/&#8211;/g, "\u2013").replace(/&#8212;/g, "\u2014")
+        .replace(/&laquo;|&raquo;|[«»]/g, "").replace(/\u00ab|\u00bb/g, "")
+        .replace(/\s*[—–]\s*Th[ée][aâ]tre Le Fil [àa] [Pp]lomb\s*$/, "")
+        .trim();
+      if (!raw || raw.length < 10) continue;
 
-        const datesPart = parts[1] ?? "";
-        const dateDebut = frenchDateToIso(datesPart);
-        if (!dateDebut || !isFutureDate(dateDebut)) continue;
+      // Split title – date info
+      // Pattern: "Title – Du jour DD au jour DD mois YYYY à HHhMM"
+      // or:      "Title – Le jour DD mois YYYY à HHhMM"
+      const dateMatch = raw.match(/^(.+?)\s*[–—-]\s*(?:Du\s+)?(?:\w+\s+)?(\d{1,2})(?:\s+\w+)?\s*(?:au\s+(?:\w+\s+)?(\d{1,2})\s+)?(\w+)\s+(\d{4})(?:\s+[àa]\s+(\d{1,2}h\d{0,2}))?/);
+      if (!dateMatch) continue;
 
-        // Try range
-        const rangeMatch = /(\d{1,2})(?:\s+\w+)?\s*(?:au|→|-)\s*(\d{1,2})\s+(\w+)/.exec(datesPart);
-        let dateFin = dateDebut;
-        if (rangeMatch) {
-          const year = currentSeasonYear();
-          const fin = buildIsoDate(rangeMatch[2], rangeMatch[3], year);
-          if (fin) dateFin = fin;
-        }
+      let titre = dateMatch[1].replace(/^(Exposition|Tout Jeune Public\s*:|Apéro-lecture|Apéro-musical)\s*[–—:]\s*/i, "").trim();
+      if (!titre || titre.length < 3) continue;
+      if (/programmation|podcast|retrouvez/i.test(titre)) continue;
 
-        const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
-        const id = `filaplomb_${slug}_${dateDebut}`;
+      const dateDebut = buildIsoDate(dateMatch[2], dateMatch[4], dateMatch[5]);
+      if (!dateDebut || !isFutureDate(dateDebut)) continue;
 
-        events.push(makeEvent({
-          identifiant: id, source: "fil_a_plomb", rubrique: "culture",
-          nom_de_la_manifestation: titre,
-          descriptif_court: titre,
-          date_debut: dateDebut, date_fin: dateFin,
-          lieu_nom: "Theatre le Fil a Plomb", lieu_adresse_2: "2 Rue du Lieutenant Colonel Pelissier",
-          commune: "Toulouse", code_postal: 31000,
-          type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
-          reservation_site_internet: linkUrl,
-        }));
+      let dateFin = dateDebut;
+      if (dateMatch[3]) {
+        const fin = buildIsoDate(dateMatch[3], dateMatch[4], dateMatch[5]);
+        if (fin) dateFin = fin;
       }
+
+      const horaires = dateMatch[6] ? dateMatch[6].replace(/h$/, "h00") : "";
+      const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+      const key = `${slug}_${dateDebut}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      events.push(makeEvent({
+        identifiant: `filaplomb_${slug}_${dateDebut}`, source: "fil_a_plomb", rubrique: "culture",
+        nom_de_la_manifestation: titre,
+        descriptif_court: titre,
+        date_debut: dateDebut, date_fin: dateFin,
+        horaires,
+        lieu_nom: "Theatre le Fil a Plomb", lieu_adresse_2: "2 Rue du Lieutenant Colonel Pelissier",
+        commune: "Toulouse", code_postal: 31000,
+        type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
+        reservation_site_internet: "https://theatrelefilaplomb.fr/programmation/",
+      }));
     }
     return events;
   } catch (e) { console.error("filaplomb:", e); return []; }
@@ -861,49 +870,59 @@ async function scrapeMetropole(config: MetropoleConfig): Promise<ScrapedEvent[]>
 // ─────────────────────────────────────────────────────────────
 async function scrapeViolette(): Promise<ScrapedEvent[]> {
   try {
-    const html = await fetchHtml("https://www.theatredelaviolette.com/");
+    const baseUrl = "https://www.theatredelaviolette.com";
     const events: ScrapedEvent[] = [];
 
-    // Find show links
-    const linkRegex = /href="(https?:\/\/www\.theatredelaviolette\.com\/[^"]*spectacle[^"]*)"/gi;
-    const urls = new Set<string>();
-    let m;
-    while ((m = linkRegex.exec(html)) !== null) {
-      urls.add(m[1]);
-    }
+    // Fetch both petits.html (kids) and grands.html (adults) with longer timeout
+    const pages = await Promise.allSettled([
+      fetchHtml(`${baseUrl}/petits.html`, 15000),
+      fetchHtml(`${baseUrl}/grands.html`, 15000),
+    ]);
 
-    // Also try a broader pattern for show pages
-    const showRegex = /href="(https?:\/\/www\.theatredelaviolette\.com\/[^"]+)"[^>]*>.*?<(?:h[234]|strong)[^>]*>(.*?)<\/(?:h[234]|strong)>/gs;
-    while ((m = showRegex.exec(html)) !== null) {
-      if (m[1] && !m[1].includes("agenda") && !m[1].includes("contact")) {
-        urls.add(m[1]);
+    // Collect show links matching pattern: name-NNN.html
+    const showUrls = new Set<string>();
+    for (const p of pages) {
+      if (p.status !== "fulfilled") continue;
+      const linkRegex = /href="([a-z0-9_]+-\d+\.html)"/gi;
+      let m;
+      while ((m = linkRegex.exec(p.value)) !== null) {
+        showUrls.add(`${baseUrl}/${m[1]}`);
       }
     }
 
-    // Fetch detail pages
-    const pages = await Promise.allSettled(
-      [...urls].slice(0, 15).map(async (url) => {
-        const detailHtml = await fetchHtml(url);
-        return { url, html: detailHtml };
+    // Fetch detail pages (max 25) with longer timeout
+    const detailPages = await Promise.allSettled(
+      [...showUrls].slice(0, 25).map(async (url) => {
+        const html = await fetchHtml(url, 12000);
+        return { url, html };
       })
     );
 
-    for (const result of pages) {
+    for (const result of detailPages) {
       if (result.status !== "fulfilled") continue;
       const { url: pageUrl, html: detailHtml } = result.value;
 
-      const titleMatch = /<h1[^>]*>(.*?)<\/h1>/s.exec(detailHtml);
-      const titre = titleMatch ? cleanHtml(titleMatch[1]) : "";
+      // Title from <p class="titre"> + optional subtitle, or og:title
+      let titre = "";
+      const pTitreMatch = /<p\s+class="titre">(.*?)<\/p>/s.exec(detailHtml);
+      if (pTitreMatch) {
+        titre = cleanHtml(pTitreMatch[1]);
+        const subMatch = /<p\s+class="sousTitre">(.*?)<\/p>/s.exec(detailHtml);
+        if (subMatch) {
+          const sub = cleanHtml(subMatch[1]);
+          if (sub && sub.length > 2) titre += ` - ${sub}`;
+        }
+      } else {
+        const ogMatch = /property="og:title"[^>]*content="([^"]+)"/s.exec(detailHtml);
+        titre = ogMatch ? cleanHtml(ogMatch[1]).replace(/^[«»\s]+|[«»\s]+$/g, "") : "";
+      }
       if (!titre || titre.length < 3) continue;
 
-      // Look for session dates in <select class="seances">
-      const selectMatch = /<select[^>]*class="[^"]*seances[^"]*"[^>]*>(.*?)<\/select>/s.exec(detailHtml);
+      // Find dates from <span class="date"> or French date patterns
       const dateRegex = /(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)/gi;
-
       const dates: string[] = [];
-      const searchIn = selectMatch ? selectMatch[1] : detailHtml;
       let dm;
-      while ((dm = dateRegex.exec(searchIn)) !== null) {
+      while ((dm = dateRegex.exec(detailHtml)) !== null) {
         const d = frenchDateToIso(`${dm[1]} ${dm[2]}`);
         if (d && isFutureDate(d)) dates.push(d);
       }
@@ -934,62 +953,67 @@ async function scrapeViolette(): Promise<ScrapedEvent[]> {
 // ─────────────────────────────────────────────────────────────
 async function scrapePoche(): Promise<ScrapedEvent[]> {
   try {
-    const mainUrl = "https://www.theatredepochetoulouse.fr/la-programmation-2/";
-    const mainHtml = await fetchHtml(mainUrl);
+    const mainHtml = await fetchHtml("https://theatredepochetoulouse.fr/la-programmation-2/");
     const events: ScrapedEvent[] = [];
 
-    // Find month sub-page links
-    const monthLinkRegex = /href="(https?:\/\/www\.theatredepochetoulouse\.fr\/la-programmation-2\/[^"]+)"/gi;
-    const monthUrls = new Set<string>();
+    // Collect individual show URLs (not month category pages)
+    const showLinkRegex = /href="(https?:\/\/theatredepochetoulouse\.fr\/la-programmation-2\/\w+\/[a-z0-9-]+\/)"/gi;
+    const showUrls = new Set<string>();
     let m;
-    while ((m = monthLinkRegex.exec(mainHtml)) !== null) {
-      monthUrls.add(m[1]);
+    while ((m = showLinkRegex.exec(mainHtml)) !== null) {
+      // Skip month index pages (e.g., /fevrier/ with no show slug)
+      const parts = m[1].replace(/\/$/, "").split("/");
+      if (parts.length >= 2) showUrls.add(m[1]);
     }
 
-    // Fetch each month page
-    for (const monthUrl of [...monthUrls].slice(0, 6)) {
-      try {
-        const html = await fetchHtml(monthUrl);
+    // Fetch detail pages in parallel (max 25)
+    const pages = await Promise.allSettled(
+      [...showUrls].slice(0, 25).map(async (url) => {
+        const html = await fetchHtml(url);
+        return { url, html };
+      })
+    );
 
-        // Split by <h3> tags (each show)
-        const sections = html.split(/<h3[^>]*>/);
-        for (let i = 1; i < sections.length; i++) {
-          const section = sections[i];
-          const titreMatch = /(.*?)<\/h3>/s.exec(section);
-          const titre = titreMatch ? cleanHtml(titreMatch[1]) : "";
-          if (!titre || titre.length < 3) continue;
+    for (const result of pages) {
+      if (result.status !== "fulfilled") continue;
+      const { url, html } = result.value;
 
-          // Find dates
-          const dateRegex = /(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)/gi;
-          const dates: string[] = [];
-          let dm;
-          while ((dm = dateRegex.exec(section)) !== null) {
-            const d = frenchDateToIso(`${dm[1]} ${dm[2]}`);
-            if (d && isFutureDate(d)) dates.push(d);
-          }
+      // Title from og:title or h2
+      const ogMatch = /property="og:title"[^>]*content="([^"]+)"/.exec(html);
+      const h2Match = /<h2[^>]*class="[^"]*wp-block-post-title[^"]*"[^>]*>(.*?)<\/h2>/s.exec(html);
+      const titleRaw = ogMatch ? ogMatch[1] : (h2Match ? h2Match[1] : "");
+      const titre = cleanHtml(titleRaw).replace(/&#8217;/g, "\u2019").replace(/&rsquo;/g, "\u2019").replace(/&nbsp;/g, " ");
+      if (!titre || titre.length < 3) continue;
 
-          if (dates.length === 0) continue;
-          dates.sort();
+      // Find French dates in the page
+      const dateRegex = /(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)/gi;
+      const dates: string[] = [];
+      let dm;
+      while ((dm = dateRegex.exec(html)) !== null) {
+        const d = frenchDateToIso(`${dm[1]} ${dm[2]}`);
+        if (d && isFutureDate(d)) dates.push(d);
+      }
+      if (dates.length === 0) continue;
+      dates.sort();
 
-          // Find time
-          const timeMatch = /(\d{1,2}h\d{2})/.exec(section);
+      // Extract time
+      const timeMatch = /(\d{1,2}h\d{0,2})/.exec(html);
+      const horaires = timeMatch ? timeMatch[1].replace(/h$/, "h00") : "";
 
-          const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
-          const id = `poche_${slug}_${dates[0]}`;
+      const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+      const id = `poche_${slug}_${dates[0]}`;
 
-          events.push(makeEvent({
-            identifiant: id, source: "theatre_de_poche", rubrique: "culture",
-            nom_de_la_manifestation: titre,
-            descriptif_court: titre,
-            date_debut: dates[0], date_fin: dates[dates.length - 1],
-            horaires: timeMatch?.[1] ?? "",
-            lieu_nom: "Theatre de Poche", lieu_adresse_2: "5 Rue du Taur",
-            commune: "Toulouse", code_postal: 31000,
-            type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
-            reservation_site_internet: monthUrl,
-          }));
-        }
-      } catch { continue; }
+      events.push(makeEvent({
+        identifiant: id, source: "theatre_de_poche", rubrique: "culture",
+        nom_de_la_manifestation: titre,
+        descriptif_court: titre,
+        date_debut: dates[0], date_fin: dates[dates.length - 1],
+        horaires,
+        lieu_nom: "Theatre de Poche", lieu_adresse_2: "5 Rue du Taur",
+        commune: "Toulouse", code_postal: 31000,
+        type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
+        reservation_site_internet: url,
+      }));
     }
     return events;
   } catch (e) { console.error("poche:", e); return []; }
@@ -1000,36 +1024,31 @@ async function scrapePoche(): Promise<ScrapedEvent[]> {
 // ─────────────────────────────────────────────────────────────
 async function scrapeChienBlanc(): Promise<ScrapedEvent[]> {
   try {
-    const html = await fetchHtml("https://theatreduchienblanc.fr/programme-en-cours/");
+    // Use WP REST API to get spectacle list
+    const data = await fetchJson<any[]>(
+      "https://theatreduchienblanc.fr/wp-json/wp/v2/spectacle?per_page=15&_fields=id,title,link"
+    );
     const events: ScrapedEvent[] = [];
 
-    // Find show links
-    const linkRegex = /href="(https?:\/\/theatreduchienblanc\.fr\/[^"]*)"[^>]*>[\s\S]*?<(?:h[234]|strong)[^>]*>(.*?)<\/(?:h[234]|strong)>/gs;
-    const shows: { url: string; titre: string }[] = [];
-    let m;
-    while ((m = linkRegex.exec(html)) !== null) {
-      const titre = cleanHtml(m[2]);
-      if (titre && titre.length > 3 && !m[1].includes("programme-en-cours")) {
-        shows.push({ url: m[1], titre });
-      }
-    }
-
-    // Fetch detail pages
+    // Fetch detail pages in parallel
     const pages = await Promise.allSettled(
-      shows.slice(0, 15).map(async (show) => {
-        const detailHtml = await fetchHtml(show.url);
-        return { ...show, html: detailHtml };
+      data.slice(0, 15).map(async (item: any) => {
+        const html = await fetchHtml(item.link);
+        return { item, html };
       })
     );
 
     for (const result of pages) {
       if (result.status !== "fulfilled") continue;
-      const { url, titre, html: detailHtml } = result.value;
+      const { item, html } = result.value;
+
+      const titre = cleanHtml(item.title?.rendered ?? "");
+      if (!titre) continue;
 
       const dateRegex = /(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)/gi;
       const dates: string[] = [];
       let dm;
-      while ((dm = dateRegex.exec(detailHtml)) !== null) {
+      while ((dm = dateRegex.exec(html)) !== null) {
         const d = frenchDateToIso(`${dm[1]} ${dm[2]}`);
         if (d && isFutureDate(d)) dates.push(d);
       }
@@ -1037,7 +1056,7 @@ async function scrapeChienBlanc(): Promise<ScrapedEvent[]> {
       if (dates.length === 0) continue;
       dates.sort();
 
-      const timeMatch = /(\d{1,2}h\d{2})/.exec(detailHtml);
+      const timeMatch = /(\d{1,2}h\d{2})/.exec(html);
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `chienblanc_${slug}_${dates[0]}`;
 
@@ -1050,7 +1069,7 @@ async function scrapeChienBlanc(): Promise<ScrapedEvent[]> {
         lieu_nom: "Theatre du Chien Blanc", lieu_adresse_2: "18 Rue Belbeze",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
-        reservation_site_internet: url,
+        reservation_site_internet: item.link ?? "https://theatreduchienblanc.fr/",
       }));
     }
     return events;
@@ -1226,46 +1245,57 @@ async function scrapeMeett(): Promise<ScrapedEvent[]> {
     const html = await fetchHtml("https://www.meett.fr/en/exhibitor/");
     const events: ScrapedEvent[] = [];
 
-    // Find exhibition blocks
-    const blockRegex = /<article[^>]*>(.*?)<\/article>/gs;
-    const titleRegex = /<h[234][^>]*>(.*?)<\/h[234]>/s;
-    const dateRegex = /(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)\s*(\d{4})?/i;
-    const linkRegex = /href="([^"]+)"/;
+    // Abbreviated uppercase French months used on the page
+    const abbrMonths: Record<string, string> = {
+      "JANV": "01", "JAN": "01", "JANVIER": "01",
+      "FEV": "02", "FEVR": "02", "FÉVRIER": "02", "FEVRIER": "02",
+      "MARS": "03", "MAR": "03",
+      "AVR": "04", "AVRIL": "04",
+      "MAI": "05",
+      "JUIN": "06",
+      "JUIL": "07", "JUILLET": "07",
+      "AOÛT": "08", "AOUT": "08",
+      "SEPT": "09", "SEPTEMBRE": "09",
+      "OCT": "10", "OCTOBRE": "10",
+      "NOV": "11", "NOVEMBRE": "11",
+      "DEC": "12", "DÉCEMBRE": "12", "DECEMBRE": "12",
+    };
 
+    // Elementor structure: start-date widget → end-date widget → h2 title
+    const pattern = /<div class="elementor-widget-container">\s*(\d{1,2})\s+([A-ZÀ-Ü]+)\s*(?:&#8211;|–|-)?[^<]*<\/div>\s*<\/div>\s*(?:<div[^>]*>)?\s*<div class="elementor-widget-container">\s*(\d{1,2})\s+([A-ZÀ-Ü]+)\s+(\d{4})\s*<\/div>.*?<h2[^>]*>(.*?)<\/h2>/gs;
+
+    const seen = new Set<string>();
     let m;
-    while ((m = blockRegex.exec(html)) !== null) {
-      const block = m[1];
-      const titreMatch = titleRegex.exec(block);
-      titleRegex.lastIndex = 0;
-      const titre = titreMatch ? cleanHtml(titreMatch[1]) : "";
+    while ((m = pattern.exec(html)) !== null) {
+      const [, day1, month1, day2, month2, year, titleHtml] = m;
+      const titre = cleanHtml(titleHtml).replace(/\s*~\s*$/, "").trim();
       if (!titre) continue;
 
-      const dm = dateRegex.exec(block);
-      if (!dm) continue;
+      const m1 = abbrMonths[month1.toUpperCase()] ?? null;
+      const m2 = abbrMonths[month2.toUpperCase()] ?? null;
+      if (!m1 || !m2) continue;
 
-      const year = dm[4] || currentSeasonYear();
-      const dateDebut = buildIsoDate(dm[1], dm[3], year);
-      if (!dateDebut || !isFutureDate(dateDebut)) continue;
+      const dateDebut = `${year}-${m1}-${day1.padStart(2, "0")}`;
+      const dateFin = `${year}-${m2}-${day2.padStart(2, "0")}`;
 
-      let dateFin = dateDebut;
-      if (dm[2]) {
-        const fin = buildIsoDate(dm[2], dm[3], year);
-        if (fin) dateFin = fin;
-      }
+      if (!isFutureDate(dateFin)) continue;
 
-      const lnk = linkRegex.exec(block);
+      const key = `${titre}|${dateDebut}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `meett_${slug}_${dateDebut}`;
 
       events.push(makeEvent({
         identifiant: id, source: "meett", rubrique: "culture",
         nom_de_la_manifestation: titre,
-        descriptif_court: `Exposition au MEETT : ${titre}`,
+        descriptif_court: `Salon/Exposition au MEETT : ${titre}`,
         date_debut: dateDebut, date_fin: dateFin,
         lieu_nom: "MEETT - Parc des Expositions", lieu_adresse_2: "Concorde Avenue",
         commune: "Toulouse", code_postal: 31840,
         type_de_manifestation: "Exposition", categorie_de_la_manifestation: "Exposition",
-        reservation_site_internet: lnk?.[1] ?? "https://www.meett.fr/",
+        reservation_site_internet: "https://www.meett.fr/agenda/",
       }));
     }
     return events;
