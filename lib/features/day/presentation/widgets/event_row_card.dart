@@ -134,7 +134,7 @@ class EventRowCard extends ConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
-        height: 90,
+        height: 110,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -207,13 +207,14 @@ class EventRowCard extends ConsumerWidget {
 
                     // Date
                     if (event.dateDebut.isNotEmpty)
-                      _buildInfoRow(
-                        Icons.calendar_today,
+                      Text(
                         event.dateFin.isNotEmpty &&
                                 event.dateFin != event.dateDebut
                             ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
                             : _formatDate(event.dateDebut),
-                        modeTheme.primaryColor,
+                        style: TextStyle(fontSize: 11, color: modeTheme.primaryColor),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
 
                     // Lieu

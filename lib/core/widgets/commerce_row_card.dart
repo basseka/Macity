@@ -86,17 +86,30 @@ class CommerceRowCard extends ConsumerWidget {
       child: SizedBox(
         height: 80,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Image a gauche ──
-            SizedBox(
-              width: 90,
-              child: Image.asset(
-                image ?? 'assets/images/pochette_default.png',
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.medium,
-                errorBuilder: (_, __, ___) => Container(
-                  color: modeTheme.chipBgColor,
+            // ── Bulle image a gauche ──
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Container(
+                width: 65,
+                height: 65,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                    width: 1.5,
+                  ),
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    image ?? 'assets/images/pochette_default.png',
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: modeTheme.chipBgColor,
+                    ),
+                  ),
                 ),
               ),
             ),

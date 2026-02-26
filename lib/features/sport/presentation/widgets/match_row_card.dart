@@ -86,7 +86,7 @@ class MatchRowCard extends ConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
-        height: 85,
+        height: 100,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -176,12 +176,13 @@ class MatchRowCard extends ConsumerWidget {
 
                     // Date & heure
                     if (match.date.isNotEmpty)
-                      _buildInfoRow(
-                        Icons.calendar_today,
+                      Text(
                         match.heure.isNotEmpty
                             ? '${_formatDate(match.date)} - ${match.heure}'
                             : _formatDate(match.date),
-                        modeTheme.primaryColor,
+                        style: TextStyle(fontSize: 11, color: modeTheme.primaryColor),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
 
                   ],

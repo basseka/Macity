@@ -27,40 +27,45 @@ class CinemaVenueCard extends ConsumerWidget {
         child: SizedBox(
           height: 80,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // ── Pochette a gauche ──
-              SizedBox(
-                width: 90,
-                child: Container(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('\uD83C\uDFAC', style: TextStyle(fontSize: 30)),
-                      const SizedBox(height: 6),
-                      if (cinema.ticketUrl.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
+              // ── Bulle emoji a gauche ──
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 65,
+                      height: 65,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: modeTheme.primaryColor.withValues(alpha: 0.08),
+                        border: Border.all(
+                          color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                          width: 1.5,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text('\uD83C\uDFAC', style: TextStyle(fontSize: 24)),
+                    ),
+                    if (cinema.ticketUrl.isNotEmpty)
+                      Positioned(
+                        top: -2,
+                        left: -2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
                             color: const Color(0xFF059669),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
                             'SEANCES',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
 

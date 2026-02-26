@@ -27,17 +27,20 @@ class IceRinkVenueCard extends ConsumerWidget {
         child: SizedBox(
           height: 80,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 90,
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
                 child: Container(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    '\u{26F8}\u{FE0F}',
-                    style: TextStyle(fontSize: 30),
+                  width: 65,
+                  height: 65,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: modeTheme.primaryColor.withValues(alpha: 0.08),
+                    border: Border.all(color: modeTheme.primaryColor.withValues(alpha: 0.4), width: 1.5),
                   ),
+                  alignment: Alignment.center,
+                  child: const Text('\u{26F8}\u{FE0F}', style: TextStyle(fontSize: 24)),
                 ),
               ),
               Expanded(

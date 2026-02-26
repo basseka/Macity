@@ -29,49 +29,41 @@ class TheatreVenueCard extends ConsumerWidget {
       child: SizedBox(
         height: 80,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Pochette a gauche ──
-            SizedBox(
-              width: 90,
+            // ── Bulle image a gauche ──
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
               child: Stack(
-                fit: StackFit.expand,
+                clipBehavior: Clip.none,
                 children: [
-                  Image.asset(theatre.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.3),
-                          ],
-                        ),
+                  Container(
+                    width: 65,
+                    height: 65,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                        width: 1.5,
                       ),
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(theatre.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                     ),
                   ),
                   if (theatre.hasOnlineTicket)
                     Positioned(
-                      top: 6,
-                      left: 6,
+                      top: -2,
+                      left: -2,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
                           color: const Color(0xFF059669),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
                           'BILLETTERIE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
