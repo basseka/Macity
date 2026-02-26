@@ -180,6 +180,91 @@ async function fetchFestik(categorie: string): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Le Bikini (Next.js RSC embedded JSON from Sanity CMS)
+// ─────────────────────────────────────────────────────────────
+async function fetchBikini(): Promise<ScrapedEvent[]> {
+  try {
+    // Fetch the RSC (React Server Components) endpoint directly — it contains
+    // structured JSON with all events, unlike the HTML which is client-rendered.
+    const rscText = await fetchHtml("https://www.lebikini.com/programmation/bikini/-/-.rsc", 15000);
+    const events: ScrapedEvent[] = [];
+
+    // Find the "events":[ array in the RSC stream
+    const idx = rscText.indexOf('"events":[');
+    if (idx < 0) {
+      console.log("bikini: no events array found in RSC response");
+      return [];
+    }
+
+    // Extract events array by bracket counting
+    const start = idx + '"events":'.length;
+    let bracket = 0;
+    let end = start;
+    for (let i = start; i < rscText.length; i++) {
+      if (rscText[i] === "[") bracket++;
+      else if (rscText[i] === "]") bracket--;
+      if (bracket === 0) { end = i + 1; break; }
+    }
+    const eventsJson = rscText.substring(start, end);
+
+    let parsed: any[];
+    try { parsed = JSON.parse(eventsJson); }
+    catch { console.error("bikini: JSON parse error"); return []; }
+
+    for (const e of parsed) {
+      const title = (e.title ?? "").replace(/\\u0026/g, "&").trim();
+      if (!title) continue;
+
+      const dateIso = e.date ?? "";
+      const startDate = isoToDate(dateIso);
+      if (!startDate || !isFutureDate(startDate)) continue;
+
+      const horaires = isoToTime(dateIso);
+      const style = (e.style ?? "").toLowerCase();
+      const typeNames = (e.eventTypes ?? []).map((t: any) => (t.name ?? "").toLowerCase());
+
+      // Determine source based on style/type
+      let source = "day_concert";
+      if (style.includes("techno") || style.includes("electro") || style.includes("house") || style.includes("dnb") || style.includes("drum")) {
+        source = "day_djset";
+      } else if (typeNames.some((t: string) => t.includes("spectacle") || t.includes("humour"))) {
+        source = "day_spectacle";
+      } else if (typeNames.some((t: string) => t.includes("festival")) || style.includes("festival")) {
+        source = "day_festival";
+      }
+
+      const prices = e.prices ?? [];
+      const tarif = prices.length > 0 ? prices[0].replace(/à partir de /i, "").trim() : "";
+      const free = e.free === true ? "oui" : "non";
+      const ticketUrl = e.ticketUrl ?? "";
+      const slug = e.slug?.current ?? "";
+
+      const id = `bikini_${normalize(title).slice(0, 40)}_${startDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source, rubrique: "day",
+        nom_de_la_manifestation: title,
+        descriptif_court: style ? `Style : ${e.style}` : "",
+        date_debut: startDate, date_fin: startDate,
+        horaires,
+        lieu_nom: "Le Bikini",
+        lieu_adresse_2: "Parc Technologique du Canal, Ramonville-Saint-Agne",
+        commune: "Ramonville-Saint-Agne",
+        code_postal: 31520,
+        type_de_manifestation: typeNames[0] ?? "Concert",
+        categorie_de_la_manifestation: typeNames[0] ?? "Concert",
+        manifestation_gratuite: free,
+        tarif_normal: tarif,
+        reservation_site_internet: ticketUrl || (slug ? `https://www.lebikini.com/2026/${startDate.substring(5, 7)}/${startDate.substring(8, 10)}/${slug}` : ""),
+      }));
+    }
+
+    console.log(`bikini: ${events.length} events from ${parsed.length} total`);
+    return events;
+  } catch (e) { console.error("Bikini error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Opéra de Toulouse (schema.org microdata)
 // ─────────────────────────────────────────────────────────────
 async function fetchOperaToulouse(): Promise<ScrapedEvent[]> {
@@ -280,13 +365,14 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   const today = todayStr();
   const where = `date_debut >= "${today}"`;
 
-  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls] = await Promise.all([
+  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini] = await Promise.all([
     fetchODS(where),
     fetchTicketmaster(),
     fetchFestik("Concert"),
     fetchFestik("Festival"),
     fetchFestik("Spectacle"),
     fetchOperaToulouse(),
+    fetchBikini(),
   ]);
 
   // Tag ODS events by category
@@ -304,8 +390,8 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
     return !t.includes("theatre");
   }).map(e => ({ ...e, source: "day_spectacle" }));
 
-  // operaTls first so curated opera source wins dedup over generic ODS tags
-  const all = [...operaTls, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
+  // Curated sources first so they win dedup over generic ODS tags
+  const all = [...operaTls, ...bikini, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
   return dedup(all);
 }
 
@@ -339,8 +425,14 @@ Deno.serve(async (_req) => {
   const count = await upsertEvents(allEvents);
   console.log(`scrape-day: upserted ${count} events total`);
 
+  // Count by source for monitoring
+  const bySource: Record<string, number> = {};
+  for (const e of allEvents) {
+    bySource[e.source] = (bySource[e.source] || 0) + 1;
+  }
+
   return new Response(
-    JSON.stringify({ count, errors }),
+    JSON.stringify({ count, errors, bySource }),
     { headers: { "Content-Type": "application/json" } },
   );
 });
