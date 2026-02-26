@@ -8,6 +8,7 @@ import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/presentation/widgets/swipe_detector.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
+import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -71,26 +72,37 @@ class ModeShell extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Container(
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.grey.shade300, width: 1),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 12),
-                          Icon(Icons.search, color: Colors.grey.shade400, size: 14),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Trouve un evenement',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              color: Colors.grey.shade400,
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          useRootNavigator: true,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const SearchEventsBottomSheet(),
+                        );
+                      },
+                      child: Container(
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.grey.shade300, width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            Icon(Icons.search, color: Colors.grey.shade400, size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Trouve un evenement',
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                color: Colors.grey.shade400,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
