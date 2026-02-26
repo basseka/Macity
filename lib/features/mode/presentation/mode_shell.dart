@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
@@ -17,13 +16,7 @@ class ModeShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentMode = ref.watch(currentModeProvider);
     final modeTheme = ref.watch(modeThemeProvider);
-    final mode = AppMode.fromName(currentMode);
-    final modeIndex = AppMode.order.indexOf(mode);
-    final now = DateTime.now();
-    final dateStr = DateFormat('EEEE d MMM', 'fr_FR').format(now);
-    final capitalizedDate = dateStr[0].toUpperCase() + dateStr.substring(1);
 
     // Navigate to the correct route when mode changes
     ref.listen<String>(currentModeProvider, (previous, next) {
@@ -121,92 +114,17 @@ class ModeShell extends ConsumerWidget {
                 ],
               ),
             ),
-            // Mode header: back + arrows + title + dots
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: isLandscape ? 2 : 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Navigation row
-                  Row(
-                    children: [
-                      // Left arrow
-                      if (modeIndex > 0)
-                        _buildNavButton(
-                          icon: Icons.chevron_left_rounded,
-                          color: modeTheme.primaryColor,
-                          darkColor: modeTheme.primaryDarkColor,
-                          onTap: () => ref.read(currentModeProvider.notifier).previousMode(),
-                        )
-                      else
-                        const SizedBox(width: 34),
-                      const SizedBox(width: 6),
-                      // Mode title
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 200),
-                          child: Text(
-                            mode.label,
-                            key: ValueKey(currentMode),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800,
-                              color: modeTheme.primaryDarkColor,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      // Right arrow
-                      if (modeIndex < AppMode.order.length - 1)
-                        _buildNavButton(
-                          icon: Icons.chevron_right_rounded,
-                          color: modeTheme.primaryColor,
-                          darkColor: modeTheme.primaryDarkColor,
-                          onTap: () => ref.read(currentModeProvider.notifier).nextMode(),
-                        )
-                      else
-                        const SizedBox(width: 34),
-                    ],
-                  ),
-                  if (!isLandscape) ...[
-                    const SizedBox(height: 8),
-                    // Dots indicator
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(AppMode.order.length, (i) {
-                        final isActive = i == modeIndex;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          width: isActive ? 20 : 8,
-                          height: 8,
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            gradient: isActive
-                                ? LinearGradient(colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor])
-                                : null,
-                            color: isActive ? null : const Color(0xFFE0E0E0),
-                          ),
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 6),
-                  ],
-                  // Indicator bar
-                  Container(
-                    height: 2,
-                    decoration: BoxDecoration(
-                      color: modeTheme.chipColor,
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ],
+            // Mode bubble bar
+            _ModeBubbleBar(isLandscape: isLandscape),
+            // Indicator bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Container(
+                height: 2,
+                decoration: BoxDecoration(
+                  color: modeTheme.chipColor,
+                  borderRadius: BorderRadius.circular(1),
+                ),
               ),
             ),
 
@@ -222,40 +140,129 @@ class ModeShell extends ConsumerWidget {
     ),
     );
   }
+}
 
-  Widget _buildNavButton({
-    required IconData icon,
-    required Color color,
-    required Color darkColor,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Ink(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [color, darkColor],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.35),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+class _ModeBubbleBar extends ConsumerStatefulWidget {
+  final bool isLandscape;
+
+  const _ModeBubbleBar({required this.isLandscape});
+
+  @override
+  ConsumerState<_ModeBubbleBar> createState() => _ModeBubbleBarState();
+}
+
+class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
+  final ScrollController _scrollController = ScrollController();
+
+  static const _modeImages = {
+    AppMode.day: 'assets/images/pochette_concert.png',
+    AppMode.sport: 'assets/images/home_bg_sport.png',
+    AppMode.culture: 'assets/images/pochette_culture_art.png',
+    AppMode.family: 'assets/images/pochette_enfamille.png',
+    AppMode.food: 'assets/images/pochette_food.png',
+    AppMode.gaming: 'assets/images/pochette_gaming.png',
+    AppMode.night: 'assets/images/home_bg_night.png',
+  };
+
+  static const _modeShortLabels = {
+    AppMode.day: 'Concert',
+    AppMode.sport: 'Sport',
+    AppMode.culture: 'Culture',
+    AppMode.family: 'Famille',
+    AppMode.food: 'Food',
+    AppMode.gaming: 'Gaming',
+    AppMode.night: 'Nuit',
+  };
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _centerActiveBubble(int activeIndex) {
+    if (!_scrollController.hasClients) return;
+    const bubbleWidth = 56.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final targetOffset = (activeIndex * bubbleWidth) - (screenWidth / 2) + (bubbleWidth / 2);
+    final clampedOffset = targetOffset.clamp(
+      _scrollController.position.minScrollExtent,
+      _scrollController.position.maxScrollExtent,
+    );
+    _scrollController.animateTo(
+      clampedOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentMode = ref.watch(currentModeProvider);
+    final modeTheme = ref.watch(modeThemeProvider);
+    final mode = AppMode.fromName(currentMode);
+    final modeIndex = AppMode.order.indexOf(mode);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _centerActiveBubble(modeIndex);
+    });
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: widget.isLandscape ? 2 : 4),
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: AppMode.order.asMap().entries.map((entry) {
+            final index = entry.key;
+            final m = entry.value;
+            final isActive = index == modeIndex;
+            final image = _modeImages[m]!;
+            final label = _modeShortLabels[m]!;
+
+            return GestureDetector(
+              onTap: () => ref.read(currentModeProvider.notifier).setMode(m.name),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: isActive
+                            ? LinearGradient(
+                                colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
+                              )
+                            : null,
+                        color: isActive ? null : Colors.grey.shade300,
+                      ),
+                      padding: EdgeInsets.all(isActive ? 2.5 : 1),
+                      child: ClipOval(
+                        child: Image.asset(
+                          image,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      label,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 10,
+                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                        color: isActive ? modeTheme.primaryColor : Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-          child: Icon(icon, color: Colors.white, size: 20),
+            );
+          }).toList(),
         ),
       ),
     );
   }
 }
-

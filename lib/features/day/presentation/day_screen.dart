@@ -209,8 +209,6 @@ class DayScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
           child: Row(
             children: [
-              const Text('📅', style: TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
               Text(
                 dateLabel,
                 style: TextStyle(

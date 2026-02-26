@@ -88,38 +88,36 @@ class MatchRowCard extends ConsumerWidget {
       child: SizedBox(
         height: 85,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Image a gauche ──
-            SizedBox(
-              width: 90,
+            // ── Bulle image a gauche ──
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
               child: Stack(
-                fit: StackFit.expand,
+                clipBehavior: Clip.none,
                 children: [
-                  Image.asset(image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.3),
-                          ],
-                        ),
+                  Container(
+                    width: 65,
+                    height: 65,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                        width: 1.5,
                       ),
                     ),
+                    child: ClipOval(
+                      child: Image.asset(image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                    ),
                   ),
-                  // Badge gratuit
                   if (match.gratuit.toLowerCase() == 'oui')
                     Positioned(
-                      top: 6,
-                      right: 6,
+                      top: -2,
+                      left: -2,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                          horizontal: 4,
+                          vertical: 1,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE91E8C),
@@ -128,7 +126,7 @@ class MatchRowCard extends ConsumerWidget {
                         child: const Text(
                           'GRATUIT',
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: 8,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),

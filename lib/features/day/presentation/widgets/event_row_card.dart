@@ -134,51 +134,48 @@ class EventRowCard extends ConsumerWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
-        height: 106,
+        height: 90,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Pochette a gauche ──
-            SizedBox(
-              width: 95,
+            // ── Bulle image a gauche ──
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
               child: Stack(
-                fit: StackFit.expand,
+                clipBehavior: Clip.none,
                 children: [
-                  _buildPochette(pochette),
-                  // Gradient overlay
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.3),
-                          ],
-                        ),
+                  Container(
+                    width: 65,
+                    height: 65,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                        width: 1.5,
                       ),
                     ),
+                    child: ClipOval(
+                      child: _buildPochette(pochette),
+                    ),
                   ),
-                  // Badge gratuit
                   if (event.isFree)
                     Positioned(
-                      top: 6,
-                      left: 6,
+                      top: -2,
+                      left: -2,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                          horizontal: 4,
+                          vertical: 1,
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE91E8C),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
                           'GRATUIT',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 9,
+                            fontSize: 8,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

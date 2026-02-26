@@ -21,13 +21,13 @@ class DateRangeChipBar extends ConsumerWidget {
                 filter.customStart != null &&
                 filter.customEnd != null
             ? 'Du ${DateFormat('dd/MM').format(filter.customStart!)} au ${DateFormat('dd/MM').format(filter.customEnd!)}'
-            : 'Personnalise',
+            : 'Date',
         DateRangePreset.custom,
       ),
     ];
 
     return SizedBox(
-      height: 40,
+      height: 32,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -69,7 +69,7 @@ class DateRangeChipBar extends ConsumerWidget {
                       : Colors.grey.shade600,
                   fontWeight:
                       isSelected ? FontWeight.w700 : FontWeight.w500,
-                  fontSize: 13,
+                  fontSize: 11,
                 ),
                 side: BorderSide(
                   color: isSelected
@@ -81,8 +81,8 @@ class DateRangeChipBar extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
+                  horizontal: 6,
+                  vertical: 2,
                 ),
                 showCheckmark: false,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
