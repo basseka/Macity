@@ -596,13 +596,20 @@ async function scrapeGrenier(): Promise<ScrapedEvent[]> {
 async function scrapeThreeT(): Promise<ScrapedEvent[]> {
   try {
     const data = await fetchJson<any[]>(
-      "https://3tcafetheatre.com/wp-json/wp/v2/spectacles?per_page=30&_fields=id,title,link"
+      "https://new.3tcafetheatre.com/wp-json/wp/v2/spectacle?per_page=30&_fields=id,title,link"
     );
     const events: ScrapedEvent[] = [];
 
-    // Fetch detail pages in parallel (max 10)
+    // Abbreviated French months used on 3T detail pages
+    const abbrMonths: Record<string, number> = {
+      jan: 1, fév: 2, fev: 2, mar: 3, avr: 4, mai: 5, jun: 6, juin: 6,
+      jul: 7, juil: 7, aoû: 8, aou: 8, sep: 9, oct: 10, nov: 11, déc: 12, dec: 12,
+      ...frenchMonths,
+    };
+
+    // Fetch detail pages in parallel (max 15)
     const pages = await Promise.allSettled(
-      data.slice(0, 10).map(async (item: any) => {
+      data.slice(0, 15).map(async (item: any) => {
         const html = await fetchHtml(item.link);
         return { item, html };
       })
@@ -615,13 +622,30 @@ async function scrapeThreeT(): Promise<ScrapedEvent[]> {
       const titre = cleanHtml(item.title?.rendered ?? "");
       if (!titre) continue;
 
-      // Extract dates from detail page
-      const dateRegex = /(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)\s*(\d{4})?/gi;
+      // Extract dates from <span class="deux">27 Fév</span><span class="trois">20h</span>
+      const dateSpanRegex = /<span\s+class="deux">(\d{1,2})\s+(\w+)<\/span>\s*<span\s+class="trois">([^<]*)<\/span>/gi;
       const dates: string[] = [];
+      let firstTime = "";
       let dm;
-      while ((dm = dateRegex.exec(html)) !== null) {
-        const d = buildIsoDate(dm[1], dm[2], dm[3] || currentSeasonYear());
-        if (d && isFutureDate(d)) dates.push(d);
+      while ((dm = dateSpanRegex.exec(html)) !== null) {
+        const day = parseInt(dm[1], 10);
+        const monthStr = dm[2].toLowerCase().replace(".", "");
+        const month = abbrMonths[monthStr];
+        if (!day || !month) continue;
+
+        // Determine year: use frenchDateToIso logic (current or next year)
+        const now = new Date();
+        let year = now.getFullYear();
+        const candidate = new Date(year, month - 1, day);
+        const cutoff = new Date(now);
+        cutoff.setDate(cutoff.getDate() - 30);
+        if (candidate < cutoff) year++;
+
+        const d = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        if (isFutureDate(d)) {
+          dates.push(d);
+          if (!firstTime) firstTime = dm[3].trim();
+        }
       }
 
       if (dates.length === 0) continue;
@@ -629,9 +653,12 @@ async function scrapeThreeT(): Promise<ScrapedEvent[]> {
       const dateDebut = dates[0];
       const dateFin = dates[dates.length - 1];
 
-      // Extract time
-      const timeMatch = /(\d{1,2}h\d{2})/.exec(html);
-      const horaires = timeMatch?.[1] ?? "";
+      // Extract tarif from data-taro attribute
+      const tarifMatch = /data-taro="[^"]*?(\d+\s*€)[^"]*"/i.exec(html);
+      const tarif = tarifMatch ? tarifMatch[1] : "";
+
+      // Format time
+      const horaires = firstTime.replace(":", "h").replace(/h$/, "h00");
 
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `3t_${slug}_${dateDebut}`;
@@ -642,10 +669,11 @@ async function scrapeThreeT(): Promise<ScrapedEvent[]> {
         descriptif_court: titre,
         date_debut: dateDebut, date_fin: dateFin,
         horaires,
+        tarif_normal: tarif,
         lieu_nom: "3T Cafe Theatre", lieu_adresse_2: "19 Rue Maran",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
-        reservation_site_internet: item.link ?? "https://3tcafetheatre.com/",
+        reservation_site_internet: item.link ?? "https://new.3tcafetheatre.com/",
       }));
     }
     return events;
