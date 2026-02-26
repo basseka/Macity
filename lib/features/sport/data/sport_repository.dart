@@ -1,7 +1,6 @@
 import 'package:pulz_app/features/sport/data/supabase_api_service.dart';
 import 'package:pulz_app/features/sport/data/football_api_service.dart';
 import 'package:pulz_app/features/sport/data/espn_rugby_api_service.dart';
-import 'package:pulz_app/features/sport/data/gala_boxe_scraper.dart';
 import 'package:pulz_app/features/sport/data/team_configs/football_team_config.dart';
 import 'package:pulz_app/features/sport/data/team_configs/rugby_team_config.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
@@ -32,30 +31,10 @@ class SportRepository {
     final now = DateTime.now();
     final dateStr = _formatDate(now);
 
-    // "A venir" → all upcoming sports (no time limit)
-    if (sport == 'A venir') {
-      final results = await Future.wait([
-        _supabaseApi.fetchMatches(
-          ville: ville,
-          dateGte: dateStr,
-        ),
-        GalaBoxeScraper.fetchUpcomingEvents(),
-      ]);
-      return [...results[0], ...results[1]];
-    }
-
-    // Boxe → Supabase + scraper galadeboxetoulouse.com
-    if (sport != null && sport.toLowerCase() == 'boxe') {
-      final results = await Future.wait([
-        _supabaseApi.fetchMatches(sport: sport, ville: ville, dateGte: dateStr),
-        GalaBoxeScraper.fetchUpcomingEvents(),
-      ]);
-      return [...results[0], ...results[1]];
-    }
-
-    // All other sports → query Supabase table (populated by scrapers)
+    // All sports (including boxe) are now in the matchs table,
+    // populated by server-side scrapers (Edge Functions + pg_cron).
     return _supabaseApi.fetchMatches(
-      sport: sport,
+      sport: sport == 'A venir' ? null : sport,
       ville: ville,
       dateGte: dateStr,
     );

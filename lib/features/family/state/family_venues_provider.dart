@@ -2,9 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
-import 'package:pulz_app/features/family/data/balma_events_scraper.dart';
 import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/family/data/animal_park_venues_data.dart';
 import 'package:pulz_app/features/family/data/bowling_venues_data.dart';
@@ -19,10 +19,19 @@ import 'package:pulz_app/core/database/app_database.dart';
 
 final familyCategoryProvider = StateProvider<String?>((ref) => null);
 
-/// Evenements scrapes depuis le site de la mairie de Balma.
+String _todayStr() {
+  final now = DateTime.now();
+  return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+}
+
+/// Evenements scrapes depuis la base (source balma_events).
 final balmaEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return BalmaEventsScraper.fetchUpcomingEvents();
-},);
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    source: 'balma_events',
+    dateGte: _todayStr(),
+  );
+});
 
 /// Evenements utilisateur filtres pour la rubrique "family".
 final familyUserEventsProvider = Provider<List<Event>>((ref) {

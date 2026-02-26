@@ -186,8 +186,7 @@ class NightScreen extends ConsumerWidget {
 
   Widget _buildUserEventsList(WidgetRef ref) {
     final userEvents = ref.watch(nightUserEventsProvider);
-    final nineClubAsync = ref.watch(nineClubEventsProvider);
-    final etoileAsync = ref.watch(etoileEventsProvider);
+    final scrapedAsync = ref.watch(nightScrapedEventsProvider);
     final modeTheme = ref.watch(modeThemeProvider);
     final filter = ref.watch(dateRangeFilterProvider);
 
@@ -197,10 +196,7 @@ class NightScreen extends ConsumerWidget {
       return d != null && filter.isInRange(d);
     }
 
-    final scrapedEvents = <Event>[
-      ...nineClubAsync.valueOrNull ?? [],
-      ...etoileAsync.valueOrNull ?? [],
-    ].where(isInRange).toList();
+    final scrapedEvents = (scrapedAsync.valueOrNull ?? []).where(isInRange).toList();
     final allEvents = <Event>[
       ...userEvents.where(isInRange),
       ...scrapedEvents,
@@ -209,8 +205,7 @@ class NightScreen extends ConsumerWidget {
     allEvents.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
 
     // Afficher un loader seulement si pas encore d'events du tout.
-    final isLoading = nineClubAsync.isLoading || etoileAsync.isLoading;
-    if (allEvents.isEmpty && isLoading) {
+    if (allEvents.isEmpty && scrapedAsync.isLoading) {
       return LoadingIndicator(color: modeTheme.primaryColor);
     }
 

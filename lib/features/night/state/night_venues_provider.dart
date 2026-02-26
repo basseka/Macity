@@ -3,11 +3,10 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/night/data/night_bars_data.dart';
-import 'package:pulz_app/features/night/data/etoile_scraper.dart';
-import 'package:pulz_app/features/night/data/nine_club_scraper.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
+import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 
 final nightCategoryProvider = StateProvider<String?>((ref) => null);
 
@@ -26,14 +25,17 @@ final nightUserEventsProvider = Provider<List<Event>>((ref) {
       .toList();
 });
 
-/// Evenements scrapes du Nine Club (async).
-final nineClubEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return NineClubScraper.fetchUpcomingEvents();
-});
+String _todayStr() {
+  final now = DateTime.now();
+  return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+}
 
-/// Evenements scrapes de L'Etoile Toulouse (async).
-final etoileEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return EtoileScraper.fetchUpcomingEvents();
+/// Evenements scrapes des clubs de nuit (Nine Club + Etoile) depuis la DB.
+final nightScrapedEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'night',
+    dateGte: _todayStr(),
+  );
 });
 
 /// Filtre les events pour ne garder que ceux a venir (>= aujourd'hui).
@@ -60,10 +62,7 @@ int _nightUserCount(List<Event> userEvents, List<Event> scrapedEvents, String se
 final nightCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
   final userEvents = ref.watch(nightUserEventsProvider);
-  final scrapedEvents = <Event>[
-    ...ref.watch(nineClubEventsProvider).valueOrNull ?? [],
-    ...ref.watch(etoileEventsProvider).valueOrNull ?? [],
-  ];
+  final scrapedEvents = ref.watch(nightScrapedEventsProvider).valueOrNull ?? [];
   final uc = _nightUserCount(userEvents, scrapedEvents, searchTag);
   if (searchTag == 'A venir') {
     return uc;

@@ -19,9 +19,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    // Pre-charger le scraping des clubs des le lancement.
-    ref.read(nineClubEventsProvider);
-    ref.read(etoileEventsProvider);
+    // Pre-charger les events night scrapes des le lancement.
+    ref.read(nightScrapedEventsProvider);
     // Pre-charger les bannieres pour que le carrousel ait les donnees pretes.
     ref.watch(activeBannersProvider);
 

@@ -1,12 +1,6 @@
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/data/night_bars_data.dart';
-import 'package:pulz_app/features/day/data/concert_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/festival_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/spectacle_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/showcase_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/opera_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/djset_toulouse_service.dart';
 
 /// Prefixes connus pour les commerces likes.
 const _commercePrefixes = [
@@ -46,26 +40,11 @@ class LikedItemResolver {
     return null;
   }
 
-  /// Cherche l'event correspondant au likeId (= identifiant) dans toutes
-  /// les sources curatees.
+  /// Les events likes provenant des scrapers sont maintenant dans la DB.
+  /// La resolution se fait au niveau du provider (via ScrapedEventsSupabaseService).
+  /// Cette methode retourne null car les curated lists n'existent plus.
   static Event? resolveEvent(String likeId) {
-    // Ne pas chercher si c'est un commerce
     if (isCommerce(likeId)) return null;
-
-    final allCurated = <List<Event>>[
-      ConcertToulouseService.curatedConcerts,
-      FestivalToulouseService.curatedFestivals,
-      SpectacleToulouseService.curatedSpectacles,
-      ShowcaseToulouseService.curatedShowcases,
-      OperaToulouseService.curatedOperas,
-      DjSetToulouseService.curatedDjSets,
-    ];
-
-    for (final list in allCurated) {
-      for (final event in list) {
-        if (event.identifiant == likeId) return event;
-      }
-    }
     return null;
   }
 }

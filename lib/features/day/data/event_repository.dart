@@ -1,42 +1,22 @@
+import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/day/data/event_api_service.dart';
 import 'package:pulz_app/features/day/data/open_agenda_api_service.dart';
 import 'package:pulz_app/features/day/data/day_curated_data.dart';
-import 'package:pulz_app/features/day/data/concert_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/festival_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/opera_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/djset_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/showcase_toulouse_service.dart';
-import 'package:pulz_app/features/day/data/spectacle_toulouse_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/domain/models/open_agenda_event.dart';
 
 class EventRepository {
   final EventApiService _eventApi;
   final OpenAgendaApiService _openAgendaApi;
-  final ConcertToulouseService _concertService;
-  final FestivalToulouseService _festivalService;
-  final OperaToulouseService _operaService;
-  final DjSetToulouseService _djSetService;
-  final ShowcaseToulouseService _showcaseService;
-  final SpectacleToulouseService _spectacleService;
+  final ScrapedEventsSupabaseService _scrapedService;
 
   EventRepository({
     EventApiService? eventApi,
     OpenAgendaApiService? openAgendaApi,
-    ConcertToulouseService? concertService,
-    FestivalToulouseService? festivalService,
-    OperaToulouseService? operaService,
-    DjSetToulouseService? djSetService,
-    ShowcaseToulouseService? showcaseService,
-    SpectacleToulouseService? spectacleService,
+    ScrapedEventsSupabaseService? scrapedService,
   })  : _eventApi = eventApi ?? EventApiService(),
         _openAgendaApi = openAgendaApi ?? OpenAgendaApiService(),
-        _concertService = concertService ?? ConcertToulouseService(),
-        _festivalService = festivalService ?? FestivalToulouseService(),
-        _operaService = operaService ?? OperaToulouseService(),
-        _djSetService = djSetService ?? DjSetToulouseService(),
-        _showcaseService = showcaseService ?? ShowcaseToulouseService(),
-        _spectacleService = spectacleService ?? SpectacleToulouseService();
+        _scrapedService = scrapedService ?? ScrapedEventsSupabaseService();
 
   /// Fetch events: Toulouse uses OpenDataSoft, other cities use OpenAgenda
   Future<List<Event>> fetchEvents({
@@ -50,63 +30,53 @@ class EventRepository {
     }
   }
 
-  Future<List<Event>> _fetchToulouseEvents(String subcategory) async {
-    switch (subcategory) {
-      case 'A venir':
-        return _fetchAllUpcoming();
-      case 'Concert':
-        return _concertService.fetchUpcomingConcerts();
-      case 'Festival':
-        return _festivalService.fetchUpcomingFestivals();
-      case 'Opera':
-        return _operaService.fetchUpcomingOperas();
-      case 'DJ set':
-        return _djSetService.fetchUpcomingDjSets();
-      case 'Showcase':
-        return _showcaseService.fetchUpcomingShowcases();
-      case 'Spectacle':
-        return _spectacleService.fetchUpcomingSpectacles();
-      case 'Boxe':
-        return DayCuratedData.getBoxeToulouse();
-      case 'Natation':
-        return DayCuratedData.getNatationToulouse();
-      default:
-        return _eventApi.fetchByCategory(subcategory);
-    }
+  static String _todayStr() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
-  /// Agrege les resultats des 6 rubriques sans limite de temps.
-  Future<List<Event>> _fetchAllUpcoming() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+  /// Mapping des sous-categories Day vers les source IDs en base.
+  static const _subcategoryToSource = <String, String>{
+    'Concert': 'day_concert',
+    'Festival': 'day_festival',
+    'Opera': 'day_opera',
+    'DJ set': 'day_djset',
+    'Showcase': 'day_showcase',
+    'Spectacle': 'day_spectacle',
+  };
 
-    // Agreger les 6 rubriques en parallele
-    final results = await Future.wait([
-      _concertService.fetchUpcomingConcerts().catchError((_) => <Event>[]),
-      _festivalService.fetchUpcomingFestivals().catchError((_) => <Event>[]),
-      _operaService.fetchUpcomingOperas().catchError((_) => <Event>[]),
-      _djSetService.fetchUpcomingDjSets().catchError((_) => <Event>[]),
-      _showcaseService.fetchUpcomingShowcases().catchError((_) => <Event>[]),
-      _spectacleService.fetchUpcomingSpectacles().catchError((_) => <Event>[]),
-    ]);
-
-    // Merge tout
-    final all = <Event>[];
-    for (final list in results) {
-      all.addAll(list);
+  Future<List<Event>> _fetchToulouseEvents(String subcategory) async {
+    if (subcategory == 'A venir') {
+      return _fetchAllUpcoming();
     }
+    if (subcategory == 'Boxe') {
+      return DayCuratedData.getBoxeToulouse();
+    }
+    if (subcategory == 'Natation') {
+      return DayCuratedData.getNatationToulouse();
+    }
+    final source = _subcategoryToSource[subcategory];
+    if (source != null) {
+      return _scrapedService.fetchEvents(
+        rubrique: 'day',
+        source: source,
+        dateGte: _todayStr(),
+      );
+    }
+    return _eventApi.fetchByCategory(subcategory);
+  }
 
-    // Filtrer : uniquement les events a venir (>= aujourd'hui)
-    final upcoming = all.where((e) {
-      final d = DateTime.tryParse(e.dateDebut);
-      if (d == null) return false;
-      return !d.isBefore(today);
-    }).toList();
+  /// Agrege tous les events day depuis la DB.
+  Future<List<Event>> _fetchAllUpcoming() async {
+    final all = await _scrapedService.fetchEvents(
+      rubrique: 'day',
+      dateGte: _todayStr(),
+    );
 
     // Dedup par titre normalise + date
     final seen = <String>{};
     final deduped = <Event>[];
-    for (final e in upcoming) {
+    for (final e in all) {
       final key =
           '${e.titre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}|${e.dateDebut}';
       if (seen.add(key)) {

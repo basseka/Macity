@@ -3,25 +3,6 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/culture/data/culture_category_data.dart';
-import 'package:pulz_app/features/culture/data/museum_events_toulouse_service.dart';
-import 'package:pulz_app/features/culture/data/guided_tours_toulouse_service.dart';
-import 'package:pulz_app/features/culture/data/meett_exhibitor_service.dart';
-import 'package:pulz_app/features/culture/data/theatre_sorano_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_pont_neuf_scraper.dart';
-import 'package:pulz_app/features/culture/data/cave_poesie_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_garonne_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_cite_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_capitole_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_grand_rond_scraper.dart';
-import 'package:pulz_app/features/culture/data/grenier_theatre_scraper.dart';
-import 'package:pulz_app/features/culture/data/three_t_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_du_pave_scraper.dart';
-import 'package:pulz_app/features/culture/data/fil_a_plomb_scraper.dart';
-import 'package:pulz_app/features/culture/data/metropole_toulouse_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_violette_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_de_poche_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_chien_blanc_scraper.dart';
-import 'package:pulz_app/features/culture/data/theatre_jules_julien_scraper.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -31,6 +12,7 @@ import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/core/database/app_database.dart';
+import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 
 final cultureCategoryProvider = StateProvider<String?>((ref) => null);
 
@@ -46,216 +28,99 @@ final cultureUserEventsProvider = Provider<List<Event>>((ref) {
       .toList();
 });
 
-final cultureMuseumEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return MuseumEventsToulouseService().fetchUpcomingMuseumEvents();
+String _todayStr() {
+  final now = DateTime.now();
+  return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+}
+
+/// Tous les evenements culture scrapes (theatres + musees + visites + MEETT).
+final cultureScrapedEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    dateGte: _todayStr(),
+  );
 });
 
-/// Visites guidees depuis l'API Office de Tourisme + curate.
+/// Museum events : filtre les scrapes par source museum_toulouse.
+final cultureMuseumEventsProvider = FutureProvider<List<Event>>((ref) async {
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    source: 'museum_toulouse',
+    dateGte: _todayStr(),
+  );
+});
+
+/// Visites guidees depuis la base.
 final cultureGuidedToursProvider = FutureProvider<List<Event>>((ref) async {
-  return GuidedToursToulouseService().fetchUpcomingGuidedTours();
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    source: 'guided_tours',
+    dateGte: _todayStr(),
+  );
 });
 
 /// Expositions / salons du MEETT.
 final cultureMeettEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return MeettExhibitorService().fetchExhibitions();
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    source: 'meett',
+    dateGte: _todayStr(),
+  );
 });
 
-/// Theatre Sorano — programmation scrapee.
-final theatreSoranoEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreSoranoScraper.fetchUpcomingEvents();
-});
-
-/// Theatre du Pont Neuf — programmation scrapee.
-final theatrePontNeufEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatrePontNeufScraper.fetchUpcomingEvents();
-});
-
-/// Cave Poesie Rene Gouzenne — programmation scrapee.
-final cavePoesieEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return CavePoesieScraper.fetchUpcomingEvents();
-});
-
-/// Theatre Garonne — programmation scrapee.
-final theatreGaronneEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreGaronneScraper.fetchUpcomingEvents();
-});
-
-/// Theatre de la Cite — programmation scrapee.
-final theatreCiteEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreCiteScraper.fetchUpcomingEvents();
-});
-
-/// Theatre du Capitole — programmation via API REST.
-final theatreCapitoleEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreCapitoleScraper.fetchUpcomingEvents();
-});
-
-/// Theatre du Grand Rond — programmation scrapee.
-final theatreGrandRondEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreGrandRondScraper.fetchUpcomingEvents();
-});
-
-/// Grenier Theatre — programmation scrapee.
-final grenierTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return GrenierTheatreScraper.fetchUpcomingEvents();
-});
-
-/// 3T Cafe Theatre — programmation via API REST + scraping HTML.
-final threeTEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return ThreeTScraper.fetchUpcomingEvents();
-});
-
-/// Theatre du Pave — programmation via API Tribe Events Calendar.
-final theatreDuPaveEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreDuPaveScraper.fetchUpcomingEvents();
-});
-
-/// Theatre le Fil a Plomb — programmation scrapee.
-final filAPlombEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return FilAPlombScraper.fetchUpcomingEvents();
-});
-
-/// Theatre des Mazades — programmation scrapee via JSON-LD.
-final theatreMazadesEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return MetropoleToulouseScraper.fetchUpcomingEvents(const MetropoleVenueConfig(
-    extId: '2029',
-    idPrefix: 'mazades',
-    lieuNom: 'Theatre des Mazades',
-    lieuAdresse: '10 avenue des Mazades',
-    codePostal: 31200,
-  ),);
-});
-
-/// La Brique Rouge — programmation scrapee via JSON-LD.
-final briqueRougeEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return MetropoleToulouseScraper.fetchUpcomingEvents(const MetropoleVenueConfig(
-    extId: '2001',
-    idPrefix: 'briquerouge',
-    lieuNom: 'La Brique Rouge',
-    lieuAdresse: '15 rue Leon Jouhaux',
-    codePostal: 31500,
-  ),);
-});
-
-/// Theatre de la Violette — programmation scrapee via seances HTML.
-final theatreVioletteEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreVioletteScraper.fetchUpcomingEvents();
-});
-
-/// Theatre de Poche — programmation scrapee via pages mois.
-final theatreDePocheEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreDePocheScraper.fetchUpcomingEvents();
-});
-
-/// Theatre du Chien Blanc — programmation scrapee via Elementor.
-final theatreChienBlancEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreChienBlancScraper.fetchUpcomingEvents();
-});
-
-/// Theatre Jules Julien — programmation via API REST Conservatoire.
-final theatreJulesJulienEventsProvider = FutureProvider<List<Event>>((ref) async {
-  return TheatreJulesJulienScraper.fetchUpcomingEvents();
-});
-
-/// Combine les 17 scrapers theatre en une seule liste.
+/// Combine tous les theatre events depuis la base scraped_events.
+/// Exclut les sources non-theatre (musees, visites, MEETT, balma) via filtre DB.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
-  final results = await Future.wait([
-    ref.watch(theatreSoranoEventsProvider.future),
-    ref.watch(theatrePontNeufEventsProvider.future),
-    ref.watch(cavePoesieEventsProvider.future),
-    ref.watch(theatreGaronneEventsProvider.future),
-    ref.watch(theatreCiteEventsProvider.future),
-    ref.watch(theatreCapitoleEventsProvider.future),
-    ref.watch(theatreGrandRondEventsProvider.future),
-    ref.watch(grenierTheatreEventsProvider.future),
-    ref.watch(threeTEventsProvider.future),
-    ref.watch(theatreDuPaveEventsProvider.future),
-    ref.watch(filAPlombEventsProvider.future),
-    ref.watch(theatreMazadesEventsProvider.future),
-    ref.watch(theatreVioletteEventsProvider.future),
-    ref.watch(theatreDePocheEventsProvider.future),
-    ref.watch(theatreChienBlancEventsProvider.future),
-    ref.watch(briqueRougeEventsProvider.future),
-    ref.watch(theatreJulesJulienEventsProvider.future),
-  ]);
-  final all = <Event>[
-    for (final r in results) ...r,
-  ];
-  all.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
-  return all;
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    dateGte: _todayStr(),
+    sourceNotIn: ['museum_toulouse', 'guided_tours', 'meett', 'balma_events'],
+  );
 });
 
-/// Theatre events agrégés progressivement pour l'onglet "A venir".
-/// Chaque scraper qui termine ajoute ses résultats immédiatement
-/// au lieu d'attendre les 17 scrapers.
+/// Theatre events agrégés progressivement — maintenant une seule requete DB.
 final cultureTheatreEventsProgressiveProvider =
     Provider<({List<Event> events, bool isLoading})>((ref) {
-  final providers = [
-    ref.watch(theatreSoranoEventsProvider),
-    ref.watch(theatrePontNeufEventsProvider),
-    ref.watch(cavePoesieEventsProvider),
-    ref.watch(theatreGaronneEventsProvider),
-    ref.watch(theatreCiteEventsProvider),
-    ref.watch(theatreCapitoleEventsProvider),
-    ref.watch(theatreGrandRondEventsProvider),
-    ref.watch(grenierTheatreEventsProvider),
-    ref.watch(threeTEventsProvider),
-    ref.watch(theatreDuPaveEventsProvider),
-    ref.watch(filAPlombEventsProvider),
-    ref.watch(theatreMazadesEventsProvider),
-    ref.watch(theatreVioletteEventsProvider),
-    ref.watch(theatreDePocheEventsProvider),
-    ref.watch(theatreChienBlancEventsProvider),
-    ref.watch(briqueRougeEventsProvider),
-    ref.watch(theatreJulesJulienEventsProvider),
-  ];
-
-  final all = <Event>[];
-  var loading = false;
-
-  for (final p in providers) {
-    p.when(
-      data: (events) => all.addAll(events),
-      loading: () => loading = true,
-      error: (_, __) {},
-    );
-  }
-
-  all.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
-  return (events: all, isLoading: loading);
+  final async = ref.watch(cultureTheatreEventsProvider);
+  return async.when(
+    data: (events) => (events: events, isLoading: false),
+    loading: () => (events: <Event>[], isLoading: true),
+    error: (_, __) => (events: <Event>[], isLoading: false),
+  );
 });
 
-/// Mapping venue ID → nom du lieu utilise dans les scrapers.
-const _venueIdToLieuNom = <String, String>{
-  'theatre_de_la_cite': 'Theatre de la Cite',
-  'sorano_theatre': 'Sorano',
-  'theatre_garonne': 'Garonne',
-  'la_cave_poesie': 'Cave Poesie',
-  'theatre_du_pont_neuf': 'Pont Neuf',
-  'theatre_du_capitole': 'Capitole',
-  'theatre_du_grand_rond': 'Grand Rond',
-  'grenier_theatre': 'Grenier',
-  'cafe_theatre_les_3t': '3T',
-  'theatre_du_pave': 'Pave',
-  'theatre_le_fil_a_plomb': 'Fil a Plomb',
-  'theatre_des_mazades': 'Mazades',
-  'theatre_de_la_violette': 'Violette',
-  'theatre_de_poche': 'Poche',
-  'theatre_du_chien_blanc': 'Chien Blanc',
-  'theatre_de_la_brique_rouge': 'Brique Rouge',
-  'nouveau_theatre_jules_julien': 'Jules Julien',
+/// Mapping venue ID → source ID pour filtrer par salle de theatre.
+const _venueIdToSource = <String, String>{
+  'theatre_de_la_cite': 'theatre_cite',
+  'sorano_theatre': 'theatre_sorano',
+  'theatre_garonne': 'theatre_garonne',
+  'la_cave_poesie': 'cave_poesie',
+  'theatre_du_pont_neuf': 'theatre_pont_neuf',
+  'theatre_du_capitole': 'theatre_capitole',
+  'theatre_du_grand_rond': 'theatre_grand_rond',
+  'grenier_theatre': 'grenier_theatre',
+  'cafe_theatre_les_3t': 'three_t',
+  'theatre_du_pave': 'theatre_du_pave',
+  'theatre_le_fil_a_plomb': 'fil_a_plomb',
+  'theatre_des_mazades': 'mazades',
+  'theatre_de_la_violette': 'theatre_violette',
+  'theatre_de_poche': 'theatre_de_poche',
+  'theatre_du_chien_blanc': 'theatre_chien_blanc',
+  'theatre_de_la_brique_rouge': 'briquerouge',
+  'nouveau_theatre_jules_julien': 'theatre_jules_julien',
 };
 
-/// Events filtres pour une salle de theatre donnee.
+/// Events filtres pour une salle de theatre donnee (par source ID).
 final theatreVenueEventsProvider =
     FutureProvider.family<List<Event>, String>((ref, venueId) async {
-  final keyword = _venueIdToLieuNom[venueId];
-  if (keyword == null) return [];
+  final sourceId = _venueIdToSource[venueId];
+  if (sourceId == null) return [];
 
-  final allEvents = await ref.watch(cultureTheatreEventsProvider.future);
-  return allEvents
-      .where((e) => e.lieuNom.toLowerCase().contains(keyword.toLowerCase()))
-      .toList();
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    source: sourceId,
+    dateGte: _todayStr(),
+  );
 });
 
 final cultureCategoryCountProvider =
