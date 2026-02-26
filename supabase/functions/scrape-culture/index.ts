@@ -313,43 +313,75 @@ async function scrapeGaronne(): Promise<ScrapedEvent[]> {
 // ─────────────────────────────────────────────────────────────
 async function scrapeCite(): Promise<ScrapedEvent[]> {
   try {
-    const html = await fetchHtml("https://www.theatre-cite.com/programmation/");
+    const html = await fetchHtml("https://theatre-cite.com/programmation/");
     const events: ScrapedEvent[] = [];
 
-    // Find spectacle links with dates
-    const specRegex = /<a[^>]*href="(https?:\/\/www\.theatre-cite\.com\/spectacle\/[^"]*)"[^>]*title="([^"]*)"[^>]*>[\s\S]*?<\/a>/gi;
-    const dateRegex = /(\d{1,2})(?:\s+(\w+))?\s*(?:au|→|-)\s*(\d{1,2})\s+(\w+)\s*(\d{4})?|le\s+(\d{1,2})\s+(\w+)\s*(\d{4})?/gi;
+    // Each card: <a href="...spectacle/..." title="Titre"> ... <div class="programmation-grid__item__date">DATE</div>
+    const cardRegex = /<a\s[^>]*href="(https?:\/\/theatre-cite\.com\/[^"]*spectacle\/[^"]*)"[^>]*title="([^"]*)"[^>]*>[\s\S]*?<\/a>/gi;
+
+    // Date patterns inside date block (nbsp cleaned to spaces):
+    // "27 février 2026" | "10 – 18 mars 2026" | "31 mars – 3 avril 2026" | "À partir du 10 janvier 2026"
+    const singleDateRe = /(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)\s+(\d{4})/i;
+    const rangesamemonthRe = /(\d{1,2})\s*[–\-]\s*(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)\s+(\d{4})/i;
+    const rangecrossmonthRe = /(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)\s*[–\-]\s*(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)\s+(\d{4})/i;
+    const apartirRe = /partir\s+du\s+(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)\s+(\d{4})/i;
 
     let m;
-    while ((m = specRegex.exec(html)) !== null) {
+    while ((m = cardRegex.exec(html)) !== null) {
       const url = m[1];
       const titre = cleanHtml(m[2]);
       if (!titre) continue;
 
-      // Look for dates near this match
-      const context = html.substring(m.index, Math.min(m.index + 500, html.length));
-      const dm = dateRegex.exec(context);
-      dateRegex.lastIndex = 0;
-      if (!dm) continue;
+      // Extract date block near this card
+      const after = html.substring(m.index, Math.min(m.index + 1500, html.length));
+      const dateBlockMatch = /programmation-grid__item__date">([\s\S]*?)<\/div>/i.exec(after);
+      if (!dateBlockMatch) continue;
 
-      const year = currentSeasonYear();
+      const dateText = dateBlockMatch[1].replace(/&nbsp;/g, " ").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+      if (!dateText) continue;
+
       let dateDebut: string | null = null;
       let dateFin: string | null = null;
 
-      if (dm[6]) {
-        // Single date
-        dateDebut = buildIsoDate(dm[6], dm[7], dm[8] || year);
-        dateFin = dateDebut;
-      } else if (dm[3]) {
-        // Range
-        const endMonth = dm[4];
-        const startMonth = dm[2] || endMonth;
-        const y = dm[5] || year;
-        dateDebut = buildIsoDate(dm[1], startMonth, y);
-        dateFin = buildIsoDate(dm[3], endMonth, y);
+      // Try cross-month range first: "31 mars – 3 avril 2026"
+      let dm = rangecrossmonthRe.exec(dateText);
+      if (dm) {
+        dateDebut = buildIsoDate(dm[1], dm[2], dm[5]);
+        dateFin = buildIsoDate(dm[3], dm[4], dm[5]);
+      }
+
+      // Try same-month range: "10 – 18 mars 2026"
+      if (!dateDebut) {
+        dm = rangesamemonthRe.exec(dateText);
+        if (dm) {
+          dateDebut = buildIsoDate(dm[1], dm[3], dm[4]);
+          dateFin = buildIsoDate(dm[2], dm[3], dm[4]);
+        }
+      }
+
+      // Try "À partir du": "À partir du 10 janvier 2026"
+      if (!dateDebut) {
+        dm = apartirRe.exec(dateText);
+        if (dm) {
+          dateDebut = buildIsoDate(dm[1], dm[2], dm[3]);
+          dateFin = dateDebut;
+        }
+      }
+
+      // Try single date: "27 février 2026"
+      if (!dateDebut) {
+        dm = singleDateRe.exec(dateText);
+        if (dm) {
+          dateDebut = buildIsoDate(dm[1], dm[2], dm[3]);
+          dateFin = dateDebut;
+        }
       }
 
       if (!dateDebut || !isUpcoming(dateFin ?? dateDebut, dateDebut)) continue;
+
+      // Extract time if present
+      const timeMatch = /(\d{1,2}):(\d{2})/.exec(dateText);
+      const horaires = timeMatch ? `${timeMatch[1]}h${timeMatch[2]}` : "";
 
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `cite_${slug}_${dateDebut}`;
@@ -359,6 +391,7 @@ async function scrapeCite(): Promise<ScrapedEvent[]> {
         nom_de_la_manifestation: titre,
         descriptif_court: titre,
         date_debut: dateDebut, date_fin: dateFin ?? dateDebut,
+        horaires,
         lieu_nom: "Theatre de la Cite", lieu_adresse_2: "1 Rue Pierre Baudis",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
