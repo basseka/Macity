@@ -166,6 +166,8 @@ class _ModeBubbleBar extends ConsumerStatefulWidget {
 class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
   final ScrollController _scrollController = ScrollController();
 
+  static const _bubbleSize = 62.0;
+
   static const _modeImages = {
     AppMode.day: 'assets/images/pochette_concert.png',
     AppMode.sport: 'assets/images/home_bg_sport.png',
@@ -194,7 +196,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
 
   void _centerActiveBubble(int activeIndex) {
     if (!_scrollController.hasClients) return;
-    const bubbleWidth = 56.0;
+    const bubbleWidth = 74.0;
     final screenWidth = MediaQuery.of(context).size.width;
     final targetOffset = (activeIndex * bubbleWidth) - (screenWidth / 2) + (bubbleWidth / 2);
     final clampedOffset = targetOffset.clamp(
@@ -235,13 +237,13 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
             return GestureDetector(
               onTap: () => ref.read(currentModeProvider.notifier).setMode(m.name),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: _bubbleSize,
+                      height: _bubbleSize,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: isActive
@@ -251,7 +253,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
                             : null,
                         color: isActive ? null : Colors.grey.shade300,
                       ),
-                      padding: EdgeInsets.all(isActive ? 2.5 : 1),
+                      padding: EdgeInsets.all(isActive ? 3 : 1.5),
                       child: ClipOval(
                         child: Image.asset(
                           image,
@@ -259,11 +261,11 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       label,
                       style: GoogleFonts.inter(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                         color: isActive ? modeTheme.primaryColor : Colors.grey,
                       ),

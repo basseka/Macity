@@ -63,16 +63,43 @@ class _CityPickerBottomSheetState
             ),
           ),
 
-          // Title
+          // Title + current city
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Choisir une ville',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: modeTheme.primaryDarkColor,
-              ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              children: [
+                Text(
+                  'Choisir une ville',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: modeTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.location_on, size: 14, color: modeTheme.primaryColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        ref.watch(selectedCityProvider),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: modeTheme.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
 

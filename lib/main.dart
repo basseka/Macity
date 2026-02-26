@@ -4,9 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pulz_app/app.dart';
-import 'package:pulz_app/core/router/app_router.dart' show hasSeenSplash;
 import 'package:pulz_app/core/services/fcm_service.dart';
 import 'package:pulz_app/firebase_options.dart';
 
@@ -22,25 +20,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('fr_FR');
 
-  // Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Enregistrer le token FCM dans Supabase
-  await FcmService.init();
-
-  // Splash screen : ne l'afficher qu'au tout premier lancement.
-  final prefs = await SharedPreferences.getInstance();
-  hasSeenSplash = prefs.getBool('has_seen_splash') ?? false;
-
   // Catch Flutter framework errors.
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
   };
 
-  // Catch async errors that escape the Flutter framework.
+  // Lancer l'UI immediatement (affiche le splash MaCity tout de suite).
   runZonedGuarded(
     () {
       runApp(
@@ -54,4 +39,15 @@ void main() async {
       debugPrint('$stackTrace');
     },
   );
+
+  // Initialiser Firebase en arriere-plan pendant que le splash est visible.
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    await FcmService.init();
+  } catch (e) {
+    debugPrint('Firebase init error: $e');
+  }
 }

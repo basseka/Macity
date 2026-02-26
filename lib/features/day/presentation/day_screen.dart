@@ -128,7 +128,7 @@ class DayScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Rubriques',
+                        'Retour',
                         style: TextStyle(
                           color: modeTheme.primaryColor,
                           fontWeight: FontWeight.w600,
