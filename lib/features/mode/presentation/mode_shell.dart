@@ -63,7 +63,7 @@ class ModeShell extends ConsumerWidget {
                   const SizedBox(width: 6),
                   Text(
                     'MaCity',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.inter(
                       fontSize: 8,
                       fontStyle: FontStyle.italic,
                       color: Colors.black,
@@ -85,7 +85,7 @@ class ModeShell extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Text(
                             'Trouve un evenement',
-                            style: GoogleFonts.montserrat(
+                            style: GoogleFonts.inter(
                               fontSize: 10,
                               color: Colors.grey.shade400,
                             ),
@@ -250,7 +250,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
                     const SizedBox(height: 3),
                     Text(
                       label,
-                      style: GoogleFonts.montserrat(
+                      style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                         color: isActive ? modeTheme.primaryColor : Colors.grey,

@@ -51,7 +51,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(width: 6),
                 Text(
                   'MaCity',
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.inter(
                     fontSize: 8,
                     fontStyle: FontStyle.italic,
                     color: Colors.black,
@@ -73,7 +73,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const SizedBox(width: 4),
                         Text(
                           'Trouve un evenement',
-                          style: GoogleFonts.montserrat(
+                          style: GoogleFonts.inter(
                             fontSize: 10,
                             color: Colors.grey.shade400,
                           ),
@@ -212,7 +212,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               mode.label,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.montserrat(
+                              style: GoogleFonts.inter(
                                 fontSize: 14, fontWeight: FontWeight.w500,
                                 color: Colors.white,
                                 shadows: [

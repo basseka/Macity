@@ -5,7 +5,7 @@
 // Porte depuis les 6 services Dart day_*.
 
 import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate } from "../_shared/db.ts";
-import { fetchHtml, fetchJson } from "../_shared/html-utils.ts";
+import { fetchHtml, fetchJson, cleanHtml, isoToDate, isoToTime, buildIsoDate } from "../_shared/html-utils.ts";
 
 const TICKETMASTER_API_KEY = Deno.env.get("TICKETMASTER_API_KEY") ?? "";
 const ODS_BASE = "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/agenda-des-manifestations-culturelles-so-toulouse/records";
@@ -180,6 +180,77 @@ async function fetchFestik(categorie: string): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Opéra de Toulouse (schema.org microdata)
+// ─────────────────────────────────────────────────────────────
+async function fetchOperaToulouse(): Promise<ScrapedEvent[]> {
+  try {
+    const html = await fetchHtml("https://opera.toulouse.fr/agenda/type/operas/", 15000);
+    const events: ScrapedEvent[] = [];
+
+    // Split by card-item Event blocks
+    const blocks = html.split(/class="card-item"[^>]*itemtype/);
+
+    for (let i = 1; i < blocks.length; i++) {
+      const block = blocks[i];
+
+      const titleMatch = block.match(/<h3[^>]*class="card-item-title"[^>]*>(.*?)<\/h3>/s);
+      const name = titleMatch ? cleanHtml(titleMatch[1]) : "";
+      if (!name) continue;
+
+      // <time> tag spans multiple lines: datetime="..." on a separate line
+      const timeMatch = block.match(/datetime="([^"]+)"/);
+      const startIso = timeMatch ? timeMatch[1] : "";
+      const startDate = isoToDate(startIso);
+      if (!startDate) continue;
+
+      const horaires = isoToTime(startIso);
+
+      // End date from "20 février → 1 mars 2026" or "14 → 26 avril 2026"
+      const dateTextMatch = block.match(/<p[^>]*class="card-item-date-date"[^>]*>(.*?)<\/p>/s);
+      let endDate = startDate;
+      if (dateTextMatch) {
+        const dateText = cleanHtml(dateTextMatch[1]).replace(/&rarr;/g, "→");
+        // "20 février → 1 mars 2026" or "14 → 26 avril 2026" or "26 juin → 5 juillet 2026"
+        const arrowMatch = dateText.match(/→\s*(\d{1,2})\s+(\w+)\s+(\d{4})/);
+        if (arrowMatch) {
+          const built = buildIsoDate(arrowMatch[1], arrowMatch[2], arrowMatch[3]);
+          if (built) endDate = built;
+        }
+      }
+
+      // Keep if start OR end is in the future (opera runs for several days)
+      if (!isFutureDate(startDate) && !isFutureDate(endDate)) continue;
+
+      const descMatch = block.match(/<p[^>]*class="card-item-description"[^>]*>(.*?)<\/p>/s);
+      const desc = descMatch ? cleanHtml(descMatch[1]) : "";
+
+      const linkMatch = block.match(/<a[^>]*class="card-item-link"[^>]*href="([^"]+)"/);
+      const url = linkMatch ? linkMatch[1] : "";
+
+      const id = `opera_tls_${normalize(name).slice(0, 40)}_${startDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source: "day_opera", rubrique: "day",
+        nom_de_la_manifestation: name,
+        descriptif_court: desc,
+        date_debut: startDate, date_fin: endDate,
+        horaires,
+        lieu_nom: "Théâtre du Capitole",
+        lieu_adresse_2: "Place du Capitole",
+        commune: "Toulouse",
+        code_postal: 31000,
+        type_de_manifestation: "Opéra", categorie_de_la_manifestation: "Opéra",
+        manifestation_gratuite: "non",
+        reservation_site_internet: url,
+      }));
+    }
+
+    console.log(`opera.toulouse.fr: ${events.length} operas from ${blocks.length - 1} blocks`);
+    return events;
+  } catch (e) { console.error("Opera Toulouse error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Categorize ODS events by type/category
 // ─────────────────────────────────────────────────────────────
 function categorizeEvent(e: ScrapedEvent): string {
@@ -187,14 +258,16 @@ function categorizeEvent(e: ScrapedEvent): string {
   const cat = (e.categorie_de_la_manifestation || "").toLowerCase();
   const lieu = (e.lieu_nom || "").toLowerCase();
 
-  // Theatre events are excluded (handled by scrape-culture)
+  // Festival check FIRST — a festival is a festival even if it's also tagged as music/theatre
+  if (cat.includes("festival") || type.includes("festival")) return "day_festival";
+
+  // Theatre events are excluded (handled by scrape-culture) — but only if not a festival
   if (cat.includes("theatre") || type.includes("theatre") || lieu.includes("theatre")) return "skip";
 
-  if (cat.includes("concert") || type.includes("musique") || type.includes("concert")) return "day_concert";
-  if (cat.includes("festival") || type.includes("festival")) return "day_festival";
   if (cat.includes("opera") || type.includes("opera") || type.includes("lyrique")) return "day_opera";
   if (type.includes("dj") || type.includes("electro") || type.includes("techno") || cat.includes("dj")) return "day_djset";
   if (type.includes("showcase") || type.includes("acoustique") || cat.includes("showcase")) return "day_showcase";
+  if (cat.includes("concert") || type.includes("musique") || type.includes("concert")) return "day_concert";
   if (cat.includes("spectacle") || type.includes("spectacle") || type.includes("humour") || type.includes("cirque") || type.includes("danse") || type.includes("magie")) return "day_spectacle";
 
   return "day_other";
@@ -207,12 +280,13 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   const today = todayStr();
   const where = `date_debut >= "${today}"`;
 
-  const [ods, tm, festikConcert, festikFestival, festikSpectacle] = await Promise.all([
+  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls] = await Promise.all([
     fetchODS(where),
     fetchTicketmaster(),
     fetchFestik("Concert"),
     fetchFestik("Festival"),
     fetchFestik("Spectacle"),
+    fetchOperaToulouse(),
   ]);
 
   // Tag ODS events by category
@@ -230,7 +304,8 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
     return !t.includes("theatre");
   }).map(e => ({ ...e, source: "day_spectacle" }));
 
-  const all = [...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
+  // operaTls first so curated opera source wins dedup over generic ODS tags
+  const all = [...operaTls, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
   return dedup(all);
 }
 
