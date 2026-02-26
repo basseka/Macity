@@ -76,6 +76,11 @@ class TheatreGaronneScraper {
     dotAll: true,
   );
 
+  /// Image dans <figure>
+  static final _imgRegex = RegExp(
+    r'<figure>\s*<img[^>]+src="([^"]+)"',
+  );
+
   /// Lieu (hors Garonne)
   static final _placeRegex = RegExp(
     r'<div\s+class="place">(.*?)</div>',
@@ -141,6 +146,10 @@ class TheatreGaronneScraper {
           bookingUrl = (bookingMatch.group(1) ?? '').trim();
         }
 
+        // Image
+        final imgMatch = _imgRegex.firstMatch(articleHtml);
+        final imageUrl = imgMatch?.group(1);
+
         // Lieu
         String place = '';
         final placeMatch = _placeRegex.firstMatch(articleHtml);
@@ -179,6 +188,7 @@ class TheatreGaronneScraper {
           reservationUrl: bookingUrl.isNotEmpty
               ? bookingUrl
               : detailUrl,
+          photoPath: imageUrl,
         ),);
       }
 

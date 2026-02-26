@@ -78,6 +78,7 @@ class TheatreSoranoScraper {
 
       for (final match in _liRegex.allMatches(html)) {
         final detailUrl = match.group(1) ?? '';
+        final imageUrl = match.group(2) ?? '';
         final cardHtml = match.group(3) ?? '';
         final savoirPlusUrl = match.group(4) ?? '';
 
@@ -165,6 +166,7 @@ class TheatreSoranoScraper {
           type: type,
           categorie: 'Theatre',
           reservationUrl: url,
+          photoPath: imageUrl.isNotEmpty ? imageUrl : null,
         ),);
       }
 

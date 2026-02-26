@@ -186,6 +186,16 @@ class TheatreVioletteScraper {
       final dureeMatch = _dureeRegex.firstMatch(html);
       final duree = dureeMatch != null ? '${dureeMatch.group(1)} mn' : '';
 
+      // Image affiche
+      final imgMatch = RegExp(r'<img\s+class="affiche"\s+src="([^"]+)"').firstMatch(html);
+      String? imageUrl;
+      if (imgMatch != null) {
+        imageUrl = imgMatch.group(1)!;
+        if (!imageUrl.startsWith('http')) {
+          imageUrl = '$_baseUrl/$imageUrl';
+        }
+      }
+
       // Parser les seances
       final events = <Event>[];
       for (final match in _seanceRegex.allMatches(html)) {
@@ -248,6 +258,7 @@ class TheatreVioletteScraper {
           type: show.isEnfants ? 'Jeune Public' : 'Theatre',
           categorie: 'Theatre',
           reservationUrl: url,
+          photoPath: imageUrl,
         ),);
       }
 

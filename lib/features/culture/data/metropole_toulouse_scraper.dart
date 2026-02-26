@@ -168,6 +168,8 @@ class MetropoleToulouseScraper {
 
       final description = _cleanText(item['description']?.toString() ?? '');
 
+      final imageUrl = (item['image'] as Map<String, dynamic>?)?['url']?.toString();
+
       final tarif = _extractTarif(html);
 
       final id = '${config.idPrefix}_${slug}_$dateDebut';
@@ -189,6 +191,7 @@ class MetropoleToulouseScraper {
         categorie: 'Theatre',
         tarifNormal: tarif,
         reservationUrl: url,
+        photoPath: imageUrl,
       );
     } catch (_) {
       return null;

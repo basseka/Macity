@@ -24,6 +24,7 @@ class BannerCarouselDialog extends ConsumerWidget {
   static void show(BuildContext context) {
     showDialog(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (_) => const BannerCarouselDialog(),

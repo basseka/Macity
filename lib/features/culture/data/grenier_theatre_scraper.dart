@@ -59,6 +59,12 @@ class GrenierTheatreScraper {
     dotAll: true,
   );
 
+  /// Image dans pieceAffiche
+  static final _imgRegex = RegExp(
+    r'<div class="pieceAffiche">[^<]*<a[^>]*>\s*<img[^>]+src="([^"]+)"',
+    dotAll: true,
+  );
+
   /// Lien detail
   static final _linkRegex = RegExp(
     r'<a href="(https://www\.greniertheatre\.org/pieces/[^"]*)"',
@@ -121,6 +127,10 @@ class GrenierTheatreScraper {
         final prix = prixMatch != null
             ? _cleanHtml(prixMatch.group(1) ?? '')
             : '';
+
+        // Image
+        final imgMatch = _imgRegex.firstMatch(blockHtml);
+        final imageUrl = imgMatch?.group(1);
 
         // Lien
         final linkMatch = _linkRegex.firstMatch(blockHtml);
@@ -219,6 +229,7 @@ class GrenierTheatreScraper {
           categorie: 'Theatre',
           tarifNormal: prix,
           reservationUrl: detailUrl,
+          photoPath: imageUrl,
         ),);
       }
 

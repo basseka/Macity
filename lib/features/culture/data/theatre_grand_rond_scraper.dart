@@ -32,6 +32,11 @@ class TheatreGrandRondScraper {
     },
   ),);
 
+  /// Image dans le premier bloc_spectacle (sibling)
+  static final _imgBlocRegex = RegExp(
+    r'<div class="col-md-6 bloc_spectacle">\s*<img[^>]+src="([^"]*)"',
+  );
+
   /// Bloc spectacle : <h3>TITRE</h3> ... <a href="URL" class="bouton_plus">
   static final _blocRegex = RegExp(
     r'<div class="col-md-6 bloc_spectacle">\s*<h3>(.*?)</h3>(.*?)<a\s+href="([^"]*)"[^>]*class="bouton_plus"',
@@ -83,6 +88,12 @@ class TheatreGrandRondScraper {
       if (html == null || html.isEmpty) return [];
 
       final events = <Event>[];
+
+      final imageUrls = _imgBlocRegex
+          .allMatches(html)
+          .map((m) => m.group(1))
+          .toList();
+      var imgIdx = 0;
 
       for (final match in _blocRegex.allMatches(html)) {
         final titre = _cleanHtml(match.group(1) ?? '');
@@ -160,6 +171,10 @@ class TheatreGrandRondScraper {
 
         if (dateDebut == null) continue;
 
+        // Image
+        final imageUrl = imgIdx < imageUrls.length ? imageUrls[imgIdx] : null;
+        imgIdx++;
+
         // Horaire
         String horaires = '';
         final horaireMatch = _horaireRegex.firstMatch(datesText);
@@ -201,6 +216,7 @@ class TheatreGrandRondScraper {
           type: type,
           categorie: 'Theatre',
           reservationUrl: url,
+          photoPath: imageUrl,
         ),);
       }
 

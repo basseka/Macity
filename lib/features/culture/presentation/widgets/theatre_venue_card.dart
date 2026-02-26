@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -209,6 +210,7 @@ class TheatreVenueCard extends ConsumerWidget {
 
   Widget _buildEventTile(Event event) {
     final hasUrl = event.reservationUrl.isNotEmpty;
+    final hasPhoto = event.photoPath != null && event.photoPath!.startsWith('http');
     return GestureDetector(
       onTap: hasUrl ? () => _openUrl(event.reservationUrl) : null,
       child: Padding(
@@ -216,12 +218,47 @@ class TheatreVenueCard extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.theater_comedy,
-              size: 14,
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
-            const SizedBox(width: 8),
+            if (hasPhoto)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: CachedNetworkImage(
+                    imageUrl: event.photoPath!,
+                    width: 45,
+                    height: 63,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 45,
+                      height: 63,
+                      color: Colors.white.withValues(alpha: 0.1),
+                      child: Icon(
+                        Icons.theater_comedy,
+                        size: 20,
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      width: 45,
+                      height: 63,
+                      color: Colors.white.withValues(alpha: 0.1),
+                      child: Icon(
+                        Icons.theater_comedy,
+                        size: 20,
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else ...[
+              Icon(
+                Icons.theater_comedy,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -182,6 +182,13 @@ class TheatreDePocheScraper {
           titre = _cleanHtml(linkMatch.group(2) ?? '');
         }
 
+        // Extraire l'image src
+        final imgSrcMatch = RegExp(r'<img[^>]+src="([^"]+)"').firstMatch(afterH3);
+        String? imageUrl = imgSrcMatch?.group(1);
+        if (imageUrl != null && !imageUrl.startsWith('http')) {
+          imageUrl = '$_baseUrl$imageUrl';
+        }
+
         // Fallback : titre depuis le texte du lien
         if (titre.isEmpty) {
           final altMatch = RegExp(r'alt="([^"]+)"').firstMatch(afterH3);
@@ -228,6 +235,7 @@ class TheatreDePocheScraper {
           type: 'Theatre',
           categorie: 'Theatre',
           reservationUrl: url,
+          photoPath: imageUrl,
         ),);
       }
 

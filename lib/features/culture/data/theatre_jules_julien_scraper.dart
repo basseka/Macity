@@ -91,6 +91,8 @@ class TheatreJulesJulienScraper {
 
         final isFree = _toBool(meta['onct-event-free-entrance']);
 
+        final imageUrl = meta['onct-event-img']?.toString();
+
         final slug = item['slug']?.toString() ??
             titre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
         final id = 'julesjulien_${slug}_$dateStr';
@@ -114,6 +116,7 @@ class TheatreJulesJulienScraper {
           categorie: 'Theatre',
           tarifNormal: isFree ? 'Gratuit' : '',
           reservationUrl: link.isNotEmpty ? link : '',
+          photoPath: imageUrl,
         ),);
       }
 

@@ -25,10 +25,18 @@ class _PulzAppState extends State<PulzApp> with WidgetsBindingObserver {
   }
 
   /// Intercepte le bouton retour Android :
+  /// - Si une bottom sheet / dialog est ouverte → la ferme
   /// - Sur un shell mode → retour a l'accueil
   /// - Sur l'accueil / splash → minimise l'app
   @override
   Future<bool> didPopRoute() async {
+    // Laisser le navigateur racine fermer les modales (bottom sheets, dialogs)
+    final navigator = appRouter.routerDelegate.navigatorKey.currentState;
+    if (navigator != null && navigator.canPop()) {
+      navigator.pop();
+      return true;
+    }
+
     final location =
         appRouter.routerDelegate.currentConfiguration.uri.toString();
     if (location.startsWith('/mode/')) {

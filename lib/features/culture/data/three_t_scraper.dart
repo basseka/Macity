@@ -138,6 +138,10 @@ class ThreeTScraper {
       final html = response.data;
       if (html == null || html.isEmpty) return [];
 
+      // Extraire l'image du spectacle (og:image ou affiche)
+      final imgMatch = RegExp(r'<meta\s+property="og:image"\s+content="([^"]+)"').firstMatch(html);
+      final imageUrl = imgMatch?.group(1);
+
       // Extraire les dates (dedup car elles apparaissent 2x dans le HTML)
       final seenDates = <String>{};
       final dates = <_ShowDate>[];
@@ -185,6 +189,7 @@ class ThreeTScraper {
           categorie: 'Theatre',
           tarifNormal: tarif,
           reservationUrl: url,
+          photoPath: imageUrl,
         );
       }).toList();
     } catch (_) {

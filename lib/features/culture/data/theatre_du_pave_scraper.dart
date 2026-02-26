@@ -63,6 +63,7 @@ class TheatreDuPaveScraper {
 
         final url = item['url']?.toString() ?? '';
         final cost = item['cost']?.toString() ?? '';
+        final imageUrl = (item['image'] as Map<String, dynamic>?)?['url']?.toString();
         final slug = item['slug']?.toString() ?? titre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
         final id = 'pave_${slug}_$dateDebut';
 
@@ -83,6 +84,7 @@ class TheatreDuPaveScraper {
           categorie: 'Theatre',
           tarifNormal: cost,
           reservationUrl: url,
+          photoPath: imageUrl,
         ));
       }
 

@@ -185,6 +185,46 @@ final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   return all;
 });
 
+/// Theatre events agrégés progressivement pour l'onglet "A venir".
+/// Chaque scraper qui termine ajoute ses résultats immédiatement
+/// au lieu d'attendre les 17 scrapers.
+final cultureTheatreEventsProgressiveProvider =
+    Provider<({List<Event> events, bool isLoading})>((ref) {
+  final providers = [
+    ref.watch(theatreSoranoEventsProvider),
+    ref.watch(theatrePontNeufEventsProvider),
+    ref.watch(cavePoesieEventsProvider),
+    ref.watch(theatreGaronneEventsProvider),
+    ref.watch(theatreCiteEventsProvider),
+    ref.watch(theatreCapitoleEventsProvider),
+    ref.watch(theatreGrandRondEventsProvider),
+    ref.watch(grenierTheatreEventsProvider),
+    ref.watch(threeTEventsProvider),
+    ref.watch(theatreDuPaveEventsProvider),
+    ref.watch(filAPlombEventsProvider),
+    ref.watch(theatreMazadesEventsProvider),
+    ref.watch(theatreVioletteEventsProvider),
+    ref.watch(theatreDePocheEventsProvider),
+    ref.watch(theatreChienBlancEventsProvider),
+    ref.watch(briqueRougeEventsProvider),
+    ref.watch(theatreJulesJulienEventsProvider),
+  ];
+
+  final all = <Event>[];
+  var loading = false;
+
+  for (final p in providers) {
+    p.when(
+      data: (events) => all.addAll(events),
+      loading: () => loading = true,
+      error: (_, __) {},
+    );
+  }
+
+  all.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+  return (events: all, isLoading: loading);
+});
+
 /// Mapping venue ID → nom du lieu utilise dans les scrapers.
 const _venueIdToLieuNom = <String, String>{
   'theatre_de_la_cite': 'Theatre de la Cite',

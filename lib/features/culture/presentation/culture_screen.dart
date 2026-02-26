@@ -301,45 +301,43 @@ class CultureScreen extends ConsumerWidget {
 
   Widget _buildCetteSemaineEventsList(WidgetRef ref, ModeTheme modeTheme) {
     final museumAsync = ref.watch(cultureMuseumEventsProvider);
-    final theatreAsync = ref.watch(cultureTheatreEventsProvider);
+    final theatreState = ref.watch(cultureTheatreEventsProgressiveProvider);
     final userEvents = ref.watch(cultureUserEventsProvider);
 
     return museumAsync.when(
       data: (museumEvents) {
-        return theatreAsync.when(
-          data: (theatreEvents) {
-            final allEvents = [
-              ...userEvents,
-              ...museumEvents,
-              ...theatreEvents,
-            ];
-            if (allEvents.isEmpty) {
-              return const EmptyStateWidget(
-                message: 'Aucun evenement culturel a venir',
-                icon: Icons.event,
-              );
-            }
-            return _buildGroupedCultureEventsList(allEvents, modeTheme, ref);
-          },
-          loading: () {
-            // Afficher les musees en attendant les theatres
-            final partial = [...userEvents, ...museumEvents];
-            if (partial.isEmpty) {
-              return LoadingIndicator(color: modeTheme.primaryColor);
-            }
-            return _buildGroupedCultureEventsList(partial, modeTheme, ref);
-          },
-          error: (_, __) {
-            // Fallback sur musees seuls
-            final partial = [...userEvents, ...museumEvents];
-            if (partial.isEmpty) {
-              return const EmptyStateWidget(
-                message: 'Aucun evenement culturel a venir',
-                icon: Icons.event,
-              );
-            }
-            return _buildGroupedCultureEventsList(partial, modeTheme, ref);
-          },
+        final allEvents = [
+          ...userEvents,
+          ...museumEvents,
+          ...theatreState.events,
+        ];
+        if (allEvents.isEmpty && theatreState.isLoading) {
+          return LoadingIndicator(color: modeTheme.primaryColor);
+        }
+        if (allEvents.isEmpty) {
+          return const EmptyStateWidget(
+            message: 'Aucun evenement culturel a venir',
+            icon: Icons.event,
+          );
+        }
+        return Column(
+          children: [
+            Expanded(
+              child: _buildGroupedCultureEventsList(allEvents, modeTheme, ref),
+            ),
+            if (theatreState.isLoading)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: modeTheme.primaryColor.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+          ],
         );
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
@@ -359,6 +357,8 @@ class CultureScreen extends ConsumerWidget {
     WidgetRef ref,
   ) {
     final filter = ref.watch(dateRangeFilterProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
     // Group events by date
     final grouped = <String, List<Event>>{};
@@ -366,6 +366,9 @@ class CultureScreen extends ConsumerWidget {
       final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
       final parsed = DateTime.tryParse(dateKey);
       if (parsed != null && !filter.isInRange(parsed)) continue;
+      // Filtrer les evenements passes
+      final fin = DateTime.tryParse(e.dateFin) ?? parsed;
+      if (fin != null && fin.isBefore(today)) continue;
       grouped.putIfAbsent(dateKey, () => []).add(e);
     }
 

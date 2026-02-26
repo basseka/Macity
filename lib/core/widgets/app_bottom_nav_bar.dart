@@ -86,6 +86,7 @@ class AppBottomNavBar extends ConsumerWidget {
   void _showCityPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const CityPickerBottomSheet(),
@@ -95,6 +96,7 @@ class AppBottomNavBar extends ConsumerWidget {
   void _showLikedPlaces(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const LikedPlacesBottomSheet(),
@@ -109,6 +111,7 @@ class AppBottomNavBar extends ConsumerWidget {
       case ProAuthStatus.pendingApproval:
         showModalBottomSheet(
           context: context,
+          useRootNavigator: true,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => const ProPendingSheet(),
@@ -117,6 +120,7 @@ class AppBottomNavBar extends ConsumerWidget {
       case ProAuthStatus.loading:
         showModalBottomSheet(
           context: context,
+          useRootNavigator: true,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => const ProLoginSheet(),
@@ -147,6 +151,7 @@ class AppBottomNavBar extends ConsumerWidget {
       case ProAuthStatus.pendingApproval:
         showModalBottomSheet(
           context: context,
+          useRootNavigator: true,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => const ProPendingSheet(),
@@ -154,6 +159,7 @@ class AppBottomNavBar extends ConsumerWidget {
       case ProAuthStatus.notConnected:
         showModalBottomSheet(
           context: context,
+          useRootNavigator: true,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => const ProLoginSheet(),
@@ -166,6 +172,7 @@ class AppBottomNavBar extends ConsumerWidget {
   void _showProActionChoice(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         decoration: const BoxDecoration(
@@ -202,6 +209,7 @@ class AppBottomNavBar extends ConsumerWidget {
                   Navigator.pop(ctx);
                   showModalBottomSheet(
                     context: context,
+                    useRootNavigator: true,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (_) => const AddEventBottomSheet(),
@@ -216,6 +224,7 @@ class AppBottomNavBar extends ConsumerWidget {
                   Navigator.pop(ctx);
                   showModalBottomSheet(
                     context: context,
+                    useRootNavigator: true,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (_) => const AddOfferBottomSheet(),

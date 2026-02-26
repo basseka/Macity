@@ -155,6 +155,7 @@ class TheatreChienBlancScraper {
   /// Fetch la page detail pour recuperer l'horaire.
   static Future<Event> _enrichWithHoraire(_Show show) async {
     var horaires = '';
+    String? imageUrl;
 
     if (show.detailUrl.isNotEmpty) {
       try {
@@ -164,6 +165,8 @@ class TheatreChienBlancScraper {
         if (horaireMatch != null) {
           horaires = horaireMatch.group(1)!;
         }
+        final imgMatch = RegExp(r'data-src="(https://[^"]+\.(?:jpg|jpeg|png|webp))"', caseSensitive: false).firstMatch(html);
+        imageUrl = imgMatch?.group(1);
       } catch (_) {
         // Pas grave, on continue sans horaire
       }
@@ -191,6 +194,7 @@ class TheatreChienBlancScraper {
       reservationUrl: show.detailUrl.isNotEmpty
           ? show.detailUrl
           : 'https://billetterie.festik.net/theatre-du-chien-blanc',
+      photoPath: imageUrl,
     );
   }
 
