@@ -48,14 +48,15 @@ class ScrapedEventsSupabaseService {
     return data.map((e) => Event.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  /// Search events by name across all rubriques.
+  /// Search events by name, description, lieu, or category across all rubriques.
   Future<List<Event>> searchEvents(String query, {int limit = 30}) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final response = await _dio.get(
       'scraped_events',
       queryParameters: <String, String>{
         'select': '*',
-        'nom_de_la_manifestation': 'ilike.*$query*',
+        'or':
+            '(nom_de_la_manifestation.ilike.*$query*,descriptif_court.ilike.*$query*,lieu_nom.ilike.*$query*,type_de_manifestation.ilike.*$query*,categorie_de_la_manifestation.ilike.*$query*)',
         'date_debut': 'gte.$today',
         'order': 'date_debut.asc',
         'limit': '$limit',

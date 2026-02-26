@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
-import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
+import 'package:pulz_app/features/search/data/unified_search_service.dart';
+import 'package:pulz_app/features/search/domain/search_result.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/match_row_card.dart';
 
 class SearchEventsBottomSheet extends ConsumerStatefulWidget {
   const SearchEventsBottomSheet({super.key});
@@ -18,9 +19,9 @@ class SearchEventsBottomSheet extends ConsumerStatefulWidget {
 class _SearchEventsBottomSheetState
     extends ConsumerState<SearchEventsBottomSheet> {
   final _controller = TextEditingController();
-  final _service = ScrapedEventsSupabaseService();
+  final _service = UnifiedSearchService();
   Timer? _debounce;
-  List<Event>? _results;
+  List<SearchResult>? _results;
   bool _loading = false;
   String? _error;
 
@@ -47,10 +48,10 @@ class _SearchEventsBottomSheetState
 
   Future<void> _search(String query) async {
     try {
-      final events = await _service.searchEvents(query);
+      final results = await _service.search(query);
       if (!mounted) return;
       setState(() {
-        _results = events;
+        _results = results;
         _loading = false;
         _error = null;
       });
@@ -202,10 +203,16 @@ class _SearchEventsBottomSheetState
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       itemCount: _results!.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: EventRowCard(event: _results![index]),
-      ),
+      itemBuilder: (context, index) {
+        final result = _results![index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: switch (result) {
+            EventResult(:final event) => EventRowCard(event: event),
+            MatchResult(:final match) => MatchRowCard(match: match),
+          },
+        );
+      },
     );
   }
 }

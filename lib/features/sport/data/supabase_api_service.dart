@@ -44,4 +44,29 @@ class SupabaseApiService {
       throw Exception('Failed to fetch Supabase matches: ${e.message}');
     }
   }
+
+  /// Search matches by team name, sport, competition, or venue.
+  Future<List<SupabaseMatch>> searchMatches(String query,
+      {int limit = 15}) async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    try {
+      final response = await _dio.get(
+        'matchs',
+        queryParameters: <String, String>{
+          'select': '*',
+          'or':
+              '(equipe_dom.ilike.*$query*,equipe_ext.ilike.*$query*,sport.ilike.*$query*,competition.ilike.*$query*,lieu.ilike.*$query*)',
+          'date': 'gte.$today',
+          'order': 'date.asc',
+          'limit': '$limit',
+        },
+      );
+      final data = response.data as List;
+      return data
+          .map((e) => SupabaseMatch.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw Exception('Failed to search Supabase matches: ${e.message}');
+    }
+  }
 }

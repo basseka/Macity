@@ -168,15 +168,39 @@ class UserEventSupabaseService {
     );
   }
 
-  /// Supprime tous les événements dont la date est passée.
+  /// Search user events by title, description, lieu, category, or city.
+  Future<List<UserEvent>> searchEvents(String query, {int limit = 15}) async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final response = await _restDio.get(
+      'user_events',
+      queryParameters: <String, String>{
+        'select': '*',
+        'or':
+            '(titre.ilike.*$query*,description.ilike.*$query*,lieu_nom.ilike.*$query*,categorie.ilike.*$query*,ville.ilike.*$query*)',
+        'date': 'gte.$today',
+        'order': 'date.asc',
+        'limit': '$limit',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => UserEvent.fromSupabaseJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Supprime les événements expirés de l'utilisateur courant uniquement.
   Future<void> deleteExpiredEvents() async {
+    final userId = await UserIdentityService.getUserId();
     final now = DateTime.now();
     final today =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
     await _restDio.delete(
       'user_events',
-      queryParameters: {'date': 'lt.$today'},
+      queryParameters: {
+        'date': 'lt.$today',
+        'user_id': 'eq.$userId',
+      },
     );
   }
 }
