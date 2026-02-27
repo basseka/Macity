@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,7 +28,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFFF8F0FA),
       bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
       body: SafeArea(
@@ -132,6 +140,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
       ),
+    ),
     );
   }
 
@@ -227,7 +236,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.inter(
-                                fontSize: 14, fontWeight: FontWeight.w500,
+                                fontSize: 12, fontWeight: FontWeight.w500,
                                 color: Colors.white,
                                 shadows: [
                                   const Shadow(
