@@ -3,8 +3,7 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/data/event_repository.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
-
-final daySubcategoryProvider = StateProvider<String?>((ref) => null);
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 /// Count provider per subcategory (used for badge on grid cards).
 /// Inclut les événements API + les événements utilisateur correspondants.
@@ -86,5 +85,6 @@ bool _isKnownCategory(Event e) {
   if (cat.contains('spectacle') || type.contains('spectacle')) return true;
   if (cat.contains('dj') || type.contains('dj')) return true;
   if (cat.contains('showcase') || type.contains('showcase')) return true;
+  if (cat.contains('stand up') || type.contains('stand up')) return true;
   return false;
 }

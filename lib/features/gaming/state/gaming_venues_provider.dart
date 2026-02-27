@@ -6,8 +6,7 @@ import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/gaming/data/gaming_category_data.dart';
 import 'package:pulz_app/core/database/app_database.dart';
-
-final gamingCategoryProvider = StateProvider<String?>((ref) => null);
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 /// Evenements utilisateur filtres pour la rubrique "gaming".
 final gamingUserEventsProvider = Provider<List<Event>>((ref) {

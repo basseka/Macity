@@ -54,12 +54,16 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
       state = const ProAuthState(status: ProAuthStatus.notConnected);
       return;
     }
+
+    // Toujours rafraichir le profil depuis Supabase pour avoir le statut a jour
     state = ProAuthState(
       status: profile.approved
           ? ProAuthStatus.approved
           : ProAuthStatus.pendingApproval,
       profile: profile,
     );
+    // Rafraichir en arriere-plan sans bloquer l'UI
+    refreshStatus();
   }
 
   Future<void> register({

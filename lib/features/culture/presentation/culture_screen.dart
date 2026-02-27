@@ -25,6 +25,7 @@ import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 
 class CultureScreen extends ConsumerWidget {
@@ -81,7 +82,7 @@ class CultureScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(cultureCategoryProvider.notifier).state = sub.searchTag;
+            ref.read(modeSubcategoriesProvider.notifier).select('culture', sub.searchTag);
           },
         );
       },
@@ -114,7 +115,7 @@ class CultureScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               InkWell(
                 onTap: () {
-                  ref.read(cultureCategoryProvider.notifier).state = null;
+                  ref.read(modeSubcategoriesProvider.notifier).select('culture', null);
                   ref.read(dateRangeFilterProvider.notifier).state =
                       const DateRangeFilter();
                 },

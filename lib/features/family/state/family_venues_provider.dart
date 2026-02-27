@@ -16,8 +16,7 @@ import 'package:pulz_app/features/family/data/laser_game_venues_data.dart';
 import 'package:pulz_app/features/family/data/park_venues_data.dart';
 import 'package:pulz_app/features/family/data/playground_venues_data.dart';
 import 'package:pulz_app/core/database/app_database.dart';
-
-final familyCategoryProvider = StateProvider<String?>((ref) => null);
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 String _todayStr() {
   final now = DateTime.now();

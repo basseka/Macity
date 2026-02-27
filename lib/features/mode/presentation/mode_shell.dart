@@ -7,6 +7,7 @@ import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/presentation/widgets/swipe_detector.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 
@@ -21,6 +22,8 @@ class ModeShell extends ConsumerWidget {
 
     // Navigate to the correct route when mode changes
     ref.listen<String>(currentModeProvider, (previous, next) {
+      // Remettre la grille de rubriques a chaque changement de shell
+      ref.read(modeSubcategoriesProvider.notifier).select(next, null);
       final newMode = AppMode.fromName(next);
       context.go(newMode.routePath);
     });

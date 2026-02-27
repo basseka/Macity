@@ -15,6 +15,7 @@ import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/data/night_category_data.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 class NightScreen extends ConsumerWidget {
   const NightScreen({super.key});
@@ -70,7 +71,7 @@ class NightScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(nightCategoryProvider.notifier).state = sub.searchTag;
+            ref.read(modeSubcategoriesProvider.notifier).select('night', sub.searchTag);
           },
         );
       },
@@ -105,7 +106,7 @@ class NightScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               InkWell(
                 onTap: () {
-                  ref.read(nightCategoryProvider.notifier).state = null;
+                  ref.read(modeSubcategoriesProvider.notifier).select('night', null);
                   ref.read(dateRangeFilterProvider.notifier).state =
                       const DateRangeFilter();
                 },

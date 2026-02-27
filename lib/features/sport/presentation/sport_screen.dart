@@ -16,6 +16,7 @@ import 'package:pulz_app/features/sport/presentation/widgets/fitness_venue_card.
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/match_row_card.dart';
 import 'package:pulz_app/features/sport/state/sport_matches_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 class SportScreen extends ConsumerWidget {
   const SportScreen({super.key});
@@ -71,7 +72,7 @@ class SportScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(sportSubcategoryProvider.notifier).state = sub.searchTag;
+            ref.read(modeSubcategoriesProvider.notifier).select('sport', sub.searchTag);
           },
         );
       },
@@ -106,7 +107,7 @@ class SportScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               InkWell(
                 onTap: () {
-                  ref.read(sportSubcategoryProvider.notifier).state = null;
+                  ref.read(modeSubcategoriesProvider.notifier).select('sport', null);
                   ref.read(dateRangeFilterProvider.notifier).state =
                       const DateRangeFilter();
                 },

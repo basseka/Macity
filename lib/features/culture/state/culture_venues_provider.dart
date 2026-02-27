@@ -13,8 +13,7 @@ import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
-
-final cultureCategoryProvider = StateProvider<String?>((ref) => null);
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 /// Evenements utilisateur filtres pour la rubrique "culture".
 final cultureUserEventsProvider = Provider<List<Event>>((ref) {

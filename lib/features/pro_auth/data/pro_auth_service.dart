@@ -134,6 +134,15 @@ class ProAuthService {
       );
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
+        final body = e.response?.data;
+        final errorMsg = body is Map ? (body['error_description'] ?? body['msg'] ?? '') as String : '';
+        final msgLower = errorMsg.toLowerCase();
+
+        if (msgLower.contains('email not confirmed') ||
+            msgLower.contains('email_not_confirmed')) {
+          throw Exception('Veuillez confirmer votre email avant de vous connecter. '
+              'Verifiez votre boite de reception (et les spams).');
+        }
         return null; // Identifiants invalides
       }
       rethrow;

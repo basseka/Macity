@@ -7,8 +7,7 @@ import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
 import 'package:pulz_app/core/database/app_database.dart';
-
-final foodCategoryProvider = StateProvider<String?>((ref) => null);
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 /// Evenements utilisateur filtres pour la rubrique "food".
 final foodUserEventsProvider = Provider<List<Event>>((ref) {

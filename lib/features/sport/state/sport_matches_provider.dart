@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/sport/data/fitness_venues_data.dart';
 import 'package:pulz_app/features/sport/data/sport_repository.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
-
-final sportSubcategoryProvider = StateProvider<String?>((ref) => null);
 
 final sportSubcategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {

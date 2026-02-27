@@ -15,6 +15,7 @@ import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/gaming/state/gaming_venues_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 
 class GamingScreen extends ConsumerWidget {
@@ -71,7 +72,7 @@ class GamingScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(gamingCategoryProvider.notifier).state = sub.searchTag;
+            ref.read(modeSubcategoriesProvider.notifier).select('gaming', sub.searchTag);
           },
         );
       },
@@ -105,7 +106,7 @@ class GamingScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               InkWell(
                 onTap: () {
-                  ref.read(gamingCategoryProvider.notifier).state = null;
+                  ref.read(modeSubcategoriesProvider.notifier).select('gaming', null);
                   ref.read(dateRangeFilterProvider.notifier).state =
                       const DateRangeFilter();
                 },

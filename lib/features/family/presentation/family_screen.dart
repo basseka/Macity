@@ -31,6 +31,7 @@ import 'package:pulz_app/features/family/presentation/widgets/ice_rink_venue_car
 import 'package:pulz_app/features/family/presentation/widgets/playground_venue_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 
 class FamilyScreen extends ConsumerWidget {
@@ -87,7 +88,7 @@ class FamilyScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(familyCategoryProvider.notifier).state = sub.searchTag;
+            ref.read(modeSubcategoriesProvider.notifier).select('family', sub.searchTag);
           },
         );
       },
@@ -122,7 +123,7 @@ class FamilyScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               InkWell(
                 onTap: () {
-                  ref.read(familyCategoryProvider.notifier).state = null;
+                  ref.read(modeSubcategoriesProvider.notifier).select('family', null);
                   ref.read(dateRangeFilterProvider.notifier).state =
                       const DateRangeFilter();
                 },

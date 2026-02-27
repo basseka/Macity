@@ -17,6 +17,7 @@ import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
 import 'package:pulz_app/features/food/presentation/widgets/restaurant_venue_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/food/state/food_venues_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 
 class FoodScreen extends ConsumerWidget {
@@ -73,7 +74,7 @@ class FoodScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(foodCategoryProvider.notifier).state = sub.searchTag;
+            ref.read(modeSubcategoriesProvider.notifier).select('food', sub.searchTag);
           },
         );
       },
@@ -107,7 +108,7 @@ class FoodScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               InkWell(
                 onTap: () {
-                  ref.read(foodCategoryProvider.notifier).state = null;
+                  ref.read(modeSubcategoriesProvider.notifier).select('food', null);
                   ref.read(dateRangeFilterProvider.notifier).state =
                       const DateRangeFilter();
                 },

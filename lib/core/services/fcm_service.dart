@@ -11,6 +11,8 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
 
 /// Gere l'enregistrement du token FCM dans Supabase
@@ -65,6 +67,57 @@ class FcmService {
 
     // Foreground messages → afficher via local notification
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+
+    // Notification quotidienne a 18h
+    await _scheduleDailyReminder();
+  }
+
+  /// Programme une notification locale tous les jours a 18h00.
+  static const _dailyReminderId = 88000;
+
+  static Future<void> _scheduleDailyReminder() async {
+    try {
+      tz.initializeTimeZones();
+      final paris = tz.getLocation('Europe/Paris');
+
+      final now = tz.TZDateTime.now(paris);
+      var scheduled = tz.TZDateTime(paris, now.year, now.month, now.day, 18, 0);
+      // Si 18h est deja passe aujourd'hui, programmer pour demain
+      if (scheduled.isBefore(now)) {
+        scheduled = scheduled.add(const Duration(days: 1));
+      }
+
+      await _localNotifications.zonedSchedule(
+        _dailyReminderId,
+        'De nouveaux events t\'attendent !',
+        'Decouvre les derniers evenements dans ta ville',
+        scheduled,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _androidChannel.id,
+            _androidChannel.name,
+            channelDescription: _androidChannel.description,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@drawable/ic_notification',
+            color: const Color(0xFF9C27B0),
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+
+      debugPrint('[FCM] Notification quotidienne 18h programmee');
+    } catch (e) {
+      debugPrint('[FCM] Erreur planification 18h: $e');
+    }
   }
 
   /// Affiche la notification même quand l'app est au premier plan.

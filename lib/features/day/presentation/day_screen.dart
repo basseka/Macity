@@ -13,7 +13,7 @@ import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
-import 'package:pulz_app/features/day/state/day_subcategory_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 
 class DayScreen extends ConsumerWidget {
@@ -71,10 +71,7 @@ class DayScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(selectedDaySubcategoryProvider.notifier).state =
-                sub.searchTag;
-            ref.read(daySubcategoryProvider.notifier).state =
-                sub.searchTag;
+            ref.read(modeSubcategoriesProvider.notifier).select('day', sub.searchTag);
           },
         );
       },
@@ -109,9 +106,7 @@ class DayScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               InkWell(
                 onTap: () {
-                  ref.read(selectedDaySubcategoryProvider.notifier).state =
-                      null;
-                  ref.read(daySubcategoryProvider.notifier).state = null;
+                  ref.read(modeSubcategoriesProvider.notifier).select('day', null);
                   ref.read(dateRangeFilterProvider.notifier).state =
                       const DateRangeFilter();
                 },
