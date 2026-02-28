@@ -5,7 +5,7 @@
 // Porte depuis les 6 services Dart day_*.
 
 import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate } from "../_shared/db.ts";
-import { fetchHtml, fetchJson, cleanHtml, isoToDate, isoToTime, buildIsoDate } from "../_shared/html-utils.ts";
+import { fetchHtml, fetchJson, cleanHtml, isoToDate, isoToTime, buildIsoDate, frenchMonths } from "../_shared/html-utils.ts";
 
 const TICKETMASTER_API_KEY = Deno.env.get("TICKETMASTER_API_KEY") ?? "";
 const ODS_BASE = "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/agenda-des-manifestations-culturelles-so-toulouse/records";
@@ -336,6 +336,157 @@ async function fetchOperaToulouse(): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// TimeForGig (timeforgig.com/toulouse)
+// ─────────────────────────────────────────────────────────────
+const ENGLISH_MONTHS: Record<string, number> = {
+  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+};
+
+function parseEnglishDate(text: string): string | null {
+  // "Sat 28 Feb 2026"
+  const m = text.match(/(\d{1,2})\s+(\w{3})\s+(\d{4})/);
+  if (!m) return null;
+  const day = parseInt(m[1], 10);
+  const month = ENGLISH_MONTHS[m[2].toLowerCase()];
+  const year = parseInt(m[3], 10);
+  if (!month || isNaN(day) || isNaN(year)) return null;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+async function fetchTimeForGig(): Promise<ScrapedEvent[]> {
+  try {
+    const html = await fetchHtml("https://www.timeforgig.com/toulouse/cities/ygyeww", 15000);
+    const parts = html.split('class="event_list"');
+    if (parts.length < 2) {
+      console.log("timeforgig: no event_list found");
+      return [];
+    }
+
+    const eventSection = parts[1];
+    const rows = eventSection.split('<div class="row align-items-center">');
+    const events: ScrapedEvent[] = [];
+    const seen = new Set<string>();
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+
+      // Extract text nodes
+      const textMatches = [...row.matchAll(/>([^<]+)</g)];
+      const texts = textMatches
+        .map(m => m[1].trim())
+        .filter(t => t && !t.startsWith("{"));
+      if (texts.length < 2) continue;
+
+      const artist = cleanHtml(texts[0]);
+      if (!artist) continue;
+
+      const info = texts[1]; // "Sat 28 Feb 2026 - ZENITH TOULOUSE METROPOLE"
+      const dashIdx = info.indexOf(" - ");
+      if (dashIdx < 0) continue;
+
+      const dateStr = info.substring(0, dashIdx).trim();
+      const venue = info.substring(dashIdx + 3).trim();
+      const startDate = parseEnglishDate(dateStr);
+      if (!startDate || !isFutureDate(startDate)) continue;
+
+      // Dedup
+      const dedupKey = `${normalize(artist)}|${startDate}`;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+
+      const linkMatch = row.match(/href="(\/[^"]+\/events\/[^"]+)"/);
+      const url = linkMatch ? `https://www.timeforgig.com${linkMatch[1]}` : "";
+
+      const id = `tfg_${normalize(artist).slice(0, 40)}_${startDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source: "day_concert", rubrique: "day",
+        nom_de_la_manifestation: artist,
+        date_debut: startDate, date_fin: startDate,
+        lieu_nom: venue,
+        commune: "Toulouse",
+        type_de_manifestation: "Concert",
+        categorie_de_la_manifestation: "Concert",
+        manifestation_gratuite: "non",
+        reservation_site_internet: url,
+      }));
+    }
+
+    console.log(`timeforgig: ${events.length} events from ${rows.length - 1} rows`);
+    return events;
+  } catch (e) { console.error("TimeForGig error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Zénith Toulouse Métropole (HTML card-show blocks)
+// ─────────────────────────────────────────────────────────────
+function parseFrenchDate(text: string): string | null {
+  // "Samedi 28 févr. 2026" or "Vendredi 06 mars 2026"
+  // \w+ ne matche pas les accents (é, û, etc.) → utiliser [^\s.]+
+  const m = text.match(/(\d{1,2})\s+([^\s.]+)\.?\s+(\d{4})/);
+  if (!m) return null;
+  return buildIsoDate(m[1], m[2], m[3]);
+}
+
+async function fetchZenith(): Promise<ScrapedEvent[]> {
+  try {
+    const html = await fetchHtml("https://zenith-toulousemetropole.com/program", 15000);
+    const blocks = html.split('class="card-show"');
+    const events: ScrapedEvent[] = [];
+    const seen = new Set<string>();
+
+    for (let i = 1; i < blocks.length; i++) {
+      const block = blocks[i].substring(0, 3000);
+
+      const artistMatch = block.match(/class="card-show__artist">(.*?)<\/div>/);
+      const name = artistMatch ? cleanHtml(artistMatch[1]) : "";
+      if (!name) continue;
+
+      const dateMatch = block.match(/class="card-show__date">(.*?)<\/div>/s);
+      const dateText = dateMatch ? cleanHtml(dateMatch[1]) : "";
+      const startDate = parseFrenchDate(dateText);
+      if (!startDate || !isFutureDate(startDate)) continue;
+
+      // Skip cancelled events
+      const stateMatch = block.match(/class="card-show__state">(.*?)<\/div>/s);
+      const state = stateMatch ? cleanHtml(stateMatch[1]).toLowerCase() : "";
+      if (state.includes("annul")) continue;
+
+      // Dedup (Holiday on Ice has multiple slots)
+      const dedupKey = `${normalize(name)}|${startDate}`;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+
+      // Extract ticket URL
+      const linkMatch = block.match(/href="(\/shows\/[^"]+)"/);
+      const showUrl = linkMatch
+        ? `https://zenith-toulousemetropole.com${decodeURIComponent(linkMatch[1])}`
+        : "";
+
+      const id = `zenith_${normalize(name).slice(0, 40)}_${startDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source: "day_concert", rubrique: "day",
+        nom_de_la_manifestation: name,
+        date_debut: startDate, date_fin: startDate,
+        lieu_nom: "ZENITH TOULOUSE METROPOLE",
+        lieu_adresse_2: "11 Avenue Raymond Badiou",
+        commune: "Toulouse",
+        code_postal: 31100,
+        type_de_manifestation: "Concert",
+        categorie_de_la_manifestation: "Concert",
+        manifestation_gratuite: "non",
+        reservation_site_internet: showUrl,
+      }));
+    }
+
+    console.log(`zenith: ${events.length} events from ${blocks.length - 1} blocks`);
+    return events;
+  } catch (e) { console.error("Zenith error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Categorize ODS events by type/category
 // ─────────────────────────────────────────────────────────────
 function categorizeEvent(e: ScrapedEvent): string {
@@ -365,7 +516,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   const today = todayStr();
   const where = `date_debut >= "${today}"`;
 
-  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini] = await Promise.all([
+  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini, zenith, tfg] = await Promise.all([
     fetchODS(where),
     fetchTicketmaster(),
     fetchFestik("Concert"),
@@ -373,6 +524,8 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
     fetchFestik("Spectacle"),
     fetchOperaToulouse(),
     fetchBikini(),
+    fetchZenith(),
+    fetchTimeForGig(),
   ]);
 
   // Tag ODS events by category
@@ -391,7 +544,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   }).map(e => ({ ...e, source: "day_spectacle" }));
 
   // Curated sources first so they win dedup over generic ODS tags
-  const all = [...operaTls, ...bikini, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
+  const all = [...zenith, ...tfg, ...operaTls, ...bikini, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
   return dedup(all);
 }
 

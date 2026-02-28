@@ -1,33 +1,12 @@
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// Gere la sous-categorie selectionnee pour chaque mode (day, sport, culture, …)
-/// et persiste le choix dans SharedPreferences.
+/// Gere la sous-categorie selectionnee pour chaque mode (day, sport, culture, …).
+/// Pas de persistence : on repart toujours de la grille au demarrage.
 class ModeSubcategoriesNotifier extends StateNotifier<Map<String, String?>> {
-  ModeSubcategoriesNotifier() : super({}) {
-    _load();
-  }
-
-  static const _key = 'mode_selected_subcategories';
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final json = prefs.getString(_key);
-    if (json != null) {
-      final decoded = jsonDecode(json) as Map<String, dynamic>;
-      state = decoded.map((k, v) => MapEntry(k, v as String?));
-    }
-  }
+  ModeSubcategoriesNotifier() : super({});
 
   void select(String mode, String? subcategory) {
     state = {...state, mode: subcategory};
-    _save();
-  }
-
-  Future<void> _save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode(state));
   }
 }
 

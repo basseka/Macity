@@ -22,19 +22,23 @@ class DayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedSubcategory = ref.watch(selectedDaySubcategoryProvider);
-    final modeTheme = ref.watch(modeThemeProvider);
+    final selectedVenue = ref.watch(selectedConcertVenueProvider);
+
+    Widget content;
+    if (selectedSubcategory == null) {
+      content = _buildSubcategoryGrid(context, ref);
+    } else if (selectedSubcategory == 'Concert' && selectedVenue == null) {
+      content = _buildVenueGrid(context, ref);
+    } else if (selectedSubcategory == 'Concert' && selectedVenue != null) {
+      content = _buildVenueEventsList(context, ref, selectedVenue);
+    } else {
+      content = _buildEventsList(context, ref, selectedSubcategory);
+    }
 
     return Column(
       children: [
-
         const SizedBox(height: 12),
-
-        // Content
-        Expanded(
-          child: selectedSubcategory == null
-              ? _buildSubcategoryGrid(context, ref)
-              : _buildEventsList(context, ref, selectedSubcategory),
-        ),
+        Expanded(child: content),
       ],
     );
   }
@@ -71,10 +75,175 @@ class DayScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
+            ref.read(selectedConcertVenueProvider.notifier).state = null;
             ref.read(modeSubcategoriesProvider.notifier).select('day', sub.searchTag);
           },
         );
       },
+    );
+  }
+
+  Widget _buildVenueGrid(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    const venues = DayCategoryData.concertVenues;
+
+    return Column(
+      children: [
+        // Back to subcategories
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Concert',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildBackButton(ref, modeTheme, onTap: () {
+                ref.read(modeSubcategoriesProvider.notifier).select('day', null);
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.85,
+            ),
+            itemCount: venues.length,
+            itemBuilder: (context, index) {
+              final venue = venues[index];
+              final countAsync =
+                  ref.watch(concertVenueCountProvider(venue.searchKeyword));
+              return DaySubcategoryCard(
+                emoji: '',
+                label: venue.label,
+                image: venue.image,
+                count: countAsync.valueOrNull,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    modeTheme.primaryColor,
+                    modeTheme.primaryDarkColor,
+                  ],
+                ),
+                onTap: () {
+                  ref.read(selectedConcertVenueProvider.notifier).state =
+                      venue.searchKeyword;
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVenueEventsList(
+    BuildContext context,
+    WidgetRef ref,
+    String venueKeyword,
+  ) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    final eventsAsync = ref.watch(dayVenueEventsProvider);
+
+    // Find venue label for display
+    final venue = DayCategoryData.concertVenues.firstWhere(
+      (v) => v.searchKeyword == venueKeyword,
+      orElse: () => DayCategoryData.concertVenues.first,
+    );
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  venue.label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildBackButton(ref, modeTheme, onTap: () {
+                ref.read(selectedConcertVenueProvider.notifier).state = null;
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: eventsAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return const EmptyStateWidget(
+                  message: 'Aucun evenement trouve pour cette salle',
+                  icon: Icons.event_busy,
+                );
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: events.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: EventRowCard(event: events[index]),
+                ),
+              );
+            },
+            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+            error: (error, _) => AppErrorWidget(
+              message: 'Erreur lors du chargement des evenements',
+              onRetry: () => ref.invalidate(dayVenueEventsProvider),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBackButton(WidgetRef ref, ModeTheme modeTheme, {required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.arrow_back_ios,
+              size: 14,
+              color: modeTheme.primaryColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Retour',
+              style: TextStyle(
+                color: modeTheme.primaryColor,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -104,36 +273,11 @@ class DayScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              InkWell(
-                onTap: () {
-                  ref.read(modeSubcategoriesProvider.notifier).select('day', null);
-                  ref.read(dateRangeFilterProvider.notifier).state =
-                      const DateRangeFilter();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back_ios,
-                        size: 14,
-                        color: modeTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Retour',
-                        style: TextStyle(
-                          color: modeTheme.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _buildBackButton(ref, modeTheme, onTap: () {
+                ref.read(modeSubcategoriesProvider.notifier).select('day', null);
+                ref.read(dateRangeFilterProvider.notifier).state =
+                    const DateRangeFilter();
+              }),
             ],
           ),
         ),

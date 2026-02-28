@@ -5,6 +5,9 @@ import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
+/// Salle de concert sélectionnée (keyword) — null = grille des salles.
+final selectedConcertVenueProvider = StateProvider<String?>((ref) => null);
+
 /// Count provider per subcategory (used for badge on grid cards).
 /// Inclut les événements API + les événements utilisateur correspondants.
 final daySubcategoryCountProvider =
@@ -73,6 +76,33 @@ final dayEventsProvider = FutureProvider<List<Event>>((ref) async {
   // User events first, then API events
   final userConverted = matchingUserEvents.map((ue) => ue.toEvent()).toList();
   return [...userConverted, ...apiEvents];
+});
+
+/// Events filtrés par salle de concert (lieuNom contient le keyword).
+final dayVenueEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final venueKeyword = ref.watch(selectedConcertVenueProvider);
+  if (venueKeyword == null) return [];
+
+  final repository = EventRepository();
+  return repository.fetchEvents(
+    city: city,
+    subcategory: 'Concert',
+    lieuNom: venueKeyword,
+  );
+});
+
+/// Count des events par salle de concert.
+final concertVenueCountProvider =
+    FutureProvider.family<int, String>((ref, keyword) async {
+  final city = ref.watch(selectedCityProvider);
+  final repository = EventRepository();
+  final events = await repository.fetchEvents(
+    city: city,
+    subcategory: 'Concert',
+    lieuNom: keyword,
+  );
+  return events.length;
 });
 
 /// Retourne true si l'événement appartient à une catégorie connue (pas "Autres").

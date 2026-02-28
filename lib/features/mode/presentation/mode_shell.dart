@@ -8,6 +8,8 @@ import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/presentation/widgets/swipe_detector.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/day/state/day_events_provider.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 
@@ -33,9 +35,31 @@ class ModeShell extends ConsumerWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) {
-          context.go('/home');
+        if (didPop) return;
+
+        // Navigation interne : remonter d'un niveau avant de quitter
+        final currentMode = ref.read(currentModeProvider);
+        final subcategory = ref.read(modeSubcategoriesProvider)[currentMode];
+
+        if (currentMode == 'day' && subcategory == 'Concert') {
+          final venue = ref.read(selectedConcertVenueProvider);
+          if (venue != null) {
+            // Events d'une salle → retour à la grille des salles
+            ref.read(selectedConcertVenueProvider.notifier).state = null;
+            return;
+          }
         }
+
+        if (subcategory != null) {
+          // Sous-catégorie sélectionnée → retour à la grille des rubriques
+          ref.read(modeSubcategoriesProvider.notifier).select(currentMode, null);
+          ref.read(dateRangeFilterProvider.notifier).state =
+              const DateRangeFilter();
+          return;
+        }
+
+        // Aucune navigation interne → retour à l'accueil
+        context.go('/home');
       },
       child: Scaffold(
       backgroundColor: modeTheme.backgroundColor,
