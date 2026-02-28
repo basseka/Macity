@@ -5,7 +5,7 @@
 // Porte depuis les 6 services Dart day_*.
 
 import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate } from "../_shared/db.ts";
-import { fetchHtml, fetchJson, cleanHtml, isoToDate, isoToTime, buildIsoDate, frenchMonths } from "../_shared/html-utils.ts";
+import { fetchHtml, fetchJson, cleanHtml, isoToDate, isoToTime, buildIsoDate, frenchMonths, frenchDateToIso } from "../_shared/html-utils.ts";
 
 const TICKETMASTER_API_KEY = Deno.env.get("TICKETMASTER_API_KEY") ?? "";
 const ODS_BASE = "https://data.toulouse-metropole.fr/api/explore/v2.1/catalog/datasets/agenda-des-manifestations-culturelles-so-toulouse/records";
@@ -487,6 +487,164 @@ async function fetchZenith(): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Toulouse Tourisme (FacetWP API — festivals)
+// ─────────────────────────────────────────────────────────────
+/** Fetch the "A propos" description from a toulouse-tourisme.com detail page. */
+async function fetchToulouseTourismeDescription(url: string): Promise<{ short: string; long: string }> {
+  try {
+    const html = await fetchHtml(url, 12000);
+    // Section: <section class='about ...'> → <div class="description">...</div>
+    const descMatch = html.match(/<section[^>]*class=['"]about[^'"]*['"][^>]*>.*?<div[^>]*class="description"[^>]*>(.*?)<\/div>/s);
+    if (!descMatch) return { short: "", long: "" };
+
+    const raw = descMatch[1];
+    // Extract <strong> as short description
+    const strongMatch = raw.match(/<strong>(.*?)<\/strong>/s);
+    const shortDesc = strongMatch ? cleanHtml(strongMatch[1]) : "";
+    // Full text as long description
+    const longDesc = cleanHtml(raw);
+    return { short: shortDesc, long: longDesc };
+  } catch { return { short: "", long: "" }; }
+}
+
+async function fetchToulouseTourisme(): Promise<ScrapedEvent[]> {
+  try {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 20000);
+    let responseText: string;
+    try {
+      const res = await fetch("https://www.toulouse-tourisme.com/wp-json/facetwp/v1/refresh", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120",
+        },
+        body: JSON.stringify({
+          action: "facetwp_refresh",
+          data: {
+            facets: { categoriesfma: ["8bc78750-3546-4234-8277-bf433e6374cc"] },
+            http_params: { uri: "sortir-a-toulouse/agenda-sorties-toulouse", lang: "fr" },
+            template: "agenda",
+            paged: 1,
+            per_page: 100,
+          },
+        }),
+        signal: controller.signal,
+      });
+      responseText = await res.text();
+    } finally {
+      clearTimeout(tid);
+    }
+
+    const data = JSON.parse(responseText);
+    const html: string = data.template ?? "";
+    if (!html) {
+      console.log("toulouse-tourisme: no template in response");
+      return [];
+    }
+
+    // ── Phase 1 : parse la liste ──
+    interface RawFestival {
+      name: string; url: string; location: string;
+      startDate: string; endDate: string; eventId: string;
+    }
+    const raw: RawFestival[] = [];
+    const articles = html.split("<article");
+
+    for (let i = 1; i < articles.length; i++) {
+      const article = articles[i].substring(0, 3000);
+
+      // Title (class="title wp-block-heading is-style-h3" — partial match)
+      const titleMatch = article.match(/<h3[^>]*class="title[^"]*"[^>]*>.*?<a[^>]*>(.*?)<\/a>/s);
+      const name = titleMatch ? cleanHtml(titleMatch[1]) : "";
+      if (!name) continue;
+
+      // URL
+      const urlMatch = article.match(/<h3[^>]*>.*?<a[^>]*href="([^"]+)"/s);
+      const url = urlMatch ? urlMatch[1] : "";
+
+      // Location
+      const locMatch = article.match(/<div[^>]*class="location[^"]*"[^>]*>(.*?)<\/div>/s);
+      const location = locMatch ? cleanHtml(locMatch[1]) : "";
+
+      // Start date from dates-sticker (class="start")
+      const startDayMatch = article.match(
+        /<div[^>]*class="start"[^>]*>\s*<span[^>]*class="day"[^>]*>(\d{1,2})<\/span>\s*<span[^>]*class="month"[^>]*>([^<]+)<\/span>/s
+      );
+      let startDate: string | null = null;
+      if (startDayMatch) {
+        startDate = frenchDateToIso(`${startDayMatch[1]} ${startDayMatch[2].trim()}`);
+      }
+
+      // End date (class="end")
+      let endDate: string | null = null;
+      const endDayMatch = article.match(
+        /<div[^>]*class="end"[^>]*>\s*<span[^>]*class="day"[^>]*>(\d{1,2})<\/span>\s*<span[^>]*class="month"[^>]*>([^<]+)<\/span>/s
+      );
+      if (endDayMatch) {
+        endDate = frenchDateToIso(`${endDayMatch[1]} ${endDayMatch[2].trim()}`);
+      }
+
+      // "Jusqu'au" format: no start, only end date → event already started
+      if (!startDate) {
+        const untilMatch = article.match(
+          /<div[^>]*class="until"[^>]*>.*?<span[^>]*class="day"[^>]*>(\d{1,2})<\/span>\s*<span[^>]*class="month"[^>]*>([^<]+)<\/span>/s
+        );
+        if (untilMatch) {
+          endDate = frenchDateToIso(`${untilMatch[1]} ${untilMatch[2].trim()}`);
+          startDate = todayStr(); // already started
+        }
+      }
+
+      if (!startDate) continue;
+      if (!endDate) endDate = startDate;
+
+      // Keep if start OR end is in the future (festivals span multiple days)
+      if (!isFutureDate(startDate) && !isFutureDate(endDate)) continue;
+
+      const eventId = `tltourisme_${normalize(name).slice(0, 40)}_${startDate}`;
+      raw.push({ name, url, location, startDate, endDate, eventId });
+    }
+
+    // ── Phase 2 : fetch descriptions from detail pages (parallel, batched) ──
+    const BATCH = 5;
+    const descriptions = new Map<string, { short: string; long: string }>();
+    for (let b = 0; b < raw.length; b += BATCH) {
+      const batch = raw.slice(b, b + BATCH);
+      const results = await Promise.all(
+        batch.map(f => f.url ? fetchToulouseTourismeDescription(f.url) : Promise.resolve({ short: "", long: "" }))
+      );
+      for (let j = 0; j < batch.length; j++) {
+        descriptions.set(batch[j].eventId, results[j]);
+      }
+    }
+
+    // ── Phase 3 : build events ──
+    const events: ScrapedEvent[] = [];
+    for (const f of raw) {
+      const desc = descriptions.get(f.eventId) ?? { short: "", long: "" };
+      events.push(makeEvent({
+        identifiant: f.eventId, source: "day_festival", rubrique: "day",
+        nom_de_la_manifestation: f.name,
+        descriptif_court: desc.short,
+        descriptif_long: desc.long,
+        date_debut: f.startDate, date_fin: f.endDate,
+        lieu_nom: f.location,
+        commune: "Toulouse",
+        type_de_manifestation: "Festival",
+        categorie_de_la_manifestation: "Festival",
+        manifestation_gratuite: "non",
+        reservation_site_internet: f.url,
+      }));
+    }
+
+    const withDesc = events.filter(e => e.descriptif_court || e.descriptif_long).length;
+    console.log(`toulouse-tourisme: ${events.length} festivals (${withDesc} with description) from ${articles.length - 1} articles`);
+    return events;
+  } catch (e) { console.error("Toulouse Tourisme error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Categorize ODS events by type/category
 // ─────────────────────────────────────────────────────────────
 function categorizeEvent(e: ScrapedEvent): string {
@@ -516,7 +674,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   const today = todayStr();
   const where = `date_debut >= "${today}"`;
 
-  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini, zenith, tfg] = await Promise.all([
+  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini, zenith, tfg, tlTourisme] = await Promise.all([
     fetchODS(where),
     fetchTicketmaster(),
     fetchFestik("Concert"),
@@ -526,6 +684,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
     fetchBikini(),
     fetchZenith(),
     fetchTimeForGig(),
+    fetchToulouseTourisme(),
   ]);
 
   // Tag ODS events by category
@@ -544,7 +703,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   }).map(e => ({ ...e, source: "day_spectacle" }));
 
   // Curated sources first so they win dedup over generic ODS tags
-  const all = [...zenith, ...tfg, ...operaTls, ...bikini, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
+  const all = [...zenith, ...tfg, ...operaTls, ...bikini, ...tlTourisme, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
   return dedup(all);
 }
 

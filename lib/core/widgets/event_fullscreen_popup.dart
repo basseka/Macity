@@ -199,7 +199,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                 color: Colors.white.withValues(alpha: 0.85),
                                 height: 1.4,
                               ),
-                              maxLines: 4,
+                              maxLines: 10,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -281,8 +281,8 @@ class EventFullscreenPopup extends ConsumerWidget {
   }
 
   String get _description {
-    if (event.descriptifCourt.isNotEmpty) return event.descriptifCourt;
     if (event.descriptifLong.isNotEmpty) return event.descriptifLong;
+    if (event.descriptifCourt.isNotEmpty) return event.descriptifCourt;
     return '';
   }
 
