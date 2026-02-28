@@ -58,15 +58,20 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
   /// Récupère les événements depuis Supabase, supprime les expirés,
   /// et met à jour le state + cache local.
   Future<void> _syncFromSupabase() async {
+    // 1. Supprimer les événements passés (non-bloquant)
     try {
-      // 1. Supprimer les événements passés côté serveur
       await _supabase.deleteExpiredEvents();
+    } catch (e) {
+      debugPrint('[UserEvents] deleteExpired failed: $e');
+    }
 
-      // 2. Récupérer les événements restants
+    // 2. Récupérer tous les événements (même si le delete a échoué)
+    try {
       final events = await _supabase.fetchEvents();
       state = events;
       await _persistLocal();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[UserEvents] fetchEvents failed: $e');
       // En cas d'erreur réseau, on garde le cache local
     }
   }
@@ -101,6 +106,8 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
       debugPrint('[UserEvents] insert Supabase OK');
     } catch (e) {
       debugPrint('[UserEvents] insert Supabase FAILED: $e');
+      // Remonter l'erreur pour que l'UI puisse l'afficher
+      rethrow;
     }
 
     // 4. Mettre à jour le state et le cache local

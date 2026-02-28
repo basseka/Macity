@@ -8,6 +8,7 @@ import 'package:pulz_app/core/helpers/lieu_suggestions.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 class AddEventBottomSheet extends ConsumerStatefulWidget {
   const AddEventBottomSheet({super.key});
@@ -32,7 +33,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
   String? _photoPath;
 
   static const _rubriqueSubcategories = <String, List<String>>{
-    'Concerts & Spectacles': ['Concert', 'Festival', 'Opera', 'DJ set', 'Showcase', 'Spectacle'],
+    'Concerts & Spectacles': ['Concert', 'Festival', 'Spectacle', 'Stand up', 'Opera', 'DJ set', 'Showcase'],
     'Sport': ['Football', 'Rugby', 'Basketball', 'Tennis', 'Course', 'Autre sport'],
     'Culture & Arts': ['Expo', 'Vernissage', 'Theatre', 'Visites guidees', 'Musee', 'Animations culturelles'],
     'En Famille': ['Parc', 'Cinema', 'Bowling', 'Spectacle enfant'],
@@ -507,24 +508,38 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
       createdAt: DateTime.now(),
     );
 
-    // Construire l'establishmentId si le lieu est curate (dropdown)
+    // Pour les comptes pro approuves, utiliser proProfile.id comme establishmentId
+    // afin que l'event soit insere dans establishment_events et declenche les notifications.
     String? establishmentId;
-    if (_selectedLieu != null && _selectedLieu != 'Autre') {
-      establishmentId = '${rubrique}_$_selectedLieu';
+    final proState = ref.read(proAuthProvider);
+    if (proState.status == ProAuthStatus.approved && proState.profile != null) {
+      establishmentId = proState.profile!.id;
     }
 
-    await ref
-        .read(userEventsProvider.notifier)
-        .addEvent(event, establishmentId: establishmentId);
+    try {
+      await ref
+          .read(userEventsProvider.notifier)
+          .addEvent(event, establishmentId: establishmentId);
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Evenement ajoute avec succes !'),
-          backgroundColor: Color(0xFF7B2D8E),
-        ),
-      );
-      Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Evenement ajoute avec succes !'),
+            backgroundColor: Color(0xFF7B2D8E),
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      debugPrint('[AddEvent] submit error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de l\'ajout : $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

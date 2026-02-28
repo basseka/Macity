@@ -196,7 +196,7 @@ class EventRowCard extends ConsumerWidget {
                     Text(
                       event.titre,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),

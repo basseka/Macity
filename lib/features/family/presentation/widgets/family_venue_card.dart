@@ -67,7 +67,7 @@ class FamilyVenueCard extends ConsumerWidget {
                       Text(
                         commerce.categorie,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           color: modeTheme.primaryColor,
                           fontWeight: FontWeight.w500,
                         ),
@@ -88,7 +88,7 @@ class FamilyVenueCard extends ConsumerWidget {
                               child: Text(
                                 commerce.horaires,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 10,
                                   color: Colors.grey.shade600,
                                 ),
                                 maxLines: 1,
@@ -163,7 +163,7 @@ class FamilyVenueCard extends ConsumerWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 color: color,
                 fontWeight: FontWeight.w500,
               ),

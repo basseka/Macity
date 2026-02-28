@@ -97,7 +97,8 @@ class UserEventSupabaseService {
         date: event.date,
         heure: event.heure,
         description: event.description,
-        createdBy: userId,
+        city: event.ville,
+        photoUrl: event.photoUrl,
       );
     }
   }
@@ -109,7 +110,8 @@ class UserEventSupabaseService {
     required String date,
     required String heure,
     String description = '',
-    required String createdBy,
+    String? city,
+    String? photoUrl,
   }) async {
     final time = heure.isNotEmpty ? heure : '00:00';
     final startsAt = '${date}T$time:00+02:00';
@@ -121,7 +123,8 @@ class UserEventSupabaseService {
         'title': title,
         'starts_at': startsAt,
         'description': description,
-        'created_by': createdBy,
+        if (city != null) 'city': city,
+        if (photoUrl != null) 'photo_url': photoUrl,
       },
       options: Options(
         headers: {'Prefer': 'return=minimal'},

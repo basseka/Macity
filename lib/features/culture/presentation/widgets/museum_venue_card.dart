@@ -96,7 +96,7 @@ class MuseumVenueCard extends ConsumerWidget {
                     Text(
                       museum.name,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),

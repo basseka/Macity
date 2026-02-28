@@ -79,7 +79,7 @@ class CinemaVenueCard extends ConsumerWidget {
                       Text(
                         cinema.name,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: modeTheme.primaryDarkColor,
                         ),

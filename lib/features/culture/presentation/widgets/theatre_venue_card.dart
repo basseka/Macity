@@ -81,7 +81,7 @@ class TheatreVenueCard extends ConsumerWidget {
                     Text(
                       theatre.name,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),
@@ -258,7 +258,7 @@ class TheatreVenueCard extends ConsumerWidget {
                   Text(
                     event.titre,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: Colors.white.withValues(alpha: 0.95),
                       decoration: hasUrl ? TextDecoration.underline : null,

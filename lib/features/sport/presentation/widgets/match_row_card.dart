@@ -164,7 +164,7 @@ class MatchRowCard extends ConsumerWidget {
                     Text(
                       '${match.equipe1}  vs  ${match.equipe2}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: modeTheme.primaryDarkColor,
                       ),

@@ -129,7 +129,7 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
+                        fontSize: 11,
                         fontWeight: FontWeight.bold,
                         height: 1.3,
                         shadows: [

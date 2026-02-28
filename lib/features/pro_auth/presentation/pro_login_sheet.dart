@@ -53,9 +53,12 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
           ),
         );
       }
-      if (prev?.status == ProAuthStatus.notConnected &&
-          (next.status == ProAuthStatus.pendingApproval ||
-              next.status == ProAuthStatus.approved)) {
+      // Detecter la fin d'un submit reussi (isSubmitting passe de true a false
+      // avec un statut authentifie et pas d'erreur).
+      final wasSubmitting = prev?.isSubmitting == true;
+      final isNowAuthenticated = next.status == ProAuthStatus.pendingApproval ||
+          next.status == ProAuthStatus.approved;
+      if (wasSubmitting && !next.isSubmitting && isNowAuthenticated && next.error == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

@@ -59,7 +59,7 @@ class CultureVenueCard extends ConsumerWidget {
                       Text(
                         commerce.categorie,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           color: modeTheme.primaryColor,
                           fontWeight: FontWeight.w500,
                         ),
@@ -98,7 +98,7 @@ class CultureVenueCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       commerce.horaires,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -116,7 +116,7 @@ class CultureVenueCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       commerce.adresse,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

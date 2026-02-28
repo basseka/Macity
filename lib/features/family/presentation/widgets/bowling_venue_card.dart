@@ -52,7 +52,7 @@ class BowlingVenueCard extends ConsumerWidget {
                       Text(
                         bowling.name,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: modeTheme.primaryDarkColor,
                         ),
