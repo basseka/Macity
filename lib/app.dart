@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/app_theme.dart';
 import 'package:pulz_app/core/router/app_router.dart';
+import 'package:pulz_app/features/day/state/day_events_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_provider.dart';
+import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 class PulzApp extends StatefulWidget {
   const PulzApp({super.key});
@@ -37,7 +42,43 @@ class _PulzAppState extends State<PulzApp> with WidgetsBindingObserver {
       return true;
     }
 
-    // 2. Sur l'accueil → minimise l'app
+    // 2. Dérouler la navigation interne (sous-catégorie / salle)
+    final container = ProviderScope.containerOf(context);
+    final currentMode = container.read(currentModeProvider);
+    final subcategory = container.read(modeSubcategoriesProvider)[currentMode];
+
+    if (subcategory != null) {
+      // Niveau salle → retour à la grille des salles
+      if (currentMode == 'day') {
+        if (subcategory == 'Concert') {
+          final venue = container.read(selectedConcertVenueProvider);
+          if (venue != null) {
+            container.read(selectedConcertVenueProvider.notifier).state = null;
+            return true;
+          }
+        } else if (subcategory == 'DJ set') {
+          final venue = container.read(selectedDjsetVenueProvider);
+          if (venue != null) {
+            container.read(selectedDjsetVenueProvider.notifier).state = null;
+            return true;
+          }
+        } else if (subcategory == 'Spectacle') {
+          final venue = container.read(selectedSpectacleVenueProvider);
+          if (venue != null) {
+            container.read(selectedSpectacleVenueProvider.notifier).state = null;
+            return true;
+          }
+        }
+      }
+
+      // Sous-catégorie → retour à la grille des rubriques
+      container.read(modeSubcategoriesProvider.notifier).select(currentMode, null);
+      container.read(dateRangeFilterProvider.notifier).state =
+          const DateRangeFilter();
+      return true;
+    }
+
+    // 3. Sur l'accueil → minimise l'app
     final location =
         appRouter.routerDelegate.currentConfiguration.uri.toString();
     if (location == '/home' || location == '/') {
@@ -45,7 +86,7 @@ class _PulzAppState extends State<PulzApp> with WidgetsBindingObserver {
       return true;
     }
 
-    // 3. Sur tout autre ecran → retour a l'accueil
+    // 4. Sur tout autre ecran → retour a l'accueil
     appRouter.go('/home');
     return true;
   }

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fête de la Musique 2026 — Toulouse</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #6b21a8, #9333ea, #a855f7);
+      color: white;
+      text-align: center;
+      padding: 6px 12px;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    #map {
+      flex: 1;
+    }
+
+    .legend {
+      background: white;
+      padding: 4px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      border-top: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.65rem;
+      color: #374151;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      user-select: none;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .marker-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+
+    .leaflet-popup-content {
+      margin: 10px 14px;
+      line-height: 1.5;
+    }
+
+    .popup-name {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+
+    .popup-style {
+      font-style: italic;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .popup-address {
+      font-size: 0.85rem;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+
+    .loading-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      font-size: 1.1rem;
+      color: #6b21a8;
+      font-weight: 500;
+    }
+
+    .error-banner {
+      background: #fef2f2;
+      color: #991b1b;
+      text-align: center;
+      padding: 12px;
+      font-size: 0.9rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>&#127925; F&ecirc;te de la Musique 2026</h1>
+  </header>
+  <div id="error-banner" class="error-banner"></div>
+  <div id="map"></div>
+  <div id="legend" class="legend"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://dpqxefmwjfvoysacwgef.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwcXhlZm13amZ2b3lzYWN3Z2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyOTkxMTgsImV4cCI6MjA4NTg3NTExOH0.xzNidmrcNsUhpsTFcaaL_lXtHcx_MWzQHCPF7kY5i90';
+
+    // Couleurs connues — les styles absents de cette map recevront une couleur auto
+    const KNOWN_COLORS = {
+      'Rock':               '#e74c3c',
+      'Jazz':               '#3498db',
+      'Electro':            '#9b59b6',
+      'Hip-Hop':            '#f39c12',
+      'Classique':          '#1abc9c',
+      'Reggae':             '#2ecc71',
+      'Chanson Française':  '#e91e63',
+      'World Music':        '#ff9800',
+      'Metal':              '#34495e',
+      'Blues':               '#2196f3',
+    };
+
+    // Palette de secours pour les styles non prévus
+    const EXTRA_PALETTE = ['#e67e22','#16a085','#8e44ad','#d35400','#27ae60','#c0392b','#2980b9','#f1c40f'];
+    let extraIndex = 0;
+
+    function colorForStyle(style) {
+      if (KNOWN_COLORS[style]) return KNOWN_COLORS[style];
+      const color = EXTRA_PALETTE[extraIndex % EXTRA_PALETTE.length];
+      extraIndex++;
+      KNOWN_COLORS[style] = color;  // cache pour réutilisation
+      return color;
+    }
+
+    // Init map
+    const map = L.map('map').setView([43.6047, 1.4442], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(map);
+
+    const styleLayers = {};
+    const legendEl = document.getElementById('legend');
+
+    function createMarkerIcon(color) {
+      return L.divIcon({
+        className: '',
+        html: `<div class="marker-icon" style="background:${color}"></div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+        popupAnchor: [0, -14],
+      });
+    }
+
+    function showError(message) {
+      const banner = document.getElementById('error-banner');
+      banner.textContent = message;
+      banner.style.display = 'block';
+    }
+
+    function buildLegend() {
+      legendEl.innerHTML = '';
+      Object.entries(styleLayers).forEach(([style, layer]) => {
+        const color = colorForStyle(style);
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.innerHTML = `<span class="legend-dot" style="background:${color}"></span>${style}`;
+        item.addEventListener('click', () => {
+          if (map.hasLayer(layer)) {
+            map.removeLayer(layer);
+            item.style.opacity = '0.3';
+          } else {
+            map.addLayer(layer);
+            item.style.opacity = '1';
+          }
+        });
+        legendEl.appendChild(item);
+      });
+    }
+
+    // Fetch groups & render markers + legend
+    async function loadGroups() {
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const { data, error } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('is_visible', true);
+
+      if (error) {
+        showError(`Erreur de chargement : ${error.message}`);
+        console.error('Supabase error:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        showError('Aucun groupe trouvé.');
+        return;
+      }
+
+      data.forEach(group => {
+        const style = group.music_style;
+        const color = colorForStyle(style);
+
+        if (!styleLayers[style]) {
+          styleLayers[style] = L.layerGroup().addTo(map);
+        }
+
+        const marker = L.marker([group.latitude, group.longitude], {
+          icon: createMarkerIcon(color),
+        });
+
+        marker.bindPopup(`
+          <div class="popup-name">${group.name}</div>
+          <div class="popup-style">${style}</div>
+          <div class="popup-address">${group.address}</div>
+        `);
+
+        styleLayers[style].addLayer(marker);
+      });
+
+      buildLegend();
+    }
+
+    loadGroups();
+  </script>
+</body>
+</html>
