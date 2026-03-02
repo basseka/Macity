@@ -28,6 +28,8 @@ import 'package:pulz_app/features/family/presentation/widgets/escape_game_venue_
 import 'package:pulz_app/features/family/presentation/widgets/family_restaurant_venue_card.dart';
 import 'package:pulz_app/features/family/presentation/widgets/laser_game_venue_card.dart';
 import 'package:pulz_app/features/family/presentation/widgets/ice_rink_venue_card.dart';
+import 'package:pulz_app/features/family/data/farm_venues_data.dart';
+import 'package:pulz_app/features/family/presentation/widgets/farm_venue_card.dart';
 import 'package:pulz_app/features/family/presentation/widgets/playground_venue_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
@@ -176,6 +178,8 @@ class FamilyScreen extends ConsumerWidget {
                                           ? _buildPlaygroundsList(ref)
                                           : category == 'Patinoire'
                                               ? _buildIceRinksList(ref)
+                                              : category == 'Ferme pedagogique'
+                                                  ? _buildFarmsList(ref)
                                               : venuesAsync.when(
                   data: (venues) {
                     if (venues.isEmpty) {
@@ -274,6 +278,19 @@ class FamilyScreen extends ConsumerWidget {
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: PlaygroundVenueCard(venue: venues[index]),
+      ),
+    );
+  }
+
+  Widget _buildFarmsList(WidgetRef ref) {
+    const venues = FarmVenuesData.venues;
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      itemCount: venues.length,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: FarmVenueCard(venue: venues[index]),
       ),
     );
   }

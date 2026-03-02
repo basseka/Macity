@@ -158,7 +158,9 @@ class EventFullscreenPopup extends ConsumerWidget {
                           children: [
                           // Titre
                           Text(
-                            event.titre,
+                            event.categorie.toLowerCase().contains('opera')
+                                ? event.titre.toUpperCase()
+                                : event.titre,
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,

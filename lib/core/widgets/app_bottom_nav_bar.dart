@@ -6,6 +6,7 @@ import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
+import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
@@ -66,7 +67,8 @@ class AppBottomNavBar extends ConsumerWidget {
               _NavBarItem(
                 icon: Icons.favorite,
                 label: 'Favoris',
-                isActive: false,
+                isActive: ref.watch(likesProvider).isNotEmpty,
+                activeColor: Colors.red,
                 onTap: () => _showLikedPlaces(context),
               ),
               // 5 - Mon compte
@@ -244,19 +246,22 @@ class _NavBarItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isActive;
+  final Color? activeColor;
   final VoidCallback onTap;
 
   const _NavBarItem({
     required this.icon,
     required this.label,
     required this.isActive,
+    this.activeColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isActive ? const Color(0xFF7B2D8E) : const Color(0xFF9E9E9E);
+    final color = isActive
+        ? (activeColor ?? const Color(0xFF7B2D8E))
+        : const Color(0xFF9E9E9E);
 
     return GestureDetector(
       onTap: onTap,

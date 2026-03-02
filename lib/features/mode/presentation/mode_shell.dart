@@ -32,6 +32,10 @@ class ModeShell extends ConsumerWidget {
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
+    // Fête de la Musique → plein écran, pas de shell chrome
+    final isFeteMusique = ref.watch(currentModeProvider) == 'day' &&
+        ref.watch(modeSubcategoriesProvider)['day'] == 'Fete musique';
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -61,7 +65,12 @@ class ModeShell extends ConsumerWidget {
         // Aucune navigation interne → retour à l'accueil
         context.go('/home');
       },
-      child: Scaffold(
+      child: isFeteMusique
+        ? Scaffold(
+            backgroundColor: modeTheme.backgroundColor,
+            body: SafeArea(child: child),
+          )
+        : Scaffold(
       backgroundColor: modeTheme.backgroundColor,
       bottomNavigationBar: const AppBottomNavBar(currentIndex: -1),
       body: SwipeDetector(
@@ -165,8 +174,11 @@ class ModeShell extends ConsumerWidget {
               ),
             ),
 
-            // Video banner (hidden in landscape)
-            if (!isLandscape) const ModeVideoBanner(),
+            // Video banner (hidden in landscape and for Fete musique map)
+            if (!isLandscape &&
+                !(ref.watch(currentModeProvider) == 'day' &&
+                    ref.watch(modeSubcategoriesProvider)['day'] == 'Fete musique'))
+              const ModeVideoBanner(),
 
             // Child content (mode screen)
             Expanded(child: child),

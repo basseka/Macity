@@ -1,7 +1,7 @@
 name: pulz_app
 description: PUL'Z - Explore ta ville (Day, Sport, Family, Night)
 publish_to: 'none'
-version: 1.0.18+19
+version: 1.0.21+24
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -67,6 +67,7 @@ dependencies:
   uuid: ^4.2.2
   video_player: ^2.11.0
   google_fonts: ^8.0.2
+  webview_flutter: ^4.10.0
 
 dev_dependencies:
   flutter_test:
@@ -92,3 +93,4 @@ flutter:
   assets:
     - assets/icon/
     - assets/images/
+    - web/fete-musique/

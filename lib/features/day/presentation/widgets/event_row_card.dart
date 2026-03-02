@@ -10,18 +10,18 @@ import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
-/// Affichage compact en ligne : pochette a gauche, infos a droite.
+/// Carte événement : pochette carrée à gauche, infos à droite.
 class EventRowCard extends ConsumerWidget {
   final Event event;
 
   const EventRowCard({super.key, required this.event});
 
-  static final _displayDateFormat = DateFormat('dd/MM/yyyy');
+  static final _shortDateFormat = DateFormat('dd/MM');
 
-  static String _formatDate(String raw) {
+  static String _formatDateShort(String raw) {
     final parsed = DateTime.tryParse(raw);
     if (parsed == null) return raw;
-    return _displayDateFormat.format(parsed);
+    return _shortDateFormat.format(parsed);
   }
 
   static const _categoryImages = <String, String>{
@@ -124,144 +124,167 @@ class EventRowCard extends ConsumerWidget {
     final isLiked = likes.contains(event.identifiant);
     final pochette = _resolveImage();
 
+    final dateLabel = event.dateDebut.isNotEmpty
+        ? (event.dateFin.isNotEmpty && event.dateFin != event.dateDebut
+            ? '${_formatDateShort(event.dateDebut)} - ${_formatDateShort(event.dateFin)}'
+            : _formatDateShort(event.dateDebut))
+        : '';
+
     return GestureDetector(
       onTap: () => _openDetail(context),
       child: Card(
-      elevation: 2,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: 110,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // ── Bulle image a gauche ──
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 65,
-                    height: 65,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                        width: 1.5,
+        elevation: 1.5,
+        shadowColor: Colors.black.withValues(alpha: 0.10),
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          height: 108,
+          child: Row(
+            children: [
+              // ── Pochette carrée à gauche ──
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 84,
+                  height: 84,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: _buildPochette(pochette),
                       ),
-                    ),
-                    child: ClipOval(
-                      child: _buildPochette(pochette),
-                    ),
+                    // Badge GRATUIT
+                    if (event.isFree)
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE91E8C),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'GRATUIT',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 7,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  if (event.isFree)
-                    Positioned(
-                      top: -2,
-                      left: -2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE91E8C),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'GRATUIT',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // ── Infos a droite ──
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Titre
-                    Text(
-                      event.titre,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-
-                    // Date
-                    if (event.dateDebut.isNotEmpty)
-                      Text(
-                        event.dateFin.isNotEmpty &&
-                                event.dateFin != event.dateDebut
-                            ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
-                            : _formatDate(event.dateDebut),
-                        style: TextStyle(fontSize: 11, color: modeTheme.primaryColor),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                    // Lieu
-                    if (event.lieuNom.isNotEmpty)
-                      _buildInfoRow(
-                        Icons.location_on_outlined,
-                        event.lieuNom,
-                        Colors.grey.shade500,
-                      ),
-
-                    const Spacer(),
-
-                    // Like + Share
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            ref
-                                .read(likesProvider.notifier)
-                                .toggle(event.identifiant);
-                          },
-                          child: Icon(
-                            isLiked ? Icons.favorite : Icons.favorite_border,
-                            color: isLiked ? Colors.red : Colors.grey.shade400,
-                            size: 16,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => _shareEvent(),
-                          child: Icon(
-                            Icons.share_outlined,
-                            color: Colors.grey.shade400,
-                            size: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
               ),
-            ),
-          ],
+
+              // ── Contenu à droite ──
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Titre
+                      Text(
+                        event.categorie.toLowerCase().contains('opera')
+                            ? event.titre.toUpperCase()
+                            : event.titre,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: modeTheme.primaryDarkColor,
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+
+                      // Date + lieu
+                      if (dateLabel.isNotEmpty || event.lieuNom.isNotEmpty)
+                        Row(
+                          children: [
+                            if (dateLabel.isNotEmpty) ...[
+                              Text(
+                                dateLabel,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              if (event.lieuNom.isNotEmpty)
+                                Text(
+                                  '  ·  ',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                            ],
+                            if (event.lieuNom.isNotEmpty)
+                              Flexible(
+                                child: Text(
+                                  event.lieuNom,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                        ),
+
+                      const Spacer(),
+
+                      // Like + Share
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: () => ref
+                                .read(likesProvider.notifier)
+                                .toggle(event.identifiant),
+                            child: Icon(
+                              isLiked
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isLiked
+                                  ? Colors.red
+                                  : Colors.grey.shade400,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: () => _shareEvent(),
+                            child: Icon(
+                              Icons.share_outlined,
+                              color: Colors.grey.shade400,
+                              size: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -315,26 +338,6 @@ class EventRowCard extends ConsumerWidget {
         errorBuilder: (_, __, ___) =>
             Image.asset(_defaultPochette, fit: BoxFit.cover),
       ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String text, Color iconColor) {
-    return Row(
-      children: [
-        Icon(icon, size: 13, color: iconColor),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 

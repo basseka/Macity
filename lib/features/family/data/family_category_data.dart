@@ -44,6 +44,7 @@ class FamilyCategoryData {
         FamilySubcategory(label: 'Parc d\'attractions', searchTag: 'Parc d\'attractions', emoji: '\uD83C\uDFA2', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_attraction.png'),
         FamilySubcategory(label: 'Aire de jeux', searchTag: 'Aire de jeux', emoji: '\uD83E\uDDD2', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.png'),
         FamilySubcategory(label: 'Parc animalier', searchTag: 'Parc animalier', emoji: '\uD83E\uDD81', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_animalier.png'),
+        FamilySubcategory(label: 'Ferme pedagogique', searchTag: 'Ferme pedagogique', emoji: '\uD83D\uDC04', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.png'),
       ],
     ),
     FamilyCategoryGroup(

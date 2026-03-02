@@ -130,7 +130,9 @@ class EventCard extends ConsumerWidget {
                   right: 12,
                   bottom: 10,
                   child: Text(
-                    event.titre,
+                    event.categorie.toLowerCase().contains('opera')
+                        ? event.titre.toUpperCase()
+                        : event.titre,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -184,7 +186,9 @@ class EventCard extends ConsumerWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      event.titre,
+                      event.categorie.toLowerCase().contains('opera')
+                          ? event.titre.toUpperCase()
+                          : event.titre,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
