@@ -72,34 +72,34 @@ class ModeTheme {
     hintString: "Qu'est-ce que tu cherches ?",
   );
 
-  // ── SPORT MODE ── (couleurs vertes)
+  // ── SPORT MODE ── (couleurs rouges)
   static const sport = ModeTheme(
-    chipColor: Color(0xFF65A830),
+    chipColor: Color(0xFFE11D48),
     toolbarGradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFF3D7A1E), Color(0xFF65A830), Color(0xFF86EFAC)],
+      colors: [Color(0xFF9F1239), Color(0xFFE11D48), Color(0xFFFB7185)],
     ),
     searchBtnGradient: LinearGradient(
-      colors: [Color(0xFF65A830), Color(0xFF4D8C1E)],
+      colors: [Color(0xFFE11D48), Color(0xFFBE123C)],
     ),
     cityCardGradient: LinearGradient(
-      colors: [Color(0xFF65A830), Color(0xFF3D7A1E)],
+      colors: [Color(0xFFE11D48), Color(0xFF9F1239)],
     ),
     cardImageGradient: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: [Color(0x0065A830), Color(0xCC3D7A1E)],
+      colors: [Color(0x00E11D48), Color(0xCC9F1239)],
     ),
-    backgroundColor: Color(0xFFF7FBF2),
+    backgroundColor: Color(0xFFFFF1F2),
     cardColor: Color(0xFFFFFFFF),
-    primaryColor: Color(0xFF65A830),
-    primaryDarkColor: Color(0xFF3D7A1E),
-    primaryLightColor: Color(0xFFECFCCB),
-    chipBgColor: Color(0xFFECFCCB),
-    chipTextColor: Color(0xFF3D7A1E),
-    chipStrokeColor: Color(0xFF86EFAC),
-    fabColor: Color(0xFF65A830),
+    primaryColor: Color(0xFFE11D48),
+    primaryDarkColor: Color(0xFF9F1239),
+    primaryLightColor: Color(0xFFFFE4E6),
+    chipBgColor: Color(0xFFFFE4E6),
+    chipTextColor: Color(0xFF9F1239),
+    chipStrokeColor: Color(0xFFFB7185),
+    fabColor: Color(0xFFE11D48),
     welcomeString: 'Mode Sport',
     subtitleString: 'Trouve tous les evenements sportifs dans ta ville',
     hintString: '',

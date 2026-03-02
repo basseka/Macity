@@ -37,18 +37,25 @@ class FcmService {
     _dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
     _dio.interceptors.add(SupabaseInterceptor());
 
-    // Permissions (iOS)
+    // Permissions (iOS + Android 13+ POST_NOTIFICATIONS)
     await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    // Creer le canal Android
-    await _localNotifications
+    final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_androidChannel);
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    // Creer le canal Android
+    await androidPlugin?.createNotificationChannel(_androidChannel);
+
+    // Demander explicitement la permission notifications (Android 13+)
+    await androidPlugin?.requestNotificationsPermission();
+
+    // Demander la permission alarmes exactes (Android 12+)
+    await androidPlugin?.requestExactAlarmsPermission();
 
     // Initialiser flutter_local_notifications
     await _localNotifications.initialize(
@@ -80,6 +87,9 @@ class FcmService {
       tz.initializeTimeZones();
       final paris = tz.getLocation('Europe/Paris');
 
+      // Annuler l'ancienne pour eviter les doublons
+      await _localNotifications.cancel(_dailyReminderId);
+
       final now = tz.TZDateTime.now(paris);
       var scheduled = tz.TZDateTime(paris, now.year, now.month, now.day, 18, 0);
       // Si 18h est deja passe aujourd'hui, programmer pour demain
@@ -108,13 +118,13 @@ class FcmService {
             presentSound: true,
           ),
         ),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
 
-      debugPrint('[FCM] Notification quotidienne 18h programmee');
+      debugPrint('[FCM] Notification quotidienne 18h programmee pour $scheduled');
     } catch (e) {
       debugPrint('[FCM] Erreur planification 18h: $e');
     }

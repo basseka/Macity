@@ -132,12 +132,16 @@ class UserEventSupabaseService {
     );
   }
 
-  /// Récupère tous les événements utilisateur.
+  /// Récupère tous les événements utilisateur (futurs uniquement).
   Future<List<UserEvent>> fetchEvents() async {
+    final now = DateTime.now();
+    final today =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     final response = await _restDio.get(
       'user_events',
       queryParameters: {
         'select': '*',
+        'date': 'gte.$today',
         'order': 'date.asc',
       },
     );
@@ -147,13 +151,17 @@ class UserEventSupabaseService {
         .toList();
   }
 
-  /// Récupère les événements d'une ville.
+  /// Récupère les événements d'une ville (futurs uniquement).
   Future<List<UserEvent>> fetchEventsByCity(String ville) async {
+    final now = DateTime.now();
+    final today =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     final response = await _restDio.get(
       'user_events',
       queryParameters: {
         'select': '*',
         'ville': 'eq.$ville',
+        'date': 'gte.$today',
         'order': 'date.asc',
       },
     );

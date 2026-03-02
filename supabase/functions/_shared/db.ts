@@ -33,6 +33,7 @@ export interface ScrapedEvent {
   reservation_site_internet: string;
   reservation_telephone: string;
   station_metro_tram_a_proximite: string;
+  photo_url: string;
 }
 
 /** Upsert events into scraped_events table (merge on identifiant). */
@@ -92,6 +93,7 @@ export function makeEvent(partial: Partial<ScrapedEvent> & Pick<ScrapedEvent, "i
     reservation_site_internet: "",
     reservation_telephone: "",
     station_metro_tram_a_proximite: "",
+    photo_url: "",
     ...partial,
   };
 }

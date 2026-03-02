@@ -2,16 +2,41 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
-import 'package:pulz_app/features/sport/data/fitness_venues_data.dart';
 import 'package:pulz_app/features/sport/data/sport_repository.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
+import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
+
+// Map searchTag → sport_type pour les venues
+const _tagToSportType = <String, String>{
+  'Salle de fitness': 'fitness',
+  'Salles de boxe': 'boxe',
+  'Terrain de football': 'terrain-football',
+  'Terrain de basketball': 'terrain-basketball',
+  'Piscine': 'piscine',
+  'Golf': 'golf',
+  'Tennis': 'tennis',
+  'Padel': 'padel',
+  'Squash': 'squash',
+  'Ping-pong': 'ping-pong',
+  'Badminton': 'badminton',
+};
 
 final sportSubcategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
-  if (searchTag == 'Salle de fitness') {
-    return FitnessVenuesData.venues.length;
-  }
+  // Seule Toulouse est implémentée pour l'instant
   final city = ref.watch(selectedCityProvider);
+  if (city.toLowerCase() != 'toulouse') return 0;
+
+  // Venues statiques/Supabase
+  final sportType = _tagToSportType[searchTag];
+  if (sportType != null) {
+    final venues = await ref.watch(sportVenuesProvider(sportType).future);
+    return venues.length;
+  }
+  if (searchTag == 'Raquette') {
+    final venues = await ref.watch(racketAllVenuesProvider.future);
+    return venues.length;
+  }
   final repository = SportRepository();
   final matches =
       await repository.fetchSupabaseMatches(sport: searchTag, ville: city);
@@ -42,7 +67,12 @@ final sportSubcategoryCountProvider =
 
 final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  final subcategory = ref.watch(sportSubcategoryProvider);
+  // Seule Toulouse est implémentée pour l'instant
+  if (city.toLowerCase() != 'toulouse') return [];
+
+  final rawSubcategory = ref.watch(sportSubcategoryProvider);
+  // 'Boxe matchs' → query 'Boxe' in DB
+  final subcategory = rawSubcategory == 'Boxe matchs' ? 'Boxe' : rawSubcategory;
 
   final repository = SportRepository();
   final matches = await repository.fetchSupabaseMatches(

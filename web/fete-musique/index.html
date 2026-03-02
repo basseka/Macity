@@ -91,6 +91,37 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.35);
     }
 
+    .user-marker {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #4285F4;
+      border: 3px solid white;
+      box-shadow: 0 0 0 2px rgba(66,133,244,0.3), 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .locate-btn {
+      position: absolute;
+      bottom: 50px;
+      right: 12px;
+      z-index: 1000;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .locate-btn:active { opacity: 0.7; }
+    .locate-btn.locating { animation: pulse-loc 1s infinite; }
+    @keyframes pulse-loc { 0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.25); } 50% { box-shadow: 0 2px 16px rgba(107,33,168,0.5); } }
+
     .leaflet-popup-content {
       margin: 10px 14px;
       line-height: 1.5;
@@ -318,6 +349,7 @@
     <button class="fab-btn" onclick="openPanel('programme')">&#127926; Programmation</button>
     <button class="fab-btn accent" onclick="openPanel('add')">&#43; Rajouter son groupe</button>
   </div>
+  <button class="locate-btn" id="locateBtn" onclick="locateMe()">&#128205;</button>
 
   <!-- Programme panel -->
   <div id="panel-programme" class="panel-overlay" onclick="if(event.target===this)closePanel('programme')">
@@ -629,6 +661,36 @@
       msg.textContent = 'Merci ! Ton groupe sera visible apres validation.';
       document.getElementById('add-form').reset();
       btn.disabled = false;
+    }
+
+    // ---- Geolocation (bridge Flutter) ----
+    let userMarker = null;
+
+    function locateMe() {
+      document.getElementById('locateBtn').classList.add('locating');
+      if (window.FlutterLocation) {
+        FlutterLocation.postMessage('getLocation');
+      } else {
+        document.getElementById('locateBtn').classList.remove('locating');
+      }
+    }
+
+    function onLocationSuccess(lat, lng) {
+      document.getElementById('locateBtn').classList.remove('locating');
+      if (userMarker) {
+        userMarker.setLatLng([lat, lng]);
+      } else {
+        userMarker = L.marker([lat, lng], {
+          icon: L.divIcon({ className: '', html: '<div class="user-marker"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }),
+          zIndexOffset: 1000,
+        }).addTo(map);
+        userMarker.bindPopup('<b>Ma position</b>');
+      }
+      map.setView([lat, lng], 15);
+    }
+
+    function onLocationError(msg) {
+      document.getElementById('locateBtn').classList.remove('locating');
     }
 
     // ---- Init ----

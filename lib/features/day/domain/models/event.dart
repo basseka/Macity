@@ -29,7 +29,7 @@ class Event with _$Event {
     @JsonKey(name: 'reservation_site_internet') @Default('') String reservationUrl,
     @JsonKey(name: 'reservation_telephone') @Default('') String reservationTelephone,
     @JsonKey(name: 'station_metro_tram_a_proximite') @Default('') String stationProximite,
-    @JsonKey(includeFromJson: false, includeToJson: false) @Default(null) String? photoPath,
+    @JsonKey(name: 'photo_url') @Default(null) String? photoPath,
   }) = _Event;
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);

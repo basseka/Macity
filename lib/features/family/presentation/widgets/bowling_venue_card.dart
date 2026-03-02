@@ -30,14 +30,13 @@ class BowlingVenueCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 10),
+                padding: const EdgeInsets.all(8),
                 child: Container(
-                  width: 65,
-                  height: 65,
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(10),
                     color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                    border: Border.all(color: modeTheme.primaryColor.withValues(alpha: 0.4), width: 1.5),
                   ),
                   alignment: Alignment.center,
                   child: const Text('\uD83C\uDFB3', style: TextStyle(fontSize: 24)),

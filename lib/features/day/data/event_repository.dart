@@ -44,6 +44,8 @@ class EventRepository {
     'DJ set': 'day_djset',
     'Showcase': 'day_showcase',
     'Spectacle': 'day_spectacle',
+    'Fete musique': 'day_fete_musique',
+    'Autres': 'day_other',
   };
 
   Future<List<Event>> _fetchToulouseEvents(String subcategory, {String? lieuNom}) async {
@@ -56,11 +58,12 @@ class EventRepository {
     if (subcategory == 'Natation') {
       return DayCuratedData.getNatationToulouse();
     }
-    // Quand on filtre par salle, chercher dans toute la rubrique day
-    // (un event au Zenith peut être taggé day_spectacle ou day_concert)
+    // Quand on filtre par salle, filtrer aussi par source (concert, djset…)
     if (lieuNom != null) {
+      final source = _subcategoryToSource[subcategory];
       return _scrapedService.fetchEvents(
         rubrique: 'day',
+        source: source,
         dateGte: _todayStr(),
         lieuNom: lieuNom,
       );
@@ -114,7 +117,8 @@ class EventRepository {
     if (cat.contains('opera') || type.contains('opera')) return 3;
     if (cat.contains('showcase') || type.contains('showcase')) return 4;
     if (cat.contains('dj') || type.contains('dj')) return 5;
-    return 6;
+    if (cat.contains('fete') || cat.contains('fête') || type.contains('fete') || type.contains('fête')) return 6;
+    return 7;
   }
 
   Future<List<Event>> _fetchNationalEvents(

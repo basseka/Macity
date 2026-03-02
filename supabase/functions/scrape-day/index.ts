@@ -4,7 +4,7 @@
 // DJ sets, showcases, spectacles via OpenDataSoft API + Festik + Ticketmaster + curated.
 // Porte depuis les 6 services Dart day_*.
 
-import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate } from "../_shared/db.ts";
+import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate, supabaseHeaders } from "../_shared/db.ts";
 import { fetchHtml, fetchJson, cleanHtml, isoToDate, isoToTime, buildIsoDate, frenchMonths, frenchDateToIso } from "../_shared/html-utils.ts";
 
 const TICKETMASTER_API_KEY = Deno.env.get("TICKETMASTER_API_KEY") ?? "";
@@ -68,6 +68,62 @@ async function fetchODS(where: string, limit = 100): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// ONCT / Halle aux Grains — photo enrichment
+// ─────────────────────────────────────────────────────────────
+async function fetchONCTPhotos(): Promise<Map<string, string>> {
+  const dateToImg = new Map<string, string>();
+  try {
+    const html = await fetchHtml("https://onct.toulouse.fr/la-halle-aux-grains/programmation-halle-aux-grains/", 15000);
+    const year = new Date().getFullYear();
+
+    // Split HTML by image tags from ONCT uploads
+    const imgRegex = /src="(https:\/\/onct\.toulouse\.fr\/wp-content\/uploads\/[^"]+\.(png|jpg|jpeg|webp))"/gi;
+    const imgPositions: { url: string; pos: number }[] = [];
+    let m;
+    while ((m = imgRegex.exec(html)) !== null) {
+      imgPositions.push({ url: m[1], pos: m.index });
+    }
+
+    // For each image, look at the text after it to find French date pattern
+    const dateRegex = /(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s+(\d{1,2})\s+(janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre)/gi;
+    for (let i = 0; i < imgPositions.length; i++) {
+      const start = imgPositions[i].pos;
+      const end = i + 1 < imgPositions.length ? imgPositions[i + 1].pos : start + 2000;
+      const block = html.substring(start, end);
+      dateRegex.lastIndex = 0;
+      const dm = dateRegex.exec(block);
+      if (dm) {
+        const day = parseInt(dm[1], 10);
+        const monthName = dm[2].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const monthNum = frenchMonths[monthName] ?? 0;
+        if (monthNum > 0) {
+          const isoDate = `${year}-${String(monthNum).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          if (!dateToImg.has(isoDate)) {
+            dateToImg.set(isoDate, imgPositions[i].url);
+          }
+        }
+      }
+    }
+    console.log(`ONCT photos: found ${dateToImg.size} date→image mappings`);
+  } catch (e) {
+    console.error("ONCT photo fetch error:", e);
+  }
+  return dateToImg;
+}
+
+/** Enrich ODS events at Halle aux Grains with ONCT poster images. */
+function enrichHallePhotos(events: ScrapedEvent[], onctPhotos: Map<string, string>): ScrapedEvent[] {
+  if (onctPhotos.size === 0) return events;
+  return events.map(e => {
+    if (e.lieu_nom.toUpperCase().includes("HALLE") && e.lieu_nom.toUpperCase().includes("GRAINS") && !e.photo_url) {
+      const img = onctPhotos.get(e.date_debut);
+      if (img) return { ...e, photo_url: img };
+    }
+    return e;
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
 // Ticketmaster
 // ─────────────────────────────────────────────────────────────
 async function fetchTicketmaster(): Promise<ScrapedEvent[]> {
@@ -102,6 +158,10 @@ async function fetchTicketmaster(): Promise<ScrapedEvent[]> {
         else if (pr.min != null) tarif = `A partir de ${Math.round(pr.min)}EUR`;
       }
 
+      // Pick best image (prefer 16_9, largest width)
+      const imgs = (e.images ?? []) as any[];
+      const photoUrl = imgs.sort((a: any, b: any) => (b.width ?? 0) - (a.width ?? 0))[0]?.url ?? "";
+
       result.push(makeEvent({
         identifiant: `tm_${e.id}`, source: "day_concert", rubrique: "day",
         nom_de_la_manifestation: name,
@@ -113,6 +173,7 @@ async function fetchTicketmaster(): Promise<ScrapedEvent[]> {
         manifestation_gratuite: "non",
         tarif_normal: tarif,
         reservation_site_internet: e.url ?? "",
+        photo_url: photoUrl,
       }));
     }
     return result;
@@ -238,6 +299,7 @@ async function fetchBikini(): Promise<ScrapedEvent[]> {
       const free = e.free === true ? "oui" : "non";
       const ticketUrl = e.ticketUrl ?? "";
       const slug = e.slug?.current ?? "";
+      const photoUrl = e.image?.asset?.url ?? "";
 
       const id = `bikini_${normalize(title).slice(0, 40)}_${startDate}`;
 
@@ -256,6 +318,7 @@ async function fetchBikini(): Promise<ScrapedEvent[]> {
         manifestation_gratuite: free,
         tarif_normal: tarif,
         reservation_site_internet: ticketUrl || (slug ? `https://www.lebikini.com/2026/${startDate.substring(5, 7)}/${startDate.substring(8, 10)}/${slug}` : ""),
+        photo_url: photoUrl,
       }));
     }
 
@@ -419,6 +482,300 @@ async function fetchTimeForGig(): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// COMDT — Centre Occitan des Musiques et Danses Traditionnelles
+// ─────────────────────────────────────────────────────────────
+async function fetchCOMDT(): Promise<ScrapedEvent[]> {
+  try {
+    const html = await fetchHtml("https://www.comdt.org/saison/les-concerts/", 15000);
+    const events: ScrapedEvent[] = [];
+
+    // Extract JSON-LD block
+    const ldMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+    if (!ldMatch) { console.log("comdt: no JSON-LD found"); return []; }
+
+    let data: any[];
+    try { data = JSON.parse(ldMatch[1]); } catch { console.error("comdt: JSON-LD parse error"); return []; }
+    if (!Array.isArray(data)) data = [data];
+
+    for (const ev of data) {
+      if (ev["@type"] !== "Event") continue;
+      const name = (ev.name ?? "").replace(/&#\d+;/g, "").trim();
+      if (!name) continue;
+
+      const startDate = (ev.startDate ?? "").substring(0, 10);
+      if (!startDate || !isFutureDate(startDate)) continue;
+
+      // Time from startDate ISO (e.g. "2026-03-27T20:30:00+01:00")
+      const timePart = (ev.startDate ?? "").substring(11, 16);
+      const horaires = timePart && timePart !== "00:00" ? timePart.replace(":", "h") : "";
+
+      const photoUrl = ev.image ?? "";
+      const eventUrl = ev.url ?? "";
+
+      // Description: strip HTML entities
+      let desc = (ev.description ?? "")
+        .replace(/&lt;p&gt;/g, "").replace(/&lt;\/p&gt;/g, "")
+        .replace(/&lt;[^&]*&gt;/g, "").replace(/&amp;/g, "&")
+        .replace(/&hellip;/g, "…").replace(/\\n/g, " ").trim();
+
+      // Location
+      const loc = ev.location ?? {};
+      const locName = (loc.name ?? "COMDT").replace(/&#\d+;/g, " ").replace(/\s+/g, " ").trim();
+      const locAddr = loc.address?.streetAddress ?? "5 Impasse Boudeville";
+      const locCity = loc.address?.addressLocality ?? "Toulouse";
+      const locZip = parseInt(loc.address?.postalCode ?? "31200", 10);
+
+      const id = `comdt_${normalize(name).slice(0, 35)}_${startDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source: "day_concert", rubrique: "day",
+        nom_de_la_manifestation: name.toUpperCase(),
+        descriptif_court: desc.slice(0, 200),
+        descriptif_long: desc,
+        date_debut: startDate, date_fin: (ev.endDate ?? "").substring(0, 10) || startDate,
+        horaires,
+        lieu_nom: locName.toUpperCase(),
+        lieu_adresse_2: locAddr,
+        commune: locCity,
+        code_postal: locZip,
+        type_de_manifestation: "Concert",
+        categorie_de_la_manifestation: "Concert",
+        manifestation_gratuite: "non",
+        reservation_site_internet: eventUrl,
+        photo_url: photoUrl,
+      }));
+    }
+
+    // Cleanup stale COMDT records
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const currentIds = events.map(e => `"${e.identifiant}"`).join(",");
+    if (currentIds) {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/scraped_events?identifiant=like.comdt_*&identifiant=not.in.(${currentIds})`,
+        { method: "DELETE", headers: supabaseHeaders },
+      );
+    }
+
+    console.log(`comdt: ${events.length} events`);
+    return events;
+  } catch (e) { console.error("COMDT error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Le Bascala (Bruguières) — JetEngine/Elementor page
+// ─────────────────────────────────────────────────────────────
+async function fetchBascala(): Promise<ScrapedEvent[]> {
+  try {
+    const html = await fetchHtml("https://spectacles.le-bascala.com/programmation/cette-saison/", 15000);
+    const events: ScrapedEvent[] = [];
+    const seen = new Set<string>();
+    const year = new Date().getFullYear();
+
+    // Extract dynamic field contents in order (6 per event: day, month, time, title, subtitle, producer)
+    const fields = [...html.matchAll(/dynamic-field__content[^>]*>([^<]*)</g)].map(m => m[1].trim());
+
+    // Extract event images (skip first 2 which are logos)
+    const imgs = [...html.matchAll(/src="(https:\/\/spectacles\.le-bascala\.com\/wp-content\/uploads\/20[^"]+)"/g)].map(m => m[1]);
+    const eventImgs = imgs.slice(2); // skip logo/favicon
+
+    // Extract ticket links (external billetterie)
+    const ticketLinks = [...html.matchAll(/href="(https:\/\/(?:www\.fnac|www\.ticketmaster|billetterie\.|www\.billetweb|shotgun)[^"]+)"/g)].map(m => m[1]);
+
+    // French month abbrevs on this site: "Mar" "Avr" "Mai" "Jun" "Oct" etc.
+    const monthMap: Record<string, number> = {
+      jan: 1, fev: 2, fév: 2, mar: 3, avr: 4, mai: 5, jun: 6, juin: 6,
+      jul: 7, juil: 7, aou: 8, août: 8, sep: 9, oct: 10, nov: 11, dec: 12, déc: 12,
+    };
+
+    let ticketIdx = 0;
+    for (let i = 0; i + 5 < fields.length; i += 6) {
+      const dayText = fields[i];   // "dim 1" or "mer 11"
+      const monthText = fields[i + 1]; // "Mar" or "Avr"
+      const timeText = fields[i + 2]; // "20h30" or "21h00 - 00h00"
+      const title = fields[i + 3];
+      const subtitle = fields[i + 4];
+      const producer = fields[i + 5];
+
+      // Parse date
+      const dayMatch = dayText.match(/(\d{1,2})/);
+      if (!dayMatch) continue;
+      const day = parseInt(dayMatch[1], 10);
+      const monthKey = monthText.toLowerCase().substring(0, 3);
+      const monthNum = monthMap[monthKey] ?? 0;
+      if (monthNum === 0) continue;
+
+      // Determine year: if month < current month, it's next year
+      const eventYear = monthNum < new Date().getMonth() + 1 ? year + 1 : year;
+      const isoDate = `${eventYear}-${String(monthNum).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      if (!isFutureDate(isoDate)) continue;
+
+      // Parse time (take first time: "20h30" from "20h30 (1ere partie à 19h45)")
+      const timeMatch = timeText.match(/(\d{1,2})[hH](\d{2})/);
+      const horaires = timeMatch ? `${timeMatch[1]}h${timeMatch[2]}` : "";
+
+      if (!title) continue;
+
+      // Dedup
+      const dedupKey = `${normalize(title)}|${isoDate}`;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+
+      const eventIdx = Math.floor(i / 6);
+      const photoUrl = eventIdx < eventImgs.length ? eventImgs[eventIdx] : "";
+
+      const id = `bascala_${normalize(title).slice(0, 35)}_${isoDate}`;
+
+      // Categorize: comedy/impro/spectacle → day_spectacle, music → day_concert
+      const titleLower = title.toLowerCase() + " " + subtitle.toLowerCase();
+      let source = "day_spectacle"; // default for Bascala (mostly spectacles)
+      if (titleLower.includes("concert") || titleLower.includes("orchestre") || titleLower.includes("quartet") || titleLower.includes("jazz")) {
+        source = "day_concert";
+      } else if (titleLower.includes("dj") || titleLower.includes("soirée 80") || titleLower.includes("club")) {
+        source = "day_djset";
+      }
+
+      events.push(makeEvent({
+        identifiant: id, source, rubrique: "day",
+        nom_de_la_manifestation: title.toUpperCase(),
+        descriptif_court: subtitle,
+        descriptif_long: producer ? `Produit par : ${producer}` : "",
+        date_debut: isoDate, date_fin: isoDate,
+        horaires,
+        lieu_nom: "LE BASCALA",
+        lieu_adresse_2: "Chemin de Fournaulis",
+        commune: "Bruguières",
+        code_postal: 31150,
+        type_de_manifestation: source === "day_concert" ? "Concert" : source === "day_djset" ? "DJ Set" : "Spectacle",
+        categorie_de_la_manifestation: source === "day_concert" ? "Concert" : source === "day_djset" ? "DJ Set" : "Spectacle",
+        manifestation_gratuite: "non",
+        reservation_site_internet: ticketIdx < ticketLinks.length ? ticketLinks[ticketIdx] : "",
+        photo_url: photoUrl,
+      }));
+      ticketIdx++;
+    }
+
+    // Cleanup stale Bascala records
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const currentIds = events.map(e => `"${e.identifiant}"`).join(",");
+    if (currentIds) {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/scraped_events?identifiant=like.bascala_*&identifiant=not.in.(${currentIds})`,
+        { method: "DELETE", headers: supabaseHeaders },
+      );
+    }
+
+    console.log(`bascala: ${events.length} events from ${fields.length / 6} blocks`);
+    return events;
+  } catch (e) { console.error("Bascala error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Le Rex de Toulouse
+// ─────────────────────────────────────────────────────────────
+async function fetchLeRex(): Promise<ScrapedEvent[]> {
+  try {
+    const html = await fetchHtml("https://www.lerextoulouse.com/fr/programmation/", 15000);
+    const events: ScrapedEvent[] = [];
+    const seen = new Set<string>();
+
+    // Split by image blocks
+    const imgRegex = /<img[^>]+src="(https:\/\/www\.lerextoulouse\.com\/media\/data\/spectacles\/images\/[^?"]+)[^"]*"[^>]*>/g;
+    const imgPositions: { url: string; pos: number }[] = [];
+    let m;
+    while ((m = imgRegex.exec(html)) !== null) {
+      imgPositions.push({ url: m[1], pos: m.index });
+    }
+
+    for (let i = 0; i < imgPositions.length; i++) {
+      const start = imgPositions[i].pos;
+      const end = i + 1 < imgPositions.length ? imgPositions[i + 1].pos : start + 3000;
+      const block = html.substring(start, Math.min(end, start + 3000));
+
+      // Date: <span class="date_list">mar 3 mars 2026 - 19H30</span>
+      const dateMatch = block.match(/class="date_list">([^<]+)<\/span>/);
+      if (!dateMatch) continue;
+      const dateText = dateMatch[1].trim();
+      // Parse: "mar 3 mars 2026 - 19H30"
+      const dp = dateText.match(/\w+\s+(\d{1,2})\s+([a-zéûà]+)\s+(\d{4})\s*-\s*(\d{1,2})[Hh](\d{2})?/);
+      if (!dp) continue;
+      const isoDate = buildIsoDate(dp[1], dp[2], dp[3]);
+      if (!isoDate || !isFutureDate(isoDate)) continue;
+      const horaires = `${dp[4]}h${dp[5] || "00"}`;
+
+      // Artist: <span class="artiste">NAME <span class="styles_list">(genres)</span></span>
+      const artistMatch = block.match(/class="artiste">([^<]+)/);
+      const artist = artistMatch ? artistMatch[1].trim() : "";
+      if (!artist) continue;
+
+      // Genre
+      const genreMatch = block.match(/class="styles_list">\(([^)]+)\)/);
+      const genres = genreMatch ? genreMatch[1] : "";
+
+      // Type: "live" or "Club" (last link in lien_agenda)
+      const typeMatch = block.match(/>(\w+)<\/a>\s*<\/p>/);
+      const eventType = typeMatch ? typeMatch[1].toLowerCase() : "live";
+
+      // Determine source: "Club" → day_djset, "live" → day_concert
+      const source = eventType === "club" ? "day_djset" : "day_concert";
+
+      // Price
+      const priceMatch = block.match(/<strong>([^<]+)<\/strong>/);
+      const price = priceMatch ? priceMatch[1].replace(/&euro;/g, "€").trim() : "";
+
+      // Ticket URL
+      const ticketMatch = block.match(/class="external"[^>]*href="([^"]+)"/);
+      if (!ticketMatch) {
+        // try href before class
+        const ticketMatch2 = block.match(/href="(https?:\/\/[^"]+)"[^>]*class="external"/);
+        var ticketUrl = ticketMatch2 ? ticketMatch2[1] : "";
+      } else {
+        var ticketUrl = ticketMatch[1];
+      }
+
+      // Image
+      const photoUrl = imgPositions[i].url;
+
+      // Dedup
+      const dedupKey = `${normalize(artist)}|${isoDate}`;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+
+      const id = `rex_${normalize(artist).slice(0, 40)}_${isoDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source, rubrique: "day",
+        nom_de_la_manifestation: artist.toUpperCase(),
+        date_debut: isoDate, date_fin: isoDate,
+        horaires,
+        lieu_nom: "LE REX DE TOULOUSE",
+        lieu_adresse_2: "15 Avenue Honoré Serres",
+        commune: "Toulouse",
+        code_postal: 31000,
+        type_de_manifestation: eventType === "club" ? "DJ Set" : "Concert",
+        categorie_de_la_manifestation: genres || (eventType === "club" ? "DJ Set" : "Concert"),
+        manifestation_gratuite: "non",
+        tarif_normal: price,
+        reservation_site_internet: ticketUrl,
+        photo_url: photoUrl,
+      }));
+    }
+
+    // Cleanup stale Rex records
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const currentIds = events.map(e => `"${e.identifiant}"`).join(",");
+    if (currentIds) {
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/scraped_events?identifiant=like.rex_*&identifiant=not.in.(${currentIds})`,
+        { method: "DELETE", headers: supabaseHeaders },
+      );
+    }
+
+    console.log(`lerex: ${events.length} events from ${imgPositions.length} blocks`);
+    return events;
+  } catch (e) { console.error("LeRex error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Zénith Toulouse Métropole (HTML card-show blocks)
 // ─────────────────────────────────────────────────────────────
 function parseFrenchDate(text: string): string | null {
@@ -464,6 +821,10 @@ async function fetchZenith(): Promise<ScrapedEvent[]> {
         ? `https://zenith-toulousemetropole.com${decodeURIComponent(linkMatch[1])}`
         : "";
 
+      // Extract poster image
+      const imgMatch = block.match(/card-show__img[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"/);
+      const photoUrl = imgMatch ? imgMatch[1] : "";
+
       const id = `zenith_${normalize(name).slice(0, 40)}_${startDate}`;
 
       events.push(makeEvent({
@@ -478,6 +839,7 @@ async function fetchZenith(): Promise<ScrapedEvent[]> {
         categorie_de_la_manifestation: "Concert",
         manifestation_gratuite: "non",
         reservation_site_internet: showUrl,
+        photo_url: photoUrl,
       }));
     }
 
@@ -645,12 +1007,191 @@ async function fetchToulouseTourisme(): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Interférence Toulouse (API with pagination)
+// ─────────────────────────────────────────────────────────────
+async function fetchInterference(): Promise<ScrapedEvent[]> {
+  try {
+    const apiUrl = "https://api.interference-toulouse.fr/events/search";
+    const allRaw: any[] = [];
+
+    // Fetch all pages from the API
+    let page = 1;
+    let lastPage = 1;
+    while (page <= lastPage) {
+      const resp = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ page, eventCategory: "all", dateFilter: "upcoming", searchFilter: "" }),
+      });
+      if (!resp.ok) { console.error(`interference: API page ${page} returned ${resp.status}`); break; }
+      const json = await resp.json();
+      const pageData = json.data ?? [];
+      allRaw.push(...pageData);
+      lastPage = json.pagination?.lastPage ?? page;
+      page++;
+    }
+
+    console.log(`interference: fetched ${allRaw.length} raw events from API (${page - 1} pages)`);
+    const events: ScrapedEvent[] = [];
+
+    for (const e of allRaw) {
+      const rawName = (e.event_name ?? "").trim();
+      if (!rawName) continue;
+
+      // Remove [COMPLET] anywhere in name
+      const complet = /\[complet\]/i.test(rawName);
+      const name = rawName.replace(/\[COMPLET\]\s*[-–—]?\s*/gi, "").trim().toUpperCase();
+
+      const startIso = e.event_starting ?? "";
+      const startDate = isoToDate(startIso);
+      if (!startDate || !isFutureDate(startDate)) continue;
+
+      const horaires = isoToTime(startIso);
+
+      // Determine source by event type
+      const eventType = (e.event_type ?? "").toLowerCase();
+      let source = "day_concert";
+      let typeName = "Concert";
+      if (eventType === "club") {
+        source = "day_djset";
+        typeName = "DJ Set";
+      } else if (eventType === "show" || eventType === "spectacle") {
+        source = "day_spectacle";
+        typeName = "Spectacle";
+      }
+
+      const ticketUrl = e.event_external_ticketing_url ?? "";
+      const photoUrl = e.tile_url ?? "";
+      const id = `interf_${normalize(name).slice(0, 40)}_${startDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source, rubrique: "day",
+        nom_de_la_manifestation: name,
+        descriptif_court: complet ? "COMPLET" : "",
+        date_debut: startDate, date_fin: startDate,
+        horaires,
+        lieu_nom: "Interference",
+        lieu_adresse_2: "56 Route de Lavaur",
+        commune: "Toulouse",
+        code_postal: 31130,
+        type_de_manifestation: typeName,
+        categorie_de_la_manifestation: typeName,
+        manifestation_gratuite: "non",
+        reservation_site_internet: ticketUrl,
+        photo_url: photoUrl,
+      }));
+    }
+
+    // Cleanup stale Interference records not in current batch
+    if (events.length > 0) {
+      const currentIds = events.map(e => e.identifiant);
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+      const delUrl = `${SUPABASE_URL}/rest/v1/scraped_events?lieu_nom=eq.Interference&identifiant=not.in.(${currentIds.join(",")})`;
+      const delRes = await fetch(delUrl, { method: "DELETE", headers: supabaseHeaders });
+      if (delRes.ok) {
+        console.log(`interference: cleaned up stale records`);
+      }
+    }
+
+    console.log(`interference: ${events.length} future events from ${allRaw.length} total`);
+    return events;
+  } catch (e) { console.error("Interference error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Le Metronum (WordPress Tribe Events API)
+// ─────────────────────────────────────────────────────────────
+async function fetchMetronum(): Promise<ScrapedEvent[]> {
+  try {
+    const apiUrl = "https://lemetronum.fr/wp-json/tribe/events/v1/events?per_page=50&start_date=now";
+    const resp = await fetch(apiUrl, {
+      headers: { "Accept": "application/json" },
+    });
+    if (!resp.ok) { console.error(`metronum: API returned ${resp.status}`); return []; }
+    const json = await resp.json();
+    const rawEvents = json.events ?? [];
+
+    console.log(`metronum: fetched ${rawEvents.length} raw events from API`);
+    const events: ScrapedEvent[] = [];
+
+    for (const e of rawEvents) {
+      const rawTitle = (e.title ?? "").replace(/&#\d+;|&[a-z]+;/gi, " ").replace(/\s+/g, " ").trim();
+      if (!rawTitle) continue;
+      const name = rawTitle.toUpperCase();
+
+      const startDate = (e.start_date ?? "").substring(0, 10);
+      if (!startDate || !isFutureDate(startDate)) continue;
+
+      const startTime = (e.start_date ?? "").substring(11, 16);
+      const horaires = startTime ? `${startTime.replace(":", "h")}` : "";
+
+      // Category mapping
+      const cats = (e.categories ?? []).map((c: any) => (c.name ?? "").toLowerCase());
+      let source = "day_concert";
+      let typeName = "Concert";
+      if (cats.some((c: string) => c.includes("club") || c.includes("dj"))) {
+        source = "day_djset";
+        typeName = "DJ Set";
+      } else if (cats.some((c: string) => c.includes("spectacle"))) {
+        source = "day_spectacle";
+        typeName = "Spectacle";
+      }
+
+      // Skip non-event categories (ateliers, portes ouvertes...)
+      if (cats.some((c: string) => c.includes("ateliers")) && !cats.some((c: string) => c.includes("concert"))) continue;
+
+      const description = (e.excerpt ?? e.description ?? "").replace(/<[^>]+>/g, "").trim().substring(0, 300);
+      const ticketUrl = e.website ?? e.url ?? "";
+      const cost = e.cost ?? "";
+      const gratuit = cost.toLowerCase().includes("gratuit") || cost === "" ? "oui" : "non";
+      const photoUrl = e.image?.url ?? "";
+
+      const id = `metronum_${normalize(rawTitle).slice(0, 40)}_${startDate}`;
+
+      events.push(makeEvent({
+        identifiant: id, source, rubrique: "day",
+        nom_de_la_manifestation: name,
+        descriptif_court: description.substring(0, 150),
+        descriptif_long: description,
+        date_debut: startDate, date_fin: startDate,
+        horaires,
+        lieu_nom: "Le Metronum",
+        lieu_adresse_2: "2 Rond-point Madame de Mondonville",
+        commune: "Toulouse",
+        code_postal: 31200,
+        type_de_manifestation: typeName,
+        categorie_de_la_manifestation: typeName,
+        manifestation_gratuite: gratuit,
+        reservation_site_internet: ticketUrl,
+        photo_url: photoUrl,
+      }));
+    }
+
+    // Cleanup stale Metronum records
+    if (events.length > 0) {
+      const currentIds = events.map(e => e.identifiant);
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+      const delUrl = `${SUPABASE_URL}/rest/v1/scraped_events?lieu_nom=eq.Le Metronum&identifiant=not.in.(${currentIds.join(",")})`;
+      const delRes = await fetch(delUrl, { method: "DELETE", headers: supabaseHeaders });
+      if (delRes.ok) console.log(`metronum: cleaned up stale records`);
+    }
+
+    console.log(`metronum: ${events.length} future events from ${rawEvents.length} total`);
+    return events;
+  } catch (e) { console.error("Metronum error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Categorize ODS events by type/category
 // ─────────────────────────────────────────────────────────────
 function categorizeEvent(e: ScrapedEvent): string {
   const type = (e.type_de_manifestation || "").toLowerCase();
   const cat = (e.categorie_de_la_manifestation || "").toLowerCase();
   const lieu = (e.lieu_nom || "").toLowerCase();
+
+  // Fête de la musique — check before festival/concert
+  const nom = (e.nom_de_la_manifestation || "").toLowerCase();
+  if (nom.includes("fête de la musique") || nom.includes("fete de la musique") || cat.includes("fête de la musique") || type.includes("fête de la musique")) return "day_fete_musique";
 
   // Festival check FIRST — a festival is a festival even if it's also tagged as music/theatre
   if (cat.includes("festival") || type.includes("festival")) return "day_festival";
@@ -674,7 +1215,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   const today = todayStr();
   const where = `date_debut >= "${today}"`;
 
-  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini, zenith, tfg, tlTourisme] = await Promise.all([
+  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini, zenith, tfg, tlTourisme, interference, metronum, leRex, bascala, comdt, onctPhotos] = await Promise.all([
     fetchODS(where),
     fetchTicketmaster(),
     fetchFestik("Concert"),
@@ -685,13 +1226,22 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
     fetchZenith(),
     fetchTimeForGig(),
     fetchToulouseTourisme(),
+    fetchInterference(),
+    fetchMetronum(),
+    fetchLeRex(),
+    fetchBascala(),
+    fetchCOMDT(),
+    fetchONCTPhotos(),
   ]);
 
-  // Tag ODS events by category
-  const taggedOds = ods.map(e => {
-    const source = categorizeEvent(e);
-    return source === "skip" ? null : { ...e, source };
-  }).filter(Boolean) as ScrapedEvent[];
+  // Tag ODS events by category + enrich Halle aux Grains photos
+  const taggedOds = enrichHallePhotos(
+    ods.map(e => {
+      const source = categorizeEvent(e);
+      return source === "skip" ? null : { ...e, source };
+    }).filter(Boolean) as ScrapedEvent[],
+    onctPhotos,
+  );
 
   // Tag external sources
   const taggedTm = tm.map(e => ({ ...e, source: "day_concert" }));
@@ -703,8 +1253,77 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   }).map(e => ({ ...e, source: "day_spectacle" }));
 
   // Curated sources first so they win dedup over generic ODS tags
-  const all = [...zenith, ...tfg, ...operaTls, ...bikini, ...tlTourisme, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
-  return dedup(all);
+  const allRaw = [...zenith, ...leRex, ...bascala, ...comdt, ...tfg, ...operaTls, ...bikini, ...interference, ...metronum, ...tlTourisme, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
+
+  // Re-tag "Fête de la musique" events regardless of original source
+  const all = allRaw.map(e => {
+    const nom = (e.nom_de_la_manifestation || "").toLowerCase();
+    if (nom.includes("fête de la musique") || nom.includes("fete de la musique")) {
+      return { ...e, source: "day_fete_musique" };
+    }
+    return e;
+  });
+  const deduped = dedup(all);
+
+  // Enrich TFG events without photos using Ticketmaster artist images
+  return enrichTfgPhotos(deduped);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Ticketmaster artist image enrichment for events without photos
+// ─────────────────────────────────────────────────────────────
+const MANUAL_ARTIST_PHOTOS: Record<string, string> = {
+  florentpagny: "https://blog.ticketmaster.fr/wp-content/uploads/2024/12/TKM_800x400.jpg",
+};
+
+async function enrichTfgPhotos(events: ScrapedEvent[]): Promise<ScrapedEvent[]> {
+  // First apply manual overrides
+  const withManual = events.map(e => {
+    if (e.photo_url || !e.identifiant.startsWith("tfg_")) return e;
+    const key = normalize(e.nom_de_la_manifestation);
+    const manual = MANUAL_ARTIST_PHOTOS[key];
+    return manual ? { ...e, photo_url: manual } : e;
+  });
+
+  if (!TICKETMASTER_API_KEY) return withManual;
+
+  // Collect unique artist names that still need photos (after manual overrides)
+  const needPhoto = new Map<string, string[]>(); // normalized name → [indices]
+  for (let i = 0; i < withManual.length; i++) {
+    const e = withManual[i];
+    if (e.photo_url || !e.identifiant.startsWith("tfg_")) continue;
+    const key = normalize(e.nom_de_la_manifestation);
+    if (!needPhoto.has(key)) needPhoto.set(key, []);
+    needPhoto.get(key)!.push(String(i));
+  }
+
+  if (needPhoto.size === 0) return withManual;
+  console.log(`TFG photo enrichment: ${needPhoto.size} unique artists need photos`);
+
+  // Sequential search to avoid Ticketmaster rate limits (max 20 artists)
+  const artists = [...needPhoto.entries()].slice(0, 20);
+  const enriched = [...withManual];
+  let count = 0;
+
+  for (const [_, indices] of artists) {
+    const name = withManual[Number(indices[0])].nom_de_la_manifestation;
+    try {
+      const url = `https://app.ticketmaster.com/discovery/v2/attractions.json?apikey=${TICKETMASTER_API_KEY}&keyword=${encodeURIComponent(name)}&countryCode=FR&size=1`;
+      const data = await fetchJson<any>(url, 8000);
+      const attraction = data._embedded?.attractions?.[0];
+      if (!attraction?.images?.length) continue;
+      const imgs = attraction.images as any[];
+      const best = imgs.sort((a: any, b: any) => (b.width ?? 0) - (a.width ?? 0))[0];
+      const photoUrl = best?.url ?? "";
+      if (!photoUrl) continue;
+      for (const idx of indices) {
+        enriched[Number(idx)] = { ...enriched[Number(idx)], photo_url: photoUrl };
+        count++;
+      }
+    } catch { /* skip on error */ }
+  }
+  console.log(`TFG photo enrichment: found photos for ${count} events`);
+  return enriched;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -733,6 +1352,26 @@ Deno.serve(async (_req) => {
   } catch (e) {
     errors.push(`scrapeAllDay: ${(e as Error).message}`);
   }
+
+  // Preserve existing photos: don't overwrite non-empty photo_url with empty
+  try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/scraped_events?select=identifiant,photo_url&photo_url=neq.`,
+      { headers: supabaseHeaders },
+    );
+    if (res.ok) {
+      const existing = await res.json() as { identifiant: string; photo_url: string }[];
+      const photoMap = new Map(existing.map(e => [e.identifiant, e.photo_url]));
+      for (let i = 0; i < allEvents.length; i++) {
+        if (!allEvents[i].photo_url) {
+          const saved = photoMap.get(allEvents[i].identifiant);
+          if (saved) allEvents[i] = { ...allEvents[i], photo_url: saved };
+        }
+      }
+      console.log(`Preserved ${photoMap.size} existing photos`);
+    }
+  } catch (e) { console.error("Photo preservation error:", e); }
 
   const count = await upsertEvents(allEvents);
   console.log(`scrape-day: upserted ${count} events total`);

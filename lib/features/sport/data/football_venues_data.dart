@@ -1,0 +1,167 @@
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+
+class FootballVenuesData {
+  FootballVenuesData._();
+
+  static const _catStade = '\u26BD Stades';
+  static const _catFive = '\u26BD Foot en salle / Five';
+  static const _catMunicipal = '\u26BD Terrains municipaux';
+
+  static final List<CommerceModel> venues = [
+    // ── Stades ──
+    const CommerceModel(
+      nom: 'Stadium de Toulouse (TFC)',
+      categorie: _catStade,
+      adresse: '1 Allee Gabriel Bienes, 31028 Toulouse',
+      siteWeb: 'https://www.stadiumdetoulouse.fr/',
+      lienMaps: 'https://www.google.com/maps/search/Stadium+de+Toulouse+1+Allee+Gabriel+Bienes',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.5833,
+      longitude: 1.4340,
+    ),
+
+    // ── Foot en salle / Five ──
+    const CommerceModel(
+      nom: 'UrbanSoccer Toulouse',
+      categorie: _catFive,
+      adresse: '50 Chemin de la Salade Ponsan, 31400 Toulouse',
+      siteWeb: 'https://www.urbansoccer.fr/centres/toulouse/',
+      lienMaps: 'https://www.google.com/maps/search/UrbanSoccer+Toulouse+Chemin+Salade+Ponsan',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.5690,
+      longitude: 1.4690,
+    ),
+    const CommerceModel(
+      nom: 'Le Five Toulouse',
+      categorie: _catFive,
+      adresse: '15 Impasse de Lisbonne, 31200 Toulouse',
+      siteWeb: 'https://www.lefive.fr/toulouse',
+      lienMaps: 'https://www.google.com/maps/search/Le+Five+Toulouse+Impasse+de+Lisbonne',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6360,
+      longitude: 1.4170,
+    ),
+    const CommerceModel(
+      nom: 'Le Five Colomiers',
+      categorie: _catFive,
+      adresse: '5 Rue Louis Breguet, 31770 Colomiers',
+      siteWeb: 'https://www.lefive.fr/colomiers',
+      lienMaps: 'https://www.google.com/maps/search/Le+Five+Colomiers+Rue+Louis+Breguet',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6190,
+      longitude: 1.3270,
+    ),
+    const CommerceModel(
+      nom: 'So Foot Five Sesquieres',
+      categorie: _catFive,
+      adresse: 'Chemin de Sesquieres, 31200 Toulouse',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/So+Foot+Five+Sesquieres+Toulouse',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6440,
+      longitude: 1.4270,
+    ),
+
+    // ── Terrains municipaux ──
+    const CommerceModel(
+      nom: 'Complexe Sportif de Sesquieres',
+      categorie: _catMunicipal,
+      adresse: 'Allee des Foulques, 31200 Toulouse',
+      siteWeb: 'https://www.toulouse.fr/web/sports/les-equipements-sportifs',
+      lienMaps: 'https://www.google.com/maps/search/Complexe+Sportif+Sesquieres+Toulouse',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6460,
+      longitude: 1.4260,
+    ),
+    const CommerceModel(
+      nom: 'Stade de la Juncasse',
+      categorie: _catMunicipal,
+      adresse: 'Chemin de la Juncasse, 31200 Toulouse',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+Juncasse+Toulouse',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6350,
+      longitude: 1.4600,
+    ),
+    const CommerceModel(
+      nom: 'Stade Arnaune',
+      categorie: _catMunicipal,
+      adresse: '23 Chemin Arnaune, 31200 Toulouse',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+Arnaune+Toulouse',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6310,
+      longitude: 1.4380,
+    ),
+    const CommerceModel(
+      nom: 'Stade Municipal de Lalande',
+      categorie: _catMunicipal,
+      adresse: '2 Impasse de Lalande, 31200 Toulouse',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+Municipal+Lalande+Toulouse',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6500,
+      longitude: 1.4340,
+    ),
+    const CommerceModel(
+      nom: 'Stade Raphael Pujazon',
+      categorie: _catMunicipal,
+      adresse: 'Chemin de Naudet, 31100 Toulouse',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+Raphael+Pujazon+Toulouse',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.5730,
+      longitude: 1.4100,
+    ),
+    const CommerceModel(
+      nom: 'Stade Municipal de Balma',
+      categorie: _catMunicipal,
+      adresse: 'Avenue des Platanes, 31130 Balma',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+Municipal+Balma+Avenue+des+Platanes',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6110,
+      longitude: 1.4950,
+    ),
+    const CommerceModel(
+      nom: 'Complexe Sportif Andromede Blagnac',
+      categorie: _catMunicipal,
+      adresse: 'Rue de Jupiter, 31700 Blagnac',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Complexe+Sportif+Andromede+Blagnac',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6530,
+      longitude: 1.3760,
+    ),
+    const CommerceModel(
+      nom: 'Stade Municipal de Colomiers',
+      categorie: _catMunicipal,
+      adresse: 'Place Alex Raymond, 31770 Colomiers',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+Municipal+Colomiers+Place+Alex+Raymond',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6080,
+      longitude: 1.3370,
+    ),
+    const CommerceModel(
+      nom: 'Stade de la Ramee',
+      categorie: _catMunicipal,
+      adresse: 'Avenue du General Eisenhower, 31170 Tournefeuille',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+de+la+Ramee+Tournefeuille',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.5850,
+      longitude: 1.3490,
+    ),
+    const CommerceModel(
+      nom: 'Stade de Croix-Daurade',
+      categorie: _catMunicipal,
+      adresse: 'Chemin Virebent, 31200 Toulouse',
+      siteWeb: '',
+      lienMaps: 'https://www.google.com/maps/search/Stade+Croix+Daurade+Chemin+Virebent+Toulouse',
+      photo: 'assets/images/shell_sport_football.png',
+      latitude: 43.6420,
+      longitude: 1.4630,
+    ),
+  ];
+}

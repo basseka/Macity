@@ -12,6 +12,7 @@ import 'package:pulz_app/features/day/data/day_category_data.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
+import 'package:pulz_app/features/day/presentation/widgets/fete_musique_map_view.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
@@ -23,6 +24,8 @@ class DayScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedSubcategory = ref.watch(selectedDaySubcategoryProvider);
     final selectedVenue = ref.watch(selectedConcertVenueProvider);
+    final selectedDjsetVenue = ref.watch(selectedDjsetVenueProvider);
+    final selectedSpectacleVenue = ref.watch(selectedSpectacleVenueProvider);
 
     Widget content;
     if (selectedSubcategory == null) {
@@ -31,6 +34,16 @@ class DayScreen extends ConsumerWidget {
       content = _buildVenueGrid(context, ref);
     } else if (selectedSubcategory == 'Concert' && selectedVenue != null) {
       content = _buildVenueEventsList(context, ref, selectedVenue);
+    } else if (selectedSubcategory == 'DJ set' && selectedDjsetVenue == null) {
+      content = _buildDjsetVenueGrid(context, ref);
+    } else if (selectedSubcategory == 'DJ set' && selectedDjsetVenue != null) {
+      content = _buildDjsetVenueEventsList(context, ref, selectedDjsetVenue);
+    } else if (selectedSubcategory == 'Spectacle' && selectedSpectacleVenue == null) {
+      content = _buildSpectacleVenueGrid(context, ref);
+    } else if (selectedSubcategory == 'Spectacle' && selectedSpectacleVenue != null) {
+      content = _buildSpectacleVenueEventsList(context, ref, selectedSpectacleVenue);
+    } else if (selectedSubcategory == 'Fete musique') {
+      content = _buildFeteMusiqueMap(context, ref);
     } else {
       content = _buildEventsList(context, ref, selectedSubcategory);
     }
@@ -45,7 +58,7 @@ class DayScreen extends ConsumerWidget {
 
   Widget _buildSubcategoryGrid(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-    const subcategories = DayCategoryData.subcategories;
+    final subcategories = DayCategoryData.subcategories;
 
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -60,11 +73,12 @@ class DayScreen extends ConsumerWidget {
         final sub = subcategories[index];
         final countAsync =
             ref.watch(daySubcategoryCountProvider(sub.searchTag));
+        final isFeteMusique = sub.searchTag == 'Fete musique';
         return DaySubcategoryCard(
           emoji: '',
           label: sub.label,
           image: sub.image,
-          count: countAsync.valueOrNull,
+          count: isFeteMusique ? null : countAsync.valueOrNull,
           blink: sub.label == 'A venir',
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -76,6 +90,8 @@ class DayScreen extends ConsumerWidget {
           ),
           onTap: () {
             ref.read(selectedConcertVenueProvider.notifier).state = null;
+            ref.read(selectedDjsetVenueProvider.notifier).state = null;
+            ref.read(selectedSpectacleVenueProvider.notifier).state = null;
             ref.read(modeSubcategoriesProvider.notifier).select('day', sub.searchTag);
           },
         );
@@ -218,6 +234,272 @@ class DayScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildDjsetVenueGrid(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    const venues = DayCategoryData.djsetVenues;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'DJ Set',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildBackButton(ref, modeTheme, onTap: () {
+                ref.read(modeSubcategoriesProvider.notifier).select('day', null);
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.85,
+            ),
+            itemCount: venues.length,
+            itemBuilder: (context, index) {
+              final venue = venues[index];
+              final countAsync =
+                  ref.watch(djsetVenueCountProvider(venue.searchKeyword));
+              return DaySubcategoryCard(
+                emoji: '',
+                label: venue.label,
+                image: venue.image,
+                count: countAsync.valueOrNull,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    modeTheme.primaryColor,
+                    modeTheme.primaryDarkColor,
+                  ],
+                ),
+                onTap: () {
+                  ref.read(selectedDjsetVenueProvider.notifier).state =
+                      venue.searchKeyword;
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpectacleVenueGrid(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    const venues = DayCategoryData.spectacleVenues;
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Spectacle',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildBackButton(ref, modeTheme, onTap: () {
+                ref.read(modeSubcategoriesProvider.notifier).select('day', null);
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.85,
+            ),
+            itemCount: venues.length,
+            itemBuilder: (context, index) {
+              final venue = venues[index];
+              final countAsync =
+                  ref.watch(spectacleVenueCountProvider(venue.searchKeyword));
+              return DaySubcategoryCard(
+                emoji: '',
+                label: venue.label,
+                image: venue.image,
+                count: countAsync.valueOrNull,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    modeTheme.primaryColor,
+                    modeTheme.primaryDarkColor,
+                  ],
+                ),
+                onTap: () {
+                  ref.read(selectedSpectacleVenueProvider.notifier).state =
+                      venue.searchKeyword;
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpectacleVenueEventsList(
+    BuildContext context,
+    WidgetRef ref,
+    String venueKeyword,
+  ) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    final eventsAsync = ref.watch(daySpectacleVenueEventsProvider);
+
+    final venue = DayCategoryData.spectacleVenues.firstWhere(
+      (v) => v.searchKeyword == venueKeyword,
+      orElse: () => DayCategoryData.spectacleVenues.first,
+    );
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  venue.label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildBackButton(ref, modeTheme, onTap: () {
+                ref.read(selectedSpectacleVenueProvider.notifier).state = null;
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: eventsAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return const EmptyStateWidget(
+                  message: 'Aucun evenement trouve pour cette salle',
+                  icon: Icons.event_busy,
+                );
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: events.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: EventRowCard(event: events[index]),
+                ),
+              );
+            },
+            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+            error: (error, _) => AppErrorWidget(
+              message: 'Erreur lors du chargement des evenements',
+              onRetry: () => ref.invalidate(daySpectacleVenueEventsProvider),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDjsetVenueEventsList(
+    BuildContext context,
+    WidgetRef ref,
+    String venueKeyword,
+  ) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    final eventsAsync = ref.watch(dayDjsetVenueEventsProvider);
+
+    final venue = DayCategoryData.djsetVenues.firstWhere(
+      (v) => v.searchKeyword == venueKeyword,
+      orElse: () => DayCategoryData.djsetVenues.first,
+    );
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  venue.label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildBackButton(ref, modeTheme, onTap: () {
+                ref.read(selectedDjsetVenueProvider.notifier).state = null;
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: eventsAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return const EmptyStateWidget(
+                  message: 'Aucun evenement trouve pour cette salle',
+                  icon: Icons.event_busy,
+                );
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: events.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: EventRowCard(event: events[index]),
+                ),
+              );
+            },
+            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+            error: (error, _) => AppErrorWidget(
+              message: 'Erreur lors du chargement des evenements',
+              onRetry: () => ref.invalidate(dayDjsetVenueEventsProvider),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBackButton(WidgetRef ref, ModeTheme modeTheme, {required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
@@ -244,6 +526,17 @@ class DayScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFeteMusiqueMap(BuildContext context, WidgetRef ref) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        ref.read(modeSubcategoriesProvider.notifier).select('day', null);
+      },
+      child: const FeteMusiqueMapView(),
     );
   }
 

@@ -37,20 +37,14 @@ class DanceVenueCard extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Bulle image a gauche ──
+            // ── Pochette arrondie à gauche ──
             Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Container(
-                width: 65,
-                height: 65,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                ),
-                child: ClipOval(
+              padding: const EdgeInsets.all(8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
                   child: Image.asset(dance.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                 ),
               ),

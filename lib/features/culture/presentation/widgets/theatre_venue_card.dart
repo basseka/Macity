@@ -31,43 +31,37 @@ class TheatreVenueCard extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Bulle image a gauche ──
+            // ── Pochette arrondie à gauche ──
             Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 65,
-                    height: 65,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: ClipOval(
+              padding: const EdgeInsets.all(8),
+              child: SizedBox(
+                width: 64,
+                height: 64,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
                       child: Image.asset(theatre.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                     ),
-                  ),
-                  if (theatre.hasOnlineTicket)
-                    Positioned(
-                      top: -2,
-                      left: -2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF059669),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'BILLETTERIE',
-                          style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                    if (theatre.hasOnlineTicket)
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF059669),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'BILLETTERIE',
+                            style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w700),
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
 

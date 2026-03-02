@@ -56,7 +56,7 @@ class DayCategoryData {
     ConcertVenue(label: 'Bascala', searchKeyword: 'bascala', image: 'assets/images/pochette_concert.png'),
   ];
 
-  static const subcategories = [
+  static final subcategories = [
     DaySubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '📅', image: 'assets/images/pochette_default.png'),
     DaySubcategory(label: 'Concert', searchTag: 'Concert', emoji: '🎵', image: 'assets/images/pochette_concert.png'),
     DaySubcategory(label: 'Festival', searchTag: 'Festival', emoji: '🎪', image: 'assets/images/pochette_festival.png'),
@@ -65,7 +65,7 @@ class DayCategoryData {
     DaySubcategory(label: 'Stand Up', searchTag: 'Stand up', emoji: '🎙️', image: 'assets/images/pochette_standup.png'),
     DaySubcategory(label: 'DJ Set', searchTag: 'DJ set', emoji: '🎧', image: 'assets/images/pochette_discotheque.png'),
     DaySubcategory(label: 'Showcase', searchTag: 'Showcase', emoji: '🎤', image: 'assets/images/pochette_showcase.png'),
-    DaySubcategory(label: 'Fête de la musique', searchTag: 'Fete musique', emoji: '🎉', image: 'assets/images/pochette_fetedelamusique.png'),
+    DaySubcategory(label: 'Fête de la musique ${DateTime.now().year}', searchTag: 'Fete musique', emoji: '🎉', image: 'assets/images/pochette_fetedelamusique.png'),
     DaySubcategory(label: 'Autres', searchTag: 'Autres', emoji: '🎟️', image: 'assets/images/pochette_autre.png'),
   ];
 }

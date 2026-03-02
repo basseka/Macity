@@ -11,6 +11,7 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 
 class ModeShell extends ConsumerWidget {
@@ -35,6 +36,13 @@ class ModeShell extends ConsumerWidget {
     // Fête de la Musique → plein écran, pas de shell chrome
     final isFeteMusique = ref.watch(currentModeProvider) == 'day' &&
         ref.watch(modeSubcategoriesProvider)['day'] == 'Fete musique';
+
+    // Cartes sport venues → plein écran
+    final sportSub = ref.watch(modeSubcategoriesProvider)['sport'] ?? '';
+    final isSportMap = ref.watch(currentModeProvider) == 'sport' &&
+        sportSub.endsWith(' carte');
+
+    final isFullscreen = isFeteMusique || isSportMap;
 
     return PopScope(
       canPop: false,
@@ -65,7 +73,7 @@ class ModeShell extends ConsumerWidget {
         // Aucune navigation interne → retour à l'accueil
         context.go('/home');
       },
-      child: isFeteMusique
+      child: isFullscreen
         ? Scaffold(
             backgroundColor: modeTheme.backgroundColor,
             body: SafeArea(child: child),
@@ -117,7 +125,7 @@ class ModeShell extends ConsumerWidget {
                         );
                       },
                       child: Container(
-                        height: 28,
+                        height: 34,
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(20),
@@ -126,12 +134,12 @@ class ModeShell extends ConsumerWidget {
                         child: Row(
                           children: [
                             const SizedBox(width: 12),
-                            Icon(Icons.search, color: Colors.grey.shade400, size: 14),
-                            const SizedBox(width: 4),
+                            Icon(Icons.search, color: Colors.grey.shade400, size: 16),
+                            const SizedBox(width: 6),
                             Text(
                               'Trouve un evenement',
                               style: GoogleFonts.inter(
-                                fontSize: 10,
+                                fontSize: 11,
                                 color: Colors.grey.shade400,
                               ),
                             ),
@@ -142,10 +150,22 @@ class ModeShell extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: () => const AppBottomNavBar().showAddEvent(context, ref),
+                    onTap: () {
+                      final status = ref.read(proAuthProvider).status;
+                      if (status == ProAuthStatus.approved) {
+                        const AppBottomNavBar().showAddEvent(context, ref);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Se connecter pour ajouter un evenement'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
                     child: Container(
-                      width: 18,
-                      height: 18,
+                      width: 24,
+                      height: 24,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
@@ -154,7 +174,7 @@ class ModeShell extends ConsumerWidget {
                           colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
                         ),
                       ),
-                      child: const Icon(Icons.add, color: Colors.white, size: 12),
+                      child: const Icon(Icons.add, color: Colors.white, size: 16),
                     ),
                   ),
                 ],

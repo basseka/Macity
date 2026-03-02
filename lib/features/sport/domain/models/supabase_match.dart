@@ -21,6 +21,7 @@ class SupabaseMatch with _$SupabaseMatch {
     @Default('') String gratuit,
     @JsonKey(name: 'url') @Default('') String billetterie,
     @Default('') String source,
+    @JsonKey(name: 'photo_url') @Default('') String photoUrl,
   }) = _SupabaseMatch;
 
   factory SupabaseMatch.fromJson(Map<String, dynamic> json) =>

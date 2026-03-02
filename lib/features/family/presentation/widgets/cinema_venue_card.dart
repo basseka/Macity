@@ -29,43 +29,41 @@ class CinemaVenueCard extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // ── Bulle emoji a gauche ──
+              // ── Pochette arrondie à gauche ──
               Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 65,
-                      height: 65,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                        border: Border.all(
-                          color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                          width: 1.5,
+                padding: const EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: modeTheme.primaryColor.withValues(alpha: 0.08),
                         ),
+                        alignment: Alignment.center,
+                        child: const Text('\uD83C\uDFAC', style: TextStyle(fontSize: 24)),
                       ),
-                      alignment: Alignment.center,
-                      child: const Text('\uD83C\uDFAC', style: TextStyle(fontSize: 24)),
-                    ),
-                    if (cinema.ticketUrl.isNotEmpty)
-                      Positioned(
-                        top: -2,
-                        left: -2,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF059669),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'SEANCES',
-                            style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                      if (cinema.ticketUrl.isNotEmpty)
+                        Positioned(
+                          top: 4,
+                          left: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF059669),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'SEANCES',
+                              style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w700),
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 

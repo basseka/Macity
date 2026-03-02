@@ -34,35 +34,35 @@ class SportCategoryData {
       name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        SportSubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
+        SportSubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_autre.png'),
       ],
     ),
     SportCategoryGroup(
       name: 'Rugby',
-      emoji: '\uD83C\uDFC9',
+      emoji: '',
       subcategories: [
-        SportSubcategory(label: 'Rugby', searchTag: 'Rugby', emoji: '\uD83C\uDFC9', group: 'Rugby', image: 'assets/images/pochette_rugby.png'),
+        SportSubcategory(label: 'Rugby', searchTag: 'Rugby', emoji: '', group: 'Rugby', image: 'assets/images/shell_sport_rugby.png'),
       ],
     ),
     SportCategoryGroup(
       name: 'Football',
       emoji: '\u26BD',
       subcategories: [
-        SportSubcategory(label: 'Football', searchTag: 'Football', emoji: '\u26BD', group: 'Football', image: 'assets/images/pochette_football.png'),
+        SportSubcategory(label: 'Football', searchTag: 'Football', emoji: '\u26BD', group: 'Football', image: 'assets/images/shell_sport_football.png'),
       ],
     ),
     SportCategoryGroup(
       name: 'Basketball',
       emoji: '\uD83C\uDFC0',
       subcategories: [
-        SportSubcategory(label: 'Basketball', searchTag: 'Basketball', emoji: '\uD83C\uDFC0', group: 'Basketball', image: 'assets/images/pochette_basketball.png'),
+        SportSubcategory(label: 'Basketball', searchTag: 'Basketball', emoji: '\uD83C\uDFC0', group: 'Basketball', image: 'assets/images/shell_sport_basketball.png'),
       ],
     ),
     SportCategoryGroup(
       name: 'Handball',
       emoji: '\uD83E\uDD3E',
       subcategories: [
-        SportSubcategory(label: 'Handball', searchTag: 'Handball', emoji: '\uD83E\uDD3E', group: 'Handball', image: 'assets/images/pochette_handball.png'),
+        SportSubcategory(label: 'Handball', searchTag: 'Handball', emoji: '\uD83E\uDD3E', group: 'Handball', image: 'assets/images/shell_sport_handball.png'),
       ],
     ),
     SportCategoryGroup(
@@ -87,14 +87,58 @@ class SportCategoryData {
       ],
     ),
     SportCategoryGroup(
+      name: 'Golf',
+      emoji: '\u26F3',
+      subcategories: [
+        SportSubcategory(label: 'Golf', searchTag: 'Golf', emoji: '\u26F3', group: 'Golf', image: 'assets/images/pochette_autre.png'),
+      ],
+    ),
+    SportCategoryGroup(
+      name: 'Raquette',
+      emoji: '\uD83C\uDFBE',
+      subcategories: [
+        SportSubcategory(label: 'Raquette', searchTag: 'Raquette', emoji: '\uD83C\uDFBE', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+      ],
+    ),
+    SportCategoryGroup(
       name: 'Salle de Fitness',
       emoji: '\uD83D\uDCAA',
       subcategories: [
-        SportSubcategory(label: 'Salle de Fitness', searchTag: 'Salle de fitness', emoji: '\uD83D\uDCAA', group: 'Salle de Fitness', image: 'assets/images/pochette_default.png'),
+        SportSubcategory(label: 'Salle de Fitness', searchTag: 'Salle de fitness', emoji: '\uD83D\uDCAA', group: 'Salle de Fitness', image: 'assets/images/shell_sport_fitness.png'),
       ],
     ),
   ];
 
   static List<SportSubcategory> get allSubcategories =>
       groups.expand((g) => g.subcategories).toList();
+
+  /// Sous-catégories affichées dans le hub Match/Events.
+  static List<SportSubcategory> get matchSubcategories =>
+      groups
+          .where((g) => const {
+                'A venir', 'Rugby', 'Football', 'Basketball',
+                'Handball', 'Boxe', 'Natation', 'Course a pied',
+              }.contains(g.name))
+          .expand((g) => g.subcategories)
+          .toList();
+
+  /// Sous-catégories affichées dans le hub Complexe sportif.
+  static const complexeSportifSubcategories = [
+    SportSubcategory(label: 'Salle de Fitness', searchTag: 'Salle de fitness', emoji: '\uD83D\uDCAA', group: 'Salle de Fitness', image: 'assets/images/shell_sport_fitness.png'),
+    SportSubcategory(label: 'Salles de boxe', searchTag: 'Salles de boxe', emoji: '\uD83E\uDD4A', group: 'Boxe', image: 'assets/images/pochette_boxe.png'),
+    SportSubcategory(label: 'Terrain de football', searchTag: 'Terrain de football', emoji: '\u26BD', group: 'Football', image: 'assets/images/shell_sport_football.png'),
+    SportSubcategory(label: 'Terrain de basketball', searchTag: 'Terrain de basketball', emoji: '\uD83C\uDFC0', group: 'Basketball', image: 'assets/images/shell_sport_basketball.png'),
+    SportSubcategory(label: 'Piscine', searchTag: 'Piscine', emoji: '\uD83C\uDFCA', group: 'Natation', image: 'assets/images/pochette_natation.png'),
+    SportSubcategory(label: 'Golf', searchTag: 'Golf', emoji: '\u26F3', group: 'Golf', image: 'assets/images/pochette_autre.png'),
+    SportSubcategory(label: 'Raquette', searchTag: 'Raquette', emoji: '\uD83C\uDFBE', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+  ];
+
+  /// Sous-catégories affichées dans le hub Raquette.
+  static const raquetteSubcategories = [
+    SportSubcategory(label: 'Tennis', searchTag: 'Tennis', emoji: '\uD83C\uDFBE', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+    SportSubcategory(label: 'Padel', searchTag: 'Padel', emoji: '\uD83C\uDFBE', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+    SportSubcategory(label: 'Squash', searchTag: 'Squash', emoji: '\uD83C\uDFBE', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+    SportSubcategory(label: 'Ping-pong', searchTag: 'Ping-pong', emoji: '\uD83C\uDFD3', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+    SportSubcategory(label: 'Badminton', searchTag: 'Badminton', emoji: '\uD83C\uDFF8', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+  ];
 }

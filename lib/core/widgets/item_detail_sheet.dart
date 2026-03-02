@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ class ItemDetailSheet extends ConsumerWidget {
   final String title;
   final String emoji;
   final String? imageAsset;
+  final String? imageUrl;
   final List<DetailInfoItem> infos;
   final DetailAction? primaryAction;
   final List<DetailAction> secondaryActions;
@@ -26,6 +28,7 @@ class ItemDetailSheet extends ConsumerWidget {
     required this.title,
     this.emoji = '',
     this.imageAsset,
+    this.imageUrl,
     this.infos = const [],
     this.primaryAction,
     this.secondaryActions = const [],
@@ -52,7 +55,8 @@ class ItemDetailSheet extends ConsumerWidget {
     final isLiked =
         likeId != null ? ref.watch(likesProvider).contains(likeId) : false;
     final screenHeight = MediaQuery.of(context).size.height;
-    final hasImage = imageAsset != null && imageAsset!.isNotEmpty;
+    final hasImage = (imageAsset != null && imageAsset!.isNotEmpty) ||
+        (imageUrl != null && imageUrl!.isNotEmpty);
 
     return Center(
       child: Padding(
@@ -87,13 +91,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                     ? screenHeight * 0.85 * imageHeightFraction
                                     : double.infinity,
                               ),
-                              child: Image.asset(
-                                imageAsset!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                errorBuilder: (_, __, ___) =>
-                                    _buildGradientFallback(),
-                              ),
+                              child: _buildImage(),
                             )
                           : _buildGradientFallback(),
                     ),
@@ -297,6 +295,28 @@ class ItemDetailSheet extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: imageUrl!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        placeholder: (_, __) => imageAsset != null
+            ? Image.asset(imageAsset!, fit: BoxFit.cover, width: double.infinity)
+            : _buildGradientFallback(),
+        errorWidget: (_, __, ___) => imageAsset != null
+            ? Image.asset(imageAsset!, fit: BoxFit.cover, width: double.infinity)
+            : _buildGradientFallback(),
+      );
+    }
+    return Image.asset(
+      imageAsset!,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      errorBuilder: (_, __, ___) => _buildGradientFallback(),
     );
   }
 

@@ -8,6 +8,9 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 /// Salle de concert sélectionnée (keyword) — null = grille des salles.
 final selectedConcertVenueProvider = StateProvider<String?>((ref) => null);
 
+/// Salle DJ Set sélectionnée (keyword) — null = grille des salles.
+final selectedDjsetVenueProvider = StateProvider<String?>((ref) => null);
+
 /// Count provider per subcategory (used for badge on grid cards).
 /// Inclut les événements API + les événements utilisateur correspondants.
 final daySubcategoryCountProvider =
@@ -100,6 +103,63 @@ final concertVenueCountProvider =
   final events = await repository.fetchEvents(
     city: city,
     subcategory: 'Concert',
+    lieuNom: keyword,
+  );
+  return events.length;
+});
+
+/// Events filtrés par salle DJ Set (lieuNom contient le keyword).
+final dayDjsetVenueEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final venueKeyword = ref.watch(selectedDjsetVenueProvider);
+  if (venueKeyword == null) return [];
+
+  final repository = EventRepository();
+  return repository.fetchEvents(
+    city: city,
+    subcategory: 'DJ set',
+    lieuNom: venueKeyword,
+  );
+});
+
+/// Count des events par salle DJ Set.
+final djsetVenueCountProvider =
+    FutureProvider.family<int, String>((ref, keyword) async {
+  final city = ref.watch(selectedCityProvider);
+  final repository = EventRepository();
+  final events = await repository.fetchEvents(
+    city: city,
+    subcategory: 'DJ set',
+    lieuNom: keyword,
+  );
+  return events.length;
+});
+
+/// Salle Spectacle sélectionnée (keyword) — null = grille des salles.
+final selectedSpectacleVenueProvider = StateProvider<String?>((ref) => null);
+
+/// Events filtrés par salle Spectacle.
+final daySpectacleVenueEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final venueKeyword = ref.watch(selectedSpectacleVenueProvider);
+  if (venueKeyword == null) return [];
+
+  final repository = EventRepository();
+  return repository.fetchEvents(
+    city: city,
+    subcategory: 'Spectacle',
+    lieuNom: venueKeyword,
+  );
+});
+
+/// Count des events par salle Spectacle.
+final spectacleVenueCountProvider =
+    FutureProvider.family<int, String>((ref, keyword) async {
+  final city = ref.watch(selectedCityProvider);
+  final repository = EventRepository();
+  final events = await repository.fetchEvents(
+    city: city,
+    subcategory: 'Spectacle',
     lieuNom: keyword,
   );
   return events.length;
