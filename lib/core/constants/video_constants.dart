@@ -14,5 +14,6 @@ class VideoConstants {
     AppMode.food: '$_baseUrl/food.mp4',
     AppMode.gaming: '$_baseUrl/gaming.mp4',
     AppMode.night: '$_baseUrl/night.mp4',
+    AppMode.tourisme: '$_baseUrl/tourisme_toulouse.mp4',
   };
 }

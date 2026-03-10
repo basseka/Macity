@@ -3,9 +3,11 @@ import 'package:pulz_app/features/sport/data/football_api_service.dart';
 import 'package:pulz_app/features/sport/data/espn_rugby_api_service.dart';
 import 'package:pulz_app/features/sport/data/team_configs/football_team_config.dart';
 import 'package:pulz_app/features/sport/data/team_configs/rugby_team_config.dart';
+import 'package:pulz_app/features/sport/domain/models/league.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
 import 'package:pulz_app/features/sport/domain/models/football_match.dart';
 import 'package:pulz_app/features/sport/domain/models/espn_rugby_event.dart';
+import 'package:pulz_app/features/sport/domain/models/team.dart';
 
 class SportRepository {
   final SupabaseApiService _supabaseApi;
@@ -77,6 +79,16 @@ class SportRepository {
   Future<List<EspnRugbyEvent>> fetchTeamRugbyEvents(int teamId) async {
     if (teamId == 0) return [];
     return _espnApi.fetchTeamEvents(teamId: teamId);
+  }
+
+  /// Fetch leagues for a sport (e.g. 'rugby' → Top 14, Pro D2).
+  Future<List<League>> fetchLeagues({required String sport}) {
+    return _supabaseApi.fetchLeagues(sport: sport);
+  }
+
+  /// Fetch teams, optionally filtered by league.
+  Future<List<Team>> fetchTeams({int? leagueId}) {
+    return _supabaseApi.fetchTeams(leagueId: leagueId);
   }
 
   String _formatDate(DateTime date) {

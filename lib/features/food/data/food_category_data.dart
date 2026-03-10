@@ -42,7 +42,8 @@ class FoodCategoryData {
       emoji: '\uD83C\uDF7D\uFE0F',
       subcategories: [
         FoodSubcategory(label: 'Restaurant', searchTag: 'Restaurant', emoji: '\uD83C\uDF7D\uFE0F', group: 'Restaurants', image: 'assets/images/pochette_restaurant.png'),
-        FoodSubcategory(label: 'Sushi & japonais', searchTag: 'Sushi japonais', emoji: '\uD83C\uDF63', group: 'Restaurants', image: 'assets/images/pochette_sushi.png'),
+        FoodSubcategory(label: 'Guinguette', searchTag: 'Guinguette', emoji: '', group: 'Restaurants', image: 'assets/images/pochette_restaurant.png'),
+        FoodSubcategory(label: 'Buffets', searchTag: 'Buffets', emoji: '', group: 'Restaurants', image: 'assets/images/pochette_restaurant.png'),
       ],
     ),
     FoodCategoryGroup(

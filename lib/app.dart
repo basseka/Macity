@@ -1,32 +1,70 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/services/fcm_service.dart';
+import 'package:pulz_app/core/services/share_intent_service.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/app_theme.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
+import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
-class PulzApp extends StatefulWidget {
+class PulzApp extends ConsumerStatefulWidget {
   const PulzApp({super.key});
 
   @override
-  State<PulzApp> createState() => _PulzAppState();
+  ConsumerState<PulzApp> createState() => _PulzAppState();
 }
 
-class _PulzAppState extends State<PulzApp> with WidgetsBindingObserver {
+class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ShareIntentService.init(ref);
+      _setupNotificationTapHandler();
+    });
   }
 
   @override
   void dispose() {
+    ShareIntentService.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _setupNotificationTapHandler() {
+    FcmService.onNotificationTap = (data) {
+      debugPrint('[App] notification tap data: $data');
+      final type = data['type'] as String? ?? '';
+      final universe = data['universe'] as String? ?? '';
+
+      // Universes valides pour la navigation
+      const validUniverses = {
+        'day', 'sport', 'culture', 'family',
+        'food', 'gaming', 'night', 'tourisme',
+      };
+
+      if (universe.isNotEmpty && validUniverses.contains(universe)) {
+        // Naviguer vers le mode correspondant
+        ref.read(modeSubcategoriesProvider.notifier).select(universe, null);
+        ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
+        appRouter.go('/mode/$universe');
+      } else if (type == 'event_reminder') {
+        // Pour les rappels d'événement, ouvrir le mode Day (calendrier)
+        ref.read(modeSubcategoriesProvider.notifier).select('day', null);
+        ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
+        appRouter.go('/mode/day');
+      } else {
+        // Fallback: ouvrir l'accueil
+        appRouter.go('/home');
+      }
+    };
   }
 
   /// Intercepte le bouton retour Android :
@@ -49,6 +87,13 @@ class _PulzAppState extends State<PulzApp> with WidgetsBindingObserver {
 
     if (subcategory != null) {
       // Niveau salle → retour à la grille des salles
+      if (currentMode == 'culture' && subcategory == 'Theatre') {
+        final theatreId = container.read(selectedTheatreIdProvider);
+        if (theatreId != null) {
+          container.read(selectedTheatreIdProvider.notifier).state = null;
+          return true;
+        }
+      }
       if (currentMode == 'day') {
         if (subcategory == 'Concert') {
           final venue = container.read(selectedConcertVenueProvider);

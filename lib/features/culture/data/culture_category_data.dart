@@ -42,15 +42,14 @@ class CultureCategoryData {
       emoji: '\uD83C\uDFAD',
       subcategories: [
         CultureSubcategory(label: 'Theatre', searchTag: 'Theatre', emoji: '\uD83C\uDFAD', group: 'Arts vivants', image: 'assets/images/pochette_theatre.png'),
-        CultureSubcategory(label: 'Danse', searchTag: 'Danse', emoji: '\uD83D\uDC83', group: 'Arts vivants', image: 'assets/images/pochette_animation.png'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Musees & expositions',
       emoji: '\uD83C\uDFDB\uFE0F',
       subcategories: [
-        CultureSubcategory(label: 'Musee', searchTag: 'Musee', emoji: '\uD83C\uDFDB\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_culture_art.png'),
-        CultureSubcategory(label: 'Exposition', searchTag: 'Exposition', emoji: '\uD83D\uDDBC\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_culture_art.png'),
+        CultureSubcategory(label: 'Musee', searchTag: 'Musee', emoji: '\uD83C\uDFDB\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_musee.png'),
+        CultureSubcategory(label: 'Exposition', searchTag: 'Exposition', emoji: '\uD83D\uDDBC\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_exposition.png'),
         CultureSubcategory(label: 'Galerie d\'art', searchTag: 'Galerie d\'art', emoji: '\uD83C\uDFA8', group: 'Musees & expositions', image: 'assets/images/pochette_culture_art.png'),
       ],
     ),
@@ -58,8 +57,8 @@ class CultureCategoryData {
       name: 'Patrimoine & monuments',
       emoji: '\uD83C\uDFF0',
       subcategories: [
-        CultureSubcategory(label: 'Monument historique', searchTag: 'Monument historique', emoji: '\uD83C\uDFF0', group: 'Patrimoine & monuments', image: 'assets/images/pochette_visite.png'),
-        CultureSubcategory(label: 'Bibliotheque', searchTag: 'Bibliotheque', emoji: '\uD83D\uDCDA', group: 'Patrimoine & monuments', image: 'assets/images/pochette_culture_art.png'),
+        CultureSubcategory(label: 'Monument historique', searchTag: 'Monument historique', emoji: '\uD83C\uDFF0', group: 'Patrimoine & monuments', image: 'assets/images/pochette_monument.png'),
+        CultureSubcategory(label: 'Bibliotheque', searchTag: 'Bibliotheque', emoji: '\uD83D\uDCDA', group: 'Patrimoine & monuments', image: 'assets/images/pochette_bibliotheque.png'),
       ],
     ),
     CultureCategoryGroup(

@@ -63,10 +63,10 @@ class DayScreen extends ConsumerWidget {
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.85,
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 1.1,
       ),
       itemCount: subcategories.length,
       itemBuilder: (context, index) {
@@ -115,7 +115,7 @@ class DayScreen extends ConsumerWidget {
                   'Concert',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),
@@ -192,7 +192,7 @@ class DayScreen extends ConsumerWidget {
                   venue.label,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),
@@ -249,7 +249,7 @@ class DayScreen extends ConsumerWidget {
                   'DJ Set',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),
@@ -316,7 +316,7 @@ class DayScreen extends ConsumerWidget {
                   'Spectacle',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),
@@ -392,7 +392,7 @@ class DayScreen extends ConsumerWidget {
                   venue.label,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),
@@ -458,7 +458,7 @@ class DayScreen extends ConsumerWidget {
                   venue.label,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),
@@ -520,7 +520,7 @@ class DayScreen extends ConsumerWidget {
               style: TextStyle(
                 color: modeTheme.primaryColor,
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                fontSize: 11,
               ),
             ),
           ],
@@ -560,7 +560,7 @@ class DayScreen extends ConsumerWidget {
                   subcategory,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),

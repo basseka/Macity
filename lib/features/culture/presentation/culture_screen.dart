@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
@@ -14,17 +15,18 @@ import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
-import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/dance_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/library_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/monument_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/museum_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/theatre_venue_card.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
+import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 
@@ -57,10 +59,10 @@ class CultureScreen extends ConsumerWidget {
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.85,
+        crossAxisCount: 2,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 1.1,
       ),
       itemCount: subcategories.length,
       itemBuilder: (context, index) {
@@ -107,7 +109,7 @@ class CultureScreen extends ConsumerWidget {
                   category,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 12,
                     color: modeTheme.primaryDarkColor,
                   ),
                 ),
@@ -136,7 +138,7 @@ class CultureScreen extends ConsumerWidget {
                         style: TextStyle(
                           color: modeTheme.primaryColor,
                           fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                          fontSize: 11,
                         ),
                       ),
                     ],
@@ -155,7 +157,7 @@ class CultureScreen extends ConsumerWidget {
               : category == 'Theatre'
                   ? _buildTheatreVenuesList(ref)
                   : category == 'Danse'
-                      ? _buildDanceVenuesList(ref)
+                      ? _buildDanceVenuesList(ref, modeTheme)
                       : category == "Galerie d'art"
                           ? _buildGalleryVenuesList()
                           : category == 'Monument historique'
@@ -167,8 +169,8 @@ class CultureScreen extends ConsumerWidget {
                                       : category == 'Exposition'
                                           ? _buildMeettEventsList(ref, modeTheme)
                                           : category == 'A venir'
-                                  ? _buildCetteSemaineEventsList(ref, modeTheme)
-                                  : _buildCommerceVenuesList(ref, modeTheme),
+                                              ? _buildCetteSemaineEventsList(ref, modeTheme)
+                                              : _buildCommerceVenuesList(ref, modeTheme),
         ),
       ],
     );
@@ -176,36 +178,71 @@ class CultureScreen extends ConsumerWidget {
 
   Widget _buildMuseumVenuesList(WidgetRef ref) {
     const museums = MuseumVenuesData.venues;
-    return ListView.builder(
+    return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: museums.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: MuseumVenueCard(museum: museums[index]),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 0.7,
       ),
+      itemCount: museums.length,
+      itemBuilder: (context, index) =>
+          _MuseumGridCard(museum: museums[index]),
     );
   }
 
   Widget _buildTheatreVenuesList(WidgetRef ref) {
+    final selectedId = ref.watch(selectedTheatreIdProvider);
+
+    if (selectedId != null) {
+      final theatre = TheatreVenuesData.venues.cast<TheatreVenue?>().firstWhere(
+        (t) => t!.id == selectedId,
+        orElse: () => null,
+      );
+      if (theatre != null) {
+        return _TheatreProgrammation(theatre: theatre);
+      }
+    }
+
     const theatres = TheatreVenuesData.venues;
-    return ListView.builder(
+    return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: theatres.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: TheatreVenueCard(theatre: theatres[index]),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 0.7,
       ),
+      itemCount: theatres.length,
+      itemBuilder: (context, index) =>
+          _TheatreGridCard(theatre: theatres[index]),
     );
   }
 
-  Widget _buildDanceVenuesList(WidgetRef ref) {
-    const dances = DanceVenuesData.venues;
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: dances.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: DanceVenueCard(dance: dances[index]),
+  Widget _buildDanceVenuesList(WidgetRef ref, ModeTheme modeTheme) {
+    final venuesAsync = ref.watch(danceVenuesProvider);
+    return venuesAsync.when(
+      data: (venues) {
+        if (venues.isEmpty) {
+          return const EmptyStateWidget(
+            message: 'Aucune salle de danse trouvee',
+            icon: Icons.music_note,
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: venues.length,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: DanceVenueCard(dance: venues[index]),
+          ),
+        );
+      },
+      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+      error: (error, _) => AppErrorWidget(
+        message: 'Erreur lors du chargement des salles de danse',
+        onRetry: () => ref.invalidate(danceVenuesProvider),
       ),
     );
   }
@@ -463,6 +500,391 @@ class CultureScreen extends ConsumerWidget {
       error: (error, _) => AppErrorWidget(
         message: 'Erreur lors du chargement des lieux culturels',
         onRetry: () => ref.invalidate(cultureVenuesProvider),
+      ),
+    );
+  }
+}
+
+class _TheatreGridCard extends ConsumerWidget {
+  final TheatreVenue theatre;
+
+  const _TheatreGridCard({required this.theatre});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    return GestureDetector(
+      onTap: () => ref.read(selectedTheatreIdProvider.notifier).state = theatre.id,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    theatre.image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.theater_comedy, size: 28),
+                    ),
+                  ),
+                  if (theatre.hasOnlineTicket)
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF059669),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'BILLETS',
+                          style: TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            theatre.name,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: modeTheme.primaryDarkColor,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+}
+
+class _TheatreProgrammation extends ConsumerWidget {
+  final TheatreVenue theatre;
+
+  const _TheatreProgrammation({required this.theatre});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    final eventsAsync = ref.watch(theatreVenueEventsProvider(theatre.id));
+
+    return Column(
+      children: [
+        // Header with theatre image, name, and back button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  theatre.image,
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 44,
+                    height: 44,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.theater_comedy, size: 20),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  theatre.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () => ref.read(selectedTheatreIdProvider.notifier).state = null,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Theatres',
+                        style: TextStyle(
+                          color: modeTheme.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        // Events grid 3 colonnes
+        Expanded(
+          child: eventsAsync.when(
+            data: (events) {
+              if (events.isEmpty) {
+                return const EmptyStateWidget(
+                  message: 'Aucun spectacle a venir',
+                  icon: Icons.theater_comedy,
+                );
+              }
+              return GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 0.6,
+                ),
+                itemCount: events.length,
+                itemBuilder: (context, index) => _TheatreEventCard(
+                  event: events[index],
+                  theatreImage: theatre.image,
+                ),
+              );
+            },
+            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+            error: (error, _) => AppErrorWidget(
+              message: 'Erreur lors du chargement de la programmation',
+              onRetry: () => ref.invalidate(theatreVenueEventsProvider(theatre.id)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TheatreEventCard extends StatelessWidget {
+  final Event event;
+  final String theatreImage;
+
+  const _TheatreEventCard({required this.event, required this.theatreImage});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasPhoto = event.photoPath != null && event.photoPath!.isNotEmpty;
+
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (hasPhoto)
+              CachedNetworkImage(
+                imageUrl: event.photoPath!,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => _fallbackImage(),
+                errorWidget: (_, __, ___) => _fallbackImage(),
+              )
+            else
+              _fallbackImage(),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.4, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.8),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 6,
+              right: 6,
+              bottom: 6,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    event.titre,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [Shadow(blurRadius: 3, color: Colors.black54)],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (event.datesAffichageHoraires.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        event.datesAffichageHoraires,
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          shadows: const [Shadow(blurRadius: 3, color: Colors.black54)],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fallbackImage() {
+    return Image.asset(
+      theatreImage,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: event.titre,
+        emoji: '\uD83C\uDFAD',
+        imageAsset: theatreImage,
+        imageUrl: event.photoPath,
+        infos: [
+          if (event.descriptifCourt.isNotEmpty)
+            DetailInfoItem(Icons.info_outline, event.descriptifCourt),
+          if (event.datesAffichageHoraires.isNotEmpty)
+            DetailInfoItem(Icons.calendar_today, event.datesAffichageHoraires),
+          if (event.lieuNom.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, event.lieuNom),
+          if (event.tarifNormal.isNotEmpty)
+            DetailInfoItem(Icons.euro, event.tarifNormal),
+        ],
+        primaryAction: event.reservationUrl.isNotEmpty
+            ? DetailAction(
+                icon: Icons.confirmation_number_outlined,
+                label: 'Billetterie',
+                url: event.reservationUrl,
+              )
+            : null,
+        shareText: '${event.titre}\n${event.datesAffichageHoraires}\n${event.lieuNom}\n\nDecouvre sur MaCity',
+      ),
+    );
+  }
+}
+
+class _MuseumGridCard extends ConsumerWidget {
+  final MuseumVenue museum;
+
+  const _MuseumGridCard({required this.museum});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    museum.image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.museum, size: 28),
+                    ),
+                  ),
+                  if (museum.hasOnlineTicket)
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF059669),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'BILLETS',
+                          style: TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            museum.name,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: modeTheme.primaryDarkColor,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: museum.name,
+        emoji: '\uD83C\uDFDB\uFE0F',
+        imageAsset: museum.image,
+        infos: [
+          if (museum.description.isNotEmpty)
+            DetailInfoItem(Icons.info_outline, museum.description),
+          if (museum.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, museum.horaires),
+          if (museum.city.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, museum.city),
+        ],
+        primaryAction: museum.websiteUrl.isNotEmpty
+            ? DetailAction(icon: Icons.language, label: 'Site web', url: museum.websiteUrl)
+            : null,
+        shareText: '${museum.name}\n${museum.description}\n${museum.city}\n${museum.websiteUrl}\n\nDecouvre sur MaCity',
       ),
     );
   }

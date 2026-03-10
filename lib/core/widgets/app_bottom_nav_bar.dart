@@ -11,6 +11,8 @@ import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dar
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
+import 'package:pulz_app/features/home/presentation/today_events_sheet.dart';
+import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 
 class AppBottomNavBar extends ConsumerWidget {
   final int currentIndex;
@@ -63,6 +65,12 @@ class AppBottomNavBar extends ConsumerWidget {
                 isActive: false,
                 onTap: () => BannerCarouselDialog.show(context),
               ),
+              // 3b - Event (clignotant)
+              _PulsingNavBarItem(
+                icon: Icons.event,
+                label: 'Event',
+                onTap: () => TodayEventsSheet.show(context),
+              ),
               // 4 - Favoris
               _NavBarItem(
                 icon: Icons.favorite,
@@ -70,13 +78,6 @@ class AppBottomNavBar extends ConsumerWidget {
                 isActive: ref.watch(likesProvider).isNotEmpty,
                 activeColor: Colors.red,
                 onTap: () => _showLikedPlaces(context),
-              ),
-              // 5 - Mon compte
-              _NavBarItem(
-                icon: Icons.person_outline,
-                label: 'Compte',
-                isActive: false,
-                onTap: () => _showAccount(context, ref),
               ),
             ],
           ),
@@ -103,31 +104,6 @@ class AppBottomNavBar extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => const LikedPlacesBottomSheet(),
     );
-  }
-
-  void _showAccount(BuildContext context, WidgetRef ref) {
-    final status = ref.read(proAuthProvider).status;
-    switch (status) {
-      case ProAuthStatus.approved:
-        _showProActionChoice(context);
-      case ProAuthStatus.pendingApproval:
-        showModalBottomSheet(
-          context: context,
-          useRootNavigator: true,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const ProPendingSheet(),
-        );
-      case ProAuthStatus.notConnected:
-      case ProAuthStatus.loading:
-        showModalBottomSheet(
-          context: context,
-          useRootNavigator: true,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const ProLoginSheet(),
-        );
-    }
   }
 
   Future<void> showAddEvent(BuildContext context, WidgetRef ref) async {
@@ -233,6 +209,15 @@ class AppBottomNavBar extends ConsumerWidget {
                   );
                 },
               ),
+              ListTile(
+                leading:
+                    const Icon(Icons.tune, color: Color(0xFF4A1259)),
+                title: const Text('Mes preferences'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  NotificationPrefsSheet.show(context);
+                },
+              ),
               const SizedBox(height: 16),
             ],
           ),
@@ -288,3 +273,74 @@ class _NavBarItem extends StatelessWidget {
   }
 }
 
+class _PulsingNavBarItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _PulsingNavBarItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  State<_PulsingNavBarItem> createState() => _PulsingNavBarItemState();
+}
+
+class _PulsingNavBarItemState extends State<_PulsingNavBarItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Color?> _colorAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _colorAnim = ColorTween(
+      begin: const Color(0xFFE91E8C),
+      end: const Color(0xFF7B2D8E),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedBuilder(
+        animation: _colorAnim,
+        builder: (context, _) {
+          final color = _colorAnim.value!;
+          return SizedBox(
+            width: 56,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(widget.icon, color: color, size: 22),
+                const SizedBox(height: 2),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

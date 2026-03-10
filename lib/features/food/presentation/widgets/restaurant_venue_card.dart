@@ -24,69 +24,59 @@ class RestaurantVenueCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(14),
         ),
         clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          height: 80,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text('\u{1F37D}\u{FE0F}', style: TextStyle(fontSize: 24)),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: modeTheme.primaryColor.withValues(alpha: 0.08),
+                ),
+                alignment: Alignment.center,
+                child: const Text('\u{1F37D}\u{FE0F}', style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      venue.name,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: modeTheme.primaryDarkColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    if (venue.horaires.isNotEmpty)
+                      _buildInfoRow(
+                        Icons.access_time,
+                        venue.horaires,
+                        modeTheme.primaryColor,
+                      )
+                    else if (venue.adresse.isNotEmpty)
+                      _buildInfoRow(
+                        Icons.location_on_outlined,
+                        venue.adresse,
+                        modeTheme.primaryColor,
+                      ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        venue.name,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: modeTheme.primaryDarkColor,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      if (venue.horaires.isNotEmpty)
-                        _buildInfoRow(
-                          Icons.access_time,
-                          venue.horaires,
-                          modeTheme.primaryColor,
-                        )
-                      else if (venue.adresse.isNotEmpty)
-                        _buildInfoRow(
-                          Icons.location_on_outlined,
-                          venue.adresse,
-                          modeTheme.primaryColor,
-                        ),
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () => _share(),
-                            child: Icon(
-                              Icons.share_outlined,
-                              color: Colors.grey.shade400,
-                              size: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              GestureDetector(
+                onTap: () => _share(),
+                child: Icon(
+                  Icons.share_outlined,
+                  color: Colors.grey.shade400,
+                  size: 16,
                 ),
               ),
             ],

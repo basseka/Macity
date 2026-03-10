@@ -47,3 +47,7 @@ final gamingCategoryProvider = Provider<String?>((ref) {
 final nightCategoryProvider = Provider<String?>((ref) {
   return ref.watch(modeSubcategoriesProvider)['night'];
 });
+
+final tourismeCategoryProvider = Provider<String?>((ref) {
+  return ref.watch(modeSubcategoriesProvider)['tourisme'];
+});

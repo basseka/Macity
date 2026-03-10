@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -85,8 +87,17 @@ class EventCard extends ConsumerWidget {
     final likes = ref.watch(likesProvider);
     final isLiked = likes.contains(event.identifiant);
     final pochette = _resolveImage();
+    final hasNetworkPhoto = event.photoPath != null &&
+        event.photoPath!.isNotEmpty &&
+        event.photoPath!.startsWith('http');
 
-    return Card(
+    return GestureDetector(
+      onTap: () => EventFullscreenPopup.show(
+        context,
+        event,
+        pochette ?? 'assets/images/pochette_concert.png',
+      ),
+      child: Card(
       elevation: 4,
       shadowColor: Colors.black26,
       shape: RoundedRectangleBorder(
@@ -96,18 +107,30 @@ class EventCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Pochette image ──
-          if (pochette != null)
+          // ── Image (photo Supabase ou pochette) ──
+          if (hasNetworkPhoto || pochette != null)
             Stack(
               children: [
                 SizedBox(
                   height: 110,
                   width: double.infinity,
-                  child: Image.asset(
-                    pochette,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
-                  ),
+                  child: hasNetworkPhoto
+                      ? CachedNetworkImage(
+                          imageUrl: event.photoPath!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          placeholder: (_, __) => pochette != null
+                              ? Image.asset(pochette, fit: BoxFit.cover, width: double.infinity)
+                              : Container(color: Colors.grey.shade200),
+                          errorWidget: (_, __, ___) => pochette != null
+                              ? Image.asset(pochette, fit: BoxFit.cover, width: double.infinity)
+                              : Container(color: Colors.grey.shade200),
+                        )
+                      : Image.asset(
+                          pochette!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
+                        ),
                 ),
                 // Gradient overlay
                 Positioned.fill(
@@ -172,8 +195,8 @@ class EventCard extends ConsumerWidget {
               ],
             ),
 
-          // ── No pochette: fallback title row ──
-          if (pochette == null)
+          // ── No image: fallback title row ──
+          if (!hasNetworkPhoto && pochette == null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: Row(
@@ -356,6 +379,7 @@ class EventCard extends ConsumerWidget {
           ),
         ],
       ),
+    ),
     );
   }
 

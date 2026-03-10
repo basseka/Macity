@@ -9,7 +9,6 @@ import 'package:pulz_app/features/family/data/family_restaurant_venues_data.dart
 import 'package:pulz_app/features/family/data/animal_park_venues_data.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
-import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -22,7 +21,39 @@ class LieuSuggestion {
   const LieuSuggestion({required this.nom, required this.adresse});
 }
 
-List<LieuSuggestion> getLieuxForRubrique(String rubrique) {
+/// Mapping rubrique display name → Supabase rubrique key.
+const rubriqueDisplayToKey = <String, String>{
+  'Nuit': 'nuit',
+  'En Famille': 'famille',
+  'Culture & Arts': 'culture',
+  'Food & lifestyle': 'food',
+};
+
+/// Builds lieu suggestions from Supabase [CommerceModel] list.
+/// Used when Supabase data is available.
+List<LieuSuggestion> getLieuxFromCommerces(
+  List<dynamic> commerces, {
+  List<LieuSuggestion> danceVenues = const [],
+}) {
+  final lieux = <LieuSuggestion>[
+    ...commerces.map(
+      (c) => LieuSuggestion(
+        nom: (c as dynamic).nom as String,
+        adresse: (c as dynamic).adresse as String,
+      ),
+    ),
+    ...danceVenues,
+  ];
+  return _deduplicateAndSort(lieux);
+}
+
+/// Static fallback: builds lieu suggestions from hardcoded data files.
+/// Used when Supabase is unreachable.
+List<LieuSuggestion> getLieuxForRubriqueStatic(String rubrique) {
+  return getLieuxForRubrique(rubrique);
+}
+
+List<LieuSuggestion> getLieuxForRubrique(String rubrique, {List<LieuSuggestion> danceVenues = const []}) {
   final List<LieuSuggestion> lieux;
 
   switch (rubrique) {
@@ -57,8 +88,7 @@ List<LieuSuggestion> getLieuxForRubrique(String rubrique) {
             .map((v) => LieuSuggestion(nom: v.name, adresse: '')),
         ...TheatreVenuesData.venues
             .map((v) => LieuSuggestion(nom: v.name, adresse: '')),
-        ...DanceVenuesData.venues
-            .map((v) => LieuSuggestion(nom: v.name, adresse: '')),
+        ...danceVenues,
         ...GalleryVenuesData.venues
             .map((v) => LieuSuggestion(nom: v.nom, adresse: v.adresse)),
         ...MonumentVenuesData.venues
@@ -76,7 +106,10 @@ List<LieuSuggestion> getLieuxForRubrique(String rubrique) {
       return [];
   }
 
-  // Deduplicate by name and sort alphabetically
+  return _deduplicateAndSort(lieux);
+}
+
+List<LieuSuggestion> _deduplicateAndSort(List<LieuSuggestion> lieux) {
   final seen = <String>{};
   final deduped = <LieuSuggestion>[];
   for (final lieu in lieux) {

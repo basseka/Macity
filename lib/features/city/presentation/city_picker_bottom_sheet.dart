@@ -30,11 +30,7 @@ class _CityPickerBottomSheetState
   void _onSearchChanged(String query) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
-      if (query.length >= 2) {
-        ref.read(citySearchQueryProvider.notifier).state = query;
-      } else {
-        ref.read(citySearchQueryProvider.notifier).state = '';
-      }
+      ref.read(citySearchQueryProvider.notifier).state = query;
     });
   }
 
@@ -157,9 +153,7 @@ class _CityPickerBottomSheetState
                 if (cities.isEmpty) {
                   return Center(
                     child: Text(
-                      _searchController.text.length < 2
-                          ? 'Tape au moins 2 caracteres...'
-                          : 'Aucune ville trouvee',
+                      'Aucune ville trouvee',
                       style: TextStyle(
                         color: Colors.grey.shade500,
                         fontSize: 14,

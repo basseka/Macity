@@ -11,9 +11,26 @@ class FitnessVenueCard extends ConsumerWidget {
 
   const FitnessVenueCard({super.key, required this.commerce});
 
+  static const _logoMap = <String, String>{
+    'basic-fit': 'assets/images/logo_salle_basicfit.png',
+    'fitness park': 'assets/images/logo_salle_fitnesspark.png',
+    'interval': 'assets/images/logo_salle_interval.png',
+    'clark powell': 'assets/images/logo_salle_calrkpowel.png',
+    'movida': 'assets/images/logo_salle_movida.png',
+  };
+
+  String _resolvePhoto() {
+    final nom = commerce.nom.toLowerCase();
+    for (final entry in _logoMap.entries) {
+      if (nom.contains(entry.key)) return entry.value;
+    }
+    return commerce.photo;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
+    final photo = _resolvePhoto();
 
     return GestureDetector(
       onTap: () => _openDetail(context),
@@ -41,9 +58,9 @@ class FitnessVenueCard extends ConsumerWidget {
                     ),
                     clipBehavior: Clip.antiAlias,
                     alignment: Alignment.center,
-                    child: commerce.photo.isNotEmpty
+                    child: photo.isNotEmpty
                         ? Image.asset(
-                            commerce.photo,
+                            photo,
                             width: 48,
                             height: 48,
                             fit: BoxFit.cover,

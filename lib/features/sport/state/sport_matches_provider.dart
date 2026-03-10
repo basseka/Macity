@@ -33,6 +33,10 @@ final sportSubcategoryCountProvider =
     final venues = await ref.watch(sportVenuesProvider(sportType).future);
     return venues.length;
   }
+  if (searchTag == 'Danse') {
+    final venues = await ref.watch(danceVenuesProvider.future);
+    return venues.length;
+  }
   if (searchTag == 'Raquette') {
     final venues = await ref.watch(racketAllVenuesProvider.future);
     return venues.length;

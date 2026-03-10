@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 import 'package:pulz_app/features/home/state/banners_provider.dart';
+import 'package:pulz_app/features/admin/presentation/admin_add_etablissement_sheet.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -19,6 +21,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int _logoTapCount = 0;
+  DateTime? _lastLogoTap;
   @override
   Widget build(BuildContext context) {
     // Pre-charger les events night scrapes des le lancement.
@@ -27,6 +31,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(activeBannersProvider);
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final city = ref.watch(selectedCityProvider);
+    final isToulouse = city.toLowerCase() == 'toulouse';
 
     return PopScope(
       canPop: false,
@@ -47,14 +53,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 8),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    'assets/icon/app_icon.png',
-                    width: 14,
-                    height: 14,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                GestureDetector(
+                  onTap: () {
+                    final now = DateTime.now();
+                    if (_lastLogoTap != null &&
+                        now.difference(_lastLogoTap!).inMilliseconds > 1500) {
+                      _logoTapCount = 0;
+                    }
+                    _lastLogoTap = now;
+                    _logoTapCount++;
+                    if (_logoTapCount >= 5) {
+                      _logoTapCount = 0;
+                      AdminAddEtablissementSheet.show(context);
+                    }
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'assets/icon/app_icon.png',
+                      width: 14,
+                      height: 14,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -116,26 +137,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           // Scrollable content
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: isLandscape ? 6 : 8),
-
-
-                  // Mode cards (vertical stack)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: isToulouse
+                ? SingleChildScrollView(
                     child: Column(
-                      children: AppMode.order.map((mode) {
-                        return _buildModeCard(mode, compact: isLandscape);
-                      }).toList(),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: isLandscape ? 6 : 8),
+                        // Mode cards (vertical stack)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            children: AppMode.order.map((mode) {
+                              return _buildModeCard(mode, compact: isLandscape);
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  )
+                : Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.construction_rounded, size: 56, color: Colors.grey.shade400),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Ville en cours de construction...',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '$city arrive bientot !',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -162,6 +212,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     'gaming': 'assets/images/pochette_gaming.png',
     'family': 'assets/images/pochette_enfamille.png',
     'night': 'assets/images/home_bg_night.png',
+    'tourisme': 'assets/images/pochette_tourisme_toulouse.png',
   };
 
   Widget _buildModeCard(AppMode mode, {bool compact = false}) {

@@ -1,17 +1,22 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/helpers/lieu_suggestions.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/etablissements/state/etablissements_provider.dart';
+import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 class AddEventBottomSheet extends ConsumerStatefulWidget {
-  const AddEventBottomSheet({super.key});
+  final String? initialPhotoPath;
+
+  const AddEventBottomSheet({super.key, this.initialPhotoPath});
 
   @override
   ConsumerState<AddEventBottomSheet> createState() =>
@@ -31,6 +36,15 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? _photoPath;
+  bool _showSuccess = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoPath = widget.initialPhotoPath;
+  }
+  bool _isSubmitting = false;
+  String? _errorMessage;
 
   static const _rubriqueSubcategories = <String, List<String>>{
     'Concerts & Spectacles': ['Concert', 'Festival', 'Spectacle', 'Stand up', 'Opera', 'DJ set', 'Showcase'],
@@ -79,7 +93,9 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: SingleChildScrollView(
+      child: _showSuccess
+          ? _buildSuccessView()
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -280,9 +296,38 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
               ),
               const SizedBox(height: 24),
 
+              // Error message
+              if (_errorMessage != null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.red.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // ── Submit ──
               ElevatedButton(
-                onPressed: _submit,
+                onPressed: _isSubmitting ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primaryColor,
                   foregroundColor: Colors.white,
@@ -292,10 +337,19 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Ajouter',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Ajouter',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
               ),
               const SizedBox(height: 10),
 
@@ -323,8 +377,112 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
     );
   }
 
+  Widget _buildSuccessView() {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_primaryColor, Color(0xFFE91E8C)],
+              ),
+            ),
+            child: const Icon(Icons.check, color: Colors.white, size: 40),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Evenement ajoute avec succes !',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: _primaryDarkColor,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Il sera visible dans la rubrique correspondante.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Fermer',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
   List<Widget> _buildLieuFields() {
-    final lieux = getLieuxForRubrique(_selectedRubrique ?? '');
+    // Map display rubrique to Supabase key
+    final supabaseKey = rubriqueDisplayToKey[_selectedRubrique ?? ''];
+    final danceVenuesList = ref.watch(danceVenuesProvider).valueOrNull ?? [];
+    final danceSuggestions = danceVenuesList
+        .map((v) => LieuSuggestion(nom: v.name, adresse: ''))
+        .toList();
+
+    // Try Supabase data first, fallback to static
+    List<LieuSuggestion> lieux;
+    if (supabaseKey != null) {
+      final etablissements =
+          ref.watch(etablissementsProvider(supabaseKey)).valueOrNull;
+      if (etablissements != null && etablissements.isNotEmpty) {
+        lieux = getLieuxFromCommerces(
+          etablissements,
+          danceVenues: supabaseKey == 'culture' ? danceSuggestions : [],
+        );
+      } else {
+        lieux = getLieuxForRubrique(
+          _selectedRubrique ?? '',
+          danceVenues: danceSuggestions,
+        );
+      }
+    } else {
+      lieux = getLieuxForRubrique(
+        _selectedRubrique ?? '',
+        danceVenues: danceSuggestions,
+      );
+    }
 
     if (lieux.isEmpty) {
       return [
@@ -466,79 +624,85 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
   }
 
   Future<void> _submit() async {
+    setState(() => _errorMessage = null);
+
     if (!_formKey.currentState!.validate()) return;
 
     if (_photoPath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Une photo est requise pour ajouter un evenement'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      setState(() => _errorMessage = 'Une photo est requise pour ajouter un evenement');
       return;
     }
 
-    final city = ref.read(selectedCityProvider);
-    final id = '${DateTime.now().millisecondsSinceEpoch}';
-    final dateStr = _selectedDate != null
-        ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-        : '';
-    final timeStr = _selectedTime != null
-        ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
-        : '';
-
-    if (_selectedCategorie == null || _selectedRubrique == null) return;
+    if (_selectedCategorie == null || _selectedRubrique == null) {
+      setState(() => _errorMessage = 'Veuillez remplir tous les champs obligatoires');
+      return;
+    }
     final rubrique = _rubriqueToModeName[_selectedRubrique!];
-    if (rubrique == null) return;
-
-    final event = UserEvent(
-      id: id,
-      titre: _titreController.text.trim(),
-      description: _descriptionController.text.trim(),
-      categorie: _selectedCategorie!,
-      rubrique: rubrique,
-      date: dateStr,
-      heure: timeStr,
-      lieuNom: (_selectedLieu != null && _selectedLieu != 'Autre')
-          ? _selectedLieu!
-          : _lieuNomController.text.trim(),
-      lieuAdresse: _lieuAdresseController.text.trim(),
-      photoPath: _photoPath,
-      ville: city,
-      createdAt: DateTime.now(),
-    );
-
-    // Pour les comptes pro approuves, utiliser proProfile.id comme establishmentId
-    // afin que l'event soit insere dans establishment_events et declenche les notifications.
-    String? establishmentId;
-    final proState = ref.read(proAuthProvider);
-    if (proState.status == ProAuthStatus.approved && proState.profile != null) {
-      establishmentId = proState.profile!.id;
+    if (rubrique == null) {
+      setState(() => _errorMessage = 'Rubrique invalide');
+      return;
     }
 
+    setState(() => _isSubmitting = true);
+
     try {
+      final city = ref.read(selectedCityProvider);
+      final id = '${DateTime.now().millisecondsSinceEpoch}';
+      final dateStr = _selectedDate != null
+          ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+          : '';
+      final timeStr = _selectedTime != null
+          ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+          : '';
+
+      final event = UserEvent(
+        id: id,
+        titre: _titreController.text.trim(),
+        description: _descriptionController.text.trim(),
+        categorie: _selectedCategorie!,
+        rubrique: rubrique,
+        date: dateStr,
+        heure: timeStr,
+        lieuNom: (_selectedLieu != null && _selectedLieu != 'Autre')
+            ? _selectedLieu!
+            : _lieuNomController.text.trim(),
+        lieuAdresse: _lieuAdresseController.text.trim(),
+        photoPath: _photoPath,
+        ville: city,
+        createdAt: DateTime.now(),
+      );
+
+      String? establishmentId;
+      final proState = ref.read(proAuthProvider);
+      if (proState.status == ProAuthStatus.approved && proState.profile != null) {
+        establishmentId = proState.profile!.id;
+      }
+
       await ref
           .read(userEventsProvider.notifier)
           .addEvent(event, establishmentId: establishmentId);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Evenement ajoute avec succes !'),
-            backgroundColor: Color(0xFF7B2D8E),
-          ),
-        );
-        Navigator.of(context).pop();
+        setState(() {
+          _isSubmitting = false;
+          _showSuccess = true;
+        });
       }
     } catch (e) {
       debugPrint('[AddEvent] submit error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de l\'ajout : $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        String detail = e.toString();
+        // Extraire le message Supabase depuis DioException
+        if (e is DioException && e.response?.data != null) {
+          final body = e.response!.data;
+          if (body is Map) {
+            detail = (body['message'] ?? body['msg'] ?? body['error'] ?? detail).toString();
+          }
+        }
+        setState(() {
+          _isSubmitting = false;
+          _errorMessage = 'Erreur : $detail';
+        });
       }
     }
   }

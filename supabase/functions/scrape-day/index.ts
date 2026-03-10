@@ -1182,6 +1182,131 @@ async function fetchMetronum(): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Casino Barrière Toulouse (Storyblok CDN API)
+// ─────────────────────────────────────────────────────────────
+const STORYBLOK_TOKEN = "zbxp5eNhyKynscv1EpOhsAtt";
+
+async function fetchCasinoBarriere(): Promise<ScrapedEvent[]> {
+  try {
+    // Fetch all spectacle stories from Storyblok CDN API (paginated, 100 per page)
+    const allStories: any[] = [];
+    for (let page = 1; page <= 5; page++) {
+      const url = `https://api.storyblok.com/v2/cdn/stories?starts_with=website-casinos/spectacles/&token=${STORYBLOK_TOKEN}&per_page=100&page=${page}`;
+      const res = await fetch(url, { redirect: "follow" });
+      if (!res.ok) { console.error(`casino-barriere: storyblok page ${page} status=${res.status}`); break; }
+      const data = await res.json();
+      const stories = data.stories || [];
+      allStories.push(...stories);
+      if (stories.length < 100) break; // last page
+    }
+    console.log(`casino-barriere: fetched ${allStories.length} stories from Storyblok`);
+
+    const events: ScrapedEvent[] = [];
+
+    for (const story of allStories) {
+      const content = story.content;
+      if (!content) continue;
+
+      const title = content.title || content.artist || story.name || "";
+      if (!title) continue;
+
+      const subtitle = content.subtitle || "";
+      const genre = (content.genre || "").toLowerCase();
+      const seoDesc = content.seoDescription || content.previewDescription || "";
+      const slug = story.slug || "";
+
+      // Get thumbnail/image
+      let photoUrl = "";
+      if (content.thumbnail && typeof content.thumbnail === "object") {
+        photoUrl = content.thumbnail.filename || "";
+      }
+      if (!photoUrl && content.mainVisual && typeof content.mainVisual === "object") {
+        photoUrl = content.mainVisual.filename || "";
+      }
+
+      // Resolve shows for Toulouse
+      const shows = content.shows;
+      if (!Array.isArray(shows)) continue;
+
+      for (const show of shows) {
+        if (typeof show !== "object" || !show) continue;
+        const city = (show.city || "").toLowerCase();
+        if (city !== "toulouse") continue;
+
+        const price = show.price || "";
+        const schedule = show.schedule;
+        if (!Array.isArray(schedule)) continue;
+
+        for (const sched of schedule) {
+          if (typeof sched !== "object" || !sched) continue;
+          const rawDate = sched.date || "";
+          if (!rawDate) continue;
+
+          const dateStr = rawDate.substring(0, 10);
+          if (!dateStr || !isFutureDate(dateStr)) continue;
+
+          const timeStr = rawDate.substring(11, 16);
+          const horaires = timeStr ? timeStr.replace(":", "h") : "";
+
+          // Map genre to source
+          let source = "day_spectacle";
+          let typeName = "Spectacle";
+          if (genre === "concert" || genre === "classic") {
+            source = "day_concert";
+            typeName = "Concert";
+          }
+
+          const displayName = subtitle ? `${title} - ${subtitle}` : title;
+          const id = `casino_${normalize(displayName).slice(0, 40)}_${dateStr}`;
+
+          const gratuit = "non";
+          const tarif = price ? `A partir de ${price}€` : "";
+
+          events.push(makeEvent({
+            identifiant: id, source, rubrique: "day",
+            nom_de_la_manifestation: displayName.toUpperCase(),
+            descriptif_court: seoDesc.substring(0, 150),
+            descriptif_long: seoDesc,
+            date_debut: dateStr, date_fin: dateStr,
+            horaires,
+            lieu_nom: "Casino Barriere",
+            lieu_adresse_2: "18 Chemin de la Loge",
+            commune: "Toulouse",
+            code_postal: 31100,
+            type_de_manifestation: typeName,
+            categorie_de_la_manifestation: genre || typeName,
+            manifestation_gratuite: gratuit,
+            tarif_normal: tarif,
+            reservation_site_internet: `https://www.casinosbarriere.com/toulouse/spectacle/${slug}`,
+            photo_url: photoUrl,
+          }));
+        }
+      }
+    }
+
+    // Dedup by identifiant
+    const seen = new Set<string>();
+    const deduped = events.filter(e => {
+      if (seen.has(e.identifiant)) return false;
+      seen.add(e.identifiant);
+      return true;
+    });
+
+    // Cleanup stale Casino Barriere records
+    if (deduped.length > 0) {
+      const currentIds = deduped.map(e => e.identifiant);
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+      const delUrl = `${SUPABASE_URL}/rest/v1/scraped_events?lieu_nom=eq.Casino Barriere&identifiant=not.in.(${currentIds.join(",")})`;
+      const delRes = await fetch(delUrl, { method: "DELETE", headers: supabaseHeaders });
+      if (delRes.ok) console.log(`casino-barriere: cleaned up stale records`);
+    }
+
+    console.log(`casino-barriere: ${deduped.length} future events`);
+    return deduped;
+  } catch (e) { console.error("Casino Barriere error:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Categorize ODS events by type/category
 // ─────────────────────────────────────────────────────────────
 function categorizeEvent(e: ScrapedEvent): string {
@@ -1215,7 +1340,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   const today = todayStr();
   const where = `date_debut >= "${today}"`;
 
-  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini, zenith, tfg, tlTourisme, interference, metronum, leRex, bascala, comdt, onctPhotos] = await Promise.all([
+  const [ods, tm, festikConcert, festikFestival, festikSpectacle, operaTls, bikini, zenith, tfg, tlTourisme, interference, metronum, leRex, bascala, comdt, casinoBarriere, onctPhotos] = await Promise.all([
     fetchODS(where),
     fetchTicketmaster(),
     fetchFestik("Concert"),
@@ -1231,6 +1356,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
     fetchLeRex(),
     fetchBascala(),
     fetchCOMDT(),
+    fetchCasinoBarriere(),
     fetchONCTPhotos(),
   ]);
 
@@ -1253,7 +1379,7 @@ async function scrapeAllDay(): Promise<ScrapedEvent[]> {
   }).map(e => ({ ...e, source: "day_spectacle" }));
 
   // Curated sources first so they win dedup over generic ODS tags
-  const allRaw = [...zenith, ...leRex, ...bascala, ...comdt, ...tfg, ...operaTls, ...bikini, ...interference, ...metronum, ...tlTourisme, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
+  const allRaw = [...zenith, ...leRex, ...bascala, ...comdt, ...casinoBarriere, ...tfg, ...operaTls, ...bikini, ...interference, ...metronum, ...tlTourisme, ...taggedOds, ...taggedTm, ...taggedFestikC, ...taggedFestikF, ...taggedFestikS];
 
   // Re-tag "Fête de la musique" events regardless of original source
   const all = allRaw.map(e => {

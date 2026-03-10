@@ -115,8 +115,14 @@ class MatchRowCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-    final ecu1 = _teamAffiche(match.equipe1);
-    final ecu2 = match.equipe2.isNotEmpty ? _teamAffiche(match.equipe2) : null;
+    final isNatation = match.sport.toLowerCase().contains('natation');
+    // Priorité : logo de la BDD, sinon fallback local
+    final ecu1 = match.logoDom.isNotEmpty
+        ? match.logoDom
+        : isNatation ? 'assets/images/ecu_natation.png' : _teamAffiche(match.equipe1);
+    final ecu2 = match.logoExt.isNotEmpty
+        ? match.logoExt
+        : isNatation ? 'assets/images/ecu_natation.png' : (match.equipe2.isNotEmpty ? _teamAffiche(match.equipe2) : null);
 
     return GestureDetector(
       onTap: () => _openDetail(context),
@@ -287,21 +293,34 @@ class MatchRowCard extends ConsumerWidget {
     );
   }
 
-  /// Ecusson 56x56 ou icone sport par defaut.
+  /// Ecusson 56x56 : URL reseau (BDD) ou asset local, sinon icone par defaut.
   Widget _buildEcusson(String? ecussonPath) {
-    if (ecussonPath != null) {
+    if (ecussonPath == null || ecussonPath.isEmpty) return _defaultSportIcon();
+
+    if (ecussonPath.startsWith('http')) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.asset(
-          ecussonPath,
+        child: CachedNetworkImage(
+          imageUrl: ecussonPath,
           width: 56,
           height: 56,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => _defaultSportIcon(),
+          placeholder: (_, __) => _defaultSportIcon(),
+          errorWidget: (_, __, ___) => _defaultSportIcon(),
         ),
       );
     }
-    return _defaultSportIcon();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.asset(
+        ecussonPath,
+        width: 56,
+        height: 56,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => _defaultSportIcon(),
+      ),
+    );
   }
 
   Widget _defaultSportIcon() {
@@ -317,7 +336,21 @@ class MatchRowCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    final image = _resolveImage();
+    final isNat = match.sport.toLowerCase().contains('natation');
+    final equipe1Lower = match.equipe1.toLowerCase();
+    final isRugby = match.sport.toLowerCase().contains('rugby');
+    final isColomiers = equipe1Lower.contains('colomiers') && isRugby;
+    final isStadeToulousain = equipe1Lower.contains('stade toulousain') && isRugby;
+    final isFenix = equipe1Lower.contains('fenix');
+    final image = isNat
+        ? 'assets/images/detail_toulouse_natation.png'
+        : isFenix
+            ? 'assets/images/detail_fenix_hand.png'
+            : isStadeToulousain
+            ? 'assets/images/detail_stadetoulousain_rugby.png'
+            : isColomiers
+                ? 'assets/images/detail_colomier_rugby.png'
+                : _resolveImage();
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(

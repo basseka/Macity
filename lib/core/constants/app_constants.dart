@@ -9,8 +9,9 @@ class AppConstants {
   static const String modeFood = 'food';
   static const String modeGaming = 'gaming';
   static const String modeNight = 'night';
+  static const String modeTourisme = 'tourisme';
 
-  static const List<String> modeOrder = [modeDay, modeSport, modeCulture, modeFamily, modeFood, modeGaming, modeNight];
+  static const List<String> modeOrder = [modeDay, modeSport, modeCulture, modeFamily, modeFood, modeGaming, modeNight, modeTourisme];
 
   // Preferences
   static const String prefsName = 'onyva_prefs';

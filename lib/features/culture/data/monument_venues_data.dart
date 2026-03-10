@@ -48,7 +48,7 @@ class MonumentVenuesData {
       longitude: 1.4410,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4tel_d%27Ass%C3%A9zat',
       lienMaps: 'https://maps.google.com/?q=Hotel+d+Assezat+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_assezat.jpg',
     ),
     MonumentVenue(
       id: 'hotel_dumay',
@@ -61,7 +61,7 @@ class MonumentVenuesData {
       longitude: 1.4440,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4tel_Dumay',
       lienMaps: 'https://maps.google.com/?q=Hotel+Dumay+7+Rue+du+May+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_dumay.jpg',
     ),
     MonumentVenue(
       id: 'hotel_dahus',
@@ -74,7 +74,7 @@ class MonumentVenuesData {
       longitude: 1.4480,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4tel_Dahus',
       lienMaps: 'https://maps.google.com/?q=Hotel+Dahus+9+Rue+Ozenne+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_dahus.jpg',
     ),
     MonumentVenue(
       id: 'hotel_ulmo',
@@ -87,7 +87,7 @@ class MonumentVenuesData {
       longitude: 1.4445,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4tel_d%27Ulmo',
       lienMaps: 'https://maps.google.com/?q=Hotel+d+Ulmo+15+Rue+Ninau+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_ulmo.jpg',
     ),
     MonumentVenue(
       id: 'hotel_bagis',
@@ -100,7 +100,7 @@ class MonumentVenuesData {
       longitude: 1.4425,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4tel_de_Pierre_(Toulouse)',
       lienMaps: 'https://maps.google.com/?q=Hotel+de+Pierre+25+Rue+de+la+Dalbade+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_bagis.jpg',
     ),
     MonumentVenue(
       id: 'hotel_calespoutrat',
@@ -126,7 +126,7 @@ class MonumentVenuesData {
       longitude: 1.4430,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4tel_de_Jean_Catel',
       lienMaps: 'https://maps.google.com/?q=Hotel+Jean+Catel+Rue+de+la+Dalbade+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_jean_catel.jpg',
     ),
     MonumentVenue(
       id: 'hotel_la_fage',
@@ -139,7 +139,7 @@ class MonumentVenuesData {
       longitude: 1.4490,
       websiteUrl: 'https://www.pop.culture.gouv.fr/recherche/merimee?mainSearch=Lafage%20Toulouse',
       lienMaps: 'https://maps.google.com/?q=Hotel+de+Lafage+Place+Saint-Georges+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_la_fage.jpg',
     ),
     MonumentVenue(
       id: 'hotel_gayssion',
@@ -152,7 +152,7 @@ class MonumentVenuesData {
       longitude: 1.4475,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4tel_de_Gayssion',
       lienMaps: 'https://maps.google.com/?q=Hotel+de+Gayssion+Rue+Croix-Baragnon+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hotel_gayssion.jpg',
     ),
     MonumentVenue(
       id: 'hopital_larrey',
@@ -165,7 +165,7 @@ class MonumentVenuesData {
       longitude: 1.4415,
       websiteUrl: 'https://fr.wikipedia.org/wiki/H%C3%B4pital_Larrey_(Toulouse)',
       lienMaps: 'https://maps.google.com/?q=Ancien+Hopital+Larrey+Place+Lange+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_hopital_larrey.jpg',
     ),
 
     // ── Urbanisme & vestiges historiques ──
@@ -180,7 +180,7 @@ class MonumentVenuesData {
       longitude: 1.4490,
       websiteUrl: 'https://fr.wikipedia.org/wiki/Remparts_de_Toulouse',
       lienMaps: 'https://maps.google.com/?q=Rempart+medieval+Place+du+Salin+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_rempart_medieval.jpg',
     ),
     MonumentVenue(
       id: 'remparts_saint_cyprien',
@@ -193,7 +193,7 @@ class MonumentVenuesData {
       longitude: 1.4320,
       websiteUrl: 'https://fr.wikipedia.org/wiki/Remparts_de_Toulouse',
       lienMaps: 'https://maps.google.com/?q=Remparts+Saint-Cyprien+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_remparts_saint_cyprien.jpg',
     ),
     MonumentVenue(
       id: 'anciens_abattoirs',
@@ -206,7 +206,7 @@ class MonumentVenuesData {
       longitude: 1.4310,
       websiteUrl: 'https://fr.wikipedia.org/wiki/Les_Abattoirs',
       lienMaps: 'https://maps.google.com/?q=Les+Abattoirs+76+Allees+Charles+de+Fitte+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_anciens_abattoirs.jpg',
     ),
     MonumentVenue(
       id: 'pont_touch',
@@ -219,7 +219,7 @@ class MonumentVenuesData {
       longitude: 1.3985,
       websiteUrl: 'https://www.pop.culture.gouv.fr/recherche/merimee?mainSearch=Pont%20Touch%20Toulouse',
       lienMaps: 'https://maps.google.com/?q=Pont+sur+le+Touch+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_pont_touch.jpg',
     ),
     MonumentVenue(
       id: 'ecluse_saint_pierre',
@@ -232,7 +232,7 @@ class MonumentVenuesData {
       longitude: 1.4340,
       websiteUrl: 'https://fr.wikipedia.org/wiki/Canal_de_Brienne',
       lienMaps: 'https://maps.google.com/?q=Ecluse+Saint-Pierre+Canal+de+Brienne+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_ecluse_saint_pierre.jpg',
     ),
 
     // ── Autres elements inscrits ──
@@ -247,7 +247,7 @@ class MonumentVenuesData {
       longitude: 1.4365,
       websiteUrl: 'https://fr.wikipedia.org/wiki/%C3%89glise_Saint-Pierre-des-Cuisines_de_Toulouse',
       lienMaps: 'https://maps.google.com/?q=Eglise+Saint-Pierre-des-Cuisines+Place+Saint-Pierre+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_eglise_saint_pierre_cuisines.jpg',
     ),
     MonumentVenue(
       id: 'college_jesuites',
@@ -260,7 +260,7 @@ class MonumentVenuesData {
       longitude: 1.4440,
       websiteUrl: 'https://fr.wikipedia.org/wiki/Lyc%C3%A9e_Pierre-de-Fermat',
       lienMaps: 'https://maps.google.com/?q=College+des+Jesuites+Rue+Lakanal+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_college_jesuites.jpg',
     ),
     MonumentVenue(
       id: 'couvent_cordeliers',
@@ -273,7 +273,7 @@ class MonumentVenuesData {
       longitude: 1.4445,
       websiteUrl: 'https://fr.wikipedia.org/wiki/Couvent_des_Cordeliers_de_Toulouse',
       lienMaps: 'https://maps.google.com/?q=Couvent+des+Cordeliers+Rue+des+Lois+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_couvent_cordeliers.jpg',
     ),
     MonumentVenue(
       id: 'maison_guignard',
@@ -286,7 +286,7 @@ class MonumentVenuesData {
       longitude: 1.4450,
       websiteUrl: 'https://www.pop.culture.gouv.fr/recherche/merimee?mainSearch=Guignard%20Toulouse',
       lienMaps: 'https://maps.google.com/?q=Maison+Guignard+Toulouse',
-      image: 'assets/images/pochette_visite.png',
+      image: 'assets/images/monument_maison_guignard.jpg',
     ),
   ];
 }

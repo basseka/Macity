@@ -42,7 +42,12 @@ class ModeShell extends ConsumerWidget {
     final isSportMap = ref.watch(currentModeProvider) == 'sport' &&
         sportSub.endsWith(' carte');
 
-    final isFullscreen = isFeteMusique || isSportMap;
+    // Tourisme carte interactive → plein écran
+    final tourismeSub = ref.watch(modeSubcategoriesProvider)['tourisme'] ?? '';
+    final isTourismeMap = ref.watch(currentModeProvider) == 'tourisme' &&
+        tourismeSub == 'Plan touristique';
+
+    final isFullscreen = isFeteMusique || isSportMap || isTourismeMap;
 
     return PopScope(
       canPop: false,
@@ -58,6 +63,18 @@ class ModeShell extends ConsumerWidget {
           if (venue != null) {
             // Events d'une salle → retour à la grille des salles
             ref.read(selectedConcertVenueProvider.notifier).state = null;
+            return;
+          }
+        }
+
+        // Tourisme : sous-carte de Visiter → retour au hub Visiter
+        if (currentMode == 'tourisme') {
+          const visiterChildren = {
+            'City tour', 'Tuk-tuk', 'Petit Train',
+            'La maison de la violette', 'Le Canal',
+          };
+          if (subcategory != null && visiterChildren.contains(subcategory)) {
+            ref.read(modeSubcategoriesProvider.notifier).select('tourisme', 'Visiter');
             return;
           }
         }
@@ -150,32 +167,8 @@ class ModeShell extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: () {
-                      final status = ref.read(proAuthProvider).status;
-                      if (status == ProAuthStatus.approved) {
-                        const AppBottomNavBar().showAddEvent(context, ref);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Se connecter pour ajouter un evenement'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
-                        ),
-                      ),
-                      child: const Icon(Icons.add, color: Colors.white, size: 16),
-                    ),
+                    onTap: () => const AppBottomNavBar().showAddEvent(context, ref),
+                    child: _buildAccountIcon(ref),
                   ),
                 ],
               ),
@@ -209,6 +202,28 @@ class ModeShell extends ConsumerWidget {
     ),
     );
   }
+
+  Widget _buildAccountIcon(WidgetRef ref) {
+    final status = ref.watch(proAuthProvider).status;
+    final isApproved = status == ProAuthStatus.approved;
+
+    if (isApproved) {
+      return Container(
+        width: 26,
+        height: 26,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
+          ),
+        ),
+        child: const Icon(Icons.add, color: Colors.white, size: 16),
+      );
+    }
+    return Icon(Icons.person_outline, color: Colors.grey.shade500, size: 24);
+  }
 }
 
 class _ModeBubbleBar extends ConsumerStatefulWidget {
@@ -233,6 +248,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
     AppMode.food: 'assets/images/pochette_food.png',
     AppMode.gaming: 'assets/images/pochette_gaming.png',
     AppMode.night: 'assets/images/home_bg_night.png',
+    AppMode.tourisme: 'assets/images/pochette_tourisme_toulouse.png',
   };
 
   static const _modeShortLabels = {
@@ -243,6 +259,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
     AppMode.food: 'Food',
     AppMode.gaming: 'Gaming',
     AppMode.night: 'Nuit',
+    AppMode.tourisme: 'Tourisme',
   };
 
   @override

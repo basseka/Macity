@@ -9,12 +9,24 @@ class VenuesMapView extends StatefulWidget {
   final List<CommerceModel> venues;
   final String title;
   final String accentColor;
+  final bool autoLocate;
+  /// Optionnel : emoji par categorie pour les marqueurs.
+  /// Si fourni, les marqueurs affichent l'emoji au lieu d'un point colore.
+  final Map<String, String>? categoryIcons;
+  /// Zoom initial fixe. Si null, fitBounds ajuste automatiquement.
+  final int? initialZoom;
+  /// Afficher le nom au-dessus du marqueur.
+  final bool showLabels;
 
   const VenuesMapView({
     super.key,
     required this.venues,
     this.title = 'Le plus proche',
     this.accentColor = '#228B22',
+    this.autoLocate = true,
+    this.categoryIcons,
+    this.initialZoom,
+    this.showLabels = false,
   });
 
   @override
@@ -51,7 +63,9 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       );
     _loadHtml();
     // Lancer la géolocalisation immédiatement en parallèle
-    _autoLocate();
+    if (widget.autoLocate) {
+      _autoLocate();
+    }
   }
 
   /// Géolocalisation automatique dès l'ouverture
@@ -160,11 +174,23 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     for (final v in widget.venues) {
       cats.add(v.categorie);
     }
+    final icons = widget.categoryIcons;
     final legendHtml = cats.map((c) {
+      final emoji = icons?[c];
+      if (emoji != null) {
+        return '<div class="legend-item">'
+            '<span class="legend-emoji">$emoji</span>'
+            '${_escapeHtml(c)}</div>';
+      }
       return '<div class="legend-item">'
           '<span class="legend-dot" style="background:${widget.accentColor}"></span>'
           '${_escapeHtml(c)}</div>';
     }).join('\n');
+
+    // Generer le JS du mapping categorie → emoji
+    final categoryIconsJs = icons != null
+        ? '{ ${icons.entries.map((e) => "'${_escapeJs(e.key)}': '${e.value}'").join(', ')} }'
+        : 'null';
 
     final accent = widget.accentColor;
     final title = _escapeHtml(widget.title);
@@ -182,7 +208,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     #map { flex: 1; }
-    .locate-btn { position: absolute; bottom: 90px; right: 12px; z-index: 1000; width: 44px; height: 44px; border-radius: 50%; border: none; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .locate-btn { position: absolute; top: 12px; right: 12px; z-index: 1000; width: 44px; height: 44px; border-radius: 50%; border: none; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.25); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; }
     .locate-btn:active { opacity: 0.7; }
     .locate-btn.locating { animation: pulse 1s infinite; }
     @keyframes pulse { 0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.25); } 50% { box-shadow: 0 2px 16px ${accent}80; } }
@@ -200,7 +226,11 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     .legend { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
     .legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.7rem; color: #374151; }
     .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-emoji { font-size: 14px; line-height: 1; flex-shrink: 0; }
     .marker-icon { width: 28px; height: 28px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; font-size: 14px; line-height: 1; }
+    .marker-emoji { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 22px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+    .marker-labeled { display: flex; flex-direction: column; align-items: center; }
+    .marker-label { font-size: 7px; font-weight: 700; color: #1f2937; white-space: nowrap; text-align: center; max-width: 70px; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 3px white, 0 0 3px white, 0 0 3px white; }
     .user-marker { width: 18px; height: 18px; border-radius: 50%; background: #4285F4; border: 3px solid white; box-shadow: 0 0 0 2px rgba(66,133,244,0.3), 0 2px 6px rgba(0,0,0,0.3); }
     .leaflet-popup-content { margin: 10px 14px; line-height: 1.5; }
     .popup-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
@@ -231,7 +261,10 @@ class _VenuesMapViewState extends State<VenuesMapView> {
   <script>
     const VENUES = [$venuesJs];
     const ACCENT = '$accent';
-    const map = L.map('map').setView([43.6047, 1.4442], 12);
+    const CAT_ICONS = $categoryIconsJs;
+    const INIT_ZOOM = ${widget.initialZoom ?? 0};
+    const SHOW_LABELS = ${widget.showLabels};
+    const map = L.map('map').setView([43.6047, 1.4442], INIT_ZOOM || 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap', maxZoom: 19,
     }).addTo(map);
@@ -239,11 +272,22 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     const allMarkers = [];
     VENUES.forEach(v => {
       if (!v.lat || !v.lng) return;
+      const emoji = CAT_ICONS ? CAT_ICONS[v.cat] : null;
+      let iconHtml;
+      if (emoji && SHOW_LABELS) {
+        iconHtml = '<div class="marker-labeled"><div class="marker-label">' + v.nom + '</div><div class="marker-emoji">' + emoji + '</div></div>';
+      } else if (emoji) {
+        iconHtml = '<div class="marker-emoji">' + emoji + '</div>';
+      } else {
+        iconHtml = '<div class="marker-icon" style="background:' + ACCENT + '"></div>';
+      }
+      const iconSz = emoji && SHOW_LABELS ? [70, 46] : emoji ? [32, 32] : [28, 28];
+      const iconAn = emoji && SHOW_LABELS ? [35, 46] : emoji ? [16, 16] : [14, 14];
       const marker = L.marker([v.lat, v.lng], {
         icon: L.divIcon({
           className: '',
-          html: '<div class="marker-icon" style="background:' + ACCENT + '"></div>',
-          iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16],
+          html: iconHtml,
+          iconSize: iconSz, iconAnchor: iconAn, popupAnchor: [0, -16],
         }),
       }).addTo(map);
       let popup = '<div class="popup-name">' + v.nom + '</div><div class="popup-cat">' + v.cat + '</div><div class="popup-address">' + v.adresse + '</div>';
@@ -253,8 +297,8 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     });
 
     const validVenues = VENUES.filter(v => v.lat && v.lng);
-    if (validVenues.length > 0) {
-      map.fitBounds(L.latLngBounds(validVenues.map(v => [v.lat, v.lng])), { padding: [30, 30] });
+    if (validVenues.length > 0 && !INIT_ZOOM) {
+      map.fitBounds(L.latLngBounds(validVenues.map(v => [v.lat, v.lng])), { padding: [30, 30], maxZoom: 15 });
     }
 
     let userMarker = null, userLat = null, userLng = null;

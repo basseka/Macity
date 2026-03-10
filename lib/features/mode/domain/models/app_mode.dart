@@ -5,6 +5,7 @@ import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
 import 'package:pulz_app/features/gaming/data/gaming_category_data.dart';
 import 'package:pulz_app/features/night/data/night_category_data.dart';
+import 'package:pulz_app/features/tourisme/data/tourisme_category_data.dart';
 
 enum AppMode {
   day,
@@ -13,7 +14,8 @@ enum AppMode {
   family,
   food,
   gaming,
-  night;
+  night,
+  tourisme;
 
   String get label {
     switch (this) {
@@ -31,6 +33,8 @@ enum AppMode {
         return 'Gaming & pop culture';
       case AppMode.night:
         return 'Nuit & sorties';
+      case AppMode.tourisme:
+        return 'Tourisme & découvertes';
     }
   }
 
@@ -50,6 +54,8 @@ enum AppMode {
         return '🎮';
       case AppMode.night:
         return '🌙';
+      case AppMode.tourisme:
+        return '✈️';
     }
   }
 
@@ -69,6 +75,8 @@ enum AppMode {
         return GamingCategoryData.groups.map((g) => g.name).toList();
       case AppMode.night:
         return NightCategoryData.groups.map((g) => g.name).toList();
+      case AppMode.tourisme:
+        return TourismeCategoryData.groups.map((g) => g.name).toList();
     }
   }
 
@@ -81,5 +89,5 @@ enum AppMode {
     );
   }
 
-  static const order = [AppMode.day, AppMode.sport, AppMode.culture, AppMode.family, AppMode.food, AppMode.gaming, AppMode.night];
+  static const order = [AppMode.day, AppMode.sport, AppMode.culture, AppMode.family, AppMode.food, AppMode.gaming, AppMode.night, AppMode.tourisme];
 }

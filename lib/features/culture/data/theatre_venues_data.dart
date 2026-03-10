@@ -27,6 +27,17 @@ class TheatreVenuesData {
 
   static const List<TheatreVenue> venues = [
     TheatreVenue(
+      id: 'cafe_theatre_les_3t',
+      name: 'Cafe-Theatre Les 3T',
+      description: 'Cafe-theatre populaire avec pieces, humour et spectacles.',
+      city: 'Toulouse',
+      horaires: 'Tlj 20h-23h',
+      ticketUrl: 'https://new.3tcafetheatre.com/reservation/etape-1/',
+      websiteUrl: 'https://www.3tcafetheatre.com/',
+      hasOnlineTicket: true,
+      image: 'assets/images/theatre_3t.jpg',
+    ),
+    TheatreVenue(
       id: 'theatre_de_la_cite',
       name: 'TheatredelaCite - CDN Toulouse Occitanie',
       description: 'Centre dramatique national, representations variees et programmations saisonnieres.',
@@ -35,7 +46,7 @@ class TheatreVenuesData {
       ticketUrl: 'https://theatre-cite.com/billetterie/',
       websiteUrl: 'https://theatre-cite.com/',
       hasOnlineTicket: true,
-      image: 'assets/images/pochette_theatre.png',
+      image: 'assets/images/theatre_cite.jpg',
     ),
     TheatreVenue(
       id: 'sorano_theatre',
@@ -46,7 +57,7 @@ class TheatreVenuesData {
       ticketUrl: 'https://theatre-sorano.fr/billetterie/',
       websiteUrl: 'https://theatre-sorano.fr/',
       hasOnlineTicket: true,
-      image: 'assets/images/pochette_theatre.png',
+      image: 'assets/images/theatre_sorano.jpg',
     ),
     TheatreVenue(
       id: 'theatre_garonne',
@@ -57,7 +68,7 @@ class TheatreVenuesData {
       ticketUrl: 'https://www.theatregaronne.com/information/comment-reserver-et-payer',
       websiteUrl: 'https://www.theatregaronne.com/',
       hasOnlineTicket: true,
-      image: 'assets/images/pochette_theatre.png',
+      image: 'assets/images/theatre_garonne.jpg',
     ),
     TheatreVenue(
       id: 'nouveau_theatre_jules_julien',
@@ -82,17 +93,6 @@ class TheatreVenuesData {
       image: 'assets/images/pochette_theatre.png',
     ),
     TheatreVenue(
-      id: 'cafe_theatre_les_3t',
-      name: 'Cafe-Theatre Les 3T',
-      description: 'Cafe-theatre populaire avec pieces, humour et spectacles.',
-      city: 'Toulouse',
-      horaires: 'Tlj 20h-23h',
-      ticketUrl: 'https://new.3tcafetheatre.com/reservation/etape-1/',
-      websiteUrl: 'https://www.3tcafetheatre.com/',
-      hasOnlineTicket: true,
-      image: 'assets/images/pochette_theatre.png',
-    ),
-    TheatreVenue(
       id: 'la_cave_poesie',
       name: 'La Cave Poesie',
       description: 'Scene alternative melant poesie, arts vivants, petits spectacles et lectures.',
@@ -101,7 +101,7 @@ class TheatreVenuesData {
       ticketUrl: 'https://billetterie.festik.net/cavepoesie/',
       websiteUrl: 'https://www.cave-poesie.com/',
       hasOnlineTicket: true,
-      image: 'assets/images/pochette_theatre.png',
+      image: 'assets/images/theatre_cave_poesie.jpg',
     ),
     TheatreVenue(
       id: 'theatre_du_capitole',
@@ -112,7 +112,7 @@ class TheatreVenuesData {
       ticketUrl: 'https://opera.toulouse.fr/acheter-un-billet/',
       websiteUrl: 'https://opera.toulouse.fr/',
       hasOnlineTicket: true,
-      image: 'assets/images/pochette_theatre.png',
+      image: 'assets/images/theatre_capitole.jpg',
     ),
     TheatreVenue(
       id: 'theatre_du_grand_rond',
@@ -123,7 +123,7 @@ class TheatreVenuesData {
       ticketUrl: 'https://www.grand-rond.org/comment-reserver-etou-payer',
       websiteUrl: 'https://www.grand-rond.org/',
       hasOnlineTicket: true,
-      image: 'assets/images/pochette_theatre.png',
+      image: 'assets/images/theatre_grand_rond.jpg',
     ),
     TheatreVenue(
       id: 'theatre_du_pave',

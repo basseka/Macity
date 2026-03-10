@@ -11,7 +11,9 @@ import 'package:pulz_app/features/offers/state/offers_provider.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 class AddOfferBottomSheet extends ConsumerStatefulWidget {
-  const AddOfferBottomSheet({super.key});
+  final String? initialPhotoPath;
+
+  const AddOfferBottomSheet({super.key, this.initialPhotoPath});
 
   @override
   ConsumerState<AddOfferBottomSheet> createState() =>
@@ -32,6 +34,12 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
 
   static const _primaryColor = Color(0xFF7B2D8E);
   static const _primaryDarkColor = Color(0xFF4A1259);
+
+  @override
+  void initState() {
+    super.initState();
+    _photoPath = widget.initialPhotoPath;
+  }
 
   @override
   void dispose() {

@@ -270,6 +270,39 @@ class ModeTheme {
     hintString: 'Bar, club, epicerie de nuit...',
   );
 
+  // ── TOURISME MODE ── (bleu voyage)
+  static const tourisme = ModeTheme(
+    chipColor: Color(0xFF0284C7),
+    toolbarGradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF075985), Color(0xFF0284C7), Color(0xFF38BDF8)],
+    ),
+    searchBtnGradient: LinearGradient(
+      colors: [Color(0xFF0284C7), Color(0xFF075985)],
+    ),
+    cityCardGradient: LinearGradient(
+      colors: [Color(0xFF0369A1), Color(0xFF075985)],
+    ),
+    cardImageGradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0x00075985), Color(0xBB0C4A6E)],
+    ),
+    backgroundColor: Color(0xFFF0F9FF),
+    cardColor: Color(0xFFFFFFFF),
+    primaryColor: Color(0xFF0284C7),
+    primaryDarkColor: Color(0xFF075985),
+    primaryLightColor: Color(0xFFE0F2FE),
+    chipBgColor: Color(0xFFE0F2FE),
+    chipTextColor: Color(0xFF075985),
+    chipStrokeColor: Color(0xFF0284C7),
+    fabColor: Color(0xFF0284C7),
+    welcomeString: '',
+    subtitleString: 'Explore et decouvre ta ville',
+    hintString: 'Sites, hotels, visites...',
+  );
+
   static ModeTheme fromModeName(String mode) {
     switch (mode) {
       case 'day':
@@ -286,6 +319,8 @@ class ModeTheme {
         return gaming;
       case 'night':
         return night;
+      case 'tourisme':
+        return tourisme;
       default:
         return day;
     }

@@ -20,16 +20,16 @@ class BasketballTeamConfigs {
   static const teams = [
     BasketballTeamConfig(
       name: 'Toulouse Basketball Club',
-      billetterie: 'https://www.toulousebasketclub.fr/billetterie',
+      billetterie: 'https://toulousebasketballclub.billetterie-club.fr/home',
       stadium: 'Palais des Sports Andre Brouat',
       league: 'NM1',
       city: 'Toulouse',
     ),
     BasketballTeamConfig(
       name: 'Toulouse Metropole Basket (TMB)',
-      billetterie: 'https://www.tmbasket.fr/billetterie',
+      billetterie: 'https://www.tmb-basket.com/programmes',
       stadium: 'Gymnase Compans-Caffarelli',
-      league: 'LF2',
+      league: 'LFB',
       city: 'Toulouse',
     ),
     BasketballTeamConfig(

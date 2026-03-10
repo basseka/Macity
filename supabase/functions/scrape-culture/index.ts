@@ -97,6 +97,9 @@ async function scrapeSorano(): Promise<ScrapedEvent[]> {
       const slug = url.split("/").filter(Boolean).pop() ?? titre.toLowerCase().replace(/\s+/g, "-");
       const id = `sorano_${slug}_${dateDebut}`;
 
+      // Image from background-image url in the card
+      const imageUrl = m[2] || "";
+
       events.push(makeEvent({
         identifiant: id, source: "theatre_sorano", rubrique: "culture",
         nom_de_la_manifestation: titre,
@@ -104,6 +107,7 @@ async function scrapeSorano(): Promise<ScrapedEvent[]> {
         descriptif_long: auteur ? `${titre}\n${type}\n${auteur}` : `${titre}\n${type}`,
         date_debut: dateDebut, date_fin: dateFin ?? dateDebut,
         dates_affichage_horaires: datesRaw,
+        photo_url: imageUrl,
         lieu_nom: "Theatre Sorano", lieu_adresse_2: "35 Allees Jules Guesde",
         commune: "Toulouse", code_postal: 31400,
         type_de_manifestation: type, categorie_de_la_manifestation: "Theatre",
@@ -123,13 +127,23 @@ async function scrapePontNeuf(): Promise<ScrapedEvent[]> {
     const events: ScrapedEvent[] = [];
     const year = currentSeasonYear();
 
+    // Collect all images near show titles for photo extraction
+    const allImgMatches: string[] = [];
+    const imgCollectRegex = /<img[^>]*src="([^"]+\.(jpg|jpeg|png|webp))"[^>]*>/gi;
+    let imgM;
+    while ((imgM = imgCollectRegex.exec(html)) !== null) {
+      if (!imgM[1].includes("logo") && !imgM[1].includes("icon") && !imgM[1].includes("favicon")) {
+        allImgMatches.push(imgM[1]);
+      }
+    }
+
     // Structure: <h2><b>Title</b></h2> then <h3>du X au Y mois</h3> as siblings
     // Strategy: collect all h2/h3 tags in order, pair titles with dates
     const tagRegex = /<(h[23])[^>]*>(.*?)<\/\1>/gs;
-    const tags: { tag: string; text: string }[] = [];
+    const tags: { tag: string; text: string; index: number }[] = [];
     let m;
     while ((m = tagRegex.exec(html)) !== null) {
-      tags.push({ tag: m[1], text: cleanHtml(m[2]) });
+      tags.push({ tag: m[1], text: cleanHtml(m[2]), index: m.index });
     }
 
     for (let i = 0; i < tags.length; i++) {
@@ -164,6 +178,16 @@ async function scrapePontNeuf(): Promise<ScrapedEvent[]> {
 
       if (!dateDebut || !isUpcoming(dateFin ?? dateDebut, dateDebut)) continue;
 
+      // Find closest image before this title position
+      const beforeChunk = html.substring(Math.max(0, t.index - 800), t.index);
+      const pnImgMatch = /<img[^>]*src="([^"]+\.(jpg|jpeg|png|webp))"[^>]*>/gi;
+      let pnPhoto = "";
+      let pnM;
+      while ((pnM = pnImgMatch.exec(beforeChunk)) !== null) {
+        if (!pnM[1].includes("logo") && !pnM[1].includes("icon")) pnPhoto = pnM[1];
+      }
+      if (pnPhoto && !pnPhoto.startsWith("http")) pnPhoto = `https://www.theatredupontneuf.fr${pnPhoto.startsWith("/") ? "" : "/"}${pnPhoto}`;
+
       const slug = t.text.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `pontneuf_${slug}_${dateDebut}`;
 
@@ -172,6 +196,7 @@ async function scrapePontNeuf(): Promise<ScrapedEvent[]> {
         nom_de_la_manifestation: t.text,
         descriptif_court: t.text,
         date_debut: dateDebut, date_fin: dateFin ?? dateDebut,
+        photo_url: pnPhoto,
         lieu_nom: "Theatre du Pont Neuf", lieu_adresse_2: "2 Rue Georges Lardenne",
         commune: "Toulouse", code_postal: 31300,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -195,6 +220,7 @@ async function scrapeCavePoesie(): Promise<ScrapedEvent[]> {
     const h4Regex = /<h4[^>]*>(.*?)<\/h4>/s;
     const h5Regex = /<h5[^>]*>(.*?)<\/h5>/gs;
     const linkRegex = /href="([^"]+)"/;
+    const imgRegex = /<img[^>]*src="([^"]+)"[^>]*>/;
 
     let m;
     while ((m = eventRegex.exec(html)) !== null) {
@@ -229,6 +255,9 @@ async function scrapeCavePoesie(): Promise<ScrapedEvent[]> {
       h5Regex.lastIndex = 0;
 
       const lnk = linkRegex.exec(block);
+      const imgMatch = imgRegex.exec(block);
+      imgRegex.lastIndex = 0;
+      const photoUrl = imgMatch?.[1] ?? "";
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `cavepoesie_${slug}_${dateDebut}`;
 
@@ -239,6 +268,7 @@ async function scrapeCavePoesie(): Promise<ScrapedEvent[]> {
         date_debut: dateDebut, date_fin: dateDebut,
         horaires,
         dates_affichage_horaires: dateRaw,
+        photo_url: photoUrl,
         lieu_nom: "Cave Poesie Rene Gouzenne", lieu_adresse_2: "71 Rue du Taur",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Poesie", categorie_de_la_manifestation: "Theatre",
@@ -294,6 +324,9 @@ async function scrapeGaronne(): Promise<ScrapedEvent[]> {
       const type = typeMatch ? cleanHtml(typeMatch[1]) : "Spectacle";
 
       const lnk = linkRegex.exec(block);
+      // Extract image from <img> in the article card
+      const imgMatch = /<img[^>]*src="([^"]+)"[^>]*>/i.exec(block);
+      const photoUrl = imgMatch?.[1] ? (imgMatch[1].startsWith("http") ? imgMatch[1] : `https://www.theatregaronne.com${imgMatch[1]}`) : "";
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `garonne_${slug}_${dateDebut}`;
 
@@ -305,6 +338,7 @@ async function scrapeGaronne(): Promise<ScrapedEvent[]> {
         lieu_nom: "Theatre Garonne", lieu_adresse_2: "1 Avenue du Chateau d'Eau",
         commune: "Toulouse", code_postal: 31300,
         type_de_manifestation: type, categorie_de_la_manifestation: "Theatre",
+        photo_url: photoUrl,
         reservation_site_internet: lnk?.[1] ? `https://www.theatregaronne.com${lnk[1]}` : "https://www.theatregaronne.com/",
       }));
     }
@@ -335,6 +369,12 @@ async function scrapeCite(): Promise<ScrapedEvent[]> {
       const url = m[1];
       const titre = cleanHtml(m[2]);
       if (!titre) continue;
+
+      // Extract image near this card (background-image or <img src>)
+      const before = html.substring(Math.max(0, m.index - 500), m.index);
+      const bgImgMatch = /background-image:\s*url\(["']?([^"')]+)["']?\)/i.exec(before) ||
+                          /<img[^>]*src="([^"]+)"[^>]*>/i.exec(before);
+      const citePhotoUrl = bgImgMatch?.[1] ?? "";
 
       // Extract date block near this card
       const after = html.substring(m.index, Math.min(m.index + 1500, html.length));
@@ -399,6 +439,7 @@ async function scrapeCite(): Promise<ScrapedEvent[]> {
         lieu_nom: "Theatre de la Cite", lieu_adresse_2: "1 Rue Pierre Baudis",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
+        photo_url: citePhotoUrl,
         reservation_site_internet: url,
       }));
     }
@@ -412,7 +453,7 @@ async function scrapeCite(): Promise<ScrapedEvent[]> {
 async function scrapeCapitole(): Promise<ScrapedEvent[]> {
   try {
     const data = await fetchJson<any[]>(
-      "https://opera.toulouse.fr/wp-json/wp/v2/onct-events?per_page=50&_fields=id,title,link,meta"
+      "https://opera.toulouse.fr/wp-json/wp/v2/onct-events?per_page=50&_fields=id,title,link,meta,_links&_embed=wp:featuredmedia"
     );
     const events: ScrapedEvent[] = [];
 
@@ -447,6 +488,10 @@ async function scrapeCapitole(): Promise<ScrapedEvent[]> {
       const detailLink = item.link ?? "";
       const freeEntrance = meta["onct-event-free-entrance"] === true;
 
+      // Featured image from _embedded
+      const embedded = item._embedded?.["wp:featuredmedia"]?.[0];
+      const capitolePhoto = embedded?.source_url ?? embedded?.media_details?.sizes?.medium?.source_url ?? "";
+
       const slug = new URL(detailLink || "https://opera.toulouse.fr").pathname.split("/").filter(Boolean).pop() ??
                    titre.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const id = `capitole_${slug}_${dateDebut}`;
@@ -466,6 +511,7 @@ async function scrapeCapitole(): Promise<ScrapedEvent[]> {
         type_de_manifestation: freeEntrance ? "Gratuit" : "Opera",
         categorie_de_la_manifestation: "Theatre",
         tarif_normal: freeEntrance ? "Gratuit" : "",
+        photo_url: capitolePhoto,
         reservation_site_internet: regLink || detailLink,
       }));
     }
@@ -515,6 +561,8 @@ async function scrapeGrandRond(): Promise<ScrapedEvent[]> {
       if (!dateDebut || !isUpcoming(dateFin ?? dateDebut, dateDebut)) continue;
 
       const lnk = linkRegex.exec(block);
+      const grImgMatch = /<img[^>]*src="([^"]+)"[^>]*>/i.exec(block);
+      const grPhotoUrl = grImgMatch?.[1] ? (grImgMatch[1].startsWith("http") ? grImgMatch[1] : `https://www.grand-rond.org${grImgMatch[1]}`) : "";
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `grandrond_${slug}_${dateDebut}`;
 
@@ -523,6 +571,7 @@ async function scrapeGrandRond(): Promise<ScrapedEvent[]> {
         nom_de_la_manifestation: titre,
         descriptif_court: titre,
         date_debut: dateDebut, date_fin: dateFin ?? dateDebut,
+        photo_url: grPhotoUrl,
         lieu_nom: "Theatre du Grand Rond", lieu_adresse_2: "23 Rue des Potiers",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -574,6 +623,8 @@ async function scrapeGrenier(): Promise<ScrapedEvent[]> {
 
       const priceMatch = priceRegex.exec(block);
       const lnk = linkRegex.exec(block);
+      const grenierImgMatch = /<img[^>]*src="([^"]+)"[^>]*>/i.exec(block);
+      const grenierPhoto = grenierImgMatch?.[1] ?? "";
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `grenier_${slug}_${dateDebut}`;
 
@@ -583,6 +634,7 @@ async function scrapeGrenier(): Promise<ScrapedEvent[]> {
         descriptif_court: titre,
         date_debut: dateDebut, date_fin: dateFin,
         dates_affichage_horaires: dateRaw,
+        photo_url: grenierPhoto,
         lieu_nom: "Grenier Theatre", lieu_adresse_2: "12 Rue Mage",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -664,6 +716,10 @@ async function scrapeThreeT(): Promise<ScrapedEvent[]> {
       // Format time
       const horaires = firstTime.replace(":", "h").replace(/h$/, "h00");
 
+      // Extract og:image from detail page
+      const ogImgMatch = /property="og:image"[^>]*content="([^"]+)"/i.exec(html);
+      const ttPhoto = ogImgMatch?.[1] ?? "";
+
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `3t_${slug}_${dateDebut}`;
 
@@ -674,6 +730,7 @@ async function scrapeThreeT(): Promise<ScrapedEvent[]> {
         date_debut: dateDebut, date_fin: dateFin,
         horaires,
         tarif_normal: tarif,
+        photo_url: ttPhoto,
         lieu_nom: "3T Cafe Theatre", lieu_adresse_2: "19 Rue Maran",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -707,6 +764,7 @@ async function scrapePave(): Promise<ScrapedEvent[]> {
       const desc = cleanHtml(item.description ?? "");
       const shortDesc = cleanHtml(item.excerpt ?? "");
       const url = item.url ?? "https://theatredupave.org/";
+      const pavePhoto = item.image?.url ?? "";
 
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `pave_${slug}_${startDate}`;
@@ -717,6 +775,7 @@ async function scrapePave(): Promise<ScrapedEvent[]> {
         descriptif_court: shortDesc || titre,
         descriptif_long: desc || titre,
         date_debut: startDate, date_fin: endDate || startDate,
+        photo_url: pavePhoto,
         lieu_nom: "Theatre du Pave", lieu_adresse_2: "34 Rue Maran",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -737,12 +796,13 @@ async function scrapeFilAPlomb(): Promise<ScrapedEvent[]> {
 
     // Show info is in image title attributes:
     // « La glaneuse – Du mardi 24 au samedi 28 février 2026 à 15h30 » — Théâtre Le Fil à plomb
-    const titleRegex = /title="([^"]*(?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)[^"]*)"/gi;
+    const titleRegex = /src="([^"]*)"[^>]*title="([^"]*(?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)[^"]*)"/gi;
     const seen = new Set<string>();
 
     let m;
     while ((m = titleRegex.exec(html)) !== null) {
-      let raw = m[1]
+      const filImgSrc = m[1] || "";
+      let raw = m[2]
         .replace(/&amp;/g, "&").replace(/&#8211;/g, "\u2013").replace(/&#8212;/g, "\u2014")
         .replace(/&laquo;|&raquo;|[«»]/g, "").replace(/\u00ab|\u00bb/g, "")
         .replace(/\s*[—–]\s*Th[ée][aâ]tre Le Fil [àa] [Pp]lomb\s*$/, "")
@@ -774,12 +834,15 @@ async function scrapeFilAPlomb(): Promise<ScrapedEvent[]> {
       if (seen.has(key)) continue;
       seen.add(key);
 
+      const filPhoto = filImgSrc.startsWith("http") ? filImgSrc : (filImgSrc ? `https://theatrelefilaplomb.fr${filImgSrc.startsWith("/") ? "" : "/"}${filImgSrc}` : "");
+
       events.push(makeEvent({
         identifiant: `filaplomb_${slug}_${dateDebut}`, source: "fil_a_plomb", rubrique: "culture",
         nom_de_la_manifestation: titre,
         descriptif_court: titre,
         date_debut: dateDebut, date_fin: dateFin,
         horaires,
+        photo_url: filPhoto,
         lieu_nom: "Theatre le Fil a Plomb", lieu_adresse_2: "2 Rue du Lieutenant Colonel Pelissier",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -845,6 +908,10 @@ async function scrapeMetropole(config: MetropoleConfig): Promise<ScrapedEvent[]>
         if (!isUpcoming(endDate || startDate, startDate)) continue;
 
         const desc = eventData.description ?? "";
+        // Image from JSON-LD or og:image
+        const metroPhoto = eventData.image?.url ?? eventData.image ?? "";
+        const ogImgMatch = /property="og:image"[^>]*content="([^"]+)"/i.exec(detailHtml);
+        const metroPhotoUrl = (typeof metroPhoto === "string" && metroPhoto) ? metroPhoto : (ogImgMatch?.[1] ?? "");
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
         const id = `${config.idPrefix}_${slug}_${startDate}`;
 
@@ -857,6 +924,7 @@ async function scrapeMetropole(config: MetropoleConfig): Promise<ScrapedEvent[]>
           lieu_nom: config.lieuNom, lieu_adresse_2: config.lieuAdresse,
           commune: "Toulouse", code_postal: config.codePostal,
           type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
+          photo_url: metroPhotoUrl,
           reservation_site_internet: pageUrl,
         }));
       } catch { continue; }
@@ -930,6 +998,12 @@ async function scrapeViolette(): Promise<ScrapedEvent[]> {
       if (dates.length === 0) continue;
       dates.sort();
 
+      // Extract og:image or first <img> from detail page
+      const violetteOg = /property="og:image"[^>]*content="([^"]+)"/i.exec(detailHtml);
+      const violetteImg = /<img[^>]*src="([^"]+\.(jpg|jpeg|png|webp))"[^>]*>/i.exec(detailHtml);
+      let violettePhoto = violetteOg?.[1] ?? violetteImg?.[1] ?? "";
+      if (violettePhoto && !violettePhoto.startsWith("http")) violettePhoto = `https://www.theatredelaviolette.com/${violettePhoto.replace(/^\//, "")}`;
+
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `violette_${slug}_${dates[0]}`;
 
@@ -938,6 +1012,7 @@ async function scrapeViolette(): Promise<ScrapedEvent[]> {
         nom_de_la_manifestation: titre,
         descriptif_court: titre,
         date_debut: dates[0], date_fin: dates[dates.length - 1],
+        photo_url: violettePhoto,
         lieu_nom: "Theatre de la Violette", lieu_adresse_2: "67 Chemin Pujibet",
         commune: "Toulouse", code_postal: 31100,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -1000,6 +1075,10 @@ async function scrapePoche(): Promise<ScrapedEvent[]> {
       const timeMatch = /(\d{1,2}h\d{0,2})/.exec(html);
       const horaires = timeMatch ? timeMatch[1].replace(/h$/, "h00") : "";
 
+      // Extract og:image from detail page
+      const pocheOgMatch = /property="og:image"[^>]*content="([^"]+)"/i.exec(html);
+      const pochePhoto = pocheOgMatch?.[1] ?? "";
+
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `poche_${slug}_${dates[0]}`;
 
@@ -1009,6 +1088,7 @@ async function scrapePoche(): Promise<ScrapedEvent[]> {
         descriptif_court: titre,
         date_debut: dates[0], date_fin: dates[dates.length - 1],
         horaires,
+        photo_url: pochePhoto,
         lieu_nom: "Theatre de Poche", lieu_adresse_2: "5 Rue du Taur",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -1057,6 +1137,9 @@ async function scrapeChienBlanc(): Promise<ScrapedEvent[]> {
       dates.sort();
 
       const timeMatch = /(\d{1,2}h\d{2})/.exec(html);
+      // Extract og:image from detail page
+      const cbOgMatch = /property="og:image"[^>]*content="([^"]+)"/i.exec(html);
+      const cbPhoto = cbOgMatch?.[1] ?? "";
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `chienblanc_${slug}_${dates[0]}`;
 
@@ -1066,6 +1149,7 @@ async function scrapeChienBlanc(): Promise<ScrapedEvent[]> {
         descriptif_court: titre,
         date_debut: dates[0], date_fin: dates[dates.length - 1],
         horaires: timeMatch?.[1] ?? "",
+        photo_url: cbPhoto,
         lieu_nom: "Theatre du Chien Blanc", lieu_adresse_2: "18 Rue Belbeze",
         commune: "Toulouse", code_postal: 31000,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -1082,7 +1166,7 @@ async function scrapeChienBlanc(): Promise<ScrapedEvent[]> {
 async function scrapeJulesJulien(): Promise<ScrapedEvent[]> {
   try {
     const data = await fetchJson<any[]>(
-      "https://conservatoire.toulouse.fr/wp-json/wp/v2/onct-events?onct-event-lieu=158&per_page=50&_fields=id,title,link,meta"
+      "https://conservatoire.toulouse.fr/wp-json/wp/v2/onct-events?onct-event-lieu=158&per_page=50&_fields=id,title,link,meta,_links&_embed=wp:featuredmedia"
     );
     const events: ScrapedEvent[] = [];
 
@@ -1113,6 +1197,10 @@ async function scrapeJulesJulien(): Promise<ScrapedEvent[]> {
       const minute = Number(meta["onct-event-minute"]) || 0;
       const horaires = hour != null ? `${hour}h${String(minute).padStart(2,"0")}` : "";
 
+      // Featured image from _embedded
+      const jjEmbedded = item._embedded?.["wp:featuredmedia"]?.[0];
+      const jjPhoto = jjEmbedded?.source_url ?? jjEmbedded?.media_details?.sizes?.medium?.source_url ?? "";
+
       const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
       const id = `julesjulien_${slug}_${dateDebut}`;
 
@@ -1122,6 +1210,7 @@ async function scrapeJulesJulien(): Promise<ScrapedEvent[]> {
         descriptif_court: titre,
         date_debut: dateDebut, date_fin: dateFin,
         horaires,
+        photo_url: jjPhoto,
         lieu_nom: "Nouveau Theatre Jules Julien", lieu_adresse_2: "2 Rue Dieudonne Costes",
         commune: "Toulouse", code_postal: 31400,
         type_de_manifestation: "Theatre", categorie_de_la_manifestation: "Theatre",
@@ -1261,13 +1350,36 @@ async function scrapeMeett(): Promise<ScrapedEvent[]> {
       "DEC": "12", "DÉCEMBRE": "12", "DECEMBRE": "12",
     };
 
-    // Elementor structure: start-date widget → end-date widget → h2 title
+    // 1) Collect ALL jpg/png image src with positions, then filter
+    const posterImages: { url: string; pos: number }[] = [];
+    const allImgRe = /src="(https?:\/\/meett\.fr\/wp-content\/uploads\/[^"]+)"/gi;
+    let pi;
+    while ((pi = allImgRe.exec(html)) !== null) {
+      const u = pi[1].toLowerCase();
+      // Keep only real posters (jpg/png), skip svgs, icons, thumbs
+      if (!u.endsWith(".jpg") && !u.endsWith(".jpeg") && !u.endsWith(".png") && !u.endsWith(".webp")) continue;
+      if (u.includes("elementor") || u.includes("icon") || u.includes("logo") || u.includes("phone") || u.includes("trolley") || u.includes("element-graphique")) continue;
+      posterImages.push({ url: pi[1], pos: pi.index });
+    }
+
+    // 2) Parse events
     const pattern = /<div class="elementor-widget-container">\s*(\d{1,2})\s+([A-ZÀ-Ü]+)\s*(?:&#8211;|–|-)?[^<]*<\/div>\s*<\/div>\s*(?:<div[^>]*>)?\s*<div class="elementor-widget-container">\s*(\d{1,2})\s+([A-ZÀ-Ü]+)\s+(\d{4})\s*<\/div>.*?<h2[^>]*>(.*?)<\/h2>/gs;
 
     const seen = new Set<string>();
     let m;
     while ((m = pattern.exec(html)) !== null) {
       const [, day1, month1, day2, month2, year, titleHtml] = m;
+
+      // Find closest preceding poster image (position-based)
+      const matchPos = m.index;
+      let bestImg = "";
+      for (let i = posterImages.length - 1; i >= 0; i--) {
+        if (posterImages[i].pos < matchPos) {
+          bestImg = posterImages[i].url;
+          break;
+        }
+      }
+
       const titre = cleanHtml(titleHtml).replace(/\s*~\s*$/, "").trim();
       if (!titre) continue;
 
@@ -1296,6 +1408,7 @@ async function scrapeMeett(): Promise<ScrapedEvent[]> {
         commune: "Toulouse", code_postal: 31840,
         type_de_manifestation: "Exposition", categorie_de_la_manifestation: "Exposition",
         reservation_site_internet: "https://www.meett.fr/agenda/",
+        photo_url: bestImg,
       }));
     }
     return events;

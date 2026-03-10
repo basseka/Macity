@@ -90,7 +90,7 @@ class SportCategoryData {
       name: 'Golf',
       emoji: '\u26F3',
       subcategories: [
-        SportSubcategory(label: 'Golf', searchTag: 'Golf', emoji: '\u26F3', group: 'Golf', image: 'assets/images/pochette_autre.png'),
+        SportSubcategory(label: 'Golf', searchTag: 'Golf', emoji: '\u26F3', group: 'Golf', image: 'assets/images/pochette_Golf.png'),
       ],
     ),
     SportCategoryGroup(
@@ -98,6 +98,13 @@ class SportCategoryData {
       emoji: '\uD83C\uDFBE',
       subcategories: [
         SportSubcategory(label: 'Raquette', searchTag: 'Raquette', emoji: '\uD83C\uDFBE', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
+      ],
+    ),
+    SportCategoryGroup(
+      name: 'Stage de danse',
+      emoji: '\uD83D\uDC83',
+      subcategories: [
+        SportSubcategory(label: 'Stage de danse', searchTag: 'Stage de danse', emoji: '\uD83D\uDC83', group: 'Stage de danse', image: 'assets/images/pochette_stagedanse.png'),
       ],
     ),
     SportCategoryGroup(
@@ -112,12 +119,20 @@ class SportCategoryData {
   static List<SportSubcategory> get allSubcategories =>
       groups.expand((g) => g.subcategories).toList();
 
-  /// Sous-catégories affichées dans le hub Match/Events.
+  /// Sous-catégories affichées dans le hub Matchs (sports collectifs).
   static List<SportSubcategory> get matchSubcategories =>
       groups
           .where((g) => const {
-                'A venir', 'Rugby', 'Football', 'Basketball',
-                'Handball', 'Boxe', 'Natation', 'Course a pied',
+                'Rugby', 'Football', 'Basketball', 'Handball',
+              }.contains(g.name))
+          .expand((g) => g.subcategories)
+          .toList();
+
+  /// Sous-catégories affichées dans le hub Events (autres sports).
+  static List<SportSubcategory> get eventSubcategories =>
+      groups
+          .where((g) => const {
+                'A venir', 'Boxe', 'Natation', 'Course a pied', 'Golf', 'Stage de danse',
               }.contains(g.name))
           .expand((g) => g.subcategories)
           .toList();
@@ -125,11 +140,12 @@ class SportCategoryData {
   /// Sous-catégories affichées dans le hub Complexe sportif.
   static const complexeSportifSubcategories = [
     SportSubcategory(label: 'Salle de Fitness', searchTag: 'Salle de fitness', emoji: '\uD83D\uDCAA', group: 'Salle de Fitness', image: 'assets/images/shell_sport_fitness.png'),
+    SportSubcategory(label: 'Salle de danse', searchTag: 'Danse', emoji: '\uD83D\uDC83', group: 'Danse', image: 'assets/images/pochette_animation.png'),
     SportSubcategory(label: 'Salles de boxe', searchTag: 'Salles de boxe', emoji: '\uD83E\uDD4A', group: 'Boxe', image: 'assets/images/pochette_boxe.png'),
     SportSubcategory(label: 'Terrain de football', searchTag: 'Terrain de football', emoji: '\u26BD', group: 'Football', image: 'assets/images/shell_sport_football.png'),
     SportSubcategory(label: 'Terrain de basketball', searchTag: 'Terrain de basketball', emoji: '\uD83C\uDFC0', group: 'Basketball', image: 'assets/images/shell_sport_basketball.png'),
     SportSubcategory(label: 'Piscine', searchTag: 'Piscine', emoji: '\uD83C\uDFCA', group: 'Natation', image: 'assets/images/pochette_natation.png'),
-    SportSubcategory(label: 'Golf', searchTag: 'Golf', emoji: '\u26F3', group: 'Golf', image: 'assets/images/pochette_autre.png'),
+    SportSubcategory(label: 'Golf', searchTag: 'Golf', emoji: '\u26F3', group: 'Golf', image: 'assets/images/pochette_Golf.png'),
     SportSubcategory(label: 'Raquette', searchTag: 'Raquette', emoji: '\uD83C\uDFBE', group: 'Raquette', image: 'assets/images/pochette_autre.png'),
   ];
 

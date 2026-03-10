@@ -17,7 +17,7 @@ Deux sources principales :
 
 ### 3 rappels sont programmés
 
-- **15 jours** avant l'événement
+- **2 jours** avant l'événement
 - **1 jour** avant
 - **1 heure** avant
 
@@ -66,7 +66,7 @@ Gérées via **Riverpod** (`notification_prefs_provider.dart`) et stockées dans
 
 - **Activation/désactivation globale** (`enabled`)
 - **Choix individuel** pour chaque type de rappel :
-  - `remind_15d` — rappel 15 jours avant
+  - `remind_2d` — rappel 2 jours avant
   - `remind_1d` — rappel 1 jour avant
   - `remind_1h` — rappel 1 heure avant
 - Support futur pour les **heures silencieuses** (`quiet_hour_start` / `quiet_hour_end`)
@@ -103,7 +103,7 @@ Gérées via **Riverpod** (`notification_prefs_provider.dart`) et stockées dans
 
 | Type | Message |
 |---|---|
-| 15 jours avant | "Dans 15 jours — [date formatée]" |
+| 2 jours avant | "Dans 2 jours — [date formatée]" |
 | 1 jour avant | "Demain — [date formatée]" |
 | 1 heure avant | "Dans 1 heure !" |
 | Nouvel événement | "Nouvel événement le [date]" |
@@ -129,7 +129,7 @@ Gérées via **Riverpod** (`notification_prefs_provider.dart`) et stockées dans
 | `supabase/functions/send-notifications/index.ts` | Edge Function d'envoi |
 | `supabase/migrations/001_notification_system.sql` | Schéma et triggers principaux |
 | `supabase/migrations/002_user_events_notifications.sql` | Notifications événements utilisateur |
-| `supabase/migrations/20260213180000_notifications_15_days.sql` | Rappels 15 jours |
+| `supabase/migrations/20260213180000_notifications_15_days.sql` | Rappels 2 jours |
 | `supabase/migrations/20260212230000_setup_cron_jobs.sql` | Configuration des cron jobs |
 
 ### Configuration

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -22,6 +23,10 @@ class FcmService {
   static final _localNotifications = FlutterLocalNotificationsPlugin();
   static late final Dio _dio;
   static bool _initialized = false;
+
+  /// Callback appelé quand l'utilisateur tape sur une notification.
+  /// La map contient les données FCM (type, universe, event_ids, etc.).
+  static void Function(Map<String, dynamic> data)? onNotificationTap;
 
   static const _androidChannel = AndroidNotificationChannel(
     'pulz_reminders',
@@ -57,12 +62,13 @@ class FcmService {
     // Demander la permission alarmes exactes (Android 12+)
     await androidPlugin?.requestExactAlarmsPermission();
 
-    // Initialiser flutter_local_notifications
+    // Initialiser flutter_local_notifications avec le tap handler
     await _localNotifications.initialize(
       const InitializationSettings(
         android: AndroidInitializationSettings('@drawable/ic_notification'),
         iOS: DarwinInitializationSettings(),
       ),
+      onDidReceiveNotificationResponse: _onLocalNotificationTap,
     );
 
     // Token initial
@@ -75,8 +81,38 @@ class FcmService {
     // Foreground messages → afficher via local notification
     FirebaseMessaging.onMessage.listen(_showForegroundNotification);
 
+    // Tap sur notification quand l'app est en background
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
+    // Tap sur notification quand l'app était killed
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      // Attendre que l'UI soit prête avant de naviguer
+      Future.delayed(const Duration(milliseconds: 800), () {
+        _handleNotificationTap(initialMessage);
+      });
+    }
+
     // Notification quotidienne a 18h
     await _scheduleDailyReminder();
+  }
+
+  /// Gère le tap sur une notification FCM (background/killed).
+  static void _handleNotificationTap(RemoteMessage message) {
+    debugPrint('[FCM] notification tap: ${message.data}');
+    onNotificationTap?.call(message.data);
+  }
+
+  /// Gère le tap sur une notification locale (foreground).
+  static void _onLocalNotificationTap(NotificationResponse response) {
+    debugPrint('[FCM] local notification tap: ${response.payload}');
+    if (response.payload == null || response.payload!.isEmpty) return;
+    try {
+      final data = jsonDecode(response.payload!) as Map<String, dynamic>;
+      onNotificationTap?.call(data);
+    } catch (e) {
+      debugPrint('[FCM] payload parse error: $e');
+    }
   }
 
   /// Programme une notification locale tous les jours a 18h00.
@@ -131,12 +167,16 @@ class FcmService {
   }
 
   /// Affiche la notification même quand l'app est au premier plan.
+  /// Encode les données FCM dans le payload pour récupération au tap.
   static Future<void> _showForegroundNotification(
       RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
 
     debugPrint('[FCM] foreground: ${notification.title}');
+
+    // Encoder les données FCM pour les passer au tap handler
+    final payload = jsonEncode(message.data);
 
     await _localNotifications.show(
       notification.hashCode,
@@ -158,6 +198,7 @@ class FcmService {
           presentSound: true,
         ),
       ),
+      payload: payload,
     );
   }
 

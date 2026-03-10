@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/sport_venues_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/sport/data/basketball_venues_data.dart';
 import 'package:pulz_app/features/sport/data/boxing_venues_data.dart';
 import 'package:pulz_app/features/sport/data/fitness_venues_data.dart';
@@ -45,6 +46,21 @@ final racketAllVenuesProvider =
     ref.watch(sportVenuesProvider('badminton').future),
   ]);
   return results.expand((list) => list).toList();
+});
+
+/// Provider pour les salles de danse depuis Supabase.
+final danceVenuesProvider =
+    FutureProvider<List<DanceVenue>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  if (city.toLowerCase() != 'toulouse') return [];
+
+  try {
+    final service = SportVenuesSupabaseService();
+    return await service.fetchDanceVenues();
+  } catch (e) {
+    debugPrint('[danceVenuesProvider] Supabase error: $e');
+    return [];
+  }
 });
 
 List<CommerceModel> _staticFallback(String sportType) {

@@ -3,7 +3,6 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/culture/data/culture_category_data.dart';
-import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
@@ -14,6 +13,7 @@ import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 
 /// Evenements utilisateur filtres pour la rubrique "culture".
 final cultureUserEventsProvider = Provider<List<Event>>((ref) {
@@ -122,6 +122,9 @@ final theatreVenueEventsProvider =
   );
 });
 
+/// Theatre sélectionné pour afficher sa programmation.
+final selectedTheatreIdProvider = StateProvider<String?>((ref) => null);
+
 final cultureCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
   if (searchTag == 'Musee') {
@@ -131,7 +134,8 @@ final cultureCategoryCountProvider =
     return TheatreVenuesData.venues.length;
   }
   if (searchTag == 'Danse') {
-    return DanceVenuesData.venues.length;
+    final venues = await ref.watch(danceVenuesProvider.future);
+    return venues.length;
   }
   if (searchTag == "Galerie d'art") {
     return GalleryVenuesData.venues.length;

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/pro_auth/data/pro_auth_service.dart';
@@ -190,16 +191,43 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
   }
 
   String _parseError(Object e) {
-    final msg = e.toString().toLowerCase();
-    if (msg.contains('user already registered')) {
+    // Extraire le vrai message Supabase depuis DioException
+    String msg = e.toString().toLowerCase();
+    if (e is DioException && e.response?.data is Map) {
+      final body = e.response!.data as Map;
+      final supaMsg = (body['error_description'] ??
+              body['msg'] ??
+              body['message'] ??
+              body['error'] ??
+              '')
+          .toString()
+          .toLowerCase();
+      if (supaMsg.isNotEmpty) msg = supaMsg;
+    }
+
+    if (msg.contains('user already registered') ||
+        msg.contains('already been registered')) {
       return 'Un compte existe deja avec cet email';
     }
-    if (msg.contains('invalid login')) {
+    if (msg.contains('invalid login') ||
+        msg.contains('invalid_credentials')) {
       return 'Email ou mot de passe incorrect';
     }
-    if (msg.contains('password') && msg.contains('6')) {
+    if (msg.contains('email not confirmed') ||
+        msg.contains('email_not_confirmed')) {
+      return 'Veuillez confirmer votre email. Verifiez votre boite de reception.';
+    }
+    if (msg.contains('password') && (msg.contains('6') || msg.contains('short') || msg.contains('weak'))) {
       return 'Le mot de passe doit contenir au moins 6 caracteres';
     }
+    if (msg.contains('rate limit') || msg.contains('too many')) {
+      return 'Trop de tentatives. Veuillez patienter quelques minutes.';
+    }
+    if (msg.contains('network') || msg.contains('connection')) {
+      return 'Erreur de connexion. Verifiez votre internet.';
+    }
+
+    debugPrint('[ProAuth] Erreur non mappee: $msg');
     return 'Une erreur est survenue. Veuillez reessayer.';
   }
 }

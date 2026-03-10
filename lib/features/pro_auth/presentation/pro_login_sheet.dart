@@ -21,6 +21,8 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
   bool _isLoginMode = false;
   bool _obscurePassword = true;
   bool _isResetting = false;
+  bool _showSuccess = false;
+  String _successMessage = '';
 
   static const _primaryColor = Color(0xFF7B2D8E);
   static const _primaryDarkColor = Color(0xFF4A1259);
@@ -45,33 +47,11 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
     final authState = ref.watch(proAuthProvider);
 
     ref.listen<ProAuthState>(proAuthProvider, (prev, next) {
-      if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      // Detecter la fin d'un submit reussi (isSubmitting passe de true a false
-      // avec un statut authentifie et pas d'erreur).
       final wasSubmitting = prev?.isSubmitting == true;
       final isNowAuthenticated = next.status == ProAuthStatus.pendingApproval ||
           next.status == ProAuthStatus.approved;
       if (wasSubmitting && !next.isSubmitting && isNowAuthenticated && next.error == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              next.status == ProAuthStatus.approved
-                  ? 'Connexion reussie !'
-                  : _isLoginMode
-                      ? 'Connexion reussie ! En attente de validation.'
-                      : 'Inscription reussie ! En attente de validation.',
-            ),
-            backgroundColor: _primaryColor,
-          ),
-        );
-        Navigator.of(context).pop();
+        _onSuccess(next.status);
       }
     });
 
@@ -83,7 +63,9 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: SingleChildScrollView(
+      child: _showSuccess
+          ? _buildSuccessView()
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
@@ -286,6 +268,35 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
               ],
               const SizedBox(height: 24),
 
+              // Error message
+              if (authState.error != null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          authState.error!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.red.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // Submit
               ElevatedButton(
                 onPressed: authState.isSubmitting ? null : _submit,
@@ -321,6 +332,74 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSuccessView() {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [_primaryColor, Color(0xFFE91E8C)],
+              ),
+            ),
+            child: const Icon(Icons.check, color: Colors.white, size: 40),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            _successMessage,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: _primaryDarkColor,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Fermer',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
@@ -415,16 +494,16 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_isLoginMode) {
-      ref.read(proAuthProvider.notifier).login(
+      await ref.read(proAuthProvider.notifier).login(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
     } else {
-      ref.read(proAuthProvider.notifier).register(
+      await ref.read(proAuthProvider.notifier).register(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             nom: _nomController.text.trim(),
@@ -432,5 +511,25 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
             telephone: _telephoneController.text.trim(),
           );
     }
+
+    if (!mounted) return;
+    final state = ref.read(proAuthProvider);
+    final isAuthenticated = state.status == ProAuthStatus.pendingApproval ||
+        state.status == ProAuthStatus.approved;
+    if (isAuthenticated && state.error == null) {
+      _onSuccess(state.status);
+    }
+  }
+
+  void _onSuccess(ProAuthStatus status) {
+    if (_showSuccess) return;
+    setState(() {
+      _showSuccess = true;
+      _successMessage = status == ProAuthStatus.approved
+          ? 'Connexion reussie !'
+          : _isLoginMode
+              ? 'Connexion reussie ! En attente de validation.'
+              : 'Inscription reussie ! En attente de validation par notre equipe.';
+    });
   }
 }
