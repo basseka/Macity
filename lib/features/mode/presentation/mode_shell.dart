@@ -230,16 +230,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
     AppMode.tourisme: 'assets/images/pochette_tourisme_toulouse.png',
   };
 
-  static const _modeShortLabels = {
-    AppMode.day: 'Concert',
-    AppMode.sport: 'Sport',
-    AppMode.culture: 'Culture',
-    AppMode.family: 'Famille',
-    AppMode.food: 'Food',
-    AppMode.gaming: 'Gaming',
-    AppMode.night: 'Nuit',
-    AppMode.tourisme: 'Tourisme',
-  };
+  // Short labels now come from AppMode.shortLabel
 
   @override
   void dispose() {
@@ -285,7 +276,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
             final m = entry.value;
             final isActive = index == modeIndex;
             final image = _modeImages[m]!;
-            final label = _modeShortLabels[m]!;
+            final label = m.shortLabel;
 
             return GestureDetector(
               onTap: () => ref.read(currentModeProvider.notifier).setMode(m.name),

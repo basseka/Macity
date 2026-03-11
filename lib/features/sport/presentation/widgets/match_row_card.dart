@@ -74,7 +74,7 @@ class MatchRowCard extends ConsumerWidget {
     'handball': 'assets/images/pochette_handball.png',
     'boxe': 'assets/images/pochette_boxe.png',
     'natation': 'assets/images/pochette_natation.png',
-    'course': 'assets/images/pochette_course.png',
+    'course': 'assets/images/pochette_courseapied.png',
     'golf': 'assets/images/pochette_course.png',
     'fitness': 'assets/images/pochette_fitness.png',
   };

@@ -1,28 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
-import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
-import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/family/data/family_category_data.dart';
-import 'package:pulz_app/features/family/data/animal_park_venues_data.dart';
-import 'package:pulz_app/features/family/data/bowling_venues_data.dart';
-import 'package:pulz_app/features/family/data/cinema_venues_data.dart';
-import 'package:pulz_app/features/family/data/escape_game_venues_data.dart';
-import 'package:pulz_app/features/family/data/family_restaurant_venues_data.dart';
-import 'package:pulz_app/features/family/data/ice_rink_venues_data.dart';
-import 'package:pulz_app/features/family/data/laser_game_venues_data.dart';
-import 'package:pulz_app/features/family/data/park_venues_data.dart';
-import 'package:pulz_app/features/family/data/farm_venues_data.dart';
-import 'package:pulz_app/features/family/data/playground_venues_data.dart';
-import 'package:pulz_app/core/database/app_database.dart';
-import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/family/data/family_venues_supabase_service.dart';
+import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 
 String _todayStr() {
   final now = DateTime.now();
   return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 }
+
+final _familyServiceProvider = Provider((_) => FamilyVenuesSupabaseService());
 
 /// Evenements scrapes depuis la base (source balma_events).
 final balmaEventsProvider = FutureProvider<List<Event>>((ref) async {
@@ -40,7 +30,7 @@ final familyUserEventsProvider = Provider<List<Event>>((ref) {
   return allUserEvents
       .where((ue) =>
           ue.rubrique == 'family' &&
-          ue.ville.toLowerCase() == city.toLowerCase())
+          ue.ville.toLowerCase() == city.toLowerCase(),)
       .map((ue) => ue.toEvent())
       .toList();
 });
@@ -54,93 +44,44 @@ int _familyUserCount(List<Event> events, String searchTag) {
   }).length;
 }
 
+/// Nombre de lieux par categorie (pour les badges sur la grille).
 final familyCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
-  final city = ref.watch(selectedCityProvider);
   final userEvents = ref.watch(familyUserEventsProvider);
   final uc = _familyUserCount(userEvents, searchTag);
-  final db = AppDatabase();
-  final repository = CommerceRepository(db: db);
+  final service = ref.read(_familyServiceProvider);
+
   if (searchTag == 'A venir') {
     final allTags = FamilyCategoryData.allSubcategories
         .where((s) => s.searchTag != 'A venir')
         .map((s) => s.searchTag);
     var total = 0;
     for (final tag in allTags) {
-      final venues = await repository.searchByVille(ville: city, query: tag);
-      total += venues.length;
+      total += await service.countByCategory(tag);
     }
     final balmaEvents = ref.watch(balmaEventsProvider).valueOrNull ?? [];
     return total + uc + balmaEvents.length;
   }
-  if (searchTag == "Parc d'attractions") {
-    return ParkVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Parc animalier') {
-    return AnimalParkVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Cinema') {
-    return CinemaVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Bowling') {
-    return BowlingVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Laser game') {
-    return LaserGameVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Escape game') {
-    return EscapeGameVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Restaurant familial') {
-    return FamilyRestaurantVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Aire de jeux') {
-    return PlaygroundVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Patinoire') {
-    return IceRinkVenuesData.venues.length + uc;
-  }
-  if (searchTag == 'Ferme pedagogique') {
-    return FarmVenuesData.venues.length + uc;
-  }
-  final venues = await repository.searchByVille(ville: city, query: searchTag);
-  return venues.length + uc;
+
+  final count = await service.countByCategory(searchTag);
+  return count + uc;
 });
 
-final familyVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
-  final category = ref.watch(familyCategoryProvider);
-
-  final db = AppDatabase();
-  final repository = CommerceRepository(db: db);
-  if (category == "Parc d'attractions") {
-    return ParkVenuesData.venues.toList();
-  }
-  if (category == 'A venir') {
-    final allTags = FamilyCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'A venir')
-        .map((s) => s.searchTag);
-    final all = <CommerceModel>[];
-    for (final tag in allTags) {
-      final venues = await repository.searchByVille(ville: city, query: tag);
-      all.addAll(venues);
-    }
-    return all;
-  }
-  return repository.searchByVille(ville: city, query: category);
+/// Venues Supabase pour la categorie selectionnee.
+final familySupabaseVenuesProvider =
+    FutureProvider.family<List<FamilyVenue>, String>((ref, category) async {
+  final service = ref.read(_familyServiceProvider);
+  return service.fetchVenues(category: category);
 });
 
-/// Provider groupé par searchTag pour l'affichage "A venir".
-final familyGroupedVenuesProvider =
-    FutureProvider<Map<String, List<CommerceModel>>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
-  final db = AppDatabase();
-  final repository = CommerceRepository(db: db);
-  final grouped = <String, List<CommerceModel>>{};
+/// Toutes les venues Supabase, groupees par categorie (pour "A venir").
+final familyAllVenuesGroupedProvider =
+    FutureProvider<Map<String, List<FamilyVenue>>>((ref) async {
+  final service = ref.read(_familyServiceProvider);
+  final grouped = <String, List<FamilyVenue>>{};
   for (final sub in FamilyCategoryData.allSubcategories) {
     if (sub.searchTag == 'A venir') continue;
-    grouped[sub.searchTag] =
-        await repository.searchByVille(ville: city, query: sub.searchTag);
+    grouped[sub.searchTag] = await service.fetchVenues(category: sub.searchTag);
   }
   return grouped;
 });

@@ -59,11 +59,10 @@ class AppBottomNavBar extends ConsumerWidget {
                 isActive: false,
                 onTap: () => MairieNotificationsSheet.show(context),
               ),
-              // 3 - Offres
-              _NavBarItem(
+              // 3 - Offres (bouton doré mis en avant)
+              _GoldenNavBarItem(
                 icon: Icons.card_giftcard,
                 label: 'Offres',
-                isActive: false,
                 onTap: () => BannerCarouselDialog.show(context),
               ),
               // 3b - Event (clignotant)
@@ -269,6 +268,60 @@ class _NavBarItem extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _GoldenNavBarItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _GoldenNavBarItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFD700), Color(0xFFDAA520)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFDAA520),
+            ),
+          ),
+        ],
       ),
     );
   }
