@@ -75,6 +75,7 @@ class MatchRowCard extends ConsumerWidget {
     'boxe': 'assets/images/pochette_boxe.png',
     'natation': 'assets/images/pochette_natation.png',
     'course': 'assets/images/pochette_course.png',
+    'golf': 'assets/images/pochette_course.png',
     'fitness': 'assets/images/pochette_fitness.png',
   };
 
@@ -115,14 +116,17 @@ class MatchRowCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-    final isNatation = match.sport.toLowerCase().contains('natation');
+    final sportLower = match.sport.toLowerCase();
+    final isNatation = sportLower.contains('natation');
+    final isCourse = sportLower.contains('course');
+    final isEventSport = isNatation || isCourse;
     // Priorité : logo de la BDD, sinon fallback local
     final ecu1 = match.logoDom.isNotEmpty
         ? match.logoDom
         : isNatation ? 'assets/images/ecu_natation.png' : _teamAffiche(match.equipe1);
     final ecu2 = match.logoExt.isNotEmpty
         ? match.logoExt
-        : isNatation ? 'assets/images/ecu_natation.png' : (match.equipe2.isNotEmpty ? _teamAffiche(match.equipe2) : null);
+        : (match.equipe2.isNotEmpty && !isEventSport ? _teamAffiche(match.equipe2) : null);
 
     return GestureDetector(
       onTap: () => _openDetail(context),

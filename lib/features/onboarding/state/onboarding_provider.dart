@@ -27,3 +27,14 @@ final userPreferencesProvider = FutureProvider<List<String>>((ref) async {
     return [];
   }
 });
+
+/// Ville de l'utilisateur (depuis Supabase).
+final userVilleProvider = FutureProvider<String>((ref) async {
+  try {
+    final profile = await UserProfileService().fetchProfile();
+    if (profile == null) return '';
+    return (profile['ville'] as String?) ?? '';
+  } catch (_) {
+    return '';
+  }
+});

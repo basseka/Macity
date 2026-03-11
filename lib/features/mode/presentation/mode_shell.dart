@@ -11,8 +11,8 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
-import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
+import 'package:pulz_app/core/widgets/account_menu.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -167,8 +167,8 @@ class ModeShell extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
-                    onTap: () => const AppBottomNavBar().showAddEvent(context, ref),
-                    child: _buildAccountIcon(ref),
+                    onTap: () => AccountMenu.show(context, ref),
+                    child: AccountMenu.buildButton(),
                   ),
                 ],
               ),
@@ -203,27 +203,6 @@ class ModeShell extends ConsumerWidget {
     );
   }
 
-  Widget _buildAccountIcon(WidgetRef ref) {
-    final status = ref.watch(proAuthProvider).status;
-    final isApproved = status == ProAuthStatus.approved;
-
-    if (isApproved) {
-      return Container(
-        width: 26,
-        height: 26,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
-          ),
-        ),
-        child: const Icon(Icons.add, color: Colors.white, size: 16),
-      );
-    }
-    return Icon(Icons.person_outline, color: Colors.grey.shade500, size: 24);
-  }
 }
 
 class _ModeBubbleBar extends ConsumerStatefulWidget {

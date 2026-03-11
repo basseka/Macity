@@ -12,6 +12,7 @@ import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
 import 'package:pulz_app/features/home/presentation/today_events_sheet.dart';
+import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 
 class AppBottomNavBar extends ConsumerWidget {
@@ -51,12 +52,12 @@ class AppBottomNavBar extends ConsumerWidget {
                 isActive: currentIndex == 0,
                 onTap: () => context.go('/home'),
               ),
-              // 2 - Ville (loupe)
+              // 2 - Ma Ville (notifications mairie)
               _NavBarItem(
-                icon: Icons.search,
-                label: 'Ville',
+                icon: Icons.account_balance,
+                label: 'Ma Ville',
                 isActive: false,
-                onTap: () => _showCityPicker(context),
+                onTap: () => MairieNotificationsSheet.show(context),
               ),
               // 3 - Offres
               _NavBarItem(

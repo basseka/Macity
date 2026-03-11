@@ -12,6 +12,7 @@ import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/admin/presentation/admin_add_etablissement_sheet.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
+import 'package:pulz_app/core/widgets/account_menu.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -117,20 +118,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(width: 10),
                 GestureDetector(
-                  onTap: () => const AppBottomNavBar().showAddEvent(context, ref),
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
-                      ),
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 12),
-                  ),
+                  onTap: () => AccountMenu.show(context, ref),
+                  child: AccountMenu.buildButton(),
                 ),
               ],
             ),
@@ -193,6 +182,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ),
     );
   }
+
 
   void _openSearch(BuildContext context) {
     showModalBottomSheet(

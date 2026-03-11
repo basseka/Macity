@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,8 +22,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _prenomController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _villeController = TextEditingController();
   final _selectedModes = <String>{};
   bool _submitting = false;
+  String _selectedVille = '';
+  Timer? _villeDebounce;
+  List<_CommuneResult> _villeSuggestions = [];
+  bool _showVilleSuggestions = false;
 
   static const _modeOptions = [
     (mode: AppMode.day, label: 'Concerts & Spectacles', icon: Icons.music_note),
@@ -35,9 +43,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   void dispose() {
+    _villeDebounce?.cancel();
     _prenomController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _villeController.dispose();
     super.dispose();
   }
 
@@ -50,6 +60,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         prenom: _prenomController.text.trim(),
         email: _emailController.text.trim(),
         telephone: _phoneController.text.trim(),
+        ville: _selectedVille,
         preferences: _selectedModes.toList(),
       );
       await markOnboardingDone();
@@ -164,6 +175,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 14),
+
+                  // Ville
+                  _buildVilleField(),
                   const SizedBox(height: 24),
 
                   // Preferences
@@ -310,6 +325,150 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  Widget _buildVilleField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextFormField(
+          controller: _villeController,
+          validator: (v) => _selectedVille.isEmpty ? 'Selectionnez votre ville' : null,
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
+          onChanged: (query) {
+            _villeDebounce?.cancel();
+            if (query.length < 2) {
+              setState(() {
+                _villeSuggestions = [];
+                _showVilleSuggestions = false;
+              });
+              return;
+            }
+            _villeDebounce = Timer(const Duration(milliseconds: 350), () {
+              _searchCommunes(query);
+            });
+          },
+          decoration: InputDecoration(
+            labelText: 'Ville ou village',
+            labelStyle: GoogleFonts.inter(fontSize: 13, color: Colors.white54),
+            prefixIcon: const Icon(Icons.location_city_outlined, color: Colors.white54, size: 20),
+            suffixIcon: _selectedVille.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.white54, size: 18),
+                    onPressed: () {
+                      _villeController.clear();
+                      setState(() {
+                        _selectedVille = '';
+                        _villeSuggestions = [];
+                        _showVilleSuggestions = false;
+                      });
+                    },
+                  )
+                : null,
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.08),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE91E8C)),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+        if (_showVilleSuggestions && _villeSuggestions.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            constraints: const BoxConstraints(maxHeight: 200),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2D1245),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: _villeSuggestions.length,
+              itemBuilder: (context, index) {
+                final commune = _villeSuggestions[index];
+                return InkWell(
+                  onTap: () {
+                    final display = '${commune.nom} (${commune.codePostal})';
+                    _villeController.text = display;
+                    _villeController.selection = TextSelection.collapsed(offset: display.length);
+                    setState(() {
+                      _selectedVille = display;
+                      _showVilleSuggestions = false;
+                      _villeSuggestions = [];
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 16, color: Color(0xFFE91E8C)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            commune.nom,
+                            style: GoogleFonts.inter(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        Text(
+                          commune.codePostal,
+                          style: GoogleFonts.inter(fontSize: 12, color: Colors.white54),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          commune.departement,
+                          style: GoogleFonts.inter(fontSize: 11, color: Colors.white38),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _searchCommunes(String query) async {
+    try {
+      final dio = Dio();
+      final response = await dio.get(
+        'https://geo.api.gouv.fr/communes',
+        queryParameters: {
+          'nom': query,
+          'fields': 'nom,codesPostaux,codeDepartement',
+          'boost': 'population',
+          'limit': '15',
+        },
+      );
+      final results = <_CommuneResult>[];
+      for (final item in response.data as List) {
+        final nom = item['nom'] as String;
+        final codes = (item['codesPostaux'] as List?)?.cast<String>() ?? [];
+        final dep = item['codeDepartement'] as String? ?? '';
+        final cp = codes.isNotEmpty ? codes.first : '';
+        results.add(_CommuneResult(nom: nom, codePostal: cp, departement: dep));
+      }
+      if (mounted) {
+        setState(() {
+          _villeSuggestions = results;
+          _showVilleSuggestions = results.isNotEmpty;
+        });
+      }
+    } catch (_) {
+      // Silently ignore network errors
+    }
+  }
+
   Widget _buildField({
     required TextEditingController controller,
     required String label,
@@ -344,4 +503,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
     );
   }
+}
+
+class _CommuneResult {
+  final String nom;
+  final String codePostal;
+  final String departement;
+
+  const _CommuneResult({
+    required this.nom,
+    required this.codePostal,
+    required this.departement,
+  });
 }

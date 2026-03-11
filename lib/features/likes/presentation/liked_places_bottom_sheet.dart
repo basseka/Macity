@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/likes/data/liked_item_resolver.dart';
@@ -85,46 +86,95 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
               child: ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                 itemCount: items.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final id = items[index];
                   final parsed = _parseLikeId(id);
+                  final image = _resolveImage(id, parsed);
 
-                  return ListTile(
+                  return GestureDetector(
                     onTap: () => _openDetail(context, id),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    leading: CircleAvatar(
-                      backgroundColor: _primaryColor.withValues(alpha: 0.1),
-                      child: Text(
-                        parsed.emoji,
-                        style: const TextStyle(fontSize: 18),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ),
-                    title: Text(
-                      parsed.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: _primaryDarkColor,
-                      ),
-                    ),
-                    subtitle: parsed.category.isNotEmpty
-                        ? Text(
-                            parsed.category,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
+                      child: Row(
+                        children: [
+                          // Photo
+                          ClipRRect(
+                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
+                            child: SizedBox(
+                              width: 72,
+                              height: 72,
+                              child: image.startsWith('http')
+                                  ? CachedNetworkImage(
+                                      imageUrl: image,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) => _assetFallback(parsed),
+                                      errorWidget: (_, __, ___) => _assetFallback(parsed),
+                                    )
+                                  : Image.asset(
+                                      image,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => _assetFallback(parsed),
+                                    ),
                             ),
-                          )
-                        : null,
-                    trailing: IconButton(
-                      icon: const Icon(Icons.favorite, color: Colors.red, size: 20),
-                      onPressed: () {
-                        ref.read(likesProvider.notifier).toggle(id);
-                      },
+                          ),
+                          // Infos
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    parsed.name,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: _primaryDarkColor,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Row(
+                                    children: [
+                                      Text(parsed.emoji, style: const TextStyle(fontSize: 12)),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        parsed.category,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Like + chevron
+                          IconButton(
+                            icon: const Icon(Icons.favorite, color: Colors.red, size: 20),
+                            onPressed: () {
+                              ref.read(likesProvider.notifier).toggle(id);
+                            },
+                          ),
+                          Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+                          const SizedBox(width: 8),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -157,6 +207,55 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
         );
       }
     }
+  }
+
+  static const _commerceImages = <String, String>{
+    'bar': 'assets/images/sc_pub.png',
+    'pub': 'assets/images/sc_pub.png',
+    'club': 'assets/images/sc_discotheque.png',
+    'discotheque': 'assets/images/sc_discotheque.png',
+    'restaurant': 'assets/images/pochette_food.png',
+    'chicha': 'assets/images/sc_chicha.png',
+    'tabac': 'assets/images/sc_tabac_nuit.png',
+  };
+
+  static const _categoryFallback = <String, String>{
+    'Nuit': 'assets/images/sc_pub.png',
+    'Culture': 'assets/images/pochette_culture_art.png',
+    'En Famille': 'assets/images/pochette_enfamille.png',
+    'Food': 'assets/images/pochette_food.png',
+    'Sport': 'assets/images/home_bg_sport.png',
+    'Gaming': 'assets/images/pochette_gaming.png',
+    'Evenement': 'assets/images/pochette_concert.png',
+  };
+
+  String _resolveImage(String id, _ParsedLike parsed) {
+    // Commerce: check if resolver finds it with a photo
+    if (LikedItemResolver.isCommerce(id)) {
+      final commerce = LikedItemResolver.resolveCommerce(id);
+      if (commerce != null && commerce.photo.isNotEmpty) {
+        return commerce.photo;
+      }
+      // Fallback by commerce category
+      if (commerce != null) {
+        final cat = commerce.categorie.toLowerCase();
+        for (final entry in _commerceImages.entries) {
+          if (cat.contains(entry.key)) return entry.value;
+        }
+      }
+    }
+    // Fallback by like category
+    return _categoryFallback[parsed.category] ?? 'assets/images/pochette_concert.png';
+  }
+
+  Widget _assetFallback(_ParsedLike parsed) {
+    final path = _categoryFallback[parsed.category] ?? 'assets/images/pochette_concert.png';
+    return Image.asset(path, fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: _primaryColor.withValues(alpha: 0.1),
+        child: Center(child: Text(parsed.emoji, style: const TextStyle(fontSize: 24))),
+      ),
+    );
   }
 
   _ParsedLike _parseLikeId(String id) {

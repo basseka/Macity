@@ -58,6 +58,7 @@ class UserProfileService {
     required String email,
     required String telephone,
     required String prenom,
+    required String ville,
     required List<String> preferences,
   }) async {
     final userId = await UserIdentityService.getUserId();
@@ -68,12 +69,25 @@ class UserProfileService {
         'email': email,
         'telephone': telephone,
         'prenom': prenom,
+        'ville': ville,
         'preferences': preferences,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       },
       options: Options(
         headers: {'Prefer': 'resolution=merge-duplicates'},
       ),
+    );
+  }
+
+  Future<void> updateVille(String ville) async {
+    final userId = await UserIdentityService.getUserId();
+    await _dio.patch(
+      'user_profiles',
+      queryParameters: {'user_id': 'eq.$userId'},
+      data: {
+        'ville': ville,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      },
     );
   }
 }
