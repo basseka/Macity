@@ -28,6 +28,7 @@ class AccountMenu {
   static void show(BuildContext context, WidgetRef ref) {
     final villeAsync = ref.read(userVilleProvider);
     final ville = villeAsync.valueOrNull ?? '';
+    final prenom = ref.read(userPrenomProvider).valueOrNull ?? '';
 
     showModalBottomSheet(
       context: context,
@@ -80,8 +81,8 @@ class AccountMenu {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Mon compte',
-                  style: GoogleFonts.inter(
+                  prenom.isNotEmpty ? 'Bonjour, $prenom' : 'Mon compte',
+                  style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF1A0A2E),

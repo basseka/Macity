@@ -13,6 +13,7 @@ import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/admin/presentation/admin_add_etablissement_sheet.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
+import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -79,59 +80,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildHeader(bool isLandscape) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 8),
-      child: Row(
+      child: Column(
         children: [
-          GestureDetector(
-            onTap: _handleLogoTap,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                'assets/icon/app_icon.png',
-                width: 14,
-                height: 14,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'MaCity',
-            style: GoogleFonts.inter(
-              fontSize: 8,
-              fontStyle: FontStyle.italic,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => _openSearch(context),
-              child: Container(
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade300, width: 1),
+          // Ligne 1 : logo + salut + compte
+          Row(
+            children: [
+              GestureDetector(
+                onTap: _handleLogoTap,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/icon/app_icon.png',
+                    width: 28,
+                    height: 28,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    Icon(Icons.search, color: Colors.grey.shade400, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Trouve un evenement',
-                      style: GoogleFonts.inter(fontSize: 10, color: Colors.grey.shade400),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Builder(builder: (_) {
+                  final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
+                  return Text(
+                    prenom.isNotEmpty ? 'Salut, $prenom' : 'MaCity',
+                    style: GoogleFonts.poppins(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF4A1259),
                     ),
-                  ],
-                ),
+                  );
+                }),
+              ),
+              GestureDetector(
+                onTap: () => AccountMenu.show(context, ref),
+                child: AccountMenu.buildButton(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Ligne 2 : barre de recherche
+          GestureDetector(
+            onTap: () => _openSearch(context),
+            child: Container(
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade300, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 14),
+                  Icon(Icons.search, color: const Color(0xFF7B2D8E), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Rechercher un evenement, un lieu...',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () => AccountMenu.show(context, ref),
-            child: AccountMenu.buildButton(),
           ),
         ],
       ),
@@ -183,9 +202,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         const SizedBox(width: 6),
         Text(
           title,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.poppins(
             fontSize: 14,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w500,
             color: const Color(0xFF4A1259),
           ),
         ),
@@ -264,9 +283,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   Text(
                     mode.shortLabel,
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       color: Colors.white,
                       shadows: [const Shadow(blurRadius: 6, color: Colors.black54)],
                     ),
@@ -276,7 +295,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     mode.subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.poppins(
                       fontSize: 9,
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withValues(alpha: 0.85),
@@ -304,9 +323,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               'Ville en cours de construction...',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w400,
                 color: Colors.grey.shade600,
               ),
             ),
@@ -314,7 +333,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               '$city arrive bientot !',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade400),
+              style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
             ),
           ],
         ),

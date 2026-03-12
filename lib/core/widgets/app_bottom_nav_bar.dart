@@ -41,7 +41,7 @@ class AppBottomNavBar extends ConsumerWidget {
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomPadding),
         child: SizedBox(
-          height: 56,
+          height: 52,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -59,17 +59,17 @@ class AppBottomNavBar extends ConsumerWidget {
                 isActive: false,
                 onTap: () => MairieNotificationsSheet.show(context),
               ),
-              // 3 - Offres (bouton doré mis en avant)
-              _GoldenNavBarItem(
-                icon: Icons.card_giftcard,
-                label: 'Offres',
-                onTap: () => BannerCarouselDialog.show(context),
-              ),
-              // 3b - Event (clignotant)
+              // 3 - Event (clignotant, centré)
               _PulsingNavBarItem(
                 icon: Icons.event,
                 label: 'Event',
                 onTap: () => TodayEventsSheet.show(context),
+              ),
+              // 4 - Offres (bouton doré)
+              _GoldenNavBarItem(
+                icon: Icons.card_giftcard,
+                label: 'Offres',
+                onTap: () => BannerCarouselDialog.show(context),
               ),
               // 4 - Favoris
               _NavBarItem(
@@ -289,12 +289,14 @@ class _GoldenNavBarItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
+      child: SizedBox(
+        width: 56,
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 30,
+            height: 30,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
@@ -310,7 +312,7 @@ class _GoldenNavBarItem extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
+            child: Icon(icon, color: Colors.white, size: 18),
           ),
           const SizedBox(height: 2),
           Text(
@@ -322,6 +324,7 @@ class _GoldenNavBarItem extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

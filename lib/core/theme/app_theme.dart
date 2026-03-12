@@ -12,7 +12,7 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: const Color(0xFFF8F0FA),
-      textTheme: GoogleFonts.interTextTheme(),
+      textTheme: GoogleFonts.poppinsTextTheme(),
       cardTheme: const CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -43,7 +43,7 @@ class AppTheme {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-      fontFamily: GoogleFonts.inter().fontFamily,
+      fontFamily: GoogleFonts.poppins().fontFamily,
     );
   }
 }
