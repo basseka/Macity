@@ -17,6 +17,8 @@ class VenuesMapView extends StatefulWidget {
   final int? initialZoom;
   /// Afficher le nom au-dessus du marqueur.
   final bool showLabels;
+  /// Couleur de fond du cercle par categorie (hex, ex: '#D97706').
+  final Map<String, String>? categoryColors;
 
   const VenuesMapView({
     super.key,
@@ -27,6 +29,7 @@ class VenuesMapView extends StatefulWidget {
     this.categoryIcons,
     this.initialZoom,
     this.showLabels = false,
+    this.categoryColors,
   });
 
   @override
@@ -192,6 +195,11 @@ class _VenuesMapViewState extends State<VenuesMapView> {
         ? '{ ${icons.entries.map((e) => "'${_escapeJs(e.key)}': '${e.value}'").join(', ')} }'
         : 'null';
 
+    final colors = widget.categoryColors;
+    final categoryColorsJs = colors != null
+        ? '{ ${colors.entries.map((e) => "'${_escapeJs(e.key)}': '${e.value}'").join(', ')} }'
+        : 'null';
+
     final accent = widget.accentColor;
     final title = _escapeHtml(widget.title);
 
@@ -262,6 +270,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     const VENUES = [$venuesJs];
     const ACCENT = '$accent';
     const CAT_ICONS = $categoryIconsJs;
+    const CAT_COLORS = $categoryColorsJs;
     const INIT_ZOOM = ${widget.initialZoom ?? 0};
     const SHOW_LABELS = ${widget.showLabels};
     const map = L.map('map').setView([43.6047, 1.4442], INIT_ZOOM || 14);
@@ -273,16 +282,22 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     VENUES.forEach(v => {
       if (!v.lat || !v.lng) return;
       const emoji = CAT_ICONS ? CAT_ICONS[v.cat] : null;
+      const catColor = CAT_COLORS ? CAT_COLORS[v.cat] : null;
       let iconHtml;
-      if (emoji && SHOW_LABELS) {
+      if (emoji && catColor && SHOW_LABELS) {
+        iconHtml = '<div class="marker-labeled"><div class="marker-label">' + v.nom + '</div><div class="marker-colored" style="background:' + catColor + ';border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px ' + catColor + '80;font-size:18px;">' + emoji + '</div></div>';
+      } else if (emoji && catColor) {
+        iconHtml = '<div class="marker-colored" style="background:' + catColor + ';border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px ' + catColor + '80;font-size:18px;">' + emoji + '</div>';
+      } else if (emoji && SHOW_LABELS) {
         iconHtml = '<div class="marker-labeled"><div class="marker-label">' + v.nom + '</div><div class="marker-emoji">' + emoji + '</div></div>';
       } else if (emoji) {
         iconHtml = '<div class="marker-emoji">' + emoji + '</div>';
       } else {
         iconHtml = '<div class="marker-icon" style="background:' + ACCENT + '"></div>';
       }
-      const iconSz = emoji && SHOW_LABELS ? [70, 46] : emoji ? [32, 32] : [28, 28];
-      const iconAn = emoji && SHOW_LABELS ? [35, 46] : emoji ? [16, 16] : [14, 14];
+      const hasColor = emoji && catColor;
+      const iconSz = emoji && SHOW_LABELS ? [70, 50] : hasColor ? [36, 36] : emoji ? [32, 32] : [28, 28];
+      const iconAn = emoji && SHOW_LABELS ? [35, 50] : hasColor ? [18, 18] : emoji ? [16, 16] : [14, 14];
       const marker = L.marker([v.lat, v.lng], {
         icon: L.divIcon({
           className: '',

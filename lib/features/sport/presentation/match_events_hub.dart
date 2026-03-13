@@ -28,7 +28,7 @@ class MatchEventsHub extends ConsumerWidget {
       children: [
         SportBackButton(
           title: title,
-          label: 'Categories',
+          label: 'Sport',
           onBack: () {
             ref.read(modeSubcategoriesProvider.notifier).select('sport', null);
             ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
@@ -49,7 +49,7 @@ class MatchEventsHub extends ConsumerWidget {
               return DaySubcategoryCard(
                 emoji: '', label: sub.label, image: sub.image,
                 count: countAsync.valueOrNull,
-                blink: sub.label == 'Calendrier',
+                blink: false,
                 gradient: LinearGradient(
                   begin: Alignment.topLeft, end: Alignment.bottomRight,
                   colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],

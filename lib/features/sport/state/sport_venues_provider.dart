@@ -56,12 +56,36 @@ final danceVenuesProvider =
 
   try {
     final service = SportVenuesSupabaseService();
-    return await service.fetchDanceVenues();
+    final venues = await service.fetchDanceVenues();
+    if (venues.isNotEmpty) return venues;
+    return _staticDanceFallback();
   } catch (e) {
     debugPrint('[danceVenuesProvider] Supabase error: $e');
-    return [];
+    return _staticDanceFallback();
   }
 });
+
+List<DanceVenue> _staticDanceFallback() {
+  return const [
+    DanceVenue(id: 'd1', name: 'Encas-Danses Studio', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Classique / Ballet', city: 'Toulouse', horaires: '', websiteUrl: 'https://www.encas-danses.com/', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd2', name: 'Le 144 Dance Avenue', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Hip-Hop / Street / Breakdance', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd3', name: 'Studio9 Toulouse', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Classique / Ballet', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd4', name: 'La Salle', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Classique / Ballet', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd5', name: 'La Maison De La Danse', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Contemporaine', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd6', name: 'Choreographic Centre De Toulouse', description: 'Centre choregraphique', category: 'Centre choregraphique', group: 'Contemporaine', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd7', name: 'Atelier Danse', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Classique / Ballet', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd8', name: 'La Place De La Danse CDCN', description: 'Centre choregraphique', category: 'Centre choregraphique', group: 'Contemporaine', city: 'Toulouse', horaires: '', websiteUrl: 'https://www.laplacedeladanse.com/', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd9', name: 'Ballet School Harold & Alexandra Paturet', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Classique / Ballet', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd10', name: 'Brigade Fantome - Hip Hop & Breakdance', description: 'Crew de danse', category: 'Crew', group: 'Hip-Hop / Street / Breakdance', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd11', name: 'Puntatalon Academy - Danses Latines', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Salsa / Latine', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd12', name: 'Laliana Danse Orientale Et Armenienne', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Orientale / Traditionnelle', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd13', name: 'La Residence Des Arts', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Contemporaine', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd14', name: 'Dance Studio', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Classique / Ballet', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd15', name: 'Art Dance International', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Hip-Hop / Street / Breakdance', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd16', name: 'Three Time Dense', description: 'Ecole de danse', category: 'Ecole de danse', group: 'Contemporaine', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+    DanceVenue(id: 'd17', name: 'Cecile - Cours De Danse & Sport Sante', description: 'Danse bien-etre', category: 'Danse bien-etre', group: 'Bien-etre / Fitness', city: 'Toulouse', horaires: '', image: 'assets/images/pochette_stagedanse.png'),
+  ];
+}
 
 List<CommerceModel> _staticFallback(String sportType) {
   return switch (sportType) {

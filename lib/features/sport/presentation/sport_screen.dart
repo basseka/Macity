@@ -81,7 +81,7 @@ class SportScreen extends ConsumerWidget {
       'Terrain de football' => SportVenuesList(sportType: 'terrain-football', displayTitle: 'Terrain de football', mapTag: _venueMapTags['Terrain de football']),
       'Terrain de basketball' => SportVenuesList(sportType: 'terrain-basketball', displayTitle: 'Terrain de basketball', mapTag: _venueMapTags['Terrain de basketball']),
       'Piscine' => SportVenuesList(sportType: 'piscine', displayTitle: 'Piscine', mapTag: _venueMapTags['Piscine']),
-      'Golf' => SportVenuesList(sportType: 'golf', displayTitle: 'Golf', mapTag: _venueMapTags['Golf'], backLabel: 'Events', backTarget: 'Events'),
+      'Golf' => SportVenuesList(sportType: 'golf', displayTitle: 'Golf', mapTag: _venueMapTags['Golf']),
       // Sous-types raquette
       'Tennis' || 'Padel' || 'Squash' || 'Ping-pong' || 'Badminton' =>
         _buildRaquetteVenues(sub),

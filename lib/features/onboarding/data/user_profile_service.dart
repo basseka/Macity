@@ -90,4 +90,16 @@ class UserProfileService {
       },
     );
   }
+
+  Future<void> updateVillesNotifications(List<String> villes) async {
+    final userId = await UserIdentityService.getUserId();
+    await _dio.patch(
+      'user_profiles',
+      queryParameters: {'user_id': 'eq.$userId'},
+      data: {
+        'villes_notifications': villes,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      },
+    );
+  }
 }

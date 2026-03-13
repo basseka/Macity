@@ -34,7 +34,7 @@ class NightCategoryData {
       name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        NightSubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
+        NightSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
       ],
     ),
     NightCategoryGroup(

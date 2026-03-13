@@ -8,8 +8,8 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/features/gaming/data/gaming_category_data.dart';
+import 'package:pulz_app/features/gaming/presentation/gaming_hub_grid.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -24,7 +24,6 @@ class GamingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(gamingCategoryProvider);
-    final modeTheme = ref.watch(modeThemeProvider);
 
     return Column(
       children: [
@@ -33,49 +32,10 @@ class GamingScreen extends ConsumerWidget {
 
         Expanded(
           child: selectedCategory == null
-              ? _buildSubcategoryGrid(context, ref)
+              ? const GamingHubGrid()
               : _buildVenueList(context, ref, selectedCategory),
         ),
       ],
-    );
-  }
-
-  Widget _buildSubcategoryGrid(BuildContext context, WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
-    final subcategories = GamingCategoryData.allSubcategories;
-
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: subcategories.length,
-      itemBuilder: (context, index) {
-        final sub = subcategories[index];
-        final countAsync =
-            ref.watch(gamingCategoryCountProvider(sub.searchTag));
-        return DaySubcategoryCard(
-          emoji: '',
-          label: sub.label,
-          image: sub.image,
-          count: countAsync.valueOrNull,
-          blink: sub.label == 'A venir',
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              modeTheme.primaryColor,
-              modeTheme.primaryDarkColor,
-            ],
-          ),
-          onTap: () {
-            ref.read(modeSubcategoriesProvider.notifier).select('gaming', sub.searchTag);
-          },
-        );
-      },
     );
   }
 

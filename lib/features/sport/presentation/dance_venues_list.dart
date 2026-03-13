@@ -21,8 +21,8 @@ class DanceVenuesList extends ConsumerWidget {
       children: [
         SportBackButton(
           title: 'Danse',
-          label: 'Complexe',
-          onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', 'Complexe sportif'),
+          label: 'Sport',
+          onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', null),
           leading: Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Material(

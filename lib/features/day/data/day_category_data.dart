@@ -59,7 +59,6 @@ class DayCategoryData {
   ];
 
   static final subcategories = [
-    DaySubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '📅', image: 'assets/images/pochette_calendrier.png'),
     DaySubcategory(label: 'Fête de la musique ${DateTime.now().year}', searchTag: 'Fete musique', emoji: '🎉', image: 'assets/images/pochette_fetedelamusique.png'),
     DaySubcategory(label: 'Concert', searchTag: 'Concert', emoji: '🎵', image: 'assets/images/pochette_concert.png'),
     DaySubcategory(label: 'Spectacle', searchTag: 'Spectacle', emoji: '🎭', image: 'assets/images/pochette_spectacle.png'),

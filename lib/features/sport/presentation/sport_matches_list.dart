@@ -35,25 +35,11 @@ class SportMatchesList extends ConsumerWidget {
     final String backLabel;
     final VoidCallback onBack;
 
-    if (_matchsChildren.contains(subcategory)) {
-      backLabel = 'Matchs';
-      onBack = () {
-        ref.read(modeSubcategoriesProvider.notifier).select('sport', 'Matchs');
-        ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
-      };
-    } else if (_eventsChildren.contains(subcategory)) {
-      backLabel = 'Events';
-      onBack = () {
-        ref.read(modeSubcategoriesProvider.notifier).select('sport', 'Events');
-        ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
-      };
-    } else {
-      backLabel = 'Categories';
-      onBack = () {
-        ref.read(modeSubcategoriesProvider.notifier).select('sport', null);
-        ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
-      };
-    }
+    backLabel = 'Sport';
+    onBack = () {
+      ref.read(modeSubcategoriesProvider.notifier).select('sport', null);
+      ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
+    };
 
     final displayTitle = subcategory == 'Boxe matchs'
         ? 'Gala / Matchs'

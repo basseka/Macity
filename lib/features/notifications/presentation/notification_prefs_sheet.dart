@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/today_events_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
+import 'package:pulz_app/features/notifications/state/mairie_notifications_provider.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 
@@ -43,8 +44,8 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
   final _service = UserProfileService();
   final _selectedModes = <String>{};
   final _villeController = TextEditingController();
-  String _currentVille = '';
-  String _selectedVille = '';
+  final _selectedVilles = <String>[];
+  List<String> _initialVilles = [];
   Timer? _villeDebounce;
   List<_CommuneResult> _villeSuggestions = [];
   bool _showVilleSuggestions = false;
@@ -70,12 +71,14 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
       final profile = await _service.fetchProfile();
       if (profile != null) {
         final prefs = (profile['preferences'] as List?)?.cast<String>() ?? [];
+        final villes = (profile['villes_notifications'] as List?)?.cast<String>() ?? [];
+        // Fallback: si le tableau est vide, utiliser l'ancienne ville
         final ville = (profile['ville'] as String?) ?? '';
+        final resolvedVilles = villes.isNotEmpty ? villes : (ville.isNotEmpty ? [ville] : <String>[]);
         setState(() {
           _selectedModes.addAll(prefs);
-          _currentVille = ville;
-          _selectedVille = ville;
-          _villeController.text = ville;
+          _selectedVilles.addAll(resolvedVilles);
+          _initialVilles = List.of(resolvedVilles);
           _loading = false;
         });
       } else {
@@ -90,9 +93,17 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     setState(() => _saving = true);
     try {
       await _service.updatePreferences(_selectedModes.toList());
-      if (_selectedVille != _currentVille && _selectedVille.isNotEmpty) {
-        await _service.updateVille(_selectedVille);
+      // Sauvegarder les villes de notification si modifiees
+      final villesChanged = !_listEquals(_selectedVilles, _initialVilles);
+      if (villesChanged) {
+        await _service.updateVillesNotifications(_selectedVilles);
+        // Mettre a jour la ville principale avec la premiere ville selectionnee
+        if (_selectedVilles.isNotEmpty) {
+          await _service.updateVille(_selectedVilles.first);
+        }
         ref.invalidate(userVilleProvider);
+        ref.invalidate(userVillesNotificationsProvider);
+        ref.invalidate(mairieNotificationsProvider);
       }
       // Mettre a jour le hub ville
       final currentHub = ref.read(selectedCityProvider);
@@ -161,7 +172,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 ),
               ),
 
-              // --- Ma ville ---
+              // --- Mes mairies ---
               const SizedBox(height: 16),
               const Divider(height: 1),
               const Padding(
@@ -169,7 +180,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Ma ville',
+                    'Mes mairies',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -183,7 +194,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Recevez les notifications de votre Mairie',
+                    'Recevez les notifications de plusieurs mairies',
                     style: TextStyle(fontSize: 11, color: Colors.black45),
                   ),
                 ),
@@ -192,7 +203,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
               if (!_loading)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _buildVilleSelector(),
+                  child: _buildMultiVilleSelector(),
                 ),
 
               // --- Hub ville ---
@@ -409,10 +420,36 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     );
   }
 
-  Widget _buildVilleSelector() {
+  Widget _buildMultiVilleSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Chips des villes selectionnees
+        if (_selectedVilles.isNotEmpty)
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _selectedVilles.map((ville) {
+              final cityName = ville.contains('(')
+                  ? ville.substring(0, ville.indexOf('(')).trim()
+                  : ville;
+              return Chip(
+                label: Text(
+                  cityName,
+                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white),
+                ),
+                backgroundColor: const Color(0xFF1565C0),
+                deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white70),
+                onDeleted: () => setState(() => _selectedVilles.remove(ville)),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+              );
+            }).toList(),
+          ),
+        if (_selectedVilles.isNotEmpty)
+          const SizedBox(height: 8),
+        // Barre de recherche
         TextField(
           controller: _villeController,
           style: GoogleFonts.inter(fontSize: 14),
@@ -430,22 +467,9 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
             });
           },
           decoration: InputDecoration(
-            hintText: 'Rechercher une ville...',
+            hintText: 'Ajouter une ville...',
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-            prefixIcon: Icon(Icons.location_city, size: 20, color: Colors.grey.shade500),
-            suffixIcon: _selectedVille.isNotEmpty
-                ? IconButton(
-                    icon: Icon(Icons.clear, size: 18, color: Colors.grey.shade500),
-                    onPressed: () {
-                      _villeController.clear();
-                      setState(() {
-                        _selectedVille = '';
-                        _villeSuggestions = [];
-                        _showVilleSuggestions = false;
-                      });
-                    },
-                  )
-                : null,
+            prefixIcon: Icon(Icons.add_location_alt, size: 20, color: Colors.grey.shade500),
             filled: true,
             fillColor: Colors.grey.shade100,
             border: OutlineInputBorder(
@@ -454,7 +478,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE91E8C)),
+              borderSide: const BorderSide(color: Color(0xFF1565C0)),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
@@ -477,13 +501,13 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
               itemCount: _villeSuggestions.length,
               itemBuilder: (context, index) {
                 final commune = _villeSuggestions[index];
+                final display = '${commune.nom} (${commune.codePostal})';
+                final alreadyAdded = _selectedVilles.contains(display);
                 return InkWell(
-                  onTap: () {
-                    final display = '${commune.nom} (${commune.codePostal})';
-                    _villeController.text = display;
-                    _villeController.selection = TextSelection.collapsed(offset: display.length);
+                  onTap: alreadyAdded ? null : () {
+                    _villeController.clear();
                     setState(() {
-                      _selectedVille = display;
+                      _selectedVilles.add(display);
                       _showVilleSuggestions = false;
                       _villeSuggestions = [];
                     });
@@ -492,12 +516,20 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on, size: 16, color: Color(0xFFE91E8C)),
+                        Icon(
+                          alreadyAdded ? Icons.check_circle : Icons.location_on,
+                          size: 16,
+                          color: alreadyAdded ? Colors.green : const Color(0xFF1565C0),
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             commune.nom,
-                            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: alreadyAdded ? Colors.grey : Colors.black87,
+                            ),
                           ),
                         ),
                         Text(
@@ -518,6 +550,14 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
           ),
       ],
     );
+  }
+
+  static bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   Future<void> _searchCommunes(String query) async {

@@ -30,7 +30,7 @@ class MarathonHub extends ConsumerWidget {
       children: [
         SportBackButton(
           title: 'Marathon de Toulouse ${DateTime.now().year}',
-          label: 'Categories',
+          label: 'Sport',
           onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', null),
         ),
         const SizedBox(height: 8),

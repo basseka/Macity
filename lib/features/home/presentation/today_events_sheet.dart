@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -29,15 +30,20 @@ class _GridItem {
 }
 
 class TodayEventsSheet extends ConsumerWidget {
-  const TodayEventsSheet({super.key});
+  final List<String>? categoryFilters;
+  final String? headerTitle;
 
-  static void show(BuildContext context) {
+  const TodayEventsSheet({super.key, this.categoryFilters, this.headerTitle});
+
+  static void show(BuildContext context, {List<String>? categoryFilters, String? headerTitle}) {
     showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const TodayEventsSheet(),
+      builder: (_) => TodayEventsSheet(
+        categoryFilters: categoryFilters,
+        headerTitle: headerTitle,
+      ),
     );
   }
 
@@ -84,7 +90,9 @@ class TodayEventsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dataAsync = ref.watch(todayTomorrowEventsProvider);
+    final dataAsync = categoryFilters != null
+        ? ref.watch(allFutureEventsProvider)
+        : ref.watch(todayTomorrowEventsProvider);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.92,
@@ -116,10 +124,10 @@ class TodayEventsSheet extends ConsumerWidget {
                   children: [
                     const Icon(Icons.event, color: Color(0xFFE91E8C), size: 22),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Cette semaine',
-                        style: TextStyle(
+                        headerTitle ?? 'Ce mois',
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -148,7 +156,7 @@ class TodayEventsSheet extends ConsumerWidget {
               Expanded(
                 child: dataAsync.when(
                   data: (data) =>
-                      _buildGrid(context, data, scrollController),
+                      _buildGrid(context, ref, data, scrollController),
                   loading: () => const Center(
                     child:
                         CircularProgressIndicator(color: Color(0xFFE91E8C)),
@@ -167,22 +175,58 @@ class TodayEventsSheet extends ConsumerWidget {
   }
 
   Widget _buildGrid(
-      BuildContext context, TodayEventsData data, ScrollController controller) {
+      BuildContext context, WidgetRef ref, TodayEventsData data, ScrollController controller) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final dateFilter = ref.watch(dateRangeFilterProvider);
 
-    // Grouper par jour sur 7 jours
+    // Filtrer par categories si demande
+    var filteredEvents = categoryFilters != null
+        ? data.events.where((e) {
+            final cat = e.categorie.toLowerCase();
+            final type = e.type.toLowerCase();
+            return categoryFilters!.any((f) {
+              final filter = f.toLowerCase();
+              return cat.contains(filter) || type.contains(filter);
+            });
+          }).toList()
+        : data.events;
+    final filteredMatches = categoryFilters != null ? <SupabaseMatch>[] : data.matches;
+
+    // Appliquer le filtre de date
+    filteredEvents = filteredEvents.where((e) {
+      final d = DateTime.tryParse(e.dateDebut);
+      if (d == null) return false;
+      return dateFilter.isInRange(DateTime(d.year, d.month, d.day));
+    }).toList();
+
+    // Grouper par jour
     final dayGroups = <DateTime, List<_GridItem>>{};
-    for (var i = 0; i < 7; i++) {
-      final day = today.add(Duration(days: i));
+
+    // Collecter toutes les dates presentes
+    final allDates = <DateTime>{};
+    for (final m in filteredMatches) {
+      final d = DateTime.tryParse(m.date);
+      if (d != null && !DateTime(d.year, d.month, d.day).isBefore(today)) {
+        allDates.add(DateTime(d.year, d.month, d.day));
+      }
+    }
+    for (final e in filteredEvents) {
+      final d = DateTime.tryParse(e.dateDebut);
+      if (d != null && !DateTime(d.year, d.month, d.day).isBefore(today)) {
+        allDates.add(DateTime(d.year, d.month, d.day));
+      }
+    }
+
+    for (final day in allDates) {
       final items = <_GridItem>[];
 
-      for (final m in data.matches) {
+      for (final m in filteredMatches) {
         final d = DateTime.tryParse(m.date);
         if (d == null || DateTime(d.year, d.month, d.day) != day) continue;
         items.add(_matchToGridItem(context, m));
       }
-      for (final e in data.events) {
+      for (final e in filteredEvents) {
         final d = DateTime.tryParse(e.dateDebut);
         if (d == null || DateTime(d.year, d.month, d.day) != day) continue;
         items.add(_eventToGridItem(context, e));
@@ -202,7 +246,7 @@ class TodayEventsSheet extends ConsumerWidget {
                 size: 48, color: Colors.white.withValues(alpha: 0.2)),
             const SizedBox(height: 12),
             Text(
-              'Aucun evenement cette semaine',
+              'Aucun evenement ce mois',
               style: TextStyle(
                   fontSize: 14,
                   color: Colors.white.withValues(alpha: 0.4)),
@@ -214,10 +258,14 @@ class TodayEventsSheet extends ConsumerWidget {
 
     final tomorrow = today.add(const Duration(days: 1));
 
+    // Trier par date
+    final sortedEntries = dayGroups.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
     return CustomScrollView(
       controller: controller,
       slivers: [
-        for (final entry in dayGroups.entries) ...[
+        for (final entry in sortedEntries) ...[
           SliverToBoxAdapter(
             child: _SectionHeader(
               label: entry.key == today
@@ -481,4 +529,212 @@ class _SectionHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── Date filter bar (dark theme) ──
+class _DateFilterBar extends StatelessWidget {
+  final WidgetRef ref;
+
+  const _DateFilterBar({required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    final filter = ref.watch(dateRangeFilterProvider);
+
+    final chips = <_DateChip>[
+      const _DateChip('Tout', DateRangePreset.all),
+      const _DateChip('7 jours', DateRangePreset.days7),
+      const _DateChip('30 jours', DateRangePreset.days30),
+      _DateChip(
+        filter.preset == DateRangePreset.custom &&
+                filter.customStart != null &&
+                filter.customEnd != null
+            ? 'Du ${DateFormat('dd/MM').format(filter.customStart!)} au ${DateFormat('dd/MM').format(filter.customEnd!)}'
+            : 'Choisir une date',
+        DateRangePreset.custom,
+      ),
+    ];
+
+    return SizedBox(
+      height: 34,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.only(left: 12, right: 16),
+        child: Row(
+          children: chips.map((chip) {
+            final isSelected = filter.preset == chip.preset;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () {
+                  if (chip.preset == DateRangePreset.custom) {
+                    _showDatePickerDialog(context, ref);
+                  } else {
+                    ref.read(dateRangeFilterProvider.notifier).state =
+                        DateRangeFilter(preset: chip.preset);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? const Color(0xFFE91E8C)
+                        : Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFFE91E8C)
+                          : Colors.white.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (chip.preset == DateRangePreset.custom) ...[
+                        Icon(
+                          Icons.calendar_today,
+                          size: 12,
+                          color: isSelected ? Colors.white : Colors.white60,
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        chip.label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                          color: isSelected ? Colors.white : Colors.white60,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  static void _showDatePickerDialog(BuildContext context, WidgetRef ref) {
+    var startDate = DateTime.now();
+    var endDate = DateTime.now().add(const Duration(days: 7));
+
+    showDialog(
+      context: context,
+      useRootNavigator: true,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E1E2E),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text(
+                'Filtrer par date',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DatePickerTile(
+                    label: 'Du',
+                    date: startDate,
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: dialogCtx,
+                        initialDate: startDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          startDate = picked;
+                          if (endDate.isBefore(startDate)) endDate = startDate;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _DatePickerTile(
+                    label: 'Au',
+                    date: endDate,
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: dialogCtx,
+                        initialDate: endDate.isBefore(startDate) ? startDate : endDate,
+                        firstDate: startDate,
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setState(() => endDate = picked);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('Annuler', style: TextStyle(color: Colors.white54)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    ref.read(dateRangeFilterProvider.notifier).state = DateRangeFilter(
+                      preset: DateRangePreset.custom,
+                      customStart: startDate,
+                      customEnd: endDate,
+                    );
+                    Navigator.pop(dialogCtx);
+                  },
+                  child: const Text('Appliquer', style: TextStyle(color: Color(0xFFE91E8C), fontWeight: FontWeight.w600)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _DatePickerTile extends StatelessWidget {
+  final String label;
+  final DateTime date;
+  final VoidCallback onTap;
+
+  const _DatePickerTile({required this.label, required this.date, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        ),
+        child: Row(
+          children: [
+            Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+            const Spacer(),
+            const Icon(Icons.calendar_today, size: 14, color: Color(0xFFE91E8C)),
+            const SizedBox(width: 8),
+            Text(
+              DateFormat('dd/MM/yyyy').format(date),
+              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DateChip {
+  final String label;
+  final DateRangePreset preset;
+  const _DateChip(this.label, this.preset);
 }

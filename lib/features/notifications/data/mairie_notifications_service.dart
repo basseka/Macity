@@ -46,6 +46,21 @@ class MairieNotificationsService {
     return dio;
   }
 
+  /// Récupère le link_url d'une notification par son id.
+  Future<String?> fetchLinkUrl(int notifId) async {
+    final response = await _dio.get(
+      'mairie_notifications',
+      queryParameters: {
+        'id': 'eq.$notifId',
+        'select': 'link_url',
+        'limit': '1',
+      },
+    );
+    final data = response.data as List;
+    if (data.isEmpty) return null;
+    return (data[0] as Map<String, dynamic>)['link_url'] as String?;
+  }
+
   Future<List<MairieNotification>> fetchForCity(String ville) async {
     // Normalize: "Toulouse (31000)" → "Toulouse"
     final cityName = ville.contains('(')
@@ -56,6 +71,33 @@ class MairieNotificationsService {
       'mairie_notifications',
       queryParameters: {
         'ville': 'ilike.%$cityName%',
+        'select': '*',
+        'order': 'created_at.desc',
+        'limit': '50',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => MairieNotification.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Charge les notifications pour plusieurs villes.
+  Future<List<MairieNotification>> fetchForCities(List<String> villes) async {
+    if (villes.isEmpty) return [];
+
+    // Construire le filtre OR pour chaque ville
+    final patterns = villes.map((v) {
+      final cityName = v.contains('(')
+          ? v.substring(0, v.indexOf('(')).trim()
+          : v.trim();
+      return 'ville.ilike.%$cityName%';
+    }).join(',');
+
+    final response = await _dio.get(
+      'mairie_notifications',
+      queryParameters: {
+        'or': '($patterns)',
         'select': '*',
         'order': 'created_at.desc',
         'limit': '50',

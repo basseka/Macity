@@ -7,6 +7,12 @@ final mairieNotificationsServiceProvider =
 
 final mairieNotificationsProvider =
     FutureProvider<List<MairieNotification>>((ref) async {
+  final villes = await ref.watch(userVillesNotificationsProvider.future);
+  if (villes.isNotEmpty) {
+    final service = ref.read(mairieNotificationsServiceProvider);
+    return service.fetchForCities(villes);
+  }
+  // Fallback sur l'ancienne ville unique
   final ville = await ref.watch(userVilleProvider.future);
   if (ville.isEmpty) return [];
   final service = ref.read(mairieNotificationsServiceProvider);

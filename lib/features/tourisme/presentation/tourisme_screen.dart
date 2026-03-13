@@ -5,10 +5,12 @@ import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
-import 'package:pulz_app/features/tourisme/data/tourisme_category_data.dart';
+import 'package:pulz_app/features/tourisme/presentation/tourisme_hub_grid.dart';
 import 'package:pulz_app/features/tourisme/state/touristic_points_provider.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/venues_map_view.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/tourisme/presentation/metro_tramway_map.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TourismeScreen extends ConsumerWidget {
   const TourismeScreen({super.key});
@@ -30,6 +32,11 @@ class TourismeScreen extends ConsumerWidget {
       return _buildTourismeMap(context, ref, selectedCategory!);
     }
 
+    // Se deplacer → carte Metro & Tramway plein ecran
+    if (selectedCategory == 'Se deplacer') {
+      return _buildMetroTramwayMap(context, ref);
+    }
+
     // Hub "Visiter" → sous-cartes
     if (selectedCategory == 'Visiter') {
       return _buildVisiterHub(context, ref);
@@ -45,45 +52,10 @@ class TourismeScreen extends ConsumerWidget {
         const SizedBox(height: 12),
         Expanded(
           child: selectedCategory == null
-              ? _buildSubcategoryGrid(context, ref)
+              ? const TourismeHubGrid()
               : _buildCategoryContent(context, ref, selectedCategory),
         ),
       ],
-    );
-  }
-
-  Widget _buildSubcategoryGrid(BuildContext context, WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
-    final subcategories = TourismeCategoryData.allSubcategories;
-
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: subcategories.length,
-      itemBuilder: (context, index) {
-        final sub = subcategories[index];
-        return DaySubcategoryCard(
-          emoji: '',
-          label: sub.label,
-          image: sub.image,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              modeTheme.primaryColor,
-              modeTheme.primaryDarkColor,
-            ],
-          ),
-          onTap: () {
-            ref.read(modeSubcategoriesProvider.notifier).select('tourisme', sub.searchTag);
-          },
-        );
-      },
     );
   }
 
@@ -93,10 +65,12 @@ class TourismeScreen extends ConsumerWidget {
     final showLabels = title == 'Plan touristique';
 
     return pointsAsync.when(
-      data: (points) => Stack(
+      data: (points) {
+        final filtered = points.where((p) => p.categorie != 'Lieu culturel').toList();
+        return Stack(
         children: [
           VenuesMapView(
-            venues: points,
+            venues: filtered,
             title: title,
             accentColor: '#0284C7',
             autoLocate: false,
@@ -108,9 +82,11 @@ class TourismeScreen extends ConsumerWidget {
               'Place': '\u{26F2}',
               'Site naturel': '\u{1F333}',
               'Quartier': '\u{1F3D8}\u{FE0F}',
-              'Lieu culturel': '\u{1F3AD}',
               'Metro A': '\u{1F7E5}',
               'Metro B': '\u{1F7E6}',
+            },
+            categoryColors: const {
+              'Monument': '#D97706',
             },
           ),
           // Bouton retour
@@ -155,7 +131,8 @@ class TourismeScreen extends ConsumerWidget {
             ),
           ),
         ],
-      ),
+      );
+      },
       loading: () => const Center(child: LoadingIndicator()),
       error: (_, __) => const Center(
         child: EmptyStateWidget(
@@ -163,6 +140,91 @@ class TourismeScreen extends ConsumerWidget {
           icon: Icons.error_outline,
         ),
       ),
+    );
+  }
+
+  Widget _buildMetroTramwayMap(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    return Stack(
+      children: [
+        const MetroTramwayMap(),
+        // Bouton retour
+        Positioned(
+          top: 12,
+          left: 12,
+          child: GestureDetector(
+            onTap: () {
+              ref.read(modeSubcategoriesProvider.notifier).select('tourisme', null);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Categories',
+                    style: TextStyle(
+                      color: modeTheme.primaryColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Bouton Tisseo
+        Positioned(
+          top: 12,
+          right: 60,
+          child: GestureDetector(
+            onTap: () => launchUrl(Uri.parse('https://www.tisseo.fr/'), mode: LaunchMode.externalApplication),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE3051B),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.directions_bus, size: 14, color: Colors.white),
+                  SizedBox(width: 4),
+                  Text(
+                    'Tisseo.fr',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

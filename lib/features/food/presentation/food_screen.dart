@@ -10,8 +10,8 @@ import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
+import 'package:pulz_app/features/food/presentation/food_hub_grid.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -44,52 +44,10 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         const SizedBox(height: 12),
         Expanded(
           child: selectedCategory == null
-              ? _buildSubcategoryGrid(context, ref)
+              ? const FoodHubGrid()
               : _buildVenueList(context, ref, selectedCategory),
         ),
       ],
-    );
-  }
-
-  Widget _buildSubcategoryGrid(BuildContext context, WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
-    final subcategories = FoodCategoryData.allSubcategories;
-
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: subcategories.length,
-      itemBuilder: (context, index) {
-        final sub = subcategories[index];
-        final countAsync =
-            ref.watch(foodCategoryCountProvider(sub.searchTag));
-        return DaySubcategoryCard(
-          emoji: '',
-          label: sub.label,
-          image: sub.image,
-          count: countAsync.valueOrNull,
-          blink: sub.label == 'A venir',
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              modeTheme.primaryColor,
-              modeTheme.primaryDarkColor,
-            ],
-          ),
-          onTap: () {
-            if (sub.searchTag == 'Restaurant') {
-              ref.invalidate(restaurantsSupabaseProvider);
-            }
-            ref.read(modeSubcategoriesProvider.notifier).select('food', sub.searchTag);
-          },
-        );
-      },
     );
   }
 
@@ -350,7 +308,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                   child: Text(
                     option,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                       color: isSelected ? Colors.white : modeTheme.primaryDarkColor,
                     ),
@@ -380,7 +338,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
             color: isActive ? Colors.white : primaryColor,
           ),

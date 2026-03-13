@@ -1,11 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
+import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/features/day/data/day_category_data.dart';
@@ -79,7 +82,7 @@ class DayScreen extends ConsumerWidget {
           label: sub.label,
           image: sub.image,
           count: isFeteMusique ? null : countAsync.valueOrNull,
-          blink: sub.label == 'A venir',
+          blink: false,
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -89,11 +92,11 @@ class DayScreen extends ConsumerWidget {
             ],
           ),
           onTap: () {
-            ref.read(selectedConcertVenueProvider.notifier).state = null;
-            ref.read(selectedDjsetVenueProvider.notifier).state = null;
-            ref.read(selectedSpectacleVenueProvider.notifier).state = null;
-            ref.read(modeSubcategoriesProvider.notifier).select('day', sub.searchTag);
-          },
+                    ref.read(selectedConcertVenueProvider.notifier).state = null;
+                    ref.read(selectedDjsetVenueProvider.notifier).state = null;
+                    ref.read(selectedSpectacleVenueProvider.notifier).state = null;
+                    ref.read(modeSubcategoriesProvider.notifier).select('day', sub.searchTag);
+                  },
         );
       },
     );
@@ -612,81 +615,109 @@ class DayScreen extends ConsumerWidget {
 
   Widget _buildGroupedEventsList(List<Event> events, ModeTheme modeTheme, WidgetRef ref) {
     final filter = ref.watch(dateRangeFilterProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
 
-    // Group events by date
-    final grouped = <String, List<Event>>{};
+    // Filtrer et grouper par jour
+    final dayGroups = <DateTime, List<Event>>{};
     for (final e in events) {
       final label = _categoryLabel(e);
       if (label == 'Autres') continue;
-      final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
-      final parsed = DateTime.tryParse(dateKey);
-      if (parsed != null && !filter.isInRange(parsed)) continue;
-      grouped.putIfAbsent(dateKey, () => []).add(e);
+      final d = DateTime.tryParse(e.dateDebut);
+      if (d == null) continue;
+      final dateOnly = DateTime(d.year, d.month, d.day);
+      if (!filter.isInRange(dateOnly)) continue;
+      dayGroups.putIfAbsent(dateOnly, () => []).add(e);
     }
 
-    // Sort date keys chronologically
-    final sortedDates = grouped.keys.toList()..sort();
-
-    final items = <Widget>[];
-    for (final dateKey in sortedDates) {
-      final eventsForDate = grouped[dateKey]!;
-      final parsed = DateTime.tryParse(dateKey);
-      final dateLabel = parsed != null
-          ? _capitalize(DateFormatter.formatRelative(parsed))
-          : dateKey;
-
-      // Date section header
-      items.add(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-          child: Row(
-            children: [
-              Text(
-                dateLabel,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: modeTheme.primaryDarkColor,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${eventsForDate.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: modeTheme.primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    if (dayGroups.isEmpty) {
+      return const EmptyStateWidget(
+        message: 'Aucun evenement trouve',
+        icon: Icons.event_busy,
       );
-      // Event cards for this date
-      for (final event in eventsForDate) {
-        items.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-            child: EventRowCard(event: event),
-          ),
-        );
-      }
     }
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
-      children: [
-        const DateRangeChipBar(),
-        const SizedBox(height: 4),
-        ...items,
-      ],
+    final sortedDays = dayGroups.keys.toList()..sort();
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF121212),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: CustomScrollView(
+        slivers: [
+          for (final day in sortedDays) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            day == today
+                                ? "Aujourd'hui"
+                                : day == tomorrow
+                                    ? 'Demain'
+                                    : _capitalize(DateFormat('EEEE', 'fr_FR').format(day)),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('EEEE d MMMM', 'fr_FR').format(day),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: 0.45),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE91E8C).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${dayGroups[day]!.length}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFE91E8C),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 2,
+                  crossAxisSpacing: 2,
+                  childAspectRatio: 0.75,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _EventGridTile(event: dayGroups[day]![index]),
+                  childCount: dayGroups[day]!.length,
+                ),
+              ),
+            ),
+          ],
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
     );
   }
 
@@ -704,5 +735,139 @@ class DayScreen extends ConsumerWidget {
     if (cat.contains('showcase') || type.contains('showcase')) return 'Showcases';
     return 'Autres';
   }
+}
 
+// ── Grid tile style Instagram (identique au TodayEventsSheet) ──
+class _EventGridTile extends StatelessWidget {
+  final Event event;
+
+  const _EventGridTile({required this.event});
+
+  static const _categoryImages = <String, String>{
+    'concert': 'assets/images/pochette_concert.png',
+    'festival': 'assets/images/pochette_festival.png',
+    'opera': 'assets/images/pochette_spectacle.png',
+    'spectacle': 'assets/images/pochette_spectacle.png',
+    'theatre': 'assets/images/pochette_theatre.png',
+    'dj': 'assets/images/pochette_discotheque.png',
+    'showcase': 'assets/images/pochette_concert.png',
+  };
+
+  String _resolvePochette() {
+    final cat = event.categorie.toLowerCase();
+    final type = event.type.toLowerCase();
+    for (final entry in _categoryImages.entries) {
+      if (cat.contains(entry.key) || type.contains(entry.key)) {
+        return entry.value;
+      }
+    }
+    return 'assets/images/pochette_concert.png';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasNet = event.photoPath != null &&
+        event.photoPath!.isNotEmpty &&
+        event.photoPath!.startsWith('http');
+    final pochette = _resolvePochette();
+    final parsed = DateTime.tryParse(event.dateDebut);
+    final dateLabel = parsed != null ? DateFormat('dd/MM', 'fr_FR').format(parsed) : '';
+
+    return GestureDetector(
+      onTap: () => EventFullscreenPopup.show(context, event, pochette),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Image
+          if (hasNet)
+            CachedNetworkImage(
+              imageUrl: event.photoPath!,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Image.asset(pochette, fit: BoxFit.cover),
+              errorWidget: (_, __, ___) => Image.asset(pochette, fit: BoxFit.cover),
+            )
+          else
+            Image.asset(
+              pochette,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade900),
+            ),
+
+          // Gradient
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.8),
+                  ],
+                  stops: const [0.4, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // Badge
+          if (event.isFree)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE91E8C),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'GRATUIT',
+                  style: GoogleFonts.poppins(
+                    fontSize: 7,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+
+          // Titre + date
+          Positioned(
+            left: 4,
+            right: 4,
+            bottom: 4,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.titre,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (dateLabel.isNotEmpty) ...[
+                  const SizedBox(height: 1),
+                  Text(
+                    dateLabel,
+                    style: GoogleFonts.poppins(
+                      fontSize: 8,
+                      color: Colors.white60,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

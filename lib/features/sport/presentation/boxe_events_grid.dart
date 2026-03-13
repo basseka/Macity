@@ -25,9 +25,9 @@ class BoxeEventsGrid extends ConsumerWidget {
       children: [
         SportBackButton(
           title: 'Boxe',
-          label: 'Events',
+          label: 'Sport',
           onBack: () {
-            ref.read(modeSubcategoriesProvider.notifier).select('sport', 'Events');
+            ref.read(modeSubcategoriesProvider.notifier).select('sport', null);
             ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
           },
         ),

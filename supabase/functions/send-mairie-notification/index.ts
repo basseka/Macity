@@ -128,14 +128,15 @@ Deno.serve(async (req) => {
   try {
     const sa: ServiceAccount = JSON.parse(FCM_SA_JSON);
 
-    const { notification_id } = await req.json();
+    const { notification_id, _ping } = await req.json();
+    if (_ping) return json({ version: "v3-rpc", ts: Date.now() });
     if (!notification_id) {
       return json({ error: "notification_id requis" }, 400);
     }
 
     // 1. Recuperer la notification mairie
     const notifRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/mairie_notifications?id=eq.${notification_id}&select=id,ville,title,body`,
+      `${SUPABASE_URL}/rest/v1/mairie_notifications?id=eq.${notification_id}&select=id,ville,title,body,link_url`,
       { headers: sbHeaders },
     );
     if (!notifRes.ok) throw new Error(`fetch notif: ${await notifRes.text()}`);
@@ -148,18 +149,28 @@ Deno.serve(async (req) => {
     const notif = notifs[0];
     const villeNormalized = normalizeVille(notif.ville);
 
-    // 2. Trouver les user_ids dont la ville correspond
-    //    user_profiles.ville stocke "Toulouse (31000)" ou "Toulouse"
-    //    On cherche avec ilike pour matcher les deux formats
+    // 2. Trouver les user_ids via la fonction RPC qui cherche dans
+    //    villes_notifications (match flexible) ET ville (fallback ilike).
     const usersRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/user_profiles?ville=ilike.${encodeURIComponent(villeNormalized + "*")}&select=user_id`,
-      { headers: sbHeaders },
+      `${SUPABASE_URL}/rest/v1/rpc/users_for_mairie_ville`,
+      {
+        method: "POST",
+        headers: sbHeaders,
+        body: JSON.stringify({ ville_search: villeNormalized }),
+      },
     );
-    if (!usersRes.ok) throw new Error(`fetch users: ${await usersRes.text()}`);
+    const usersBody = await usersRes.text();
+    console.log("[DEBUG] RPC status:", usersRes.status, "body:", usersBody, "villeNormalized:", villeNormalized);
+    if (!usersRes.ok) throw new Error(`fetch users (${usersRes.status}): ${usersBody}`);
 
-    const users: { user_id: string }[] = await usersRes.json();
+    const users: { user_id: string }[] = JSON.parse(usersBody);
+    console.log("[DEBUG] users found:", users.length);
     if (!users.length) {
-      return json({ sent: 0, reason: "Aucun habitant inscrit pour cette ville" });
+      return json({
+        sent: 0,
+        reason: "Aucun habitant inscrit pour cette ville",
+        _debug: { villeNormalized, rpcStatus: usersRes.status, usersBody },
+      });
     }
 
     // 3. Recuperer les tokens FCM de ces users
@@ -204,6 +215,7 @@ Deno.serve(async (req) => {
                 type: "mairie_notification",
                 notification_id: String(notif.id),
                 ville: notif.ville,
+                ...(notif.link_url ? { link_url: notif.link_url } : {}),
                 click_action: "FLUTTER_NOTIFICATION_CLICK",
               },
               android: {

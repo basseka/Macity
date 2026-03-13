@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/notifications/data/mairie_notifications_service.dart';
 import 'package:pulz_app/features/notifications/state/mairie_notifications_provider.dart';
-import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart' show userVilleProvider, userVillesNotificationsProvider;
 
 class MairieNotificationsSheet extends ConsumerWidget {
   const MairieNotificationsSheet({super.key});
@@ -25,8 +25,11 @@ class MairieNotificationsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final villeAsync = ref.watch(userVilleProvider);
-    final city = villeAsync.valueOrNull?.replaceAll(RegExp(r'\s*\(.*\)$'), '') ?? '';
+    final villesAsync = ref.watch(userVillesNotificationsProvider);
+    final villes = villesAsync.valueOrNull ?? [];
+    final city = villes.isNotEmpty
+        ? villes.map((v) => v.replaceAll(RegExp(r'\s*\(.*\)$'), '')).join(', ')
+        : ref.watch(userVilleProvider).valueOrNull?.replaceAll(RegExp(r'\s*\(.*\)$'), '') ?? '';
     final notifAsync = ref.watch(mairieNotificationsProvider);
 
     return Container(
@@ -76,7 +79,7 @@ class MairieNotificationsSheet extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Mairie de $city',
+                        villes.length > 1 ? 'Mes Mairies' : 'Mairie de $city',
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -252,7 +255,7 @@ class _NotificationCard extends StatelessWidget {
                             const Icon(Icons.account_balance, size: 12, color: Color(0xFF1565C0)),
                             const SizedBox(width: 4),
                             Text(
-                              'Mairie',
+                              'Mairie de ${notification.ville.replaceAll(RegExp(r'\\s*\\(.*\\)\$'), '')}',
                               style: GoogleFonts.inter(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,

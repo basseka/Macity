@@ -49,3 +49,16 @@ final userVilleProvider = FutureProvider<String>((ref) async {
     return '';
   }
 });
+
+/// Villes pour lesquelles l'utilisateur recoit les notifications mairie.
+final userVillesNotificationsProvider = FutureProvider<List<String>>((ref) async {
+  try {
+    final profile = await UserProfileService().fetchProfile();
+    if (profile == null) return [];
+    final villes = profile['villes_notifications'];
+    if (villes == null) return [];
+    return (villes as List).cast<String>();
+  } catch (_) {
+    return [];
+  }
+});

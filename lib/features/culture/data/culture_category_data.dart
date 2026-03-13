@@ -31,13 +31,6 @@ class CultureCategoryData {
 
   static const groups = [
     CultureCategoryGroup(
-      name: 'A venir',
-      emoji: '\uD83D\uDCC5',
-      subcategories: [
-        CultureSubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
-      ],
-    ),
-    CultureCategoryGroup(
       name: 'Arts vivants',
       emoji: '\uD83C\uDFAD',
       subcategories: [
@@ -50,7 +43,6 @@ class CultureCategoryData {
       subcategories: [
         CultureSubcategory(label: 'Musee', searchTag: 'Musee', emoji: '\uD83C\uDFDB\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_musee.png'),
         CultureSubcategory(label: 'Exposition', searchTag: 'Exposition', emoji: '\uD83D\uDDBC\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_exposition.png'),
-        CultureSubcategory(label: 'Galerie d\'art', searchTag: 'Galerie d\'art', emoji: '\uD83C\uDFA8', group: 'Musees & expositions', image: 'assets/images/pochette_culture_art.png'),
       ],
     ),
     CultureCategoryGroup(
@@ -66,6 +58,13 @@ class CultureCategoryData {
       emoji: '\uD83C\uDFAA',
       subcategories: [
         CultureSubcategory(label: 'Visites guidees', searchTag: 'Visites guidees', emoji: '\uD83C\uDFDB\uFE0F', group: 'Visites & animations', image: 'assets/images/pochette_visite.png'),
+      ],
+    ),
+    CultureCategoryGroup(
+      name: 'Art',
+      emoji: '\uD83C\uDFA8',
+      subcategories: [
+        CultureSubcategory(label: 'Galerie d\'art', searchTag: 'Galerie d\'art', emoji: '\uD83C\uDFA8', group: 'Art', image: 'assets/images/pochette_culture_art.png'),
       ],
     ),
   ];

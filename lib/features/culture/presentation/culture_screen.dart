@@ -9,8 +9,7 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
-import 'package:pulz_app/features/culture/data/culture_category_data.dart';
+import 'package:pulz_app/features/culture/presentation/culture_hub_grid.dart';
 import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
@@ -19,8 +18,6 @@ import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/dance_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/library_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/monument_venue_card.dart';
-import 'package:pulz_app/features/culture/presentation/widgets/museum_venue_card.dart';
-import 'package:pulz_app/features/culture/presentation/widgets/theatre_venue_card.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -36,7 +33,6 @@ class CultureScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(cultureCategoryProvider);
-    final modeTheme = ref.watch(modeThemeProvider);
 
     return Column(
       children: [
@@ -45,49 +41,10 @@ class CultureScreen extends ConsumerWidget {
 
         Expanded(
           child: selectedCategory == null
-              ? _buildSubcategoryGrid(context, ref)
+              ? const CultureHubGrid()
               : _buildVenueList(context, ref, selectedCategory),
         ),
       ],
-    );
-  }
-
-  Widget _buildSubcategoryGrid(BuildContext context, WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
-    final subcategories = CultureCategoryData.allSubcategories;
-
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: subcategories.length,
-      itemBuilder: (context, index) {
-        final sub = subcategories[index];
-        final countAsync =
-            ref.watch(cultureCategoryCountProvider(sub.searchTag));
-        return DaySubcategoryCard(
-          emoji: '',
-          label: sub.label,
-          image: sub.image,
-          count: countAsync.valueOrNull,
-          blink: sub.label == 'A venir',
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              modeTheme.primaryColor,
-              modeTheme.primaryDarkColor,
-            ],
-          ),
-          onTap: () {
-            ref.read(modeSubcategoriesProvider.notifier).select('culture', sub.searchTag);
-          },
-        );
-      },
     );
   }
 
@@ -134,7 +91,7 @@ class CultureScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Categories',
+                        'Culture',
                         style: TextStyle(
                           color: modeTheme.primaryColor,
                           fontWeight: FontWeight.w600,

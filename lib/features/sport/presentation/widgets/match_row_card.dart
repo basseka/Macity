@@ -132,7 +132,8 @@ class MatchRowCard extends ConsumerWidget {
       onTap: () => _openDetail(context),
       child: Card(
         elevation: 2,
-        shadowColor: Colors.black12,
+        shadowColor: Colors.black26,
+        color: const Color(0xFF1E1E2E),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
@@ -178,6 +179,7 @@ class MatchRowCard extends ConsumerWidget {
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
+                        color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 1,
@@ -207,6 +209,7 @@ class MatchRowCard extends ConsumerWidget {
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
+                          color: Colors.white,
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 1,
@@ -221,16 +224,16 @@ class MatchRowCard extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.calendar_today, size: 11, color: Colors.grey.shade600),
+                          Icon(Icons.calendar_today, size: 11, color: Colors.white54),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               match.heure.isNotEmpty
                                   ? '${_formatDate(match.date)} - ${match.heure}'
                                   : _formatDate(match.date),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey.shade600,
+                                color: Colors.white54,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -247,14 +250,14 @@ class MatchRowCard extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.location_on, size: 11, color: Colors.grey.shade600),
+                            Icon(Icons.location_on, size: 11, color: Colors.white38),
                             const SizedBox(width: 3),
                             Flexible(
                               child: Text(
                                 match.lieu,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey.shade600,
+                                  color: Colors.white38,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -287,9 +290,6 @@ class MatchRowCard extends ConsumerWidget {
               ),
 
               const SizedBox(width: 12),
-
-              // ── Ecusson droite (equipe 2) ──
-              _buildEcusson(ecu2),
             ],
           ),
         ),
@@ -332,10 +332,10 @@ class MatchRowCard extends ConsumerWidget {
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Colors.white10,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(Icons.sports, size: 28, color: Colors.grey.shade400),
+      child: const Icon(Icons.sports, size: 28, color: Colors.white24),
     );
   }
 

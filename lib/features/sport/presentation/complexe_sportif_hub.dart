@@ -20,7 +20,7 @@ class ComplexeSportifHub extends ConsumerWidget {
       children: [
         SportBackButton(
           title: 'Complexe',
-          label: 'Categories',
+          label: 'Sport',
           onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', null),
         ),
         const SizedBox(height: 8),

@@ -10,6 +10,7 @@ import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
@@ -45,7 +46,7 @@ class ModeShell extends ConsumerWidget {
     // Tourisme carte interactive → plein écran
     final tourismeSub = ref.watch(modeSubcategoriesProvider)['tourisme'] ?? '';
     final isTourismeMap = ref.watch(currentModeProvider) == 'tourisme' &&
-        tourismeSub == 'Plan touristique';
+        (tourismeSub == 'Plan touristique' || tourismeSub == 'Se deplacer');
 
     final isFullscreen = isFeteMusique || isSportMap || isTourismeMap;
 

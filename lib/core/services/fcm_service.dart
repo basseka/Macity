@@ -208,7 +208,7 @@ class FcmService {
       final deviceId = await _getDeviceId();
 
       await _dio.post(
-        'user_fcm_tokens',
+        'user_fcm_tokens?on_conflict=user_id,device_id',
         data: {
           'user_id': userId,
           'token': token,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/family/domain/models/family_venue.dart';
@@ -56,13 +57,15 @@ class FamilyVenueRowCard extends ConsumerWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: modeTheme.primaryColor.withValues(alpha: 0.08),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(_emoji, style: const TextStyle(fontSize: 24)),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: venue.photo.isNotEmpty
+                            ? Image.network(
+                                venue.photo,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _emojiFallback(modeTheme),
+                              )
+                            : _emojiFallback(modeTheme),
                       ),
                       if (venue.ticketUrl.isNotEmpty)
                         Positioned(
@@ -134,12 +137,24 @@ class FamilyVenueRowCard extends ConsumerWidget {
     );
   }
 
+  Widget _emojiFallback(ModeTheme modeTheme) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: modeTheme.primaryColor.withValues(alpha: 0.08),
+      ),
+      alignment: Alignment.center,
+      child: Text(_emoji, style: const TextStyle(fontSize: 24)),
+    );
+  }
+
   void _openDetail(BuildContext context) {
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
         title: venue.name,
         emoji: _emoji,
+        imageUrl: venue.photo.isNotEmpty ? venue.photo : null,
         infos: [
           if (venue.horaires.isNotEmpty)
             DetailInfoItem(Icons.access_time, venue.horaires),

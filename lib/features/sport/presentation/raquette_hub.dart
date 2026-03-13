@@ -28,8 +28,8 @@ class RaquetteHub extends ConsumerWidget {
       children: [
         SportBackButton(
           title: 'Raquette',
-          label: 'Complexe',
-          onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', 'Complexe sportif'),
+          label: 'Sport',
+          onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', null),
         ),
         const SizedBox(height: 8),
         Expanded(

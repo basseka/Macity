@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/services/fcm_service.dart';
@@ -12,6 +13,7 @@ import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/notifications/data/mairie_notifications_service.dart';
 
 class PulzApp extends ConsumerStatefulWidget {
   const PulzApp({super.key});
@@ -50,6 +52,14 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         'food', 'gaming', 'night', 'tourisme',
       };
 
+      // Notification mairie → fetch link_url depuis Supabase et ouvrir le site
+      if (type == 'mairie_notification') {
+        final notifId = data['notification_id'] as String? ?? '';
+        debugPrint('[App] mairie tap — notification_id: $notifId');
+        _openMairieLink(notifId);
+        return;
+      }
+
       if (universe.isNotEmpty && validUniverses.contains(universe)) {
         // Naviguer vers le mode correspondant
         ref.read(modeSubcategoriesProvider.notifier).select(universe, null);
@@ -65,6 +75,30 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         appRouter.go('/home');
       }
     };
+  }
+
+  /// Récupère le link_url de la notification mairie depuis Supabase et l'ouvre.
+  Future<void> _openMairieLink(String notifId) async {
+    try {
+      if (notifId.isEmpty) {
+        appRouter.go('/home');
+        return;
+      }
+      final service = MairieNotificationsService();
+      final linkUrl = await service.fetchLinkUrl(int.parse(notifId));
+      debugPrint('[App] mairie link_url fetched: "$linkUrl"');
+      if (linkUrl != null && linkUrl.isNotEmpty) {
+        final uri = Uri.tryParse(linkUrl);
+        if (uri != null) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          return;
+        }
+      }
+      appRouter.go('/home');
+    } catch (e) {
+      debugPrint('[App] mairie link fetch error: $e');
+      appRouter.go('/home');
+    }
   }
 
   /// Intercepte le bouton retour Android :

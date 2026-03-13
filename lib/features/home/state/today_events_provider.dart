@@ -15,7 +15,7 @@ class TodayEventsData {
   const TodayEventsData({required this.events, required this.matches});
 }
 
-/// Aggrege tous les evenements et matchs sur 7 jours glissants.
+/// Aggrege tous les evenements et matchs sur 30 jours glissants.
 final todayTomorrowEventsProvider =
     FutureProvider<TodayEventsData>((ref) async {
   final city = ref.watch(selectedCityProvider);
@@ -25,7 +25,7 @@ final todayTomorrowEventsProvider =
 
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final endDate = today.add(const Duration(days: 7));
+  final endDate = today.add(const Duration(days: 30));
   final todayStr = _fmt(today);
   final endDateStr = _fmt(endDate);
 
@@ -76,7 +76,7 @@ final todayTomorrowEventsProvider =
     debugPrint('[weekEvents] error: $e');
   }
 
-  // Filtrer les events pour les 7 prochains jours
+  // Filtrer les events pour les 30 prochains jours
   final allEvents = [...dayEvents, ...cultureEvents, ...nightEvents];
   final filtered = allEvents.where((e) {
     final d = DateTime.tryParse(e.dateDebut);
@@ -101,6 +101,59 @@ final todayTomorrowEventsProvider =
   filtered.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
 
   return TodayEventsData(events: filtered, matches: matches);
+});
+
+/// Tous les events a venir sans limite de jours (pour le sheet filtre par categorie).
+final allFutureEventsProvider =
+    FutureProvider<TodayEventsData>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  if (city.toLowerCase() != 'toulouse') {
+    return const TodayEventsData(events: [], matches: []);
+  }
+
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final todayStr = _fmt(today);
+
+  final scraperService = ScrapedEventsSupabaseService();
+
+  List<Event> dayEvents = [];
+  List<Event> cultureEvents = [];
+  List<Event> nightEvents = [];
+
+  try {
+    final results = await Future.wait([
+      scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr),
+      scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr),
+      scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr),
+    ]);
+    dayEvents = results[0];
+    cultureEvents = results[1];
+    nightEvents = results[2];
+  } catch (e) {
+    debugPrint('[allFutureEvents] error: $e');
+  }
+
+  final allEvents = [...dayEvents, ...cultureEvents, ...nightEvents];
+  final filtered = allEvents.where((e) {
+    final d = DateTime.tryParse(e.dateDebut);
+    if (d == null) return false;
+    return !DateTime(d.year, d.month, d.day).isBefore(today);
+  }).toList();
+
+  // User events
+  final userEvents = ref.watch(userEventsProvider);
+  final userFiltered = userEvents.where((ue) {
+    if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+    final d = DateTime.tryParse(ue.date);
+    if (d == null) return false;
+    return !DateTime(d.year, d.month, d.day).isBefore(today);
+  }).map((ue) => ue.toEvent()).toList();
+
+  filtered.addAll(userFiltered);
+  filtered.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+
+  return TodayEventsData(events: filtered, matches: []);
 });
 
 String _fmt(DateTime d) =>

@@ -21,8 +21,8 @@ class SportVenuesList extends ConsumerWidget {
     required this.sportType,
     required this.displayTitle,
     this.mapTag,
-    this.backLabel = 'Complexe',
-    this.backTarget = 'Complexe sportif',
+    this.backLabel = 'Sport',
+    this.backTarget = '',
   });
 
   @override
@@ -35,7 +35,7 @@ class SportVenuesList extends ConsumerWidget {
         SportBackButton(
           title: displayTitle,
           label: backLabel,
-          onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', backTarget),
+          onBack: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', backTarget.isEmpty ? null : backTarget),
           leading: mapTag != null
               ? Padding(
                   padding: const EdgeInsets.only(right: 8),
