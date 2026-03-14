@@ -17,8 +17,8 @@ class SportVenuesSupabaseService {
     return dio;
   }
 
-  /// Fetch active sport venues, optionally filtered by [sportType].
-  Future<List<CommerceModel>> fetchVenues({String? sportType}) async {
+  /// Fetch active sport venues, optionally filtered by [sportType] and [ville].
+  Future<List<CommerceModel>> fetchVenues({String? sportType, String? ville}) async {
     final params = <String, String>{
       'select': '*',
       'is_active': 'eq.true',
@@ -26,6 +26,9 @@ class SportVenuesSupabaseService {
     };
     if (sportType != null) {
       params['sport_type'] = 'eq.$sportType';
+    }
+    if (ville != null) {
+      params['ville'] = 'ilike.$ville';
     }
 
     final response = await _dio.get(
@@ -37,32 +40,30 @@ class SportVenuesSupabaseService {
   }
 
   /// Fetch dance venues with their groupe field.
-  Future<List<DanceVenue>> fetchDanceVenues() async {
+  Future<List<DanceVenue>> fetchDanceVenues({String? ville}) async {
+    final params = <String, String>{
+      'select': '*',
+      'is_active': 'eq.true',
+      'sport_type': 'eq.danse',
+    };
+    if (ville != null) {
+      params['ville'] = 'ilike.$ville';
+    }
+
     // Essayer avec tri par groupe d'abord, fallback sans si colonne absente
     try {
       final response = await _dio.get(
         'sport_venues',
-        queryParameters: {
-          'select': '*',
-          'is_active': 'eq.true',
-          'sport_type': 'eq.danse',
-          'order': 'groupe.asc,nom.asc',
-        },
+        queryParameters: {...params, 'order': 'groupe.asc,nom.asc'},
       );
       final data = response.data as List;
       return data
           .map((e) => _mapToDanceVenue(e as Map<String, dynamic>))
           .toList();
     } catch (_) {
-      // Colonne groupe peut ne pas exister encore
       final response = await _dio.get(
         'sport_venues',
-        queryParameters: {
-          'select': '*',
-          'is_active': 'eq.true',
-          'sport_type': 'eq.danse',
-          'order': 'nom.asc',
-        },
+        queryParameters: {...params, 'order': 'nom.asc'},
       );
       final data = response.data as List;
       return data
@@ -93,7 +94,7 @@ class SportVenuesSupabaseService {
       description: json['categorie'] as String? ?? '',
       category: json['categorie'] as String? ?? '',
       group: groupe,
-      city: 'Toulouse',
+      city: json['ville'] as String? ?? '',
       horaires: '',
       websiteUrl: (json['site_web'] as String?)?.isNotEmpty == true
           ? json['site_web'] as String

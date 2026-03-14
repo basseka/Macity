@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -10,16 +12,14 @@ import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/culture/presentation/culture_hub_grid.dart';
-import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
-import 'package:pulz_app/features/culture/data/library_venues_data.dart';
-import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
-import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
-import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
+import 'package:pulz_app/features/culture/data/museum_venues_data.dart' show MuseumVenue;
+import 'package:pulz_app/features/culture/data/theatre_venues_data.dart' show TheatreVenue;
 import 'package:pulz_app/features/culture/presentation/widgets/dance_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/library_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/monument_venue_card.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
@@ -116,7 +116,7 @@ class CultureScreen extends ConsumerWidget {
                   : category == 'Danse'
                       ? _buildDanceVenuesList(ref, modeTheme)
                       : category == "Galerie d'art"
-                          ? _buildGalleryVenuesList()
+                          ? _buildGalleryVenuesList(ref, modeTheme)
                           : category == 'Monument historique'
                               ? _buildMonumentVenuesList(ref)
                               : category == 'Bibliotheque'
@@ -134,46 +134,79 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildMuseumVenuesList(WidgetRef ref) {
-    const museums = MuseumVenuesData.venues;
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 0.7,
+    final modeTheme = ref.watch(modeThemeProvider);
+    final venuesAsync = ref.watch(museumVenuesSupabaseProvider);
+
+    return venuesAsync.when(
+      data: (museums) {
+        if (museums.isEmpty) {
+          return const EmptyStateWidget(
+            message: 'Aucun musee trouve',
+            icon: Icons.museum,
+          );
+        }
+        return GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 0.7,
+          ),
+          itemCount: museums.length,
+          itemBuilder: (context, index) =>
+              _MuseumGridCard(museum: museums[index]),
+        );
+      },
+      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+      error: (error, _) => AppErrorWidget(
+        message: 'Erreur lors du chargement des musees',
+        onRetry: () => ref.invalidate(museumVenuesSupabaseProvider),
       ),
-      itemCount: museums.length,
-      itemBuilder: (context, index) =>
-          _MuseumGridCard(museum: museums[index]),
     );
   }
 
   Widget _buildTheatreVenuesList(WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
     final selectedId = ref.watch(selectedTheatreIdProvider);
+    final venuesAsync = ref.watch(theatreVenuesSupabaseProvider);
 
-    if (selectedId != null) {
-      final theatre = TheatreVenuesData.venues.cast<TheatreVenue?>().firstWhere(
-        (t) => t!.id == selectedId,
-        orElse: () => null,
-      );
-      if (theatre != null) {
-        return _TheatreProgrammation(theatre: theatre);
-      }
-    }
+    return venuesAsync.when(
+      data: (theatres) {
+        if (selectedId != null) {
+          final theatre = theatres.cast<TheatreVenue?>().firstWhere(
+            (t) => t!.id == selectedId,
+            orElse: () => null,
+          );
+          if (theatre != null) {
+            return _TheatreProgrammation(theatre: theatre);
+          }
+        }
 
-    const theatres = TheatreVenuesData.venues;
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 0.7,
+        if (theatres.isEmpty) {
+          return const EmptyStateWidget(
+            message: 'Aucun theatre trouve',
+            icon: Icons.theater_comedy,
+          );
+        }
+        return GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 0.7,
+          ),
+          itemCount: theatres.length,
+          itemBuilder: (context, index) =>
+              _TheatreGridCard(theatre: theatres[index]),
+        );
+      },
+      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+      error: (error, _) => AppErrorWidget(
+        message: 'Erreur lors du chargement des theatres',
+        onRetry: () => ref.invalidate(theatreVenuesSupabaseProvider),
       ),
-      itemCount: theatres.length,
-      itemBuilder: (context, index) =>
-          _TheatreGridCard(theatre: theatres[index]),
     );
   }
 
@@ -204,38 +237,88 @@ class CultureScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGalleryVenuesList() {
-    const galleries = GalleryVenuesData.venues;
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: galleries.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: CommerceRowCard(commerce: galleries[index]),
+  Widget _buildGalleryVenuesList(WidgetRef ref, ModeTheme modeTheme) {
+    final venuesAsync = ref.watch(galleryVenuesSupabaseProvider);
+
+    return venuesAsync.when(
+      data: (galleries) {
+        if (galleries.isEmpty) {
+          return const EmptyStateWidget(
+            message: 'Aucune galerie trouvee',
+            icon: Icons.palette,
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: galleries.length,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _GalleryCard(gallery: galleries[index]),
+          ),
+        );
+      },
+      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+      error: (error, _) => AppErrorWidget(
+        message: 'Erreur lors du chargement des galeries',
+        onRetry: () => ref.invalidate(galleryVenuesSupabaseProvider),
       ),
     );
   }
 
   Widget _buildLibraryVenuesList(WidgetRef ref) {
-    const libraries = LibraryVenuesData.venues;
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: libraries.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: LibraryVenueCard(library: libraries[index]),
+    final modeTheme = ref.watch(modeThemeProvider);
+    final venuesAsync = ref.watch(libraryVenuesSupabaseProvider);
+
+    return venuesAsync.when(
+      data: (libraries) {
+        if (libraries.isEmpty) {
+          return const EmptyStateWidget(
+            message: 'Aucune bibliotheque trouvee',
+            icon: Icons.local_library,
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: libraries.length,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: LibraryVenueCard(library: libraries[index]),
+          ),
+        );
+      },
+      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+      error: (error, _) => AppErrorWidget(
+        message: 'Erreur lors du chargement des bibliotheques',
+        onRetry: () => ref.invalidate(libraryVenuesSupabaseProvider),
       ),
     );
   }
 
   Widget _buildMonumentVenuesList(WidgetRef ref) {
-    const monuments = MonumentVenuesData.venues;
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: monuments.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: MonumentVenueCard(monument: monuments[index]),
+    final modeTheme = ref.watch(modeThemeProvider);
+    final venuesAsync = ref.watch(monumentVenuesSupabaseProvider);
+
+    return venuesAsync.when(
+      data: (monuments) {
+        if (monuments.isEmpty) {
+          return const EmptyStateWidget(
+            message: 'Aucun monument trouve',
+            icon: Icons.account_balance,
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: monuments.length,
+          itemBuilder: (context, index) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: MonumentVenueCard(monument: monuments[index]),
+          ),
+        );
+      },
+      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+      error: (error, _) => AppErrorWidget(
+        message: 'Erreur lors du chargement des monuments',
+        onRetry: () => ref.invalidate(monumentVenuesSupabaseProvider),
       ),
     );
   }
@@ -844,5 +927,159 @@ class _MuseumGridCard extends ConsumerWidget {
         shareText: '${museum.name}\n${museum.description}\n${museum.city}\n${museum.websiteUrl}\n\nDecouvre sur MaCity',
       ),
     );
+  }
+}
+
+class _GalleryCard extends ConsumerWidget {
+  final CommerceModel gallery;
+
+  const _GalleryCard({required this.gallery});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    final image = gallery.photo.isNotEmpty
+        ? gallery.photo
+        : 'assets/images/pochette_culture_art.png';
+
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Card(
+        elevation: 2,
+        shadowColor: Colors.black12,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          height: 80,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: Image.asset(
+                      image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 6, 8, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        gallery.nom,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: modeTheme.primaryDarkColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      if (gallery.horaires.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(Icons.access_time, size: 13, color: modeTheme.primaryColor),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                gallery.horaires,
+                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (gallery.siteWeb.isNotEmpty)
+                            GestureDetector(
+                              onTap: () => _openUrl(gallery.siteWeb),
+                              child: Icon(Icons.language, color: modeTheme.primaryColor, size: 16),
+                            ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => _share(),
+                            child: Icon(Icons.share_outlined, color: Colors.grey.shade400, size: 16),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    final image = gallery.photo.isNotEmpty
+        ? gallery.photo
+        : 'assets/images/pochette_culture_art.png';
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: gallery.nom,
+        emoji: '\uD83C\uDFA8',
+        imageAsset: image,
+        infos: [
+          if (gallery.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, gallery.horaires),
+          if (gallery.adresse.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, gallery.adresse),
+          if (gallery.telephone.isNotEmpty)
+            DetailInfoItem(Icons.phone_outlined, gallery.telephone),
+        ],
+        primaryAction: gallery.siteWeb.isNotEmpty
+            ? DetailAction(icon: Icons.language, label: 'Site web', url: gallery.siteWeb)
+            : null,
+        secondaryActions: [
+          if (gallery.lienMaps.isNotEmpty)
+            DetailAction(icon: Icons.map_outlined, label: 'Maps', url: gallery.lienMaps),
+          if (gallery.telephone.isNotEmpty)
+            DetailAction(
+              icon: Icons.phone_outlined,
+              label: 'Appeler',
+              url: 'tel:${gallery.telephone.replaceAll(' ', '')}',
+            ),
+        ],
+        shareText: '${gallery.nom}\n${gallery.adresse}\n${gallery.horaires}\n${gallery.siteWeb}\n\nDecouvre sur MaCity',
+      ),
+    );
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  void _share() {
+    final buffer = StringBuffer();
+    buffer.writeln(gallery.nom);
+    if (gallery.adresse.isNotEmpty) buffer.writeln(gallery.adresse);
+    if (gallery.horaires.isNotEmpty) buffer.writeln(gallery.horaires);
+    if (gallery.siteWeb.isNotEmpty) buffer.writeln(gallery.siteWeb);
+    buffer.writeln('\nDecouvre sur MaCity');
+    Share.share(buffer.toString());
   }
 }

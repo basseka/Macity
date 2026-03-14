@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
-import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
@@ -46,9 +45,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(activeBannersProvider);
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final city = ref.watch(selectedCityProvider);
-    final isToulouse = city.toLowerCase() == 'toulouse';
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -65,11 +61,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildHeader(isLandscape),
 
               // Content
-              Expanded(
-                child: isToulouse
-                    ? _buildModeGrid(isLandscape)
-                    : _buildCityPlaceholder(city),
-              ),
+              Expanded(child: _buildModeGrid(isLandscape)),
             ],
           ),
         ),
@@ -304,36 +296,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCityPlaceholder(String city) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.construction_rounded, size: 56, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'Ville en cours de construction...',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '$city arrive bientot !',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
             ),
           ],
         ),

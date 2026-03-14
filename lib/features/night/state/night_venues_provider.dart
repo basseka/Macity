@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/data/venues_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -31,9 +32,11 @@ String _todayStr() {
 
 /// Evenements scrapes des clubs de nuit (Nine Club + Etoile) depuis la DB.
 final nightScrapedEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
   return ScrapedEventsSupabaseService().fetchEvents(
     rubrique: 'night',
     dateGte: _todayStr(),
+    ville: city,
   );
 });
 
@@ -67,9 +70,17 @@ final nightCategoryCountProvider =
     return uc;
   }
   if (_curatedTags.contains(searchTag)) {
-    return NightBarsData.toulouseBars
-        .where((b) => b.categorie == searchTag)
-        .length + uc;
+    final city = ref.watch(selectedCityProvider);
+    try {
+      final count = await VenuesSupabaseService().countVenues(
+        mode: 'night', ville: city, category: searchTag,
+      );
+      return count + uc;
+    } catch (_) {
+      return NightBarsData.toulouseBars
+          .where((b) => b.categorie == searchTag)
+          .length + uc;
+    }
   }
   final city = ref.watch(selectedCityProvider);
   final db = AppDatabase();
@@ -83,6 +94,13 @@ final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final category = ref.watch(nightCategoryProvider);
 
   if (_curatedTags.contains(category)) {
+    try {
+      final venues = await VenuesSupabaseService().fetchVenues(
+        mode: 'night', ville: city, category: category,
+      );
+      if (venues.isNotEmpty) return venues;
+    } catch (_) {}
+    // Fallback statique
     return NightBarsData.toulouseBars
         .where((b) => b.categorie == category)
         .toList();

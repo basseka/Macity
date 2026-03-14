@@ -28,6 +28,7 @@ class ScrapedEventsSupabaseService {
     String? dateGte,
     List<String>? sourceNotIn,
     String? lieuNom,
+    String? ville,
   }) async {
     final params = <String, String>{
       'select': '*',
@@ -41,6 +42,7 @@ class ScrapedEventsSupabaseService {
     }
     if (dateGte != null) params['date_debut'] = 'gte.$dateGte';
     if (lieuNom != null) params['lieu_nom'] = 'ilike.*$lieuNom*';
+    if (ville != null) params['ville'] = 'ilike.$ville';
 
     final response = await _dio.get(
       'scraped_events',

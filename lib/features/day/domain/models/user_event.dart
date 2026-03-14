@@ -14,6 +14,7 @@ class UserEvent {
   final String? photoPath;
   final String? photoUrl;
   final String ville;
+  final String lienBilletterie;
   final DateTime createdAt;
 
   UserEvent({
@@ -29,6 +30,7 @@ class UserEvent {
     this.photoPath,
     this.photoUrl,
     required this.ville,
+    this.lienBilletterie = '',
     required this.createdAt,
   });
 
@@ -49,6 +51,7 @@ class UserEvent {
       photoPath: photoPath,
       photoUrl: photoUrl ?? this.photoUrl,
       ville: ville,
+      lienBilletterie: lienBilletterie,
       createdAt: createdAt,
     );
   }
@@ -70,6 +73,7 @@ class UserEvent {
         'photoPath': photoPath,
         'photoUrl': photoUrl,
         'ville': ville,
+        'lienBilletterie': lienBilletterie,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -86,6 +90,7 @@ class UserEvent {
         photoPath: json['photoPath'] as String?,
         photoUrl: json['photoUrl'] as String?,
         ville: json['ville'] as String,
+        lienBilletterie: json['lienBilletterie'] as String? ?? '',
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
 
@@ -106,6 +111,7 @@ class UserEvent {
         'lieu_adresse': lieuAdresse,
         'photo_url': photoUrl,
         'ville': ville,
+        'lien_billetterie': lienBilletterie,
         'created_at': createdAt.toIso8601String(),
         if (userId != null) 'user_id': userId,
       };
@@ -123,6 +129,7 @@ class UserEvent {
         lieuAdresse: json['lieu_adresse'] as String? ?? '',
         photoUrl: json['photo_url'] as String?,
         ville: json['ville'] as String? ?? '',
+        lienBilletterie: json['lien_billetterie'] as String? ?? '',
         createdAt: json['created_at'] != null
             ? DateTime.parse(json['created_at'] as String)
             : DateTime.now(),
@@ -164,5 +171,6 @@ class UserEvent {
         categorie: categorie,
         type: categorie,
         photoPath: resolvedPhoto,
+        reservationUrl: lienBilletterie,
       );
 }

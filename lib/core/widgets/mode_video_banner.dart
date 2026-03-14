@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 
@@ -15,20 +16,15 @@ class ModeVideoBanner extends ConsumerStatefulWidget {
 
 class _ModeVideoBannerState extends ConsumerState<ModeVideoBanner> {
   VideoPlayerController? _controller;
-  String? _currentMode;
+  String? _currentKey;
   bool _hasError = false;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  void _initController(String modeName) {
+  void _initController(String modeName, String ville) {
     final mode = AppMode.fromName(modeName);
-    final url = VideoConstants.bannerVideos[mode];
+    final url = VideoConstants.bannerVideoUrl(mode, ville);
     if (url == null) return;
 
-    _currentMode = modeName;
+    _currentKey = '${modeName}_$ville';
     _hasError = false;
 
     final controller = VideoPlayerController.networkUrl(Uri.parse(url));
@@ -62,11 +58,13 @@ class _ModeVideoBannerState extends ConsumerState<ModeVideoBanner> {
   @override
   Widget build(BuildContext context) {
     final modeName = ref.watch(currentModeProvider);
+    final ville = ref.watch(selectedCityProvider);
     final modeTheme = ref.watch(modeThemeProvider);
+    final key = '${modeName}_$ville';
 
-    if (_currentMode != modeName) {
+    if (_currentKey != key) {
       _disposeController();
-      _initController(modeName);
+      _initController(modeName, ville);
     }
 
     final controller = _controller;

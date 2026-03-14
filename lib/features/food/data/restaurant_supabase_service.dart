@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
-import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
+import 'package:pulz_app/features/food/data/restaurant_venues_data.dart' show RestaurantVenue;
 
 /// Fetch les restaurants depuis la table `etablissements` avec theme/quartier/style.
 class RestaurantSupabaseService {
@@ -16,13 +16,14 @@ class RestaurantSupabaseService {
     return dio;
   }
 
-  Future<List<RestaurantVenue>> fetchRestaurants() async {
+  Future<List<RestaurantVenue>> fetchRestaurants({required String ville}) async {
     final response = await _dio.get(
       'etablissements',
       queryParameters: {
         'select': '*',
         'is_active': 'eq.true',
         'rubrique': 'eq.food',
+        'ville': 'ilike.$ville',
         'order': 'nom.asc',
       },
     );

@@ -155,7 +155,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       data: (venues) => _buildRestaurantsFiltered(ref, venues, modeTheme),
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (_, __) => _buildRestaurantsFiltered(
-          ref, RestaurantVenuesData.venues, modeTheme),
+          ref, <RestaurantVenue>[], modeTheme),
     );
   }
 

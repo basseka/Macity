@@ -105,6 +105,14 @@ class _AvenirBanner extends StatelessWidget {
           children: [
             Positioned.fill(child: ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.asset('assets/images/pochette_default.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()))),
             Positioned.fill(child: Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: Colors.black.withValues(alpha: 0.45)))),
+            Positioned(
+              top: 8, right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.85), shape: BoxShape.circle),
+                child: const Icon(Icons.bolt, size: 10, color: Colors.white),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(

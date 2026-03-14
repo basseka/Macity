@@ -9,8 +9,7 @@ import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 /// avec fallback sur les donnees statiques en cas d'erreur.
 final etablissementsProvider =
     FutureProvider.family<List<CommerceModel>, String>((ref, rubrique) async {
-  final city = ref.watch(selectedCityProvider);
-  if (city.toLowerCase() != 'toulouse') return [];
+  ref.watch(selectedCityProvider);
 
   try {
     final service = EtablissementsSupabaseService();

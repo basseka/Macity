@@ -14,6 +14,8 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -106,9 +108,9 @@ class ModeShell extends ConsumerWidget {
           bottom: false,
           child: Column(
           children: [
-            // Logo + search bar
+            // Logo + ville + compte
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 4 : 8),
+              padding: EdgeInsets.only(left: 16, right: 16, top: isLandscape ? 4 : 8),
               child: Row(
                 children: [
                   ClipRRect(
@@ -122,56 +124,75 @@ class ModeShell extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'MaCity',
-                    style: GoogleFonts.inter(
-                      fontSize: 8,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.black,
+                  GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        useRootNavigator: true,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const CityPickerBottomSheet(),
+                      );
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          ref.watch(selectedCityProvider),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Colors.grey.shade600),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          useRootNavigator: true,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => const SearchEventsBottomSheet(),
-                        );
-                      },
-                      child: Container(
-                        height: 34,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade300, width: 1),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 12),
-                            Icon(Icons.search, color: Colors.grey.shade400, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Trouve un evenement',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
+                  const Spacer(),
                   GestureDetector(
                     onTap: () => AccountMenu.show(context, ref),
                     child: AccountMenu.buildButton(),
                   ),
                 ],
+              ),
+            ),
+            // Barre de recherche
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 2 : 6),
+              child: GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const SearchEventsBottomSheet(),
+                  );
+                },
+                child: Container(
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade300, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      Icon(Icons.search, color: Colors.grey.shade400, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Trouve un evenement',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             // Mode bubble bar
@@ -187,6 +208,9 @@ class ModeShell extends ConsumerWidget {
                 ),
               ),
             ),
+
+            // Subcategory breadcrumb
+            _SubcategoryBreadcrumb(isLandscape: isLandscape),
 
             // Video banner (hidden in landscape and for Fete musique map)
             if (!isLandscape &&
@@ -321,6 +345,84 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
             );
           }).toList(),
         ),
+      ),
+    );
+  }
+}
+
+class _SubcategoryBreadcrumb extends ConsumerWidget {
+  final bool isLandscape;
+
+  const _SubcategoryBreadcrumb({required this.isLandscape});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.watch(currentModeProvider);
+    final subcategory = ref.watch(modeSubcategoriesProvider)[currentMode];
+    final modeTheme = ref.watch(modeThemeProvider);
+
+    if (subcategory == null) return const SizedBox.shrink();
+
+    final mode = AppMode.fromName(currentMode);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: isLandscape ? 2 : 6,
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              ref.read(modeSubcategoriesProvider.notifier).select(currentMode, null);
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.arrow_back_ios_rounded,
+                  size: 12,
+                  color: modeTheme.primaryColor,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  mode.shortLabel,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: modeTheme.primaryColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Icon(
+              Icons.chevron_right_rounded,
+              size: 14,
+              color: Colors.grey.shade400,
+            ),
+          ),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: modeTheme.chipColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                subcategory,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: modeTheme.primaryDarkColor,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

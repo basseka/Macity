@@ -83,6 +83,7 @@ class DayScreen extends ConsumerWidget {
           image: sub.image,
           count: isFeteMusique ? null : countAsync.valueOrNull,
           blink: false,
+          isScraped: true,
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

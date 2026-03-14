@@ -16,10 +16,12 @@ final _familyServiceProvider = Provider((_) => FamilyVenuesSupabaseService());
 
 /// Evenements scrapes depuis la base (source balma_events).
 final balmaEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
   return ScrapedEventsSupabaseService().fetchEvents(
     rubrique: 'culture',
     source: 'balma_events',
     dateGte: _todayStr(),
+    ville: city,
   );
 });
 
@@ -51,37 +53,41 @@ final familyCategoryCountProvider =
   final uc = _familyUserCount(userEvents, searchTag);
   final service = ref.read(_familyServiceProvider);
 
+  final city = ref.watch(selectedCityProvider);
+
   if (searchTag == 'A venir') {
     final allTags = FamilyCategoryData.allSubcategories
         .where((s) => s.searchTag != 'A venir')
         .map((s) => s.searchTag);
     var total = 0;
     for (final tag in allTags) {
-      total += await service.countByCategory(tag);
+      total += await service.countByCategory(tag, ville: city);
     }
     final balmaEvents = ref.watch(balmaEventsProvider).valueOrNull ?? [];
     return total + uc + balmaEvents.length;
   }
 
-  final count = await service.countByCategory(searchTag);
+  final count = await service.countByCategory(searchTag, ville: city);
   return count + uc;
 });
 
-/// Venues Supabase pour la categorie selectionnee.
+/// Venues Supabase pour la categorie selectionnee, filtrees par ville.
 final familySupabaseVenuesProvider =
     FutureProvider.family<List<FamilyVenue>, String>((ref, category) async {
+  final city = ref.watch(selectedCityProvider);
   final service = ref.read(_familyServiceProvider);
-  return service.fetchVenues(category: category);
+  return service.fetchVenues(category: category, ville: city);
 });
 
-/// Toutes les venues Supabase, groupees par categorie (pour "A venir").
+/// Toutes les venues Supabase, groupees par categorie (pour "A venir"), filtrees par ville.
 final familyAllVenuesGroupedProvider =
     FutureProvider<Map<String, List<FamilyVenue>>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
   final service = ref.read(_familyServiceProvider);
   final grouped = <String, List<FamilyVenue>>{};
   for (final sub in FamilyCategoryData.allSubcategories) {
     if (sub.searchTag == 'A venir') continue;
-    grouped[sub.searchTag] = await service.fetchVenues(category: sub.searchTag);
+    grouped[sub.searchTag] = await service.fetchVenues(category: sub.searchTag, ville: city);
   }
   return grouped;
 });

@@ -7,13 +7,6 @@ import 'package:pulz_app/features/family/data/park_venues_data.dart';
 import 'package:pulz_app/features/family/data/playground_venues_data.dart';
 import 'package:pulz_app/features/family/data/family_restaurant_venues_data.dart';
 import 'package:pulz_app/features/family/data/animal_park_venues_data.dart';
-import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
-import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
-import 'package:pulz_app/features/culture/data/gallery_venues_data.dart';
-import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
-import 'package:pulz_app/features/culture/data/library_venues_data.dart';
-import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
-
 class LieuSuggestion {
   final String nom;
   final String adresse;
@@ -84,23 +77,11 @@ List<LieuSuggestion> getLieuxForRubrique(String rubrique, {List<LieuSuggestion> 
 
     case 'Culture & Arts':
       lieux = [
-        ...MuseumVenuesData.venues
-            .map((v) => LieuSuggestion(nom: v.name, adresse: '')),
-        ...TheatreVenuesData.venues
-            .map((v) => LieuSuggestion(nom: v.name, adresse: '')),
         ...danceVenues,
-        ...GalleryVenuesData.venues
-            .map((v) => LieuSuggestion(nom: v.nom, adresse: v.adresse)),
-        ...MonumentVenuesData.venues
-            .map((v) => LieuSuggestion(nom: v.name, adresse: v.adresse)),
-        ...LibraryVenuesData.venues
-            .map((v) => LieuSuggestion(nom: v.name, adresse: v.adresse)),
       ];
 
     case 'Food & lifestyle':
-      lieux = RestaurantVenuesData.venues
-          .map((v) => LieuSuggestion(nom: v.name, adresse: v.adresse))
-          .toList();
+      lieux = [];
 
     default:
       return [];

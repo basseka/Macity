@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
 
-class AdminAddEtablissementSheet extends StatefulWidget {
+class AdminAddEtablissementSheet extends ConsumerStatefulWidget {
   const AdminAddEtablissementSheet({super.key});
 
   static void show(BuildContext context) {
@@ -21,12 +23,12 @@ class AdminAddEtablissementSheet extends StatefulWidget {
   }
 
   @override
-  State<AdminAddEtablissementSheet> createState() =>
+  ConsumerState<AdminAddEtablissementSheet> createState() =>
       _AdminAddEtablissementSheetState();
 }
 
 class _AdminAddEtablissementSheetState
-    extends State<AdminAddEtablissementSheet> {
+    extends ConsumerState<AdminAddEtablissementSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nomController = TextEditingController();
   final _adresseController = TextEditingController();
@@ -181,7 +183,35 @@ class _AdminAddEtablissementSheetState
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+
+            // City indicator
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _primaryColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_city, size: 16, color: _primaryColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      ref.watch(selectedCityProvider),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF4A1259),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // Rubrique
             _buildDropdown(
@@ -466,7 +496,7 @@ class _AdminAddEtablissementSheetState
           'rubrique': _rubrique,
           'categorie': _categorie.trim(),
           'adresse': _adresseController.text.trim(),
-          'ville': 'Toulouse',
+          'ville': ref.read(selectedCityProvider),
           'telephone': _telephoneController.text.trim(),
           'horaires': _horairesController.text.trim(),
           'site_web': _siteWebController.text.trim(),

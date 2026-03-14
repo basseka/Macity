@@ -23,9 +23,7 @@ const _tagToSportType = <String, String>{
 
 final sportSubcategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
-  // Seule Toulouse est implémentée pour l'instant
   final city = ref.watch(selectedCityProvider);
-  if (city.toLowerCase() != 'toulouse') return 0;
 
   // Venues statiques/Supabase
   final sportType = _tagToSportType[searchTag];
@@ -71,8 +69,6 @@ final sportSubcategoryCountProvider =
 
 final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  // Seule Toulouse est implémentée pour l'instant
-  if (city.toLowerCase() != 'toulouse') return [];
 
   final rawSubcategory = ref.watch(sportSubcategoryProvider);
   // 'Boxe matchs' → query 'Boxe' in DB

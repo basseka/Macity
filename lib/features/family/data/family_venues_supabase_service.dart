@@ -16,11 +16,12 @@ class FamilyVenuesSupabaseService {
     return dio;
   }
 
-  /// Fetch all active venues, optionally filtered by [category].
-  Future<List<FamilyVenue>> fetchVenues({String? category}) async {
+  /// Fetch all active venues, optionally filtered by [category] and [ville].
+  Future<List<FamilyVenue>> fetchVenues({String? category, required String ville}) async {
     final params = <String, String>{
       'select': '*',
       'is_active': 'eq.true',
+      'ville': 'ilike.$ville',
       'order': 'groupe.asc,name.asc',
     };
     if (category != null) {
@@ -37,14 +38,15 @@ class FamilyVenuesSupabaseService {
         .toList();
   }
 
-  /// Count active venues per category.
-  Future<int> countByCategory(String category) async {
+  /// Count active venues per category, filtered by [ville].
+  Future<int> countByCategory(String category, {required String ville}) async {
     final response = await _dio.get(
       'family_venues',
       queryParameters: {
         'select': 'id',
         'is_active': 'eq.true',
         'category': 'eq.$category',
+        'ville': 'ilike.$ville',
       },
       options: Options(headers: {'Prefer': 'count=exact'}),
     );
@@ -59,8 +61,8 @@ class FamilyVenuesSupabaseService {
   }
 
   /// Get distinct group names for a category (for section headers).
-  Future<List<String>> fetchGroupsForCategory(String category) async {
-    final venues = await fetchVenues(category: category);
+  Future<List<String>> fetchGroupsForCategory(String category, {required String ville}) async {
+    final venues = await fetchVenues(category: category, ville: ville);
     final groups = <String>[];
     for (final v in venues) {
       if (v.groupe.isNotEmpty && !groups.contains(v.groupe)) {

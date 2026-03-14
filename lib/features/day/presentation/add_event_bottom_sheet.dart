@@ -29,6 +29,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
   final _lieuNomController = TextEditingController();
   final _lieuAdresseController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _lienBilletterieController = TextEditingController();
 
   String? _selectedRubrique;
   String? _selectedCategorie;
@@ -76,6 +77,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
     _lieuNomController.dispose();
     _lieuAdresseController.dispose();
     _descriptionController.dispose();
+    _lienBilletterieController.dispose();
     super.dispose();
   }
 
@@ -126,7 +128,35 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+
+              // City indicator
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: _primaryColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.location_city, size: 16, color: _primaryColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        ref.watch(selectedCityProvider),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _primaryDarkColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // ── Rubrique ──
               DropdownButtonFormField<String>(
@@ -249,6 +279,27 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
                   icon: Icons.description_outlined,
                 ),
                 maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+
+              // ── Lien billetterie / site internet ──
+              TextFormField(
+                controller: _lienBilletterieController,
+                decoration: _inputDecoration(
+                  label: 'Lien billetterie ou site internet *',
+                  icon: Icons.link,
+                ),
+                keyboardType: TextInputType.url,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Le lien billetterie ou site internet est requis';
+                  }
+                  final url = v.trim();
+                  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    return 'Le lien doit commencer par http:// ou https://';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
 
@@ -669,6 +720,7 @@ class _AddEventBottomSheetState extends ConsumerState<AddEventBottomSheet> {
         lieuAdresse: _lieuAdresseController.text.trim(),
         photoPath: _photoPath,
         ville: city,
+        lienBilletterie: _lienBilletterieController.text.trim(),
         createdAt: DateTime.now(),
       );
 

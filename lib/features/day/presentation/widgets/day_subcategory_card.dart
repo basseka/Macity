@@ -8,6 +8,7 @@ class DaySubcategoryCard extends StatefulWidget {
   final int? count;
   final VoidCallback? onTap;
   final bool blink;
+  final bool isScraped;
 
   const DaySubcategoryCard({
     super.key,
@@ -18,6 +19,7 @@ class DaySubcategoryCard extends StatefulWidget {
     this.count,
     this.onTap,
     this.blink = false,
+    this.isScraped = false,
   });
 
   @override
@@ -114,6 +116,20 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
                     ),
                   );
                 },
+              ),
+            // Scraper badge
+            if (widget.isScraped)
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.bolt, size: 10, color: Colors.white),
+                ),
               ),
             // Label + count
             Center(

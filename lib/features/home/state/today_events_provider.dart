@@ -19,9 +19,6 @@ class TodayEventsData {
 final todayTomorrowEventsProvider =
     FutureProvider<TodayEventsData>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  if (city.toLowerCase() != 'toulouse') {
-    return const TodayEventsData(events: [], matches: []);
-  }
 
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
@@ -50,13 +47,13 @@ final todayTomorrowEventsProvider =
   try {
     final futures = <Future>[];
     if (wantDay) {
-      futures.add(scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr));
+      futures.add(scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city));
     }
     if (wantCulture) {
-      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr));
+      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city));
     }
     if (wantNight) {
-      futures.add(scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr));
+      futures.add(scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city));
     }
     if (wantSport) {
       futures.add(matchService.fetchMatches(
@@ -107,9 +104,6 @@ final todayTomorrowEventsProvider =
 final allFutureEventsProvider =
     FutureProvider<TodayEventsData>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  if (city.toLowerCase() != 'toulouse') {
-    return const TodayEventsData(events: [], matches: []);
-  }
 
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
@@ -123,9 +117,9 @@ final allFutureEventsProvider =
 
   try {
     final results = await Future.wait([
-      scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr),
-      scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr),
-      scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr),
+      scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city),
+      scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city),
+      scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city),
     ]);
     dayEvents = results[0];
     cultureEvents = results[1];

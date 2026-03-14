@@ -33,19 +33,19 @@ class SportHubGrid extends ConsumerWidget {
             children: [
               _SportCard(
                 label: 'Rugby', image: 'assets/images/shell_sport_rugby.png',
-                gradient: gradient, tag: 'Rugby', ref: ref,
+                gradient: gradient, tag: 'Rugby', ref: ref, isScraped: true,
               ),
               _SportCard(
                 label: 'Football', image: 'assets/images/shell_sport_football.png',
-                gradient: gradient, tag: 'Football', ref: ref,
+                gradient: gradient, tag: 'Football', ref: ref, isScraped: true,
               ),
               _SportCard(
                 label: 'Basketball', image: 'assets/images/shell_sport_basketball.png',
-                gradient: gradient, tag: 'Basketball', ref: ref,
+                gradient: gradient, tag: 'Basketball', ref: ref, isScraped: true,
               ),
               _SportCard(
                 label: 'Handball', image: 'assets/images/shell_sport_handball.png',
-                gradient: gradient, tag: 'Handball', ref: ref,
+                gradient: gradient, tag: 'Handball', ref: ref, isScraped: true,
               ),
             ],
           ),
@@ -63,7 +63,7 @@ class SportHubGrid extends ConsumerWidget {
             children: [
               _SportCard(
                 label: 'Boxe', image: 'assets/images/pochette_boxe.png',
-                gradient: gradient, tag: 'Boxe', ref: ref,
+                gradient: gradient, tag: 'Boxe', ref: ref, isScraped: true,
               ),
               _SportCard(
                 label: 'Course à pied', image: 'assets/images/pochette_courseapied.png',
@@ -176,6 +176,7 @@ class _SportCard extends StatelessWidget {
   final LinearGradient gradient;
   final String tag;
   final WidgetRef ref;
+  final bool isScraped;
 
   const _SportCard({
     required this.label,
@@ -183,6 +184,7 @@ class _SportCard extends StatelessWidget {
     required this.gradient,
     required this.tag,
     required this.ref,
+    this.isScraped = false,
   });
 
   @override
@@ -198,6 +200,7 @@ class _SportCard extends StatelessWidget {
           image: image,
           count: countAsync.valueOrNull,
           gradient: gradient,
+          isScraped: isScraped,
           onTap: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', tag),
         ),
       ),

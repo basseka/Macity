@@ -357,8 +357,9 @@ class TodayEventsSheet extends ConsumerWidget {
 // ── Grid tile (style Instagram) ──
 class _GridTile extends StatelessWidget {
   final _GridItem item;
+  final bool isFeatured;
 
-  const _GridTile({required this.item});
+  const _GridTile({required this.item, this.isFeatured = false});
 
   @override
   Widget build(BuildContext context) {
@@ -440,12 +441,12 @@ class _GridTile extends StatelessWidget {
                 Text(
                   item.title,
                   style: GoogleFonts.inter(
-                    fontSize: 10,
+                    fontSize: isFeatured ? 13 : 10,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                     height: 1.2,
                   ),
-                  maxLines: 2,
+                  maxLines: isFeatured ? 3 : 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (item.subtitle.isNotEmpty) ...[
@@ -453,7 +454,7 @@ class _GridTile extends StatelessWidget {
                   Text(
                     item.subtitle,
                     style: GoogleFonts.inter(
-                      fontSize: 8,
+                      fontSize: isFeatured ? 10 : 8,
                       color: Colors.white60,
                     ),
                     maxLines: 1,
@@ -737,4 +738,108 @@ class _DateChip {
   final String label;
   final DateRangePreset preset;
   const _DateChip(this.label, this.preset);
+}
+
+// ── Explore grid: 1 grande + 4 petites par bloc, alternance gauche/droite ──
+class _ExploreGrid extends StatelessWidget {
+  final List<_GridItem> items;
+  static const _gap = 2.0;
+
+  const _ExploreGrid({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        // Grande = moitié, petites = 2x2 dans l'autre moitié
+        final halfW = (w - _gap) / 2;
+        final smallSize = (halfW - _gap) / 2;
+        final blockHeight = smallSize * 2 + _gap;
+
+        final blocks = <Widget>[];
+        var cursor = 0;
+        var leftSide = true;
+
+        while (cursor < items.length) {
+          final remaining = items.length - cursor;
+
+          if (remaining >= 5) {
+            blocks.add(_buildBlock(
+              items.sublist(cursor, cursor + 5),
+              blockHeight,
+              leftSide,
+            ));
+            if (cursor + 5 < items.length) {
+              blocks.add(const SizedBox(height: _gap));
+            }
+            cursor += 5;
+            leftSide = !leftSide;
+          } else {
+            // Restants : grille simple 2 par ligne
+            for (var i = cursor; i < items.length; i += 2) {
+              final count = (i + 2 <= items.length) ? 2 : 1;
+              blocks.add(SizedBox(
+                height: smallSize,
+                child: Row(
+                  children: [
+                    Expanded(child: _GridTile(item: items[i])),
+                    if (count == 2) ...[
+                      const SizedBox(width: _gap),
+                      Expanded(child: _GridTile(item: items[i + 1])),
+                    ],
+                  ],
+                ),
+              ));
+              if (i + count < items.length) {
+                blocks.add(const SizedBox(height: _gap));
+              }
+            }
+            cursor = items.length;
+          }
+        }
+
+        return Column(mainAxisSize: MainAxisSize.min, children: blocks);
+      },
+    );
+  }
+
+  /// Bloc de 5 items : 1 grande (moitié gauche ou droite) + 4 petites (grille 2×2).
+  Widget _buildBlock(List<_GridItem> blockItems, double height, bool bigOnLeft) {
+    final big = _GridTile(item: blockItems[0], isFeatured: true);
+    final smalls = Column(
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _GridTile(item: blockItems[1])),
+              const SizedBox(width: _gap),
+              Expanded(child: _GridTile(item: blockItems[2])),
+            ],
+          ),
+        ),
+        const SizedBox(height: _gap),
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(child: _GridTile(item: blockItems[3])),
+              const SizedBox(width: _gap),
+              Expanded(child: _GridTile(item: blockItems[4])),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    return SizedBox(
+      height: height,
+      child: Row(
+        children: bigOnLeft
+            ? [Expanded(child: big), const SizedBox(width: _gap), Expanded(child: smalls)]
+            : [Expanded(child: smalls), const SizedBox(width: _gap), Expanded(child: big)],
+      ),
+    );
+  }
 }

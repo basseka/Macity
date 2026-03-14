@@ -38,15 +38,15 @@ class CultureHubGrid extends ConsumerWidget {
             children: [
               _CultureCard(
                 label: 'Theatre', image: 'assets/images/pochette_theatre.png',
-                gradient: gradient, tag: 'Theatre', ref: ref,
+                gradient: gradient, tag: 'Theatre', ref: ref, isScraped: true,
               ),
               _CultureCard(
                 label: 'Exposition', image: 'assets/images/pochette_exposition.png',
-                gradient: gradient, tag: 'Exposition', ref: ref,
+                gradient: gradient, tag: 'Exposition', ref: ref, isScraped: true,
               ),
               _CultureCard(
                 label: 'Visites guidees', image: 'assets/images/pochette_visite.png',
-                gradient: gradient, tag: 'Visites guidees', ref: ref,
+                gradient: gradient, tag: 'Visites guidees', ref: ref, isScraped: true,
               ),
               _CultureCard(
                 label: 'Danse', image: 'assets/images/pochette_animation.png',
@@ -140,6 +140,19 @@ class _AvenirCard extends StatelessWidget {
                 ),
               ),
             ),
+            // Scraper badge
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.85),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.bolt, size: 10, color: Colors.white),
+              ),
+            ),
             // Contenu
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -231,6 +244,7 @@ class _CultureCard extends StatelessWidget {
   final LinearGradient gradient;
   final String tag;
   final WidgetRef ref;
+  final bool isScraped;
 
   const _CultureCard({
     required this.label,
@@ -238,6 +252,7 @@ class _CultureCard extends StatelessWidget {
     required this.gradient,
     required this.tag,
     required this.ref,
+    this.isScraped = false,
   });
 
   @override
@@ -253,6 +268,7 @@ class _CultureCard extends StatelessWidget {
           image: image,
           count: countAsync.valueOrNull,
           gradient: gradient,
+          isScraped: isScraped,
           onTap: () => ref.read(modeSubcategoriesProvider.notifier).select('culture', tag),
         ),
       ),
