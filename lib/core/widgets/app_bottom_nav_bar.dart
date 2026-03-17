@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
-import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
+import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
+import 'package:pulz_app/features/home/presentation/home_screen.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
@@ -15,16 +17,24 @@ import 'package:pulz_app/features/home/presentation/today_events_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 
+/// Index global du bouton nav selectionne.
+/// 0=Accueil, 1=MaVille, 2=Offres, 3=Explorer, 4=Favoris
+final navBarIndexProvider = StateProvider<int>((ref) => 0);
+
 class AppBottomNavBar extends ConsumerWidget {
   final int currentIndex;
 
   const AppBottomNavBar({super.key, this.currentIndex = 0});
+
+  /// Le context du navigateur root (à l'intérieur du Navigator, pas du builder).
+  BuildContext get _navContext => rootNavigatorKey.currentContext!;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Pre-load banners so carousel has data ready.
     ref.watch(activeBannersProvider);
 
+    final _selectedIndex = ref.watch(navBarIndexProvider);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
@@ -49,40 +59,72 @@ class AppBottomNavBar extends ConsumerWidget {
               _NavBarItem(
                 icon: Icons.home_rounded,
                 label: 'Accueil',
-                isActive: currentIndex == 0,
-                onTap: () => context.go('/home'),
+                isActive: _selectedIndex == 0,
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 0;
+                  final nav = rootNavigatorKey.currentState;
+                  if (nav != null) {
+                    while (nav.canPop()) {
+                      nav.pop();
+                    }
+                  }
+                  appRouter.go('/home');
+                },
               ),
-              // 2 - Ma Ville (notifications mairie)
+              // 2 - Ma Ville
               _NavBarItem(
                 icon: Icons.account_balance,
                 label: 'Ma Ville',
-                isActive: false,
-                onTap: () => MairieNotificationsSheet.show(context),
+                isActive: _selectedIndex == 1,
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 1;
+                  _showSheet(const MairieNotificationsSheet());
+                },
               ),
-              // 3 - Event (clignotant, centré)
-              _PulsingNavBarItem(
-                icon: Icons.event,
-                label: 'Event',
-                onTap: () => TodayEventsSheet.show(context),
-              ),
-              // 4 - Offres (bouton doré)
-              _GoldenNavBarItem(
+              // 3 - Offres
+              _NavBarItem(
                 icon: Icons.card_giftcard,
                 label: 'Offres',
-                onTap: () => BannerCarouselDialog.show(context),
+                isActive: _selectedIndex == 2,
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 2;
+                  BannerCarouselDialog.show(_navContext);
+                },
               ),
-              // 4 - Favoris
+              // 4 - Explorer
+              _NavBarItem(
+                icon: Icons.explore,
+                label: 'Explorer',
+                isActive: _selectedIndex == 3,
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 3;
+                  _showSheet(const HomeScreenSheet());
+                },
+              ),
+              // 5 - Favoris
               _NavBarItem(
                 icon: Icons.favorite,
                 label: 'Favoris',
-                isActive: ref.watch(likesProvider).isNotEmpty,
-                activeColor: Colors.red,
-                onTap: () => _showLikedPlaces(context),
+                isActive: _selectedIndex == 4,
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 4;
+                  _showSheet(const LikedPlacesBottomSheet());
+                },
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  void _showSheet(Widget sheet) {
+    showModalBottomSheet(
+      context: _navContext,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => sheet,
     );
   }
 
@@ -103,6 +145,16 @@ class AppBottomNavBar extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const LikedPlacesBottomSheet(),
+    );
+  }
+
+  void _showModeGrid(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const HomeScreenSheet(),
     );
   }
 
@@ -185,12 +237,10 @@ class AppBottomNavBar extends ConsumerWidget {
                 title: const Text('Ajouter un evenement'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const AddEventBottomSheet(),
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreateEventPage(),
+                    ),
                   );
                 },
               ),
@@ -244,9 +294,7 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive
-        ? (activeColor ?? const Color(0xFF7B2D8E))
-        : const Color(0xFF9E9E9E);
+    final color = isActive ? Colors.black : Colors.black54;
 
     return GestureDetector(
       onTap: onTap,
@@ -256,16 +304,17 @@ class _NavBarItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: color, size: 24),
             const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                color: color,
+            if (isActive)
+              Container(
+                width: 5,
+                height: 5,
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -291,40 +340,9 @@ class _GoldenNavBarItem extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 56,
-        child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFFFD700), Color(0xFFDAA520)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFFD700).withValues(alpha: 0.4),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: Colors.white, size: 15),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFDAA520),
-            ),
-          ),
-        ],
-      ),
+        child: Center(
+          child: Icon(icon, color: Colors.black, size: 24),
+        ),
       ),
     );
   }

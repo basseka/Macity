@@ -9,6 +9,7 @@ import 'package:pulz_app/core/services/share_intent_service.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/app_theme.dart';
 import 'package:pulz_app/core/router/app_router.dart';
+import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
@@ -129,24 +130,10 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         }
       }
       if (currentMode == 'day') {
-        if (subcategory == 'Concert') {
-          final venue = container.read(selectedConcertVenueProvider);
-          if (venue != null) {
-            container.read(selectedConcertVenueProvider.notifier).state = null;
-            return true;
-          }
-        } else if (subcategory == 'DJ set') {
-          final venue = container.read(selectedDjsetVenueProvider);
-          if (venue != null) {
-            container.read(selectedDjsetVenueProvider.notifier).state = null;
-            return true;
-          }
-        } else if (subcategory == 'Spectacle') {
-          final venue = container.read(selectedSpectacleVenueProvider);
-          if (venue != null) {
-            container.read(selectedSpectacleVenueProvider.notifier).state = null;
-            return true;
-          }
+        final venue = container.read(selectedConcertVenueProvider);
+        if (venue != null) {
+          container.read(selectedConcertVenueProvider.notifier).state = null;
+          return true;
         }
       }
 
@@ -187,6 +174,58 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         Locale('en'),
       ],
       locale: const Locale('fr', 'FR'),
+      builder: (context, child) {
+        return _AppShell(child: child!);
+      },
+    );
+  }
+}
+
+class _AppShell extends ConsumerStatefulWidget {
+  final Widget child;
+  const _AppShell({required this.child});
+
+  @override
+  ConsumerState<_AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<_AppShell> {
+  String _location = '/home';
+
+  @override
+  void initState() {
+    super.initState();
+    appRouter.routerDelegate.addListener(_onRouteChange);
+  }
+
+  @override
+  void dispose() {
+    appRouter.routerDelegate.removeListener(_onRouteChange);
+    super.dispose();
+  }
+
+  void _onRouteChange() {
+    final newLocation = appRouter.routerDelegate.currentConfiguration.uri.toString();
+    if (newLocation != _location) {
+      setState(() => _location = newLocation);
+      // Synchroniser le provider avec la route
+      if (newLocation == '/home' || newLocation == '/') {
+        ref.read(navBarIndexProvider.notifier).state = 0;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showNavBar = _location.startsWith('/home') || _location.startsWith('/mode');
+
+    if (!showNavBar) return widget.child;
+
+    return Column(
+      children: [
+        Expanded(child: widget.child),
+        const AppBottomNavBar(),
+      ],
     );
   }
 }

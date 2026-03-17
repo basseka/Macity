@@ -15,7 +15,14 @@ import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
+import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
+import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
+import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
+import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
+import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -100,7 +107,6 @@ class ModeShell extends ConsumerWidget {
           )
         : Scaffold(
       backgroundColor: modeTheme.backgroundColor,
-      bottomNavigationBar: const AppBottomNavBar(currentIndex: -1),
       body: SwipeDetector(
         onSwipeLeft: () => ref.read(currentModeProvider.notifier).nextMode(),
         onSwipeRight: () => ref.read(currentModeProvider.notifier).previousMode(),
@@ -140,7 +146,7 @@ class ModeShell extends ConsumerWidget {
                         Text(
                           ref.watch(selectedCityProvider),
                           style: GoogleFonts.inter(
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: Colors.black87,
                           ),
@@ -152,47 +158,71 @@ class ModeShell extends ConsumerWidget {
                   ),
                   const Spacer(),
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () => AccountMenu.show(context, ref),
-                    child: AccountMenu.buildButton(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(11),
+                      child: AccountMenu.buildButton(),
+                    ),
                   ),
                 ],
               ),
             ),
-            // Barre de recherche
+            // Menu hamburger + Barre de recherche
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 2 : 6),
-              child: GestureDetector(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const SearchEventsBottomSheet(),
-                  );
-                },
-                child: Container(
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.shade300, width: 1),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => _showCategoryMenu(context, ref),
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey.shade300, width: 1),
+                      ),
+                      child: Icon(Icons.menu, color: Colors.grey.shade600, size: 18),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 12),
-                      Icon(Icons.search, color: Colors.grey.shade400, size: 16),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Trouve un evenement',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: Colors.grey.shade400,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          useRootNavigator: true,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const SearchEventsBottomSheet(),
+                        );
+                      },
+                      child: Container(
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.grey.shade300, width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            Icon(Icons.search, color: Colors.grey.shade400, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Trouve un evenement',
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             // Mode bubble bar
@@ -228,6 +258,136 @@ class ModeShell extends ConsumerWidget {
     );
   }
 
+  void _showCategoryMenu(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1E1E2E),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Explorer',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Modes
+              ...AppMode.order.map((mode) => ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
+                title: Text(
+                  mode.label,
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ref.read(currentModeProvider.notifier).setMode(mode.name);
+                  context.go(mode.routePath);
+                },
+              )),
+              const Divider(color: Colors.white24, height: 24),
+              // Liens supplementaires
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
+                title: const Text('Mes favoris', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 4;
+                  Navigator.pop(ctx);
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const LikedPlacesBottomSheet(),
+                  );
+                },
+              ),
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.card_giftcard, color: Colors.amber, size: 18),
+                title: const Text('Offres', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 2;
+                  Navigator.pop(ctx);
+                  BannerCarouselDialog.show(context);
+                },
+              ),
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.account_balance, color: Colors.blueAccent, size: 18),
+                title: const Text('Mairies', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 1;
+                  Navigator.pop(ctx);
+                  MairieNotificationsSheet.show(context);
+                },
+              ),
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.tune, color: Colors.tealAccent, size: 18),
+                title: const Text('Preferences', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  NotificationPrefsSheet.show(context);
+                },
+              ),
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.login, color: Colors.orangeAccent, size: 18),
+                title: const Text('Connexion', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const ProLoginSheet(),
+                  );
+                },
+              ),
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.article, color: Colors.purpleAccent, size: 18),
+                title: const Text('Mes publications', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreateEventPage(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ModeBubbleBar extends ConsumerStatefulWidget {
@@ -334,7 +494,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
                     Text(
                       label,
                       style: GoogleFonts.inter(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                         color: isActive ? modeTheme.primaryColor : Colors.grey,
                       ),
@@ -388,7 +548,7 @@ class _SubcategoryBreadcrumb extends ConsumerWidget {
                 Text(
                   mode.shortLabel,
                   style: GoogleFonts.inter(
-                    fontSize: 11,
+                    fontSize: 10,
                     color: modeTheme.primaryColor,
                     fontWeight: FontWeight.w500,
                   ),
@@ -414,7 +574,7 @@ class _SubcategoryBreadcrumb extends ConsumerWidget {
               child: Text(
                 subcategory,
                 style: GoogleFonts.inter(
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: modeTheme.primaryDarkColor,
                 ),
