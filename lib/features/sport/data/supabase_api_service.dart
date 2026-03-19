@@ -27,6 +27,7 @@ class SupabaseApiService {
     try {
       final queryParams = <String, String>{
         'select': '*',
+        'order': 'date.asc,heure.asc',
       };
       if (sport != null) queryParams['sport'] = 'eq.$sport';
       if (ville != null) queryParams['ville'] = 'eq.$ville';

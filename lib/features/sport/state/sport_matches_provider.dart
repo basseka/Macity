@@ -39,31 +39,57 @@ final sportSubcategoryCountProvider =
     final venues = await ref.watch(racketAllVenuesProvider.future);
     return venues.length;
   }
+  // "A venir" = tous les matchs scraped + events communautaires
+  if (searchTag == 'A venir') {
+    final repository = SportRepository();
+    final allMatches = await repository.fetchSupabaseMatches(ville: city);
+    final userEvents = ref.watch(userEventsProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final communityCount = userEvents.where((ue) {
+      if (ue.rubrique != 'sport') return false;
+      if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+      final eventDate = DateTime.tryParse(ue.date);
+      if (eventDate == null) return false;
+      return !eventDate.isBefore(today);
+    }).length;
+    return allMatches.length + communityCount;
+  }
+
   final repository = SportRepository();
   final matches =
       await repository.fetchSupabaseMatches(sport: searchTag, ville: city);
 
-  // Compter aussi les user events sport
+  // Compter aussi les user events sport (+ culture pour Stage de danse)
   final userEvents = ref.watch(userEventsProvider);
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
 
   final userCount = userEvents.where((ue) {
-    if (ue.rubrique != 'sport') return false;
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
-    if (searchTag == 'A venir') {
-      final eventDate = DateTime.tryParse(ue.date);
-      if (eventDate == null) return false;
-      return !eventDate.isBefore(today);
+
+    // Stage de danse : accepter aussi les user events culture/danse/stage
+    if (searchTag.toLowerCase().contains('stage de danse')) {
+      if (ue.rubrique == 'sport' || ue.rubrique == 'culture') {
+        final cat = ue.categorie.toLowerCase();
+        return cat.contains('stage') || cat.contains('danse');
+      }
+      return false;
     }
+
+    if (ue.rubrique != 'sport') return false;
     final cat = ue.categorie.toLowerCase();
     final tag = searchTag.toLowerCase();
     return cat.contains(tag) || tag.contains(cat);
   }).length;
 
-  if (searchTag == 'A venir') {
-    return matches.where(_isKnownSport).length + userCount;
+  // Handball : compter uniquement les matchs a domicile
+  if (searchTag.toLowerCase().contains('hand')) {
+    final homeCount = matches.where((m) {
+      final dom = m.equipe1.toLowerCase();
+      return dom.contains('fenix') || dom.contains('toulouse');
+    }).length;
+    return homeCount + userCount;
   }
+
   return matches.length + userCount;
 });
 
@@ -80,14 +106,24 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
     ville: city,
   );
 
-  // Merge user events sport
+  // Merge user events sport (+ culture pour Stage de danse)
   final userEvents = ref.watch(userEventsProvider);
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
 
   final matchingUserEvents = userEvents.where((ue) {
-    if (ue.rubrique != 'sport') return false;
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+
+    // Stage de danse : accepter aussi les user events culture/danse/stage
+    if (subcategory != null && subcategory.toLowerCase().contains('stage de danse')) {
+      if (ue.rubrique == 'sport' || ue.rubrique == 'culture') {
+        final cat = ue.categorie.toLowerCase();
+        return cat.contains('stage') || cat.contains('danse');
+      }
+      return false;
+    }
+
+    if (ue.rubrique != 'sport') return false;
     if (subcategory == 'A venir') {
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
@@ -99,22 +135,35 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
     return cat.contains(tag) || tag.contains(cat);
   }).map((ue) => ue.toSupabaseMatch()).toList();
 
-  // Pour "A venir", exclure les matchs catégorisés "Autres"
+  // "A venir" = tous les matchs scraped + events communautaires
   if (subcategory == 'A venir') {
-    return [...matchingUserEvents, ...matches.where(_isKnownSport)];
+    final allMatches = await repository.fetchSupabaseMatches(ville: city);
+    final merged = [...matchingUserEvents, ...allMatches];
+    merged.sort(_compareByDateTime);
+    return merged;
   }
-  return [...matchingUserEvents, ...matches];
+
+  // Handball : uniquement les matchs a domicile (Fenix en equipe_dom)
+  if (subcategory != null && subcategory.toLowerCase().contains('hand')) {
+    final homeOnly = matches.where((m) {
+      final dom = m.equipe1.toLowerCase();
+      return dom.contains('fenix') || dom.contains('toulouse');
+    }).toList();
+    final merged = [...matchingUserEvents, ...homeOnly];
+    merged.sort(_compareByDateTime);
+    return merged;
+  }
+
+  final merged = [...matchingUserEvents, ...matches];
+  merged.sort(_compareByDateTime);
+  return merged;
 });
 
-/// Retourne true si le match appartient à un sport connu.
-bool _isKnownSport(SupabaseMatch m) {
-  final s = m.sport.toLowerCase();
-  if (s.contains('rugby')) return true;
-  if (s.contains('football')) return true;
-  if (s.contains('basket')) return true;
-  if (s.contains('handball') || s.contains('hand')) return true;
-  if (s.contains('boxe')) return true;
-  if (s.contains('natation')) return true;
-  if (s.contains('course')) return true;
-  return false;
+int _compareByDateTime(SupabaseMatch a, SupabaseMatch b) {
+  final dateA = DateTime.tryParse(a.date) ?? DateTime(2099);
+  final dateB = DateTime.tryParse(b.date) ?? DateTime(2099);
+  final cmp = dateA.compareTo(dateB);
+  if (cmp != 0) return cmp;
+  return a.heure.compareTo(b.heure);
 }
+

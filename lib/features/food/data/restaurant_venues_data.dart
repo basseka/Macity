@@ -13,6 +13,7 @@ class RestaurantVenue {
   final double longitude;
   final String websiteUrl;
   final String lienMaps;
+  final String photo;
 
   const RestaurantVenue({
     required this.id,
@@ -29,6 +30,7 @@ class RestaurantVenue {
     required this.longitude,
     required this.websiteUrl,
     required this.lienMaps,
+    this.photo = '',
   });
 }
 
@@ -77,6 +79,8 @@ class RestaurantVenuesData {
     'Empalot',
     'Bagatelle',
     'Mirail',
+    'Saint-Michel',
+    'Balma',
   ];
 
   static const styles = [
