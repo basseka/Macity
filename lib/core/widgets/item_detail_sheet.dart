@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 /// Fiche detail generique ouverte au tap sur une carte (commerce, event, match, venue).
@@ -232,7 +233,14 @@ class ItemDetailSheet extends ConsumerWidget {
                                       isLiked ? Colors.red : Colors.white,
                                   onTap: () => ref
                                       .read(likesProvider.notifier)
-                                      .toggle(likeId!),
+                                      .toggle(
+                                        likeId!,
+                                        meta: LikeMetadata(
+                                          title: title,
+                                          imageUrl: imageUrl,
+                                          assetImage: imageAsset,
+                                        ),
+                                      ),
                                 ),
                               // Share
                               if (shareText.isNotEmpty)

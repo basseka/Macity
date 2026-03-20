@@ -47,13 +47,13 @@ final todayTomorrowEventsProvider =
   try {
     final futures = <Future>[];
     if (wantDay) {
-      futures.add(scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city));
+      futures.add(scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city, limit: 100));
     }
     if (wantCulture) {
-      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city));
+      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city, limit: 80));
     }
     if (wantNight) {
-      futures.add(scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city));
+      futures.add(scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city, limit: 80));
     }
     if (wantSport) {
       futures.add(matchService.fetchMatches(
@@ -117,9 +117,9 @@ final allFutureEventsProvider =
 
   try {
     final results = await Future.wait([
-      scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city),
-      scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city),
-      scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city),
+      scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city, limit: 100),
+      scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city, limit: 80),
+      scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city, limit: 80),
     ]);
     dayEvents = results[0];
     cultureEvents = results[1];

@@ -1,6 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:pulz_app/core/widgets/community_event_card.dart';
+import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
@@ -11,6 +14,7 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
+import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:pulz_app/features/culture/presentation/culture_hub_grid.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart' show MuseumVenue;
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart' show TheatreVenue;
@@ -437,80 +441,60 @@ class CultureScreen extends ConsumerWidget {
     final filter = ref.watch(dateRangeFilterProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
 
-    // Group events by date
-    final grouped = <String, List<Event>>{};
+    final grouped = <DateTime, List<Event>>{};
     for (final e in events) {
-      final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
-      final parsed = DateTime.tryParse(dateKey);
-      if (parsed != null && !filter.isInRange(parsed)) continue;
-      // Filtrer les evenements passes
-      final fin = DateTime.tryParse(e.dateFin) ?? parsed;
-      if (fin != null && fin.isBefore(today)) continue;
-      grouped.putIfAbsent(dateKey, () => []).add(e);
+      final d = DateTime.tryParse(e.dateDebut);
+      if (d == null) continue;
+      final dateOnly = DateTime(d.year, d.month, d.day);
+      if (!filter.isInRange(dateOnly)) continue;
+      final fin = DateTime.tryParse(e.dateFin) ?? d;
+      if (fin.isBefore(today)) continue;
+      grouped.putIfAbsent(dateOnly, () => []).add(e);
     }
+    final sortedDays = grouped.keys.toList()..sort();
 
-    final sortedDates = grouped.keys.toList()..sort();
-
-    final items = <Widget>[];
-    for (final dateKey in sortedDates) {
-      final eventsForDate = grouped[dateKey]!;
-      final parsed = DateTime.tryParse(dateKey);
-      final dateLabel = parsed != null
-          ? _capitalize(DateFormatter.formatRelative(parsed))
-          : dateKey;
-
-      items.add(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-          child: Row(
-            children: [
-              Text(
-                dateLabel,
+    return Builder(
+      builder: (context) => ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          const DateRangeChipBar(),
+          const SizedBox(height: 8),
+          for (final day in sortedDays) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 8),
+              child: Text(
+                day == today
+                    ? "Aujourd'hui"
+                    : day == tomorrow
+                        ? 'Demain'
+                        : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: modeTheme.primaryDarkColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${eventsForDate.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: modeTheme.primaryColor,
-                  ),
+            ),
+            for (final event in grouped[day]!) ...[
+              CommunityEventCard(
+                title: event.titre,
+                date: event.dateDebut,
+                time: event.horaires,
+                location: event.lieuNom,
+                photoUrl: event.photoPath,
+                tag: event.categorie.isNotEmpty ? event.categorie : null,
+                isFree: event.isFree,
+                onTap: () => EventFullscreenPopup.show(
+                  context, event, 'assets/images/pochette_culture_art.png',
                 ),
               ),
+              const SizedBox(height: 8),
             ],
-          ),
-        ),
-      );
-      for (final event in eventsForDate) {
-        items.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-            child: EventRowCard(event: event),
-          ),
-        );
-      }
-    }
-
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
-      children: [
-        const DateRangeChipBar(),
-        const SizedBox(height: 4),
-        ...items,
-      ],
+          ],
+        ],
+      ),
     );
   }
 
@@ -553,6 +537,9 @@ class _TheatreGridCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
+    final eventsAsync = ref.watch(theatreVenueEventsProvider(theatre.id));
+    final eventCount = eventsAsync.whenOrNull(data: (e) => e.length) ?? 0;
+
     return GestureDetector(
       onTap: () => ref.read(selectedTheatreIdProvider.notifier).state = theatre.id,
       child: Column(
@@ -564,14 +551,7 @@ class _TheatreGridCard extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(
-                    theatre.image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.theater_comedy, size: 28),
-                    ),
-                  ),
+                  VenueImage(imageUrl: theatre.image, defaultAsset: 'assets/images/pochette_theatre.png'),
                   if (theatre.hasOnlineTicket)
                     Positioned(
                       top: 4,
@@ -585,6 +565,27 @@ class _TheatreGridCard extends ConsumerWidget {
                         child: const Text(
                           'BILLETS',
                           style: TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
+                  // ── Badge compteur events ──
+                  if (eventCount > 0)
+                    Positioned(
+                      bottom: 4,
+                      right: 4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: modeTheme.primaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '$eventCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ),
@@ -630,17 +631,10 @@ class _TheatreProgrammation extends ConsumerWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  theatre.image,
+                child: SizedBox(
                   width: 44,
                   height: 44,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 44,
-                    height: 44,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.theater_comedy, size: 20),
-                  ),
+                  child: VenueImage(imageUrl: theatre.image, defaultAsset: 'assets/images/pochette_theatre.png'),
                 ),
               ),
               const SizedBox(width: 10),
@@ -804,11 +798,7 @@ class _TheatreEventCard extends StatelessWidget {
   }
 
   Widget _fallbackImage() {
-    return Image.asset(
-      theatreImage,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300),
-    );
+    return VenueImage(imageUrl: theatreImage, defaultAsset: 'assets/images/pochette_theatre.png');
   }
 
   void _openDetail(BuildContext context) {
@@ -816,8 +806,7 @@ class _TheatreEventCard extends StatelessWidget {
       context,
       ItemDetailSheet(
         title: event.titre,
-        emoji: '\uD83C\uDFAD',
-        imageAsset: theatreImage,
+        imageAsset: theatreImage.isNotEmpty ? theatreImage : 'assets/images/pochette_theatre.png',
         imageUrl: event.photoPath,
         infos: [
           if (event.descriptifCourt.isNotEmpty)
@@ -861,14 +850,7 @@ class _MuseumGridCard extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(
-                    museum.image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.museum, size: 28),
-                    ),
-                  ),
+                  VenueImage(imageUrl: museum.image, defaultAsset: 'assets/images/pochette_musee.png'),
                   if (museum.hasOnlineTicket)
                     Positioned(
                       top: 4,
@@ -911,7 +893,7 @@ class _MuseumGridCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: museum.name,
-        emoji: '\uD83C\uDFDB\uFE0F',
+        emoji: '',
         imageAsset: museum.image,
         infos: [
           if (museum.description.isNotEmpty)
@@ -963,11 +945,7 @@ class _GalleryCard extends ConsumerWidget {
                   child: SizedBox(
                     width: 64,
                     height: 64,
-                    child: Image.asset(
-                      image,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    ),
+                    child: VenueImage(imageUrl: image),
                   ),
                 ),
               ),
@@ -1038,7 +1016,7 @@ class _GalleryCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: gallery.nom,
-        emoji: '\uD83C\uDFA8',
+        emoji: '',
         imageAsset: image,
         infos: [
           if (gallery.horaires.isNotEmpty)

@@ -120,10 +120,11 @@ class MatchRowCard extends ConsumerWidget {
     final isNatation = sportLower.contains('natation');
     final isCourse = sportLower.contains('course');
     final isEventSport = isNatation || isCourse;
-    // Priorité : logo de la BDD, sinon fallback local
+    // Priorité : logo de la BDD, sinon fallback local, sinon photo user event
     final ecu1 = match.logoDom.isNotEmpty
         ? match.logoDom
-        : isNatation ? 'assets/images/ecu_natation.png' : _teamAffiche(match.equipe1);
+        : isNatation ? 'assets/images/ecu_natation.png'
+        : _teamAffiche(match.equipe1) ?? (match.photoUrl.isNotEmpty ? match.photoUrl : null);
     final ecu2 = match.logoExt.isNotEmpty
         ? match.logoExt
         : (match.equipe2.isNotEmpty && !isEventSport ? _teamAffiche(match.equipe2) : null);

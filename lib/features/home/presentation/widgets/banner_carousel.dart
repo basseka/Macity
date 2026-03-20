@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/home/domain/models/banner.dart' as model;
 import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
+import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
 import 'package:pulz_app/features/offers/state/offers_provider.dart';
 
 /// Item unifie pour le carrousel : soit un banner, soit une offre pro.
@@ -26,7 +29,7 @@ class BannerCarouselDialog extends ConsumerWidget {
       context: context,
       useRootNavigator: true,
       barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (_) => const BannerCarouselDialog(),
     );
   }
@@ -41,7 +44,7 @@ class BannerCarouselDialog extends ConsumerWidget {
 
     if (isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+        child: CircularProgressIndicator(color: Color(0xFFE8A0BF)),
       );
     }
 
@@ -51,7 +54,7 @@ class BannerCarouselDialog extends ConsumerWidget {
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: Text(
             'Impossible de charger les offres',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ),
       );
@@ -71,7 +74,7 @@ class BannerCarouselDialog extends ConsumerWidget {
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: Text(
             'Aucune offre disponible',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ),
       );
@@ -79,7 +82,7 @@ class BannerCarouselDialog extends ConsumerWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Material(
           color: Colors.transparent,
           child: _BannerCarousel(items: items),
@@ -162,34 +165,37 @@ class _BannerCarouselState extends State<_BannerCarousel>
             ),
 
             // CTA button
-            if (currentItem.linkUrl.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                height: 40,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (currentItem.offer != null) {
+                    OfferCodePopup.show(context, currentItem.offer!);
+                  } else if (currentItem.linkUrl.isNotEmpty) {
                     _openLink(currentItem.linkUrl);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD54F),
-                    foregroundColor: const Color(0xFF4E342E),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 4,
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF1A0A2E),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(22),
                   ),
-                  child: const Text(
-                    'J\'en profite !',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'J\'en profite',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
-            ],
+            ),
 
             // Swipe hint + dots
             if (items.length > 1) ...[
@@ -198,18 +204,19 @@ class _BannerCarouselState extends State<_BannerCarousel>
                 animation: _bounceOffset,
                 builder: (context, _) => Transform.translate(
                   offset: Offset(_bounceOffset.value, 0),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.swipe, color: Colors.white, size: 20),
-                      SizedBox(width: 6),
+                      Icon(Icons.swipe, color: Colors.white.withValues(alpha: 0.5), size: 16),
+                      const SizedBox(width: 4),
                       Text(
-                        'Glisse pour voir les offres',
+                        'Glisse pour decouvrir',
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white.withValues(alpha: 0.5),
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ],
@@ -223,14 +230,14 @@ class _BannerCarouselState extends State<_BannerCarousel>
                   final isActive = i == _currentPage;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: isActive ? 24 : 8,
-                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: isActive ? 20 : 6,
+                    height: 6,
                     decoration: BoxDecoration(
                       color: isActive
-                          ? const Color(0xFFFFD54F)
-                          : Colors.white.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(4),
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   );
                 }),
@@ -244,15 +251,17 @@ class _BannerCarouselState extends State<_BannerCarousel>
           top: 8,
           right: 8,
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => Navigator.of(context).pop(),
             child: Container(
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.5),
+                color: Colors.black.withValues(alpha: 0.4),
                 shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 18),
+              child: const Icon(Icons.close, color: Colors.white70, size: 16),
             ),
           ),
         ),
@@ -262,7 +271,7 @@ class _BannerCarouselState extends State<_BannerCarousel>
 
   Widget _buildBannerSlide(model.Banner banner) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(20),
       child: CachedNetworkImage(
         imageUrl: banner.imageUrl,
         width: double.infinity,
@@ -270,12 +279,12 @@ class _BannerCarouselState extends State<_BannerCarousel>
         placeholder: (_, __) => const SizedBox(
           height: 200,
           child: Center(
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            child: CircularProgressIndicator(color: Color(0xFFE8A0BF), strokeWidth: 2),
           ),
         ),
         errorWidget: (_, __, ___) => const SizedBox(
           height: 200,
-          child: Center(child: Icon(Icons.broken_image, color: Colors.white54, size: 48)),
+          child: Center(child: Icon(Icons.broken_image, color: Colors.white30, size: 40)),
         ),
       ),
     );
@@ -285,119 +294,214 @@ class _BannerCarouselState extends State<_BannerCarousel>
     final hasImage = offer.imageUrl.isNotEmpty;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF4A1259), Color(0xFF7B2D8E)],
+            colors: [Color(0xFF1A0A2E), Color(0xFF2D1B4E)],
           ),
-          borderRadius: BorderRadius.circular(24),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            // Image de l'offre (si disponible)
-            if (hasImage)
-              Flexible(
-                child: CachedNetworkImage(
-                  imageUrl: offer.imageUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => const SizedBox(
-                    height: 140,
-                    child: Center(
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    ),
+            // Subtle decorative glow
+            Positioned(
+              top: -40,
+              right: -40,
+              child: Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFE91E8C).withValues(alpha: 0.12),
+                      Colors.transparent,
+                    ],
                   ),
-                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
+            ),
+            Positioned(
+              bottom: -30,
+              left: -30,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFE8A0BF).withValues(alpha: 0.08),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
-            // Infos de l'offre
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Emoji + titre
-                  Row(
+            // Content
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Image
+                if (hasImage)
+                  Flexible(
+                    child: Stack(
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: offer.imageUrl,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => const SizedBox(
+                            height: 140,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFFE8A0BF),
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                        ),
+                        // Gradient overlay on image
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  const Color(0xFF1A0A2E).withValues(alpha: 0.8),
+                                ],
+                                stops: const [0.5, 1.0],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Info
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16, hasImage ? 8 : 20, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (offer.emoji.isNotEmpty)
-                        Text(offer.emoji, style: const TextStyle(fontSize: 28)),
-                      if (offer.emoji.isNotEmpty) const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          offer.title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                      // Emoji + title
+                      Row(
+                        children: [
+                          if (offer.emoji.isNotEmpty)
+                            Text(offer.emoji, style: const TextStyle(fontSize: 24)),
+                          if (offer.emoji.isNotEmpty) const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              offer.title,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: -0.3,
+                                height: 1.2,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      if (offer.description.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          offer.description,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.6),
+                            height: 1.4,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      ],
+
+                      const SizedBox(height: 12),
+
+                      // Business name + spots badge (glassmorphism)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.storefront_rounded,
+                                  color: Color(0xFFE8A0BF),
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    offer.businessName,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white.withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: offer.hasSpots
+                                        ? const Color(0xFFE8A0BF).withValues(alpha: 0.2)
+                                        : Colors.red.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: offer.hasSpots
+                                          ? const Color(0xFFE8A0BF).withValues(alpha: 0.3)
+                                          : Colors.red.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    offer.hasSpots
+                                        ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
+                                        : 'Complet',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: offer.hasSpots
+                                          ? const Color(0xFFE8A0BF)
+                                          : Colors.red.shade300,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  if (offer.description.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      offer.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: 10),
-                  // Business name + places restantes
-                  Row(
-                    children: [
-                      const Icon(Icons.storefront, color: Colors.white70, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          offer.businessName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: offer.hasSpots
-                              ? const Color(0xFFFFD54F)
-                              : Colors.red.shade400,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          offer.hasSpots
-                              ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
-                              : 'Complet',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: offer.hasSpots
-                                ? const Color(0xFF4E342E)
-                                : Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

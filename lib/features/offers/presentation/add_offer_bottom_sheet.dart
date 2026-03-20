@@ -62,7 +62,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: Form(
           key: _formKey,
           child: Column(
@@ -72,7 +72,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               // Handle bar
               Center(
                 child: Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
@@ -80,38 +80,38 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Title
               const Text(
                 'Creer une offre',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: _primaryDarkColor,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // City indicator
               Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _primaryColor.withValues(alpha: 0.3)),
+                    color: _primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: _primaryColor.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.location_city, size: 16, color: _primaryColor),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.location_city, size: 14, color: _primaryColor),
+                      const SizedBox(width: 4),
                       Text(
                         ref.watch(selectedCityProvider),
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: _primaryDarkColor,
                         ),
@@ -120,7 +120,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Titre de l'offre
               TextFormField(
@@ -129,11 +129,12 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: "Titre de l'offre (ex: Massage offert)",
                   icon: Icons.local_offer,
                 ),
+                style: const TextStyle(fontSize: 13),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Le titre est requis'
                     : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Description
               TextFormField(
@@ -142,9 +143,10 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Description (ex: 30 min offert pour toute reservation)',
                   icon: Icons.description_outlined,
                 ),
+                style: const TextStyle(fontSize: 13),
                 maxLines: 3,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Emoji
               TextFormField(
@@ -153,22 +155,23 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Emoji (1 seul)',
                   icon: Icons.emoji_emotions_outlined,
                 ),
+                style: const TextStyle(fontSize: 13),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Photo
               if (_photoPath == null)
                 OutlinedButton.icon(
                   onPressed: _pickPhoto,
-                  icon: const Icon(Icons.photo_camera, size: 18),
-                  label: const Text('Ajouter une photo'),
+                  icon: const Icon(Icons.photo_camera, size: 16),
+                  label: const Text('Ajouter une photo', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _primaryColor,
-                    side: BorderSide(color: _primaryColor.withValues(alpha: 0.3)),
+                    side: BorderSide(color: _primaryColor.withValues(alpha: 0.2)),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                 )
               else
@@ -176,17 +179,17 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   alignment: Alignment.topRight,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                       child: Image.file(
                         File(_photoPath!),
                         width: double.infinity,
-                        height: 160,
+                        height: 130,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const SizedBox(height: 160),
+                        errorBuilder: (_, __, ___) => const SizedBox(height: 130),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(4),
                       child: GestureDetector(
                         onTap: () => setState(() => _photoPath = null),
                         child: Container(
@@ -194,14 +197,14 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                             color: Colors.black54,
                             shape: BoxShape.circle,
                           ),
-                          padding: const EdgeInsets.all(4),
-                          child: const Icon(Icons.close, color: Colors.white, size: 18),
+                          padding: const EdgeInsets.all(3),
+                          child: const Icon(Icons.close, color: Colors.white, size: 14),
                         ),
                       ),
                     ),
                   ],
                 ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Adresse
               TextFormField(
@@ -210,8 +213,9 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Adresse',
                   icon: Icons.location_on_outlined,
                 ),
+                style: const TextStyle(fontSize: 13),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Nombre de places
               TextFormField(
@@ -220,6 +224,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Nombre de places',
                   icon: Icons.people_outline,
                 ),
+                style: const TextStyle(fontSize: 13),
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
@@ -232,7 +237,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Date d'expiration
               GestureDetector(
@@ -245,13 +250,14 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                           : "Date d'expiration",
                       icon: Icons.calendar_today,
                     ),
+                    style: const TextStyle(fontSize: 13),
                     validator: (_) => _expiresAt == null
                         ? "La date d'expiration est requise"
                         : null,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Submit
               ElevatedButton(
@@ -260,15 +266,15 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   backgroundColor: _primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: 0,
                 ),
                 child: _isSubmitting
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 18,
+                        height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
@@ -277,12 +283,12 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                     : const Text(
                         'Publier',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
               // Cancel
               OutlinedButton(
@@ -291,17 +297,16 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   foregroundColor: _primaryDarkColor,
                   side: const BorderSide(color: _primaryColor),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 child: const Text(
                   'Annuler',
-                  style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -315,25 +320,24 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
   }) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, color: _primaryColor, size: 20),
+      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      prefixIcon: Icon(icon, color: _primaryColor, size: 18),
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade200),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primaryColor, width: 1.5),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: _primaryColor, width: 1.2),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade200),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      isDense: true,
     );
   }
 
@@ -359,13 +363,13 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
+              leading: const Icon(Icons.camera_alt, size: 20),
+              title: const Text('Camera', style: TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Galerie'),
+              leading: const Icon(Icons.photo_library, size: 20),
+              title: const Text('Galerie', style: TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],

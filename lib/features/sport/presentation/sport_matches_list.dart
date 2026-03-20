@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/utils/date_formatter.dart';
+import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
@@ -93,65 +95,92 @@ class SportMatchesList extends ConsumerWidget {
 
   Widget _buildGroupedList(List<SupabaseMatch> matches, dynamic modeTheme, WidgetRef ref) {
     final filter = ref.watch(dateRangeFilterProvider);
-    final grouped = <String, List<SupabaseMatch>>{};
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
 
+    final grouped = <DateTime, List<SupabaseMatch>>{};
     for (final m in matches) {
-      final dateKey = m.date.isNotEmpty ? m.date.substring(0, 10) : '';
-      final parsed = DateTime.tryParse(dateKey);
-      if (parsed != null && !filter.isInRange(parsed)) continue;
-      grouped.putIfAbsent(dateKey, () => []).add(m);
+      final d = DateTime.tryParse(m.date);
+      if (d == null) continue;
+      final dateOnly = DateTime(d.year, d.month, d.day);
+      if (!filter.isInRange(dateOnly)) continue;
+      grouped.putIfAbsent(dateOnly, () => []).add(m);
     }
+    final sortedDays = grouped.keys.toList()..sort();
 
-    final sortedDates = grouped.keys.toList()..sort();
-    final items = <Widget>[];
-
-    for (final dateKey in sortedDates) {
-      final matchesForDate = grouped[dateKey]!;
-      final parsed = DateTime.tryParse(dateKey);
-      final dateLabel = parsed != null
-          ? _capitalize(DateFormatter.formatRelative(parsed))
-          : dateKey;
-
-      items.add(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-          child: Row(
-            children: [
-              Text(dateLabel, style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 15,
-                color: modeTheme.primaryDarkColor,
-              )),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+    return Builder(
+      builder: (context) => ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          const DateRangeChipBar(),
+          const SizedBox(height: 8),
+          for (final day in sortedDays) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 8),
+              child: Text(
+                day == today
+                    ? "Aujourd'hui"
+                    : day == tomorrow
+                        ? 'Demain'
+                        : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
                 ),
-                child: Text('${matchesForDate.length}', style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600,
-                  color: modeTheme.primaryColor,
-                )),
               ),
+            ),
+            for (final match in grouped[day]!) ...[
+              CommunityEventCard(
+                title: match.equipe2.isNotEmpty
+                    ? '${match.equipe1}  vs  ${match.equipe2}'
+                    : match.equipe1,
+                subtitle: match.competition.isNotEmpty ? match.competition : null,
+                date: match.date,
+                time: match.heure.isNotEmpty ? match.heure : null,
+                location: match.lieu.isNotEmpty ? match.lieu : null,
+                photoUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
+                fallbackAsset: 'assets/images/sc_autres_sport.png',
+                tag: match.sport.isNotEmpty ? match.sport : null,
+                isFree: match.gratuit.toLowerCase() == 'oui',
+                onTap: () => _openMatchDetail(context, match),
+              ),
+              const SizedBox(height: 8),
             ],
-          ),
-        ),
-      );
-      for (final match in matchesForDate) {
-        items.add(Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-          child: MatchRowCard(match: match),
-        ));
-      }
-    }
+          ],
+        ],
+      ),
+    );
+  }
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
-      children: [
-        const DateRangeChipBar(),
-        const SizedBox(height: 4),
-        ...items,
-      ],
+  void _openMatchDetail(BuildContext context, SupabaseMatch match) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: match.equipe2.isNotEmpty
+            ? '${match.equipe1}  vs  ${match.equipe2}'
+            : match.equipe1,
+        imageAsset: 'assets/images/sc_autres_sport.png',
+        imageUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
+        infos: [
+          if (match.sport.isNotEmpty)
+            DetailInfoItem(Icons.sports, match.sport),
+          if (match.competition.isNotEmpty)
+            DetailInfoItem(Icons.emoji_events_outlined, match.competition),
+          if (match.date.isNotEmpty)
+            DetailInfoItem(Icons.calendar_today, match.date),
+          if (match.lieu.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, match.lieu),
+        ],
+        primaryAction: match.billetterie.isNotEmpty
+            ? DetailAction(
+                icon: Icons.confirmation_number_outlined,
+                label: 'Billetterie',
+                url: match.billetterie,
+              )
+            : null,
+      ),
     );
   }
 

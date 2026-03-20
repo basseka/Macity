@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:pulz_app/core/services/activity_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
@@ -349,6 +350,14 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       await _ref
           .read(userEventsProvider.notifier)
           .addEvent(event, establishmentId: establishmentId);
+
+      ActivityService.instance.eventCreated(
+        eventId: event.id,
+        titre: event.titre,
+        categorie: event.categorie,
+        rubrique: event.rubrique,
+        ville: event.ville,
+      );
 
       state = state.copyWith(isSubmitting: false);
       return true;

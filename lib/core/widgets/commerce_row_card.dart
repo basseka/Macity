@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 /// Carte commerce en ligne : image a gauche, infos a droite.
@@ -69,6 +72,28 @@ class CommerceRowCard extends ConsumerWidget {
     return null;
   }
 
+  Widget _buildImage(String? image, ModeTheme modeTheme) {
+    final src = image ?? 'assets/images/pochette_default.png';
+    final isNetwork = src.startsWith('http://') || src.startsWith('https://');
+
+    if (isNetwork) {
+      return CachedNetworkImage(
+        imageUrl: src,
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.medium,
+        placeholder: (_, __) => Container(color: modeTheme.chipBgColor),
+        errorWidget: (_, __, ___) => Container(color: modeTheme.chipBgColor),
+      );
+    }
+
+    return Image.asset(
+      src,
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (_, __, ___) => Container(color: modeTheme.chipBgColor),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
@@ -88,28 +113,22 @@ class CommerceRowCard extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Bulle image a gauche ──
+            // ── Pochette image a gauche ──
             Padding(
               padding: const EdgeInsets.only(left: 10),
               child: Container(
                 width: 65,
                 height: 65,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: modeTheme.primaryColor.withValues(alpha: 0.4),
                     width: 1.5,
                   ),
                 ),
-                child: ClipOval(
-                  child: Image.asset(
-                    image ?? 'assets/images/pochette_default.png',
-                    fit: BoxFit.cover,
-                    filterQuality: FilterQuality.medium,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: modeTheme.chipBgColor,
-                    ),
-                  ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(9),
+                  child: _buildImage(image, modeTheme),
                 ),
               ),
             ),
@@ -253,7 +272,14 @@ class CommerceRowCard extends ConsumerWidget {
     final likeId = 'night_${commerce.nom}';
     final isLiked = ref.watch(likesProvider).contains(likeId);
     return GestureDetector(
-      onTap: () => ref.read(likesProvider.notifier).toggle(likeId),
+      onTap: () => ref.read(likesProvider.notifier).toggle(
+        likeId,
+        meta: LikeMetadata(
+          title: commerce.nom,
+          imageUrl: commerce.photo.isNotEmpty ? commerce.photo : null,
+          category: commerce.categorie,
+        ),
+      ),
       child: Icon(
         isLiked ? Icons.favorite : Icons.favorite_border,
         size: 16,

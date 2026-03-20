@@ -70,6 +70,16 @@ class UserEventSupabaseService {
     return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
   }
 
+  /// Upload multiple photos (gallery). Returns list of public URLs.
+  Future<List<String>> uploadGallery(List<String> localPaths) async {
+    final urls = <String>[];
+    for (final path in localPaths) {
+      final url = await uploadPhoto(path);
+      urls.add(url);
+    }
+    return urls;
+  }
+
   // ───────────────────────────────────────────
   // CRUD PostgREST : table `user_events`
   // ───────────────────────────────────────────
@@ -141,6 +151,27 @@ class UserEventSupabaseService {
       'user_events',
       queryParameters: {
         'select': '*',
+        'date': 'gte.$today',
+        'order': 'date.asc',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => UserEvent.fromSupabaseJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Recupere uniquement les evenements crees par l'utilisateur courant.
+  Future<List<UserEvent>> fetchMyEvents() async {
+    final userId = await UserIdentityService.getUserId();
+    final now = DateTime.now();
+    final today =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final response = await _restDio.get(
+      'user_events',
+      queryParameters: {
+        'select': '*',
+        'user_id': 'eq.$userId',
         'date': 'gte.$today',
         'order': 'date.asc',
       },

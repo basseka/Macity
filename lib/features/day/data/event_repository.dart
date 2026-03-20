@@ -1,34 +1,50 @@
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
-import 'package:pulz_app/features/day/data/event_api_service.dart';
 import 'package:pulz_app/features/day/data/open_agenda_api_service.dart';
-import 'package:pulz_app/features/day/data/day_curated_data.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/domain/models/open_agenda_event.dart';
 
 class EventRepository {
-  final EventApiService _eventApi;
   final OpenAgendaApiService _openAgendaApi;
   final ScrapedEventsSupabaseService _scrapedService;
 
   EventRepository({
-    EventApiService? eventApi,
     OpenAgendaApiService? openAgendaApi,
     ScrapedEventsSupabaseService? scrapedService,
-  })  : _eventApi = eventApi ?? EventApiService(),
-        _openAgendaApi = openAgendaApi ?? OpenAgendaApiService(),
+  })  : _openAgendaApi = openAgendaApi ?? OpenAgendaApiService(),
         _scrapedService = scrapedService ?? ScrapedEventsSupabaseService();
 
-  /// Fetch events: Toulouse uses OpenDataSoft, other cities use OpenAgenda
+  /// Fetch events pour n'importe quelle ville via les scraped events Supabase.
+  /// Fallback sur OpenAgenda si aucun résultat scrapé.
   Future<List<Event>> fetchEvents({
     required String city,
     required String subcategory,
     String? lieuNom,
   }) async {
-    if (city == 'Toulouse') {
-      return _fetchToulouseEvents(subcategory, lieuNom: lieuNom);
-    } else {
-      return _fetchNationalEvents(city, subcategory);
+    // "A venir" = tous les events day de la ville
+    if (subcategory == 'A venir') {
+      return _fetchAllUpcoming(city);
     }
+
+    // Essayer les scraped events (fonctionne pour toutes les villes scrapées)
+    final source = _subcategoryToSource[subcategory];
+    if (source != null) {
+      final events = await _scrapedService.fetchEvents(
+        rubrique: 'day',
+        source: source,
+        dateGte: _todayStr(),
+        lieuNom: lieuNom,
+        ville: city,
+      );
+      if (events.isNotEmpty) return _dedup(events);
+    }
+
+    // Fallback OpenAgenda pour les villes/catégories sans scraped events
+    final keyword = subcategory;
+    final openAgendaEvents = await _openAgendaApi.fetchEvents(
+      city: city,
+      keyword: keyword,
+    );
+    return openAgendaEvents.map(_convertOpenAgendaToEvent).toList();
   }
 
   static String _todayStr() {
@@ -44,58 +60,27 @@ class EventRepository {
     'DJ set': 'day_djset',
     'Showcase': 'day_showcase',
     'Spectacle': 'day_spectacle',
+    'Stand up': 'day_standup',
     'Fete musique': 'day_fete_musique',
     'Autres': 'day_other',
   };
 
-  Future<List<Event>> _fetchToulouseEvents(String subcategory, {String? lieuNom}) async {
-    if (subcategory == 'A venir') {
-      return _fetchAllUpcoming();
-    }
-    if (subcategory == 'Boxe') {
-      return DayCuratedData.getBoxeToulouse();
-    }
-    if (subcategory == 'Natation') {
-      return DayCuratedData.getNatationToulouse();
-    }
-    // Quand on filtre par salle, filtrer aussi par source (concert, djset…)
-    if (lieuNom != null) {
-      final source = _subcategoryToSource[subcategory];
-      return _scrapedService.fetchEvents(
-        rubrique: 'day',
-        source: source,
-        dateGte: _todayStr(),
-        lieuNom: lieuNom,
-      );
-    }
-    final source = _subcategoryToSource[subcategory];
-    if (source != null) {
-      return _scrapedService.fetchEvents(
-        rubrique: 'day',
-        source: source,
-        dateGte: _todayStr(),
-      );
-    }
-    return _eventApi.fetchByCategory(subcategory);
-  }
-
-  /// Agrege tous les events day depuis la DB.
-  Future<List<Event>> _fetchAllUpcoming() async {
+  /// Agrège tous les events day d'une ville depuis la DB (avec et sans photo).
+  Future<List<Event>> _fetchAllUpcoming(String city) async {
     final all = await _scrapedService.fetchEvents(
       rubrique: 'day',
       dateGte: _todayStr(),
+      ville: city,
+      requirePhoto: false,
     );
 
-    // Dedup par titre normalise + date
-    final seen = <String>{};
-    final deduped = <Event>[];
-    for (final e in all) {
-      final key =
-          '${e.titre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}|${e.dateDebut}';
-      if (seen.add(key)) {
-        deduped.add(e);
-      }
+    // Si aucun scraped event, fallback OpenAgenda
+    if (all.isEmpty) {
+      final openAgendaEvents = await _openAgendaApi.fetchEvents(city: city);
+      return openAgendaEvents.map(_convertOpenAgendaToEvent).toList();
     }
+
+    final deduped = _dedup(all);
 
     // Tri par categorie puis date
     deduped.sort((a, b) {
@@ -105,6 +90,53 @@ class EventRepository {
     });
 
     return deduped;
+  }
+
+  /// Dedup par titre normalisé + date.
+  /// Priorité : source du lieu (theatre_capitole, bikini, etc.) > source générique (day_concert, day_opera).
+  static List<Event> _dedup(List<Event> events) {
+    final byKey = <String, Event>{};
+    for (final e in events) {
+      final key =
+          '${e.titre.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}|${e.dateDebut}';
+      final existing = byKey[key];
+      if (existing == null) {
+        byKey[key] = e;
+      } else {
+        // Garder celui avec la source la plus spécifique (lieu d'accueil)
+        if (_sourcePriority(e.identifiant) < _sourcePriority(existing.identifiant)) {
+          byKey[key] = e;
+        }
+      }
+    }
+    return byKey.values.toList();
+  }
+
+  /// Priorité des sources : plus le nombre est bas, plus la source est prioritaire.
+  /// Les sources de lieux spécifiques (theatre_*, bikini_*, etc.) sont prioritaires.
+  static int _sourcePriority(String identifiant) {
+    final id = identifiant.toLowerCase();
+    // Source du lieu d'accueil = priorité max
+    if (id.startsWith('theatre_') ||
+        id.startsWith('bikini_') ||
+        id.startsWith('zenith_') ||
+        id.startsWith('casino_') ||
+        id.startsWith('rex_') ||
+        id.startsWith('bascala_') ||
+        id.startsWith('metronum_') ||
+        id.startsWith('comdt_') ||
+        id.startsWith('opera_tls_') ||
+        id.startsWith('meett_') ||
+        id.startsWith('cave_poesie_') ||
+        id.startsWith('filaplomb_')) {
+      return 0;
+    }
+    // Source spécifique ville (ex: festik, songkick)
+    if (id.startsWith('festik_') || id.startsWith('sk_') || id.startsWith('tm_') || id.startsWith('eb_')) {
+      return 1;
+    }
+    // Source générique
+    return 2;
   }
 
   /// Ordre d'affichage des rubriques.
@@ -119,20 +151,6 @@ class EventRepository {
     if (cat.contains('dj') || type.contains('dj')) return 5;
     if (cat.contains('fete') || cat.contains('fête') || type.contains('fete') || type.contains('fête')) return 6;
     return 7;
-  }
-
-  Future<List<Event>> _fetchNationalEvents(
-    String city,
-    String subcategory,
-  ) async {
-    final keyword = subcategory == 'A venir' ? null : subcategory;
-    final openAgendaEvents = await _openAgendaApi.fetchEvents(
-      city: city,
-      keyword: keyword,
-    );
-
-    // Convert OpenAgendaEvent → Event for unified display
-    return openAgendaEvents.map(_convertOpenAgendaToEvent).toList();
   }
 
   Event _convertOpenAgendaToEvent(OpenAgendaEvent oa) {

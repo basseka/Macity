@@ -191,8 +191,6 @@ class TodayEventsSheet extends ConsumerWidget {
             });
           }).toList()
         : data.events;
-    final filteredMatches = categoryFilters != null ? <SupabaseMatch>[] : data.matches;
-
     // Appliquer le filtre de date
     filteredEvents = filteredEvents.where((e) {
       final d = DateTime.tryParse(e.dateDebut);
@@ -200,17 +198,10 @@ class TodayEventsSheet extends ConsumerWidget {
       return dateFilter.isInRange(DateTime(d.year, d.month, d.day));
     }).toList();
 
-    // Grouper par jour
+    // Grouper par jour (events uniquement, pas de matchs)
     final dayGroups = <DateTime, List<_GridItem>>{};
 
-    // Collecter toutes les dates presentes
     final allDates = <DateTime>{};
-    for (final m in filteredMatches) {
-      final d = DateTime.tryParse(m.date);
-      if (d != null && !DateTime(d.year, d.month, d.day).isBefore(today)) {
-        allDates.add(DateTime(d.year, d.month, d.day));
-      }
-    }
     for (final e in filteredEvents) {
       final d = DateTime.tryParse(e.dateDebut);
       if (d != null && !DateTime(d.year, d.month, d.day).isBefore(today)) {
@@ -221,11 +212,6 @@ class TodayEventsSheet extends ConsumerWidget {
     for (final day in allDates) {
       final items = <_GridItem>[];
 
-      for (final m in filteredMatches) {
-        final d = DateTime.tryParse(m.date);
-        if (d == null || DateTime(d.year, d.month, d.day) != day) continue;
-        items.add(_matchToGridItem(context, m));
-      }
       for (final e in filteredEvents) {
         final d = DateTime.tryParse(e.dateDebut);
         if (d == null || DateTime(d.year, d.month, d.day) != day) continue;

@@ -93,7 +93,7 @@ class AppBottomNavBar extends ConsumerWidget {
               ),
               // 4 - Explorer
               _NavBarItem(
-                icon: Icons.explore,
+                icon: Icons.search,
                 label: 'Explorer',
                 isActive: _selectedIndex == 3,
                 onTap: () {

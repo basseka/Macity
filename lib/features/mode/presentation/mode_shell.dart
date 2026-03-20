@@ -23,6 +23,8 @@ import 'package:pulz_app/features/notifications/presentation/mairie_notification
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
+import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
+import 'package:pulz_app/core/services/activity_service.dart';
 
 class ModeShell extends ConsumerWidget {
   final Widget child;
@@ -39,6 +41,7 @@ class ModeShell extends ConsumerWidget {
       ref.read(modeSubcategoriesProvider.notifier).select(next, null);
       final newMode = AppMode.fromName(next);
       context.go(newMode.routePath);
+      ActivityService.instance.modeView(mode: next);
     });
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
@@ -282,16 +285,7 @@ class ModeShell extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Explorer',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               // Modes
               ...AppMode.order.map((mode) => ListTile(
                 dense: true,
@@ -301,6 +295,7 @@ class ModeShell extends ConsumerWidget {
                   style: const TextStyle(color: Colors.white, fontSize: 10),
                 ),
                 onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 3;
                   Navigator.pop(ctx);
                   ref.read(currentModeProvider.notifier).setMode(mode.name);
                   context.go(mode.routePath);
@@ -308,6 +303,15 @@ class ModeShell extends ConsumerWidget {
               )),
               const Divider(color: Colors.white24, height: 24),
               // Liens supplementaires
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.article, color: Colors.purpleAccent, size: 18),
+                title: const Text('Mes publications', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  MyPublicationsSheet.show(context);
+                },
+              ),
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
@@ -365,19 +369,6 @@ class ModeShell extends ConsumerWidget {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (_) => const ProLoginSheet(),
-                  );
-                },
-              ),
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.article, color: Colors.purpleAccent, size: 18),
-                title: const Text('Mes publications', style: TextStyle(color: Colors.white, fontSize: 10)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CreateEventPage(),
-                    ),
                   );
                 },
               ),

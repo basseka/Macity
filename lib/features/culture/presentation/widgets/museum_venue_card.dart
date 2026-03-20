@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -56,7 +57,7 @@ class MuseumVenueCard extends ConsumerWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(museum.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                      child: VenueImage(imageUrl: museum.image, defaultAsset: 'assets/images/pochette_musee.png'),
                     ),
                     if (museum.hasOnlineTicket)
                       Positioned(
@@ -148,7 +149,7 @@ class MuseumVenueCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: museum.name,
-        emoji: _categoryEmojis[museum.category] ?? '\uD83C\uDFDB\uFE0F',
+        emoji: '',
         imageAsset: museum.image,
         infos: [
           if (museum.description.isNotEmpty)

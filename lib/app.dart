@@ -190,7 +190,7 @@ class _AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<_AppShell> {
-  String _location = '/home';
+  String _location = '/splash';
 
   @override
   void initState() {

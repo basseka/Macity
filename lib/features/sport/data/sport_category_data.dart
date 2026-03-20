@@ -31,6 +31,13 @@ class SportCategoryData {
 
   static const groups = [
     SportCategoryGroup(
+      name: 'A venir',
+      emoji: '\uD83D\uDCC5',
+      subcategories: [
+        SportSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_cettesemaine.png'),
+      ],
+    ),
+    SportCategoryGroup(
       name: 'Rugby',
       emoji: '',
       subcategories: [

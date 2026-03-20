@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -37,7 +38,7 @@ class LibraryVenueCard extends ConsumerWidget {
                 child: SizedBox(
                   width: 64,
                   height: 64,
-                  child: Image.asset(library.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                  child: VenueImage(imageUrl: library.image, defaultAsset: 'assets/images/pochette_theatre.png'),
                 ),
               ),
             ),
@@ -105,7 +106,7 @@ class LibraryVenueCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: library.name,
-        emoji: '\uD83D\uDCDA',
+        emoji: '',
         imageAsset: library.image,
         infos: [
           if (library.horaires.isNotEmpty)

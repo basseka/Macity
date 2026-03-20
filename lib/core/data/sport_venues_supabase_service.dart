@@ -87,12 +87,13 @@ class SportVenuesSupabaseService {
 
   static DanceVenue _mapToDanceVenue(Map<String, dynamic> json) {
     final nom = json['nom'] as String? ?? '';
-    final groupe = json['groupe'] as String? ?? '';
+    final categorie = json['categorie'] as String? ?? '';
+    final groupe = json['groupe'] as String? ?? categorie;
     return DanceVenue(
       id: '${nom.hashCode}_$groupe',
       name: nom,
-      description: json['categorie'] as String? ?? '',
-      category: json['categorie'] as String? ?? '',
+      description: categorie,
+      category: categorie,
       group: groupe,
       city: json['ville'] as String? ?? '',
       horaires: '',

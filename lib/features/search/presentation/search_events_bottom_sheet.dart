@@ -7,6 +7,8 @@ import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/search/data/unified_search_service.dart';
 import 'package:pulz_app/features/search/domain/search_result.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/match_row_card.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SearchEventsBottomSheet extends ConsumerStatefulWidget {
   const SearchEventsBottomSheet({super.key});
@@ -48,7 +50,8 @@ class _SearchEventsBottomSheetState
 
   Future<void> _search(String query) async {
     try {
-      final results = await _service.search(query);
+      final ville = ref.read(selectedCityProvider);
+      final results = await _service.search(query, ville: ville);
       if (!mounted) return;
       setState(() {
         _results = results;
@@ -210,9 +213,76 @@ class _SearchEventsBottomSheetState
           child: switch (result) {
             EventResult(:final event) => EventRowCard(event: event),
             MatchResult(:final match) => MatchRowCard(match: match),
+            VenueResult() => _VenueSearchTile(venue: result),
           },
         );
       },
     );
+  }
+}
+
+class _VenueSearchTile extends StatelessWidget {
+  final VenueResult venue;
+  const _VenueSearchTile({required this.venue});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _openVenue(),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.place, size: 18, color: Colors.grey.shade500),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    venue.name,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1A1A2E),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (venue.categorie.isNotEmpty)
+                    Text(
+                      venue.categorie,
+                      style: GoogleFonts.inter(fontSize: 9, color: Colors.grey.shade600),
+                      maxLines: 1,
+                    ),
+                ],
+              ),
+            ),
+            if (venue.horaires.isNotEmpty)
+              Text(
+                venue.horaires,
+                style: GoogleFonts.inter(fontSize: 8, color: Colors.grey.shade500),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openVenue() {
+    final url = (venue.siteWeb != null && venue.siteWeb!.isNotEmpty)
+        ? venue.siteWeb!
+        : (venue.lienMaps != null && venue.lienMaps!.isNotEmpty)
+            ? venue.lienMaps!
+            : 'https://www.google.com/search?q=${Uri.encodeComponent(venue.name)}';
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }

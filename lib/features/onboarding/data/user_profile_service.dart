@@ -54,6 +54,18 @@ class UserProfileService {
     return data.isNotEmpty;
   }
 
+  /// Normalise un numéro FR : 0612... → +33612..., 33612... → +33612...
+  static String normalizePhone(String raw) {
+    final digits = raw.replaceAll(RegExp(r'[^\d+]'), '');
+    if (digits.startsWith('0') && digits.length == 10) {
+      return '+33${digits.substring(1)}';
+    }
+    if (digits.startsWith('33') && digits.length == 11) {
+      return '+$digits';
+    }
+    return digits;
+  }
+
   Future<void> upsert({
     required String email,
     required String telephone,
@@ -67,7 +79,7 @@ class UserProfileService {
       data: {
         'user_id': userId,
         'email': email,
-        'telephone': telephone,
+        'telephone': normalizePhone(telephone),
         'prenom': prenom,
         'ville': ville,
         'preferences': preferences,
@@ -86,6 +98,38 @@ class UserProfileService {
       queryParameters: {'user_id': 'eq.$userId'},
       data: {
         'ville': ville,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      },
+    );
+  }
+
+  /// Find an existing profile by email + telephone (login on new device).
+  /// Returns the profile map if found, null otherwise.
+  Future<Map<String, dynamic>?> findByCredentials({
+    required String email,
+    required String telephone,
+  }) async {
+    final response = await _dio.get(
+      'user_profiles',
+      queryParameters: {
+        'email': 'eq.$email',
+        'telephone': 'eq.${normalizePhone(telephone)}',
+        'select': '*',
+      },
+    );
+    final data = response.data as List;
+    if (data.isEmpty) return null;
+    return data.first as Map<String, dynamic>;
+  }
+
+  /// Met a jour les sous-interets detailles (ex: ["sport:football", "day:festival"]).
+  Future<void> updateDetailedPreferences(List<String> detailed) async {
+    final userId = await UserIdentityService.getUserId();
+    await _dio.patch(
+      'user_profiles',
+      queryParameters: {'user_id': 'eq.$userId'},
+      data: {
+        'preferences_detailed': detailed,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       },
     );

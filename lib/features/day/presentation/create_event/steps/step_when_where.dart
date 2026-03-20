@@ -345,13 +345,16 @@ class _DatePickerField extends StatelessWidget {
         child: Row(
           children: [
             Icon(Icons.calendar_today, size: 16, color: hasValue ? _primaryColor : Colors.grey.shade400),
-            const SizedBox(width: 8),
-            Text(
-              hasValue ? DateFormat('EEE d MMM yyyy', 'fr_FR').format(value!) : label,
-              style: TextStyle(
-                fontSize: 13,
-                color: hasValue ? _primaryColor : Colors.grey.shade500,
-                fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                hasValue ? DateFormat('d MMM yyyy', 'fr_FR').format(value!) : label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: hasValue ? _primaryColor : Colors.grey.shade500,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -452,13 +455,16 @@ class _TimePickerField extends StatelessWidget {
         child: Row(
           children: [
             Icon(Icons.access_time, size: 16, color: hasValue ? _primaryColor : Colors.grey.shade400),
-            const SizedBox(width: 8),
-            Text(
-              hasValue ? '${value!.hour.toString().padLeft(2, '0')}:${value!.minute.toString().padLeft(2, '0')}' : label,
-              style: TextStyle(
-                fontSize: 13,
-                color: hasValue ? _primaryColor : Colors.grey.shade500,
-                fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                hasValue ? '${value!.hour.toString().padLeft(2, '0')}:${value!.minute.toString().padLeft(2, '0')}' : label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: hasValue ? _primaryColor : Colors.grey.shade500,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

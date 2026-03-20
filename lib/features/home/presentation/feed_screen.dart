@@ -27,7 +27,11 @@ import 'package:pulz_app/features/notifications/presentation/mairie_notification
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
+import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
+import 'package:pulz_app/core/widgets/animated_ad_banner.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
   const FeedScreen({super.key});
@@ -81,7 +85,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   Future<void> _doSearch(String query) async {
     try {
-      final results = await _searchService.search(query);
+      final ville = ref.read(selectedCityProvider);
+      final results = await _searchService.search(query, ville: ville);
       if (!mounted) return;
       setState(() {
         _searchResults = results;
@@ -118,6 +123,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           child: Column(
             children: [
               _buildHeader(),
+              if (!_isSearching) const AnimatedAdBanner(),
               if (!_isSearching) _buildFilterBar(),
               Expanded(
                 child: _isSearching ? _buildSearchResults() : _buildFeed(),
@@ -288,16 +294,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Explorer',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               // Modes
               ..._menuModes.map((mode) => ListTile(
                 dense: true,
@@ -307,6 +304,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 10),
                 ),
                 onTap: () {
+                  ref.read(navBarIndexProvider.notifier).state = 3;
                   Navigator.pop(ctx);
                   ref.read(currentModeProvider.notifier).setMode(mode.name);
                   context.go(mode.routePath);
@@ -314,6 +312,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               )),
               const Divider(color: Colors.white24, height: 24),
               // Liens supplementaires
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.article, color: Colors.purpleAccent, size: 18),
+                title: const Text('Mes publications', style: TextStyle(color: Colors.white, fontSize: 10)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  MyPublicationsSheet.show(context);
+                },
+              ),
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
@@ -371,19 +378,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (_) => const ProLoginSheet(),
-                  );
-                },
-              ),
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.article, color: Colors.purpleAccent, size: 18),
-                title: const Text('Mes publications', style: TextStyle(color: Colors.white, fontSize: 10)),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CreateEventPage(),
-                    ),
                   );
                 },
               ),
@@ -534,6 +528,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           child: switch (result) {
             EventResult(:final event) => EventRowCard(event: event),
             MatchResult(:final match) => MatchRowCard(match: match),
+            VenueResult() => _VenueRowCard(venue: result),
           },
         );
       },
@@ -1024,5 +1019,90 @@ class _FeedTile extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ── Venue row card for search results ──
+
+class _VenueRowCard extends StatelessWidget {
+  final VenueResult venue;
+
+  const _VenueRowCard({required this.venue});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _openVenue(),
+      child: Card(
+      elevation: 1,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Row(
+          children: [
+            Icon(
+              _resolveIcon(venue.categorie),
+              color: Colors.grey.shade600,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    venue.name,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (venue.categorie.isNotEmpty)
+                    Text(
+                      venue.categorie,
+                      style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      ),
+    );
+  }
+
+  void _openVenue() {
+    // Priorite : site web > lien maps > recherche Google
+    final url = (venue.siteWeb != null && venue.siteWeb!.isNotEmpty)
+        ? venue.siteWeb!
+        : (venue.lienMaps != null && venue.lienMaps!.isNotEmpty)
+            ? venue.lienMaps!
+            : 'https://www.google.com/search?q=${Uri.encodeComponent(venue.name)}';
+    final uri = Uri.tryParse(url);
+    if (uri != null) {
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  static IconData _resolveIcon(String categorie) {
+    final cat = categorie.toLowerCase();
+    if (cat.contains('restaurant')) return Icons.restaurant;
+    if (cat.contains('cafe') || cat.contains('brunch')) return Icons.coffee;
+    if (cat.contains('bar')) return Icons.local_bar;
+    if (cat.contains('club') || cat.contains('disco')) return Icons.nightlife;
+    if (cat.contains('hotel')) return Icons.hotel;
+    if (cat.contains('epicerie')) return Icons.store;
+    if (cat.contains('fitness') || cat.contains('sport')) return Icons.fitness_center;
+    if (cat.contains('bien-etre') || cat.contains('spa')) return Icons.spa;
+    return Icons.place;
   }
 }

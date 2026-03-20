@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
@@ -17,6 +18,9 @@ class TheatreVenueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
+    final eventsAsync = ref.watch(theatreVenueEventsProvider(theatre.id));
+    final eventCount = eventsAsync.whenOrNull(data: (e) => e.length) ?? 0;
+
     return GestureDetector(
       onTap: () => _openDetail(context),
       child: Card(
@@ -42,7 +46,7 @@ class TheatreVenueCard extends ConsumerWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(theatre.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                      child: VenueImage(imageUrl: theatre.image, defaultAsset: 'assets/images/pochette_theatre.png'),
                     ),
                     if (theatre.hasOnlineTicket)
                       Positioned(
@@ -57,6 +61,27 @@ class TheatreVenueCard extends ConsumerWidget {
                           child: const Text(
                             'BILLETTERIE',
                             style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    // ── Badge compteur events ──
+                    if (eventCount > 0)
+                      Positioned(
+                        bottom: 2,
+                        right: 2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: modeTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$eventCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ),
@@ -84,12 +109,24 @@ class TheatreVenueCard extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
 
-                    if (theatre.horaires.isNotEmpty)
-                      _buildInfoRow(
-                        Icons.access_time,
-                        theatre.horaires,
-                        modeTheme.primaryColor,
+                    // ── Nombre de spectacles ──
+                    eventsAsync.when(
+                      data: (events) => Text(
+                        events.isEmpty
+                            ? 'Aucun spectacle a venir'
+                            : '${events.length} spectacle${events.length > 1 ? 's' : ''} a venir',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: events.isEmpty ? Colors.grey.shade400 : modeTheme.primaryColor,
+                          fontWeight: events.isEmpty ? FontWeight.normal : FontWeight.w600,
+                        ),
                       ),
+                      loading: () => Text(
+                        'Chargement...',
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                      ),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
 
                     const Spacer(),
 
@@ -133,8 +170,7 @@ class TheatreVenueCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: theatre.name,
-        emoji: '\uD83C\uDFAD',
-        imageAsset: theatre.image,
+        imageAsset: theatre.image.isNotEmpty ? theatre.image : 'assets/images/pochette_theatre.png',
         infos: [
           if (theatre.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, theatre.description),
@@ -288,26 +324,6 @@ class TheatreVenueCard extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String text, Color iconColor) {
-    return Row(
-      children: [
-        Icon(icon, size: 13, color: iconColor),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 

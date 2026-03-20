@@ -49,6 +49,7 @@ class RestaurantSupabaseService {
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       websiteUrl: json['site_web'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
+      photo: json['photo'] as String? ?? '',
     );
   }
 }

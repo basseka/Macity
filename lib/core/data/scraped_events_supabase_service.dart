@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
@@ -29,12 +30,20 @@ class ScrapedEventsSupabaseService {
     List<String>? sourceNotIn,
     String? lieuNom,
     String? ville,
+    int limit = 1000,
+    bool requirePhoto = true,
   }) async {
     final params = <String, String>{
       'select': '*',
       'rubrique': 'eq.$rubrique',
       'order': 'date_debut.asc',
+      'limit': '$limit',
     };
+    // Filtrer les events sans photo cote serveur (PostgREST)
+    // not.is.null exclut NULL, neq. exclut les strings vides
+    if (requirePhoto) {
+      params['photo_url'] = 'neq.';
+    }
     if (source != null) {
       params['source'] = 'eq.$source';
     } else if (sourceNotIn != null && sourceNotIn.isNotEmpty) {
@@ -49,7 +58,11 @@ class ScrapedEventsSupabaseService {
       queryParameters: params,
     );
     final data = response.data as List;
-    return data.map((e) => Event.fromJson(e as Map<String, dynamic>)).toList();
+    // Parse sur un isolate pour ne pas bloquer le main thread
+    if (requirePhoto) {
+      return compute(_parseAndFilter, data);
+    }
+    return compute(_parseAll, data);
   }
 
   /// Search events by name, description, lieu, or category across all rubriques.
@@ -62,11 +75,40 @@ class ScrapedEventsSupabaseService {
         'or':
             '(nom_de_la_manifestation.ilike.*$query*,descriptif_court.ilike.*$query*,lieu_nom.ilike.*$query*,type_de_manifestation.ilike.*$query*,categorie_de_la_manifestation.ilike.*$query*)',
         'date_debut': 'gte.$today',
+        'photo_url': 'not.is.null',
         'order': 'date_debut.asc',
         'limit': '$limit',
       },
     );
     final data = response.data as List;
-    return data.map((e) => Event.fromJson(e as Map<String, dynamic>)).toList();
+    return compute(_parseAndFilter, data);
   }
+}
+
+/// Top-level function (required for compute/isolate).
+/// Parse JSON rows safely, skip malformed, filter empty photo_url.
+List<Event> _parseAndFilter(List data) {
+  final results = <Event>[];
+  for (final item in data) {
+    try {
+      final event = Event.fromJson(item as Map<String, dynamic>);
+      if (event.photoPath != null && event.photoPath!.isNotEmpty) {
+        results.add(event);
+      }
+    } catch (_) {
+      // skip malformed event
+    }
+  }
+  return results;
+}
+
+/// Parse all events without photo filter.
+List<Event> _parseAll(List data) {
+  final results = <Event>[];
+  for (final item in data) {
+    try {
+      results.add(Event.fromJson(item as Map<String, dynamic>));
+    } catch (_) {}
+  }
+  return results;
 }

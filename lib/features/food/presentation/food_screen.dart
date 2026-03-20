@@ -1,13 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
+import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
+import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
@@ -168,11 +172,14 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   Widget _buildRestaurantsFiltered(
       WidgetRef ref, List<RestaurantVenue> allVenues, modeTheme) {
 
-    // Filtrer selon le filtre actif
+    // Filtrer selon le filtre actif (comparaison insensible a la casse)
     final filtered = allVenues.where((r) {
-      if (_selectedTheme != 'Tous' && r.theme != _selectedTheme) return false;
-      if (_selectedQuartier != 'Tous' && r.quartier != _selectedQuartier) return false;
-      if (_selectedStyle != 'Tous' && r.style != _selectedStyle) return false;
+      if (_selectedTheme != 'Tous' &&
+          r.theme.toLowerCase() != _selectedTheme.toLowerCase()) return false;
+      if (_selectedQuartier != 'Tous' &&
+          r.quartier.toLowerCase() != _selectedQuartier.toLowerCase()) return false;
+      if (_selectedStyle != 'Tous' &&
+          r.style.toLowerCase() != _selectedStyle.toLowerCase()) return false;
       return true;
     }).toList();
 
@@ -241,19 +248,15 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
               ],
             ),
           ),
-          // Grille Instagram 3 colonnes
+          // Liste de cartes restaurant
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-                childAspectRatio: 0.75,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) =>
-                    _RestaurantGridTile(venue: filtered[index]),
+                (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _RestaurantRowCard(venue: filtered[index]),
+                ),
                 childCount: filtered.length,
               ),
             ),
@@ -386,44 +389,35 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         dateGrouped.putIfAbsent(dateKey, () => []).add(e);
       }
       final sortedDates = dateGrouped.keys.toList()..sort();
+      final now = DateTime.now();
+      final todayStr = DateFormat('yyyy-MM-dd').format(now);
+      final tomorrowStr =
+          DateFormat('yyyy-MM-dd').format(now.add(const Duration(days: 1)));
 
       for (final dateKey in sortedDates) {
         final eventsForDate = dateGrouped[dateKey]!;
-        final parsed = DateTime.tryParse(dateKey);
-        final dateLabel = parsed != null
-            ? _capitalize(DateFormatter.formatRelative(parsed))
-            : dateKey;
+        final String dateLabel;
+        if (dateKey == todayStr) {
+          dateLabel = "Aujourd'hui";
+        } else if (dateKey == tomorrowStr) {
+          dateLabel = 'Demain';
+        } else {
+          final parsed = DateTime.tryParse(dateKey);
+          dateLabel = parsed != null
+              ? _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(parsed))
+              : dateKey;
+        }
 
         items.add(
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-            child: Row(
-              children: [
-                Text(
-                  dateLabel,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${eventsForDate.length}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: modeTheme.primaryColor,
-                    ),
-                  ),
-                ),
-              ],
+            child: Text(
+              dateLabel,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
             ),
           ),
         );
@@ -431,7 +425,17 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           items.add(
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              child: EventRowCard(event: event),
+              child: CommunityEventCard(
+                title: event.titre,
+                date: event.dateDebut,
+                time: event.horaires,
+                location: event.lieuNom,
+                photoUrl: event.photoPath,
+                tag: event.categorie.isNotEmpty ? event.categorie : null,
+                isFree: event.isFree,
+                onTap: () => EventFullscreenPopup.show(
+                    context, event, 'assets/images/pochette_default.png'),
+              ),
             ),
           );
         }
@@ -496,26 +500,211 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
-// ── Tuile grille restaurant (style Instagram) ──
+// ── Carte restaurant en liste (style "A venir") ──
+class _RestaurantRowCard extends StatelessWidget {
+  final RestaurantVenue venue;
+  const _RestaurantRowCard({required this.venue});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _openDetail(context),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            // Photo
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 56,
+                height: 56,
+                child: venue.photo.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: venue.photo,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => _placeholder(),
+                        errorWidget: (_, __, ___) => _placeholder(),
+                      )
+                    : _placeholder(),
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // Infos
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    venue.name,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1A1A2E),
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  if (venue.quartier.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 10, color: Colors.grey.shade500),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            venue.quartier,
+                            style: GoogleFonts.inter(fontSize: 10, color: Colors.grey.shade500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (venue.horaires.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time, size: 10, color: Colors.grey.shade500),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            venue.horaires,
+                            style: GoogleFonts.inter(fontSize: 10, color: Colors.grey.shade500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // Tags a droite
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 70),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (venue.theme.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7B2D8E).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        venue.theme,
+                        style: GoogleFonts.inter(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF7B2D8E),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  if (venue.style.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F0F5),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        venue.style,
+                        style: GoogleFonts.inter(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Image.asset(
+      'assets/images/pochette_food.png',
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: const Color(0xFFF0F0F5),
+        child: const Icon(Icons.restaurant, size: 24, color: Colors.grey),
+      ),
+    );
+  }
+
+  void _openDetail(BuildContext context) {
+    ItemDetailSheet.show(
+      context,
+      ItemDetailSheet(
+        title: venue.name,
+        emoji: '\u{1F37D}\u{FE0F}',
+        infos: [
+          if (venue.description.isNotEmpty)
+            DetailInfoItem(Icons.info_outline, venue.description),
+          if (venue.theme.isNotEmpty)
+            DetailInfoItem(Icons.restaurant_menu, 'Theme: ${venue.theme}'),
+          if (venue.style.isNotEmpty)
+            DetailInfoItem(Icons.style, 'Style: ${venue.style}'),
+          if (venue.quartier.isNotEmpty)
+            DetailInfoItem(Icons.location_city, 'Quartier: ${venue.quartier}'),
+          if (venue.horaires.isNotEmpty)
+            DetailInfoItem(Icons.access_time, venue.horaires),
+          if (venue.adresse.isNotEmpty)
+            DetailInfoItem(Icons.location_on_outlined, venue.adresse),
+          if (venue.telephone.isNotEmpty)
+            DetailInfoItem(Icons.phone_outlined, venue.telephone),
+        ],
+        primaryAction: venue.websiteUrl.isNotEmpty
+            ? DetailAction(
+                icon: Icons.language, label: 'Site web', url: venue.websiteUrl)
+            : null,
+        secondaryActions: [
+          if (venue.lienMaps.isNotEmpty)
+            DetailAction(
+                icon: Icons.map_outlined, label: 'Maps', url: venue.lienMaps),
+          if (venue.telephone.isNotEmpty)
+            DetailAction(
+                icon: Icons.phone_outlined,
+                label: 'Appeler',
+                url: 'tel:${venue.telephone.replaceAll(' ', '')}'),
+        ],
+        shareText:
+            '${venue.name}\n${venue.adresse}\n${venue.telephone.isNotEmpty ? '${venue.telephone}\n' : ''}${venue.websiteUrl}\n\nDecouvre sur MaCity',
+      ),
+    );
+  }
+}
+
+// ── Tuile grille restaurant (style Instagram, gardee pour reference) ──
 class _RestaurantGridTile extends StatelessWidget {
   final RestaurantVenue venue;
 
   const _RestaurantGridTile({required this.venue});
 
-  static const _themeImages = <String, String>{
-    'asiatique': 'assets/images/pochette_food.png',
-    'japonais': 'assets/images/pochette_food.png',
-    'italien': 'assets/images/pochette_food.png',
-    'orientale': 'assets/images/pochette_food.png',
-    'africain': 'assets/images/pochette_food.png',
-    'indien': 'assets/images/pochette_food.png',
-    'mexicain': 'assets/images/pochette_food.png',
-  };
-
-  String get _pochette {
-    final t = venue.theme.toLowerCase();
-    return _themeImages[t] ?? 'assets/images/pochette_food.png';
-  }
+  bool get _hasNetworkPhoto => venue.photo.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -524,13 +713,24 @@ class _RestaurantGridTile extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Image de fond
-          Image.asset(
-            _pochette,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                Container(color: Colors.grey.shade900),
-          ),
+          // Image de fond : photo réseau si dispo, sinon asset local
+          if (_hasNetworkPhoto)
+            CachedNetworkImage(
+              imageUrl: venue.photo,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(color: Colors.grey.shade800),
+              errorWidget: (_, __, ___) => Image.asset(
+                'assets/images/pochette_food.png',
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            Image.asset(
+              'assets/images/pochette_food.png',
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  Container(color: Colors.grey.shade900),
+            ),
 
           // Gradient bas
           Positioned.fill(

@@ -34,6 +34,7 @@ export interface ScrapedEvent {
   reservation_telephone: string;
   station_metro_tram_a_proximite: string;
   photo_url: string;
+  ville: string;
 }
 
 /** Upsert events into scraped_events table (merge on identifiant). */
@@ -73,7 +74,7 @@ export async function upsertEvents(events: ScrapedEvent[]): Promise<number> {
 
 /** Build a default ScrapedEvent with empty defaults. */
 export function makeEvent(partial: Partial<ScrapedEvent> & Pick<ScrapedEvent, "identifiant" | "source" | "rubrique">): ScrapedEvent {
-  return {
+  const event: ScrapedEvent = {
     nom_de_la_manifestation: "",
     descriptif_court: "",
     descriptif_long: "",
@@ -94,8 +95,14 @@ export function makeEvent(partial: Partial<ScrapedEvent> & Pick<ScrapedEvent, "i
     reservation_telephone: "",
     station_metro_tram_a_proximite: "",
     photo_url: "",
+    ville: "",
     ...partial,
   };
+  // Si ville est vide mais commune est remplie, copier commune vers ville
+  if (!event.ville && event.commune) {
+    event.ville = event.commune;
+  }
+  return event;
 }
 
 /** Helper to call another edge function. */
@@ -132,6 +139,71 @@ export function todayStr(): string {
 export function isFutureDate(dateStr: string): boolean {
   if (!dateStr) return false;
   return dateStr >= todayStr();
+}
+
+// ── Scraper error logging ──
+
+export interface ScraperError {
+  scraper: string;
+  source: string;
+  ville?: string;
+  error_type?: "fetch" | "parse" | "upsert" | "timeout";
+  message: string;
+  stack?: string;
+  event_count?: number;
+}
+
+/** Log a scraper error to the scraper_errors table. Fire-and-forget. */
+export async function logScraperError(err: ScraperError): Promise<void> {
+  try {
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/scraper_errors`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          scraper: err.scraper,
+          source: err.source,
+          ville: err.ville ?? "",
+          error_type: err.error_type ?? "fetch",
+          message: err.message.substring(0, 2000),
+          stack: (err.stack ?? "").substring(0, 4000),
+          event_count: err.event_count ?? 0,
+        }),
+      },
+    );
+  } catch (e) {
+    console.error("Failed to log scraper error:", e);
+  }
+}
+
+/** Wrap a source fetch function with error logging. Returns empty array on failure. */
+export async function withErrorLogging<T>(
+  scraper: string,
+  source: string,
+  ville: string,
+  fn: () => Promise<T[]>,
+): Promise<T[]> {
+  try {
+    return await fn();
+  } catch (e) {
+    const error = e as Error;
+    const errorType = error.name === "AbortError" ? "timeout" as const : "fetch" as const;
+    console.error(`[${scraper}/${source}/${ville}] ${errorType}: ${error.message}`);
+    await logScraperError({
+      scraper,
+      source,
+      ville,
+      error_type: errorType,
+      message: error.message,
+      stack: error.stack,
+    });
+    return [];
+  }
 }
 
 /** Check if a date string is not expired (date_fin >= 7 days ago). */

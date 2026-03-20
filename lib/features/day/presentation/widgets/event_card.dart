@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 class EventCard extends ConsumerWidget {
@@ -338,7 +339,14 @@ class EventCard extends ConsumerWidget {
                       onPressed: () {
                         ref
                             .read(likesProvider.notifier)
-                            .toggle(event.identifiant);
+                            .toggle(
+                              event.identifiant,
+                              meta: LikeMetadata(
+                                title: event.titre,
+                                imageUrl: event.photoPath,
+                                category: event.categorie,
+                              ),
+                            );
                       },
                       icon: Icon(
                         isLiked ? Icons.favorite : Icons.favorite_border,

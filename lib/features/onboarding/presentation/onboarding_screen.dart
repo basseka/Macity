@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
+import 'package:pulz_app/core/services/user_identity_service.dart';
+import 'package:pulz_app/core/data/detailed_interests.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
@@ -18,28 +19,25 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  // true = inscription (new user), false = connexion (existing user)
+  bool _isSignUp = true;
+
   final _formKey = GlobalKey<FormState>();
   final _prenomController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _villeController = TextEditingController();
   final _selectedModes = <String>{};
+  final _selectedDetailed = <String>{};
+  final _expandedCategories = <String>{};
   bool _submitting = false;
   String _selectedVille = '';
   Timer? _villeDebounce;
   List<_CommuneResult> _villeSuggestions = [];
   bool _showVilleSuggestions = false;
+  String? _loginError;
 
-  static const _modeOptions = [
-    (mode: AppMode.day, label: 'Concerts & Spectacles', icon: Icons.music_note),
-    (mode: AppMode.sport, label: 'Sport', icon: Icons.sports_soccer),
-    (mode: AppMode.culture, label: 'Culture & Arts', icon: Icons.palette),
-    (mode: AppMode.family, label: 'En Famille', icon: Icons.family_restroom),
-    (mode: AppMode.food, label: 'Food & Lifestyle', icon: Icons.restaurant),
-    (mode: AppMode.gaming, label: 'Gaming', icon: Icons.videogame_asset),
-    (mode: AppMode.night, label: 'Nuit & Sorties', icon: Icons.nightlife),
-    (mode: AppMode.tourisme, label: 'Tourisme', icon: Icons.flight),
-  ];
+  static const _accentColor = Color(0xFFE91E8C);
 
   @override
   void dispose() {
@@ -51,18 +49,33 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  // ── Sign Up ──
+  Future<void> _submitSignUp() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
+    setState(() {
+      _submitting = true;
+      _loginError = null;
+    });
 
     try {
-      await UserProfileService().upsert(
+      // Deduire les modes principaux depuis les sous-interets
+      final modesFromDetailed = <String>{};
+      for (final key in _selectedDetailed) {
+        modesFromDetailed.add(key.split(':').first);
+      }
+      final allModes = {..._selectedModes, ...modesFromDetailed};
+
+      final svc = UserProfileService();
+      await svc.upsert(
         prenom: _prenomController.text.trim(),
         email: _emailController.text.trim(),
         telephone: _phoneController.text.trim(),
         ville: _selectedVille,
-        preferences: _selectedModes.toList(),
+        preferences: allModes.toList(),
       );
+      if (_selectedDetailed.isNotEmpty) {
+        await svc.updateDetailedPreferences(_selectedDetailed.toList());
+      }
       await markOnboardingDone();
       markOnboardingComplete();
       if (mounted) context.go('/home');
@@ -75,6 +88,53 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  // ── Login ──
+  Future<void> _submitLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _submitting = true;
+      _loginError = null;
+    });
+
+    try {
+      final profile = await UserProfileService().findByCredentials(
+        email: _emailController.text.trim(),
+        telephone: _phoneController.text.trim(),
+      );
+
+      if (profile == null) {
+        setState(() {
+          _loginError = 'Aucun compte trouve avec ces identifiants';
+          _submitting = false;
+        });
+        return;
+      }
+
+      // Link this device to the existing profile
+      final existingUserId = profile['user_id'] as String;
+      await UserIdentityService.setUserId(existingUserId);
+
+      await markOnboardingDone();
+      markOnboardingComplete();
+      if (mounted) context.go('/home');
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loginError = 'Erreur de connexion, reessayez';
+          _submitting = false;
+        });
+      }
+    }
+  }
+
+  void _switchMode() {
+    setState(() {
+      _isSignUp = !_isSignUp;
+      _loginError = null;
+      _formKey.currentState?.reset();
+    });
   }
 
   @override
@@ -119,8 +179,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: 12),
                   Center(
                     child: Text(
-                      'Bienvenue sur MaCity',
-                      style: GoogleFonts.inter(
+                      _isSignUp ? 'Bienvenue sur MaCity' : 'Content de te revoir !',
+                      style: GoogleFonts.poppins(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -130,150 +190,70 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: 4),
                   Center(
                     child: Text(
-                      'Personnalisez votre experience',
-                      style: GoogleFonts.inter(
+                      _isSignUp
+                          ? 'Cree ton compte en quelques secondes'
+                          : 'Connecte-toi avec tes identifiants',
+                      style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: Colors.white70,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 20),
 
-                  // Prenom
-                  _buildField(
-                    controller: _prenomController,
-                    label: 'Prenom',
-                    icon: Icons.person_outline,
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Entrez votre prenom' : null,
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Email
-                  _buildField(
-                    controller: _emailController,
-                    label: 'Email',
-                    icon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Entrez votre email';
-                      if (!v.contains('@') || !v.contains('.')) return 'Email invalide';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Telephone
-                  _buildField(
-                    controller: _phoneController,
-                    label: 'Telephone',
-                    icon: Icons.phone_outlined,
-                    keyboardType: TextInputType.phone,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Entrez votre numero';
-                      if (v.trim().length < 10) return 'Numero trop court';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Ville
-                  _buildVilleField(),
+                  // Mode toggle (Inscription / Connexion)
+                  _buildModeToggle(),
                   const SizedBox(height: 24),
 
-                  // Preferences
-                  Text(
-                    'Quelles activites vous interessent ?',
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Selectionnez vos centres d\'interet pour recevoir des notifications pertinentes',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: Colors.white54,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  // Form fields
+                  if (_isSignUp) ..._buildSignUpFields() else ..._buildLoginFields(),
 
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _modeOptions.map((opt) {
-                      final selected = _selectedModes.contains(opt.mode.name);
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (selected) {
-                              _selectedModes.remove(opt.mode.name);
-                            } else {
-                              _selectedModes.add(opt.mode.name);
-                            }
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? const Color(0xFFE91E8C)
-                                : Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: selected
-                                  ? const Color(0xFFE91E8C)
-                                  : Colors.white24,
+                  // Error message
+                  if (_loginError != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.error_outline, size: 18, color: Colors.red.shade300),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _loginError!,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.red.shade200,
+                              ),
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                opt.icon,
-                                size: 16,
-                                color: selected ? Colors.white : Colors.white70,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                opt.label,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: selected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
-                                  color:
-                                      selected ? Colors.white : Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                        ],
+                      ),
+                    ),
+                  ],
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
-                  // Submit
+                  // Submit button
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: _submitting ? null : _submit,
+                      onPressed: _submitting
+                          ? null
+                          : (_isSignUp ? _submitSignUp : _submitLogin),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE91E8C),
+                        backgroundColor: _accentColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        disabledBackgroundColor:
-                            const Color(0xFFE91E8C).withValues(alpha: 0.5),
+                        disabledBackgroundColor: _accentColor.withValues(alpha: 0.5),
+                        elevation: 4,
+                        shadowColor: _accentColor.withValues(alpha: 0.4),
                       ),
                       child: _submitting
                           ? const SizedBox(
@@ -285,8 +265,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               ),
                             )
                           : Text(
-                              'C\'est parti !',
-                              style: GoogleFonts.inter(
+                              _isSignUp ? 'C\'est parti !' : 'Se connecter',
+                              style: GoogleFonts.poppins(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -295,6 +275,36 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   const SizedBox(height: 12),
 
+                  // Switch mode link
+                  Center(
+                    child: GestureDetector(
+                      onTap: _submitting ? null : _switchMode,
+                      child: RichText(
+                        text: TextSpan(
+                          style: GoogleFonts.poppins(fontSize: 13, color: Colors.white54),
+                          children: [
+                            TextSpan(
+                              text: _isSignUp
+                                  ? 'Deja inscrit ? '
+                                  : 'Pas encore de compte ? ',
+                            ),
+                            TextSpan(
+                              text: _isSignUp ? 'Se connecter' : 'S\'inscrire',
+                              style: const TextStyle(
+                                color: _accentColor,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                                decorationColor: _accentColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
                   // Skip
                   Center(
                     child: TextButton(
@@ -302,15 +312,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           ? null
                           : () async {
                               await markOnboardingDone();
+                              markOnboardingComplete();
                               if (mounted) context.go('/home');
                             },
                       child: Text(
                         'Passer cette etape',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: Colors.white38,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: Colors.white24,
                           decoration: TextDecoration.underline,
-                          decorationColor: Colors.white38,
+                          decorationColor: Colors.white24,
                         ),
                       ),
                     ),
@@ -325,14 +336,375 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  // ── Mode toggle pills ──
+  Widget _buildModeToggle() {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() {
+                _isSignUp = true;
+                _loginError = null;
+              }),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: _isSignUp ? _accentColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Center(
+                  child: Text(
+                    'Inscription',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: _isSignUp ? FontWeight.w600 : FontWeight.w400,
+                      color: _isSignUp ? Colors.white : Colors.white54,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() {
+                _isSignUp = false;
+                _loginError = null;
+              }),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: !_isSignUp ? _accentColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Center(
+                  child: Text(
+                    'Connexion',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: !_isSignUp ? FontWeight.w600 : FontWeight.w400,
+                      color: !_isSignUp ? Colors.white : Colors.white54,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Sign Up fields ──
+  List<Widget> _buildSignUpFields() {
+    return [
+      // Prenom
+      _buildField(
+        controller: _prenomController,
+        label: 'Prenom',
+        icon: Icons.person_outline,
+        validator: (v) =>
+            v == null || v.trim().isEmpty ? 'Entrez votre prenom' : null,
+      ),
+      const SizedBox(height: 14),
+
+      // Email
+      _buildField(
+        controller: _emailController,
+        label: 'Email',
+        icon: Icons.email_outlined,
+        keyboardType: TextInputType.emailAddress,
+        validator: (v) {
+          if (v == null || v.trim().isEmpty) return 'Entrez votre email';
+          if (!v.contains('@') || !v.contains('.')) return 'Email invalide';
+          return null;
+        },
+      ),
+      const SizedBox(height: 14),
+
+      // Telephone
+      _buildField(
+        controller: _phoneController,
+        label: 'Telephone',
+        icon: Icons.phone_outlined,
+        keyboardType: TextInputType.phone,
+        validator: (v) {
+          if (v == null || v.trim().isEmpty) return 'Entrez votre numero';
+          if (v.trim().length < 10) return 'Numero trop court';
+          return null;
+        },
+      ),
+      const SizedBox(height: 14),
+
+      // Ville
+      _buildVilleField(),
+      const SizedBox(height: 24),
+
+      // Preferences detaillees
+      Text(
+        'Quelles activites t\'interessent ?',
+        style: GoogleFonts.poppins(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        'Selectionne tes centres d\'interet pour des notifications pertinentes. '
+        'Appuie sur une categorie pour affiner.',
+        style: GoogleFonts.poppins(
+          fontSize: 11,
+          color: Colors.white54,
+        ),
+      ),
+      const SizedBox(height: 12),
+
+      ...kDetailedInterests.map((cat) {
+        final modeSelected = _selectedModes.contains(cat.mode);
+        final isExpanded = _expandedCategories.contains(cat.mode);
+        final count = _selectedDetailed.where((k) => k.startsWith('${cat.mode}:')).length;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Category header
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_expandedCategories.contains(cat.mode)) {
+                    _expandedCategories.remove(cat.mode);
+                  } else {
+                    _expandedCategories.add(cat.mode);
+                  }
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: modeSelected
+                      ? _accentColor.withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: modeSelected
+                        ? _accentColor.withValues(alpha: 0.4)
+                        : Colors.white12,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    // Mode checkbox
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (modeSelected) {
+                            _selectedModes.remove(cat.mode);
+                            _selectedDetailed.removeWhere((k) => k.startsWith('${cat.mode}:'));
+                          } else {
+                            _selectedModes.add(cat.mode);
+                          }
+                        });
+                      },
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: modeSelected ? _accentColor : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: modeSelected ? _accentColor : Colors.white38,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: modeSelected
+                            ? const Icon(Icons.check, size: 15, color: Colors.white)
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(cat.icon, size: 18, color: modeSelected ? _accentColor : Colors.white60),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        cat.label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: modeSelected ? Colors.white : Colors.white70,
+                        ),
+                      ),
+                    ),
+                    if (count > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _accentColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                      size: 20,
+                      color: Colors.white38,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Sub-interests
+            if (isExpanded)
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: cat.items.map((item) {
+                    final key = item.key(cat.mode);
+                    final selected = _selectedDetailed.contains(key);
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (selected) {
+                            _selectedDetailed.remove(key);
+                          } else {
+                            _selectedDetailed.add(key);
+                            _selectedModes.add(cat.mode);
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? _accentColor
+                              : Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: selected ? _accentColor : Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              item.icon,
+                              size: 13,
+                              color: selected ? Colors.white : Colors.white60,
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              item.label,
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                                color: selected ? Colors.white : Colors.white60,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+          ],
+        );
+      }),
+    ];
+  }
+
+  // ── Login fields ──
+  List<Widget> _buildLoginFields() {
+    return [
+      // Illustration / hint
+      Container(
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.only(bottom: 20),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.lock_open_rounded,
+              size: 36,
+              color: _accentColor.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Entre ton email et numero de telephone\npour retrouver ton compte',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.white54,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // Email
+      _buildField(
+        controller: _emailController,
+        label: 'Email',
+        icon: Icons.email_outlined,
+        keyboardType: TextInputType.emailAddress,
+        validator: (v) {
+          if (v == null || v.trim().isEmpty) return 'Entrez votre email';
+          if (!v.contains('@') || !v.contains('.')) return 'Email invalide';
+          return null;
+        },
+      ),
+      const SizedBox(height: 14),
+
+      // Telephone
+      _buildField(
+        controller: _phoneController,
+        label: 'Telephone',
+        icon: Icons.phone_outlined,
+        keyboardType: TextInputType.phone,
+        validator: (v) {
+          if (v == null || v.trim().isEmpty) return 'Entrez votre numero';
+          if (v.trim().length < 10) return 'Numero trop court';
+          return null;
+        },
+      ),
+    ];
+  }
+
   Widget _buildVilleField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextFormField(
           controller: _villeController,
-          validator: (v) => _selectedVille.isEmpty ? 'Selectionnez votre ville' : null,
-          style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
+          validator: (v) =>
+              _selectedVille.isEmpty ? 'Selectionnez votre ville' : null,
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
           onChanged: (query) {
             _villeDebounce?.cancel();
             if (query.length < 2) {
@@ -348,11 +720,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           },
           decoration: InputDecoration(
             labelText: 'Ville ou village',
-            labelStyle: GoogleFonts.inter(fontSize: 13, color: Colors.white54),
-            prefixIcon: const Icon(Icons.location_city_outlined, color: Colors.white54, size: 20),
+            labelStyle:
+                GoogleFonts.poppins(fontSize: 13, color: Colors.white54),
+            prefixIcon: const Icon(Icons.location_city_outlined,
+                color: Colors.white54, size: 20),
             suffixIcon: _selectedVille.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.white54, size: 18),
+                    icon: const Icon(Icons.clear,
+                        color: Colors.white54, size: 18),
                     onPressed: () {
                       _villeController.clear();
                       setState(() {
@@ -371,13 +746,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE91E8C)),
+              borderSide: const BorderSide(color: _accentColor),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Colors.redAccent),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
         if (_showVilleSuggestions && _villeSuggestions.isNotEmpty)
@@ -397,9 +773,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 final commune = _villeSuggestions[index];
                 return InkWell(
                   onTap: () {
-                    final display = '${commune.nom} (${commune.codePostal})';
+                    final display =
+                        '${commune.nom} (${commune.codePostal})';
                     _villeController.text = display;
-                    _villeController.selection = TextSelection.collapsed(offset: display.length);
+                    _villeController.selection =
+                        TextSelection.collapsed(offset: display.length);
                     setState(() {
                       _selectedVille = display;
                       _showVilleSuggestions = false;
@@ -407,25 +785,33 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     });
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on, size: 16, color: Color(0xFFE91E8C)),
+                        const Icon(Icons.location_on,
+                            size: 16, color: _accentColor),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             commune.nom,
-                            style: GoogleFonts.inter(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500),
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                         Text(
                           commune.codePostal,
-                          style: GoogleFonts.inter(fontSize: 12, color: Colors.white54),
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: Colors.white54),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           commune.departement,
-                          style: GoogleFonts.inter(fontSize: 11, color: Colors.white38),
+                          style: GoogleFonts.poppins(
+                              fontSize: 11, color: Colors.white38),
                         ),
                       ],
                     ),
@@ -453,10 +839,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final results = <_CommuneResult>[];
       for (final item in response.data as List) {
         final nom = item['nom'] as String;
-        final codes = (item['codesPostaux'] as List?)?.cast<String>() ?? [];
+        final codes =
+            (item['codesPostaux'] as List?)?.cast<String>() ?? [];
         final dep = item['codeDepartement'] as String? ?? '';
         final cp = codes.isNotEmpty ? codes.first : '';
-        results.add(_CommuneResult(nom: nom, codePostal: cp, departement: dep));
+        results.add(_CommuneResult(
+            nom: nom, codePostal: cp, departement: dep));
       }
       if (mounted) {
         setState(() {
@@ -480,10 +868,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
+      style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.inter(fontSize: 13, color: Colors.white54),
+        labelStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.white54),
         prefixIcon: Icon(icon, color: Colors.white54, size: 20),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.08),
@@ -493,13 +881,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE91E8C)),
+          borderSide: const BorderSide(color: _accentColor),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.redAccent),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }

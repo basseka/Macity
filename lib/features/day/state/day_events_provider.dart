@@ -8,41 +8,47 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 /// Salle de concert sélectionnée (keyword) — null = grille des salles.
 final selectedConcertVenueProvider = StateProvider<String?>((ref) => null);
 
-/// Salle DJ Set sélectionnée (keyword) — null = grille des salles.
-final selectedDjsetVenueProvider = StateProvider<String?>((ref) => null);
-
 /// Count provider per subcategory (used for badge on grid cards).
 /// Inclut les événements API + les événements utilisateur correspondants.
 final daySubcategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {
   final city = ref.watch(selectedCityProvider);
-  final repository = EventRepository();
-  var apiEvents =
-      await repository.fetchEvents(city: city, subcategory: searchTag);
 
-  // Pour "A venir", exclure les événements catégorisés "Autres"
+  // "A venir" dans day = tous les events scraped + communautaires
   if (searchTag == 'A venir') {
-    apiEvents = apiEvents.where(_isKnownCategory).toList();
+    final repository = EventRepository();
+    final scrapedEvents = await repository.fetchEvents(city: city, subcategory: 'A venir');
+    final communityCount = ref.watch(dayCommunityCountProvider);
+    return scrapedEvents.length + communityCount;
   }
+
+  final repository = EventRepository();
+  final apiEvents =
+      await repository.fetchEvents(city: city, subcategory: searchTag);
 
   // Compter aussi les user events qui correspondent
   final userEvents = ref.watch(userEventsProvider);
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-
   final matchingUserCount = userEvents.where((ue) {
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
-
-    if (searchTag == 'A venir') {
-      final eventDate = DateTime.tryParse(ue.date);
-      if (eventDate == null) return false;
-      return !eventDate.isBefore(today);
-    }
-
     return ue.categorie.toLowerCase() == searchTag.toLowerCase();
   }).length;
 
   return apiEvents.length + matchingUserCount;
+});
+
+/// Nombre d'events day créés par la communauté (user_events, rubrique day).
+final dayCommunityCountProvider = Provider<int>((ref) {
+  final city = ref.watch(selectedCityProvider);
+  final userEvents = ref.watch(userEventsProvider);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return userEvents.where((ue) {
+    if (ue.rubrique != 'day') return false;
+    if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+    final eventDate = DateTime.tryParse(ue.date);
+    if (eventDate == null) return false;
+    return !eventDate.isBefore(today);
+  }).length;
 });
 
 final dayEventsProvider = FutureProvider<List<Event>>((ref) async {
@@ -50,131 +56,71 @@ final dayEventsProvider = FutureProvider<List<Event>>((ref) async {
   final subcategory = ref.watch(daySubcategoryProvider);
   if (subcategory == null) return [];
 
-  final repository = EventRepository();
-  var apiEvents = await repository.fetchEvents(city: city, subcategory: subcategory);
-
-  // Pour "A venir", exclure les événements catégorisés "Autres"
-  if (subcategory == 'A venir') {
-    apiEvents = apiEvents.where(_isKnownCategory).toList();
-  }
-
-  // Merge local user events
   final userEvents = ref.watch(userEventsProvider);
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
 
+  // "A venir" = tous les events scraped (avec/sans photo) + communautaires
+  if (subcategory == 'A venir') {
+    final repository = EventRepository();
+    final scrapedEvents = await repository.fetchEvents(city: city, subcategory: 'A venir');
+
+    final communityEvents = userEvents
+        .where((ue) {
+          if (ue.rubrique != 'day') return false;
+          if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+          final eventDate = DateTime.tryParse(ue.date);
+          if (eventDate == null) return false;
+          return !eventDate.isBefore(today);
+        })
+        .map((ue) => ue.toEvent())
+        .toList();
+
+    return [...communityEvents, ...scrapedEvents];
+  }
+
+  final repository = EventRepository();
+  final apiEvents = await repository.fetchEvents(city: city, subcategory: subcategory);
+
   final matchingUserEvents = userEvents.where((ue) {
     if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
-
-    if (subcategory == 'A venir') {
-      final eventDate = DateTime.tryParse(ue.date);
-      if (eventDate == null) return false;
-      return !eventDate.isBefore(today);
-    }
-
-    // Match by categorie (subcategory name)
     return ue.categorie.toLowerCase() == subcategory.toLowerCase();
   }).toList();
 
-  // User events first, then API events
   final userConverted = matchingUserEvents.map((ue) => ue.toEvent()).toList();
   return [...userConverted, ...apiEvents];
 });
 
-/// Events filtrés par salle de concert (lieuNom contient le keyword).
+/// Events filtrés par salle (lieuNom contient le keyword).
+/// Utilise la sous-catégorie courante (Concert, DJ set, Spectacle, etc.).
 final dayVenueEventsProvider = FutureProvider<List<Event>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final venueKeyword = ref.watch(selectedConcertVenueProvider);
-  if (venueKeyword == null) return [];
+  final subcategory = ref.watch(daySubcategoryProvider);
+  if (venueKeyword == null || subcategory == null) return [];
 
   final repository = EventRepository();
   return repository.fetchEvents(
     city: city,
-    subcategory: 'Concert',
+    subcategory: subcategory,
     lieuNom: venueKeyword,
   );
 });
 
-/// Count des events par salle de concert.
+/// Count des events par salle (générique, fonctionne pour toutes les catégories).
 final concertVenueCountProvider =
     FutureProvider.family<int, String>((ref, keyword) async {
   final city = ref.watch(selectedCityProvider);
+  final subcategory = ref.watch(daySubcategoryProvider);
+  if (subcategory == null) return 0;
+
   final repository = EventRepository();
   final events = await repository.fetchEvents(
     city: city,
-    subcategory: 'Concert',
-    lieuNom: keyword,
-  );
-  return events.length;
-});
-
-/// Events filtrés par salle DJ Set (lieuNom contient le keyword).
-final dayDjsetVenueEventsProvider = FutureProvider<List<Event>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
-  final venueKeyword = ref.watch(selectedDjsetVenueProvider);
-  if (venueKeyword == null) return [];
-
-  final repository = EventRepository();
-  return repository.fetchEvents(
-    city: city,
-    subcategory: 'DJ set',
-    lieuNom: venueKeyword,
-  );
-});
-
-/// Count des events par salle DJ Set.
-final djsetVenueCountProvider =
-    FutureProvider.family<int, String>((ref, keyword) async {
-  final city = ref.watch(selectedCityProvider);
-  final repository = EventRepository();
-  final events = await repository.fetchEvents(
-    city: city,
-    subcategory: 'DJ set',
-    lieuNom: keyword,
-  );
-  return events.length;
-});
-
-/// Salle Spectacle sélectionnée (keyword) — null = grille des salles.
-final selectedSpectacleVenueProvider = StateProvider<String?>((ref) => null);
-
-/// Events filtrés par salle Spectacle.
-final daySpectacleVenueEventsProvider = FutureProvider<List<Event>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
-  final venueKeyword = ref.watch(selectedSpectacleVenueProvider);
-  if (venueKeyword == null) return [];
-
-  final repository = EventRepository();
-  return repository.fetchEvents(
-    city: city,
-    subcategory: 'Spectacle',
-    lieuNom: venueKeyword,
-  );
-});
-
-/// Count des events par salle Spectacle.
-final spectacleVenueCountProvider =
-    FutureProvider.family<int, String>((ref, keyword) async {
-  final city = ref.watch(selectedCityProvider);
-  final repository = EventRepository();
-  final events = await repository.fetchEvents(
-    city: city,
-    subcategory: 'Spectacle',
+    subcategory: subcategory,
     lieuNom: keyword,
   );
   return events.length;
 });
 
 /// Retourne true si l'événement appartient à une catégorie connue (pas "Autres").
-bool _isKnownCategory(Event e) {
-  final cat = e.categorie.toLowerCase();
-  final type = e.type.toLowerCase();
-  if (cat.contains('concert') || type.contains('concert')) return true;
-  if (cat.contains('festival') || type.contains('festival')) return true;
-  if (cat.contains('opera') || type.contains('opera')) return true;
-  if (cat.contains('spectacle') || type.contains('spectacle')) return true;
-  if (cat.contains('dj') || type.contains('dj')) return true;
-  if (cat.contains('showcase') || type.contains('showcase')) return true;
-  if (cat.contains('stand up') || type.contains('stand up')) return true;
-  return false;
-}

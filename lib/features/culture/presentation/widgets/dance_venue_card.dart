@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -45,7 +46,7 @@ class DanceVenueCard extends ConsumerWidget {
                 child: SizedBox(
                   width: 64,
                   height: 64,
-                  child: Image.asset(dance.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                  child: VenueImage(imageUrl: dance.image, defaultAsset: 'assets/images/pochette_theatre.png'),
                 ),
               ),
             ),
@@ -118,7 +119,7 @@ class DanceVenueCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: dance.name,
-        emoji: '\uD83D\uDC83',
+        emoji: '',
         imageAsset: dance.image,
         infos: [
           if (dance.description.isNotEmpty)

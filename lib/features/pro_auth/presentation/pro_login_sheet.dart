@@ -66,7 +66,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       child: _showSuccess
           ? _buildSuccessView()
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         child: Form(
           key: _formKey,
           child: Column(
@@ -76,34 +76,34 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
               // Handle bar
               Center(
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 30,
+                  height: 3,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               const Text(
                 'Espace Professionnel',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: _primaryDarkColor,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Toggle tabs
               Container(
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(3),
                 child: Row(
                   children: [
                     _buildTab('Inscription', !_isLoginMode),
@@ -111,23 +111,24 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 _isLoginMode
                     ? 'Connectez-vous a votre compte'
                     : 'Inscrivez-vous pour publier des evenements',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 11,
                   color: Colors.grey.shade600,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 14),
 
               if (_isLoginMode) ...[
                 // ── Mode connexion ──
                 TextFormField(
                   controller: _emailController,
+                  style: const TextStyle(fontSize: 13),
                   decoration: _inputDecoration(
                     label: 'Email',
                     icon: Icons.email_outlined,
@@ -137,9 +138,10 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                       ? 'L\'email est requis'
                       : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
+                  style: const TextStyle(fontSize: 13),
                   decoration: _inputDecoration(
                     label: 'Mot de passe',
                     icon: Icons.lock_outline,
@@ -150,7 +152,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                             ? Icons.visibility_off
                             : Icons.visibility,
                         color: _primaryColor,
-                        size: 20,
+                        size: 18,
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
@@ -161,7 +163,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                       ? 'Le mot de passe est requis'
                       : null,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
@@ -171,7 +173,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                           ? 'Envoi en cours...'
                           : 'Mot de passe oublie ?',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 11,
                         color: _isResetting ? Colors.grey : _primaryColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -182,6 +184,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 // ── Mode inscription ──
                 TextFormField(
                   controller: _nomController,
+                  style: const TextStyle(fontSize: 13),
                   decoration: _inputDecoration(
                     label: 'Nom de la structure',
                     icon: Icons.business_outlined,
@@ -190,10 +193,11 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                       ? 'Le nom est requis'
                       : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
                   initialValue: _selectedType,
                   isExpanded: true,
+                  style: const TextStyle(fontSize: 13, color: Colors.black87),
                   decoration: _inputDecoration(
                     label: 'Type de structure',
                     icon: Icons.category_outlined,
@@ -203,7 +207,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                         (e) => DropdownMenuItem(
                           value: e.key,
                           child:
-                              Text(e.value, overflow: TextOverflow.ellipsis),
+                              Text(e.value, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
                         ),
                       )
                       .toList(),
@@ -211,9 +215,10 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                     if (value != null) setState(() => _selectedType = value);
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _emailController,
+                  style: const TextStyle(fontSize: 13),
                   decoration: _inputDecoration(
                     label: 'Email',
                     icon: Icons.email_outlined,
@@ -223,9 +228,10 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                       ? 'L\'email est requis'
                       : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
+                  style: const TextStyle(fontSize: 13),
                   decoration: _inputDecoration(
                     label: 'Mot de passe',
                     icon: Icons.lock_outline,
@@ -236,7 +242,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                             ? Icons.visibility_off
                             : Icons.visibility,
                         color: _primaryColor,
-                        size: 20,
+                        size: 18,
                       ),
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
@@ -253,9 +259,10 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _telephoneController,
+                  style: const TextStyle(fontSize: 13),
                   decoration: _inputDecoration(
                     label: 'Telephone',
                     icon: Icons.phone_outlined,
@@ -266,28 +273,28 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                       : null,
                 ),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Error message
               if (authState.error != null)
                 Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.red.shade200),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
-                      const SizedBox(width: 10),
+                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 16),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           authState.error!,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 11,
                             color: Colors.red.shade700,
                             fontWeight: FontWeight.w500,
                           ),
@@ -304,15 +311,15 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   backgroundColor: _primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: 0,
                 ),
                 child: authState.isSubmitting
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
+                        height: 16,
+                        width: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
@@ -323,12 +330,12 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                             ? 'Se connecter'
                             : 'Valider l\'inscription',
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -338,25 +345,24 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
 
   Widget _buildSuccessView() {
     return Padding(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle bar
           Center(
             child: Container(
-              width: 40,
-              height: 4,
+              width: 30,
+              height: 3,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
           Container(
-            width: 72,
-            height: 72,
+            width: 48,
+            height: 48,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -365,20 +371,20 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 colors: [_primaryColor, Color(0xFFE91E8C)],
               ),
             ),
-            child: const Icon(Icons.check, color: Colors.white, size: 40),
+            child: const Icon(Icons.check, color: Colors.white, size: 26),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
           Text(
             _successMessage,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: _primaryDarkColor,
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -387,18 +393,18 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 backgroundColor: _primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 elevation: 0,
               ),
               child: const Text(
                 'Fermer',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
         ],
       ),
     );
@@ -415,16 +421,16 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 7),
           decoration: BoxDecoration(
             color: isActive ? _primaryColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: isActive ? Colors.white : Colors.grey.shade600,
             ),
@@ -440,23 +446,26 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
   }) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, color: _primaryColor, size: 20),
+      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      prefixIcon: Icon(icon, color: _primaryColor, size: 16),
+      prefixIconConstraints: const BoxConstraints(minWidth: 36),
       filled: true,
       fillColor: Colors.grey.shade50,
+      isDense: true,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: _primaryColor, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     );
   }
 

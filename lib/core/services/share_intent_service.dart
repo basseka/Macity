@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:pulz_app/core/router/app_router.dart';
-import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
+import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
@@ -124,9 +124,16 @@ class ShareIntentService {
                   title: const Text('Ajouter un evenement'),
                   onTap: () {
                     Navigator.pop(sheetCtx);
-                    _openSheet(
-                      AddEventBottomSheet(initialPhotoPath: photoPath),
-                    );
+                    final navCtx = _navContext;
+                    if (navCtx != null) {
+                      Navigator.of(navCtx).push(
+                        MaterialPageRoute(
+                          builder: (_) => CreateEventPage(
+                            initialPhotoPath: photoPath,
+                          ),
+                        ),
+                      );
+                    }
                   },
                 ),
                 ListTile(

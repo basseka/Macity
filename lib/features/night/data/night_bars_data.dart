@@ -349,6 +349,7 @@ class NightBarsData {
       lienMaps: 'https://maps.google.com/?q=1862+Artybar+24+Rue+Nicolas+Bachelier+Toulouse',
       latitude: 43.6005,
       longitude: 1.4510,
+      photo: 'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/venues/artybar.png',
     ),
     CommerceModel(
       nom: 'Txus',

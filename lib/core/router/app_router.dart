@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pulz_app/features/home/presentation/home_screen.dart';
+import 'package:pulz_app/features/home/presentation/feed_screen.dart';
 import 'package:pulz_app/features/mode/presentation/mode_shell.dart';
 import 'package:pulz_app/features/day/presentation/day_screen.dart';
 import 'package:pulz_app/features/sport/presentation/sport_screen.dart';
@@ -13,6 +13,8 @@ import 'package:pulz_app/features/gaming/presentation/gaming_screen.dart';
 import 'package:pulz_app/features/tourisme/presentation/tourisme_screen.dart';
 import 'package:pulz_app/features/auth/presentation/instagram_callback_handler.dart';
 import 'package:pulz_app/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:pulz_app/features/test/presentation/test_screen.dart';
+import 'package:pulz_app/features/splash/presentation/toto_splash_screen.dart';
 
 final rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -33,21 +35,27 @@ void markOnboardingComplete() {
 
 final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
-  initialLocation: '/home',
+  initialLocation: '/splash',
   redirect: (context, state) {
-    if (_onboardingDone == false && state.matchedLocation != '/onboarding') {
+    if (_onboardingDone == false &&
+        state.matchedLocation != '/onboarding' &&
+        state.matchedLocation != '/splash') {
       return '/onboarding';
     }
     return null;
   },
   routes: [
     GoRoute(
+      path: '/splash',
+      builder: (context, state) => const TotoSplashScreen(),
+    ),
+    GoRoute(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
     ),
     GoRoute(
       path: '/home',
-      builder: (context, state) => const HomeScreen(),
+      builder: (context, state) => const FeedScreen(),
     ),
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
@@ -102,6 +110,10 @@ final appRouter = GoRouter(
           ),
         ),
       ],
+    ),
+    GoRoute(
+      path: '/test',
+      builder: (context, state) => const TestScreen(),
     ),
     GoRoute(
       path: '/instagram-callback',

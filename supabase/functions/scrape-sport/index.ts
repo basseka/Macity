@@ -4,12 +4,13 @@
 // 1. Galas de boxe depuis galadeboxetoulouse.com + ffboxe.com
 // 2. Matchs basketball Toulouse BC depuis nm1.ffbb.com
 // 3. Matchs basketball TMB depuis basketlfb.com
-// 4. Matchs rugby Stade Toulousain depuis stadetoulousain.fr
-// 5. Matchs rugby Colomiers depuis colomiers-rugby.com
+// 4. Matchs rugby Top 14 via ESPN API (toutes les villes)
+// 5. Matchs rugby Pro D2 via prod2.lnr.fr (toutes les villes)
 // 6. Matchs handball Fenix Toulouse depuis fenix-toulouse.fr
 // Upsert dans la table `matchs`.
 
 import { cleanHtml, frenchDateToIso, fetchHtml } from "../_shared/html-utils.ts";
+import { logScraperError, withErrorLogging } from "../_shared/db.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -958,6 +959,250 @@ async function scrapeFenixToulouse(): Promise<MatchRow[]> {
 }
 
 // ─────────────────────────────────────────────────────
+// 7. Rugby — ESPN Top 14 (toutes les équipes)
+// ─────────────────────────────────────────────────────
+
+// Mapping ESPN team ID → ville + stade + billetterie
+const ESPN_TEAM_MAP: Record<number, { city: string; stadium: string; billetterie: string }> = {
+  25922: { city: "Toulouse", stadium: "Stade Ernest-Wallon", billetterie: "https://billetterie.stadetoulousain.fr" },
+  25921: { city: "Paris", stadium: "Stade Jean-Bouin", billetterie: "https://billetterie.stade.fr" },
+  99855: { city: "Nanterre", stadium: "Paris La Defense Arena", billetterie: "https://billetterie.racing92.fr" },
+  143736: { city: "Lyon", stadium: "Matmut Stadium de Gerland", billetterie: "https://billetterie.lourugby.fr" },
+  25918: { city: "Montpellier", stadium: "GGL Stadium", billetterie: "https://billetterie.montpellier-rugby.com" },
+  25986: { city: "Toulon", stadium: "Stade Mayol", billetterie: "https://billetterie.rctoulon.com" },
+  143737: { city: "Bordeaux", stadium: "Stade Chaban-Delmas", billetterie: "https://billetterie.ubbrugby.com" },
+  25917: { city: "Clermont-Ferrand", stadium: "Stade Marcel-Michelin", billetterie: "https://billetterie.asm-rugby.com" },
+  25916: { city: "Castres", stadium: "Stade Pierre-Fabre", billetterie: "https://billetterie.castres-olympique.fr" },
+  25912: { city: "Bayonne", stadium: "Stade Jean-Dauger", billetterie: "https://billetterie.avironsport.com" },
+  119318: { city: "La Rochelle", stadium: "Stade Marcel-Deflandre", billetterie: "https://billetterie.staderochelais.com" },
+  25920: { city: "Perpignan", stadium: "Stade Aime-Giral", billetterie: "https://billetterie.usap.fr" },
+  270567: { city: "Pau", stadium: "Stade du Hameau", billetterie: "https://billetterie.section-paloise.com" },
+};
+
+async function fetchEspnTop14(): Promise<MatchRow[]> {
+  const leagueId = 270559;
+  const results: MatchRow[] = [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 1. First call: get calendar dates + current day events
+  const baseUrl = `https://site.api.espn.com/apis/site/v2/sports/rugby/${leagueId}/scoreboard`;
+  const firstRes = await fetch(baseUrl);
+  if (!firstRes.ok) {
+    throw new Error(`ESPN API returned ${firstRes.status}: ${await firstRes.text()}`);
+  }
+  const firstData = await firstRes.json();
+
+  // Extract upcoming calendar dates (each is a match day)
+  const calendar: string[] = firstData.leagues?.[0]?.calendar ?? [];
+  const upcomingDates = calendar
+    .map((d: string) => new Date(d))
+    .filter((d: Date) => !isNaN(d.getTime()) && d >= today)
+    .map((d: Date) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`);
+
+  // Parse events from a scoreboard response
+  function parseEvents(data: { events?: unknown[] }): void {
+    const events = (data.events ?? []) as Record<string, unknown>[];
+    for (const event of events) {
+      const competitions = (event.competitions ?? []) as Record<string, unknown>[];
+      for (const comp of competitions) {
+        const competitors = (comp.competitors ?? []) as Record<string, unknown>[];
+        const venue = comp.venue as Record<string, unknown> | undefined;
+
+        // deno-lint-ignore no-explicit-any
+        let home: any = null, away: any = null;
+        for (const c of competitors) {
+          if (c.homeAway === "home") home = c;
+          if (c.homeAway === "away") away = c;
+        }
+        if (!home || !away) continue;
+
+        const eventDate = new Date(event.date as string);
+        if (isNaN(eventDate.getTime()) || eventDate < today) continue;
+
+        const dateStr = `${eventDate.getFullYear()}-${String(eventDate.getMonth() + 1).padStart(2, "0")}-${String(eventDate.getDate()).padStart(2, "0")}`;
+        const heure = `${String(eventDate.getHours()).padStart(2, "0")}h${String(eventDate.getMinutes()).padStart(2, "0")}`;
+
+        const homeId = parseInt(home.team?.id?.toString() ?? "0", 10);
+        const homeInfo = ESPN_TEAM_MAP[homeId];
+        const venueAddr = (venue as Record<string, unknown>)?.address as Record<string, string> | undefined;
+
+        const ville = homeInfo?.city ?? venueAddr?.city ?? "";
+        const lieu = homeInfo?.stadium ?? (venue?.fullName as string) ?? "";
+        const billetterie = homeInfo?.billetterie ?? "";
+
+        const homeTeamName: string = home.team?.displayName ?? "";
+        const awayTeamName: string = away.team?.displayName ?? "";
+
+        // Skip duplicates (same date + teams)
+        if (results.some(r => r.date === dateStr && r.equipe_dom === homeTeamName && r.equipe_ext === awayTeamName)) continue;
+
+        results.push({
+          sport: "Rugby",
+          competition: "Top 14",
+          equipe_dom: homeTeamName,
+          equipe_ext: awayTeamName,
+          date: dateStr,
+          heure,
+          lieu,
+          ville,
+          description: `Top 14 - ${homeTeamName} vs ${awayTeamName}`,
+          url: billetterie,
+          source: "espn-top14",
+          logo_dom: home.team?.logo ?? "",
+          logo_ext: away.team?.logo ?? "",
+        });
+      }
+    }
+  }
+
+  // Parse first response events
+  parseEvents(firstData);
+
+  // 2. Fetch remaining calendar dates (batch 3 at a time to avoid timeout)
+  const firstDay = firstData.day?.date?.replace(/-/g, "") ?? "";
+  const remainingDates = upcomingDates.filter((d: string) => d !== firstDay);
+
+  for (let i = 0; i < remainingDates.length; i += 3) {
+    const batch = remainingDates.slice(i, i + 3);
+    const fetches = batch.map(async (dateParam: string) => {
+      try {
+        const res = await fetch(`${baseUrl}?dates=${dateParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          parseEvents(data);
+        }
+      } catch { /* skip failed date */ }
+    });
+    await Promise.all(fetches);
+  }
+
+  return results;
+}
+
+// ─────────────────────────────────────────────────────
+// 8. Rugby — Pro D2 via prod2.lnr.fr (toutes les équipes)
+// ─────────────────────────────────────────────────────
+
+// Mapping club name (SSR) → ville + stade + billetterie
+const PROD2_TEAM_MAP: Record<string, { city: string; stadium: string; billetterie: string }> = {
+  "Colomiers Rugby":       { city: "Toulouse", stadium: "Stade Michel-Bendichou", billetterie: "https://billetterie.colomiersrugby.com" },
+  "Provence Rugby":        { city: "Aix-en-Provence", stadium: "Stade Maurice-David", billetterie: "https://billetterie.provencerugby.com" },
+  "AS Béziers Hérault":    { city: "Beziers", stadium: "Stade de la Mediterranee", billetterie: "https://billetterie.asbh.net" },
+  "Biarritz Olympique PB": { city: "Biarritz", stadium: "Parc des Sports d'Aguilera", billetterie: "https://billetterie.bopb.fr" },
+  "CA Brive":              { city: "Brive-la-Gaillarde", stadium: "Stade Amedee-Domenech", billetterie: "https://billetterie.cabrive-rugby.com" },
+  "FC Grenoble Rugby":     { city: "Grenoble", stadium: "Stade des Alpes", billetterie: "https://billetterie.fcgrugby.com" },
+  "Oyonnax Rugby":         { city: "Oyonnax", stadium: "Stade Charles-Mathon", billetterie: "https://billetterie.oyonnaxrugby.com" },
+  "RC Vannes":             { city: "Vannes", stadium: "Stade de la Rabine", billetterie: "https://billetterie.rcvannes.com" },
+  "SU Agen":               { city: "Agen", stadium: "Stade Armandie", billetterie: "https://billetterie.suagen.com" },
+  "Soyaux-Angoulême XV":   { city: "Angouleme", stadium: "Stade Chanzy", billetterie: "https://billetterie.saxv.fr" },
+  "Stade Aurillacois":     { city: "Aurillac", stadium: "Stade Jean-Alric", billetterie: "https://billetterie.stadeaurillacois.fr" },
+  "Stade Montois Rugby":   { city: "Mont-de-Marsan", stadium: "Stade Guy-Boniface", billetterie: "https://billetterie.stademontois.fr" },
+  "US Carcassonnaise":     { city: "Carcassonne", stadium: "Stade Albert-Domec", billetterie: "https://billetterie.uscarcassonne.com" },
+  "US Dax":                { city: "Dax", stadium: "Stade Maurice-Boyau", billetterie: "https://billetterie.usdax.fr" },
+  "USON Nevers":           { city: "Nevers", stadium: "Stade du Pre-Fleuri", billetterie: "https://billetterie.usonnevers.com" },
+  "Valence Romans":        { city: "Valence", stadium: "Stade Pompidou", billetterie: "https://billetterie.vrdr.fr" },
+};
+
+async function fetchLnrProD2(): Promise<MatchRow[]> {
+  const results: MatchRow[] = [];
+
+  // Fetch the calendar page — SSR returns current week's matches
+  const res = await fetch("https://prod2.lnr.fr/calendrier-et-resultats", {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; PulzBot/1.0)" },
+  });
+  if (!res.ok) throw new Error(`LNR Pro D2 returned ${res.status}`);
+
+  const html = await res.text();
+
+  // Extract current-week data for year context
+  const weekMatch = html.match(/:current-week='([^']+)'/);
+  let year = new Date().getFullYear();
+  if (weekMatch) {
+    try {
+      const week = JSON.parse(weekMatch[1].replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&amp;/g, "&"));
+      if (week.starts_at) {
+        year = new Date(week.starts_at).getFullYear();
+      }
+    } catch { /* use current year */ }
+  }
+
+  // Extract matches from :matches='[...]' prop on score-slider component
+  const matchesMatch = html.match(/:matches='(\[.*?\])'/);
+  if (!matchesMatch) {
+    throw new Error("No matches data found in LNR Pro D2 page");
+  }
+
+  // Decode HTML entities
+  const decoded = matchesMatch[1]
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+
+  // deno-lint-ignore no-explicit-any
+  let matches: any[];
+  try {
+    matches = JSON.parse(decoded);
+  } catch {
+    throw new Error("Failed to parse LNR Pro D2 matches JSON");
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (const m of matches) {
+    const homeName: string = m.hosting_club?.name ?? "";
+    const awayName: string = m.visiting_club?.name ?? "";
+    const dateStr = m.date ?? ""; // "26/03" format
+    const time: string = m.time ?? ""; // "21h00" format
+    const status: string = m.status ?? "";
+
+    // Skip already played matches
+    if (status === "finished" || status === "ended") continue;
+
+    // Parse date: "DD/MM" + year from week context
+    const dateParts = dateStr.match(/(\d{2})\/(\d{2})/);
+    if (!dateParts) continue;
+    const [, day, month] = dateParts;
+    const isoDate = `${year}-${month}-${day}`;
+
+    const matchDate = new Date(isoDate);
+    if (isNaN(matchDate.getTime()) || matchDate < today) continue;
+
+    // Map home team to city/stadium
+    const homeInfo = PROD2_TEAM_MAP[homeName];
+    const ville = homeInfo?.city ?? "";
+    const lieu = homeInfo?.stadium ?? "";
+    const billetterie = homeInfo?.billetterie ?? "";
+
+    // Get logos from SSR data
+    const logoDom = m.hosting_club?.logo?.["thumbnail-2x"] ?? m.hosting_club?.logo?.original ?? "";
+    const logoExt = m.visiting_club?.logo?.["thumbnail-2x"] ?? m.visiting_club?.logo?.original ?? "";
+
+    results.push({
+      sport: "Rugby",
+      competition: "Pro D2",
+      equipe_dom: homeName,
+      equipe_ext: awayName,
+      date: isoDate,
+      heure: time,
+      lieu,
+      ville,
+      description: `Pro D2 - ${homeName} vs ${awayName}`,
+      url: billetterie,
+      source: "lnr-prod2",
+      logo_dom: logoDom,
+      logo_ext: logoExt,
+    });
+  }
+
+  return results;
+}
+
+// ─────────────────────────────────────────────────────
 // Upsert & serve
 // ─────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────
@@ -1079,7 +1324,7 @@ async function runScraper(
   fn: () => Promise<MatchRow[]>,
 ): Promise<{ name: string; matches: MatchRow[]; error?: string; htmlLen?: number }> {
   try {
-    const matches = await fn();
+    const matches = await withErrorLogging("scrape-sport", name, "toulouse", fn);
     return { name, matches };
   } catch (e) {
     return { name, matches: [], error: (e as Error).message };
@@ -1087,53 +1332,65 @@ async function runScraper(
 }
 
 Deno.serve(async (req) => {
-  const url = new URL(req.url);
-  // ?only=boxe,rugby-st  — run only specific scrapers
-  const onlyParam = url.searchParams.get("only");
+  try {
+    const url = new URL(req.url);
+    // ?only=boxe,rugby-st  — run only specific scrapers
+    const onlyParam = url.searchParams.get("only");
 
-  const allScrapers = [
-    { name: "boxe", fn: scrapeGalaBoxe },
-    { name: "ffboxe", fn: scrapeFFBoxe },
-    { name: "basketball-tbc", fn: scrapeToulouseBasketball },
-    { name: "basketball-tmb", fn: scrapeTMB },
-    { name: "rugby-st", fn: scrapeStadeToulousain },
-    { name: "rugby-colomiers", fn: scrapeColomiers },
-    { name: "handball-fenix", fn: scrapeFenixToulouse },
-  ];
+    const allScrapers = [
+      { name: "boxe", fn: scrapeGalaBoxe },
+      { name: "ffboxe", fn: scrapeFFBoxe },
+      { name: "basketball-tbc", fn: scrapeToulouseBasketball },
+      { name: "basketball-tmb", fn: scrapeTMB },
+      { name: "rugby-espn", fn: fetchEspnTop14 },
+      { name: "rugby-prod2", fn: fetchLnrProD2 },
+      { name: "handball-fenix", fn: scrapeFenixToulouse },
+    ];
 
-  const scrapers = onlyParam
-    ? allScrapers.filter(s => onlyParam.split(",").includes(s.name))
-    : allScrapers;
+    const scrapers = onlyParam
+      ? allScrapers.filter(s => onlyParam.split(",").includes(s.name))
+      : allScrapers;
 
-  // Run all scrapers in parallel to avoid timeout
-  const results = await Promise.all(
-    scrapers.map(({ name, fn }) => runScraper(name, fn)),
-  );
+    // Run all scrapers in parallel to avoid timeout
+    const results = await Promise.all(
+      scrapers.map(({ name, fn }) => runScraper(name, fn)),
+    );
 
-  const debug: Record<string, unknown> = {};
-  const errors: string[] = [];
-  let count = 0;
+    const debug: Record<string, unknown> = {};
+    const errors: string[] = [];
+    let count = 0;
 
-  for (const result of results) {
-    debug[result.name] = {
-      found: result.matches.length,
-      error: result.error || null,
-    };
-    if (result.error) {
-      errors.push(`${result.name}: ${result.error}`);
-    }
-    if (result.matches.length > 0) {
-      const upsertResult = await upsertMatches(result.matches);
-      count += upsertResult.count;
-      if (upsertResult.error) {
-        (debug[result.name] as Record<string, unknown>).upsertError = upsertResult.error;
-        errors.push(`${result.name}_upsert: ${upsertResult.error}`);
+    for (const result of results) {
+      debug[result.name] = {
+        found: result.matches.length,
+        error: result.error || null,
+      };
+      if (result.error) {
+        errors.push(`${result.name}: ${result.error}`);
+      }
+      if (result.matches.length > 0) {
+        const upsertResult = await upsertMatches(result.matches);
+        count += upsertResult.count;
+        if (upsertResult.error) {
+          (debug[result.name] as Record<string, unknown>).upsertError = upsertResult.error;
+          errors.push(`${result.name}_upsert: ${upsertResult.error}`);
+        }
       }
     }
-  }
 
-  return new Response(
-    JSON.stringify({ count, errors, debug }),
-    { headers: { "Content-Type": "application/json" } },
-  );
+    return new Response(
+      JSON.stringify({ count, errors, debug }),
+      { headers: { "Content-Type": "application/json" } },
+    );
+  } catch (e) {
+    const err = e as Error;
+    await logScraperError({
+      scraper: "scrape-sport", source: "orchestrator", ville: "toulouse",
+      error_type: "fetch", message: err.message, stack: err.stack,
+    });
+    return new Response(
+      JSON.stringify({ count: 0, errors: [`FATAL: ${err.message}`] }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
 });

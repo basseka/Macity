@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 
+import 'package:pulz_app/core/widgets/community_event_card.dart';
+import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/presentation/night_hub_grid.dart';
@@ -101,7 +103,7 @@ class NightScreen extends ConsumerWidget {
 
         Expanded(
           child: category == 'A venir'
-              ? _buildUserEventsList(ref)
+              ? _buildUserEventsList(context, ref)
               : venuesAsync.when(
                   data: (venues) {
                     // Filter matching user events for this subcategory
@@ -144,7 +146,7 @@ class NightScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserEventsList(WidgetRef ref) {
+  Widget _buildUserEventsList(BuildContext context, WidgetRef ref) {
     final userEvents = ref.watch(nightUserEventsProvider);
     final scrapedAsync = ref.watch(nightScrapedEventsProvider);
     final modeTheme = ref.watch(modeThemeProvider);
@@ -182,75 +184,60 @@ class NightScreen extends ConsumerWidget {
         ],
       );
     }
-    return _buildDateGroupedEventsList(allEvents, modeTheme);
+    return _buildDateGroupedEventsList(allEvents, modeTheme, context);
   }
 
-  Widget _buildDateGroupedEventsList(List<Event> events, ModeTheme modeTheme) {
-    final grouped = <String, List<Event>>{};
+  Widget _buildDateGroupedEventsList(List<Event> events, ModeTheme modeTheme, BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+
+    final grouped = <DateTime, List<Event>>{};
     for (final e in events) {
-      final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
-      grouped.putIfAbsent(dateKey, () => []).add(e);
+      final d = DateTime.tryParse(e.dateDebut);
+      if (d == null) continue;
+      final dateOnly = DateTime(d.year, d.month, d.day);
+      grouped.putIfAbsent(dateOnly, () => []).add(e);
     }
-
-    final sortedDates = grouped.keys.toList()..sort();
-
-    final items = <Widget>[];
-    for (final dateKey in sortedDates) {
-      final eventsForDate = grouped[dateKey]!;
-      final parsed = DateTime.tryParse(dateKey);
-      final dateLabel = parsed != null
-          ? _capitalize(DateFormatter.formatRelative(parsed))
-          : dateKey;
-
-      items.add(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-          child: Row(
-            children: [
-              Text(
-                dateLabel,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: modeTheme.primaryDarkColor,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${eventsForDate.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: modeTheme.primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-      for (final event in eventsForDate) {
-        items.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-            child: EventRowCard(event: event),
-          ),
-        );
-      }
-    }
+    final sortedDays = grouped.keys.toList()..sort();
 
     return ListView(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
         const DateRangeChipBar(),
-        const SizedBox(height: 4),
-        ...items,
+        const SizedBox(height: 8),
+        for (final day in sortedDays) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 8),
+            child: Text(
+              day == today
+                  ? "Aujourd'hui"
+                  : day == tomorrow
+                      ? 'Demain'
+                      : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          for (final event in grouped[day]!) ...[
+            CommunityEventCard(
+              title: event.titre,
+              date: event.dateDebut,
+              time: event.horaires,
+              location: event.lieuNom,
+              photoUrl: event.photoPath,
+              tag: event.categorie.isNotEmpty ? event.categorie : null,
+              isFree: event.isFree,
+              onTap: () => EventFullscreenPopup.show(
+                context, event, 'assets/images/pochette_default.png',
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ],
       ],
     );
   }

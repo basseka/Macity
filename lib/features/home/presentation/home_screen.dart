@@ -9,7 +9,6 @@ import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 import 'package:pulz_app/features/home/state/banners_provider.dart';
-import 'package:pulz_app/features/admin/presentation/admin_add_etablissement_sheet.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
@@ -22,9 +21,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _logoTapCount = 0;
-  DateTime? _lastLogoTap;
-
   static const _sortirModes = [AppMode.day, AppMode.sport, AppMode.culture, AppMode.night];
   static const _explorerModes = [AppMode.food, AppMode.family, AppMode.gaming, AppMode.tourisme];
 
@@ -77,9 +73,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // Ligne 1 : logo + salut + compte
           Row(
             children: [
-              GestureDetector(
-                onTap: _handleLogoTap,
-                child: ClipRRect(
+              ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.asset(
                     'assets/icon/app_icon.png',
@@ -87,7 +81,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     height: 28,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -105,8 +98,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 }),
               ),
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () => AccountMenu.show(context, ref),
-                child: AccountMenu.buildButton(),
+                child: Padding(
+                  padding: const EdgeInsets.all(11),
+                  child: AccountMenu.buildButton(),
+                ),
               ),
             ],
           ),
@@ -303,19 +300,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _handleLogoTap() {
-    final now = DateTime.now();
-    if (_lastLogoTap != null && now.difference(_lastLogoTap!).inMilliseconds > 1500) {
-      _logoTapCount = 0;
-    }
-    _lastLogoTap = now;
-    _logoTapCount++;
-    if (_logoTapCount >= 5) {
-      _logoTapCount = 0;
-      AdminAddEtablissementSheet.show(context);
-    }
-  }
-
   void _openSearch(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -323,6 +307,189 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const SearchEventsBottomSheet(),
+    );
+  }
+}
+
+/// Bottom sheet version of the mode grid (used from nav bar "Explorer" button).
+class HomeScreenSheet extends ConsumerWidget {
+  const HomeScreenSheet({super.key});
+
+  static const _sortirModes = [AppMode.day, AppMode.sport, AppMode.culture, AppMode.night];
+  static const _explorerModes = [AppMode.food, AppMode.family, AppMode.gaming, AppMode.tourisme];
+
+  static const _modeBackgroundImages = <String, String>{
+    'day': 'assets/images/pochette_concert.png',
+    'sport': 'assets/images/home_bg_sport.png',
+    'culture': 'assets/images/pochette_culture_art.png',
+    'food': 'assets/images/pochette_food.png',
+    'gaming': 'assets/images/pochette_gaming.png',
+    'family': 'assets/images/pochette_enfamille.png',
+    'night': 'assets/images/home_bg_night.png',
+    'tourisme': 'assets/images/pochette_tourisme_toulouse.png',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8F0FA),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'Explorer',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF4A1259),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader('Sortir', Icons.celebration_outlined),
+                  const SizedBox(height: 6),
+                  _buildGridRow(context, ref, _sortirModes),
+                  const SizedBox(height: 12),
+                  _buildSectionHeader('Explorer', Icons.explore_outlined),
+                  const SizedBox(height: 6),
+                  _buildGridRow(context, ref, _explorerModes),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF7B2D8E)),
+        const SizedBox(width: 6),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF4A1259),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGridRow(BuildContext context, WidgetRef ref, List<AppMode> modes) {
+    return GridView.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 10,
+      childAspectRatio: 1.4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: modes.map((mode) => _buildModeCard(context, ref, mode)).toList(),
+    );
+  }
+
+  Widget _buildModeCard(BuildContext context, WidgetRef ref, AppMode mode) {
+    final theme = ModeTheme.fromModeName(mode.name);
+    final bgImage = _modeBackgroundImages[mode.name];
+
+    return Material(
+      borderRadius: BorderRadius.circular(16),
+      elevation: 3,
+      shadowColor: theme.primaryColor.withValues(alpha: 0.3),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.pop(context);
+          ref.read(currentModeProvider.notifier).setMode(mode.name);
+          context.go(mode.routePath);
+        },
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (bgImage != null)
+              Image.asset(
+                bgImage,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [theme.primaryDarkColor, theme.primaryColor],
+                    ),
+                  ),
+                ),
+              ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.1),
+                    Colors.black.withValues(alpha: 0.65),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 10,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    mode.shortLabel,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                      shadows: [const Shadow(blurRadius: 6, color: Colors.black54)],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    mode.subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      shadows: [const Shadow(blurRadius: 4, color: Colors.black54)],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

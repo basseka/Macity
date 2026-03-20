@@ -7,6 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/core/services/activity_service.dart';
+import 'package:pulz_app/features/day/presentation/share_event_sheet.dart';
+import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 /// Popup plein ecran affichant la pochette en fond avec les infos overlayees.
@@ -65,172 +68,155 @@ class EventFullscreenPopup extends ConsumerWidget {
               ],
             ),
             clipBehavior: Clip.antiAlias,
-            child: Stack(
-              fit: StackFit.passthrough,
-              children: [
-                // ── Pochette plein fond ──
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(child: _buildFullPochette()),
-                  ],
-                ),
-
-                // ── Gradient overlay en bas ──
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        stops: const [0.0, 0.3, 0.6, 1.0],
-                        colors: [
-                          Colors.black.withValues(alpha: 0.3),
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.4),
-                          Colors.black.withValues(alpha: 0.9),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ── Contenu overlay ──
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Bouton fermer
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 12, right: 12),
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            width: 34,
-                            height: 34,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Badge gratuit
-                    if (event.isFree)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
+            child: Container(
+              color: const Color(0xFF1A1A2E),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ── Photo en haut (hauteur fixe) ──
+                  SizedBox(
+                    height: screenHeight * 0.35,
+                    width: double.infinity,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _buildFullPochette(),
+                        // Gradient overlay
+                        Container(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE91E8C),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'GRATUIT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.2),
+                                Colors.black.withValues(alpha: 0.6),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-
-                    const Spacer(),
-
-                    // ── Infos en bas ──
-                    Flexible(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                          // Titre
-                          Text(
+                        // Bouton fermer
+                        Positioned(
+                          top: 12,
+                          right: 12,
+                          child: GestureDetector(
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ),
+                        // Badge gratuit
+                        if (event.isFree)
+                          Positioned(
+                            top: 12,
+                            left: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE91E8C),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'GRATUIT',
+                                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        // Titre sur la photo
+                        Positioned(
+                          left: 16,
+                          right: 16,
+                          bottom: 12,
+                          child: Text(
                             event.categorie.toLowerCase().contains('opera')
                                 ? event.titre.toUpperCase()
                                 : event.titre,
                             style: const TextStyle(
-                              fontSize: 22,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               height: 1.2,
+                              shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                          const SizedBox(height: 10),
-
+                  // ── Infos scrollables en dessous ──
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           // Date
                           if (event.dateDebut.isNotEmpty)
                             _infoRow(
                               Icons.calendar_today,
-                              event.dateFin.isNotEmpty &&
-                                      event.dateFin != event.dateDebut
+                              event.dateFin.isNotEmpty && event.dateFin != event.dateDebut
                                   ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
                                   : _formatDate(event.dateDebut),
                             ),
-
                           // Lieu
                           if (event.lieuNom.isNotEmpty)
                             _infoRow(Icons.location_on_outlined, event.lieuNom),
-
                           // Horaires
                           if (event.horaires.isNotEmpty)
                             _infoRow(Icons.access_time, event.horaires),
 
                           // Description
                           if (_description.isNotEmpty) ...[
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             Text(
                               _description,
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 12,
                                 color: Colors.white.withValues(alpha: 0.85),
-                                height: 1.4,
+                                height: 1.5,
                               ),
-                              maxLines: 10,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
 
                           // ── Boutons actions ──
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
-                              // Like
-                              _actionButton(
-                                icon: isLiked
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                label: isLiked ? 'Aimé' : 'Aimer',
-                                color: isLiked
-                                    ? Colors.red
-                                    : Colors.white,
-                                onTap: () => ref
-                                    .read(likesProvider.notifier)
-                                    .toggle(event.identifiant),
+                              _iconButton(
+                                icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                                color: isLiked ? Colors.red : Colors.white,
+                                onTap: () => ref.read(likesProvider.notifier).toggle(
+                                  event.identifiant,
+                                  meta: LikeMetadata(
+                                    title: event.titre,
+                                    imageUrl: event.photoPath,
+                                    category: event.categorie,
+                                  ),
+                                ),
                               ),
-                              const SizedBox(width: 12),
-                              // Share
                               _actionButton(
                                 icon: Icons.share_outlined,
                                 label: 'Partager',
                                 color: Colors.white,
                                 onTap: () => _shareEvent(),
+                              ),
+                              _actionButton(
+                                icon: Icons.people_alt_outlined,
+                                label: 'Envoyer',
+                                color: const Color(0xFF6C5CE7),
+                                onTap: () => _shareInApp(context),
                               ),
                             ],
                           ),
@@ -242,39 +228,27 @@ class EventFullscreenPopup extends ConsumerWidget {
                               width: double.infinity,
                               height: 44,
                               child: ElevatedButton.icon(
-                                onPressed: () =>
-                                    _openUrl(event.reservationUrl),
-                                icon: const Icon(
-                                  Icons.confirmation_number_outlined,
-                                  size: 18,
-                                ),
+                                onPressed: () => _openUrl(event.reservationUrl),
+                                icon: const Icon(Icons.confirmation_number_outlined, size: 18),
                                 label: const Text(
                                   'Billetterie',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                                 ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFE91E8C),
                                   foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   elevation: 0,
                                 ),
                               ),
                             ),
                           ],
-
-                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -311,6 +285,25 @@ class EventFullscreenPopup extends ConsumerWidget {
     );
   }
 
+  Widget _iconButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        ),
+        child: Icon(icon, size: 18, color: color),
+      ),
+    );
+  }
+
   Widget _actionButton({
     required IconData icon,
     required String label,
@@ -320,10 +313,10 @@ class EventFullscreenPopup extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.3),
           ),
@@ -331,12 +324,12 @@ class EventFullscreenPopup extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 6),
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 11,
                 color: color,
                 fontWeight: FontWeight.w500,
               ),
@@ -397,6 +390,15 @@ class EventFullscreenPopup extends ConsumerWidget {
     );
   }
 
+  void _shareInApp(BuildContext context) {
+    Navigator.of(context).pop(); // fermer le popup
+    ShareEventSheet.show(
+      context,
+      eventId: event.identifiant,
+      eventTitle: event.titre,
+    );
+  }
+
   void _shareEvent() {
     final buffer = StringBuffer();
     buffer.writeln(event.titre);
@@ -405,6 +407,7 @@ class EventFullscreenPopup extends ConsumerWidget {
     if (event.isFree) buffer.writeln('Gratuit !');
     buffer.writeln('\nDecouvre sur MaCity');
     Share.share(buffer.toString());
+    ActivityService.instance.eventSharedExternal(eventId: event.identifiant);
   }
 
   Future<void> _openUrl(String url) async {

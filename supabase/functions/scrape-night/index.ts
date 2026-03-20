@@ -3,7 +3,7 @@
 // Scrape les clubs de nuit de Toulouse : Nine Club + L'Etoile.
 // Porte depuis nine_club_scraper.dart et etoile_scraper.dart.
 
-import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate } from "../_shared/db.ts";
+import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate, logScraperError, withErrorLogging } from "../_shared/db.ts";
 import { cleanHtml, fetchHtml, isoToDate, isoToTime } from "../_shared/html-utils.ts";
 
 // ─────────────────────────────────────────────────────────────
@@ -230,23 +230,35 @@ function scrapeEtoileRegexFallback(html: string): ScrapedEvent[] {
 // Main handler
 // ─────────────────────────────────────────────────────────────
 Deno.serve(async (_req) => {
-  const errors: string[] = [];
+  try {
+    const errors: string[] = [];
 
-  const [nineClubEvents, etoileEvents] = await Promise.allSettled([
-    scrapeNineClub(),
-    scrapeEtoile(),
-  ]).then(results => results.map((r, i) => {
-    if (r.status === "fulfilled") return r.value;
-    errors.push(`${["nine_club", "etoile"][i]}: ${r.reason}`);
-    return [] as ScrapedEvent[];
-  }));
+    const [nineClubEvents, etoileEvents] = await Promise.allSettled([
+      withErrorLogging("scrape-night", "nine_club", "toulouse", () => scrapeNineClub()),
+      withErrorLogging("scrape-night", "etoile", "toulouse", () => scrapeEtoile()),
+    ]).then(results => results.map((r, i) => {
+      if (r.status === "fulfilled") return r.value;
+      errors.push(`${["nine_club", "etoile"][i]}: ${r.reason}`);
+      return [] as ScrapedEvent[];
+    }));
 
-  const allEvents = [...nineClubEvents, ...etoileEvents];
-  const count = await upsertEvents(allEvents);
-  console.log(`scrape-night: upserted ${count} events`);
+    const allEvents = [...nineClubEvents, ...etoileEvents];
+    const count = await upsertEvents(allEvents);
+    console.log(`scrape-night: upserted ${count} events`);
 
-  return new Response(
-    JSON.stringify({ count, errors }),
-    { headers: { "Content-Type": "application/json" } },
-  );
+    return new Response(
+      JSON.stringify({ count, errors }),
+      { headers: { "Content-Type": "application/json" } },
+    );
+  } catch (e) {
+    const err = e as Error;
+    await logScraperError({
+      scraper: "scrape-night", source: "orchestrator", ville: "toulouse",
+      error_type: "fetch", message: err.message, stack: err.stack,
+    });
+    return new Response(
+      JSON.stringify({ count: 0, errors: [`FATAL: ${err.message}`] }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
 });

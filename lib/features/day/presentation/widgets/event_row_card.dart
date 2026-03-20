@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 /// Carte événement : pochette carrée à gauche, infos à droite.
@@ -140,16 +141,15 @@ class EventRowCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          height: 108,
+        child: IntrinsicHeight(
           child: Row(
             children: [
               // ── Pochette carrée à gauche ──
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 child: SizedBox(
-                  width: 84,
-                  height: 84,
+                  width: 60,
+                  height: 60,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -190,9 +190,10 @@ class EventRowCard extends ConsumerWidget {
               // ── Contenu à droite ──
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+                  padding: const EdgeInsets.fromLTRB(8, 6, 6, 6),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Titre
                       Text(
@@ -200,7 +201,7 @@ class EventRowCard extends ConsumerWidget {
                             ? event.titre.toUpperCase()
                             : event.titre,
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: modeTheme.primaryDarkColor,
                           height: 1.2,
@@ -208,7 +209,7 @@ class EventRowCard extends ConsumerWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
 
                       // Date + lieu
                       if (dateLabel.isNotEmpty || event.lieuNom.isNotEmpty)
@@ -218,7 +219,7 @@ class EventRowCard extends ConsumerWidget {
                               Text(
                                 dateLabel,
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   color: Colors.grey.shade600,
                                 ),
                               ),
@@ -226,7 +227,7 @@ class EventRowCard extends ConsumerWidget {
                                 Text(
                                   '  ·  ',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 9,
                                     color: Colors.grey.shade400,
                                   ),
                                 ),
@@ -236,7 +237,7 @@ class EventRowCard extends ConsumerWidget {
                                 child: Text(
                                   event.lieuNom,
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: 9,
                                     color: Colors.grey.shade600,
                                   ),
                                   maxLines: 1,
@@ -246,7 +247,7 @@ class EventRowCard extends ConsumerWidget {
                           ],
                         ),
 
-                      const Spacer(),
+                      const SizedBox(height: 2),
 
                       // Like + Share
                       Row(
@@ -255,7 +256,14 @@ class EventRowCard extends ConsumerWidget {
                           GestureDetector(
                             onTap: () => ref
                                 .read(likesProvider.notifier)
-                                .toggle(event.identifiant),
+                                .toggle(
+                                  event.identifiant,
+                                  meta: LikeMetadata(
+                                    title: event.titre,
+                                    imageUrl: event.photoPath,
+                                    category: event.categorie,
+                                  ),
+                                ),
                             child: Icon(
                               isLiked
                                   ? Icons.favorite
@@ -263,16 +271,16 @@ class EventRowCard extends ConsumerWidget {
                               color: isLiked
                                   ? Colors.red
                                   : Colors.grey.shade400,
-                              size: 18,
+                              size: 14,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => _shareEvent(),
                             child: Icon(
                               Icons.share_outlined,
                               color: Colors.grey.shade400,
-                              size: 16,
+                              size: 13,
                             ),
                           ),
                         ],

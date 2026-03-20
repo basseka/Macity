@@ -3,7 +3,7 @@
 // Scrape tous les theatres + musees + visites guidees + MEETT de Toulouse.
 // Porte depuis les 17 scrapers Dart + 3 services culture.
 
-import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate } from "../_shared/db.ts";
+import { type ScrapedEvent, makeEvent, upsertEvents, isFutureDate, logScraperError, withErrorLogging } from "../_shared/db.ts";
 import { cleanHtml, buildIsoDate, frenchDateToIso, currentSeasonYear, fetchHtml, fetchJson, frenchMonths } from "../_shared/html-utils.ts";
 
 // ─────────────────────────────────────────────────────────────
@@ -794,15 +794,15 @@ async function scrapeFilAPlomb(): Promise<ScrapedEvent[]> {
     const html = await fetchHtml("https://theatrelefilaplomb.fr/programmation/");
     const events: ScrapedEvent[] = [];
 
-    // Show info is in image title attributes:
-    // « La glaneuse – Du mardi 24 au samedi 28 février 2026 à 15h30 » — Théâtre Le Fil à plomb
-    const titleRegex = /src="([^"]*)"[^>]*title="([^"]*(?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)[^"]*)"/gi;
+    // Show info is in image title attributes (title before src):
+    // title="« La glaneuse – Du mardi 24 au samedi 28 février 2026 à 15h30 » — Théâtre Le Fil à plomb" src="..."
+    const titleRegex = /title="([^"]*(?:janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)[^"]*)"[^>]*src="([^"]*)"/gi;
     const seen = new Set<string>();
 
     let m;
     while ((m = titleRegex.exec(html)) !== null) {
-      const filImgSrc = m[1] || "";
-      let raw = m[2]
+      const filImgSrc = m[2] || "";
+      let raw = m[1]
         .replace(/&amp;/g, "&").replace(/&#8211;/g, "\u2013").replace(/&#8212;/g, "\u2014")
         .replace(/&laquo;|&raquo;|[«»]/g, "").replace(/\u00ab|\u00bb/g, "")
         .replace(/\s*[—–]\s*Th[ée][aâ]tre Le Fil [àa] [Pp]lomb\s*$/, "")
@@ -1510,6 +1510,160 @@ async function scrapeBalma(): Promise<ScrapedEvent[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Cafe Theatre Le 57 (JDS.fr listing + detail JSON-LD)
+// ─────────────────────────────────────────────────────────────
+async function scrapeLe57(): Promise<ScrapedEvent[]> {
+  try {
+    // Source 1: BilletReduc venue page (JSON-LD structured data)
+    const sources = [
+      "https://www.billetreduc.com/10497/salle.htm",
+      "https://www.billetreduc.com/cafe-theatre-le-57/s/10497/salleliste.htm",
+    ];
+
+    const events: ScrapedEvent[] = [];
+    const seenIds = new Set<string>();
+
+    for (const sourceUrl of sources) {
+      try {
+        const html = await fetchHtml(sourceUrl, 8000);
+        console.log(`  le57: fetched ${html.length} chars from ${sourceUrl}`);
+
+        // Extract JSON-LD Event blocks
+        const jsonLdBlocks = html.match(/<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/gi) ?? [];
+        for (const block of jsonLdBlocks) {
+          try {
+            const jsonStr = block.replace(/<script[^>]*>/, "").replace(/<\/script>/, "");
+            const ld = JSON.parse(jsonStr);
+
+            // Accept Event, TheaterEvent, etc.
+            const ldType = String(ld["@type"] ?? "").toLowerCase();
+            if (!ldType.includes("event")) continue;
+
+            const titre = cleanHtml((ld.name ?? "").replace(/\s*Toulouse\s*$/i, ""));
+            if (!titre) continue;
+
+            const startDate = (ld.startDate ?? "").substring(0, 10);
+            if (!startDate || !isFutureDate(startDate)) continue;
+
+            const slug = titre.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+            const id = `le57_${slug}_${startDate}`;
+            if (seenIds.has(id)) continue;
+            seenIds.add(id);
+
+            const endDate = (ld.endDate ?? ld.startDate ?? "").substring(0, 10);
+            const photo = ld.image ?? "";
+            const desc = cleanHtml(ld.description ?? "");
+
+            // Price
+            let tarif = "";
+            const offers = ld.offers;
+            if (Array.isArray(offers) && offers.length > 0) {
+              const o = offers[0];
+              if (o.lowPrice && o.highPrice && String(o.lowPrice) !== String(o.highPrice)) {
+                tarif = `${o.lowPrice}€ - ${o.highPrice}€`;
+              } else if (o.lowPrice || o.price) {
+                tarif = `${o.lowPrice ?? o.price}€`;
+              }
+            }
+
+            // Time
+            let horaires = "";
+            const tm = (ld.startDate ?? "").match(/T(\d{2}):(\d{2})/);
+            if (tm) horaires = `${tm[1]}h${tm[2]}`;
+
+            events.push(makeEvent({
+              identifiant: id, source: "le57", rubrique: "culture",
+              nom_de_la_manifestation: titre,
+              descriptif_court: desc.slice(0, 200),
+              descriptif_long: desc,
+              date_debut: startDate, date_fin: endDate || startDate,
+              horaires,
+              tarif_normal: tarif,
+              photo_url: photo,
+              lieu_nom: "Cafe-Theatre le 57",
+              lieu_adresse_2: "57 Boulevard des Minimes",
+              commune: "Toulouse", code_postal: 31200,
+              type_de_manifestation: "Stand up",
+              categorie_de_la_manifestation: "Stand up",
+              reservation_site_internet: ld.url ?? sourceUrl,
+            }));
+          } catch { /* skip bad JSON-LD */ }
+        }
+
+        // Also extract detail page URLs and fetch them
+        const detailUrls = new Set<string>();
+        const linkRegex = /href="(https?:\/\/www\.billetreduc\.com\/spectacle\/[^"]*)"/gi;
+        let lm;
+        while ((lm = linkRegex.exec(html)) !== null) {
+          detailUrls.add(lm[1]);
+        }
+
+        if (detailUrls.size > 0) {
+          const detailPages = await Promise.allSettled(
+            [...detailUrls].slice(0, 8).map(async (url) => {
+              const pageHtml = await fetchHtml(url, 6000);
+              return { url, pageHtml };
+            })
+          );
+
+          for (const r of detailPages) {
+            if (r.status !== "fulfilled") continue;
+            const { url, pageHtml } = r.value;
+            const blocks = pageHtml.match(/<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/gi) ?? [];
+            for (const blk of blocks) {
+              try {
+                const js = blk.replace(/<script[^>]*>/, "").replace(/<\/script>/, "");
+                const ld = JSON.parse(js);
+                if (!String(ld["@type"] ?? "").toLowerCase().includes("event")) continue;
+                const t = cleanHtml((ld.name ?? "").replace(/\s*Toulouse\s*$/i, ""));
+                if (!t) continue;
+                const sd = (ld.startDate ?? "").substring(0, 10);
+                if (!sd || !isFutureDate(sd)) continue;
+                const s = t.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+                const eid = `le57_${s}_${sd}`;
+                if (seenIds.has(eid)) continue;
+                seenIds.add(eid);
+                const ed = (ld.endDate ?? ld.startDate ?? "").substring(0, 10);
+                let tarif = "";
+                const off = ld.offers;
+                if (Array.isArray(off) && off.length > 0) {
+                  const o = off[0];
+                  tarif = (o.lowPrice && o.highPrice && String(o.lowPrice) !== String(o.highPrice))
+                    ? `${o.lowPrice}€ - ${o.highPrice}€`
+                    : `${o.lowPrice ?? o.price ?? ""}€`;
+                }
+                let hor = "";
+                const ttm = (ld.startDate ?? "").match(/T(\d{2}):(\d{2})/);
+                if (ttm) hor = `${ttm[1]}h${ttm[2]}`;
+                events.push(makeEvent({
+                  identifiant: eid, source: "le57", rubrique: "culture",
+                  nom_de_la_manifestation: t,
+                  descriptif_court: cleanHtml(ld.description ?? "").slice(0, 200),
+                  descriptif_long: cleanHtml(ld.description ?? ""),
+                  date_debut: sd, date_fin: ed || sd,
+                  horaires: hor, tarif_normal: tarif,
+                  photo_url: ld.image ?? "",
+                  lieu_nom: "Cafe-Theatre le 57", lieu_adresse_2: "57 Boulevard des Minimes",
+                  commune: "Toulouse", code_postal: 31200,
+                  type_de_manifestation: "Stand up", categorie_de_la_manifestation: "Stand up",
+                  reservation_site_internet: ld.url ?? url,
+                }));
+                break;
+              } catch { /* skip */ }
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`  le57: error fetching ${sourceUrl}:`, err);
+      }
+    }
+
+    console.log(`  le57: total ${events.length} events`);
+    return events;
+  } catch (e) { console.error("le57:", e); return []; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Main handler
 // ─────────────────────────────────────────────────────────────
 Deno.serve(async (_req) => {
@@ -1519,6 +1673,7 @@ Deno.serve(async (_req) => {
     const details: Record<string, number> = {};
 
     const scrapers = [
+      { name: "le57", fn: scrapeLe57 },
       { name: "sorano", fn: scrapeSorano },
       { name: "pont_neuf", fn: scrapePontNeuf },
       { name: "cave_poesie", fn: scrapeCavePoesie },
@@ -1546,7 +1701,7 @@ Deno.serve(async (_req) => {
     const results = await Promise.allSettled(
       scrapers.map(async (s) => {
         console.log(`  scrape-culture: starting ${s.name}`);
-        const events = await s.fn();
+        const events = await withErrorLogging("scrape-culture", s.name, "toulouse", () => s.fn());
         console.log(`  scrape-culture: ${s.name} → ${events.length} events`);
         return { name: s.name, events };
       })
@@ -1575,8 +1730,13 @@ Deno.serve(async (_req) => {
       { headers: { "Content-Type": "application/json" } },
     );
   } catch (e) {
+    const err = e as Error;
+    await logScraperError({
+      scraper: "scrape-culture", source: "orchestrator", ville: "toulouse",
+      error_type: "fetch", message: err.message, stack: err.stack,
+    });
     return new Response(
-      JSON.stringify({ count: 0, errors: [`FATAL: ${(e as Error).message}`] }),
+      JSON.stringify({ count: 0, errors: [`FATAL: ${err.message}`] }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

@@ -31,6 +31,13 @@ class CultureCategoryData {
 
   static const groups = [
     CultureCategoryGroup(
+      name: 'A venir',
+      emoji: '\uD83D\uDCC5',
+      subcategories: [
+        CultureSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_cettesemaine.png'),
+      ],
+    ),
+    CultureCategoryGroup(
       name: 'Arts vivants',
       emoji: '\uD83C\uDFAD',
       subcategories: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -47,7 +48,7 @@ class MonumentVenueCard extends ConsumerWidget {
                 child: SizedBox(
                   width: 64,
                   height: 64,
-                  child: Image.asset(monument.image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                  child: VenueImage(imageUrl: monument.image, defaultAsset: 'assets/images/pochette_theatre.png'),
                 ),
               ),
             ),
@@ -114,7 +115,7 @@ class MonumentVenueCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: monument.name,
-        emoji: _typeEmojis[monument.type] ?? '\uD83C\uDFF0',
+        emoji: '',
         imageAsset: monument.image,
         infos: [
           if (monument.description.isNotEmpty)

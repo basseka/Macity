@@ -159,25 +159,26 @@ final theatreVenuesSupabaseProvider =
   }
 });
 
-/// Mapping venue ID → source ID pour filtrer par salle de theatre.
+/// Mapping venue slug (DB hyphens) → scraper source ID.
 const _venueIdToSource = <String, String>{
-  'theatre_de_la_cite': 'theatre_cite',
-  'sorano_theatre': 'theatre_sorano',
-  'theatre_garonne': 'theatre_garonne',
-  'la_cave_poesie': 'cave_poesie',
-  'theatre_du_pont_neuf': 'theatre_pont_neuf',
-  'theatre_du_capitole': 'theatre_capitole',
-  'theatre_du_grand_rond': 'theatre_grand_rond',
-  'grenier_theatre': 'grenier_theatre',
-  'cafe_theatre_les_3t': 'three_t',
-  'theatre_du_pave': 'theatre_du_pave',
-  'theatre_le_fil_a_plomb': 'fil_a_plomb',
-  'theatre_des_mazades': 'mazades',
-  'theatre_de_la_violette': 'theatre_violette',
-  'theatre_de_poche': 'theatre_de_poche',
-  'theatre_du_chien_blanc': 'theatre_chien_blanc',
-  'theatre_de_la_brique_rouge': 'briquerouge',
-  'nouveau_theatre_jules_julien': 'theatre_jules_julien',
+  'theatredelacite-cdn-toulouse-occitanie': 'theatre_cite',
+  'sorano-theatre': 'theatre_sorano',
+  'theatre-garonne': 'theatre_garonne',
+  'la-cave-poesie': 'cave_poesie',
+  'theatre-du-pont-neuf': 'theatre_pont_neuf',
+  'theatre-du-capitole': 'theatre_capitole',
+  'theatre-du-grand-rond': 'theatre_grand_rond',
+  'grenier-theatre': 'grenier_theatre',
+  'cafe-theatre-les-3t': 'three_t',
+  'theatre-du-pave': 'theatre_du_pave',
+  'theatre-le-fil-a-plomb': 'fil_a_plomb',
+  'theatre-des-mazades': 'mazades',
+  'theatre-de-la-violette': 'theatre_violette',
+  'theatre-de-poche': 'theatre_de_poche',
+  'theatre-du-chien-blanc': 'theatre_chien_blanc',
+  'theatre-de-la-brique-rouge': 'briquerouge',
+  'nouveau-theatre-jules-julien': 'theatre_jules_julien',
+  'cafe-theatre-le-57': 'le57',
 };
 
 /// Events filtres pour une salle de theatre donnee (par source ID).
@@ -192,6 +193,7 @@ final theatreVenueEventsProvider =
     source: sourceId,
     dateGte: _todayStr(),
     ville: city,
+    requirePhoto: false,
   );
 });
 

@@ -50,6 +50,18 @@ final userVilleProvider = FutureProvider<String>((ref) async {
   }
 });
 
+/// Preferences detaillees (sous-interets) de l'utilisateur.
+/// Format: ["mode:tag", ...] ex: ["sport:football", "day:festival"]
+final userDetailedPreferencesProvider = FutureProvider<List<String>>((ref) async {
+  try {
+    final profile = await UserProfileService().fetchProfile();
+    if (profile == null || profile['preferences_detailed'] == null) return [];
+    return (profile['preferences_detailed'] as List).cast<String>();
+  } catch (_) {
+    return [];
+  }
+});
+
 /// Villes pour lesquelles l'utilisateur recoit les notifications mairie.
 final userVillesNotificationsProvider = FutureProvider<List<String>>((ref) async {
   try {

@@ -47,6 +47,23 @@ class DateRangeChipBar extends ConsumerWidget {
                       lastDate:
                           DateTime.now().add(const Duration(days: 365)),
                       locale: const Locale('fr', 'FR'),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            textTheme: Theme.of(context).textTheme.copyWith(
+                              headlineSmall: const TextStyle(fontSize: 16),
+                              titleSmall: const TextStyle(fontSize: 11),
+                              bodySmall: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                          child: MediaQuery(
+                            data: MediaQuery.of(context).copyWith(
+                              textScaler: const TextScaler.linear(0.85),
+                            ),
+                            child: child!,
+                          ),
+                        );
+                      },
                     );
                     if (picked != null) {
                       ref.read(dateRangeFilterProvider.notifier).state =

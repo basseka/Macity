@@ -55,16 +55,15 @@ final familyCategoryCountProvider =
 
   final city = ref.watch(selectedCityProvider);
 
+  // "A venir" = uniquement les events crees par la communaute
   if (searchTag == 'A venir') {
-    final allTags = FamilyCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'A venir')
-        .map((s) => s.searchTag);
-    var total = 0;
-    for (final tag in allTags) {
-      total += await service.countByCategory(tag, ville: city);
-    }
-    final balmaEvents = ref.watch(balmaEventsProvider).valueOrNull ?? [];
-    return total + uc + balmaEvents.length;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return userEvents.where((e) {
+      final d = DateTime.tryParse(e.dateDebut);
+      if (d == null) return false;
+      return !DateTime(d.year, d.month, d.day).isBefore(today);
+    }).length;
   }
 
   final count = await service.countByCategory(searchTag, ville: city);
