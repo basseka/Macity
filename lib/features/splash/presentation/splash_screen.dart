@@ -59,9 +59,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (mounted) _btnController.forward();
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ActivityService.instance.appOpen();
-    });
+    // appOpen logged when user taps "Entrer" (services are ready by then)
   }
 
   @override
@@ -174,7 +172,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                   width: double.infinity,
                                   height: 48,
                                   child: ElevatedButton(
-                                    onPressed: () => context.go('/home'),
+                                    onPressed: () {
+                                      ActivityService.instance.appOpen();
+                                      context.go('/home');
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.white,
                                       foregroundColor: const Color(0xFF1A0A2E),

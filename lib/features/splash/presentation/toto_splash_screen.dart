@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/services/activity_service.dart';
 
 class TotoSplashScreen extends StatefulWidget {
   const TotoSplashScreen({super.key});
@@ -31,7 +32,10 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
     _controller.forward();
 
     Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) context.go('/home');
+      if (mounted) {
+        ActivityService.instance.appOpen();
+        context.go('/home');
+      }
     });
   }
 
