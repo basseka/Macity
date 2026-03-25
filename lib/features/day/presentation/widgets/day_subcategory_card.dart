@@ -80,7 +80,10 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
               Image.asset(
                 widget.image!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300),
+                cacheWidth: 300,
+                errorBuilder: (_, __, ___) => Container(
+                  decoration: BoxDecoration(gradient: widget.gradient),
+                ),
               )
             else
               Container(

@@ -32,35 +32,35 @@ class FoodCategoryData {
   static const groups = [
     FoodCategoryGroup(
       name: 'A venir',
-      emoji: '\uD83D\uDCC5',
+      emoji: '',
       subcategories: [
-        FoodSubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_cettesemaine.png'),
+        FoodSubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '', group: 'A venir', image: 'assets/images/pochette_cettesemaine.jpg'),
       ],
     ),
     FoodCategoryGroup(
       name: 'Restaurants',
-      emoji: '\uD83C\uDF7D\uFE0F',
+      emoji: '',
       subcategories: [
-        FoodSubcategory(label: 'Restaurant', searchTag: 'Restaurant', emoji: '\uD83C\uDF7D\uFE0F', group: 'Restaurants', image: 'assets/images/pochette_restaurant.png'),
-        FoodSubcategory(label: 'Guinguette', searchTag: 'Guinguette', emoji: '', group: 'Restaurants', image: 'assets/images/pochette_restaurant.png'),
-        FoodSubcategory(label: 'Buffets', searchTag: 'Buffets', emoji: '', group: 'Restaurants', image: 'assets/images/pochette_restaurant.png'),
+        FoodSubcategory(label: 'Restaurant', searchTag: 'Restaurant', emoji: '', group: 'Restaurants', image: 'assets/images/pochette_restaurant.jpg'),
+        FoodSubcategory(label: 'Guinguette', searchTag: 'Guinguette', emoji: '', group: 'Restaurants', image: 'assets/images/pochette_restaurant.jpg'),
+        FoodSubcategory(label: 'Buffets', searchTag: 'Buffets', emoji: '', group: 'Restaurants', image: 'assets/images/pochette_restaurant.jpg'),
       ],
     ),
     FoodCategoryGroup(
       name: 'Cafes & brunchs',
-      emoji: '\u2615',
+      emoji: '',
       subcategories: [
-        FoodSubcategory(label: 'Salon de the', searchTag: 'Salon de the', emoji: '\uD83C\uDF75', group: 'Cafes & brunchs', image: 'assets/images/pochette_salondethe.png'),
-        FoodSubcategory(label: 'Brunch', searchTag: 'Brunch', emoji: '\uD83E\uDD50', group: 'Cafes & brunchs', image: 'assets/images/pochette_brunch.png'),
+        FoodSubcategory(label: 'Salon de the', searchTag: 'Salon de the', emoji: '', group: 'Cafes & brunchs', image: 'assets/images/pochette_salondethe.jpg'),
+        FoodSubcategory(label: 'Brunch', searchTag: 'Brunch', emoji: '', group: 'Cafes & brunchs', image: 'assets/images/pochette_brunch.jpg'),
       ],
     ),
     FoodCategoryGroup(
       name: 'Bien-etre & lifestyle',
-      emoji: '\uD83E\uDDD8',
+      emoji: '',
       subcategories: [
-        FoodSubcategory(label: 'Spa & hammam', searchTag: 'Spa hammam', emoji: '\uD83E\uDDD6', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.png'),
-        FoodSubcategory(label: 'Massage', searchTag: 'Massage', emoji: '\uD83D\uDC86', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.png'),
-        FoodSubcategory(label: 'Yoga & meditation', searchTag: 'Yoga meditation', emoji: '\uD83E\uDDD8', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_yoga.png'),
+        FoodSubcategory(label: 'Spa & hammam', searchTag: 'Spa hammam', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.png'),
+        FoodSubcategory(label: 'Massage', searchTag: 'Massage', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.png'),
+        FoodSubcategory(label: 'Yoga & meditation', searchTag: 'Yoga meditation', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_yoga.jpg'),
       ],
     ),
   ];

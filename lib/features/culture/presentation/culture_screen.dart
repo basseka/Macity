@@ -486,6 +486,7 @@ class CultureScreen extends ConsumerWidget {
                 photoUrl: event.photoPath,
                 tag: event.categorie.isNotEmpty ? event.categorie : null,
                 isFree: event.isFree,
+                hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
                 onTap: () => EventFullscreenPopup.show(
                   context, event, 'assets/images/pochette_culture_art.png',
                 ),

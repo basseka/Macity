@@ -25,38 +25,67 @@ class CommerceRowCard extends ConsumerWidget {
     'apero toulousain': 'assets/images/sos_aperotoulousain.png',
     'speed apero': 'assets/images/sos_speedapero.png',
     'apero eclair': 'assets/images/sos_aperoeclair.png',
-    'apero speed': 'assets/images/sos_aperospeed.png',
+    'apero speed': 'assets/images/sos_aperospeed.jpg',
     'allo apero': 'assets/images/sos_alloapero.png',
-    'bar': 'assets/images/sc_pub.png',
-    'pub': 'assets/images/sc_pub.png',
+    // Night
+    'bar de nuit': 'assets/images/pochette_pub.png',
+    'cocktail': 'assets/images/pochette_cocktail.png',
+    'chicha': 'assets/images/sc_chicha.jpg',
+    'pub': 'assets/images/pochette_pub_off.png',
+    'bar': 'assets/images/sc_pub.jpg',
     'club': 'assets/images/sc_discotheque.png',
     'discotheque': 'assets/images/sc_discotheque.png',
-    'restaurant': 'assets/images/pochette_food.png',
+    'epicerie': 'assets/images/sc_tabac_nuit.png',
+    'tabac': 'assets/images/sc_tabac_nuit.png',
+    'station': 'assets/images/sc_tabac_nuit.png',
+    'hotel': 'assets/images/sc_hotel.jpg',
+    // Family
+    'aire de jeux': 'assets/images/pochette_aire_de_jeu.png',
+    'ferme': 'assets/images/pochette_ferme.png',
+    'bowling': 'assets/images/pochette_bowling.png',
+    'laser game': 'assets/images/pochette_laser_game.png',
+    'escape game': 'assets/images/pochette_escapegame.jpg',
+    'patinoire': 'assets/images/pochette_patinoire.png',
+    'parc animalier': 'assets/images/sc_parc_animalier.jpg',
+    'parc attraction': 'assets/images/pochette_parc_attraction.png',
+    'parc': 'assets/images/pochette_parc_attraction.png',
+    // Food
+    'restaurant': 'assets/images/pochette_restaurant.jpg',
     'cafe': 'assets/images/pochette_food.png',
     'brasserie': 'assets/images/pochette_food.png',
     'pizzeria': 'assets/images/pochette_food.png',
     'boulangerie': 'assets/images/pochette_food.png',
-    'hotel': 'assets/images/sc_hotel.png',
+    // Culture
     'musee': 'assets/images/sc_expo.png',
     'theatre': 'assets/images/sc_theatre.png',
     'cinema': 'assets/images/pochette_spectacle.png',
-    'bowling': 'assets/images/pochette_enfamille.png',
-    'parc': 'assets/images/pochette_parc_attraction.png',
     'bibliotheque': 'assets/images/sc_expo.png',
     'librairie': 'assets/images/sc_expo.png',
-    'piscine': 'assets/images/sc_natation.png',
-    'fitness': 'assets/images/sc_autres_sport.png',
-    'tennis': 'assets/images/sc_autres_sport.png',
-    'football': 'assets/images/sc_football.png',
+    // Sport
+    'piscine': 'assets/images/sc_natation.jpg',
+    'fitness': 'assets/images/sc_autres_sport.jpg',
+    'tennis': 'assets/images/sc_autres_sport.jpg',
+    'football': 'assets/images/sc_football.jpg',
     'rugby': 'assets/images/sc_rugby.png',
     'basket': 'assets/images/sc_basketball.png',
-    'chicha': 'assets/images/sc_chicha.png',
-    'epicerie': 'assets/images/sc_tabac_nuit.png',
-    'tabac': 'assets/images/sc_tabac_nuit.png',
-    'station': 'assets/images/sc_tabac_nuit.png',
-    'gaming': 'assets/images/pochette_gaming.png',
-    'jeux': 'assets/images/pochette_gaming.png',
-    'esport': 'assets/images/pochette_gaming.png',
+    // Gaming
+    'salle arcade': 'assets/images/pochette_sallearcade.png',
+    'gaming cafe': 'assets/images/pochette_gamingcafe.jpg',
+    'realite virtuelle': 'assets/images/pochette_VR.png',
+    'bar a jeux': 'assets/images/pochette_barajeux.png',
+    'boutique jeux': 'assets/images/pochette_gaming.jpg',
+    'boutique manga': 'assets/images/pochette_boutiquemanga.jpg',
+    'comics bd': 'assets/images/pochette_default.jpg',
+    'figurines goodies': 'assets/images/pochette_default.jpg',
+    'convention salon': 'assets/images/pochette_default.jpg',
+    'tournoi esport': 'assets/images/pochette_gaming.jpg',
+    'cosplay': 'assets/images/pochette_cosplay.jpg',
+    'gaming': 'assets/images/pochette_gaming.jpg',
+    'jeux': 'assets/images/pochette_gaming.jpg',
+    'esport': 'assets/images/pochette_gaming.jpg',
+    'manga': 'assets/images/pochette_boutiquemanga.jpg',
+    'arcade': 'assets/images/pochette_sallearcade.png',
+    'vr': 'assets/images/pochette_VR.png',
   };
 
   String? _resolveImage() {
@@ -73,7 +102,7 @@ class CommerceRowCard extends ConsumerWidget {
   }
 
   Widget _buildImage(String? image, ModeTheme modeTheme) {
-    final src = image ?? 'assets/images/pochette_default.png';
+    final src = image ?? 'assets/images/pochette_default.jpg';
     final isNetwork = src.startsWith('http://') || src.startsWith('https://');
 
     if (isNetwork) {
@@ -89,6 +118,7 @@ class CommerceRowCard extends ConsumerWidget {
     return Image.asset(
       src,
       fit: BoxFit.cover,
+      cacheWidth: 300,
       filterQuality: FilterQuality.medium,
       errorBuilder: (_, __, ___) => Container(color: modeTheme.chipBgColor),
     );
@@ -108,8 +138,8 @@ class CommerceRowCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: 80,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -157,8 +187,14 @@ class CommerceRowCard extends ConsumerWidget {
                         commerce.horaires,
                         modeTheme.primaryColor,
                       ),
+                    if (commerce.displayCount > 0)
+                      _buildInfoRow(
+                        Icons.people_outline,
+                        '${commerce.displayCount} personnes',
+                        modeTheme.primaryColor.withValues(alpha: 0.7),
+                      ),
 
-                    const Spacer(),
+                    const SizedBox(height: 4),
 
                     // Actions
                     Row(
@@ -194,12 +230,15 @@ class CommerceRowCard extends ConsumerWidget {
 
   void _openDetail(BuildContext context) {
     final image = _resolveImage();
+    final isNetwork = image != null && image.startsWith('http');
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
         title: commerce.nom,
         emoji: '',
-        imageAsset: image,
+        imageAsset: isNetwork ? null : image,
+        imageUrl: isNetwork ? image : null,
+        videoUrl: commerce.videoUrl.isNotEmpty ? commerce.videoUrl : null,
         likeId: 'night_${commerce.nom}',
         infos: [
           if (commerce.categorie.isNotEmpty)

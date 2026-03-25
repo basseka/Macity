@@ -17,6 +17,7 @@ class CommunityEventCard extends StatelessWidget {
   final String fallbackAsset;
   final String? tag;
   final bool isFree;
+  final bool hasVideo;
   final VoidCallback? onTap;
 
   const CommunityEventCard({
@@ -27,9 +28,10 @@ class CommunityEventCard extends StatelessWidget {
     this.time,
     this.location,
     this.photoUrl,
-    this.fallbackAsset = 'assets/images/pochette_default.png',
+    this.fallbackAsset = 'assets/images/pochette_default.jpg',
     this.tag,
     this.isFree = false,
+    this.hasVideo = false,
     this.onTap,
   });
 
@@ -51,13 +53,34 @@ class CommunityEventCard extends StatelessWidget {
         child: Row(
           children: [
             // Photo
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: _buildPhoto(),
-              ),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: _buildPhoto(),
+                  ),
+                ),
+                if (hasVideo)
+                  Positioned(
+                    bottom: 2,
+                    right: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(
+                        Icons.play_circle_fill,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 8),
 
@@ -201,6 +224,7 @@ class CommunityEventCard extends StatelessWidget {
     return Image.asset(
       fallbackAsset,
       fit: BoxFit.cover,
+      cacheWidth: 300,
       errorBuilder: (_, __, ___) => Container(
         color: const Color(0xFFF0F0F5),
         child: const Icon(Icons.event, size: 24, color: Colors.grey),

@@ -21,6 +21,7 @@ class _MetroTramwayMapState extends State<MetroTramwayMap> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setUserAgent('PulzApp/1.0 (https://pulzapp.fr)')
       ..addJavaScriptChannel(
         'FlutterLocation',
         onMessageReceived: (_) => _handleLocationRequest(),
@@ -199,7 +200,7 @@ function initMap(){
   if(mapReady) return;
   map = L.map('map',{zoomControl:false}).setView([43.6047,1.4442],13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:18,attribution:'OSM'
+    maxZoom:18,attribution:'OSM',referrerPolicy:'origin'
   }).addTo(map);
   mapReady = true;
 }

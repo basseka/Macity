@@ -47,6 +47,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setUserAgent('PulzApp/1.0 (https://pulzapp.fr)')
       ..addJavaScriptChannel(
         'FlutterLocation',
         onMessageReceived: (_) => _handleLocationRequest(),
@@ -276,6 +277,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     const map = L.map('map').setView([43.6047, 1.4442], INIT_ZOOM || 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap', maxZoom: 19,
+      referrerPolicy: 'origin',
     }).addTo(map);
 
     const allMarkers = [];

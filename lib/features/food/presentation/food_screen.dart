@@ -119,8 +119,8 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         Expanded(
           child: category == 'A venir'
               ? _buildGroupedVenues(ref, modeTheme)
-              : category == 'Restaurant'
-                  ? _buildRestaurantsList(ref)
+              : (category == 'Restaurant' || category == 'Guinguette' || category == 'Buffets' || category == 'Salon de the' || category == 'Brunch' || category == 'Spa hammam' || category == 'Massage' || category == 'Yoga meditation')
+                  ? _buildRestaurantsList(ref, presetTheme: _presetThemeForCategory(category), placeholderAsset: _placeholderForCategory(category))
                   : venuesAsync.when(
                   data: (venues) {
                     if (venues.isEmpty) {
@@ -150,13 +150,52 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     );
   }
 
-  Widget _buildRestaurantsList(WidgetRef ref) {
+  static String? _presetThemeForCategory(String category) {
+    switch (category) {
+      case 'Guinguette': return 'Guinguette';
+      case 'Buffets': return 'Buffet';
+      case 'Salon de the': return 'Salon de the';
+      case 'Brunch': return 'Brunch';
+      case 'Spa hammam': return 'Spa hammam';
+      case 'Massage': return 'Massage';
+      case 'Yoga meditation': return 'Yoga meditation';
+      default: return null;
+    }
+  }
+
+  static String _placeholderForCategory(String category) {
+    switch (category) {
+      case 'Guinguette':
+        return 'assets/images/pochette_guinguette.png';
+      case 'Buffets':
+        return 'assets/images/pochette_buffet.png';
+      case 'Salon de the':
+        return 'assets/images/pochette_salondethe.jpg';
+      case 'Brunch':
+        return 'assets/images/pochette_brunch.jpg';
+      case 'Spa hammam':
+        return 'assets/images/pochette_spa&hammam.png';
+      case 'Massage':
+        return 'assets/images/pochette_spa&hammam.png';
+      case 'Yoga meditation':
+        return 'assets/images/pochette_yoga.jpg';
+      default:
+        return 'assets/images/pochette_restaurant.jpg';
+    }
+  }
+
+  Widget _buildRestaurantsList(WidgetRef ref, {String? presetTheme, String placeholderAsset = 'assets/images/pochette_restaurant.jpg'}) {
     final modeTheme = ref.watch(modeThemeProvider);
     // Toujours recharger depuis Supabase quand on ouvre la carte Restaurant
     final restaurantsAsync = ref.watch(restaurantsSupabaseProvider);
 
     return restaurantsAsync.when(
-      data: (venues) => _buildRestaurantsFiltered(ref, venues, modeTheme),
+      data: (venues) {
+        final filtered = presetTheme != null
+            ? venues.where((r) => r.theme.toLowerCase() == presetTheme.toLowerCase()).toList()
+            : venues;
+        return _buildRestaurantsFiltered(ref, filtered, modeTheme, hideThemeFilter: presetTheme != null, placeholderAsset: placeholderAsset);
+      },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (_, __) => _buildRestaurantsFiltered(
           ref, <RestaurantVenue>[], modeTheme),
@@ -170,11 +209,11 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   }
 
   Widget _buildRestaurantsFiltered(
-      WidgetRef ref, List<RestaurantVenue> allVenues, modeTheme) {
+      WidgetRef ref, List<RestaurantVenue> allVenues, modeTheme, {bool hideThemeFilter = false, String placeholderAsset = 'assets/images/pochette_restaurant.jpg'}) {
 
     // Filtrer selon le filtre actif (comparaison insensible a la casse)
     final filtered = allVenues.where((r) {
-      if (_selectedTheme != 'Tous' &&
+      if (!hideThemeFilter && _selectedTheme != 'Tous' &&
           r.theme.toLowerCase() != _selectedTheme.toLowerCase()) return false;
       if (_selectedQuartier != 'Tous' &&
           r.quartier.toLowerCase() != _selectedQuartier.toLowerCase()) return false;
@@ -188,7 +227,8 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     String currentValue;
     void Function(String) onSelect;
 
-    switch (_filterTab) {
+    final effectiveFilterTab = hideThemeFilter && _filterTab == 0 ? 1 : _filterTab;
+    switch (effectiveFilterTab) {
       case 0:
         currentOptions = RestaurantVenuesData.themes;
         currentValue = _selectedTheme;
@@ -206,7 +246,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     if (filtered.isEmpty) {
       return Column(
         children: [
-          _buildFilterHeader(modeTheme, currentOptions, currentValue, onSelect),
+          _buildFilterHeader(modeTheme, currentOptions, currentValue, onSelect, hideThemeTab: hideThemeFilter),
           const SizedBox(height: 8),
           Expanded(
             child: Center(
@@ -229,7 +269,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                _buildFilterHeader(modeTheme, currentOptions, currentValue, onSelect),
+                _buildFilterHeader(modeTheme, currentOptions, currentValue, onSelect, hideThemeTab: hideThemeFilter),
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -255,7 +295,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _RestaurantRowCard(venue: filtered[index]),
+                  child: _RestaurantRowCard(venue: filtered[index], placeholderAsset: placeholderAsset),
                 ),
                 childCount: filtered.length,
               ),
@@ -272,6 +312,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     List<String> currentOptions,
     String currentValue,
     void Function(String) onSelect,
+    {bool hideThemeTab = false}
   ) {
     return Column(
       children: [
@@ -279,8 +320,10 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              _buildFilterTab('Theme', 0, modeTheme.primaryColor),
-              const SizedBox(width: 8),
+              if (!hideThemeTab) ...[
+                _buildFilterTab('Theme', 0, modeTheme.primaryColor),
+                const SizedBox(width: 8),
+              ],
               _buildFilterTab('Quartier', 1, modeTheme.primaryColor),
               const SizedBox(width: 8),
               _buildFilterTab('Style', 2, modeTheme.primaryColor),
@@ -433,8 +476,9 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                 photoUrl: event.photoPath,
                 tag: event.categorie.isNotEmpty ? event.categorie : null,
                 isFree: event.isFree,
+                hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
                 onTap: () => EventFullscreenPopup.show(
-                    context, event, 'assets/images/pochette_default.png'),
+                    context, event, 'assets/images/pochette_default.jpg'),
               ),
             ),
           );
@@ -449,8 +493,10 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
           child: Row(
             children: [
-              Text(sub.emoji, style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
+              if (sub.emoji.isNotEmpty) ...[
+                Text(sub.emoji, style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+              ],
               Text(
                 sub.label,
                 style: TextStyle(
@@ -503,7 +549,8 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
 // ── Carte restaurant en liste (style "A venir") ──
 class _RestaurantRowCard extends StatelessWidget {
   final RestaurantVenue venue;
-  const _RestaurantRowCard({required this.venue});
+  final String placeholderAsset;
+  const _RestaurantRowCard({required this.venue, this.placeholderAsset = 'assets/images/pochette_restaurant.jpg'});
 
   @override
   Widget build(BuildContext context) {
@@ -646,8 +693,9 @@ class _RestaurantRowCard extends StatelessWidget {
 
   Widget _placeholder() {
     return Image.asset(
-      'assets/images/pochette_food.png',
+      placeholderAsset,
       fit: BoxFit.cover,
+      cacheWidth: 300,
       errorBuilder: (_, __, ___) => Container(
         color: const Color(0xFFF0F0F5),
         child: const Icon(Icons.restaurant, size: 24, color: Colors.grey),
@@ -660,7 +708,9 @@ class _RestaurantRowCard extends StatelessWidget {
       context,
       ItemDetailSheet(
         title: venue.name,
-        emoji: '\u{1F37D}\u{FE0F}',
+        emoji: '',
+        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : null,
+        imageUrl: venue.photo.isNotEmpty && venue.photo.startsWith('http') ? venue.photo : null,
         infos: [
           if (venue.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, venue.description),
@@ -722,12 +772,14 @@ class _RestaurantGridTile extends StatelessWidget {
               errorWidget: (_, __, ___) => Image.asset(
                 'assets/images/pochette_food.png',
                 fit: BoxFit.cover,
+                cacheWidth: 300,
               ),
             )
           else
             Image.asset(
               'assets/images/pochette_food.png',
               fit: BoxFit.cover,
+              cacheWidth: 300,
               errorBuilder: (_, __, ___) =>
                   Container(color: Colors.grey.shade900),
             ),
@@ -846,7 +898,9 @@ class _RestaurantGridTile extends StatelessWidget {
       context,
       ItemDetailSheet(
         title: venue.name,
-        emoji: '\u{1F37D}\u{FE0F}',
+        emoji: '',
+        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : null,
+        imageUrl: venue.photo.isNotEmpty && venue.photo.startsWith('http') ? venue.photo : null,
         infos: [
           if (venue.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, venue.description),

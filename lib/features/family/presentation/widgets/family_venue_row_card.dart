@@ -14,21 +14,21 @@ class FamilyVenueRowCard extends ConsumerWidget {
 
   const FamilyVenueRowCard({super.key, required this.venue});
 
-  static const _categoryEmojis = <String, String>{
-    "Parc d'attractions": '\uD83C\uDFA2',
-    'Aire de jeux': '\uD83E\uDDD2',
-    'Parc animalier': '\uD83E\uDD81',
-    'Ferme pedagogique': '\uD83D\uDC04',
-    'Cinema': '\uD83C\uDFAC',
-    'Bowling': '\uD83C\uDFB3',
-    'Laser game': '\uD83D\uDD2B',
-    'Escape game': '\uD83D\uDD10',
-    'Patinoire': '\u26F8\uFE0F',
-    'Restaurant familial': '\uD83C\uDF54',
-    'Aquarium': '\uD83D\uDC20',
+  static const _categoryImages = <String, String>{
+    "Parc d'attractions": 'assets/images/pochette_parc_attraction.png',
+    'Aire de jeux': 'assets/images/pochette_aire_de_jeu.png',
+    'Parc animalier': 'assets/images/sc_parc_animalier.jpg',
+    'Ferme pedagogique': 'assets/images/pochette_ferme.png',
+    'Cinema': 'assets/images/pochette_spectacle.png',
+    'Bowling': 'assets/images/pochette_bowling.png',
+    'Laser game': 'assets/images/pochette_laser_game.png',
+    'Escape game': 'assets/images/pochette_escapegame.jpg',
+    'Patinoire': 'assets/images/pochette_patinoire.png',
+    'Restaurant familial': 'assets/images/pochette_restaurant.jpg',
+    'Aquarium': 'assets/images/pochette_enfamille.jpg',
   };
 
-  String get _emoji => _categoryEmojis[venue.category] ?? '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67';
+  String? get _fallbackImage => _categoryImages[venue.category];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,9 +43,10 @@ class FamilyVenueRowCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(14),
         ),
         clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          height: 80,
-          child: Row(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 80),
+          child: IntrinsicHeight(
+            child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Pochette
@@ -63,9 +64,9 @@ class FamilyVenueRowCard extends ConsumerWidget {
                             ? Image.network(
                                 venue.photo,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _emojiFallback(modeTheme),
+                                errorBuilder: (_, __, ___) => _imageFallback(modeTheme),
                               )
-                            : _emojiFallback(modeTheme),
+                            : _imageFallback(modeTheme),
                       ),
                       if (venue.ticketUrl.isNotEmpty)
                         Positioned(
@@ -110,7 +111,7 @@ class FamilyVenueRowCard extends ConsumerWidget {
                         _buildInfoRow(Icons.access_time, venue.horaires, modeTheme.primaryColor),
                       if (venue.tarif.isNotEmpty)
                         _buildInfoRow(Icons.euro, venue.tarif, modeTheme.primaryColor),
-                      const Spacer(),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -132,19 +133,32 @@ class FamilyVenueRowCard extends ConsumerWidget {
               ),
             ],
           ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _emojiFallback(ModeTheme modeTheme) {
+  Widget _imageFallback(ModeTheme modeTheme) {
+    final asset = _fallbackImage;
+    if (asset != null) {
+      return Image.asset(
+        asset,
+        fit: BoxFit.cover,
+        cacheWidth: 300,
+        errorBuilder: (_, __, ___) => Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: modeTheme.primaryColor.withValues(alpha: 0.08),
+          ),
+        ),
+      );
+    }
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: modeTheme.primaryColor.withValues(alpha: 0.08),
       ),
-      alignment: Alignment.center,
-      child: Text(_emoji, style: const TextStyle(fontSize: 24)),
     );
   }
 
@@ -153,7 +167,8 @@ class FamilyVenueRowCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: venue.name,
-        emoji: _emoji,
+        emoji: '',
+        imageAsset: venue.photo.isEmpty ? _fallbackImage : null,
         imageUrl: venue.photo.isNotEmpty ? venue.photo : null,
         infos: [
           if (venue.horaires.isNotEmpty)

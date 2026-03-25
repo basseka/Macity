@@ -16,6 +16,7 @@ import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/presentation/widgets/fete_musique_map_view.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/features/day/presentation/shared_with_me_sheet.dart';
@@ -83,7 +84,6 @@ class DayScreen extends ConsumerWidget {
               _DayAvenirBanner(gradient: gradient, ref: ref),
               const SizedBox(height: 14),
             ],
-            _SharedWithMeBanner(ref: ref),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -293,7 +293,7 @@ class DayScreen extends ConsumerWidget {
         if (didPop) return;
         ref.read(modeSubcategoriesProvider.notifier).select('day', null);
       },
-      child: const FeteMusiqueMapView(),
+      child: FeteMusiqueMapView(ville: ref.watch(selectedCityProvider)),
     );
   }
 
@@ -424,6 +424,7 @@ class DayScreen extends ConsumerWidget {
               photoUrl: event.photoPath,
               tag: event.categorie.isNotEmpty ? event.categorie : null,
               isFree: event.isFree,
+              hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
               onTap: () => EventFullscreenPopup.show(
                 context, event, 'assets/images/pochette_concert.png',
               ),
@@ -470,8 +471,9 @@ class _DayAvenirBanner extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.asset(
-                  'assets/images/pochette_cettesemaine.png',
+                  'assets/images/pochette_cettesemaine.jpg',
                   fit: BoxFit.cover,
+                  cacheWidth: 300,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
@@ -555,8 +557,8 @@ class _SharedWithMeBanner extends ConsumerWidget {
     final sharedAsync = ref.watch(sharedWithMeProvider);
     final count = sharedAsync.valueOrNull?.length ?? 0;
 
-    // Ne pas afficher si aucun event partage
-    if (count == 0 && !sharedAsync.isLoading) return const SizedBox.shrink();
+    // Ne pas afficher si aucun event partage ou en cours de chargement
+    if (count == 0) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),

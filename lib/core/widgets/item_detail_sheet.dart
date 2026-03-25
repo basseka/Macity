@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
@@ -16,6 +17,7 @@ class ItemDetailSheet extends ConsumerWidget {
   final String emoji;
   final String? imageAsset;
   final String? imageUrl;
+  final String? videoUrl;
   final List<DetailInfoItem> infos;
   final DetailAction? primaryAction;
   final List<DetailAction> secondaryActions;
@@ -30,6 +32,7 @@ class ItemDetailSheet extends ConsumerWidget {
     this.emoji = '',
     this.imageAsset,
     this.imageUrl,
+    this.videoUrl,
     this.infos = const [],
     this.primaryAction,
     this.secondaryActions = const [],
@@ -56,7 +59,9 @@ class ItemDetailSheet extends ConsumerWidget {
     final isLiked =
         likeId != null ? ref.watch(likesProvider).contains(likeId) : false;
     final screenHeight = MediaQuery.of(context).size.height;
-    final hasImage = (imageAsset != null && imageAsset!.isNotEmpty) ||
+    final hasVideo = videoUrl != null && videoUrl!.isNotEmpty;
+    final hasImage = hasVideo ||
+        (imageAsset != null && imageAsset!.isNotEmpty) ||
         (imageUrl != null && imageUrl!.isNotEmpty);
 
     return Center(
@@ -92,7 +97,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                     ? screenHeight * 0.85 * imageHeightFraction
                                     : double.infinity,
                               ),
-                              child: _buildImage(),
+                              child: hasVideo ? _DetailVideoPlayer(videoUrl: videoUrl!) : _buildImage(),
                             )
                           : _buildGradientFallback(),
                     ),
@@ -217,7 +222,36 @@ class ItemDetailSheet extends ConsumerWidget {
 
                           const SizedBox(height: 14),
 
-                          // ── Boutons actions ──
+                          // Primary action (Site web / Billetterie) en premier
+                          if (primaryAction != null) ...[
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44,
+                              child: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _openUrl(primaryAction!.url),
+                                icon: Icon(primaryAction!.icon, size: 18),
+                                label: Text(
+                                  primaryAction!.label,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _primaryColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+
+                          // ── Boutons actions secondaires ──
                           Wrap(
                             spacing: 12,
                             runSpacing: 8,
@@ -262,35 +296,6 @@ class ItemDetailSheet extends ConsumerWidget {
                             ],
                           ),
 
-                          // Primary action
-                          if (primaryAction != null) ...[
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 44,
-                              child: ElevatedButton.icon(
-                                onPressed: () =>
-                                    _openUrl(primaryAction!.url),
-                                icon: Icon(primaryAction!.icon, size: 18),
-                                label: Text(
-                                  primaryAction!.label,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _primaryColor,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  elevation: 0,
-                                ),
-                              ),
-                            ),
-                          ],
-
                           const SizedBox(height: 16),
                         ],
                       ),
@@ -316,13 +321,14 @@ class ItemDetailSheet extends ConsumerWidget {
             ? Image.asset(imageAsset!, fit: BoxFit.cover, width: double.infinity)
             : _buildGradientFallback(),
         errorWidget: (_, __, ___) => imageAsset != null
-            ? Image.asset(imageAsset!, fit: BoxFit.cover, width: double.infinity)
+            ? Image.asset(imageAsset!, fit: BoxFit.cover, width: double.infinity, cacheWidth: 300)
             : _buildGradientFallback(),
       );
     }
     return Image.asset(
       imageAsset!,
       fit: BoxFit.cover,
+      cacheWidth: 300,
       width: double.infinity,
       errorBuilder: (_, __, ___) => _buildGradientFallback(),
     );
@@ -428,4 +434,115 @@ class DetailAction {
     required this.label,
     required this.url,
   });
+}
+
+/// Video player teaser dans le detail d'un etablissement (15s max, looping, mute toggle).
+class _DetailVideoPlayer extends StatefulWidget {
+  final String videoUrl;
+  const _DetailVideoPlayer({required this.videoUrl});
+
+  @override
+  State<_DetailVideoPlayer> createState() => _DetailVideoPlayerState();
+}
+
+class _DetailVideoPlayerState extends State<_DetailVideoPlayer> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+  bool _muted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..setLooping(true)
+      ..setVolume(1.0)
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() => _initialized = true);
+          _controller.play();
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const AspectRatio(
+        aspectRatio: 16 / 9,
+        child: ColoredBox(
+          color: Colors.black,
+          child: Center(child: CircularProgressIndicator(color: Color(0xFFE91E8C))),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _controller.value.isPlaying ? _controller.pause() : _controller.play();
+        });
+      },
+      child: AspectRatio(
+        aspectRatio: _controller.value.aspectRatio,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            VideoPlayer(_controller),
+            if (!_controller.value.isPlaying)
+              const ColoredBox(
+                color: Colors.black26,
+                child: Center(child: Icon(Icons.play_arrow, color: Colors.white, size: 40)),
+              ),
+            // Mute toggle
+            Positioned(
+              bottom: 6,
+              right: 6,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _muted = !_muted;
+                    _controller.setVolume(_muted ? 0 : 1);
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    _muted ? Icons.volume_off : Icons.volume_up,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
+            // Badge "Teaser"
+            Positioned(
+              top: 6,
+              left: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE91E8C),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'TEASER',
+                  style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

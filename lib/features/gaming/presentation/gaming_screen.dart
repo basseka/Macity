@@ -222,7 +222,8 @@ class GamingScreen extends ConsumerWidget {
                 photoUrl: event.photoPath,
                 tag: event.categorie.isNotEmpty ? event.categorie : null,
                 isFree: event.isFree,
-                onTap: () => EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.png'),
+                hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
+                onTap: () => EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.jpg'),
               ),
             ),
           );

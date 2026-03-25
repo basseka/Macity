@@ -40,8 +40,8 @@ class EventCard extends ConsumerWidget {
     'course': 'assets/images/pochette_course.png',
     'parc': 'assets/images/pochette_parc_attraction.png',
     'cinema': 'assets/images/pochette_spectacle.png',
-    'bowling': 'assets/images/pochette_enfamille.png',
-    'spectacle enfant': 'assets/images/pochette_enfamille.png',
+    'bowling': 'assets/images/pochette_enfamille.jpg',
+    'spectacle enfant': 'assets/images/pochette_enfamille.jpg',
     'restaurant': 'assets/images/pochette_food.png',
     'cafe': 'assets/images/pochette_food.png',
     'brunch': 'assets/images/pochette_food.png',
@@ -76,7 +76,7 @@ class EventCard extends ConsumerWidget {
       return 'assets/images/pochette_culture_art.png';
     }
     if (cat.contains('enfant') || cat.contains('famille')) {
-      return 'assets/images/pochette_enfamille.png';
+      return 'assets/images/pochette_enfamille.jpg';
     }
 
     return null;
@@ -124,12 +124,13 @@ class EventCard extends ConsumerWidget {
                               ? Image.asset(pochette, fit: BoxFit.cover, width: double.infinity)
                               : Container(color: Colors.grey.shade200),
                           errorWidget: (_, __, ___) => pochette != null
-                              ? Image.asset(pochette, fit: BoxFit.cover, width: double.infinity)
+                              ? Image.asset(pochette, fit: BoxFit.cover, width: double.infinity, cacheWidth: 300)
                               : Container(color: Colors.grey.shade200),
                         )
                       : Image.asset(
                           pochette!,
                           fit: BoxFit.cover,
+                          cacheWidth: 300,
                           errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
                         ),
                 ),
@@ -169,6 +170,34 @@ class EventCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                // Video badge
+                if (event.videoUrl != null && event.videoUrl!.isNotEmpty)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.play_circle_fill, size: 14, color: Colors.white),
+                          SizedBox(width: 4),
+                          Text(
+                            'Video',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 // Free badge
                 if (event.isFree)
                   Positioned(

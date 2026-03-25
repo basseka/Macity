@@ -7,6 +7,7 @@ import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/gaming/data/gaming_category_data.dart';
 import 'package:pulz_app/core/database/app_database.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/core/data/venues_supabase_service.dart';
 
 /// Evenements utilisateur filtres pour la rubrique "gaming".
 final gamingUserEventsProvider = Provider<List<Event>>((ref) {
@@ -42,11 +43,25 @@ final gamingCategoryCountProvider =
         .map((s) => s.searchTag);
     var total = 0;
     for (final tag in allTags) {
+      // Chercher dans venues Supabase d'abord
+      try {
+        final sv = await VenuesSupabaseService().fetchVenues(
+          mode: 'gaming', ville: city, category: tag,
+        );
+        if (sv.isNotEmpty) { total += sv.length; continue; }
+      } catch (_) {}
       final venues = await repository.searchByVille(ville: city, query: tag);
       total += venues.length;
     }
     return total + uc;
   }
+  // Chercher dans venues Supabase d'abord
+  try {
+    final sv = await VenuesSupabaseService().fetchVenues(
+      mode: 'gaming', ville: city, category: searchTag,
+    );
+    if (sv.isNotEmpty) return sv.length + uc;
+  } catch (_) {}
   final venues = await repository.searchByVille(ville: city, query: searchTag);
   return venues.length + uc;
 });
@@ -68,6 +83,13 @@ final gamingVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
     }
     return all;
   }
+  // Catégories curées depuis la table venues
+  try {
+    final venues = await VenuesSupabaseService().fetchVenues(
+      mode: 'gaming', ville: city, category: category,
+    );
+    if (venues.isNotEmpty) return venues;
+  } catch (_) {}
   return repository.searchByVille(ville: city, query: category);
 });
 

@@ -11,7 +11,7 @@ import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 /// Tags qui utilisent les donnees curatees au lieu de la base locale.
-const _curatedTags = {'Bar de nuit', 'Bar a cocktails', 'Pub', 'Club Discotheque', 'Epicerie de nuit', 'Tabac de nuit', 'Hotel', 'SOS Apero'};
+const _curatedTags = {'Bar de nuit', 'Bar a cocktails', 'Pub', 'Club Discotheque', 'Epicerie de nuit', 'Tabac de nuit', 'Hotel', 'SOS Apero', 'Bar a chicha'};
 
 /// Evenements utilisateur filtres pour la rubrique "night".
 final nightUserEventsProvider = Provider<List<Event>>((ref) {

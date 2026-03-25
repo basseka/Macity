@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
+import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
@@ -227,6 +229,65 @@ class VenuesSupabaseService {
     );
   }
 
+  /// Fetch les venues les plus animees (display_count eleve).
+  Future<List<CommerceModel>> fetchHotVenues({
+    required String ville,
+    int limit = 10,
+  }) async {
+    final response = await _dio.get('venues', queryParameters: {
+      'select': '*',
+      'is_active': 'eq.true',
+      'ville': 'ilike.$ville*',
+      'display_count': 'gt.0',
+      'order': 'display_count.desc',
+      'limit': '$limit',
+    });
+    final data = response.data as List;
+    return data.map((e) => _mapToCommerce(e as Map<String, dynamic>)).toList();
+  }
+
+  /// Fetch tous les venues d'une ville (toutes categories).
+  Future<List<CommerceModel>> fetchAllVenues({
+    required String ville,
+    String? category,
+  }) async {
+    final params = <String, String>{
+      'select': '*',
+      'is_active': 'eq.true',
+      'ville': 'ilike.$ville*',
+      'order': 'name.asc',
+    };
+    if (category != null) params['category'] = 'eq.$category';
+
+    final response = await _dio.get('venues', queryParameters: params);
+    final data = response.data as List;
+    return data.map((e) => _mapToCommerce(e as Map<String, dynamic>)).toList();
+  }
+
+  /// Enregistrer un check-in utilisateur (upsert, expire apres 2h).
+  Future<void> checkIn(int venueId) async {
+    try {
+      final userId = await UserIdentityService.getUserId();
+      final now = DateTime.now().toUtc();
+      await _dio.post(
+        'venue_presence',
+        data: {
+          'venue_id': venueId,
+          'user_id': userId,
+          'checked_in_at': now.toIso8601String(),
+          'expires_at': now.add(const Duration(hours: 2)).toIso8601String(),
+        },
+        options: Options(
+          headers: {
+            'Prefer': 'return=minimal,resolution=merge-duplicates',
+          },
+        ),
+      );
+    } catch (e) {
+      debugPrint('[VenuesService] checkIn($venueId) failed: $e');
+    }
+  }
+
   static CommerceModel _mapToCommerce(Map<String, dynamic> json) {
     final photo = (json['photo'] as String?) ?? '';
     return CommerceModel(
@@ -238,9 +299,11 @@ class VenuesSupabaseService {
       horaires: json['horaires'] as String? ?? '',
       siteWeb: json['website_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
-      photo: photo.isNotEmpty ? photo : 'assets/images/pochette_autre.png',
+      photo: photo,
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+      displayCount: (json['display_count'] as num?)?.toInt() ?? 0,
+      videoUrl: json['video_url'] as String? ?? '',
     );
   }
 }

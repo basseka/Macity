@@ -231,8 +231,9 @@ class NightScreen extends ConsumerWidget {
               photoUrl: event.photoPath,
               tag: event.categorie.isNotEmpty ? event.categorie : null,
               isFree: event.isFree,
+              hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
               onTap: () => EventFullscreenPopup.show(
-                context, event, 'assets/images/pochette_default.png',
+                context, event, 'assets/images/pochette_default.jpg',
               ),
             ),
             const SizedBox(height: 8),

@@ -59,6 +59,9 @@ class RestaurantVenuesData {
     'Sud-Ouest',
     'Fruits de mer',
     'Vegetarien',
+    'West Indies',
+    'Guinguette',
+    'Buffet',
   ];
 
   static const quartiers = [
@@ -81,6 +84,11 @@ class RestaurantVenuesData {
     'Mirail',
     'Saint-Michel',
     'Balma',
+    'Ramonville',
+    'Aucamville',
+    'Blagnac',
+    'Plaisance-du-Touch',
+    'Portet-sur-Garonne',
   ];
 
   static const styles = [
