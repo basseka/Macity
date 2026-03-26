@@ -38,11 +38,25 @@ class EventRepository {
       if (events.isNotEmpty) return _dedup(events);
     }
 
+    // Chercher dans toutes les rubriques par type de manifestation
+    final (allEvents, _) = await _scrapedService.fetchAllEvents(
+      dateGte: _todayStr(),
+      ville: city,
+      limit: 50,
+    );
+    final keyword = subcategory.toLowerCase();
+    final filtered = allEvents.where((e) {
+      final cat = e.categorie.toLowerCase();
+      final type = e.type.toLowerCase();
+      final titre = e.titre.toLowerCase();
+      return cat.contains(keyword) || type.contains(keyword) || titre.contains(keyword);
+    }).toList();
+    if (filtered.isNotEmpty) return _dedup(filtered);
+
     // Fallback OpenAgenda pour les villes/catégories sans scraped events
-    final keyword = subcategory;
     final openAgendaEvents = await _openAgendaApi.fetchEvents(
       city: city,
-      keyword: keyword,
+      keyword: subcategory,
     );
     return openAgendaEvents.map(_convertOpenAgendaToEvent).toList();
   }

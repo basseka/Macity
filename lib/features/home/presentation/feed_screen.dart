@@ -9,6 +9,7 @@ import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/home/state/today_events_provider.dart';
+import 'package:pulz_app/features/home/state/paginated_feed_provider.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
 import 'package:pulz_app/features/food/state/food_venues_provider.dart';
@@ -23,6 +24,10 @@ import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
+import 'package:video_player/video_player.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+import 'package:pulz_app/features/home/state/feed_video_controller.dart';
+import 'package:pulz_app/features/home/presentation/widgets/discovery_buttons.dart';
 import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
@@ -31,6 +36,7 @@ import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/core/widgets/animated_ad_banner.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
@@ -57,6 +63,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   // Search state
   final _searchController = TextEditingController();
   final _searchService = UnifiedSearchService();
+  final _feedScrollController = ScrollController();
   bool _isSearching = false;
   bool _searchLoading = false;
   List<SearchResult>? _searchResults;
@@ -64,6 +71,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _feedScrollController.dispose();
     super.dispose();
   }
 
@@ -123,7 +131,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           child: Column(
             children: [
               _buildHeader(),
-              if (!_isSearching) const AnimatedAdBanner(),
+              if (!_isSearching) const DiscoveryButtons(),
+              // if (!_isSearching) const AnimatedAdBanner(),
               if (!_isSearching) _buildFilterBar(),
               Expanded(
                 child: _isSearching ? _buildSearchResults() : _buildFeed(),
@@ -150,23 +159,51 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   width: 28,
                   height: 28,
                   fit: BoxFit.cover,
+                  cacheWidth: 300,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: Builder(builder: (_) {
-                  final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
-                  return Text(
-                    prenom.isNotEmpty ? 'Salut, $prenom' : 'MaCity',
-                    style: GoogleFonts.poppins(
-                      fontSize: 8,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white70,
+              GestureDetector(
+                onTap: () => showModalBottomSheet(
+                  context: context,
+                  useRootNavigator: true,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => const CityPickerBottomSheet(),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      ref.watch(selectedCityProvider),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
-                  );
-                }),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 16,
+                      color: Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ],
+                ),
               ),
+              const Spacer(),
+              Builder(builder: (_) {
+                final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
+                return Text(
+                  prenom.isNotEmpty ? 'Salut, $prenom' : 'MaCity',
+                  style: GoogleFonts.poppins(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white70,
+                  ),
+                );
+              }),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => AccountMenu.show(context, ref),
@@ -571,11 +608,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     if (sport.contains('rugby')) return 'assets/images/pochette_rugby.png';
     if (sport.contains('foot')) return 'assets/images/pochette_football.png';
     if (sport.contains('basket')) return 'assets/images/pochette_basketball.png';
-    if (sport.contains('hand')) return 'assets/images/pochette_hand.png';
+    if (sport.contains('hand')) return 'assets/images/pochette_handball.png';
     return 'assets/images/pochette_course.png';
   }
 
   Widget _buildFeed() {
+    // Invalider le feed quand la ville change
+    ref.listen(selectedCityProvider, (prev, next) {
+      if (prev != next) {
+        ref.invalidate(paginatedFeedProvider);
+      }
+    });
+
     // Special case: Famille & Food use dedicated community events providers
     if (_activeFilter == 'Famille') {
       return _buildCommunityFeed(ref.watch(familyUserEventsProvider), Icons.family_restroom, 'famille');
@@ -584,16 +628,20 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       return _buildCommunityFeed(ref.watch(foodUserEventsProvider), Icons.restaurant, 'food');
     }
 
-    final dataAsync = ref.watch(todayTomorrowEventsProvider);
+    final feedState = ref.watch(paginatedFeedProvider);
 
-    return dataAsync.when(
-      data: (data) => _buildFeedGrid(data),
-      loading: () => const Center(
+    if (feedState.events.isEmpty && feedState.isLoading) {
+      return const Center(
         child: CircularProgressIndicator(color: _accentColor),
-      ),
-      error: (e, _) => Center(
-        child: Text('Erreur: $e', style: const TextStyle(color: Colors.white38)),
-      ),
+      );
+    }
+
+    return _buildFeedGrid(
+      TodayEventsData(events: feedState.events, matches: feedState.matches),
+      isLoadingMore: feedState.isLoading,
+      hasMore: feedState.hasMore,
+      onLoadMore: () => ref.read(paginatedFeedProvider.notifier).loadNextPage(),
+      scrollController: _feedScrollController,
     );
   }
 
@@ -640,6 +688,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         subtitle: e.lieuNom.isNotEmpty ? e.lieuNom : (e.horaires.isNotEmpty ? e.horaires : ''),
         networkImage: hasNet ? e.photoPath : null,
         assetImage: pochette,
+        videoUrl: e.videoUrl,
         badge: e.isFree ? 'GRATUIT' : '',
         tag: e.categorie,
         onTap: () => EventFullscreenPopup.show(context, e, pochette),
@@ -723,14 +772,19 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 
-  Widget _buildFeedGrid(TodayEventsData data) {
+  Widget _buildFeedGrid(
+    TodayEventsData data, {
+    bool isLoadingMore = false,
+    bool hasMore = false,
+    VoidCallback? onLoadMore,
+    ScrollController? scrollController,
+  }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
 
     // Group events by day
     final dayGroups = <DateTime, List<_FeedItem>>{};
-
     for (final e in data.events) {
       if (!_matchesFilter(e)) continue;
       final d = DateTime.tryParse(e.dateDebut);
@@ -748,46 +802,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         subtitle: e.lieuNom.isNotEmpty ? e.lieuNom : (e.horaires.isNotEmpty ? e.horaires : ''),
         networkImage: hasNet ? e.photoPath : null,
         assetImage: pochette,
+        videoUrl: e.videoUrl,
         badge: e.isFree ? 'GRATUIT' : '',
         tag: e.categorie,
         onTap: () => EventFullscreenPopup.show(context, e, pochette),
       ));
     }
 
-    // Add matches
-    for (final m in data.matches) {
-      if (!_matchMatchesFilter(m)) continue;
-      final d = DateTime.tryParse(m.date);
-      if (d == null) continue;
-      final dateOnly = DateTime(d.year, d.month, d.day);
-      if (dateOnly.isBefore(today)) continue;
-
-      final pochette = _resolveMatchPochette(m);
-      dayGroups.putIfAbsent(dateOnly, () => []).add(_FeedItem(
-        title: '${m.equipe1} vs ${m.equipe2}',
-        subtitle: '${m.heure} - ${m.lieu}',
-        networkImage: m.photoUrl.isNotEmpty ? m.photoUrl : null,
-        assetImage: pochette,
-        badge: m.sport.toUpperCase(),
-        tag: m.sport,
-        onTap: () => ItemDetailSheet.show(
-          context,
-          ItemDetailSheet(
-            title: '${m.equipe1} vs ${m.equipe2}',
-            imageAsset: pochette,
-            infos: [
-              if (m.competition.isNotEmpty) DetailInfoItem(Icons.emoji_events, m.competition),
-              if (m.lieu.isNotEmpty) DetailInfoItem(Icons.location_on, m.lieu),
-              if (m.date.isNotEmpty) DetailInfoItem(Icons.calendar_today, m.date),
-              if (m.heure.isNotEmpty) DetailInfoItem(Icons.access_time, m.heure),
-            ],
-            primaryAction: m.billetterie.isNotEmpty
-                ? DetailAction(icon: Icons.confirmation_number, label: 'Billetterie', url: m.billetterie)
-                : null,
-          ),
-        ),
-      ));
-    }
+    // Matchs exclus du feed
 
     if (dayGroups.isEmpty) {
       return Center(
@@ -806,84 +828,114 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     }
 
     final sortedDays = dayGroups.keys.toList()..sort();
-
-    return CustomScrollView(
-      slivers: [
-        for (final day in sortedDays) ...[
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          day == today
-                              ? "Aujourd'hui"
-                              : day == tomorrow
-                                  ? 'Demain'
-                                  : _capitalize(DateFormat('EEEE', 'fr_FR').format(day)),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (hasMore &&
+            onLoadMore != null &&
+            notification is ScrollEndNotification &&
+            notification.metrics.pixels >=
+                notification.metrics.maxScrollExtent - 300) {
+          onLoadMore();
+        }
+        return false;
+      },
+      child: CustomScrollView(
+        controller: scrollController,
+        slivers: [
+          for (final day in sortedDays) ...[
+            SliverToBoxAdapter(
+              key: ValueKey('header_$day'),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            day == today
+                                ? "Aujourd'hui"
+                                : day == tomorrow
+                                    ? 'Demain'
+                                    : _capitalize(DateFormat('EEEE', 'fr_FR').format(day)),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          DateFormat('EEEE d MMMM', 'fr_FR').format(day),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.45),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('EEEE d MMMM', 'fr_FR').format(day),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withValues(alpha: 0.45),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _accentColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${dayGroups[day]!.length}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: _accentColor,
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _accentColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${dayGroups[day]!.length}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: _accentColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-                childAspectRatio: 0.75,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => _FeedTile(item: dayGroups[day]![index]),
-                childCount: dayGroups[day]!.length,
+            SliverPadding(
+              key: ValueKey('grid_$day'),
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 2,
+                  crossAxisSpacing: 2,
+                  childAspectRatio: 0.75,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _FeedTile(item: dayGroups[day]![index]),
+                  childCount: dayGroups[day]!.length,
+                ),
               ),
             ),
-          ),
+          ],
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
-        const SliverToBoxAdapter(child: SizedBox(height: 24)),
-      ],
+      ),
     );
   }
 
   static String _capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+}
+
+// ── Day header for flat list ──
+
+class _DayHeader {
+  final DateTime day;
+  final int count;
+  final DateTime today;
+  final DateTime tomorrow;
+
+  const _DayHeader({
+    required this.day,
+    required this.count,
+    required this.today,
+    required this.tomorrow,
+  });
 }
 
 // ── Feed item model ──
@@ -893,6 +945,7 @@ class _FeedItem {
   final String subtitle;
   final String? networkImage;
   final String? assetImage;
+  final String? videoUrl;
   final String badge;
   final String tag;
   final VoidCallback onTap;
@@ -902,10 +955,13 @@ class _FeedItem {
     required this.subtitle,
     this.networkImage,
     this.assetImage,
+    this.videoUrl,
     required this.badge,
     required this.tag,
     required this.onTap,
   });
+
+  bool get hasVideo => videoUrl != null && videoUrl!.isNotEmpty;
 }
 
 // ── Feed tile (Instagram-style) ──
@@ -913,111 +969,247 @@ class _FeedItem {
 class _FeedTile extends StatelessWidget {
   final _FeedItem item;
 
-  const _FeedTile({required this.item});
+  const _FeedTile({super.key, required this.item});
+
+  static bool _isValidImageUrl(String url) {
+    final lower = url.toLowerCase();
+    return !lower.contains('/embed') &&
+        !lower.contains('secret=') &&
+        !lower.endsWith('.html') &&
+        !lower.endsWith('/');
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: item.onTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background image
-          if (item.networkImage != null)
-            CachedNetworkImage(
-              imageUrl: item.networkImage!,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => item.assetImage != null
-                  ? Image.asset(item.assetImage!, fit: BoxFit.cover)
-                  : Container(color: Colors.grey.shade900),
-              errorWidget: (_, __, ___) => item.assetImage != null
-                  ? Image.asset(item.assetImage!, fit: BoxFit.cover)
-                  : Container(color: Colors.grey.shade900),
-            )
-          else if (item.assetImage != null)
-            Image.asset(
-              item.assetImage!,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade900),
-            )
-          else
-            Container(color: Colors.grey.shade900),
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: item.onTap,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Background : video ou image
+            if (item.hasVideo)
+              _VideoBackground(videoUrl: item.videoUrl!, tileId: item.title)
+            else
+              _ImageBackground(item: item),
 
-          // Gradient overlay
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.8),
-                  ],
-                  stops: const [0.4, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // Badge top-right
-          if (item.badge.isNotEmpty)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            // Gradient overlay
+            Positioned.fill(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE91E8C),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  item.badge,
-                  style: GoogleFonts.inter(
-                    fontSize: 7,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.8),
+                    ],
+                    stops: const [0.4, 1.0],
                   ),
                 ),
               ),
             ),
 
-          // Title + subtitle bottom
-          Positioned(
-            left: 4,
-            right: 4,
-            bottom: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    height: 1.2,
+            // Video icon indicator
+            if (item.hasVideo)
+              Positioned(
+                top: 4,
+                left: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  child: const Icon(Icons.play_arrow, color: Colors.white, size: 12),
                 ),
-                if (item.subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 1),
-                  Text(
-                    item.subtitle,
+              ),
+
+            // Badge top-right
+            if (item.badge.isNotEmpty)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE91E8C),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    item.badge,
                     style: GoogleFonts.inter(
-                      fontSize: 8,
-                      color: Colors.white60,
+                      fontSize: 7,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                    maxLines: 1,
+                  ),
+                ),
+              ),
+
+            // Title + subtitle bottom
+            Positioned(
+              left: 4,
+              right: 4,
+              bottom: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (item.subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      item.subtitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 8,
+                        color: Colors.white60,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// Image background widget (extracted for clarity).
+class _ImageBackground extends StatelessWidget {
+  final _FeedItem item;
+  const _ImageBackground({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final validNet = item.networkImage != null && _FeedTile._isValidImageUrl(item.networkImage!);
+    if (validNet) {
+      return CachedNetworkImage(
+        imageUrl: item.networkImage!,
+        fit: BoxFit.cover,
+        memCacheWidth: 300,
+        fadeInDuration: Duration.zero,
+        placeholder: (_, __) => _assetFallback(),
+        errorWidget: (_, __, ___) => _assetFallback(),
+      );
+    }
+    if (item.assetImage != null) {
+      return Image.asset(
+        item.assetImage!,
+        fit: BoxFit.cover,
+        cacheWidth: 300,
+        errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade900),
+      );
+    }
+    return Container(color: Colors.grey.shade900);
+  }
+
+  Widget _assetFallback() => item.assetImage != null
+      ? Image.asset(item.assetImage!, fit: BoxFit.cover, cacheWidth: 300)
+      : Container(color: Colors.grey.shade900);
+}
+
+/// Video background with autoplay mute + visibility tracking.
+/// One video active at a time (via activeVideoProvider).
+class _VideoBackground extends ConsumerStatefulWidget {
+  final String videoUrl;
+  final String tileId;
+
+  const _VideoBackground({required this.videoUrl, required this.tileId});
+
+  @override
+  ConsumerState<_VideoBackground> createState() => _VideoBackgroundState();
+}
+
+class _VideoBackgroundState extends ConsumerState<_VideoBackground> {
+  VideoPlayerController? _controller;
+  bool _initialized = false;
+  bool _visible = false;
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  void _onVisibilityChanged(VisibilityInfo info) {
+    final fraction = info.visibleFraction;
+    if (fraction > 0.5 && !_visible) {
+      _visible = true;
+      _startPlayback();
+    } else if (fraction <= 0.5 && _visible) {
+      _visible = false;
+      _stopPlayback();
+    }
+  }
+
+  Future<void> _startPlayback() async {
+    // Signal que cette video est active
+    ref.read(activeVideoProvider.notifier).state = widget.tileId;
+
+    if (_controller == null) {
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
+      try {
+        await _controller!.initialize();
+        _controller!.setLooping(true);
+        _controller!.setVolume(0); // Mute par defaut
+        if (mounted && _visible) {
+          setState(() => _initialized = true);
+          _controller!.play();
+        }
+      } catch (e) {
+        debugPrint('[VideoFeed] init error: $e');
+      }
+    } else if (_initialized) {
+      _controller!.play();
+    }
+  }
+
+  void _stopPlayback() {
+    _controller?.pause();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Pause si un autre tile est devenu actif
+    ref.listen(activeVideoProvider, (prev, next) {
+      if (next != widget.tileId && _controller?.value.isPlaying == true) {
+        _controller?.pause();
+      }
+    });
+
+    return VisibilityDetector(
+      key: Key('video_${widget.tileId}'),
+      onVisibilityChanged: _onVisibilityChanged,
+      child: _initialized && _controller != null
+          ? FittedBox(
+              fit: BoxFit.cover,
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox(
+                width: _controller!.value.size.width,
+                height: _controller!.value.size.height,
+                child: VideoPlayer(_controller!),
+              ),
+            )
+          : Container(
+              color: Colors.grey.shade900,
+              child: const Center(
+                child: Icon(Icons.videocam, color: Colors.white24, size: 24),
+              ),
+            ),
     );
   }
 }

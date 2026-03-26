@@ -31,6 +31,7 @@ class ScrapedEventsSupabaseService {
     String? lieuNom,
     String? ville,
     int limit = 1000,
+    int offset = 0,
     bool requirePhoto = true,
   }) async {
     final params = <String, String>{
@@ -38,6 +39,7 @@ class ScrapedEventsSupabaseService {
       'rubrique': 'eq.$rubrique',
       'order': 'date_debut.asc',
       'limit': '$limit',
+      'offset': '$offset',
     };
     // Filtrer les events sans photo cote serveur (PostgREST)
     // not.is.null exclut NULL, neq. exclut les strings vides
@@ -63,6 +65,36 @@ class ScrapedEventsSupabaseService {
       return compute(_parseAndFilter, data);
     }
     return compute(_parseAll, data);
+  }
+
+  /// Fetch all events across rubriques, sorted by date, with pagination.
+  /// Returns (filteredEvents, rawDbCount) to correctly determine hasMore.
+  Future<(List<Event>, int)> fetchAllEvents({
+    String? dateGte,
+    String? ville,
+    int limit = 50,
+    int offset = 0,
+    List<String>? rubriques,
+  }) async {
+    final params = <String, String>{
+      'select': '*',
+      'order': 'date_debut.asc',
+      'limit': '$limit',
+      'offset': '$offset',
+      'photo_url': 'neq.',
+    };
+    if (dateGte != null) params['date_debut'] = 'gte.$dateGte';
+    if (ville != null) params['ville'] = 'ilike.$ville';
+    if (rubriques != null && rubriques.isNotEmpty) {
+      params['rubrique'] = 'in.(${rubriques.join(",")})';
+    }
+
+    final response = await _dio.get(
+      'scraped_events',
+      queryParameters: params,
+    );
+    final data = response.data as List;
+    return (await compute(_parseAndFilter, data), data.length);
   }
 
   /// Search events by name, description, lieu, or category across all rubriques.
