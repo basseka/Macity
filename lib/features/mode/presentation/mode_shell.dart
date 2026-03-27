@@ -129,6 +129,7 @@ class ModeShell extends ConsumerWidget {
                       width: 14,
                       height: 14,
                       fit: BoxFit.cover,
+                      cacheWidth: 300,
                       errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                     ),
                   ),
@@ -397,13 +398,13 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
 
   static const _modeImages = {
     AppMode.day: 'assets/images/pochette_concert.png',
-    AppMode.sport: 'assets/images/home_bg_sport.png',
+    AppMode.sport: 'assets/images/home_bg_sport.jpg',
     AppMode.culture: 'assets/images/pochette_culture_art.png',
-    AppMode.family: 'assets/images/pochette_enfamille.png',
+    AppMode.family: 'assets/images/pochette_enfamille.jpg',
     AppMode.food: 'assets/images/pochette_food.png',
-    AppMode.gaming: 'assets/images/pochette_gaming.png',
-    AppMode.night: 'assets/images/home_bg_night.png',
-    AppMode.tourisme: 'assets/images/pochette_tourisme_toulouse.png',
+    AppMode.gaming: 'assets/images/pochette_gaming.jpg',
+    AppMode.night: 'assets/images/home_bg_night.jpg',
+    AppMode.tourisme: 'assets/images/pochette_tourime.png',
   };
 
   // Short labels now come from AppMode.shortLabel
@@ -478,6 +479,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
                         child: Image.asset(
                           image,
                           fit: BoxFit.cover,
+                          cacheWidth: 300,
                         ),
                       ),
                     ),

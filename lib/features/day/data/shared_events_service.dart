@@ -42,26 +42,34 @@ class SharedEventsService {
   /// Demande la permission contacts et lit les numeros.
   Future<List<AppContact>> findAppContacts() async {
     final status = await Permission.contacts.request();
-    if (!status.isGranted) return [];
+    debugPrint('[SHARE-DEBUG] contacts permission: $status');
+    if (!status.isGranted) {
+      debugPrint('[SHARE-DEBUG] permission NOT granted');
+      return [];
+    }
 
     final contacts = await FlutterContacts.getContacts(withProperties: true);
+    debugPrint('[SHARE-DEBUG] contacts loaded: ${contacts.length}');
 
     // Extraire tous les numeros, normalises
     final phoneToName = <String, String>{};
     for (final c in contacts) {
       for (final phone in c.phones) {
         final normalized = _normalizePhone(phone.number);
+        debugPrint('[SHARE-DEBUG] ${c.displayName}: raw="${phone.number}" -> normalized="$normalized"');
         if (normalized.isNotEmpty) {
           phoneToName[normalized] = c.displayName;
         }
       }
     }
 
+    debugPrint('[SHARE-DEBUG] unique phones: ${phoneToName.length}');
     if (phoneToName.isEmpty) return [];
 
     // Appeler la RPC Supabase pour trouver les users correspondants
     final myUserId = await UserIdentityService.getUserId();
     final phones = phoneToName.keys.toList();
+    debugPrint('[SHARE-DEBUG] calling RPC with ${phones.length} phones, first 5: ${phones.take(5).toList()}');
 
     try {
       final response = await _dio.post(
@@ -69,6 +77,7 @@ class SharedEventsService {
         data: {'phones': phones},
       );
       final data = response.data as List;
+      debugPrint('[SHARE-DEBUG] RPC returned ${data.length} matches');
       return data
           .map((row) {
             final uid = row['user_id'] as String;

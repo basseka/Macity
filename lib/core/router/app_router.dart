@@ -15,6 +15,7 @@ import 'package:pulz_app/features/auth/presentation/instagram_callback_handler.d
 import 'package:pulz_app/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:pulz_app/features/test/presentation/test_screen.dart';
 import 'package:pulz_app/features/splash/presentation/toto_splash_screen.dart';
+import 'package:pulz_app/features/day/presentation/event_deeplink_screen.dart';
 
 final rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -33,10 +34,12 @@ void markOnboardingComplete() {
   _onboardingDone = true;
 }
 
-final appRouter = GoRouter(
+late final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/splash',
   redirect: (context, state) {
+    // Allow deep links to /event/ even if onboarding not done
+    if (state.matchedLocation.startsWith('/event/')) return null;
     if (_onboardingDone == false &&
         state.matchedLocation != '/onboarding' &&
         state.matchedLocation != '/splash') {
@@ -110,6 +113,12 @@ final appRouter = GoRouter(
           ),
         ),
       ],
+    ),
+    GoRoute(
+      path: '/event/:id',
+      builder: (context, state) => EventDeeplinkScreen(
+        eventId: state.pathParameters['id'] ?? '',
+      ),
     ),
     GoRoute(
       path: '/test',

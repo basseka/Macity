@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:video_player/video_player.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,8 +24,8 @@ class EventFullscreenPopup extends ConsumerWidget {
     required this.fallbackAsset,
   });
 
-  static void show(BuildContext context, Event event, String fallbackAsset) {
-    showDialog(
+  static Future<void> show(BuildContext context, Event event, String fallbackAsset) {
+    return showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.7),
@@ -340,13 +341,19 @@ class EventFullscreenPopup extends ConsumerWidget {
     );
   }
 
-  /// Construit la pochette plein ecran.
+  /// Construit la pochette plein ecran (image ou video).
   Widget _buildFullPochette() {
+    // Si video, afficher le player
+    if (event.videoUrl != null && event.videoUrl!.isNotEmpty) {
+      return _EventVideoPlayer(videoUrl: event.videoUrl!);
+    }
+
     final photo = event.photoPath;
     if (photo == null || photo.isEmpty) {
       return Image.asset(
         fallbackAsset,
         fit: BoxFit.cover,
+        cacheWidth: 300,
         width: double.infinity,
         errorBuilder: (_, __, ___) =>
             Image.asset(_defaultPochette, fit: BoxFit.cover),
@@ -362,6 +369,7 @@ class EventFullscreenPopup extends ConsumerWidget {
         placeholder: (_, __) => Image.asset(
           fallbackAsset,
           fit: BoxFit.cover,
+          cacheWidth: 300,
           width: double.infinity,
           errorBuilder: (_, __, ___) =>
               Image.asset(_defaultPochette, fit: BoxFit.cover),
@@ -369,6 +377,7 @@ class EventFullscreenPopup extends ConsumerWidget {
         errorWidget: (_, __, ___) => Image.asset(
           fallbackAsset,
           fit: BoxFit.cover,
+          cacheWidth: 300,
           width: double.infinity,
           errorBuilder: (_, __, ___) =>
               Image.asset(_defaultPochette, fit: BoxFit.cover),
@@ -383,6 +392,7 @@ class EventFullscreenPopup extends ConsumerWidget {
       errorBuilder: (_, __, ___) => Image.asset(
         fallbackAsset,
         fit: BoxFit.cover,
+        cacheWidth: 300,
         width: double.infinity,
         errorBuilder: (_, __, ___) =>
             Image.asset(_defaultPochette, fit: BoxFit.cover),
@@ -405,7 +415,9 @@ class EventFullscreenPopup extends ConsumerWidget {
     if (event.dateDebut.isNotEmpty) buffer.writeln('Date: ${event.dateDebut}');
     if (event.lieuNom.isNotEmpty) buffer.writeln('Lieu: ${event.lieuNom}');
     if (event.isFree) buffer.writeln('Gratuit !');
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\nDecouvre sur MaCity :');
+    final link = 'https://macity.app/event/${Uri.encodeComponent(event.identifiant)}';
+    buffer.writeln(link);
     Share.share(buffer.toString());
     ActivityService.instance.eventSharedExternal(eventId: event.identifiant);
   }
@@ -423,5 +435,111 @@ class EventFullscreenPopup extends ConsumerWidget {
         debugPrint('Impossible d\'ouvrir le lien (fallback): $e');
       }
     }
+  }
+}
+
+/// Video player plein ecran dans le popup event.
+class _EventVideoPlayer extends StatefulWidget {
+  final String videoUrl;
+  const _EventVideoPlayer({required this.videoUrl});
+
+  @override
+  State<_EventVideoPlayer> createState() => _EventVideoPlayerState();
+}
+
+class _EventVideoPlayerState extends State<_EventVideoPlayer> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+  bool _muted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..setLooping(true)
+      ..setVolume(1.0)
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() => _initialized = true);
+          _controller.play();
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: CircularProgressIndicator(color: Color(0xFFE91E8C)),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (_controller.value.isPlaying) {
+            _controller.pause();
+          } else {
+            _controller.play();
+          }
+        });
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          FittedBox(
+            fit: BoxFit.cover,
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox(
+              width: _controller.value.size.width,
+              height: _controller.value.size.height,
+              child: VideoPlayer(_controller),
+            ),
+          ),
+          // Play/pause overlay
+          if (!_controller.value.isPlaying)
+            Container(
+              color: Colors.black26,
+              child: const Center(
+                child: Icon(Icons.play_arrow, color: Colors.white, size: 48),
+              ),
+            ),
+          // Mute button
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _muted = !_muted;
+                  _controller.setVolume(_muted ? 0 : 1);
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  _muted ? Icons.volume_off : Icons.volume_up,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

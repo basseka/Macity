@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:label="MaCity"
@@ -51,6 +52,27 @@
                 <data
                     android:scheme="pulzapp"
                     android:host="instagram-callback" />
+            </intent-filter>
+
+            <!-- Deep link for event sharing (custom scheme fallback) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="pulzapp"
+                    android:host="event" />
+            </intent-filter>
+
+            <!-- Android App Links (verified domain) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="macity.app"
+                    android:pathPrefix="/event" />
             </intent-filter>
         </activity>
 

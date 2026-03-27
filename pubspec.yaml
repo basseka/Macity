@@ -1,7 +1,7 @@
 name: pulz_app
 description: PUL'Z - Explore ta ville (Day, Sport, Family, Night)
 publish_to: 'none'
-version: 1.0.39+44
+version: 1.0.49+54
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -39,6 +39,11 @@ dependencies:
   # Images
   cached_network_image: ^3.3.0
   image_picker: ^1.0.7
+  flutter_image_compress: ^2.1.0
+
+  # Video
+  video_compress: ^3.1.2
+  visibility_detector: ^0.4.0+2
 
   # Sharing
   share_plus: ^7.2.1

@@ -7,7 +7,7 @@ import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
-import 'package:pulz_app/features/night/state/night_venues_provider.dart';
+
 import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
@@ -26,18 +26,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   static const _modeBackgroundImages = <String, String>{
     'day': 'assets/images/pochette_concert.png',
-    'sport': 'assets/images/home_bg_sport.png',
+    'sport': 'assets/images/home_bg_sport.jpg',
     'culture': 'assets/images/pochette_culture_art.png',
     'food': 'assets/images/pochette_food.png',
-    'gaming': 'assets/images/pochette_gaming.png',
-    'family': 'assets/images/pochette_enfamille.png',
-    'night': 'assets/images/home_bg_night.png',
-    'tourisme': 'assets/images/pochette_tourisme_toulouse.png',
+    'gaming': 'assets/images/pochette_gaming.jpg',
+    'family': 'assets/images/pochette_enfamille.jpg',
+    'night': 'assets/images/home_bg_night.jpg',
+    'tourisme': 'assets/images/pochette_tourime.png',
   };
 
   @override
   Widget build(BuildContext context) {
-    ref.read(nightScrapedEventsProvider);
+    // Lazy: ne precharger les banners que quand on les affiche
     ref.watch(activeBannersProvider);
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
@@ -80,6 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     width: 28,
                     height: 28,
                     fit: BoxFit.cover,
+                    cacheWidth: 300,
                     errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),
@@ -236,6 +237,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               Image.asset(
                 bgImage,
                 fit: BoxFit.cover,
+                cacheWidth: 400,
                 errorBuilder: (_, __, ___) => Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -320,13 +322,13 @@ class HomeScreenSheet extends ConsumerWidget {
 
   static const _modeBackgroundImages = <String, String>{
     'day': 'assets/images/pochette_concert.png',
-    'sport': 'assets/images/home_bg_sport.png',
+    'sport': 'assets/images/home_bg_sport.jpg',
     'culture': 'assets/images/pochette_culture_art.png',
     'food': 'assets/images/pochette_food.png',
-    'gaming': 'assets/images/pochette_gaming.png',
-    'family': 'assets/images/pochette_enfamille.png',
-    'night': 'assets/images/home_bg_night.png',
-    'tourisme': 'assets/images/pochette_tourisme_toulouse.png',
+    'gaming': 'assets/images/pochette_gaming.jpg',
+    'family': 'assets/images/pochette_enfamille.jpg',
+    'night': 'assets/images/home_bg_night.jpg',
+    'tourisme': 'assets/images/pochette_tourime.png',
   };
 
   @override
@@ -433,6 +435,7 @@ class HomeScreenSheet extends ConsumerWidget {
               Image.asset(
                 bgImage,
                 fit: BoxFit.cover,
+                cacheWidth: 400,
                 errorBuilder: (_, __, ___) => Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(

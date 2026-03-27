@@ -169,7 +169,7 @@ const _venueIdToSource = <String, String>{
   'theatre-du-capitole': 'theatre_capitole',
   'theatre-du-grand-rond': 'theatre_grand_rond',
   'grenier-theatre': 'grenier_theatre',
-  'cafe-theatre-les-3t': 'three_t',
+  'cafe-theatre-les-3t': '3t-theatre',
   'theatre-du-pave': 'theatre_du_pave',
   'theatre-le-fil-a-plomb': 'fil_a_plomb',
   'theatre-des-mazades': 'mazades',

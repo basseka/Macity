@@ -17,11 +17,12 @@ class TouristicPointsSupabaseService {
     return dio;
   }
 
-  /// Fetch active touristic points, optionally filtered by [categorie].
-  Future<List<CommerceModel>> fetchPoints({String? categorie}) async {
+  /// Fetch active touristic points, filtered by [ville], optionally by [categorie].
+  Future<List<CommerceModel>> fetchPoints({required String ville, String? categorie}) async {
     final params = <String, String>{
       'select': '*',
       'is_active': 'eq.true',
+      'ville': 'ilike.$ville',
       'order': 'nom.asc',
     };
     if (categorie != null) {

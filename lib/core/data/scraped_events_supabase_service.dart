@@ -97,6 +97,25 @@ class ScrapedEventsSupabaseService {
     return (await compute(_parseAndFilter, data), data.length);
   }
 
+  /// Fetch a single event by its identifiant.
+  Future<Event?> fetchEventById(String identifiant) async {
+    final response = await _dio.get(
+      'scraped_events',
+      queryParameters: {
+        'select': '*',
+        'identifiant': 'eq.$identifiant',
+        'limit': '1',
+      },
+    );
+    final data = response.data as List;
+    if (data.isEmpty) return null;
+    try {
+      return Event.fromJson(data.first as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Search events by name, description, lieu, or category across all rubriques.
   Future<List<Event>> searchEvents(String query, {int limit = 30}) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
