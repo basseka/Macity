@@ -48,6 +48,9 @@ class UserEvent {
   final int? participantsMax;
   final String inscriptionType;
 
+  // Boost / Priorité
+  final String priority; // P1, P2, P3, P4
+
   // Etape 5 — Extras
   final List<String> galleryUrls;
   final String videoUrl;
@@ -100,6 +103,7 @@ class UserEvent {
     this.programme,
     this.accessibilite,
     this.regles,
+    this.priority = 'P4',
   });
 
   UserEvent copyWith({
@@ -146,6 +150,7 @@ class UserEvent {
     List<Map<String, dynamic>>? programme,
     Map<String, dynamic>? accessibilite,
     Map<String, dynamic>? regles,
+    String? priority,
   }) {
     return UserEvent(
       id: id ?? this.id,
@@ -191,6 +196,7 @@ class UserEvent {
       programme: programme ?? this.programme,
       accessibilite: accessibilite ?? this.accessibilite,
       regles: regles ?? this.regles,
+      priority: priority ?? this.priority,
     );
   }
 
@@ -242,6 +248,7 @@ class UserEvent {
         'programme': programme,
         'accessibilite': accessibilite,
         'regles': regles,
+        'priority': priority,
       };
 
   factory UserEvent.fromJson(Map<String, dynamic> json) => UserEvent(
@@ -289,6 +296,7 @@ class UserEvent {
             ?.cast<Map<String, dynamic>>(),
         accessibilite: json['accessibilite'] as Map<String, dynamic>?,
         regles: json['regles'] as Map<String, dynamic>?,
+        priority: json['priority'] as String? ?? 'P4',
       );
 
   // ─────────────────────────────────────────
@@ -346,6 +354,7 @@ class UserEvent {
     if (programme != null) json['programme'] = programme;
     if (accessibilite != null) json['accessibilite'] = accessibilite;
     if (regles != null) json['regles'] = regles;
+    if (priority != 'P4') json['priority'] = priority;
 
     return json;
   }
@@ -396,6 +405,7 @@ class UserEvent {
             ?.cast<Map<String, dynamic>>(),
         accessibilite: json['accessibilite'] as Map<String, dynamic>?,
         regles: json['regles'] as Map<String, dynamic>?,
+        priority: json['priority'] as String? ?? 'P4',
       );
 
   // ─────────────────────────────────────────
@@ -432,6 +442,7 @@ class UserEvent {
         categorie: categorie,
         type: categorie,
         photoPath: resolvedPhoto,
+        videoUrl: videoUrl.isNotEmpty ? videoUrl : null,
         reservationUrl: lienBilletterie,
       );
 }

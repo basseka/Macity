@@ -79,9 +79,10 @@ class SportVenuesSupabaseService {
       adresse: json['adresse'] as String? ?? '',
       siteWeb: json['site_web'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
-      photo: json['photo'] as String? ?? 'assets/images/pochette_autre.png',
+      photo: (json['photo'] as String?) ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+      videoUrl: json['video_url'] as String? ?? '',
     );
   }
 
@@ -100,7 +101,7 @@ class SportVenuesSupabaseService {
       websiteUrl: (json['site_web'] as String?)?.isNotEmpty == true
           ? json['site_web'] as String
           : null,
-      image: json['photo'] as String? ?? 'assets/images/pochette_autre.png',
+      image: json['photo'] as String? ?? 'assets/images/pochette_autre.jpg',
     );
   }
 }

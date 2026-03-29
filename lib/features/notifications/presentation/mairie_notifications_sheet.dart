@@ -90,10 +90,9 @@ class _MairieNotificationsSheetState
                   return _buildEmpty(city);
                 }
 
-                // Extract distinct villes from notifications
-                final distinctVilles = notifications
-                    .map((n) =>
-                        n.ville.replaceAll(RegExp(r'\s*\(.*\)$'), ''))
+                // Utiliser toutes les villes sélectionnées dans les préférences
+                final distinctVilles = villes
+                    .map((v) => v.replaceAll(RegExp(r'\s*\(.*\)$'), ''))
                     .toSet()
                     .toList()
                   ..sort();
@@ -111,7 +110,7 @@ class _MairieNotificationsSheetState
                 return Column(
                   children: [
                     // Ville filter chips (only if more than 1 ville)
-                    if (distinctVilles.length > 1)
+                    if (distinctVilles.length >= 1)
                       _buildVilleFilterBar(distinctVilles, filtered.length),
 
                     // Notification list
@@ -322,24 +321,23 @@ class _MairieNotificationsSheetState
   }
 
   Widget _buildVilleFilterBar(List<String> villes, int filteredCount) {
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: villes.length + 1, // +1 for "Toutes"
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final isAll = index == 0;
-          final ville = isAll ? null : villes[index - 1];
-          final label = isAll ? 'Toutes' : ville!;
+    final allItems = [null, ...villes]; // null = "Toutes"
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: allItems.map((ville) {
+          final isAll = ville == null;
+          final label = isAll ? 'Toutes' : ville;
           final isSelected = _selectedVille == ville;
 
           return GestureDetector(
             onTap: () => setState(() => _selectedVille = ville),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 gradient: isSelected
                     ? MairieNotificationsSheet._headerGradient
@@ -366,16 +364,16 @@ class _MairieNotificationsSheetState
                     isAll
                         ? Icons.filter_list_rounded
                         : Icons.location_city_rounded,
-                    size: 13,
+                    size: 11,
                     color: isSelected
                         ? Colors.white
                         : const Color(0xFF7B2D8E).withValues(alpha: 0.6),
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Text(
                     label,
                     style: GoogleFonts.poppins(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: isSelected
                           ? Colors.white
@@ -386,7 +384,7 @@ class _MairieNotificationsSheetState
               ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }

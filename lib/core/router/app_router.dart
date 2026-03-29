@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/features/home/presentation/feed_screen.dart';
 import 'package:pulz_app/features/mode/presentation/mode_shell.dart';
 import 'package:pulz_app/features/day/presentation/day_screen.dart';
@@ -26,6 +27,8 @@ final GlobalKey<NavigatorState> _shellNavigatorKey =
 bool? _onboardingDone;
 
 Future<void> initOnboardingState() async {
+  // Partager la clé root navigator avec le deep link service
+  deepLinkNavigatorKey = rootNavigatorKey;
   final prefs = await SharedPreferences.getInstance();
   _onboardingDone = prefs.getBool('onboarding_done') ?? false;
 }

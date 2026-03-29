@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/core/services/activity_service.dart';
 import 'package:pulz_app/features/day/presentation/share_event_sheet.dart';
+import 'package:pulz_app/features/day/presentation/boost_event_sheet.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -27,6 +28,7 @@ class EventFullscreenPopup extends ConsumerWidget {
   static Future<void> show(BuildContext context, Event event, String fallbackAsset) {
     return showDialog(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.7),
       builder: (_) => EventFullscreenPopup(
@@ -222,6 +224,34 @@ class EventFullscreenPopup extends ConsumerWidget {
                             ],
                           ),
 
+                          // Bouton Booster (events utilisateur uniquement)
+                          if (_isUserEvent(event)) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44,
+                              child: ElevatedButton.icon(
+                                onPressed: () => _boostEvent(context),
+                                icon: const Icon(Icons.rocket_launch, size: 18),
+                                label: const Text(
+                                  'Booster votre event',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFF6B00),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                          ],
+
                           // Billetterie
                           if (event.reservationUrl.isNotEmpty) ...[
                             const SizedBox(height: 12),
@@ -397,6 +427,24 @@ class EventFullscreenPopup extends ConsumerWidget {
         errorBuilder: (_, __, ___) =>
             Image.asset(_defaultPochette, fit: BoxFit.cover),
       ),
+    );
+  }
+
+  /// Un event utilisateur a un identifiant UUID (pas de préfixe scraper).
+  bool _isUserEvent(Event e) {
+    final id = e.identifiant;
+    // Les scraped events ont des préfixes comme "3t_", "toulouse_", "billetreduc_", etc.
+    // Les user events ont un UUID (36 chars avec tirets)
+    return id.length == 36 && id.contains('-') && !id.startsWith('3t_');
+  }
+
+  void _boostEvent(BuildContext context) {
+    Navigator.of(context).pop();
+    BoostEventSheet.show(
+      context,
+      eventId: event.identifiant,
+      eventTitle: event.titre,
+      currentPriority: 'P4', // TODO: passer la vraie priorité si disponible
     );
   }
 

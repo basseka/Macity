@@ -20,89 +20,31 @@ class CommerceRowCard extends ConsumerWidget {
     this.imageAsset,
   });
 
-  static const _defaultImages = <String, String>{
-    // SOS Apero (avant les cles generiques)
-    'apero toulousain': 'assets/images/sos_aperotoulousain.png',
-    'speed apero': 'assets/images/sos_speedapero.png',
-    'apero eclair': 'assets/images/sos_aperoeclair.png',
-    'apero speed': 'assets/images/sos_aperospeed.jpg',
-    'allo apero': 'assets/images/sos_alloapero.png',
-    // Night
-    'bar de nuit': 'assets/images/pochette_pub.png',
-    'cocktail': 'assets/images/pochette_cocktail.png',
-    'chicha': 'assets/images/sc_chicha.jpg',
-    'pub': 'assets/images/pochette_pub_off.png',
-    'bar': 'assets/images/sc_pub.jpg',
-    'club': 'assets/images/sc_discotheque.png',
-    'discotheque': 'assets/images/sc_discotheque.png',
-    'epicerie': 'assets/images/sc_tabac_nuit.png',
-    'tabac': 'assets/images/sc_tabac_nuit.png',
-    'station': 'assets/images/sc_tabac_nuit.png',
-    'hotel': 'assets/images/sc_hotel.jpg',
-    // Family
-    'aire de jeux': 'assets/images/pochette_aire_de_jeu.png',
-    'ferme': 'assets/images/pochette_ferme.png',
-    'bowling': 'assets/images/pochette_bowling.png',
-    'laser game': 'assets/images/pochette_laser_game.png',
-    'escape game': 'assets/images/pochette_escapegame.jpg',
-    'patinoire': 'assets/images/pochette_patinoire.png',
-    'parc animalier': 'assets/images/sc_parc_animalier.jpg',
-    'parc attraction': 'assets/images/pochette_parc_attraction.png',
-    'parc': 'assets/images/pochette_parc_attraction.png',
-    // Food
-    'restaurant': 'assets/images/pochette_restaurant.jpg',
-    'cafe': 'assets/images/pochette_food.png',
-    'brasserie': 'assets/images/pochette_food.png',
-    'pizzeria': 'assets/images/pochette_food.png',
-    'boulangerie': 'assets/images/pochette_food.png',
-    // Culture
-    'musee': 'assets/images/sc_expo.png',
-    'theatre': 'assets/images/sc_theatre.png',
-    'cinema': 'assets/images/pochette_spectacle.png',
-    'bibliotheque': 'assets/images/sc_expo.png',
-    'librairie': 'assets/images/sc_expo.png',
-    // Sport
-    'piscine': 'assets/images/sc_natation.jpg',
-    'fitness': 'assets/images/sc_autres_sport.jpg',
-    'tennis': 'assets/images/sc_autres_sport.jpg',
-    'football': 'assets/images/sc_football.jpg',
-    'rugby': 'assets/images/sc_rugby.png',
-    'basket': 'assets/images/sc_basketball.png',
-    // Gaming
-    'salle arcade': 'assets/images/pochette_sallearcade.png',
-    'gaming cafe': 'assets/images/pochette_gamingcafe.jpg',
-    'realite virtuelle': 'assets/images/pochette_VR.png',
-    'bar a jeux': 'assets/images/pochette_barajeux.png',
-    'boutique jeux': 'assets/images/pochette_gaming.jpg',
-    'boutique manga': 'assets/images/pochette_boutiquemanga.jpg',
-    'comics bd': 'assets/images/pochette_default.jpg',
-    'figurines goodies': 'assets/images/pochette_default.jpg',
-    'convention salon': 'assets/images/pochette_default.jpg',
-    'tournoi esport': 'assets/images/pochette_gaming.jpg',
-    'cosplay': 'assets/images/pochette_cosplay.jpg',
-    'gaming': 'assets/images/pochette_gaming.jpg',
-    'jeux': 'assets/images/pochette_gaming.jpg',
-    'esport': 'assets/images/pochette_gaming.jpg',
-    'manga': 'assets/images/pochette_boutiquemanga.jpg',
-    'arcade': 'assets/images/pochette_sallearcade.png',
-    'vr': 'assets/images/pochette_VR.png',
-  };
-
+  /// Retourne la photo DB ou null.
   String? _resolveImage() {
     if (imageAsset != null) return imageAsset;
-    if (commerce.photo.isNotEmpty) return commerce.photo;
-    final cat = commerce.categorie.toLowerCase();
-    final nom = commerce.nom.toLowerCase();
-    for (final entry in _defaultImages.entries) {
-      if (cat.contains(entry.key) || nom.contains(entry.key)) {
-        return entry.value;
-      }
+    if (commerce.photo.isNotEmpty && commerce.photo.startsWith('http')) {
+      return commerce.photo;
     }
     return null;
   }
 
   Widget _buildImage(String? image, ModeTheme modeTheme) {
-    final src = image ?? 'assets/images/pochette_default.jpg';
+    // Pas de photo DB → placeholder générique
+    if (image == null) {
+      return Container(
+        color: modeTheme.chipBgColor,
+        child: Center(
+          child: Icon(
+            _categoryIcon(commerce.categorie),
+            size: 28,
+            color: modeTheme.primaryColor.withValues(alpha: 0.5),
+          ),
+        ),
+      );
+    }
+
+    final src = image;
     final isNetwork = src.startsWith('http://') || src.startsWith('https://');
 
     if (isNetwork) {
@@ -285,6 +227,34 @@ class CommerceRowCard extends ConsumerWidget {
     }
     buffer.writeln('\nDecouvre sur MaCity');
     return buffer.toString();
+  }
+
+  static IconData _categoryIcon(String category) {
+    final cat = category.toLowerCase();
+    if (cat.contains('restaurant') || cat.contains('food')) return Icons.restaurant;
+    if (cat.contains('bar') || cat.contains('pub') || cat.contains('nuit')) return Icons.local_bar;
+    if (cat.contains('club') || cat.contains('discotheque')) return Icons.nightlife;
+    if (cat.contains('hotel')) return Icons.hotel;
+    if (cat.contains('cinema')) return Icons.movie;
+    if (cat.contains('theatre')) return Icons.theater_comedy;
+    if (cat.contains('musee') || cat.contains('galerie')) return Icons.museum;
+    if (cat.contains('fitness') || cat.contains('sport')) return Icons.fitness_center;
+    if (cat.contains('piscine') || cat.contains('natation')) return Icons.pool;
+    if (cat.contains('bowling')) return Icons.sports;
+    if (cat.contains('gaming') || cat.contains('arcade') || cat.contains('jeux')) return Icons.sports_esports;
+    if (cat.contains('manga') || cat.contains('comics') || cat.contains('boutique')) return Icons.store;
+    if (cat.contains('escape')) return Icons.lock;
+    if (cat.contains('laser')) return Icons.flash_on;
+    if (cat.contains('parc')) return Icons.park;
+    if (cat.contains('ferme')) return Icons.nature;
+    if (cat.contains('patinoire')) return Icons.ice_skating;
+    if (cat.contains('bibliotheque')) return Icons.menu_book;
+    if (cat.contains('chicha')) return Icons.smoking_rooms;
+    if (cat.contains('epicerie') || cat.contains('tabac')) return Icons.store;
+    if (cat.contains('apero')) return Icons.liquor;
+    if (cat.contains('vr') || cat.contains('virtuelle')) return Icons.vrpano;
+    if (cat.contains('cosplay') || cat.contains('figurine')) return Icons.emoji_objects;
+    return Icons.place;
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {

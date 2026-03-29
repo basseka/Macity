@@ -2,7 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/core/data/etablissements_supabase_service.dart';
+import 'package:pulz_app/core/data/sport_venues_supabase_service.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
+import 'package:pulz_app/features/family/data/family_venues_supabase_service.dart';
 import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -121,13 +124,83 @@ class NearbyParams {
 final nearbyProvider =
     FutureProvider.family<List<CommerceModel>, NearbyParams>((ref, params) async {
   final city = ref.watch(selectedCityProvider);
-  final venuesService = VenuesSupabaseService();
 
-  // Charger tous les venues de la ville
-  final venues = await venuesService.fetchAllVenues(
-    ville: city,
-    category: params.category,
-  );
+  // Charger venues + sport_venues + family_venues + etablissements en parallèle
+  final venuesService = VenuesSupabaseService();
+  final sportService = SportVenuesSupabaseService();
+  final familyService = FamilyVenuesSupabaseService();
+  final etablissementsService = EtablissementsSupabaseService();
+
+  final baseVenuesFuture = venuesService.fetchAllVenues(ville: city, category: params.category);
+  final sportVenuesFuture = sportService.fetchVenues(ville: city);
+  final familyVenuesFuture = familyService.fetchVenues(ville: city);
+  final etablissementsFuture = etablissementsService.fetchAllByVille(city);
+
+  final baseVenues = await baseVenuesFuture;
+  final sportVenues = await sportVenuesFuture;
+  final familyVenues = await familyVenuesFuture;
+  final etablissements = await etablissementsFuture;
+
+  // Maps par nom pour dedup (sport + family prioritaires car photos plus complètes)
+  final sportMap = <String, CommerceModel>{};
+  for (final v in sportVenues) {
+    sportMap[v.nom.toLowerCase()] = v;
+  }
+  final familyMap = <String, CommerceModel>{};
+  for (final fv in familyVenues) {
+    final cm = CommerceModel(
+      nom: fv.name,
+      categorie: fv.category,
+      adresse: fv.adresse,
+      ville: fv.ville,
+      horaires: fv.horaires,
+      telephone: fv.telephone,
+      siteWeb: fv.websiteUrl,
+      lienMaps: fv.lienMaps,
+      photo: fv.photo,
+      latitude: fv.latitude,
+      longitude: fv.longitude,
+    );
+    familyMap[fv.name.toLowerCase()] = cm;
+  }
+
+  // Merger : enrichir les venues de base avec les photos sport/family
+  final venues = <CommerceModel>[];
+  final seenNames = <String>{};
+  for (final v in baseVenues) {
+    final key = v.nom.toLowerCase();
+    seenNames.add(key);
+    final sportVersion = sportMap[key];
+    final familyVersion = familyMap[key];
+    if (sportVersion != null && sportVersion.photo.startsWith('http')) {
+      venues.add(v.copyWith(photo: sportVersion.photo));
+    } else if (familyVersion != null && familyVersion.photo.startsWith('http')) {
+      venues.add(v.copyWith(photo: familyVersion.photo));
+    } else {
+      venues.add(v);
+    }
+  }
+  // Ajouter les sport_venues non présentes dans venues
+  for (final sv in sportVenues) {
+    if (!seenNames.contains(sv.nom.toLowerCase())) {
+      seenNames.add(sv.nom.toLowerCase());
+      venues.add(sv);
+    }
+  }
+  // Ajouter les family_venues non présentes
+  for (final entry in familyMap.entries) {
+    if (!seenNames.contains(entry.key)) {
+      seenNames.add(entry.key);
+      venues.add(entry.value);
+    }
+  }
+  // Ajouter les etablissements non présents (restaurants, food, spa, etc.)
+  for (final etab in etablissements) {
+    if (!seenNames.contains(etab.nom.toLowerCase())) {
+      seenNames.add(etab.nom.toLowerCase());
+      venues.add(etab);
+    }
+  }
 
   // Calculer les distances
   final withDistance = venues.map((v) {

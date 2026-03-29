@@ -6,9 +6,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/services/fcm_service.dart';
 import 'package:pulz_app/core/services/share_intent_service.dart';
-import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/app_theme.dart';
 import 'package:pulz_app/core/router/app_router.dart';
@@ -44,50 +44,30 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
   void _initDeepLinks() {
     // Ecouter les liens entrants (app déjà ouverte)
     _appLinks.uriLinkStream.listen((uri) {
-      debugPrint('[DeepLink] received: $uri');
-      _handleDeepLink(uri);
+      debugPrint('[DeepLink] stream: $uri');
+      final eventId = parseDeepLinkEventId(uri);
+      if (eventId != null) {
+        // App ouverte : charger l'event et naviguer
+        ScrapedEventsSupabaseService().fetchEventById(eventId).then((event) {
+          if (event != null) {
+            deepLinkSetPending(event);
+            appRouter.go('/home');
+          }
+        });
+      }
     });
 
-    // Lien initial (app fermée, ouverte via lien)
+    // Lien initial (app fermée) — stocker juste l'ID, pas de fetch
+    // Le FeedScreen fera le fetch quand il sera monté
     _appLinks.getInitialLink().then((uri) {
       if (uri != null) {
         debugPrint('[DeepLink] initial: $uri');
-        _handleDeepLink(uri);
-      }
-    });
-  }
-
-  Future<void> _handleDeepLink(Uri uri) async {
-    // pulzapp://event/xxx → host=event, path=/xxx
-    // https://macity.app/event/xxx → path=/event/xxx
-    String? eventId;
-    if (uri.scheme == 'pulzapp' && uri.host == 'event') {
-      eventId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
-    } else if (uri.path.startsWith('/event/')) {
-      eventId = uri.pathSegments.length > 1 ? uri.pathSegments[1] : '';
-    }
-
-    if (eventId == null || eventId.isEmpty) return;
-    debugPrint('[DeepLink] loading event: $eventId');
-
-    // S'assurer qu'on est sur le feed
-    appRouter.go('/home');
-
-    // Charger l'event
-    try {
-      final service = ScrapedEventsSupabaseService();
-      final event = await service.fetchEventById(eventId);
-      if (event != null) {
-        // Attendre que le feed soit rendu
-        await Future.delayed(const Duration(milliseconds: 800));
-        final ctx = rootNavigatorKey.currentContext;
-        if (ctx != null) {
-          EventFullscreenPopup.show(ctx, event, 'assets/images/pochette_default.jpg');
+        final eventId = parseDeepLinkEventId(uri);
+        if (eventId != null) {
+          deepLinkSetPendingId(eventId);
         }
       }
-    } catch (e) {
-      debugPrint('[DeepLink] error: $e');
-    }
+    });
   }
 
   @override

@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/services/deep_link_service.dart';
+import 'package:pulz_app/features/home/presentation/widgets/boosted_events_carousel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -69,6 +71,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   List<SearchResult>? _searchResults;
 
   @override
+  void initState() {
+    super.initState();
+    // Afficher un event deep link en attente, après que le feed soit rendu
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) deepLinkShowPending();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     _feedScrollController.dispose();
@@ -128,19 +139,23 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         backgroundColor: const Color(0xFF121212),
         body: SafeArea(
           bottom: false,
-          child: Column(
-            children: [
-              _buildHeader(),
-              if (!_isSearching) const DiscoveryButtons(),
-              // if (!_isSearching) const AnimatedAdBanner(),
-              if (!_isSearching) _buildFilterBar(),
-              Expanded(
-                child: _isSearching ? _buildSearchResults() : _buildFeed(),
-              ),
-            ],
-          ),
+          child: _buildBody(context),
         ),
       ),
+    );
+  }
+
+  bool get _isLandscape => MediaQuery.of(context).orientation == Orientation.landscape;
+
+  Widget _buildBody(BuildContext context) {
+    return Column(
+      children: [
+        _buildHeader(),
+        if (!_isSearching) _buildFilterBar(),
+        Expanded(
+          child: _isSearching ? _buildSearchResults() : _buildFeed(),
+        ),
+      ],
     );
   }
 
@@ -428,23 +443,23 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   Widget _buildFilterBar() {
     return SizedBox(
-      height: 36,
+      height: 28,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         children: [
           // "Tout" chip
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 6),
             child: GestureDetector(
               onTap: () => setState(() => _activeFilter = null),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _activeFilter == null
                       ? _accentColor
                       : Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: _activeFilter == null
                         ? _accentColor
@@ -454,7 +469,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 child: Text(
                   'Tout',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: _activeFilter == null ? FontWeight.w600 : FontWeight.w400,
                     color: _activeFilter == null ? Colors.white : Colors.white60,
                   ),
@@ -465,18 +480,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           // Category chips
           for (final label in _filters.keys)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 6),
               child: GestureDetector(
                 onTap: () => setState(() {
                   _activeFilter = _activeFilter == label ? null : label;
                 }),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: _activeFilter == label
                         ? _accentColor
                         : Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: _activeFilter == label
                           ? _accentColor
@@ -486,7 +501,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: _activeFilter == label ? FontWeight.w600 : FontWeight.w400,
                       color: _activeFilter == label ? Colors.white : Colors.white60,
                     ),
@@ -842,6 +857,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       child: CustomScrollView(
         controller: scrollController,
         slivers: [
+          // Discovery + Boosted insérés en haut du feed scroll
+          if (!_isLandscape) ...[
+            const SliverToBoxAdapter(child: DiscoveryButtons()),
+            const SliverToBoxAdapter(child: BoostedEventsCarousel()),
+            const SliverToBoxAdapter(child: BoostedP2Carousel()),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+          ],
           for (final day in sortedDays) ...[
             SliverToBoxAdapter(
               key: ValueKey('header_$day'),

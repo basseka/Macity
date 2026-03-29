@@ -33,6 +33,23 @@ class EtablissementsSupabaseService {
         .toList();
   }
 
+  /// Fetch all active etablissements for a given [ville].
+  Future<List<CommerceModel>> fetchAllByVille(String ville) async {
+    final response = await _dio.get(
+      'etablissements',
+      queryParameters: {
+        'select': '*',
+        'is_active': 'eq.true',
+        'ville': 'ilike.$ville',
+        'order': 'nom.asc',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => _mapToCommerce(e as Map<String, dynamic>, ''))
+        .toList();
+  }
+
   static CommerceModel _mapToCommerce(
     Map<String, dynamic> json,
     String rubrique,
@@ -54,10 +71,10 @@ class EtablissementsSupabaseService {
   }
 
   static String _defaultPhoto(String rubrique) => switch (rubrique) {
-        'nuit' => 'assets/images/pochette_nuit.png',
-        'famille' => 'assets/images/pochette_famille.png',
-        'culture' => 'assets/images/pochette_culture.png',
+        'nuit' => 'assets/images/pochette_discotheque.png',
+        'famille' => 'assets/images/pochette_enfamille.jpg',
+        'culture' => 'assets/images/pochette_culture_art.png',
         'food' => 'assets/images/pochette_food.png',
-        _ => 'assets/images/pochette_autre.png',
+        _ => 'assets/images/pochette_autre.jpg',
       };
 }
