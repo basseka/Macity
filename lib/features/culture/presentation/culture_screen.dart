@@ -384,16 +384,19 @@ class CultureScreen extends ConsumerWidget {
   Widget _buildCetteSemaineEventsList(WidgetRef ref, ModeTheme modeTheme) {
     final museumAsync = ref.watch(cultureMuseumEventsProvider);
     final theatreState = ref.watch(cultureTheatreEventsProgressiveProvider);
+    final spectacleAsync = ref.watch(cultureSpectacleEventsProvider);
     final userEvents = ref.watch(cultureUserEventsProvider);
 
     return museumAsync.when(
       data: (museumEvents) {
+        final spectacleEvents = spectacleAsync.valueOrNull ?? [];
         final allEvents = [
           ...userEvents,
           ...museumEvents,
           ...theatreState.events,
+          ...spectacleEvents,
         ];
-        if (allEvents.isEmpty && theatreState.isLoading) {
+        if (allEvents.isEmpty && (theatreState.isLoading || spectacleAsync.isLoading)) {
           return LoadingIndicator(color: modeTheme.primaryColor);
         }
         if (allEvents.isEmpty) {

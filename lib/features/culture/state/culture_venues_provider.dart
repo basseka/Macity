@@ -88,6 +88,17 @@ final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   );
 });
 
+/// Spectacles/theatre scrapes en rubrique day (pour Paris et autres villes).
+final cultureSpectacleEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'day',
+    source: 'day_spectacle',
+    dateGte: _todayStr(),
+    ville: city,
+  );
+});
+
 /// Theatre events agrégés progressivement — maintenant une seule requete DB.
 final cultureTheatreEventsProgressiveProvider =
     Provider<({List<Event> events, bool isLoading})>((ref) {
@@ -243,12 +254,23 @@ final cultureCategoryCountProvider =
     return events.length + uc;
   }
   if (searchTag == 'A venir') {
-    final events = await ref.watch(cultureMuseumEventsProvider.future);
-    final theatreEvents = await ref.watch(cultureTheatreEventsProvider.future);
+    final city = ref.watch(selectedCityProvider);
+    final svc = ScrapedEventsSupabaseService();
+    final cultureEvents = await svc.fetchEvents(
+      rubrique: 'culture',
+      dateGte: _todayStr(),
+      ville: city,
+      requirePhoto: false,
+    );
+    final spectacleEvents = await svc.fetchEvents(
+      rubrique: 'day',
+      source: 'day_spectacle',
+      dateGte: _todayStr(),
+      ville: city,
+      requirePhoto: false,
+    );
     final userCount = ref.watch(cultureUserEventsProvider).length;
-    return events.where(_isKnownCultureCategory).length +
-        theatreEvents.length +
-        userCount;
+    return cultureEvents.length + spectacleEvents.length + userCount;
   }
   // Ajouter les user events pour cette sous-categorie
   final userCount = ref.watch(cultureUserEventsProvider).where((e) {

@@ -60,6 +60,8 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
       if (!hasPrefs || prefs.contains('day')) rubriques.add('day');
       if (!hasPrefs || prefs.contains('culture')) rubriques.add('culture');
       if (!hasPrefs || prefs.contains('night')) rubriques.add('night');
+      if (!hasPrefs || prefs.contains('family')) rubriques.add('family');
+      if (!hasPrefs || prefs.contains('food')) rubriques.add('food');
       _rubriques = rubriques;
 
       final (events, rawCount) = await _service.fetchAllEvents(

@@ -8,6 +8,8 @@ import 'package:pulz_app/features/day/presentation/create_event/steps/step_extra
 import 'package:pulz_app/features/day/presentation/create_event/steps/step_pricing.dart';
 import 'package:pulz_app/features/day/presentation/create_event/steps/step_when_where.dart';
 import 'package:pulz_app/features/day/presentation/create_event/widgets/step_indicator.dart';
+import 'package:pulz_app/core/services/stripe_service.dart';
+import 'package:pulz_app/core/services/user_identity_service.dart';
 
 class CreateEventPage extends ConsumerStatefulWidget {
   final String? initialPhotoPath;
@@ -59,7 +61,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
       }
     });
 
-    return Scaffold(
+    return Stack(
+      children: [
+      Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -222,6 +226,51 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
           ],
         ),
       ),
+    ),
+    // Overlay de progression pendant l'upload
+    if (state.isSubmitting)
+      Container(
+        color: Colors.black.withValues(alpha: 0.7),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Color(0xFFE91E8C),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                state.isVideo ? 'Publication de la video...' : 'Publication en cours...',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (state.isVideo)
+                const _UploadSteps()
+              else
+                Text(
+                  'Presque termine',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    ],
     );
   }
 
@@ -236,6 +285,21 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     if (_isLastStep(state)) {
       final success = await notifier.submit();
       if (success && mounted) {
+        final priority = state.priority;
+        if ((priority == 'P1' || priority == 'P2') && notifier.lastCreatedEventId != null) {
+          // Boost payant sélectionné → paiement Stripe
+          final userId = await UserIdentityService.getUserId();
+          final sortedDates = state.boostDates.toList()..sort();
+          final startDate = sortedDates.isNotEmpty ? sortedDates.first : DateTime.now();
+          StripeService.checkout(
+            eventId: notifier.lastCreatedEventId!,
+            eventTitle: state.titre,
+            priority: priority,
+            userId: userId,
+            days: state.boostDates.length.clamp(1, 30),
+            startDate: startDate,
+          );
+        }
         _showSuccessAndPop();
       }
     } else {
@@ -335,5 +399,72 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     if (result == true && mounted) {
       Navigator.of(context).pop();
     }
+  }
+}
+
+/// Timeline animee pour l'upload video.
+class _UploadSteps extends StatefulWidget {
+  const _UploadSteps();
+
+  @override
+  State<_UploadSteps> createState() => _UploadStepsState();
+}
+
+class _UploadStepsState extends State<_UploadSteps> {
+  int _step = 0;
+  static const _steps = [
+    'Compression de la video...',
+    'Upload en cours...',
+    'Finalisation...',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _advanceSteps();
+  }
+
+  void _advanceSteps() async {
+    await Future.delayed(const Duration(seconds: 5));
+    if (mounted) setState(() => _step = 1);
+    await Future.delayed(const Duration(seconds: 15));
+    if (mounted) setState(() => _step = 2);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < _steps.length; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  i < _step
+                      ? Icons.check_circle
+                      : i == _step
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                  size: 14,
+                  color: i <= _step ? const Color(0xFFE91E8C) : Colors.white24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _steps[i],
+                  style: TextStyle(
+                    color: i <= _step ? Colors.white : Colors.white24,
+                    fontSize: 11,
+                    fontWeight: i == _step ? FontWeight.w600 : FontWeight.w400,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 }

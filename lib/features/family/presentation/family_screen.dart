@@ -235,13 +235,17 @@ class FamilyScreen extends ConsumerWidget {
 
   Widget _buildGroupedVenues(BuildContext context, WidgetRef ref, ModeTheme modeTheme) {
     final userEvents = ref.watch(familyUserEventsProvider);
+    final scrapedAsync = ref.watch(familyScrapedEventsProvider);
     final filter = ref.watch(dateRangeFilterProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
 
-    // Uniquement les events communautaires a venir
-    final filtered = userEvents.where((e) {
+    // Combiner events communauté + scraped
+    final scrapedEvents = scrapedAsync.valueOrNull ?? [];
+    final allEvents = [...userEvents, ...scrapedEvents];
+
+    final filtered = allEvents.where((e) {
       final d = DateTime.tryParse(e.dateDebut);
       if (d == null) return false;
       final dateOnly = DateTime(d.year, d.month, d.day);
@@ -251,10 +255,12 @@ class FamilyScreen extends ConsumerWidget {
       ..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
 
     if (filtered.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'Aucun evenement communautaire pour le moment',
-        icon: Icons.family_restroom,
-      );
+      return scrapedAsync.isLoading
+          ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+          : const EmptyStateWidget(
+              message: 'Aucun evenement famille pour le moment',
+              icon: Icons.family_restroom,
+            );
     }
 
     final grouped = <DateTime, List<Event>>{};

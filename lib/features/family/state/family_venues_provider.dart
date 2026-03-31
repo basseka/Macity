@@ -55,15 +55,22 @@ final familyCategoryCountProvider =
 
   final city = ref.watch(selectedCityProvider);
 
-  // "A venir" = uniquement les events crees par la communaute
+  // "A venir" = events communauté + scraped events famille
   if (searchTag == 'A venir') {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    return userEvents.where((e) {
+    final userCount = userEvents.where((e) {
       final d = DateTime.tryParse(e.dateDebut);
       if (d == null) return false;
       return !DateTime(d.year, d.month, d.day).isBefore(today);
     }).length;
+    final scrapedEvents = await ScrapedEventsSupabaseService().fetchEvents(
+      rubrique: 'family',
+      dateGte: _todayStr(),
+      ville: city,
+      requirePhoto: false,
+    );
+    return userCount + scrapedEvents.length;
   }
 
   final count = await service.countByCategory(searchTag, ville: city);
@@ -76,6 +83,17 @@ final familySupabaseVenuesProvider =
   final city = ref.watch(selectedCityProvider);
   final service = ref.read(_familyServiceProvider);
   return service.fetchVenues(category: category, ville: city);
+});
+
+/// Scraped events famille (rubrique='family') pour la ville selectionnee.
+final familyScrapedEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'family',
+    dateGte: _todayStr(),
+    ville: city,
+    requirePhoto: false,
+  );
 });
 
 /// Toutes les venues Supabase, groupees par categorie (pour "A venir"), filtrees par ville.

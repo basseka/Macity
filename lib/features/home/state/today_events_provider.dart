@@ -38,22 +38,32 @@ final todayTomorrowEventsProvider =
   final wantCulture = !hasPrefs || userPrefs.contains('culture');
   final wantNight = !hasPrefs || userPrefs.contains('night');
   final wantSport = !hasPrefs || userPrefs.contains('sport');
+  final wantFamily = !hasPrefs || userPrefs.contains('family');
+  final wantFood = !hasPrefs || userPrefs.contains('food');
 
   List<Event> dayEvents = [];
   List<Event> cultureEvents = [];
   List<Event> nightEvents = [];
+  List<Event> familyEvents = [];
+  List<Event> foodEvents = [];
   List<SupabaseMatch> matches = [];
 
   try {
     final futures = <Future>[];
     if (wantDay) {
-      futures.add(scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city, limit: 100));
+      futures.add(scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city, limit: 50));
     }
     if (wantCulture) {
-      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city, limit: 80));
+      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city, limit: 50));
     }
     if (wantNight) {
-      futures.add(scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city, limit: 80));
+      futures.add(scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city, limit: 50));
+    }
+    if (wantFamily) {
+      futures.add(scraperService.fetchEvents(rubrique: 'family', dateGte: todayStr, ville: city, limit: 50));
+    }
+    if (wantFood) {
+      futures.add(scraperService.fetchEvents(rubrique: 'food', dateGte: todayStr, ville: city, limit: 50));
     }
     if (wantSport) {
       futures.add(matchService.fetchMatches(
@@ -68,13 +78,15 @@ final todayTomorrowEventsProvider =
     if (wantDay) dayEvents = results[i++] as List<Event>;
     if (wantCulture) cultureEvents = results[i++] as List<Event>;
     if (wantNight) nightEvents = results[i++] as List<Event>;
+    if (wantFamily) familyEvents = results[i++] as List<Event>;
+    if (wantFood) foodEvents = results[i++] as List<Event>;
     if (wantSport) matches = results[i++] as List<SupabaseMatch>;
   } catch (e) {
     debugPrint('[weekEvents] error: $e');
   }
 
   // Filtrer les events pour les 30 prochains jours
-  final allEvents = [...dayEvents, ...cultureEvents, ...nightEvents];
+  final allEvents = [...dayEvents, ...cultureEvents, ...nightEvents, ...familyEvents, ...foodEvents];
   final filtered = allEvents.where((e) {
     final d = DateTime.tryParse(e.dateDebut);
     if (d == null) return false;

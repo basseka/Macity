@@ -6,6 +6,7 @@ import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
+import 'package:pulz_app/features/home/state/paginated_feed_provider.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 final createEventProvider =
@@ -44,6 +45,14 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
 
   void updatePhotoPath(String value) {
     state = state.copyWith(photoPath: value, clearError: true);
+  }
+
+  void updateVideoPath(String value) {
+    state = state.copyWith(videoPath: value, clearError: true);
+  }
+
+  void updateIsVideo(bool value) {
+    state = state.copyWith(isVideo: value, clearError: true);
   }
 
   void updateDateDebut(DateTime value) {
@@ -120,6 +129,29 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
 
   void updateLienBilletterie(String value) {
     state = state.copyWith(lienBilletterie: value, clearError: true);
+  }
+
+  void updatePriority(String value) {
+    state = state.copyWith(priority: value, clearError: true);
+  }
+
+  void toggleBoostDate(DateTime date) {
+    final current = Set<DateTime>.from(state.boostDates);
+    final normalized = DateTime(date.year, date.month, date.day);
+    if (current.any((d) => d.year == normalized.year && d.month == normalized.month && d.day == normalized.day)) {
+      current.removeWhere((d) => d.year == normalized.year && d.month == normalized.month && d.day == normalized.day);
+    } else if (current.length < 30) {
+      current.add(normalized);
+    }
+    state = state.copyWith(boostDates: current, clearError: true);
+  }
+
+  void setBoostDates(Set<DateTime> dates) {
+    state = state.copyWith(boostDates: dates, clearError: true);
+  }
+
+  void clearBoostDates() {
+    state = state.copyWith(boostDates: {}, clearError: true);
   }
 
   void updateDescriptionLongue(String value) {
@@ -270,11 +302,22 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
 
       final rubrique = categoryToMode[s.categorie] ?? 'day';
 
+      // Upload video si present
+      String? uploadedVideoUrl;
+      final svc = UserEventSupabaseService();
+      if (s.isVideo && s.videoPath != null) {
+        try {
+          uploadedVideoUrl = await svc.uploadVideo(s.videoPath!);
+          debugPrint('[CreateEvent] video uploaded: $uploadedVideoUrl');
+        } catch (e) {
+          debugPrint('[CreateEvent] video upload failed: $e');
+        }
+      }
+
       // Upload gallery photos if any
       List<String> galleryUrls = [];
       if (s.galleryPaths.isNotEmpty) {
         try {
-          final svc = UserEventSupabaseService();
           galleryUrls = await svc.uploadGallery(s.galleryPaths);
         } catch (e) {
           debugPrint('[CreateEvent] gallery upload failed: $e');
@@ -292,6 +335,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         lieuNom: s.lieuNom ?? '',
         lieuAdresse: s.lieuAdresse.trim(),
         photoPath: s.photoPath,
+        videoUrl: uploadedVideoUrl ?? s.videoUrl,
         ville: s.ville,
         lienBilletterie: s.lienBilletterie.trim(),
         createdAt: DateTime.now(),
@@ -321,7 +365,6 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         participantsMax: int.tryParse(s.participantsMax),
         inscriptionType: s.inscriptionType.toLowerCase(),
         galleryUrls: galleryUrls,
-        videoUrl: s.videoUrl.trim(),
         tags: s.tags,
         programme: s.programme.isNotEmpty
             ? s.programme.map((p) => p.toJson()).toList()
@@ -338,6 +381,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
                 'conditions_annulation': s.conditionsAnnulation,
               }
             : null,
+        priority: s.priority,
       );
 
       String? establishmentId;
@@ -359,6 +403,10 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         ville: event.ville,
       );
 
+      // Rafraichir le feed pour inclure le nouvel event
+      _ref.invalidate(paginatedFeedProvider);
+
+      lastCreatedEventId = event.id;
       state = state.copyWith(isSubmitting: false);
       return true;
     } catch (e) {
@@ -369,6 +417,9 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       return false;
     }
   }
+
+  /// ID du dernier event créé (pour le paiement Stripe).
+  String? lastCreatedEventId;
 
   double? _parseDouble(String value) {
     if (value.isEmpty) return null;

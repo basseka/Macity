@@ -12,6 +12,7 @@ const kEventCategories = <String>[
   'Gastronomie',
   'Fete / Communautaire',
   'Bien-etre / Sante',
+  'Nuit / Soiree',
   'Famille / Enfants',
 ];
 
@@ -20,11 +21,12 @@ const kSubcategories = <String, List<String>>{
   'Musique / Concert': ['Concert', 'Festival', 'DJ set', 'Showcase', 'Opera', 'Karaoke'],
   'Culturel / Artistique': ['Expo', 'Vernissage', 'Theatre', 'Visite guidee', 'Musee', 'Cinema'],
   'Danse': ['Cours de danse', 'Spectacle', 'Bal', 'Battle', 'Stage'],
-  'Sport / Fitness': ['Football', 'Rugby', 'Basketball', 'Tennis', 'Course', 'Yoga', 'Fitness', 'Autre sport'],
+  'Sport / Fitness': ['Football', 'Rugby', 'Basketball', 'Handball', 'Tennis', 'Boxe', 'Natation', 'Courses a pied', 'Competition', 'Stage de danse', 'Course', 'Yoga', 'Fitness', 'Autre sport'],
   'Formation / Atelier': ['Atelier creatif', 'Formation pro', 'Cours de cuisine', 'Hackathon', 'Workshop'],
   'Business / Professionnel': ['Conference', 'Networking', 'Salon', 'Seminaire', 'Meetup'],
   'Loisirs / Gaming': ['Tournoi e-sport', 'Convention', 'Bar a jeux', 'LAN party', 'Escape game'],
   'Gastronomie': ['Restaurant', 'Degustation', 'Brunch', 'Marche', 'Food truck', 'Cours de cuisine'],
+  'Nuit / Soiree': ['Soiree', 'Club', 'Bar', 'DJ set', 'Karaoke', 'After work', 'Soiree privee'],
   'Fete / Communautaire': ['Fete de quartier', 'Braderie', 'Vide-grenier', 'Carnaval', 'Feu d\'artifice'],
   'Bien-etre / Sante': ['Yoga', 'Meditation', 'Spa', 'Randonnee', 'Retraite bien-etre'],
   'Famille / Enfants': ['Spectacle enfant', 'Atelier enfant', 'Parc', 'Cinema', 'Bowling', 'Fete foraine'],
@@ -91,6 +93,7 @@ const categoryToMode = <String, String>{
   'Formation / Atelier': 'day',
   'Business / Professionnel': 'day',
   'Loisirs / Gaming': 'gaming',
+  'Nuit / Soiree': 'night',
   'Gastronomie': 'food',
   'Fete / Communautaire': 'day',
   'Bien-etre / Sante': 'food',
@@ -111,6 +114,8 @@ class CreateEventState {
   final String titre;
   final String descriptionCourte;
   final String? photoPath;
+  final String? videoPath;
+  final bool isVideo;
 
   // Etape 2
   final DateTime? dateDebut;
@@ -145,6 +150,10 @@ class CreateEventState {
   final String participantsMax;
   final String inscriptionType;
 
+  // Boost
+  final String priority; // P1, P2, P3, P4
+  final Set<DateTime> boostDates; // jours de boost sélectionnés
+
   // Etape 5
   final List<String> galleryPaths;
   final String videoUrl;
@@ -165,6 +174,8 @@ class CreateEventState {
     this.titre = '',
     this.descriptionCourte = '',
     this.photoPath,
+    this.videoPath,
+    this.isVideo = false,
     this.dateDebut,
     this.heureDebut,
     this.dateFin,
@@ -192,6 +203,8 @@ class CreateEventState {
     this.participantsMin = '',
     this.participantsMax = '',
     this.inscriptionType = 'Libre',
+    this.priority = 'P4',
+    this.boostDates = const {},
     this.galleryPaths = const [],
     this.videoUrl = '',
     this.tags = const [],
@@ -212,6 +225,8 @@ class CreateEventState {
     String? titre,
     String? descriptionCourte,
     String? photoPath,
+    String? videoPath,
+    bool? isVideo,
     DateTime? dateDebut,
     TimeOfDay? heureDebut,
     DateTime? dateFin,
@@ -239,6 +254,8 @@ class CreateEventState {
     String? participantsMin,
     String? participantsMax,
     String? inscriptionType,
+    String? priority,
+    Set<DateTime>? boostDates,
     List<String>? galleryPaths,
     String? videoUrl,
     List<String>? tags,
@@ -262,6 +279,8 @@ class CreateEventState {
       titre: titre ?? this.titre,
       descriptionCourte: descriptionCourte ?? this.descriptionCourte,
       photoPath: photoPath ?? this.photoPath,
+      videoPath: videoPath ?? this.videoPath,
+      isVideo: isVideo ?? this.isVideo,
       dateDebut: dateDebut ?? this.dateDebut,
       heureDebut: heureDebut ?? this.heureDebut,
       dateFin: clearDateFin ? null : (dateFin ?? this.dateFin),
@@ -289,6 +308,8 @@ class CreateEventState {
       participantsMin: participantsMin ?? this.participantsMin,
       participantsMax: participantsMax ?? this.participantsMax,
       inscriptionType: inscriptionType ?? this.inscriptionType,
+      priority: priority ?? this.priority,
+      boostDates: boostDates ?? this.boostDates,
       galleryPaths: galleryPaths ?? this.galleryPaths,
       videoUrl: videoUrl ?? this.videoUrl,
       tags: tags ?? this.tags,
@@ -307,7 +328,7 @@ class CreateEventState {
         if (categorie == null) return 'Choisissez une categorie';
         if (sousCategorie == null) return 'Choisissez une sous-categorie';
         if (titre.trim().isEmpty) return 'Le titre est requis';
-        if (photoPath == null) return 'Une photo est requise';
+        if (photoPath == null && videoPath == null) return 'Une photo ou video est requise';
         return null;
       case 1:
         if (dateDebut == null) return 'La date de debut est requise';
