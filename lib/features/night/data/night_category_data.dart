@@ -34,7 +34,7 @@ class NightCategoryData {
       name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        NightSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
+        NightSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.jpg'),
       ],
     ),
     NightCategoryGroup(
@@ -46,6 +46,7 @@ class NightCategoryData {
         NightSubcategory(label: 'Bar a cocktails', searchTag: 'Bar a cocktails', emoji: '\uD83C\uDF79', group: 'Bars & vie nocturne', image: 'assets/images/pochette_pub.png'),
         NightSubcategory(label: 'Bar a chicha', searchTag: 'Bar a chicha', emoji: '\uD83D\uDCA8', group: 'Bars & vie nocturne', image: 'assets/images/pochette_chicha.png'),
         NightSubcategory(label: 'Pub', searchTag: 'Pub', emoji: '\uD83C\uDF7B', group: 'Bars & vie nocturne', image: 'assets/images/pochette_pub.png'),
+        NightSubcategory(label: 'Spicy', searchTag: 'Spicy', emoji: '', group: 'Bars & vie nocturne', image: 'assets/images/pochette_spicy.png'),
       ],
     ),
     NightCategoryGroup(
@@ -53,7 +54,7 @@ class NightCategoryData {
       emoji: '\uD83D\uDED2',
       subcategories: [
         NightSubcategory(label: 'SOS Apero', searchTag: 'SOS Apero', emoji: '\uD83C\uDF7B', group: 'Commerces ouverts la nuit', image: 'assets/images/pochette_sosapero.png'),
-        NightSubcategory(label: 'Epicerie de nuit', searchTag: 'Epicerie de nuit', emoji: '\uD83C\uDF1C', group: 'Commerces ouverts la nuit', image: 'assets/images/pochette_epicerie.png'),
+        NightSubcategory(label: 'Epicerie de nuit', searchTag: 'Epicerie de nuit', emoji: '\uD83C\uDF1C', group: 'Commerces ouverts la nuit', image: 'assets/images/pochette_epicerie.jpg'),
         NightSubcategory(label: 'Tabac de nuit', searchTag: 'Tabac de nuit', emoji: '\uD83D\uDEAC', group: 'Commerces ouverts la nuit', image: 'assets/images/pochette_tabac.png'),
       ],
     ),

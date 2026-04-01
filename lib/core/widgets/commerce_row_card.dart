@@ -20,12 +20,39 @@ class CommerceRowCard extends ConsumerWidget {
     this.imageAsset,
   });
 
-  /// Retourne la photo DB ou null.
+  /// Retourne la photo DB, l'asset explicite, ou la pochette par defaut.
   String? _resolveImage() {
     if (imageAsset != null) return imageAsset;
     if (commerce.photo.isNotEmpty && commerce.photo.startsWith('http')) {
       return commerce.photo;
     }
+    return _categoryFallbackAsset(commerce.categorie);
+  }
+
+  static String? _categoryFallbackAsset(String category) {
+    final cat = category.toLowerCase();
+    if (cat.contains('coquin')) return 'assets/images/pochette_coquin.png';
+    if (cat.contains('strip')) return 'assets/images/pochette_strip.png';
+    if (cat.contains('spicy')) return 'assets/images/pochette_spicy.png';
+    if (cat.contains('club') || cat.contains('discotheque')) return 'assets/images/pochette_discotheque.png';
+    if (cat.contains('bar') && cat.contains('cocktail')) return 'assets/images/pochette_barcocktail.png';
+    if (cat.contains('pub')) return 'assets/images/sc_pub.jpg';
+    if (cat.contains('bar') && cat.contains('nuit')) return 'assets/images/pochette_default.jpg';
+    if (cat.contains('chicha')) return 'assets/images/sc_chicha.jpg';
+    if (cat.contains('hotel')) return 'assets/images/sc_hotel.jpg';
+    if (cat.contains('epicerie')) return 'assets/images/pochette_epicerie.jpg';
+    if (cat.contains('restaurant')) return 'assets/images/pochette_restaurant.jpg';
+    if (cat.contains('cinema')) return 'assets/images/pochette_cinema.png';
+    if (cat.contains('musee')) return 'assets/images/pochette_musee.png';
+    if (cat.contains('theatre')) return 'assets/images/pochette_theatre.png';
+    if (cat.contains('fitness') || cat.contains('sport')) return 'assets/images/pochette_fitnesspark.png';
+    if (cat.contains('natation') || cat.contains('piscine')) return 'assets/images/pochette_natation.jpg';
+    if (cat.contains('gaming') || cat.contains('arcade')) return 'assets/images/pochette_gaming.jpg';
+    if (cat.contains('yoga')) return 'assets/images/pochette_yoga.jpg';
+    if (cat.contains('bowling')) return 'assets/images/pochette_bowling.png';
+    if (cat.contains('bibliotheque')) return 'assets/images/pochette_bibliotheque.jpg';
+    if (cat.contains('monument')) return 'assets/images/pochette_monument.jpg';
+    if (cat.contains('opera')) return 'assets/images/pochette_opera.jpg';
     return null;
   }
 

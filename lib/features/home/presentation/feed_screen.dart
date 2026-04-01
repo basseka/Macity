@@ -152,6 +152,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       children: [
         _buildHeader(),
         if (!_isSearching) _buildFilterBar(),
+        if (!_isSearching) const SizedBox(height: 10),
         Expanded(
           child: _isSearching ? _buildSearchResults() : _buildFeed(),
         ),
@@ -689,9 +690,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     }
 
     final dayGroups = <DateTime, List<_FeedItem>>{};
+    // Liste plate pour le swipe dans le popup
+    final flatEvents = <Event>[];
     for (final e in filtered) {
       final d = DateTime.tryParse(e.dateDebut)!;
       final dateOnly = DateTime(d.year, d.month, d.day);
+      final idx = flatEvents.length;
+      flatEvents.add(e);
 
       final pochette = _resolvePochette(e);
       final hasNet = e.photoPath != null &&
@@ -706,7 +711,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         videoUrl: e.videoUrl,
         badge: e.isFree ? 'GRATUIT' : '',
         tag: e.categorie,
-        onTap: () => EventFullscreenPopup.show(context, e, pochette),
+        onTap: () => EventFullscreenPopup.showPaged(
+          context,
+          events: flatEvents,
+          initialIndex: idx,
+          fallbackAssetBuilder: _resolvePochette,
+        ),
       ));
     }
 
@@ -800,12 +810,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     // Group events by day
     final dayGroups = <DateTime, List<_FeedItem>>{};
+    // Liste plate pour le swipe dans le popup
+    final flatEvents = <Event>[];
     for (final e in data.events) {
       if (!_matchesFilter(e)) continue;
       final d = DateTime.tryParse(e.dateDebut);
       if (d == null) continue;
       final dateOnly = DateTime(d.year, d.month, d.day);
       if (dateOnly.isBefore(today)) continue;
+
+      final idx = flatEvents.length;
+      flatEvents.add(e);
 
       final pochette = _resolvePochette(e);
       final hasNet = e.photoPath != null &&
@@ -820,7 +835,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         videoUrl: e.videoUrl,
         badge: e.isFree ? 'GRATUIT' : '',
         tag: e.categorie,
-        onTap: () => EventFullscreenPopup.show(context, e, pochette),
+        onTap: () => EventFullscreenPopup.showPaged(
+          context,
+          events: flatEvents,
+          initialIndex: idx,
+          fallbackAssetBuilder: _resolvePochette,
+        ),
       ));
     }
 

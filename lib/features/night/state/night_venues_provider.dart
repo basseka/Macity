@@ -11,7 +11,12 @@ import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 /// Tags qui utilisent les donnees curatees au lieu de la base locale.
-const _curatedTags = {'Bar de nuit', 'Bar a cocktails', 'Pub', 'Club Discotheque', 'Epicerie de nuit', 'Tabac de nuit', 'Hotel', 'SOS Apero', 'Bar a chicha'};
+const _curatedTags = {'Bar de nuit', 'Bar a cocktails', 'Pub', 'Club Discotheque', 'Epicerie de nuit', 'Tabac de nuit', 'Hotel', 'SOS Apero', 'Bar a chicha', 'Spicy', 'Coquin', 'Strip'};
+
+/// Sub_grid parents → liste de leurs enfants pour le count.
+const _subGridChildren = <String, List<String>>{
+  'Spicy': ['Coquin', 'Strip'],
+};
 
 /// Evenements utilisateur filtres pour la rubrique "night".
 final nightUserEventsProvider = Provider<List<Event>>((ref) {
@@ -71,6 +76,21 @@ final nightCategoryCountProvider =
   }
   if (_curatedTags.contains(searchTag)) {
     final city = ref.watch(selectedCityProvider);
+    // Si c'est un sub_grid parent, additionner les counts des enfants
+    final children = _subGridChildren[searchTag];
+    if (children != null) {
+      try {
+        var total = 0;
+        for (final child in children) {
+          total += await VenuesSupabaseService().countVenues(
+            mode: 'night', ville: city, category: child,
+          );
+        }
+        return total + uc;
+      } catch (_) {
+        return uc;
+      }
+    }
     try {
       final count = await VenuesSupabaseService().countVenues(
         mode: 'night', ville: city, category: searchTag,
@@ -78,7 +98,7 @@ final nightCategoryCountProvider =
       return count + uc;
     } catch (_) {
       return NightBarsData.toulouseBars
-          .where((b) => b.categorie == searchTag)
+          .where((b) => b.categorie == searchTag && b.ville.toLowerCase() == city.toLowerCase())
           .length + uc;
     }
   }
@@ -100,9 +120,9 @@ final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
       );
       if (venues.isNotEmpty) return venues;
     } catch (_) {}
-    // Fallback statique
+    // Fallback statique — filtrer aussi par ville
     return NightBarsData.toulouseBars
-        .where((b) => b.categorie == category)
+        .where((b) => b.categorie == category && b.ville.toLowerCase() == city.toLowerCase())
         .toList();
   }
 

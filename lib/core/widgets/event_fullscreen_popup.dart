@@ -38,6 +38,26 @@ class EventFullscreenPopup extends ConsumerWidget {
     );
   }
 
+  /// Ouvre le popup avec swipe horizontal entre les events.
+  static Future<void> showPaged(
+    BuildContext context, {
+    required List<Event> events,
+    required int initialIndex,
+    required String Function(Event) fallbackAssetBuilder,
+  }) {
+    return showDialog(
+      context: context,
+      useRootNavigator: true,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (_) => _PagedEventPopup(
+        events: events,
+        initialIndex: initialIndex,
+        fallbackAssetBuilder: fallbackAssetBuilder,
+      ),
+    );
+  }
+
   static final _displayDateFormat = DateFormat('dd/MM/yyyy');
   static const _defaultPochette = 'assets/images/pochette_concert.png';
 
@@ -223,34 +243,6 @@ class EventFullscreenPopup extends ConsumerWidget {
                               ),
                             ],
                           ),
-
-                          // Bouton Booster (events utilisateur uniquement)
-                          if (_isUserEvent(event)) ...[
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 44,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _boostEvent(context),
-                                icon: const Icon(Icons.rocket_launch, size: 18),
-                                label: const Text(
-                                  'Booster votre event',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFF6B00),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  elevation: 0,
-                                ),
-                              ),
-                            ),
-                          ],
 
                           // Billetterie
                           if (event.reservationUrl.isNotEmpty) ...[
@@ -588,6 +580,84 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Wrapper qui affiche les events dans un PageView swipeable.
+class _PagedEventPopup extends StatefulWidget {
+  final List<Event> events;
+  final int initialIndex;
+  final String Function(Event) fallbackAssetBuilder;
+
+  const _PagedEventPopup({
+    required this.events,
+    required this.initialIndex,
+    required this.fallbackAssetBuilder,
+  });
+
+  @override
+  State<_PagedEventPopup> createState() => _PagedEventPopupState();
+}
+
+class _PagedEventPopupState extends State<_PagedEventPopup> {
+  late final PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _pageController,
+          itemCount: widget.events.length,
+          onPageChanged: (i) => setState(() => _currentIndex = i),
+          itemBuilder: (_, i) {
+            final event = widget.events[i];
+            return EventFullscreenPopup(
+              event: event,
+              fallbackAsset: widget.fallbackAssetBuilder(event),
+            );
+          },
+        ),
+        // Indicateur de position
+        if (widget.events.length > 1)
+          Positioned(
+            bottom: 24,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  '${_currentIndex + 1} / ${widget.events.length}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

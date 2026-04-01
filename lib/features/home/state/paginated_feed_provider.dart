@@ -26,7 +26,11 @@ const _pageSize = 100;
 
 final paginatedFeedProvider =
     StateNotifierProvider<PaginatedFeedNotifier, PaginatedFeedState>(
-  (ref) => PaginatedFeedNotifier(ref),
+  (ref) {
+    // Surveiller la ville — recree le notifier quand elle change
+    ref.watch(selectedCityProvider);
+    return PaginatedFeedNotifier(ref);
+  },
 );
 
 class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {

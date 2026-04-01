@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/data/venues_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -73,16 +74,49 @@ final familyCategoryCountProvider =
     return userCount + scrapedEvents.length;
   }
 
-  final count = await service.countByCategory(searchTag, ville: city);
+  var count = await service.countByCategory(searchTag, ville: city);
+  // Fallback sur la table venues (donnees OSM)
+  if (count == 0) {
+    try {
+      count = await VenuesSupabaseService().countVenues(
+        mode: 'family', ville: city, category: searchTag,
+      );
+    } catch (_) {}
+  }
   return count + uc;
 });
 
 /// Venues Supabase pour la categorie selectionnee, filtrees par ville.
+/// Fallback sur la table venues (donnees OSM) si family_venues est vide.
 final familySupabaseVenuesProvider =
     FutureProvider.family<List<FamilyVenue>, String>((ref, category) async {
   final city = ref.watch(selectedCityProvider);
   final service = ref.read(_familyServiceProvider);
-  return service.fetchVenues(category: category, ville: city);
+  final results = await service.fetchVenues(category: category, ville: city);
+  if (results.isNotEmpty) return results;
+
+  // Fallback OSM → convertir CommerceModel en FamilyVenue
+  try {
+    final osmVenues = await VenuesSupabaseService().fetchVenues(
+      mode: 'family', ville: city, category: category,
+    );
+    return osmVenues.map((c) => FamilyVenue(
+      id: c.nom.hashCode,
+      slug: c.nom.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-'),
+      name: c.nom,
+      category: category,
+      adresse: c.adresse,
+      ville: c.ville,
+      horaires: c.horaires,
+      telephone: c.telephone,
+      latitude: c.latitude,
+      longitude: c.longitude,
+      websiteUrl: c.siteWeb,
+      lienMaps: c.lienMaps,
+      photo: c.photo,
+    )).toList();
+  } catch (_) {}
+  return results;
 });
 
 /// Scraped events famille (rubrique='family') pour la ville selectionnee.

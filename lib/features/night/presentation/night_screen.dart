@@ -15,11 +15,16 @@ import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/presentation/night_hub_grid.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
+import 'package:pulz_app/core/state/categories_provider.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 class NightScreen extends ConsumerWidget {
   const NightScreen({super.key});
+
+  /// Catégories qui sont des sub_grids (affichent leurs enfants au lieu de venues).
+  static const _subGridTags = {'Spicy'};
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +38,105 @@ class NightScreen extends ConsumerWidget {
         Expanded(
           child: selectedCategory == null
               ? const NightHubGrid()
-              : _buildVenueList(context, ref, selectedCategory),
+              : _subGridTags.contains(selectedCategory)
+                  ? _buildSubGrid(context, ref, selectedCategory)
+                  : _buildVenueList(context, ref, selectedCategory),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubGrid(BuildContext context, WidgetRef ref, String parentTag) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    final childrenAsync = ref.watch(
+      groupChildrenProvider((mode: 'night', groupe: parentTag)),
+    );
+
+    return Column(
+      children: [
+        // Back button row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  parentTag,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: modeTheme.primaryDarkColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              InkWell(
+                onTap: () {
+                  ref.read(modeSubcategoriesProvider.notifier).select('night', null);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Categories',
+                        style: TextStyle(
+                          color: modeTheme.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: childrenAsync.when(
+            data: (children) {
+              if (children.isEmpty) {
+                return const EmptyStateWidget(
+                  message: 'Aucune sous-categorie',
+                  icon: Icons.nightlife,
+                );
+              }
+              final gradient = LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
+              );
+              return GridView.count(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.2,
+                children: [
+                  for (final cat in children)
+                    Builder(builder: (context) {
+                      final count = ref.watch(nightCategoryCountProvider(cat.searchTag)).valueOrNull;
+                      return DaySubcategoryCard(
+                        emoji: '',
+                        label: cat.label,
+                        image: cat.imageUrl.isNotEmpty ? cat.imageUrl : null,
+                        count: count,
+                        gradient: gradient,
+                        onTap: () => ref.read(modeSubcategoriesProvider.notifier).select('night', cat.searchTag),
+                      );
+                    }),
+                ],
+              );
+            },
+            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+            error: (_, __) => const AppErrorWidget(message: 'Erreur de chargement'),
+          ),
         ),
       ],
     );

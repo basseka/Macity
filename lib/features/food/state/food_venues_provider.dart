@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/data/venues_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -51,7 +52,15 @@ final foodCategoryCountProvider =
   }
   if (searchTag == 'Restaurant') {
     final restaurants = await RestaurantSupabaseService().fetchRestaurants(ville: city);
-    return restaurants.length;
+    if (restaurants.isNotEmpty) return restaurants.length;
+    // Fallback sur la table venues (donnees OSM)
+    try {
+      final count = await VenuesSupabaseService().countVenues(
+        mode: 'food', ville: city, category: searchTag,
+      );
+      return count + uc;
+    } catch (_) {}
+    return uc;
   }
   if (searchTag == 'Guinguette' || searchTag == 'Buffets' || searchTag == 'Salon de the' || searchTag == 'Brunch' || searchTag == 'Spa hammam' || searchTag == 'Massage' || searchTag == 'Yoga meditation') {
     final theme = searchTag == 'Buffets' ? 'Buffet' : searchTag;
@@ -77,9 +86,23 @@ final foodVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
       final venues = await repository.searchByVille(ville: city, query: tag);
       all.addAll(venues);
     }
+    if (all.isEmpty) {
+      // Fallback OSM
+      try {
+        return await VenuesSupabaseService().fetchVenues(mode: 'food', ville: city);
+      } catch (_) {}
+    }
     return all;
   }
-  return repository.searchByVille(ville: city, query: category);
+  final local = await repository.searchByVille(ville: city, query: category);
+  if (local.isNotEmpty) return local;
+  // Fallback OSM
+  try {
+    return await VenuesSupabaseService().fetchVenues(
+      mode: 'food', ville: city, category: category,
+    );
+  } catch (_) {}
+  return local;
 });
 
 /// Restaurants depuis Supabase (avec theme/quartier/style), filtres par ville.
