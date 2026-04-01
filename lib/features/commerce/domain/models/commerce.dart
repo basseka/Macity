@@ -26,6 +26,9 @@ class CommerceModel with _$CommerceModel {
     @Default('') String photo,
     @Default('') String siteWeb,
     @Default(false) bool independant,
+    @Default(0) int displayCount,
+    @Default('') String videoUrl,
+    @Default(false) bool isVerified,
   }) = _CommerceModel;
 
   factory CommerceModel.fromJson(Map<String, dynamic> json) =>

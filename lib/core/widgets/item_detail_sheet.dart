@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart' show ClaimVenueSheet;
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -25,6 +27,8 @@ class ItemDetailSheet extends ConsumerWidget {
   final String? likeId;
   final Widget? extraContent;
   final double imageHeightFraction;
+  final bool isVerified;
+  final List<String> photoGallery;
 
   const ItemDetailSheet({
     super.key,
@@ -40,6 +44,8 @@ class ItemDetailSheet extends ConsumerWidget {
     this.likeId,
     this.extraContent,
     this.imageHeightFraction = 1.0,
+    this.isVerified = false,
+    this.photoGallery = const [],
   });
 
   static const _primaryColor = Color(0xFF7B2D8E);
@@ -170,20 +176,100 @@ class ItemDetailSheet extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                          // Titre
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                          // Titre + badge verifie
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1.2,
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: isVerified
+                                    ? const VerifiedBadge()
+                                    : GestureDetector(
+                                        onTap: () => ClaimVenueSheet.show(context, title),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [Color(0xFFFF9800), Color(0xFFF57C00)],
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFFFF9800).withValues(alpha: 0.4),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.verified_outlined, size: 13, color: Colors.white),
+                                              SizedBox(width: 4),
+                                              Text('Revendiquer', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                            ],
                           ),
 
                           const SizedBox(height: 10),
+
+                          // Photo gallery (scroll horizontal)
+                          if (photoGallery.isNotEmpty) ...[
+                            SizedBox(
+                              height: 80,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: photoGallery.length > 6 ? 6 : photoGallery.length,
+                                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                                itemBuilder: (_, i) {
+                                  final photo = photoGallery[i];
+                                  return GestureDetector(
+                                    onTap: () => _showFullPhoto(context, photo),
+                                    child: Container(
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.white24, width: 0.5),
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: photo.startsWith('http')
+                                          ? CachedNetworkImage(
+                                              imageUrl: photo,
+                                              fit: BoxFit.cover,
+                                              width: 80,
+                                              height: 80,
+                                              placeholder: (_, __) => Container(color: Colors.white12),
+                                              errorWidget: (_, __, ___) => Container(
+                                                color: Colors.white12,
+                                                child: const Icon(Icons.photo_outlined, color: Colors.white30, size: 20),
+                                              ),
+                                            )
+                                          : Image.asset(photo, fit: BoxFit.cover, width: 80, height: 80),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
 
                           // Info rows
                           ...infos.map(
@@ -385,6 +471,86 @@ class ItemDetailSheet extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showFullPhoto(BuildContext context, String photoUrl) {
+    final index = photoGallery.indexOf(photoUrl);
+    final controller = PageController(initialPage: index >= 0 ? index : 0);
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.92),
+      builder: (_) => Stack(
+        children: [
+          // Swipeable photos
+          PageView.builder(
+            controller: controller,
+            itemCount: photoGallery.length,
+            itemBuilder: (_, i) {
+              final photo = photoGallery[i];
+              return GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: photo.startsWith('http')
+                          ? CachedNetworkImage(imageUrl: photo, fit: BoxFit.contain)
+                          : Image.asset(photo, fit: BoxFit.contain),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          // Bouton fermer
+          Positioned(
+            top: 40,
+            right: 16,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+          // Indicateur
+          if (photoGallery.length > 1)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: StatefulBuilder(
+                  builder: (_, setState) {
+                    controller.addListener(() {
+                      if (controller.page != null) setState(() {});
+                    });
+                    final current = (controller.page ?? index).round() + 1;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        '$current / ${photoGallery.length}',
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

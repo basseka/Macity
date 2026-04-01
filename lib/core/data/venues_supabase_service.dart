@@ -37,7 +37,7 @@ class VenuesSupabaseService {
       'ville': 'ilike.$ville*',
       'order': 'name.asc',
     };
-    if (category != null) params['category'] = 'eq.$category';
+    if (category != null) params['category'] = 'ilike.*$category*';
     if (groupe != null) params['groupe'] = 'eq.$groupe';
 
     final response = await _dio.get('venues', queryParameters: params);
@@ -57,7 +57,7 @@ class VenuesSupabaseService {
       'mode': 'eq.$mode',
       'ville': 'ilike.$ville*',
     };
-    if (category != null) params['category'] = 'eq.$category';
+    if (category != null) params['category'] = 'ilike.*$category*';
 
     final response = await _dio.get(
       'venues',
@@ -257,7 +257,7 @@ class VenuesSupabaseService {
       'ville': 'ilike.$ville*',
       'order': 'name.asc',
     };
-    if (category != null) params['category'] = 'eq.$category';
+    if (category != null) params['category'] = 'ilike.*$category*';
 
     final response = await _dio.get('venues', queryParameters: params);
     final data = response.data as List;
@@ -304,6 +304,49 @@ class VenuesSupabaseService {
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       displayCount: (json['display_count'] as num?)?.toInt() ?? 0,
       videoUrl: json['video_url'] as String? ?? '',
+      isVerified: json['is_verified'] as bool? ?? false,
+    );
+  }
+
+  /// Revendiquer une venue par un pro.
+  Future<void> claimVenue({
+    required int venueId,
+    required String proId,
+    String? siret,
+    String? proofUrl,
+    String? message,
+  }) async {
+    await _dio.post(
+      'venue_claims',
+      data: {
+        'venue_id': venueId,
+        'pro_id': proId,
+        'siret': siret ?? '',
+        'proof_url': proofUrl ?? '',
+        'message': message ?? '',
+      },
+      options: Options(
+        headers: {'Prefer': 'return=minimal'},
+      ),
+    );
+  }
+
+  /// Mettre a jour une venue par son proprietaire (marque is_verified).
+  Future<void> updateVenueAsPro({
+    required int venueId,
+    Map<String, dynamic>? updates,
+  }) async {
+    final data = {
+      ...?updates,
+      'is_verified': true,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await _dio.patch(
+      'venues?id=eq.$venueId',
+      data: data,
+      options: Options(
+        headers: {'Prefer': 'return=minimal'},
+      ),
     );
   }
 }

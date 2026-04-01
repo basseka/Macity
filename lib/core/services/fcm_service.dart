@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -23,6 +24,7 @@ class FcmService {
   static final _localNotifications = FlutterLocalNotificationsPlugin();
   static late final Dio _dio;
   static bool _initialized = false;
+  static final List<StreamSubscription> _subscriptions = [];
 
   /// Callback appelé quand l'utilisateur tape sur une notification.
   /// La map contient les données FCM (type, universe, event_ids, etc.).
@@ -76,13 +78,17 @@ class FcmService {
     if (token != null) await _upsertToken(token);
 
     // Refresh automatique
-    _messaging.onTokenRefresh.listen(_upsertToken);
+    _subscriptions.add(_messaging.onTokenRefresh.listen(_upsertToken));
 
     // Foreground messages → afficher via local notification
-    FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+    _subscriptions.add(
+      FirebaseMessaging.onMessage.listen(_showForegroundNotification),
+    );
 
     // Tap sur notification quand l'app est en background
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+    _subscriptions.add(
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap),
+    );
 
     // Tap sur notification quand l'app était killed
     final initialMessage = await _messaging.getInitialMessage();
@@ -93,8 +99,8 @@ class FcmService {
       });
     }
 
-    // Notification quotidienne a 18h
-    await _scheduleDailyReminder();
+    // Annuler l'ancienne notification locale 18h (remplacée par daily digest server-side)
+    await _localNotifications.cancel(_dailyReminderId);
   }
 
   /// Gère le tap sur une notification FCM (background/killed).
@@ -170,18 +176,26 @@ class FcmService {
   /// Encode les données FCM dans le payload pour récupération au tap.
   static Future<void> _showForegroundNotification(
       RemoteMessage message) async {
-    final notification = message.notification;
-    if (notification == null) return;
+    // Si le message a un bloc notification, Android l'affiche deja tout seul
+    // en foreground via le canal par defaut. Ne pas creer de doublon.
+    if (message.notification != null) {
+      debugPrint('[FCM] foreground: skip (notification block present, Android handles it)');
+      return;
+    }
 
-    debugPrint('[FCM] foreground: ${notification.title}');
+    // Data-only message : title/body dans data
+    final title = message.data['title'] as String?;
+    final body = message.data['body'] as String?;
+    if (title == null && body == null) return;
 
-    // Encoder les données FCM pour les passer au tap handler
+    debugPrint('[FCM] foreground data-only: $title');
+
     final payload = jsonEncode(message.data);
 
     await _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
       NotificationDetails(
         android: AndroidNotificationDetails(
           _androidChannel.id,
@@ -236,6 +250,14 @@ class FcmService {
       await prefs.setString('device_id', id);
     }
     return id;
+  }
+
+  /// Annuler tous les listeners FCM.
+  static Future<void> dispose() async {
+    for (final sub in _subscriptions) {
+      await sub.cancel();
+    }
+    _subscriptions.clear();
   }
 
   /// Supprimer le token (appeler au "logout" si necessaire).

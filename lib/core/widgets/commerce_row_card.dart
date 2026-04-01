@@ -6,6 +6,7 @@ import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -139,15 +140,26 @@ class CommerceRowCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      commerce.nom,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            commerce.nom,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: modeTheme.primaryDarkColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        if (commerce.isVerified)
+                          const VerifiedBadge.small()
+                        else
+                          _ClaimButton.small(commerceName: commerce.nom),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     if (commerce.horaires.isNotEmpty)
@@ -207,8 +219,12 @@ class CommerceRowCard extends ConsumerWidget {
         emoji: '',
         imageAsset: isNetwork ? null : image,
         imageUrl: isNetwork ? image : null,
-        videoUrl: commerce.videoUrl.isNotEmpty ? commerce.videoUrl : null,
+        videoUrl: commerce.videoUrl.isNotEmpty
+            ? commerce.videoUrl
+            : _defaultVideoUrl(),
         likeId: 'night_${commerce.nom}',
+        isVerified: commerce.isVerified,
+        photoGallery: _buildPhotoGallery(),
         infos: [
           if (commerce.categorie.isNotEmpty)
             DetailInfoItem(Icons.category_outlined, commerce.categorie),
@@ -243,6 +259,53 @@ class CommerceRowCard extends ConsumerWidget {
         shareText: _buildShareText(),
       ),
     );
+  }
+
+  /// Photos generiques pour les clubs/discotheques non revendiques.
+  static const _defaultClubPhotos = [
+    'assets/images/club-pic-default-01.png',
+    'assets/images/club-pic-default-02.png',
+    'assets/images/club-pic-default-03.png',
+    'assets/images/club-pic-default-04.png',
+    'assets/images/club-pic-default-05.png',
+    'assets/images/club-pic-default-06.png',
+  ];
+
+  /// Construit la galerie photo pour le detail.
+  List<String> _buildPhotoGallery() {
+    // Si le proprio a revendique, ses propres photos seront ici
+    // TODO: charger les photos du proprio depuis la DB
+    final photos = <String>[];
+    if (commerce.photo.isNotEmpty && commerce.photo.startsWith('http')) {
+      photos.add(commerce.photo);
+    }
+
+    // Si pas assez de photos et categorie club/disco non verifie → photos generiques
+    if (!commerce.isVerified && photos.length < 6) {
+      final cat = commerce.categorie.toLowerCase();
+      if (cat.contains('club') || cat.contains('discotheque')) {
+        for (final p in _defaultClubPhotos) {
+          if (photos.length >= 6) break;
+          if (!photos.contains(p)) photos.add(p);
+        }
+      }
+    }
+
+    return photos;
+  }
+
+  /// Video par defaut pour les clubs/discotheques non revendiques.
+  static const _defaultClubVideo =
+      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/user-events/teaser_disco_1.mp4';
+
+  String? _defaultVideoUrl() {
+    // Seulement pour les clubs/discotheques non revendiques
+    if (commerce.isVerified) return null;
+    final cat = commerce.categorie.toLowerCase();
+    if (cat.contains('club') || cat.contains('discotheque')) {
+      return _defaultClubVideo;
+    }
+    return null;
   }
 
   String _buildShareText() {
@@ -328,6 +391,230 @@ class CommerceRowCard extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Icon(icon, size: 16, color: color),
+    );
+  }
+}
+
+/// Petit bouton "Revendiquer" qui ouvre le sheet de revendication.
+class _ClaimButton extends StatelessWidget {
+  final String commerceName;
+  final bool small;
+
+  const _ClaimButton.small({required this.commerceName}) : small = true;
+  const _ClaimButton({required this.commerceName}) : small = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => ClaimVenueSheet.show(context, commerceName),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: small ? 6 : 10,
+          vertical: small ? 2 : 4,
+        ),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFF9800), Color(0xFFF57C00)],
+          ),
+          borderRadius: BorderRadius.circular(small ? 6 : 10),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF9800).withValues(alpha: 0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.verified_outlined, size: small ? 8 : 12, color: Colors.white),
+            SizedBox(width: small ? 2 : 4),
+            Text(
+              'Revendiquer',
+              style: TextStyle(
+                fontSize: small ? 7 : 10,
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom sheet de revendication d'un etablissement.
+class ClaimVenueSheet extends StatefulWidget {
+  final String commerceName;
+
+  const ClaimVenueSheet({super.key, required this.commerceName});
+
+  static void show(BuildContext context, String commerceName) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ClaimVenueSheet(commerceName: commerceName),
+    );
+  }
+
+  @override
+  State<ClaimVenueSheet> createState() => _ClaimVenueSheetState();
+}
+
+class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
+  final _siretController = TextEditingController();
+  final _urlController = TextEditingController();
+  final _messageController = TextEditingController();
+  bool _loading = false;
+  bool _submitted = false;
+
+  @override
+  void dispose() {
+    _siretController.dispose();
+    _urlController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_siretController.text.isEmpty && _urlController.text.isEmpty) return;
+    setState(() => _loading = true);
+
+    // TODO: appeler VenuesSupabaseService().claimVenue() avec le proId
+    // Pour l'instant, simuler le submit
+    await Future.delayed(const Duration(seconds: 1));
+
+    setState(() {
+      _loading = false;
+      _submitted = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        child: _submitted ? _buildSuccess() : _buildForm(),
+      ),
+    );
+  }
+
+  Widget _buildSuccess() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(height: 24),
+        const Icon(Icons.check_circle, size: 56, color: Color(0xFF4CAF50)),
+        const SizedBox(height: 16),
+        const Text('Demande envoyee !', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text(
+          'Votre demande de revendication pour "${widget.commerceName}" a ete soumise. Vous serez notifie une fois approuvee.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7B2D8E),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Fermer'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildForm() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(child: Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            const Icon(Icons.store_outlined, size: 20, color: Color(0xFF7B2D8E)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Revendiquer "${widget.commerceName}"',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Vous etes le proprietaire ? Remplissez ce formulaire pour verifier votre etablissement et obtenir le badge verifie.',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 16),
+        _buildField('Numero SIRET', _siretController, 'Ex: 123 456 789 00012', TextInputType.number),
+        const SizedBox(height: 12),
+        _buildField('Site web ou reseau social', _urlController, 'https://...', TextInputType.url),
+        const SizedBox(height: 12),
+        _buildField('Message (optionnel)', _messageController, 'Informations complementaires...', TextInputType.multiline, maxLines: 3),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          height: 46,
+          child: ElevatedButton(
+            onPressed: _loading ? null : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7B2D8E),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: _loading
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Envoyer la demande', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildField(String label, TextEditingController controller, String hint, TextInputType type, {int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        TextField(
+          controller: controller,
+          keyboardType: type,
+          maxLines: maxLines,
+          style: const TextStyle(fontSize: 13),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF7B2D8E))),
+          ),
+        ),
+      ],
     );
   }
 }
