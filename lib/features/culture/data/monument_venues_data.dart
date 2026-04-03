@@ -10,6 +10,7 @@ class MonumentVenue {
   final String websiteUrl;
   final String lienMaps;
   final String image;
+  final bool isVerified;
 
   const MonumentVenue({
     required this.id,
@@ -23,5 +24,6 @@ class MonumentVenue {
     required this.websiteUrl,
     required this.lienMaps,
     required this.image,
+    this.isVerified = false,
   });
 }

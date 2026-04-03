@@ -18,6 +18,7 @@ class FamilyVenue {
   final String ticketUrl;
   final String lienMaps;
   final String photo;
+  final bool isVerified;
 
   const FamilyVenue({
     required this.id,
@@ -37,6 +38,7 @@ class FamilyVenue {
     this.ticketUrl = '',
     this.lienMaps = '',
     this.photo = '',
+    this.isVerified = false,
   });
 
   factory FamilyVenue.fromJson(Map<String, dynamic> json) {
@@ -58,6 +60,7 @@ class FamilyVenue {
       ticketUrl: json['ticket_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: json['photo'] as String? ?? '',
+      isVerified: json['is_verified'] as bool? ?? false,
     );
   }
 }

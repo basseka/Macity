@@ -7,6 +7,8 @@ import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
+import 'package:pulz_app/core/data/venues_supabase_service.dart';
+import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
@@ -39,7 +41,7 @@ class CommerceRowCard extends ConsumerWidget {
     if (cat.contains('bar') && cat.contains('cocktail')) return 'assets/images/pochette_barcocktail.png';
     if (cat.contains('pub')) return 'assets/images/sc_pub.jpg';
     if (cat.contains('bar') && cat.contains('nuit')) return 'assets/images/pochette_default.jpg';
-    if (cat.contains('chicha')) return 'assets/images/sc_chicha.jpg';
+    if (cat.contains('chicha')) return 'assets/images/pochette_chicha.png';
     if (cat.contains('hotel')) return 'assets/images/sc_hotel.jpg';
     if (cat.contains('epicerie')) return 'assets/images/pochette_epicerie.jpg';
     if (cat.contains('restaurant')) return 'assets/images/pochette_restaurant.jpg';
@@ -116,20 +118,37 @@ class CommerceRowCard extends ConsumerWidget {
             // ── Pochette image a gauche ──
             Padding(
               padding: const EdgeInsets.only(left: 10),
-              child: Container(
-                width: 65,
-                height: 65,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                    width: 1.5,
+              child: Stack(
+                children: [
+                  Container(
+                    width: 65,
+                    height: 65,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(9),
+                      child: _buildImage(image, modeTheme),
+                    ),
                   ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(9),
-                  child: _buildImage(image, modeTheme),
-                ),
+                  if (commerce.isVerified)
+                    Positioned(
+                      bottom: -2,
+                      right: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.workspace_premium, size: 14, color: Color(0xFFFFD700)),
+                      ),
+                    ),
+                ],
               ),
             ),
 
@@ -271,6 +290,15 @@ class CommerceRowCard extends ConsumerWidget {
     'assets/images/club-pic-default-06.png',
   ];
 
+  static const _defaultRestaurantPhotos = [
+    'assets/images/plat-01.png',
+    'assets/images/plat-02.png',
+    'assets/images/plat-03.png',
+    'assets/images/plat-04.png',
+    'assets/images/plat-05.png',
+    'assets/images/plat-06.png',
+  ];
+
   /// Construit la galerie photo pour le detail.
   List<String> _buildPhotoGallery() {
     // Si le proprio a revendique, ses propres photos seront ici
@@ -280,11 +308,17 @@ class CommerceRowCard extends ConsumerWidget {
       photos.add(commerce.photo);
     }
 
-    // Si pas assez de photos et categorie club/disco non verifie → photos generiques
+    // Si pas assez de photos et non verifie → photos generiques par categorie
     if (!commerce.isVerified && photos.length < 6) {
       final cat = commerce.categorie.toLowerCase();
+      List<String>? defaults;
       if (cat.contains('club') || cat.contains('discotheque')) {
-        for (final p in _defaultClubPhotos) {
+        defaults = _defaultClubPhotos;
+      } else if (cat.contains('restaurant') || cat.contains('food') || cat.contains('brunch') || cat.contains('salon de the') || cat.contains('buffet') || cat.contains('guinguette')) {
+        defaults = _defaultRestaurantPhotos;
+      }
+      if (defaults != null) {
+        for (final p in defaults) {
           if (photos.length >= 6) break;
           if (!photos.contains(p)) photos.add(p);
         }
@@ -484,25 +518,42 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
     if (_siretController.text.isEmpty && _urlController.text.isEmpty) return;
     setState(() => _loading = true);
 
-    // TODO: appeler VenuesSupabaseService().claimVenue() avec le proId
-    // Pour l'instant, simuler le submit
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _loading = false;
-      _submitted = true;
-    });
+    try {
+      final userId = await UserIdentityService.getUserId();
+      await VenuesSupabaseService().claimVenue(
+        venueName: widget.commerceName,
+        proId: userId,
+        siret: _siretController.text.trim(),
+        proofUrl: _urlController.text.trim(),
+        message: _messageController.text.trim(),
+      );
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _submitted = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('[ClaimVenue] error: $e');
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: ${e.toString().length > 80 ? e.toString().substring(0, 80) : e}')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: _submitted ? _buildSuccess() : _buildForm(),
       ),

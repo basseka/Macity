@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class LibraryVenueCard extends ConsumerWidget {
   final LibraryVenue library;
@@ -38,7 +39,7 @@ class LibraryVenueCard extends ConsumerWidget {
                 child: SizedBox(
                   width: 64,
                   height: 64,
-                  child: VenueImage(imageUrl: library.image, defaultAsset: 'assets/images/pochette_theatre.png'),
+                  child: VenueImage(imageUrl: library.image, defaultAsset: 'assets/images/pochette_bibliotheque.jpg'),
                 ),
               ),
             ),
@@ -50,15 +51,25 @@ class LibraryVenueCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      library.name,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            library.name,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: modeTheme.primaryDarkColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (library.isVerified) ...[
+                          const SizedBox(width: 4),
+                          const VerifiedBadge.small(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     if (library.horaires.isNotEmpty)

@@ -12,6 +12,7 @@ class LibraryVenue {
   final String websiteUrl;
   final String lienMaps;
   final String image;
+  final bool isVerified;
 
   const LibraryVenue({
     required this.id,
@@ -27,5 +28,6 @@ class LibraryVenue {
     required this.websiteUrl,
     required this.lienMaps,
     required this.image,
+    this.isVerified = false,
   });
 }

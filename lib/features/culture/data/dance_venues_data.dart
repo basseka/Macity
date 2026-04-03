@@ -8,6 +8,7 @@ class DanceVenue {
   final String horaires;
   final String? websiteUrl;
   final String image;
+  final bool isVerified;
 
   const DanceVenue({
     required this.id,
@@ -19,5 +20,6 @@ class DanceVenue {
     required this.horaires,
     this.websiteUrl,
     required this.image,
+    this.isVerified = false,
   });
 }

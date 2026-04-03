@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class FamilyVenueCard extends ConsumerWidget {
   final CommerceModel commerce;
@@ -51,14 +52,24 @@ class FamilyVenueCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Name
-                      Text(
-                        commerce.nom,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              commerce.nom,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (commerce.isVerified) ...[
+                            const SizedBox(width: 4),
+                            const VerifiedBadge.small(),
+                          ],
+                        ],
                       ),
 
                       const SizedBox(height: 4),

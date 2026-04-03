@@ -106,10 +106,37 @@ final foodVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
 });
 
 /// Restaurants depuis Supabase (avec theme/quartier/style), filtres par ville.
+/// Fallback sur la table venues (OSM) si etablissements est vide.
 final restaurantsSupabaseProvider =
     FutureProvider<List<RestaurantVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  return RestaurantSupabaseService().fetchRestaurants(ville: city);
+  final results = await RestaurantSupabaseService().fetchRestaurants(ville: city);
+  if (results.isNotEmpty) return results;
+
+  // Fallback : convertir les venues OSM en RestaurantVenue
+  try {
+    final osmVenues = await VenuesSupabaseService().fetchVenues(
+      mode: 'food', ville: city, category: 'Restaurant',
+    );
+    return osmVenues.map((c) => RestaurantVenue(
+      id: '${c.nom.hashCode}',
+      name: c.nom,
+      description: '',
+      group: 'Restaurant',
+      adresse: c.adresse,
+      telephone: c.telephone,
+      horaires: c.horaires,
+      websiteUrl: c.siteWeb,
+      lienMaps: c.lienMaps,
+      photo: c.photo,
+      latitude: c.latitude,
+      longitude: c.longitude,
+      theme: 'Restaurant',
+      quartier: '',
+      style: '',
+    )).toList();
+  } catch (_) {}
+  return results;
 });
 
 /// Provider groupé par searchTag pour l'affichage "A venir".

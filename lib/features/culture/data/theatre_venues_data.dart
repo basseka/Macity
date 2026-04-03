@@ -8,6 +8,7 @@ class TheatreVenue {
   final String? websiteUrl;
   final bool hasOnlineTicket;
   final String image;
+  final bool isVerified;
 
   const TheatreVenue({
     required this.id,
@@ -19,5 +20,6 @@ class TheatreVenue {
     this.websiteUrl,
     required this.hasOnlineTicket,
     required this.image,
+    this.isVerified = false,
   });
 }

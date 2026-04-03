@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class DanceVenueCard extends ConsumerWidget {
   final DanceVenue dance;
@@ -58,15 +59,25 @@ class DanceVenueCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      dance.name,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            dance.name,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: modeTheme.primaryDarkColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (dance.isVerified) ...[
+                          const SizedBox(width: 4),
+                          const VerifiedBadge.small(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
 

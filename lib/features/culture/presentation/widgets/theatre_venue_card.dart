@@ -9,6 +9,7 @@ import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class TheatreVenueCard extends ConsumerWidget {
   final TheatreVenue theatre;
@@ -97,15 +98,25 @@ class TheatreVenueCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      theatre.name,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            theatre.name,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: modeTheme.primaryDarkColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (theatre.isVerified) ...[
+                          const SizedBox(width: 4),
+                          const VerifiedBadge.small(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
 

@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class MuseumVenueCard extends ConsumerWidget {
   final MuseumVenue museum;
@@ -88,15 +89,25 @@ class MuseumVenueCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Nom
-                    Text(
-                      museum.name,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            museum.name,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: modeTheme.primaryDarkColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (museum.isVerified) ...[
+                          const SizedBox(width: 4),
+                          const VerifiedBadge.small(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
 

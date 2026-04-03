@@ -9,6 +9,7 @@ class MuseumVenue {
   final String websiteUrl;
   final bool hasOnlineTicket;
   final String image;
+  final bool isVerified;
 
   const MuseumVenue({
     required this.id,
@@ -21,5 +22,6 @@ class MuseumVenue {
     required this.websiteUrl,
     required this.hasOnlineTicket,
     required this.image,
+    this.isVerified = false,
   });
 }

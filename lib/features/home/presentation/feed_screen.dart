@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
+import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -40,6 +41,12 @@ import 'package:pulz_app/core/widgets/animated_ad_banner.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+final _foodScrapedProvider = FutureProvider.family<List<Event>, String>((ref, city) async {
+  final now = DateTime.now();
+  final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  return ScrapedEventsSupabaseService().fetchEvents(rubrique: 'food', dateGte: today, ville: city);
+});
 
 class FeedScreen extends ConsumerStatefulWidget {
   const FeedScreen({super.key});
@@ -638,10 +645,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     // Special case: Famille & Food use dedicated community events providers
     if (_activeFilter == 'Famille') {
-      return _buildCommunityFeed(ref.watch(familyUserEventsProvider), Icons.family_restroom, 'famille');
+      final userEvents = ref.watch(familyUserEventsProvider);
+      final scrapedAsync = ref.watch(familyScrapedEventsProvider);
+      final scraped = scrapedAsync.valueOrNull ?? [];
+      return _buildCommunityFeed([...userEvents, ...scraped], Icons.family_restroom, 'famille');
     }
     if (_activeFilter == 'Food') {
-      return _buildCommunityFeed(ref.watch(foodUserEventsProvider), Icons.restaurant, 'food');
+      final userEvents = ref.watch(foodUserEventsProvider);
+      final city = ref.watch(selectedCityProvider);
+      final scrapedAsync = ref.watch(_foodScrapedProvider(city));
+      final scraped = scrapedAsync.valueOrNull ?? [];
+      return _buildCommunityFeed([...userEvents, ...scraped], Icons.restaurant, 'food');
     }
 
     final feedState = ref.watch(paginatedFeedProvider);

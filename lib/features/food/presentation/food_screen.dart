@@ -703,14 +703,33 @@ class _RestaurantRowCard extends StatelessWidget {
     );
   }
 
+  static const _defaultRestaurantPhotos = [
+    'assets/images/plat-01.png',
+    'assets/images/plat-02.png',
+    'assets/images/plat-03.png',
+    'assets/images/plat-04.png',
+    'assets/images/plat-05.png',
+    'assets/images/plat-06.png',
+  ];
+
   void _openDetail(BuildContext context) {
+    final photos = <String>[];
+    if (venue.photo.isNotEmpty && venue.photo.startsWith('http')) {
+      photos.add(venue.photo);
+    }
+    for (final p in _defaultRestaurantPhotos) {
+      if (photos.length >= 6) break;
+      if (!photos.contains(p)) photos.add(p);
+    }
+
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
         title: venue.name,
         emoji: '',
-        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : null,
+        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : 'assets/images/pochette_restaurant.jpg',
         imageUrl: venue.photo.isNotEmpty && venue.photo.startsWith('http') ? venue.photo : null,
+        photoGallery: photos,
         infos: [
           if (venue.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, venue.description),
@@ -893,14 +912,33 @@ class _RestaurantGridTile extends StatelessWidget {
     );
   }
 
+  static const _defaultRestaurantPhotos = [
+    'assets/images/plat-01.png',
+    'assets/images/plat-02.png',
+    'assets/images/plat-03.png',
+    'assets/images/plat-04.png',
+    'assets/images/plat-05.png',
+    'assets/images/plat-06.png',
+  ];
+
   void _openDetail(BuildContext context) {
+    final photos = <String>[];
+    if (venue.photo.isNotEmpty && venue.photo.startsWith('http')) {
+      photos.add(venue.photo);
+    }
+    for (final p in _defaultRestaurantPhotos) {
+      if (photos.length >= 6) break;
+      if (!photos.contains(p)) photos.add(p);
+    }
+
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
         title: venue.name,
         emoji: '',
-        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : null,
+        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : 'assets/images/pochette_restaurant.jpg',
         imageUrl: venue.photo.isNotEmpty && venue.photo.startsWith('http') ? venue.photo : null,
+        photoGallery: photos,
         infos: [
           if (venue.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, venue.description),

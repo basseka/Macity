@@ -124,6 +124,7 @@ class VenuesSupabaseService {
           : null,
       hasOnlineTicket: json['has_online_ticket'] as bool? ?? false,
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_theatre.png',
+      isVerified: json['is_verified'] as bool? ?? false,
     );
   }
 
@@ -158,6 +159,7 @@ class VenuesSupabaseService {
       websiteUrl: json['website_url'] as String? ?? '',
       hasOnlineTicket: json['has_online_ticket'] as bool? ?? false,
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_musee.png',
+      isVerified: json['is_verified'] as bool? ?? false,
     );
   }
 
@@ -191,6 +193,7 @@ class VenuesSupabaseService {
       websiteUrl: json['website_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_visite.png',
+      isVerified: json['is_verified'] as bool? ?? false,
     );
   }
 
@@ -226,6 +229,7 @@ class VenuesSupabaseService {
       websiteUrl: json['website_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_culture_art.png',
+      isVerified: json['is_verified'] as bool? ?? false,
     );
   }
 
@@ -309,21 +313,40 @@ class VenuesSupabaseService {
   }
 
   /// Revendiquer une venue par un pro.
+  /// Accepte soit venueId soit venueName (lookup par nom).
   Future<void> claimVenue({
-    required int venueId,
+    int? venueId,
+    String? venueName,
     required String proId,
     String? siret,
     String? proofUrl,
     String? message,
   }) async {
+    // Si pas de venueId, chercher par nom
+    int? resolvedId = venueId;
+    if (resolvedId == null && venueName != null) {
+      try {
+        final res = await _dio.get('venues', queryParameters: {
+          'select': 'id',
+          'name': 'ilike.$venueName',
+          'limit': '1',
+        });
+        final data = res.data as List;
+        if (data.isNotEmpty) {
+          resolvedId = (data[0]['id'] as num).toInt();
+        }
+      } catch (_) {}
+    }
+
     await _dio.post(
       'venue_claims',
       data: {
-        'venue_id': venueId,
-        'pro_id': proId,
+        if (resolvedId != null) 'venue_id': resolvedId,
+        'user_id': proId,
         'siret': siret ?? '',
         'proof_url': proofUrl ?? '',
         'message': message ?? '',
+        'venue_name': venueName ?? '',
       },
       options: Options(
         headers: {'Prefer': 'return=minimal'},

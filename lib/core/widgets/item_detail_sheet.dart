@@ -231,42 +231,39 @@ class ItemDetailSheet extends ConsumerWidget {
 
                           const SizedBox(height: 10),
 
-                          // Photo gallery (scroll horizontal)
+                          // Photo gallery (grille 3x2)
+                          Builder(builder: (_) { debugPrint('[GALLERY] photoGallery.length=${photoGallery.length}, photos=$photoGallery'); return const SizedBox.shrink(); }),
                           if (photoGallery.isNotEmpty) ...[
-                            SizedBox(
-                              height: 80,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: photoGallery.length > 6 ? 6 : photoGallery.length,
-                                separatorBuilder: (_, __) => const SizedBox(width: 6),
-                                itemBuilder: (_, i) {
-                                  final photo = photoGallery[i];
-                                  return GestureDetector(
-                                    onTap: () => _showFullPhoto(context, photo),
+                            GridView.count(
+                              crossAxisCount: 3,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              mainAxisSpacing: 4,
+                              crossAxisSpacing: 4,
+                              children: [
+                                for (int i = 0; i < photoGallery.length && i < 6; i++)
+                                  GestureDetector(
+                                    onTap: () => _showFullPhoto(context, photoGallery[i]),
                                     child: Container(
-                                      width: 80,
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
+                                        borderRadius: BorderRadius.circular(8),
                                         border: Border.all(color: Colors.white24, width: 0.5),
                                       ),
                                       clipBehavior: Clip.antiAlias,
-                                      child: photo.startsWith('http')
+                                      child: photoGallery[i].startsWith('http')
                                           ? CachedNetworkImage(
-                                              imageUrl: photo,
+                                              imageUrl: photoGallery[i],
                                               fit: BoxFit.cover,
-                                              width: 80,
-                                              height: 80,
                                               placeholder: (_, __) => Container(color: Colors.white12),
                                               errorWidget: (_, __, ___) => Container(
                                                 color: Colors.white12,
                                                 child: const Icon(Icons.photo_outlined, color: Colors.white30, size: 20),
                                               ),
                                             )
-                                          : Image.asset(photo, fit: BoxFit.cover, width: 80, height: 80),
+                                          : Image.asset(photoGallery[i], fit: BoxFit.cover),
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                              ],
                             ),
                             const SizedBox(height: 10),
                           ],

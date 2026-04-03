@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
+import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class RestaurantVenueCard extends ConsumerWidget {
   final RestaurantVenue venue;
@@ -45,15 +46,25 @@ class RestaurantVenueCard extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      venue.name,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: modeTheme.primaryDarkColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            venue.name,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: modeTheme.primaryDarkColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (venue.isVerified) ...[
+                          const SizedBox(width: 4),
+                          const VerifiedBadge.small(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     if (venue.horaires.isNotEmpty)
@@ -86,12 +97,36 @@ class RestaurantVenueCard extends ConsumerWidget {
     );
   }
 
+  static const _defaultRestaurantPhotos = [
+    'assets/images/plat-01.png',
+    'assets/images/plat-02.png',
+    'assets/images/plat-03.png',
+    'assets/images/plat-04.png',
+    'assets/images/plat-05.png',
+    'assets/images/plat-06.png',
+  ];
+
   void _openDetail(BuildContext context) {
+    final photos = <String>[];
+    if (venue.photo.isNotEmpty && venue.photo.startsWith('http')) {
+      photos.add(venue.photo);
+    }
+    // Completer avec les photos generiques
+    for (final p in _defaultRestaurantPhotos) {
+      if (photos.length >= 6) break;
+      if (!photos.contains(p)) photos.add(p);
+    }
+
+    final hasNetworkImage = venue.photo.isNotEmpty && venue.photo.startsWith('http');
+
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
         title: venue.name,
         emoji: '\u{1F37D}\u{FE0F}',
+        imageAsset: hasNetworkImage ? null : 'assets/images/pochette_restaurant.jpg',
+        imageUrl: hasNetworkImage ? venue.photo : null,
+        photoGallery: photos,
         infos: [
           if (venue.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, venue.description),
