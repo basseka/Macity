@@ -34,7 +34,7 @@ class FamilyCategoryData {
       name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        FamilySubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.png'),
+        FamilySubcategory(label: 'Calendrier', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_default.jpg'),
       ],
     ),
     FamilyCategoryGroup(
@@ -42,9 +42,9 @@ class FamilyCategoryData {
       emoji: '\uD83C\uDFA0',
       subcategories: [
         FamilySubcategory(label: 'Parc d\'attractions', searchTag: 'Parc d\'attractions', emoji: '\uD83C\uDFA2', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_attraction.png'),
-        FamilySubcategory(label: 'Aire de jeux', searchTag: 'Aire de jeux', emoji: '\uD83E\uDDD2', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.png'),
+        FamilySubcategory(label: 'Aire de jeux', searchTag: 'Aire de jeux', emoji: '\uD83E\uDDD2', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.jpg'),
         FamilySubcategory(label: 'Parc animalier', searchTag: 'Parc animalier', emoji: '\uD83E\uDD81', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_animalier.png'),
-        FamilySubcategory(label: 'Ferme pedagogique', searchTag: 'Ferme pedagogique', emoji: '\uD83D\uDC04', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.png'),
+        FamilySubcategory(label: 'Ferme pedagogique', searchTag: 'Ferme pedagogique', emoji: '\uD83D\uDC04', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.jpg'),
       ],
     ),
     FamilyCategoryGroup(
@@ -52,10 +52,10 @@ class FamilyCategoryData {
       emoji: '\uD83C\uDFAC',
       subcategories: [
         FamilySubcategory(label: 'Cinema', searchTag: 'Cinema', emoji: '\uD83C\uDFAC', group: 'Loisirs', image: 'assets/images/pochette_spectacle.png'),
-        FamilySubcategory(label: 'Bowling', searchTag: 'Bowling', emoji: '\uD83C\uDFB3', group: 'Loisirs', image: 'assets/images/pochette_enfamille.png'),
-        FamilySubcategory(label: 'Laser game', searchTag: 'Laser game', emoji: '\uD83D\uDD2B', group: 'Loisirs', image: 'assets/images/pochette_enfamille.png'),
-        FamilySubcategory(label: 'Escape game', searchTag: 'Escape game', emoji: '\uD83D\uDD10', group: 'Loisirs', image: 'assets/images/pochette_gaming.png'),
-        FamilySubcategory(label: 'Patinoire', searchTag: 'Patinoire', emoji: '\u26F8\uFE0F', group: 'Loisirs', image: 'assets/images/pochette_enfamille.png'),
+        FamilySubcategory(label: 'Bowling', searchTag: 'Bowling', emoji: '\uD83C\uDFB3', group: 'Loisirs', image: 'assets/images/pochette_enfamille.jpg'),
+        FamilySubcategory(label: 'Laser game', searchTag: 'Laser game', emoji: '\uD83D\uDD2B', group: 'Loisirs', image: 'assets/images/pochette_enfamille.jpg'),
+        FamilySubcategory(label: 'Escape game', searchTag: 'Escape game', emoji: '\uD83D\uDD10', group: 'Loisirs', image: 'assets/images/pochette_gaming.jpg'),
+        FamilySubcategory(label: 'Patinoire', searchTag: 'Patinoire', emoji: '\u26F8\uFE0F', group: 'Loisirs', image: 'assets/images/pochette_enfamille.jpg'),
       ],
     ),
     FamilyCategoryGroup(
@@ -69,7 +69,7 @@ class FamilyCategoryData {
       name: 'Restauration',
       emoji: '\uD83C\uDF54',
       subcategories: [
-        FamilySubcategory(label: 'Restaurant familial', searchTag: 'Restaurant familial', emoji: '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66', group: 'Restauration', image: 'assets/images/pochette_restaurant.png'),
+        FamilySubcategory(label: 'Restaurant familial', searchTag: 'Restaurant familial', emoji: '\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66', group: 'Restauration', image: 'assets/images/pochette_restaurant.jpg'),
       ],
     ),
   ];

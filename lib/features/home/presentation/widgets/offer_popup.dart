@@ -136,6 +136,7 @@ class OfferPopup extends StatelessWidget {
         width: double.infinity,
         height: 180,
         fit: BoxFit.cover,
+        cacheWidth: 300,
         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
       );
     } else if (offer.imageUrl.isNotEmpty) {

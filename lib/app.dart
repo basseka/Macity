@@ -102,11 +102,22 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         ref.read(modeSubcategoriesProvider.notifier).select(universe, null);
         ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
         appRouter.go('/mode/$universe');
-      } else if (type == 'event_reminder') {
-        // Pour les rappels d'événement, ouvrir le mode Day (calendrier)
-        ref.read(modeSubcategoriesProvider.notifier).select('day', null);
-        ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
-        appRouter.go('/mode/day');
+      } else if (type == 'daily_digest' || type == 'event_reminder') {
+        // Ouvrir le detail de l'event si event_id présent
+        final eventId = data['event_id'] as String? ?? '';
+        if (eventId.isNotEmpty) {
+          ScrapedEventsSupabaseService().fetchEventById(eventId).then((event) {
+            if (event != null) {
+              deepLinkSetPending(event);
+              appRouter.go('/home');
+            } else {
+              appRouter.go('/home');
+            }
+          });
+        } else {
+          appRouter.go('/home');
+        }
+        return;
       } else {
         // Fallback: ouvrir l'accueil
         appRouter.go('/home');

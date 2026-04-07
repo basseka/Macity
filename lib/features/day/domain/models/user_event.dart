@@ -444,5 +444,7 @@ class UserEvent {
         photoPath: resolvedPhoto,
         videoUrl: videoUrl.isNotEmpty ? videoUrl : null,
         reservationUrl: lienBilletterie,
+        organisateurNom: organisateurNom,
+        organisateurSite: organisateurSite,
       );
 }

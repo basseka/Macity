@@ -80,7 +80,7 @@ async function upsertNotifications(rows: MairieRow[]): Promise<number> {
   if (rows.length === 0) return 0;
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/mairie_notifications`,
+    `${SUPABASE_URL}/rest/v1/mairie_notifications?on_conflict=ville,title`,
     {
       method: "POST",
       headers: supabaseHeaders,

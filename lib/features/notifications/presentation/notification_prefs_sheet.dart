@@ -514,15 +514,15 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
   // ── Hub city selector ──
   Widget _buildHubCitySelector() {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 6,
+      runSpacing: 6,
       children: _hubCities.map((city) {
         final selected = _selectedHub == city;
         return GestureDetector(
           onTap: () => setState(() => _selectedHub = city),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: selected ? _accentColor : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(20),
@@ -538,11 +538,11 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                   size: 14,
                   color: selected ? Colors.white : Colors.grey.shade600,
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 4),
                 Text(
                   city,
                   style: GoogleFonts.inter(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     color: selected ? Colors.white : Colors.grey.shade700,
                   ),

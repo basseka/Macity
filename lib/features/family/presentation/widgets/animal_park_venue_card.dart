@@ -40,7 +40,7 @@ class AnimalParkVenueCard extends ConsumerWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.asset('assets/images/sc_parc_animalier.png', fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                        child: Image.asset('assets/images/sc_parc_animalier.jpg', fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
                       ),
                       if (park.ticketUrl.isNotEmpty)
                         Positioned(
@@ -129,7 +129,7 @@ class AnimalParkVenueCard extends ConsumerWidget {
       ItemDetailSheet(
         title: park.name,
         emoji: '\uD83E\uDD81',
-        imageAsset: 'assets/images/sc_parc_animalier.png',
+        imageAsset: 'assets/images/sc_parc_animalier.jpg',
         infos: [
           if (park.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, park.description),

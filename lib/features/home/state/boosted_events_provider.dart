@@ -11,7 +11,24 @@ String _today() {
   return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 }
 
-Future<List<UserEvent>> _fetchByPriority(String city, String priority) async {
+Future<int> _getConfigInt(String key, int defaultValue) async {
+  try {
+    final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
+    dio.interceptors.add(SupabaseInterceptor());
+    final response = await dio.get('app_config', queryParameters: {
+      'select': 'value',
+      'key': 'eq.$key',
+      'limit': '1',
+    });
+    final data = response.data as List;
+    if (data.isNotEmpty) {
+      return int.tryParse(data.first['value'] as String) ?? defaultValue;
+    }
+  } catch (_) {}
+  return defaultValue;
+}
+
+Future<List<UserEvent>> _fetchByPriority(String city, String priority, int limit) async {
   try {
     final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
     dio.interceptors.add(SupabaseInterceptor());
@@ -24,6 +41,7 @@ Future<List<UserEvent>> _fetchByPriority(String city, String priority) async {
         'date': 'gte.${_today()}',
         'ville': 'ilike.$city',
         'order': 'date.asc',
+        'limit': '$limit',
       },
     );
 
@@ -35,14 +53,16 @@ Future<List<UserEvent>> _fetchByPriority(String city, String priority) async {
   }
 }
 
-/// Events boostés P1 pour la ville sélectionnée.
+/// Events boostés P1 pour la ville sélectionnée (max depuis app_config).
 final boostedEventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  return _fetchByPriority(city, 'P1');
+  final max = await _getConfigInt('boosted_p1_max', 4);
+  return _fetchByPriority(city, 'P1', max);
 });
 
-/// Events boostés P2 pour la ville sélectionnée.
+/// Events boostés P2 pour la ville sélectionnée (max depuis app_config).
 final boostedP2EventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  return _fetchByPriority(city, 'P2');
+  final max = await _getConfigInt('boosted_p2_max', 6);
+  return _fetchByPriority(city, 'P2', max);
 });

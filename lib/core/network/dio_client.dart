@@ -20,11 +20,15 @@ class DioClient {
       ),
     );
 
-    dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      logPrint: (obj) => debugPrint('[DIO] $obj'),
-    ),);
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+        requestBody: false,
+        responseBody: false,
+        requestHeader: false,
+        responseHeader: false,
+        logPrint: (obj) => debugPrint('[DIO] $obj'),
+      ));
+    }
 
     return dio;
   }
@@ -42,11 +46,15 @@ class DioClient {
       ),
     );
 
-    dio.interceptors.add(LogInterceptor(
-      requestBody: false,
-      responseBody: false,
-      logPrint: (obj) => debugPrint('[DIO] $obj'),
-    ),);
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+        requestBody: false,
+        responseBody: false,
+        requestHeader: false,
+        responseHeader: false,
+        logPrint: (obj) => debugPrint('[DIO] $obj'),
+      ));
+    }
 
     return dio;
   }

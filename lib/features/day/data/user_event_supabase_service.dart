@@ -1,6 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:pulz_app/core/config/supabase_config.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
@@ -38,36 +42,89 @@ class UserEventSupabaseService {
   // Storage : upload photo
   // ───────────────────────────────────────────
 
-  /// Upload une photo locale vers Supabase Storage.
+  /// Compresse une image avant upload : JPEG 75%, max 1024px.
+  Future<Uint8List> _compressImage(String path) async {
+    final result = await FlutterImageCompress.compressWithFile(
+      path,
+      minWidth: 1024,
+      minHeight: 1024,
+      quality: 75,
+      format: CompressFormat.jpeg,
+    );
+    if (result != null) return result;
+    // Fallback : bytes bruts si compression echoue
+    return File(path).readAsBytes();
+  }
+
+  /// Upload une photo locale vers Supabase Storage (compressee).
   /// Retourne l'URL publique de l'image.
   Future<String> uploadPhoto(String localPath) async {
-    final file = File(localPath);
-    final fileName =
-        '${DateTime.now().millisecondsSinceEpoch}_${localPath.split('/').last}';
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final fileName = '${ts}_photo.jpg';
 
-    final bytes = await file.readAsBytes();
-
-    // Déterminer le content-type
-    final ext = localPath.split('.').last.toLowerCase();
-    final contentType = switch (ext) {
-      'png' => 'image/png',
-      'gif' => 'image/gif',
-      'webp' => 'image/webp',
-      _ => 'image/jpeg',
-    };
+    // Compresser avant upload
+    final bytes = await _compressImage(localPath);
+    debugPrint('[Upload] photo compressed: ${bytes.length ~/ 1024} KB');
 
     await _storageDio.post(
       'object/user-events/$fileName',
       data: bytes,
       options: Options(
-        headers: {
-          'Content-Type': contentType,
-        },
+        headers: {'Content-Type': 'image/jpeg'},
       ),
     );
 
-    // URL publique
     return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+  }
+
+  /// Upload une video locale vers Supabase Storage (compressee, max 3 MB).
+  /// Retourne l'URL publique de la video.
+  Future<String> uploadVideo(String localPath) async {
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final fileName = '${ts}_video.mp4';
+
+    // Compresser la video (qualite medium)
+    Uint8List bytes;
+    try {
+      final info = await VideoCompress.compressVideo(
+        localPath,
+        quality: VideoQuality.LowQuality,
+        deleteOrigin: false,
+      );
+      if (info?.file != null) {
+        bytes = await info!.file!.readAsBytes();
+        debugPrint('[Upload] video compressed: ${bytes.length ~/ 1024} KB');
+      } else {
+        bytes = await File(localPath).readAsBytes();
+      }
+    } catch (e) {
+      debugPrint('[Upload] video compress failed: $e');
+      bytes = await File(localPath).readAsBytes();
+    }
+
+    await _storageDio.post(
+      'object/user-events/$fileName',
+      data: bytes,
+      options: Options(
+        headers: {'Content-Type': 'video/mp4'},
+      ),
+    );
+
+    return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+  }
+
+  /// Genere une thumbnail de la video.
+  Future<String?> getVideoThumbnail(String videoPath) async {
+    try {
+      final thumb = await VideoCompress.getFileThumbnail(
+        videoPath,
+        quality: 60,
+        position: 0,
+      );
+      return thumb.path;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Upload multiple photos (gallery). Returns list of public URLs.

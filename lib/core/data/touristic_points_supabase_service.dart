@@ -40,13 +40,15 @@ class TouristicPointsSupabaseService {
   }
 
   static CommerceModel _mapToCommerce(Map<String, dynamic> json) {
+    final photo = (json['photo'] as String?) ?? '';
     return CommerceModel(
       nom: json['nom'] as String? ?? '',
       categorie: json['categorie'] as String? ?? '',
-      adresse: json['adresse'] as String? ?? '',
+      adresse: json['adresse'] as String? ?? (json['description'] as String? ?? ''),
+      ville: json['ville'] as String? ?? 'Toulouse',
       siteWeb: json['site_web'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
-      photo: json['photo'] as String? ?? 'assets/images/pochette_visite.png',
+      photo: photo.isNotEmpty ? photo : 'assets/images/pochette_visite.png',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
     );

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
 
@@ -43,25 +44,6 @@ class BoostedEventsCarousel extends ConsumerWidget {
                   color: Colors.white,
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF6B00), Color(0xFFE91E8C)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  'BOOST',
-                  style: GoogleFonts.poppins(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -72,7 +54,7 @@ class BoostedEventsCarousel extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: events.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) => _BoostedCard(event: events[index]),
+            itemBuilder: (context, index) => _BoostedCard(event: events[index], allEvents: events, index: index),
           ),
         ),
       ],
@@ -82,7 +64,9 @@ class BoostedEventsCarousel extends ConsumerWidget {
 
 class _BoostedCard extends StatelessWidget {
   final UserEvent event;
-  const _BoostedCard({required this.event});
+  final List<UserEvent> allEvents;
+  final int index;
+  const _BoostedCard({required this.event, required this.allEvents, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -93,10 +77,12 @@ class _BoostedCard extends StatelessWidget {
         : event.date;
 
     return GestureDetector(
-      onTap: () => EventFullscreenPopup.show(
+      onTap: () => EventFullscreenPopup.showPaged(
         context,
-        event.toEvent(),
-        'assets/images/pochette_default.jpg',
+        events: allEvents.map((e) => e.toEvent()).toList(),
+        initialIndex: index,
+        fallbackAssetBuilder: (_) => 'assets/images/pochette_default.jpg',
+        badge: 'A la une',
       ),
       child: Container(
         width: 260,
@@ -308,7 +294,7 @@ class BoostedP2Carousel extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: events.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) => _P2Card(event: events[index]),
+                itemBuilder: (context, index) => _P2Card(event: events[index], allEvents: events, index: index),
               ),
             ),
           ],
@@ -322,7 +308,9 @@ class BoostedP2Carousel extends ConsumerWidget {
 
 class _P2Card extends StatelessWidget {
   final UserEvent event;
-  const _P2Card({required this.event});
+  final List<UserEvent> allEvents;
+  final int index;
+  const _P2Card({required this.event, required this.allEvents, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -335,10 +323,12 @@ class _P2Card extends StatelessWidget {
         : event.date;
 
     return GestureDetector(
-      onTap: () => EventFullscreenPopup.show(
+      onTap: () => EventFullscreenPopup.showPaged(
         context,
-        event.toEvent(),
-        'assets/images/pochette_default.jpg',
+        events: allEvents.map((e) => e.toEvent()).toList(),
+        initialIndex: index,
+        fallbackAssetBuilder: (_) => 'assets/images/pochette_default.jpg',
+        badge: 'Au top',
       ),
       child: Container(
         width: 220,

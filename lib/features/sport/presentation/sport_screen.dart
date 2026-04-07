@@ -73,7 +73,11 @@ class SportScreen extends ConsumerWidget {
       'Complexe sportif' => const ComplexeSportifHub(),
       'Marathon' => const MarathonHub(),
       'Raquette' => const RaquetteHub(),
-      'Boxe' => const BoxeEventsGrid(),
+      'Boxe' => const SportEventsGrid(title: 'Boxe', fallbackImage: 'assets/images/pochette_boxe.png', emptyIcon: Icons.sports_mma),
+      'Natation' => const SportEventsGrid(title: 'Natation', fallbackImage: 'assets/images/pochette_natation.jpg', emptyIcon: Icons.pool),
+      'Courses a pied' => const SportEventsGrid(title: 'Courses a pied', fallbackImage: 'assets/images/pochette_courseapied.png', emptyIcon: Icons.directions_run),
+      'Competition' => const SportEventsGrid(title: 'Competition', fallbackImage: 'assets/images/pochette_competition.png', emptyIcon: Icons.emoji_events),
+      'Stage de danse' => const SportEventsGrid(title: 'Stage de danse', fallbackImage: 'assets/images/pochette_stagedanse.png', emptyIcon: Icons.music_note),
       'Danse' => const DanceVenuesList(),
       // Venues avec sport_type direct
       'Salle de fitness' => SportVenuesList(sportType: 'fitness', displayTitle: 'Salle de fitness', mapTag: _venueMapTags['Salle de fitness']),
@@ -98,8 +102,8 @@ class SportScreen extends ConsumerWidget {
       sportType: sportType,
       displayTitle: tag,
       mapTag: _venueMapTags[tag],
-      backLabel: 'Raquette',
-      backTarget: 'Raquette',
+      backLabel: 'Sport',
+      backTarget: '',
     );
   }
 }

@@ -274,7 +274,13 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     const CAT_COLORS = $categoryColorsJs;
     const INIT_ZOOM = ${widget.initialZoom ?? 0};
     const SHOW_LABELS = ${widget.showLabels};
-    const map = L.map('map').setView([43.6047, 1.4442], INIT_ZOOM || 14);
+    // Centre dynamique : moyenne des coordonnees des venues, fallback Toulouse
+    let centerLat = 43.6047, centerLng = 1.4442;
+    if (VENUES.length > 0) {
+      centerLat = VENUES.reduce((s, v) => s + v.lat, 0) / VENUES.length;
+      centerLng = VENUES.reduce((s, v) => s + v.lng, 0) / VENUES.length;
+    }
+    const map = L.map('map').setView([centerLat, centerLng], INIT_ZOOM || 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap', maxZoom: 19,
       referrerPolicy: 'origin',

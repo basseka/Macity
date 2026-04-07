@@ -17,7 +17,13 @@ final createEventProvider =
 class CreateEventNotifier extends StateNotifier<CreateEventState> {
   final Ref _ref;
 
-  CreateEventNotifier(this._ref) : super(const CreateEventState());
+  CreateEventNotifier(this._ref) : super(const CreateEventState()) {
+    // Pre-remplir le nom de l'organisateur si pro connecte
+    final proState = _ref.read(proAuthProvider);
+    if (proState.status == ProAuthStatus.approved && proState.profile != null) {
+      state = state.copyWith(organisateurNom: proState.profile!.nom);
+    }
+  }
 
   void updateCategorie(String value) {
     state = state.copyWith(
@@ -305,7 +311,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       // Upload video si present
       String? uploadedVideoUrl;
       final svc = UserEventSupabaseService();
-      if (s.isVideo && s.videoPath != null) {
+      if (s.videoPath != null && s.videoPath!.isNotEmpty) {
         try {
           uploadedVideoUrl = await svc.uploadVideo(s.videoPath!);
           debugPrint('[CreateEvent] video uploaded: $uploadedVideoUrl');

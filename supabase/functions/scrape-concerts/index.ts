@@ -293,6 +293,14 @@ async function scrapeHtmlSource(
         }
         if (!dateDebut) continue;
 
+        // Horaires : chercher dans la page detail
+        let horaires = "";
+        const hourMatch = detailHtml.match(/(?:à|a|dès|Début|Ouverture|Horaire)[^<]{0,10}?(\d{1,2}[h:]\d{0,2})/i)
+            || detailHtml.match(/(\d{1,2}h\d{2})/);
+        if (hourMatch) {
+          horaires = hourMatch[1].replace(":", "h");
+        }
+
         // Lieu : chercher dans le texte les mots-cles de salles
         let lieuNom = "";
         for (const kw of venueKeywords) {
@@ -328,6 +336,7 @@ async function scrapeHtmlSource(
           descriptif_court: genre ? `Genre : ${genre}` : "",
           date_debut: dateDebut,
           date_fin: dateDebut,
+          horaires,
           lieu_nom: lieuNom,
           commune: ville,
           ville,
@@ -562,17 +571,12 @@ const OPENAGENDA_KEY = Deno.env.get("OPENAGENDA_API_KEY") || "";
 
 async function scrapeOpenAgenda(ville: string, config: CityConfig): Promise<ReturnType<typeof makeEvent>[]> {
   const events: ReturnType<typeof makeEvent>[] = [];
+  console.log(`[openagenda/${ville}] key=${OPENAGENDA_KEY ? OPENAGENDA_KEY.substring(0, 8) + '...' : 'NONE'}`);
   if (!OPENAGENDA_KEY) {
-    console.log(`[openagenda/${ville}] pas de cle API configuree`);
     return events;
   }
 
-  // Si pas de cle API, utiliser le fallback OpenDataSoft
-  if (OPENAGENDA_KEY === "" || OPENAGENDA_KEY === "none") {
-    return scrapeOpenAgendaFallback(ville, config);
-  }
-
-  // Recherche par mots-cles concert/musique pres de la ville
+  // Recherche par ville + mots-cles via l'API transverse
   const searches = ["concert", "musique live", "festival musique"];
   const seen = new Set<string>();
 
@@ -581,12 +585,8 @@ async function scrapeOpenAgenda(ville: string, config: CityConfig): Promise<Retu
       const params = new URLSearchParams({
         key: OPENAGENDA_KEY,
         search,
-        "geo[lat]": config.lat.toString(),
-        "geo[lng]": config.lon.toString(),
-        "geo[radius]": "20000",
-        "relative[0]": "current",
-        "relative[1]": "upcoming",
-        size: "50",
+        city: ville,
+        size: "100",
         sort: "timings.asc",
       });
 
@@ -597,26 +597,26 @@ async function scrapeOpenAgenda(ville: string, config: CityConfig): Promise<Retu
 
       if (!res.ok) {
         const errText = await res.text();
-        console.log(`[openagenda/${ville}] HTTP ${res.status}: ${errText.substring(0, 100)}`);
+        console.log(`[openagenda/${ville}] HTTP ${res.status}: ${errText.substring(0, 200)}`);
         continue;
       }
 
       const data = await res.json();
       const records = data.events || [];
+      console.log(`[openagenda/${ville}] search='${search}' total=${data.total ?? 0} events=${records.length}`);
 
       for (const e of records) {
         const title = e.title?.fr || e.title?.en || "";
         if (!title) continue;
 
-        // Timings
-        const timings = e.timings || [];
-        const firstTiming = timings[0];
+        // Timings — utiliser firstTiming/lastTiming (timings[] peut etre vide)
+        const firstTiming = e.firstTiming || (e.timings || [])[0];
         if (!firstTiming) continue;
 
         const dateDebut = (firstTiming.begin || "").substring(0, 10);
         if (!dateDebut || !isFutureDate(dateDebut)) continue;
 
-        const lastTiming = timings[timings.length - 1];
+        const lastTiming = e.lastTiming || firstTiming;
         const dateFin = (lastTiming?.end || firstTiming.begin || "").substring(0, 10);
 
         // Horaires
@@ -1329,9 +1329,20 @@ async function scrapeLadecadanse(_ville: string, _config: CityConfig): Promise<R
     }
     if (!eventName || eventName.length < 3) continue;
 
-    // Horaires
-    const timeMatch = rawTitle.match(/dès\s+(\d{1,2}h\d{0,2})/i);
-    const horaires = timeMatch ? timeMatch[1] : "";
+    // Horaires — chercher dans le titre : "dès 20h00", "à 21h", "20h30", "20:30"
+    const timeMatch = rawTitle.match(/(?:dès|à|a)\s+(\d{1,2}h\d{0,2})/i)
+        || rawTitle.match(/(\d{1,2}h\d{2})/i)
+        || rawTitle.match(/(\d{1,2}:\d{2})/);
+    let horaires = timeMatch ? timeMatch[1] : "";
+    if (horaires.includes(":")) horaires = horaires.replace(":", "h");
+    // Aussi chercher dans la description RSS
+    if (!horaires && descHtml) {
+      const descTime = descHtml.match(/(?:dès|à|a|Début|Ouverture)\s*:?\s*(\d{1,2}[h:]\d{0,2})/i)
+          || descHtml.match(/(\d{1,2}h\d{2})/);
+      if (descTime) {
+        horaires = descTime[1].replace(":", "h");
+      }
+    }
 
     // Image depuis la description HTML
     const imgMatch = descHtml.match(/<img[^>]*src="([^"]+)"/);

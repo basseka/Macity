@@ -467,12 +467,15 @@ class _MairieNotificationsSheetState
                 Icon(Icons.notifications_active_outlined,
                     size: 14, color: const Color(0xFF7B2D8E).withValues(alpha: 0.5)),
                 const SizedBox(width: 6),
-                Text(
-                  'Tu seras notifie des nouveautes',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: const Color(0xFF7B2D8E).withValues(alpha: 0.6),
-                    fontWeight: FontWeight.w500,
+                Flexible(
+                  child: Text(
+                    'Tu seras notifie des nouveautes',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: const Color(0xFF7B2D8E).withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

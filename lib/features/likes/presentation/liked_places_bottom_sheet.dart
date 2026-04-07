@@ -241,22 +241,22 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
   };
 
   static const _commerceImages = <String, String>{
-    'bar': 'assets/images/sc_pub.png',
-    'pub': 'assets/images/sc_pub.png',
+    'bar': 'assets/images/sc_pub.jpg',
+    'pub': 'assets/images/sc_pub.jpg',
     'club': 'assets/images/sc_discotheque.png',
     'discotheque': 'assets/images/sc_discotheque.png',
     'restaurant': 'assets/images/pochette_food.png',
-    'chicha': 'assets/images/sc_chicha.png',
+    'chicha': 'assets/images/sc_chicha.jpg',
     'tabac': 'assets/images/sc_tabac_nuit.png',
   };
 
   static const _categoryFallback = <String, String>{
-    'Nuit': 'assets/images/sc_pub.png',
+    'Nuit': 'assets/images/sc_pub.jpg',
     'Culture': 'assets/images/pochette_culture_art.png',
-    'En Famille': 'assets/images/pochette_enfamille.png',
+    'En Famille': 'assets/images/pochette_enfamille.jpg',
     'Food': 'assets/images/pochette_food.png',
-    'Sport': 'assets/images/home_bg_sport.png',
-    'Gaming': 'assets/images/pochette_gaming.png',
+    'Sport': 'assets/images/home_bg_sport.jpg',
+    'Gaming': 'assets/images/pochette_gaming.jpg',
     'Evenement': 'assets/images/pochette_concert.png',
   };
 
@@ -301,7 +301,7 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
     }
     if (nameLower.contains('soiree') || nameLower.contains('bar') ||
         nameLower.contains('pub') || nameLower.contains('nuit')) {
-      return 'assets/images/sc_pub.png';
+      return 'assets/images/sc_pub.jpg';
     }
     if (nameLower.contains('concert') || nameLower.contains('festival') ||
         nameLower.contains('live') || nameLower.contains('dj')) {
@@ -568,6 +568,7 @@ class _FavCard extends StatelessWidget {
     return Image.asset(
       image.startsWith('http') ? 'assets/images/pochette_concert.png' : image,
       fit: BoxFit.cover,
+      cacheWidth: 300,
       errorBuilder: (_, __, ___) => Container(
         color: _primaryDarkColor.withValues(alpha: 0.08),
         child: Center(child: Text(parsed.emoji, style: const TextStyle(fontSize: 28))),
@@ -785,6 +786,7 @@ class _MetaDetailPopup extends ConsumerWidget {
                           : Image.asset(
                               image,
                               fit: BoxFit.cover,
+                              cacheWidth: 300,
                               width: double.infinity,
                               errorBuilder: (_, __, ___) =>
                                   _buildGradientFallback(),

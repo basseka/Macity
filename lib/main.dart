@@ -17,39 +17,45 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('[FCM] background message: ${message.notification?.title}');
 }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('fr_FR');
-  await initOnboardingState();
-
-  // Catch Flutter framework errors.
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-  };
-
-  // Lancer l'UI immediatement (affiche le splash MaCity tout de suite).
+void main() {
   runZonedGuarded(
-    () {
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      await initializeDateFormatting('fr_FR');
+      await initOnboardingState();
+
+      // Limiter le cache images en memoire (30 images, 50 MB max)
+      PaintingBinding.instance.imageCache.maximumSize = 30;
+      PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20;
+
+      // Catch Flutter framework errors.
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+      };
+
+      // Lancer l'UI immediatement (affiche le splash MaCity tout de suite).
       runApp(
         const ProviderScope(
           child: PulzApp(),
         ),
       );
+
+      // Initialiser Firebase en arriere-plan pendant que le splash est visible.
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler,
+        );
+        await FcmService.init();
+      } catch (e) {
+        debugPrint('Firebase init error: $e');
+      }
     },
     (error, stackTrace) {
       debugPrint('Unhandled error: $error');
       debugPrint('$stackTrace');
     },
   );
-
-  // Initialiser Firebase en arriere-plan pendant que le splash est visible.
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    await FcmService.init();
-  } catch (e) {
-    debugPrint('Firebase init error: $e');
-  }
 }

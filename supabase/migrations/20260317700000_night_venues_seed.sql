@@ -109,7 +109,7 @@ INSERT INTO venues (slug, name, mode, category, adresse, ville, horaires, websit
       siteWeb: ''https://www.instagram.com/pampaclubtoulouse/', 43.6058, 1.4490, '', true),
   ('hiboo-club', 'Hiboo Club', 'night', 'Club Discotheque', '23 Rue Nicolas Bachelier, 31000 Toulouse', 'Toulouse', '00h00 - 06h00', '', 'https://maps.google.com/?q=Hiboo+Club+23+Rue+Nicolas+Bachelier+Toulouse'',
       siteWeb: ''https://www.instagram.com/hiboo.club/'',
-      photo: ''assets/images/pochette_hibooclub.png', 43.6025, 1.4450, '', true),
+      photo: ''assets/images/pochette_hibooclub.jpg', 43.6025, 1.4450, '', true),
   ('full-house-discotheque', 'Full House Discotheque', 'night', 'Club Discotheque', '3 Rue Gabriel Peri, 31000 Toulouse', 'Toulouse', '23h30 - 06h00', '', 'https://maps.google.com/?q=Full+House+Discotheque+3+Rue+Gabriel+Peri+Toulouse'',
       siteWeb: ''https://www.instagram.com/fullhousetoulouse/', 43.6077, 1.4458, '', true),
   ('l-etoile-club', 'L''ETOILE Club', 'night', 'Club Discotheque', '9 Rue de l\''Etoile, 31000 Toulouse', 'Toulouse', '23h00 - 06h00', '', 'https://maps.google.com/?q=L+Etoile+Club+9+Rue+Etoile+Toulouse'',

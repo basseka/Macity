@@ -18,11 +18,15 @@ import 'package:pulz_app/features/likes/state/likes_provider.dart';
 class EventFullscreenPopup extends ConsumerWidget {
   final Event event;
   final String fallbackAsset;
+  final bool isPaged;
+  final String? badge;
 
   const EventFullscreenPopup({
     super.key,
     required this.event,
     required this.fallbackAsset,
+    this.isPaged = false,
+    this.badge,
   });
 
   static Future<void> show(BuildContext context, Event event, String fallbackAsset) {
@@ -38,12 +42,13 @@ class EventFullscreenPopup extends ConsumerWidget {
     );
   }
 
-  /// Ouvre le popup avec swipe horizontal entre les events.
+  /// Ouvre le popup avec swipe vertical entre les events.
   static Future<void> showPaged(
     BuildContext context, {
     required List<Event> events,
     required int initialIndex,
     required String Function(Event) fallbackAssetBuilder,
+    String? badge,
   }) {
     return showDialog(
       context: context,
@@ -54,6 +59,7 @@ class EventFullscreenPopup extends ConsumerWidget {
         events: events,
         initialIndex: initialIndex,
         fallbackAssetBuilder: fallbackAssetBuilder,
+        badge: badge,
       ),
     );
   }
@@ -75,7 +81,7 @@ class EventFullscreenPopup extends ConsumerWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        padding: EdgeInsets.symmetric(horizontal: isPaged ? 10 : 20, vertical: isPaged ? 20 : 40),
         child: Material(
           color: Colors.transparent,
           child: Container(
@@ -98,7 +104,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                 children: [
                   // ── Photo en haut (hauteur fixe) ──
                   SizedBox(
-                    height: screenHeight * 0.35,
+                    height: screenHeight * 0.50,
                     width: double.infinity,
                     child: Stack(
                       fit: StackFit.expand,
@@ -117,9 +123,57 @@ class EventFullscreenPopup extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Bouton fermer
+                        // Badge "A la une" / "Au top"
+                        if (badge != null)
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: badge == 'A la une'
+                                      ? [const Color(0xFFFF6B00), const Color(0xFFE91E8C)]
+                                      : [const Color(0xFF6C5CE7), const Color(0xFFA29BFE)],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (badge == 'A la une' ? const Color(0xFFFF6B00) : const Color(0xFF6C5CE7)).withValues(alpha: 0.5),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    badge == 'A la une' ? Icons.rocket_launch : Icons.star,
+                                    size: 16, color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    badge!.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Icon(
+                                    badge == 'A la une' ? Icons.rocket_launch : Icons.star,
+                                    size: 16, color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        // Bouton fermer (decale si badge)
                         Positioned(
-                          top: 12,
+                          top: badge != null ? 42 : 12,
                           right: 12,
                           child: GestureDetector(
                             onTap: () => Navigator.of(context).pop(),
@@ -134,10 +188,10 @@ class EventFullscreenPopup extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Badge gratuit
+                        // Badge gratuit (decale si badge)
                         if (event.isFree)
                           Positioned(
-                            top: 12,
+                            top: badge != null ? 42 : 12,
                             left: 12,
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -175,9 +229,10 @@ class EventFullscreenPopup extends ConsumerWidget {
                     ),
                   ),
 
-                  // ── Infos scrollables en dessous ──
+                  // ── Infos en dessous ──
                   Flexible(
                     child: SingleChildScrollView(
+                      physics: isPaged ? const NeverScrollableScrollPhysics() : null,
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,6 +251,28 @@ class EventFullscreenPopup extends ConsumerWidget {
                           // Horaires
                           if (event.horaires.isNotEmpty)
                             _infoRow(Icons.access_time, event.horaires),
+
+                          // Organisateur (pro)
+                          if (event.organisateurNom.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.verified, size: 15, color: const Color(0xFFFFD700).withValues(alpha: 0.9)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Par ${event.organisateurNom}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
 
                           // Description
                           if (_description.isNotEmpty) ...[
@@ -589,11 +666,13 @@ class _PagedEventPopup extends StatefulWidget {
   final List<Event> events;
   final int initialIndex;
   final String Function(Event) fallbackAssetBuilder;
+  final String? badge;
 
   const _PagedEventPopup({
     required this.events,
     required this.initialIndex,
     required this.fallbackAssetBuilder,
+    this.badge,
   });
 
   @override
@@ -623,6 +702,7 @@ class _PagedEventPopupState extends State<_PagedEventPopup> {
       children: [
         PageView.builder(
           controller: _pageController,
+          scrollDirection: Axis.vertical,
           itemCount: widget.events.length,
           onPageChanged: (i) => setState(() => _currentIndex = i),
           itemBuilder: (_, i) {
@@ -630,31 +710,49 @@ class _PagedEventPopupState extends State<_PagedEventPopup> {
             return EventFullscreenPopup(
               event: event,
               fallbackAsset: widget.fallbackAssetBuilder(event),
+              isPaged: true,
+              badge: widget.badge,
             );
           },
         ),
-        // Indicateur de position
+        // Indicateur de position (a droite, vertical)
         if (widget.events.length > 1)
           Positioned(
-            bottom: 24,
-            left: 0,
-            right: 0,
+            right: 12,
+            top: 0,
+            bottom: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(
-                  '${_currentIndex + 1} / ${widget.events.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${_currentIndex + 1}',
+                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
+                    Container(width: 1, height: 8, color: Colors.white38),
+                    Text(
+                      '${widget.events.length}',
+                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                    ),
+                  ],
                 ),
               ),
+            ),
+          ),
+        // Fleche swipe up hint
+        if (_currentIndex < widget.events.length - 1)
+          Positioned(
+            bottom: 30,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Icon(Icons.keyboard_arrow_up, size: 28, color: Colors.white.withValues(alpha: 0.3)),
             ),
           ),
       ],

@@ -67,6 +67,7 @@ class _AdBannerMarqueeState extends State<AdBannerMarquee>
   late final AnimationController _animationController;
   int _currentIndex = 0;
   Timer? _rotationTimer;
+  VoidCallback? _scrollListener;
 
   @override
   void initState() {
@@ -97,13 +98,18 @@ class _AdBannerMarqueeState extends State<AdBannerMarquee>
     final maxScroll = _scrollController.position.maxScrollExtent;
     if (maxScroll <= 0) return;
 
-    _animationController.addListener(() {
+    // Remove previous listener to avoid accumulation
+    if (_scrollListener != null) {
+      _animationController.removeListener(_scrollListener!);
+    }
+    _scrollListener = () {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(
           _animationController.value * maxScroll,
         );
       }
-    });
+    };
+    _animationController.addListener(_scrollListener!);
 
     _animationController.repeat();
   }
@@ -115,6 +121,18 @@ class _AdBannerMarqueeState extends State<AdBannerMarquee>
       _scrollController.jumpTo(0);
       final maxScroll = _scrollController.position.maxScrollExtent;
       if (maxScroll > 0) {
+        // Remove old listener before adding new one with updated maxScroll
+        if (_scrollListener != null) {
+          _animationController.removeListener(_scrollListener!);
+        }
+        _scrollListener = () {
+          if (_scrollController.hasClients) {
+            _scrollController.jumpTo(
+              _animationController.value * maxScroll,
+            );
+          }
+        };
+        _animationController.addListener(_scrollListener!);
         _animationController.repeat();
       }
     });

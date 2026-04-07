@@ -12,9 +12,19 @@ import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
 import 'package:pulz_app/features/sport/presentation/sport_back_button.dart';
 import 'package:pulz_app/features/sport/state/sport_matches_provider.dart';
 
-/// Grille 3 colonnes d'affiches pour les événements de boxe.
-class BoxeEventsGrid extends ConsumerWidget {
-  const BoxeEventsGrid({super.key});
+/// Grille 3 colonnes d'affiches pour les evenements sport.
+/// Generique : utilisable pour Boxe, Natation, Course, Competition, Stage de danse.
+class SportEventsGrid extends ConsumerWidget {
+  final String title;
+  final String fallbackImage;
+  final IconData emptyIcon;
+
+  const SportEventsGrid({
+    super.key,
+    required this.title,
+    required this.fallbackImage,
+    this.emptyIcon = Icons.sports,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +34,7 @@ class BoxeEventsGrid extends ConsumerWidget {
     return Column(
       children: [
         SportBackButton(
-          title: 'Boxe',
+          title: title,
           label: 'Sport',
           onBack: () {
             ref.read(modeSubcategoriesProvider.notifier).select('sport', null);
@@ -36,9 +46,9 @@ class BoxeEventsGrid extends ConsumerWidget {
           child: matchesAsync.when(
             data: (matches) {
               if (matches.isEmpty) {
-                return const EmptyStateWidget(
-                  message: 'Aucun événement de boxe trouvé',
-                  icon: Icons.sports_mma,
+                return EmptyStateWidget(
+                  message: 'Aucun evenement trouve',
+                  icon: emptyIcon,
                 );
               }
               return GridView.builder(
@@ -50,7 +60,10 @@ class BoxeEventsGrid extends ConsumerWidget {
                   childAspectRatio: 0.6,
                 ),
                 itemCount: matches.length,
-                itemBuilder: (context, index) => _BoxeAfficheCard(match: matches[index]),
+                itemBuilder: (context, index) => _EventAfficheCard(
+                  match: matches[index],
+                  fallbackImage: fallbackImage,
+                ),
               );
             },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
@@ -65,10 +78,25 @@ class BoxeEventsGrid extends ConsumerWidget {
   }
 }
 
-class _BoxeAfficheCard extends StatelessWidget {
-  final SupabaseMatch match;
+/// Alias pour compatibilite avec le code existant.
+class BoxeEventsGrid extends StatelessWidget {
+  const BoxeEventsGrid({super.key});
 
-  const _BoxeAfficheCard({required this.match});
+  @override
+  Widget build(BuildContext context) {
+    return const SportEventsGrid(
+      title: 'Boxe',
+      fallbackImage: 'assets/images/pochette_boxe.png',
+      emptyIcon: Icons.sports_mma,
+    );
+  }
+}
+
+class _EventAfficheCard extends StatelessWidget {
+  final SupabaseMatch match;
+  final String fallbackImage;
+
+  const _EventAfficheCard({required this.match, required this.fallbackImage});
 
   @override
   Widget build(BuildContext context) {
@@ -81,18 +109,17 @@ class _BoxeAfficheCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Affiche
             if (hasPhoto)
               CachedNetworkImage(
                 imageUrl: match.photoUrl,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => _fallbackImage(),
-                errorWidget: (_, __, ___) => _fallbackImage(),
+                memCacheWidth: 300,
+                placeholder: (_, __) => _fallbackWidget(),
+                errorWidget: (_, __, ___) => _fallbackWidget(),
               )
             else
-              _fallbackImage(),
+              _fallbackWidget(),
 
-            // Gradient overlay bas
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
@@ -109,7 +136,6 @@ class _BoxeAfficheCard extends StatelessWidget {
               ),
             ),
 
-            // Titre + date
             Positioned(
               left: 6,
               right: 6,
@@ -119,7 +145,7 @@ class _BoxeAfficheCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    match.competition,
+                    match.competition.isNotEmpty ? match.competition : '${match.equipe1} vs ${match.equipe2}',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -150,10 +176,11 @@ class _BoxeAfficheCard extends StatelessWidget {
     );
   }
 
-  Widget _fallbackImage() {
+  Widget _fallbackWidget() {
     return Image.asset(
-      'assets/images/pochette_boxe.png',
+      fallbackImage,
       fit: BoxFit.cover,
+      cacheWidth: 300,
       errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300),
     );
   }
@@ -162,12 +189,12 @@ class _BoxeAfficheCard extends StatelessWidget {
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
-        title: match.competition,
-        imageAsset: 'assets/images/pochette_boxe.png',
+        title: match.competition.isNotEmpty ? match.competition : '${match.equipe1} vs ${match.equipe2}',
+        imageAsset: fallbackImage,
         imageUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
         infos: [
           if (match.sport.isNotEmpty)
-            DetailInfoItem(Icons.sports_mma, match.sport),
+            DetailInfoItem(Icons.sports, match.sport),
           if (match.competition.isNotEmpty)
             DetailInfoItem(Icons.emoji_events_outlined, match.competition),
           if (match.date.isNotEmpty)

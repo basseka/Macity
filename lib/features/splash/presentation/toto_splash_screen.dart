@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:pulz_app/core/services/activity_service.dart';
 
 class TotoSplashScreen extends StatefulWidget {
@@ -33,6 +33,9 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
 
     Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
+        // Liberer l'image splash de la memoire avant de naviguer
+        imageCache.clear();
+        imageCache.clearLiveImages();
         ActivityService.instance.appOpen();
         context.go('/home');
       }
@@ -56,10 +59,11 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
             child: Transform.scale(
               scale: _scale.value,
               child: Image.asset(
-                'assets/images/start-01.png',
+                'assets/images/start-01.jpg',
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.cover,
+                cacheWidth: 720,
               ),
             ),
           );

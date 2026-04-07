@@ -124,12 +124,19 @@ class StepEssentials extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
 
-          // Photo
-          _sectionLabel('Photo principale *'),
+          // Photo + Video
+          _sectionLabel('Photo *'),
           const SizedBox(height: 6),
           _PhotoPicker(
             photoPath: state.photoPath,
             onPicked: notifier.updatePhotoPath,
+          ),
+          const SizedBox(height: 10),
+          _sectionLabel('Video teaser (optionnel, 15s max)'),
+          const SizedBox(height: 6),
+          _VideoPicker(
+            videoPath: state.videoPath,
+            onPicked: notifier.updateVideoPath,
           ),
           const SizedBox(height: 16),
         ],
@@ -244,6 +251,101 @@ class _PhotoPicker extends StatelessWidget {
     if (source == null) return;
 
     final xFile = await ImagePicker().pickImage(source: source, maxWidth: 1024);
+    if (xFile != null) onPicked(xFile.path);
+  }
+}
+
+class _VideoPicker extends StatelessWidget {
+  final String? videoPath;
+  final ValueChanged<String> onPicked;
+
+  const _VideoPicker({required this.videoPath, required this.onPicked});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _pick(context),
+      child: Container(
+        width: 140,
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: videoPath != null
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: Container(
+                      color: Colors.black,
+                      child: const Center(
+                        child: Icon(Icons.videocam, color: Colors.white, size: 40),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 4,
+                    left: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Video',
+                        style: TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.videocam_outlined, size: 36, color: Colors.grey),
+                  SizedBox(height: 6),
+                  Text(
+                    'Ajouter une video\n(15 sec max)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Future<void> _pick(BuildContext context) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.videocam, size: 20),
+              title: const Text('Camera', style: TextStyle(fontSize: 13)),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.video_library, size: 20),
+              title: const Text('Galerie', style: TextStyle(fontSize: 13)),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    final xFile = await ImagePicker().pickVideo(
+      source: source,
+      maxDuration: const Duration(seconds: 15),
+    );
     if (xFile != null) onPicked(xFile.path);
   }
 }

@@ -56,6 +56,12 @@ class MatchRowCard extends ConsumerWidget {
     'bordeaux': 'assets/images/ecussion_bordeaux.png',
     // Champions Cup
     'bristol': 'assets/images/ecussion_bristol.png',
+    // Football – Ligue 1 (paris saint-germain avant paris fc car contains match)
+    'paris saint-germain': 'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/team-logos/football/logo_psg_foot.png',
+    'psg': 'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/team-logos/football/logo_psg_foot.png',
+    'paris fc': 'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/team-logos/football/logo_paris_FC_foot.png',
+    // Basketball
+    'paris basketball': 'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/team-logos/basket/logo_paris_basketball.png',
   };
 
   static String? _teamAffiche(String teamName) {
@@ -73,10 +79,10 @@ class MatchRowCard extends ConsumerWidget {
     'basket': 'assets/images/pochette_basketball.png',
     'handball': 'assets/images/pochette_handball.png',
     'boxe': 'assets/images/pochette_boxe.png',
-    'natation': 'assets/images/pochette_natation.png',
+    'natation': 'assets/images/pochette_natation.jpg',
     'course': 'assets/images/pochette_courseapied.png',
     'golf': 'assets/images/pochette_course.png',
-    'fitness': 'assets/images/pochette_fitness.png',
+    'fitness': 'assets/images/sc_autres_sport.jpg',
   };
 
   String _resolveImage() {
@@ -110,7 +116,7 @@ class MatchRowCard extends ConsumerWidget {
         return entry.value;
       }
     }
-    return 'assets/images/sc_autres_sport.png';
+    return 'assets/images/sc_autres_sport.jpg';
   }
 
   @override
@@ -129,170 +135,176 @@ class MatchRowCard extends ConsumerWidget {
         ? match.logoExt
         : (match.equipe2.isNotEmpty && !isEventSport ? _teamAffiche(match.equipe2) : null);
 
+    // Countdown
+    final matchDate = DateTime.tryParse(match.date);
+    final daysLeft = matchDate != null ? matchDate.difference(DateTime.now()).inDays : -1;
+    final countdownLabel = daysLeft == 0 ? "AUJOURD'HUI" : daysLeft == 1 ? 'DEMAIN' : daysLeft > 1 ? 'J-$daysLeft' : '';
+
     return GestureDetector(
       onTap: () => _openDetail(context),
-      child: Card(
-        elevation: 2,
-        shadowColor: Colors.black26,
-        color: const Color(0xFF1E1E2E),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [const Color(0xFF1A1A2E), const Color(0xFF16213E)],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: modeTheme.primaryColor.withValues(alpha: 0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              // ── Ecusson gauche (equipe 1) ──
-              _buildEcusson(ecu1),
+        child: Column(
+          children: [
+            // Header : competition + countdown
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: modeTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  if (match.competition.isNotEmpty)
+                    Expanded(
+                      child: Text(
+                        match.competition,
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: modeTheme.primaryColor),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  if (countdownLabel.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: daysLeft == 0 ? const Color(0xFFE91E8C) : modeTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        countdownLabel,
+                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
+                      ),
+                    ),
+                  if (match.gratuit.toLowerCase() == 'oui') ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)),
+                      child: const Text('GRATUIT', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white)),
+                    ),
+                  ],
+                ],
+              ),
+            ),
 
-              const SizedBox(width: 12),
-
-              // ── Texte central ──
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Competition badge
-                    if (match.competition.isNotEmpty)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: modeTheme.primaryColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
+            // Corps : ecusson1 - VS - ecusson2
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  // Equipe 1
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildEcusson(ecu1),
+                        const SizedBox(height: 6),
+                        Text(
+                          match.equipe1,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                          textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
                         ),
-                        child: Text(
-                          match.competition,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: modeTheme.primaryColor,
+                      ],
+                    ),
+                  ),
+
+                  // VS
+                  if (match.equipe2.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 36, height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Text('VS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(height: 4),
+                          if (match.heure.isNotEmpty)
+                            Text(match.heure, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: modeTheme.primaryColor)),
+                        ],
                       ),
-
-                    // Equipe 1
-                    Text(
-                      match.equipe1,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
 
-                    // VS
-                    if (match.equipe2.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Text(
-                          'VS',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            color: modeTheme.primaryColor,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-
-                    // Equipe 2
-                    if (match.equipe2.isNotEmpty)
-                      Text(
-                        match.equipe2,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                    const SizedBox(height: 6),
-
-                    // Date + heure
-                    if (match.date.isNotEmpty)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
+                  // Equipe 2
+                  if (match.equipe2.isNotEmpty)
+                    Expanded(
+                      child: Column(
                         children: [
-                          Icon(Icons.calendar_today, size: 11, color: Colors.white54),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              match.heure.isNotEmpty
-                                  ? '${_formatDate(match.date)} - ${match.heure}'
-                                  : _formatDate(match.date),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.white54,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                          _buildEcusson(ecu2),
+                          const SizedBox(height: 6),
+                          Text(
+                            match.equipe2,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                            textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-
-                    // Lieu
-                    if (match.lieu.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.location_on, size: 11, color: Colors.white38),
-                            const SizedBox(width: 3),
-                            Flexible(
-                              child: Text(
-                                match.lieu,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.white38,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    // Badge GRATUIT
-                    if (match.gratuit.toLowerCase() == 'oui')
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE91E8C),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'GRATUIT',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                    ),
+                ],
               ),
+            ),
 
-              const SizedBox(width: 12),
-            ],
-          ),
+            // Footer : date + lieu + billetterie
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.03),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  if (match.date.isNotEmpty) ...[
+                    Icon(Icons.calendar_today, size: 11, color: Colors.white38),
+                    const SizedBox(width: 4),
+                    Text(_formatDate(match.date), style: const TextStyle(fontSize: 10, color: Colors.white38)),
+                  ],
+                  if (match.lieu.isNotEmpty) ...[
+                    const SizedBox(width: 10),
+                    Icon(Icons.location_on, size: 11, color: Colors.white38),
+                    const SizedBox(width: 3),
+                    Expanded(child: Text(match.lieu, style: const TextStyle(fontSize: 10, color: Colors.white38), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  ],
+                  if (match.billetterie.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: modeTheme.primaryColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.confirmation_number_outlined, size: 10, color: modeTheme.primaryColor),
+                          const SizedBox(width: 3),
+                          Text('Billets', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: modeTheme.primaryColor)),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -323,6 +335,7 @@ class MatchRowCard extends ConsumerWidget {
         width: 56,
         height: 56,
         fit: BoxFit.contain,
+        cacheWidth: 300,
         errorBuilder: (_, __, ___) => _defaultSportIcon(),
       ),
     );
@@ -348,13 +361,13 @@ class MatchRowCard extends ConsumerWidget {
     final isStadeToulousain = equipe1Lower.contains('stade toulousain') && isRugby;
     final isFenix = equipe1Lower.contains('fenix');
     final image = isNat
-        ? 'assets/images/detail_toulouse_natation.png'
+        ? 'assets/images/detail_toulouse_natation.jpg'
         : isFenix
-            ? 'assets/images/detail_fenix_hand.png'
+            ? 'assets/images/detail_fenix_hand.jpg'
             : isStadeToulousain
-            ? 'assets/images/detail_stadetoulousain_rugby.png'
+            ? 'assets/images/detail_stadetoulousain_rugby.jpg'
             : isColomiers
-                ? 'assets/images/detail_colomier_rugby.png'
+                ? 'assets/images/detail_colomier_rugby.jpg'
                 : _resolveImage();
     ItemDetailSheet.show(
       context,

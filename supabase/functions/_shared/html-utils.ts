@@ -87,21 +87,34 @@ export function isoToTime(iso: string): string {
   return `${String(dt.getHours()).padStart(2, "0")}h${String(dt.getMinutes()).padStart(2, "0")}`;
 }
 
-/** Fetch HTML with timeout and User-Agent. */
-export async function fetchHtml(url: string, timeoutMs = 8000): Promise<string> {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120",
-      },
-      signal: controller.signal,
-    });
-    return await res.text();
-  } finally {
-    clearTimeout(id);
+/** Fetch HTML with timeout, User-Agent, and retry on HTTP/2 errors. */
+export async function fetchHtml(url: string, timeoutMs = 8000, retries = 2): Promise<string> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "fr-FR,fr;q=0.9",
+        },
+        signal: controller.signal,
+      });
+      return await res.text();
+    } catch (e) {
+      clearTimeout(id);
+      if (attempt < retries) {
+        // Wait before retry (1s, then 2s)
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      throw e;
+    } finally {
+      clearTimeout(id);
+    }
   }
+  throw new Error("fetchHtml: max retries reached");
 }
 
 /** Fetch JSON with timeout and User-Agent. */

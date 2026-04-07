@@ -51,7 +51,7 @@ class TestScreen extends ConsumerWidget {
     if (sport.contains('rugby')) return 'assets/images/pochette_rugby.png';
     if (sport.contains('foot')) return 'assets/images/pochette_football.png';
     if (sport.contains('basket')) return 'assets/images/pochette_basketball.png';
-    if (sport.contains('hand')) return 'assets/images/pochette_hand.png';
+    if (sport.contains('hand')) return 'assets/images/pochette_handball.png';
     return 'assets/images/pochette_course.png';
   }
 
@@ -658,13 +658,14 @@ class _FeedTile extends StatelessWidget {
                     ? Image.asset(data.assetImage!, fit: BoxFit.cover)
                     : Container(color: const Color(0xFF1A1A2E)),
                 errorWidget: (_, __, ___) => data.assetImage != null
-                    ? Image.asset(data.assetImage!, fit: BoxFit.cover)
+                    ? Image.asset(data.assetImage!, fit: BoxFit.cover, cacheWidth: 300)
                     : Container(color: const Color(0xFF1A1A2E)),
               )
             else if (data.assetImage != null)
               Image.asset(
                 data.assetImage!,
                 fit: BoxFit.cover,
+                cacheWidth: 300,
                 errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A2E)),
               )
             else
@@ -1140,7 +1141,7 @@ class _FullImageView extends StatelessWidget {
                                 ? Image.asset(data.assetImage!, fit: BoxFit.contain)
                                 : const SizedBox.shrink(),
                             errorWidget: (_, __, ___) => data.assetImage != null
-                                ? Image.asset(data.assetImage!, fit: BoxFit.contain)
+                                ? Image.asset(data.assetImage!, fit: BoxFit.contain, cacheWidth: 300)
                                 : const SizedBox.shrink(),
                           )
                         : data.assetImage != null

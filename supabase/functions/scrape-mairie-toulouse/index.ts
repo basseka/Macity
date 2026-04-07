@@ -47,11 +47,56 @@ function threeMonthsLater(): string {
 
 // ── Scrape Agenda ──
 
+/** Fetch HTML via multiple proxy strategies to avoid HTTP/2 blocks */
+async function fetchHtmlViaProxy(targetUrl: string): Promise<string> {
+  const proxies = [
+    // Proxy 1: corsproxy.io
+    `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+    // Proxy 2: allorigins
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+    // Proxy 3: direct (might work sometimes)
+    targetUrl,
+  ];
+
+  const headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "fr-FR,fr;q=0.9",
+  };
+
+  for (const proxyUrl of proxies) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 20000);
+    try {
+      console.log(`Trying: ${proxyUrl.substring(0, 80)}...`);
+      const res = await fetch(proxyUrl, { headers, signal: controller.signal });
+      clearTimeout(id);
+      if (!res.ok) {
+        console.log(`  -> ${res.status}, skipping`);
+        continue;
+      }
+      const text = await res.text();
+      if (text.length < 100) {
+        console.log(`  -> response too short (${text.length}), skipping`);
+        continue;
+      }
+      console.log(`  -> OK (${text.length} chars)`);
+      return text;
+    } catch (e) {
+      clearTimeout(id);
+      console.log(`  -> failed: ${(e as Error).message?.substring(0, 80)}`);
+      continue;
+    }
+  }
+
+  throw new Error(`All fetch strategies failed for ${targetUrl}`);
+}
+
 async function scrapeAgendaPage(page: number): Promise<MairieRow[]> {
   const url =
     `${BASE}/agenda?date_debut=${todayStr()}&date_fin=${threeMonthsLater()}&items_per_page=48&page=${page}`;
 
-  const html = await fetchHtml(url, 20000);
+  const html = await fetchHtmlViaProxy(url);
   const results: MairieRow[] = [];
 
   // Match each event card: <article class="item-list node list__card">

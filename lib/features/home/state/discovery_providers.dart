@@ -6,6 +6,7 @@ import 'package:pulz_app/core/data/etablissements_supabase_service.dart';
 import 'package:pulz_app/core/data/sport_venues_supabase_service.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
 import 'package:pulz_app/features/family/data/family_venues_supabase_service.dart';
+import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -131,15 +132,18 @@ final nearbyProvider =
   final familyService = FamilyVenuesSupabaseService();
   final etablissementsService = EtablissementsSupabaseService();
 
+  final cat = params.category?.toLowerCase();
+
   final baseVenuesFuture = venuesService.fetchAllVenues(ville: city, category: params.category);
-  final sportVenuesFuture = sportService.fetchVenues(ville: city);
-  final familyVenuesFuture = familyService.fetchVenues(ville: city);
-  final etablissementsFuture = etablissementsService.fetchAllByVille(city);
+  // Ne charger les sources additionnelles que si le filtre correspond
+  final wantSport = cat == null || cat == 'sport';
+  final wantFamily = cat == null;
+  final wantEtab = cat == null || cat == 'restaurant' || cat == 'bar';
 
   final baseVenues = await baseVenuesFuture;
-  final sportVenues = await sportVenuesFuture;
-  final familyVenues = await familyVenuesFuture;
-  final etablissements = await etablissementsFuture;
+  final sportVenues = wantSport ? await sportService.fetchVenues(ville: city) : <CommerceModel>[];
+  final familyVenues = wantFamily ? await familyService.fetchVenues(ville: city) : <FamilyVenue>[];
+  final etablissements = wantEtab ? await etablissementsService.fetchAllByVille(city) : <CommerceModel>[];
 
   // Maps par nom pour dedup (sport + family prioritaires car photos plus complètes)
   final sportMap = <String, CommerceModel>{};
@@ -163,6 +167,11 @@ final nearbyProvider =
     );
     familyMap[fv.name.toLowerCase()] = cm;
   }
+
+  // Filtrer les etablissements par catégorie si nécessaire
+  final filteredEtab = cat != null
+      ? etablissements.where((e) => e.categorie.toLowerCase().contains(cat)).toList()
+      : etablissements;
 
   // Merger : enrichir les venues de base avec les photos sport/family
   final venues = <CommerceModel>[];
@@ -195,7 +204,7 @@ final nearbyProvider =
     }
   }
   // Ajouter les etablissements non présents (restaurants, food, spa, etc.)
-  for (final etab in etablissements) {
+  for (final etab in filteredEtab) {
     if (!seenNames.contains(etab.nom.toLowerCase())) {
       seenNames.add(etab.nom.toLowerCase());
       venues.add(etab);

@@ -125,8 +125,8 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                 ),
                 const SizedBox(height: 12),
                 ..._buildBoostOptions(ref, state, notifier),
-                // Sélecteur de jours + total (visible si boost sélectionné)
-                if (state.priority != 'P4') ...[
+                // Sélecteur de jours + total (visible si boost payant sélectionné)
+                if (state.priority != 'P4' && state.priority != 'P3') ...[
                   const SizedBox(height: 12),
                   _buildDaysSelector(ref, state, notifier),
                 ],

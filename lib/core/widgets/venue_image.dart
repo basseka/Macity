@@ -16,14 +16,29 @@ class VenueImage extends StatelessWidget {
     this.fit = BoxFit.cover,
   });
 
+  static bool _isValidImageUrl(String url) {
+    final lower = url.toLowerCase();
+    if (lower.contains('/embed')) return false;
+    if (lower.contains('secret=')) return false;
+    // Accepter les URLs avec extensions image ou les CDN connus
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+    const validHosts = ['supabase.co', 'ticketmaster.com', 'songkick.com',
+        'eventbrite.com', 'festik.net', 'cloudinary', 'imgur', 'unsplash'];
+    if (validExtensions.any((ext) => lower.contains(ext))) return true;
+    if (validHosts.any((host) => lower.contains(host))) return true;
+    // Accepter les URLs avec content-type image (CDN generiques)
+    return !lower.endsWith('.html') && !lower.endsWith('/');
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (imageUrl.startsWith('http')) {
+    if (imageUrl.startsWith('http') && _isValidImageUrl(imageUrl)) {
       return CachedNetworkImage(
         imageUrl: imageUrl,
         fit: fit,
         width: double.infinity,
         height: double.infinity,
+        memCacheWidth: 400,
         fadeInDuration: const Duration(milliseconds: 200),
         placeholder: (_, __) => _buildAsset(imageUrl: defaultAsset),
         errorWidget: (_, __, ___) => _buildAsset(imageUrl: defaultAsset),

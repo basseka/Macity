@@ -82,7 +82,7 @@ class TodayEventsSheet extends ConsumerWidget {
     if (sport.contains('rugby')) return 'assets/images/pochette_rugby.png';
     if (sport.contains('foot')) return 'assets/images/pochette_football.png';
     if (sport.contains('basket')) return 'assets/images/pochette_basketball.png';
-    if (sport.contains('hand')) return 'assets/images/pochette_hand.png';
+    if (sport.contains('hand')) return 'assets/images/pochette_handball.png';
     return 'assets/images/pochette_course.png';
   }
 
@@ -355,21 +355,25 @@ class _GridTile extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // Image de fond
-          if (item.networkImage != null)
+          if (item.networkImage != null &&
+              !item.networkImage!.toLowerCase().contains('/embed') &&
+              !item.networkImage!.toLowerCase().contains('secret='))
             CachedNetworkImage(
               imageUrl: item.networkImage!,
               fit: BoxFit.cover,
+              memCacheWidth: 300,
               placeholder: (_, __) => item.assetImage != null
-                  ? Image.asset(item.assetImage!, fit: BoxFit.cover)
+                  ? Image.asset(item.assetImage!, fit: BoxFit.cover, cacheWidth: 300)
                   : Container(color: Colors.grey.shade900),
               errorWidget: (_, __, ___) => item.assetImage != null
-                  ? Image.asset(item.assetImage!, fit: BoxFit.cover)
+                  ? Image.asset(item.assetImage!, fit: BoxFit.cover, cacheWidth: 300)
                   : Container(color: Colors.grey.shade900),
             )
           else if (item.assetImage != null)
             Image.asset(
               item.assetImage!,
               fit: BoxFit.cover,
+              cacheWidth: 300,
               errorBuilder: (_, __, ___) =>
                   Container(color: Colors.grey.shade900),
             )

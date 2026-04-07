@@ -38,22 +38,22 @@ INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_
 ('day', '', '', 0, 'Concert', 'Concert', '', 'assets/images/pochette_concert.png', 1, 'venue_grid'),
 ('day', '', '', 0, 'Spectacle', 'Spectacle', '', 'assets/images/pochette_spectacle.png', 2, 'venue_grid'),
 ('day', '', '', 0, 'Festival', 'Festival', '', 'assets/images/pochette_festival.png', 3, 'events'),
-('day', '', '', 0, 'Opera', 'Opera', '', 'assets/images/pochette_opera.png', 4, 'events'),
+('day', '', '', 0, 'Opera', 'Opera', '', 'assets/images/pochette_opera.jpg', 4, 'events'),
 ('day', '', '', 0, 'Stand Up', 'Stand up', '', 'assets/images/pochette_standup.png', 5, 'events'),
 ('day', '', '', 0, 'DJ Set', 'DJ set', '', 'assets/images/pochette_discotheque.png', 6, 'venue_grid'),
 ('day', '', '', 0, 'Showcase', 'Showcase', '', 'assets/images/pochette_showcase.png', 7, 'events'),
-('day', '', '', 0, 'Autres', 'Autres', '', 'assets/images/pochette_autre.png', 8, 'events');
+('day', '', '', 0, 'Autres', 'Autres', '', 'assets/images/pochette_autre.jpg', 8, 'events');
 
 -- Day concert venues (Toulouse-specific)
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, ville, display_type, metadata) VALUES
-('day', 'Concert', '', 1, 'Zenith', 'zenith', '', 'assets/images/salle_zenith.png', 0, 'Toulouse', 'events', '{"venue_keyword": "zenith"}'),
-('day', 'Concert', '', 1, 'Halle aux Grains', 'halle aux grains', '', 'assets/images/salle_halleauxgrains.png', 1, 'Toulouse', 'events', '{"venue_keyword": "halle aux grains"}'),
+('day', 'Concert', '', 1, 'Zenith', 'zenith', '', 'assets/images/salle_zenith.jpg', 0, 'Toulouse', 'events', '{"venue_keyword": "zenith"}'),
+('day', 'Concert', '', 1, 'Halle aux Grains', 'halle aux grains', '', 'assets/images/salle_halleauxgrains.jpg', 1, 'Toulouse', 'events', '{"venue_keyword": "halle aux grains"}'),
 ('day', 'Concert', '', 1, 'Le Bikini', 'bikini', '', 'assets/images/salle_bikini.png', 2, 'Toulouse', 'events', '{"venue_keyword": "bikini"}'),
-('day', 'Concert', '', 1, 'Auditorium', 'auditorium', '', 'assets/images/salle_auditorium.png', 3, 'Toulouse', 'events', '{"venue_keyword": "auditorium"}'),
-('day', 'Concert', '', 1, 'Interference', 'interference', '', 'assets/images/salle_interference.png', 4, 'Toulouse', 'events', '{"venue_keyword": "interference"}'),
+('day', 'Concert', '', 1, 'Auditorium', 'auditorium', '', 'assets/images/salle_auditorium.jpg', 3, 'Toulouse', 'events', '{"venue_keyword": "auditorium"}'),
+('day', 'Concert', '', 1, 'Interference', 'interference', '', 'assets/images/salle_interference.jpg', 4, 'Toulouse', 'events', '{"venue_keyword": "interference"}'),
 ('day', 'Concert', '', 1, 'Casino Barriere', 'casino barriere', '', 'assets/images/pochette_concert.png', 5, 'Toulouse', 'events', '{"venue_keyword": "casino barriere"}'),
-('day', 'Concert', '', 1, 'Le Metronum', 'metronum', '', 'assets/images/pochette_metronum.png', 6, 'Toulouse', 'events', '{"venue_keyword": "metronum"}'),
-('day', 'Concert', '', 1, 'Le Rex', 'rex', '', 'assets/images/pochette_rex.png', 7, 'Toulouse', 'events', '{"venue_keyword": "rex"}'),
+('day', 'Concert', '', 1, 'Le Metronum', 'metronum', '', 'assets/images/pochette_metronum.jpg', 6, 'Toulouse', 'events', '{"venue_keyword": "metronum"}'),
+('day', 'Concert', '', 1, 'Le Rex', 'rex', '', 'assets/images/pochette_rex.jpg', 7, 'Toulouse', 'events', '{"venue_keyword": "rex"}'),
 ('day', 'Concert', '', 1, 'La Dynamo', 'dynamo', '', 'assets/images/pochette_concert.png', 8, 'Toulouse', 'events', '{"venue_keyword": "dynamo"}'),
 ('day', 'Concert', '', 1, 'Bascala', 'bascala', '', 'assets/images/pochette_concert.png', 9, 'Toulouse', 'events', '{"venue_keyword": "bascala"}'),
 ('day', 'Concert', '', 1, 'COMDT', 'comdt', '', 'assets/images/pochette_concert.png', 10, 'Toulouse', 'events', '{"venue_keyword": "comdt"}'),
@@ -62,29 +62,29 @@ INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_
 
 -- Day DJ Set venues (Toulouse)
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, ville, display_type, metadata) VALUES
-('day', 'DJ set', '', 2, 'Interference', 'interference', '', 'assets/images/salle_interference.png', 0, 'Toulouse', 'events', '{"venue_keyword": "interference"}'),
+('day', 'DJ set', '', 2, 'Interference', 'interference', '', 'assets/images/salle_interference.jpg', 0, 'Toulouse', 'events', '{"venue_keyword": "interference"}'),
 ('day', 'DJ set', '', 2, 'Le Bikini', 'bikini', '', 'assets/images/salle_bikini.png', 1, 'Toulouse', 'events', '{"venue_keyword": "bikini"}'),
-('day', 'DJ set', '', 2, 'Le Rex', 'rex', '', 'assets/images/pochette_rex.png', 2, 'Toulouse', 'events', '{"venue_keyword": "rex"}');
+('day', 'DJ set', '', 2, 'Le Rex', 'rex', '', 'assets/images/pochette_rex.jpg', 2, 'Toulouse', 'events', '{"venue_keyword": "rex"}');
 
 -- Day Spectacle venues (Toulouse)
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, ville, display_type, metadata) VALUES
-('day', 'Spectacle', '', 3, 'Interference', 'interference', '', 'assets/images/salle_interference.png', 0, 'Toulouse', 'events', '{"venue_keyword": "interference"}'),
+('day', 'Spectacle', '', 3, 'Interference', 'interference', '', 'assets/images/salle_interference.jpg', 0, 'Toulouse', 'events', '{"venue_keyword": "interference"}'),
 ('day', 'Spectacle', '', 3, 'Le Bikini', 'bikini', '', 'assets/images/salle_bikini.png', 1, 'Toulouse', 'events', '{"venue_keyword": "bikini"}'),
-('day', 'Spectacle', '', 3, 'Zenith', 'zenith', '', 'assets/images/salle_zenith.png', 2, 'Toulouse', 'events', '{"venue_keyword": "zenith"}'),
-('day', 'Spectacle', '', 3, 'Halle aux Grains', 'halle aux grains', '', 'assets/images/salle_halleauxgrains.png', 3, 'Toulouse', 'events', '{"venue_keyword": "halle aux grains"}'),
+('day', 'Spectacle', '', 3, 'Zenith', 'zenith', '', 'assets/images/salle_zenith.jpg', 2, 'Toulouse', 'events', '{"venue_keyword": "zenith"}'),
+('day', 'Spectacle', '', 3, 'Halle aux Grains', 'halle aux grains', '', 'assets/images/salle_halleauxgrains.jpg', 3, 'Toulouse', 'events', '{"venue_keyword": "halle aux grains"}'),
 ('day', 'Spectacle', '', 3, 'Bascala', 'bascala', '', 'assets/images/pochette_concert.png', 4, 'Toulouse', 'events', '{"venue_keyword": "bascala"}'),
 ('day', 'Spectacle', '', 3, 'Casino Barriere', 'casino barriere', '', 'assets/images/pochette_concert.png', 5, 'Toulouse', 'events', '{"venue_keyword": "casino barriere"}');
 
 -- ── NIGHT ─────────────────────────────────────────────────────────
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, display_type) VALUES
-('night', 'A venir', '', 0, 'Agenda', 'A venir', '', 'assets/images/pochette_default.png', 0, 'events'),
+('night', 'A venir', '', 0, 'Agenda', 'A venir', '', 'assets/images/pochette_default.jpg', 0, 'events'),
 ('night', 'Bars & vie nocturne', '', 1, 'Bar de nuit', 'Bar de nuit', '', 'assets/images/pochette_pub.png', 0, 'venues'),
 ('night', 'Bars & vie nocturne', '', 1, 'Club / Discotheque', 'Club Discotheque', '', 'assets/images/pochette_discotheque.png', 1, 'venues'),
 ('night', 'Bars & vie nocturne', '', 1, 'Bar a cocktails', 'Bar a cocktails', '', 'assets/images/pochette_pub.png', 2, 'venues'),
 ('night', 'Bars & vie nocturne', '', 1, 'Bar a chicha', 'Bar a chicha', '', 'assets/images/pochette_chicha.png', 3, 'venues'),
 ('night', 'Bars & vie nocturne', '', 1, 'Pub', 'Pub', '', 'assets/images/pochette_pub.png', 4, 'venues'),
 ('night', 'Commerces ouverts la nuit', '', 2, 'Epicerie de nuit', 'Epicerie de nuit', '', 'assets/images/pochette_tabac.png', 0, 'venues'),
-('night', 'Commerces ouverts la nuit', '', 2, 'SOS Apero', 'SOS Apero', '', 'assets/images/pochette_default.png', 1, 'venues'),
+('night', 'Commerces ouverts la nuit', '', 2, 'SOS Apero', 'SOS Apero', '', 'assets/images/pochette_default.jpg', 1, 'venues'),
 ('night', 'Commerces ouverts la nuit', '', 2, 'Tabac de nuit', 'Tabac de nuit', '', 'assets/images/pochette_tabac.png', 2, 'venues'),
 ('night', 'Hebergement', '', 3, 'Hotel', 'Hotel', '', 'assets/images/pochette_hotel.png', 0, 'venues');
 
@@ -95,79 +95,79 @@ INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_
 ('sport', 'Matchs', '', 0, 'Basketball', 'Basketball', '', 'assets/images/shell_sport_basketball.png', 2, 'matches', '{"sport_type": "basketball"}'),
 ('sport', 'Matchs', '', 0, 'Handball', 'Handball', '', 'assets/images/shell_sport_handball.png', 3, 'matches', '{"sport_type": "handball"}'),
 ('sport', 'Evenements', '', 1, 'Boxe', 'Boxe', '', 'assets/images/pochette_boxe.png', 0, 'events', NULL),
-('sport', 'Evenements', '', 1, 'Natation', 'Natation', '', 'assets/images/pochette_natation.png', 1, 'events', NULL),
+('sport', 'Evenements', '', 1, 'Natation', 'Natation', '', 'assets/images/pochette_natation.jpg', 1, 'events', NULL),
 ('sport', 'Evenements', '', 1, 'Course a pied', 'Courses a pied', '', 'assets/images/pochette_course.png', 2, 'events', NULL),
-('sport', 'Evenements', '', 1, 'Golf', 'Golf', '', 'assets/images/pochette_Golf.png', 3, 'events', NULL),
+('sport', 'Evenements', '', 1, 'Golf', 'Golf', '', 'assets/images/pochette_Golf.jpg', 3, 'events', NULL),
 ('sport', 'Evenements', '', 1, 'Stage de danse', 'Stage de danse', '', 'assets/images/pochette_stagedanse.png', 4, 'events', NULL),
 ('sport', 'Ou pratiquer', '', 2, 'Salle de Fitness', 'Salle de fitness', '', 'assets/images/shell_sport_fitness.png', 0, 'venues', '{"sport_type": "fitness"}'),
 ('sport', 'Ou pratiquer', '', 2, 'Salle de danse', 'Danse', '', 'assets/images/pochette_animation.png', 1, 'venues', '{"sport_type": "danse"}'),
 ('sport', 'Ou pratiquer', '', 2, 'Salles de boxe', 'Salles de boxe', '', 'assets/images/pochette_boxe.png', 2, 'venues', '{"sport_type": "boxe"}'),
 ('sport', 'Ou pratiquer', '', 2, 'Terrain de football', 'Terrain de football', '', 'assets/images/shell_sport_football.png', 3, 'venues', '{"sport_type": "football"}'),
 ('sport', 'Ou pratiquer', '', 2, 'Terrain de basketball', 'Terrain de basketball', '', 'assets/images/shell_sport_basketball.png', 4, 'venues', '{"sport_type": "basketball"}'),
-('sport', 'Ou pratiquer', '', 2, 'Piscine', 'Piscine', '', 'assets/images/pochette_natation.png', 5, 'venues', '{"sport_type": "piscine"}'),
-('sport', 'Ou pratiquer', '', 2, 'Golf', 'Golf carte', '', 'assets/images/pochette_Golf.png', 6, 'map', '{"sport_type": "golf"}'),
-('sport', 'Ou pratiquer', '', 2, 'Raquette', 'Raquette', '', 'assets/images/pochette_autre.png', 7, 'sub_grid', NULL);
+('sport', 'Ou pratiquer', '', 2, 'Piscine', 'Piscine', '', 'assets/images/pochette_natation.jpg', 5, 'venues', '{"sport_type": "piscine"}'),
+('sport', 'Ou pratiquer', '', 2, 'Golf', 'Golf carte', '', 'assets/images/pochette_Golf.jpg', 6, 'map', '{"sport_type": "golf"}'),
+('sport', 'Ou pratiquer', '', 2, 'Raquette', 'Raquette', '', 'assets/images/pochette_autre.jpg', 7, 'sub_grid', NULL);
 
 -- Sport raquette sub-categories
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, display_type, metadata) VALUES
-('sport', 'Raquette', '', 3, 'Tennis', 'Tennis', '', 'assets/images/pochette_autre.png', 0, 'venues', '{"sport_type": "tennis"}'),
-('sport', 'Raquette', '', 3, 'Padel', 'Padel', '', 'assets/images/pochette_autre.png', 1, 'venues', '{"sport_type": "padel"}'),
-('sport', 'Raquette', '', 3, 'Squash', 'Squash', '', 'assets/images/pochette_autre.png', 2, 'venues', '{"sport_type": "squash"}'),
-('sport', 'Raquette', '', 3, 'Ping-pong', 'Ping-pong', '', 'assets/images/pochette_autre.png', 3, 'venues', '{"sport_type": "ping-pong"}'),
-('sport', 'Raquette', '', 3, 'Badminton', 'Badminton', '', 'assets/images/pochette_autre.png', 4, 'venues', '{"sport_type": "badminton"}');
+('sport', 'Raquette', '', 3, 'Tennis', 'Tennis', '', 'assets/images/pochette_autre.jpg', 0, 'venues', '{"sport_type": "tennis"}'),
+('sport', 'Raquette', '', 3, 'Padel', 'Padel', '', 'assets/images/pochette_autre.jpg', 1, 'venues', '{"sport_type": "padel"}'),
+('sport', 'Raquette', '', 3, 'Squash', 'Squash', '', 'assets/images/pochette_autre.jpg', 2, 'venues', '{"sport_type": "squash"}'),
+('sport', 'Raquette', '', 3, 'Ping-pong', 'Ping-pong', '', 'assets/images/pochette_autre.jpg', 3, 'venues', '{"sport_type": "ping-pong"}'),
+('sport', 'Raquette', '', 3, 'Badminton', 'Badminton', '', 'assets/images/pochette_autre.jpg', 4, 'venues', '{"sport_type": "badminton"}');
 
 -- ── CULTURE ───────────────────────────────────────────────────────
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, display_type) VALUES
 ('culture', 'Arts vivants', '', 0, 'Theatre', 'Theatre', '', 'assets/images/pochette_theatre.png', 0, 'venues'),
 ('culture', 'Musees & expositions', '', 1, 'Musee', 'Musee', '', 'assets/images/pochette_musee.png', 0, 'venues'),
 ('culture', 'Musees & expositions', '', 1, 'Exposition', 'Exposition', '', 'assets/images/pochette_exposition.png', 1, 'events'),
-('culture', 'Patrimoine & monuments', '', 2, 'Monument historique', 'Monument historique', '', 'assets/images/pochette_monument.png', 0, 'venues'),
-('culture', 'Patrimoine & monuments', '', 2, 'Bibliotheque', 'Bibliotheque', '', 'assets/images/pochette_bibliotheque.png', 1, 'venues'),
+('culture', 'Patrimoine & monuments', '', 2, 'Monument historique', 'Monument historique', '', 'assets/images/pochette_monument.jpg', 0, 'venues'),
+('culture', 'Patrimoine & monuments', '', 2, 'Bibliotheque', 'Bibliotheque', '', 'assets/images/pochette_bibliotheque.jpg', 1, 'venues'),
 ('culture', 'Visites & animations', '', 3, 'Visites guidees', 'Visites guidees', '', 'assets/images/pochette_visite.png', 0, 'events'),
 ('culture', 'Art', '', 4, 'Galerie d''art', 'Galerie d''art', '', 'assets/images/pochette_culture_art.png', 0, 'venues');
 
 -- ── FAMILY ────────────────────────────────────────────────────────
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, display_type) VALUES
-('family', 'A venir', '', 0, 'Calendrier', 'A venir', '', 'assets/images/pochette_default.png', 0, 'events'),
+('family', 'A venir', '', 0, 'Calendrier', 'A venir', '', 'assets/images/pochette_default.jpg', 0, 'events'),
 ('family', 'Parcs & jeux', '', 1, 'Parc d''attractions', 'Parc d''attractions', '', 'assets/images/pochette_parc_attraction.png', 0, 'venues'),
-('family', 'Parcs & jeux', '', 1, 'Aire de jeux', 'Aire de jeux', '', 'assets/images/pochette_enfamille.png', 1, 'venues'),
+('family', 'Parcs & jeux', '', 1, 'Aire de jeux', 'Aire de jeux', '', 'assets/images/pochette_enfamille.jpg', 1, 'venues'),
 ('family', 'Parcs & jeux', '', 1, 'Parc animalier', 'Parc animalier', '', 'assets/images/pochette_parc_animalier.png', 2, 'venues'),
-('family', 'Parcs & jeux', '', 1, 'Ferme pedagogique', 'Ferme pedagogique', '', 'assets/images/pochette_enfamille.png', 3, 'venues'),
+('family', 'Parcs & jeux', '', 1, 'Ferme pedagogique', 'Ferme pedagogique', '', 'assets/images/pochette_enfamille.jpg', 3, 'venues'),
 ('family', 'Loisirs', '', 2, 'Cinema', 'Cinema', '', 'assets/images/pochette_spectacle.png', 0, 'venues'),
-('family', 'Loisirs', '', 2, 'Bowling', 'Bowling', '', 'assets/images/pochette_enfamille.png', 1, 'venues'),
-('family', 'Loisirs', '', 2, 'Laser game', 'Laser game', '', 'assets/images/pochette_enfamille.png', 2, 'venues'),
-('family', 'Loisirs', '', 2, 'Escape game', 'Escape game', '', 'assets/images/pochette_gaming.png', 3, 'venues'),
-('family', 'Loisirs', '', 2, 'Patinoire', 'Patinoire', '', 'assets/images/pochette_enfamille.png', 4, 'venues'),
+('family', 'Loisirs', '', 2, 'Bowling', 'Bowling', '', 'assets/images/pochette_enfamille.jpg', 1, 'venues'),
+('family', 'Loisirs', '', 2, 'Laser game', 'Laser game', '', 'assets/images/pochette_enfamille.jpg', 2, 'venues'),
+('family', 'Loisirs', '', 2, 'Escape game', 'Escape game', '', 'assets/images/pochette_gaming.jpg', 3, 'venues'),
+('family', 'Loisirs', '', 2, 'Patinoire', 'Patinoire', '', 'assets/images/pochette_enfamille.jpg', 4, 'venues'),
 ('family', 'Culture', '', 3, 'Aquarium', 'Aquarium', '', 'assets/images/pochette_parc_animalier.png', 0, 'venues'),
-('family', 'Restauration', '', 4, 'Restaurant familial', 'Restaurant familial', '', 'assets/images/pochette_restaurant.png', 0, 'venues');
+('family', 'Restauration', '', 4, 'Restaurant familial', 'Restaurant familial', '', 'assets/images/pochette_restaurant.jpg', 0, 'venues');
 
 -- ── FOOD ──────────────────────────────────────────────────────────
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, display_type) VALUES
-('food', 'A venir', '', 0, 'Calendrier', 'A venir', '', 'assets/images/pochette_cettesemaine.png', 0, 'events'),
-('food', 'Restaurants', '', 1, 'Restaurant', 'Restaurant', '', 'assets/images/pochette_restaurant.png', 0, 'venues'),
-('food', 'Restaurants', '', 1, 'Guinguette', 'Guinguette', '', 'assets/images/pochette_restaurant.png', 1, 'venues'),
-('food', 'Restaurants', '', 1, 'Buffets', 'Buffets', '', 'assets/images/pochette_restaurant.png', 2, 'venues'),
-('food', 'Cafes & brunchs', '', 2, 'Salon de the', 'Salon de the', '', 'assets/images/pochette_salondethe.png', 0, 'venues'),
-('food', 'Cafes & brunchs', '', 2, 'Brunch', 'Brunch', '', 'assets/images/pochette_brunch.png', 1, 'venues'),
+('food', 'A venir', '', 0, 'Calendrier', 'A venir', '', 'assets/images/pochette_cettesemaine.jpg', 0, 'events'),
+('food', 'Restaurants', '', 1, 'Restaurant', 'Restaurant', '', 'assets/images/pochette_restaurant.jpg', 0, 'venues'),
+('food', 'Restaurants', '', 1, 'Guinguette', 'Guinguette', '', 'assets/images/pochette_restaurant.jpg', 1, 'venues'),
+('food', 'Restaurants', '', 1, 'Buffets', 'Buffets', '', 'assets/images/pochette_restaurant.jpg', 2, 'venues'),
+('food', 'Cafes & brunchs', '', 2, 'Salon de the', 'Salon de the', '', 'assets/images/pochette_salondethe.jpg', 0, 'venues'),
+('food', 'Cafes & brunchs', '', 2, 'Brunch', 'Brunch', '', 'assets/images/pochette_brunch.jpg', 1, 'venues'),
 ('food', 'Bien-etre & lifestyle', '', 3, 'Spa & hammam', 'Spa hammam', '', 'assets/images/pochette_spa&hammam.png', 0, 'venues'),
 ('food', 'Bien-etre & lifestyle', '', 3, 'Massage', 'Massage', '', 'assets/images/pochette_spa&hammam.png', 1, 'venues'),
-('food', 'Bien-etre & lifestyle', '', 3, 'Yoga & meditation', 'Yoga meditation', '', 'assets/images/pochette_yoga.png', 2, 'venues');
+('food', 'Bien-etre & lifestyle', '', 3, 'Yoga & meditation', 'Yoga meditation', '', 'assets/images/pochette_yoga.jpg', 2, 'venues');
 
 -- ── GAMING ─────────────────────────────────────────────────────────
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, display_type) VALUES
-('gaming', 'A venir', '', 0, 'Agenda', 'A venir', '', 'assets/images/pochette_cettesemaine.png', 0, 'events'),
+('gaming', 'A venir', '', 0, 'Agenda', 'A venir', '', 'assets/images/pochette_cettesemaine.jpg', 0, 'events'),
 ('gaming', 'Jeux video', '', 1, 'Salle d''arcade', 'Salle arcade', '', 'assets/images/pochette_sallearcade.png', 0, 'venues'),
-('gaming', 'Jeux video', '', 1, 'Gaming cafe', 'Gaming cafe', '', 'assets/images/pochette_gamingcafe.png', 1, 'venues'),
+('gaming', 'Jeux video', '', 1, 'Gaming cafe', 'Gaming cafe', '', 'assets/images/pochette_gamingcafe.jpg', 1, 'venues'),
 ('gaming', 'Jeux video', '', 1, 'VR & realite virtuelle', 'Realite virtuelle VR', '', 'assets/images/pochette_VR.png', 2, 'venues'),
 ('gaming', 'Jeux de societe & cartes', '', 2, 'Bar a jeux', 'Bar a jeux', '', 'assets/images/pochette_barajeux.png', 0, 'venues'),
-('gaming', 'Jeux de societe & cartes', '', 2, 'Boutique jeux', 'Boutique jeux', '', 'assets/images/pochette_gaming.png', 1, 'venues'),
-('gaming', 'Jeux de societe & cartes', '', 2, 'Escape game', 'Escape game', '', 'assets/images/pochette_escapegame.png', 2, 'venues'),
-('gaming', 'Manga, comics & BD', '', 3, 'Boutique manga', 'Boutique manga', '', 'assets/images/pochette_boutiquemanga.png', 0, 'venues'),
-('gaming', 'Manga, comics & BD', '', 3, 'Comics & BD', 'Comics BD', '', 'assets/images/pochette_default.png', 1, 'venues'),
-('gaming', 'Manga, comics & BD', '', 3, 'Figurines & goodies', 'Figurines goodies', '', 'assets/images/pochette_default.png', 2, 'venues'),
-('gaming', 'Evenements & conventions', '', 4, 'Convention & salon', 'Convention salon geek', '', 'assets/images/pochette_default.png', 0, 'events'),
-('gaming', 'Evenements & conventions', '', 4, 'Tournoi e-sport', 'Tournoi esport', '', 'assets/images/pochette_gaming.png', 1, 'events'),
-('gaming', 'Evenements & conventions', '', 4, 'Cosplay', 'Cosplay', '', 'assets/images/pochette_cosplay.png', 2, 'events');
+('gaming', 'Jeux de societe & cartes', '', 2, 'Boutique jeux', 'Boutique jeux', '', 'assets/images/pochette_gaming.jpg', 1, 'venues'),
+('gaming', 'Jeux de societe & cartes', '', 2, 'Escape game', 'Escape game', '', 'assets/images/pochette_escapegame.jpg', 2, 'venues'),
+('gaming', 'Manga, comics & BD', '', 3, 'Boutique manga', 'Boutique manga', '', 'assets/images/pochette_boutiquemanga.jpg', 0, 'venues'),
+('gaming', 'Manga, comics & BD', '', 3, 'Comics & BD', 'Comics BD', '', 'assets/images/pochette_default.jpg', 1, 'venues'),
+('gaming', 'Manga, comics & BD', '', 3, 'Figurines & goodies', 'Figurines goodies', '', 'assets/images/pochette_default.jpg', 2, 'venues'),
+('gaming', 'Evenements & conventions', '', 4, 'Convention & salon', 'Convention salon geek', '', 'assets/images/pochette_default.jpg', 0, 'events'),
+('gaming', 'Evenements & conventions', '', 4, 'Tournoi e-sport', 'Tournoi esport', '', 'assets/images/pochette_gaming.jpg', 1, 'events'),
+('gaming', 'Evenements & conventions', '', 4, 'Cosplay', 'Cosplay', '', 'assets/images/pochette_cosplay.jpg', 2, 'events');
 
 -- ── TOURISME ──────────────────────────────────────────────────────
 INSERT INTO categories (mode, groupe, groupe_emoji, groupe_ordre, label, search_tag, emoji, image_url, ordre, display_type) VALUES

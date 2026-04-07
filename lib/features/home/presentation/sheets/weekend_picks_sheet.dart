@@ -83,7 +83,7 @@ class WeekendPicksSheet extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              'Selection par IA',
+              'Notre selection',
               style: GoogleFonts.poppins(
                 fontSize: 9,
                 fontWeight: FontWeight.w600,
@@ -125,7 +125,7 @@ class WeekendPicksSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Notre IA selectionne les 3 incontournables\nchaque vendredi pour $city.',
+            'Les 3 incontournables\nselectionnes chaque vendredi pour $city.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 11,

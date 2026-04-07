@@ -39,34 +39,51 @@ final sportSubcategoryCountProvider =
     final venues = await ref.watch(racketAllVenuesProvider.future);
     return venues.length;
   }
-  // "A venir" = tous les matchs scraped + events communautaires
+  // Filtre domicile generique
+  final cityLower = city.toLowerCase();
+  bool isHome(SupabaseMatch m) {
+    final dom = m.equipe1.toLowerCase();
+    if (m.equipe2.isEmpty) return true;
+    if (dom.contains(cityLower)) return true;
+    if (cityLower == 'toulouse') {
+      return dom.contains('stade toulousain') || dom.contains('tfc') ||
+          dom.contains('toulouse fc') || dom.contains('fenix') ||
+          dom.contains('tbc') || dom.contains('tmb') || dom.contains('toulouse');
+    }
+    if (cityLower == 'carcassonne') return dom.contains('carcassonne') || dom.contains('usc');
+    if (cityLower == 'colomiers') return dom.contains('colomiers');
+    return dom.contains(cityLower);
+  }
+
+  // "A venir" = tous les matchs scraped domicile + events communautaires
   if (searchTag == 'A venir') {
     final repository = SportRepository();
     final allMatches = await repository.fetchSupabaseMatches(ville: city);
+    final homeCount = allMatches.where(isHome).length;
     final userEvents = ref.watch(userEventsProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final communityCount = userEvents.where((ue) {
       if (ue.rubrique != 'sport') return false;
-      if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+      if (ue.ville.toLowerCase() != cityLower) return false;
       final eventDate = DateTime.tryParse(ue.date);
       if (eventDate == null) return false;
       return !eventDate.isBefore(today);
     }).length;
-    return allMatches.length + communityCount;
+    return homeCount + communityCount;
   }
 
   final repository = SportRepository();
   final matches =
       await repository.fetchSupabaseMatches(sport: searchTag, ville: city);
+  final homeCount = matches.where(isHome).length;
 
   // Compter aussi les user events sport (+ culture pour Stage de danse)
   final userEvents = ref.watch(userEventsProvider);
 
   final userCount = userEvents.where((ue) {
-    if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+    if (ue.ville.toLowerCase() != cityLower) return false;
 
-    // Stage de danse : accepter aussi les user events culture/danse/stage
     if (searchTag.toLowerCase().contains('stage de danse')) {
       if (ue.rubrique == 'sport' || ue.rubrique == 'culture') {
         final cat = ue.categorie.toLowerCase();
@@ -81,16 +98,7 @@ final sportSubcategoryCountProvider =
     return cat.contains(tag) || tag.contains(cat);
   }).length;
 
-  // Handball : compter uniquement les matchs a domicile
-  if (searchTag.toLowerCase().contains('hand')) {
-    final homeCount = matches.where((m) {
-      final dom = m.equipe1.toLowerCase();
-      return dom.contains('fenix') || dom.contains('toulouse');
-    }).length;
-    return homeCount + userCount;
-  }
-
-  return matches.length + userCount;
+  return homeCount + userCount;
 });
 
 final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
@@ -106,13 +114,37 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
     ville: city,
   );
 
+  // Filtre domicile : ne garder que les matchs ou l'equipe domicile est de la ville
+  final cityLower = city.toLowerCase();
+  bool isHomeMatch(SupabaseMatch m) {
+    final dom = m.equipe1.toLowerCase();
+    // Matchs sans equipe (events sport : boxe, natation, etc.) → garder
+    if (m.equipe2.isEmpty) return true;
+    // Verifier si l'equipe domicile contient le nom de la ville
+    if (dom.contains(cityLower)) return true;
+    // Noms d'equipes connus par ville
+    if (cityLower == 'toulouse') {
+      return dom.contains('stade toulousain') || dom.contains('tfc') ||
+          dom.contains('toulouse fc') || dom.contains('fenix') ||
+          dom.contains('tbc') || dom.contains('tmb') ||
+          dom.contains('spacer') || dom.contains('toulouse');
+    }
+    if (cityLower == 'carcassonne') {
+      return dom.contains('carcassonne') || dom.contains('usc');
+    }
+    if (cityLower == 'colomiers') {
+      return dom.contains('colomiers');
+    }
+    return dom.contains(cityLower);
+  }
+
   // Merge user events sport (+ culture pour Stage de danse)
   final userEvents = ref.watch(userEventsProvider);
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
 
   final matchingUserEvents = userEvents.where((ue) {
-    if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+    if (ue.ville.toLowerCase() != cityLower) return false;
 
     // Stage de danse : accepter aussi les user events culture/danse/stage
     if (subcategory != null && subcategory.toLowerCase().contains('stage de danse')) {
@@ -135,26 +167,18 @@ final sportMatchesProvider = FutureProvider<List<SupabaseMatch>>((ref) async {
     return cat.contains(tag) || tag.contains(cat);
   }).map((ue) => ue.toSupabaseMatch()).toList();
 
-  // "A venir" = tous les matchs scraped + events communautaires
+  // "A venir" = tous les matchs scraped domicile + events communautaires
   if (subcategory == 'A venir') {
     final allMatches = await repository.fetchSupabaseMatches(ville: city);
-    final merged = [...matchingUserEvents, ...allMatches];
-    merged.sort(_compareByDateTime);
-    return merged;
-  }
-
-  // Handball : uniquement les matchs a domicile (Fenix en equipe_dom)
-  if (subcategory != null && subcategory.toLowerCase().contains('hand')) {
-    final homeOnly = matches.where((m) {
-      final dom = m.equipe1.toLowerCase();
-      return dom.contains('fenix') || dom.contains('toulouse');
-    }).toList();
+    final homeOnly = allMatches.where(isHomeMatch).toList();
     final merged = [...matchingUserEvents, ...homeOnly];
     merged.sort(_compareByDateTime);
     return merged;
   }
 
-  final merged = [...matchingUserEvents, ...matches];
+  // Filtre domicile pour tous les matchs
+  final homeOnly = matches.where(isHomeMatch).toList();
+  final merged = [...matchingUserEvents, ...homeOnly];
   merged.sort(_compareByDateTime);
   return merged;
 });

@@ -7,6 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
+import 'package:dio/dio.dart';
+import 'package:pulz_app/core/config/supabase_config.dart';
+import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
@@ -76,6 +79,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool _isSearching = false;
   bool _searchLoading = false;
   List<SearchResult>? _searchResults;
+  String? _aiMessage;
+  List<Map<String, dynamic>>? _aiResults;
 
   @override
   void initState() {
@@ -97,6 +102,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     if (query.trim().length < 2) {
       setState(() {
         _searchResults = null;
+        _aiMessage = null;
+        _aiResults = null;
         _searchLoading = false;
       });
       return;
@@ -112,18 +119,53 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   Future<void> _doSearch(String query) async {
     try {
       final ville = ref.read(selectedCityProvider);
-      final results = await _searchService.search(query, ville: ville);
+
+      // Recherche classique
+      final resultsFuture = _searchService.search(query, ville: ville);
+
+      // Recherche IA si la requete ressemble a du langage naturel (3+ mots)
+      final words = query.split(' ').where((w) => w.length > 1).length;
+      Future<Map<String, dynamic>?>? aiFuture;
+      if (words >= 2) {
+        aiFuture = _searchAI(query, ville);
+      }
+
+      final results = await resultsFuture;
+      final aiData = await aiFuture;
+
       if (!mounted) return;
       setState(() {
         _searchResults = results;
+        _aiMessage = aiData?['message'] as String?;
+        _aiResults = (aiData?['results'] as List?)?.cast<Map<String, dynamic>>();
         _searchLoading = false;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _searchResults = [];
+        _aiMessage = null;
+        _aiResults = null;
         _searchLoading = false;
       });
+    }
+  }
+
+  Future<Map<String, dynamic>?> _searchAI(String query, String ville) async {
+    try {
+      final dio = DioClient.withBaseUrl(SupabaseConfig.supabaseUrl);
+      final res = await dio.post(
+        '/functions/v1/search-ai',
+        data: {'query': query, 'ville': ville},
+        options: Options(headers: {
+          'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
+          'Content-Type': 'application/json',
+        }),
+      );
+      return res.data as Map<String, dynamic>?;
+    } catch (e) {
+      debugPrint('[search-ai] error: $e');
+      return null;
     }
   }
 
@@ -544,12 +586,80 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   Widget _buildSearchResults() {
     if (_searchLoading) {
-      return const Center(
-        child: SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2, color: _accentColor),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2, color: _accentColor),
+            ),
+            if (_searchController.text.split(' ').where((w) => w.length > 1).length >= 3) ...[
+              const SizedBox(height: 12),
+              Text('Recherche en cours...', style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.4))),
+            ],
+          ],
         ),
+      );
+    }
+
+    // Afficher la reponse IA si disponible
+    if (_aiMessage != null && _aiMessage!.isNotEmpty) {
+      return ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: [
+          // Bulle IA
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _accentColor.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Color(0xFF7B2D8E), Color(0xFFE91E8C)]),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.auto_awesome, size: 12, color: Colors.white),
+                    ),
+                    const SizedBox(width: 8),
+                    Text('Pour toi', style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.5))),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _aiMessage!,
+                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9), height: 1.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Resultats IA cliquables
+          if (_aiResults != null)
+            for (final r in _aiResults!) ...[
+              _buildAiResultCard(r),
+              const SizedBox(height: 8),
+            ],
+
+          // Resultats classiques en dessous
+          if (_searchResults != null && _searchResults!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('Autres resultats', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.4))),
+            const SizedBox(height: 8),
+          ],
+        ],
       );
     }
 
@@ -614,6 +724,69 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     'restaurant': 'assets/images/pochette_food.png',
     'cinema': 'assets/images/pochette_spectacle.png',
   };
+
+  Widget _buildAiResultCard(Map<String, dynamic> r) {
+    final titre = r['titre'] as String? ?? '';
+    final date = r['date'] as String? ?? '';
+    final horaires = r['horaires'] as String? ?? '';
+    final lieu = r['lieu'] as String? ?? '';
+    final photo = r['photo'] as String? ?? '';
+    final gratuit = r['gratuit'] as bool? ?? false;
+
+    return GestureDetector(
+      onTap: () async {
+        final id = r['identifiant'] as String? ?? '';
+        if (id.isEmpty) return;
+        try {
+          final event = await ScrapedEventsSupabaseService().fetchEventById(id);
+          if (event != null && mounted) {
+            EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.jpg');
+          }
+        } catch (_) {}
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A2A3E),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            if (photo.isNotEmpty && photo.startsWith('http'))
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(imageUrl: photo, width: 50, height: 50, fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => const SizedBox(width: 50, height: 50)),
+              )
+            else
+              Container(width: 50, height: 50, decoration: BoxDecoration(
+                color: const Color(0xFF3A3A4E), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.event, color: Colors.white24, size: 20)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(titre, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+                  const SizedBox(height: 2),
+                  Text('$date ${horaires.isNotEmpty ? "- $horaires" : ""} ${lieu.isNotEmpty ? "- $lieu" : ""}',
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.5))),
+                ],
+              ),
+            ),
+            if (gratuit)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
+                child: const Text('GRATUIT', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.green)),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   static String _resolvePochette(Event e) {
     final cat = e.categorie.toLowerCase();

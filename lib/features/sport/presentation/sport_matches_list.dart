@@ -141,7 +141,7 @@ class SportMatchesList extends ConsumerWidget {
                 time: match.heure.isNotEmpty ? match.heure : null,
                 location: match.lieu.isNotEmpty ? match.lieu : null,
                 photoUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
-                fallbackAsset: 'assets/images/sc_autres_sport.png',
+                fallbackAsset: 'assets/images/sc_autres_sport.jpg',
                 tag: match.sport.isNotEmpty ? match.sport : null,
                 isFree: match.gratuit.toLowerCase() == 'oui',
                 onTap: () => _openMatchDetail(context, match),
@@ -161,7 +161,7 @@ class SportMatchesList extends ConsumerWidget {
         title: match.equipe2.isNotEmpty
             ? '${match.equipe1}  vs  ${match.equipe2}'
             : match.equipe1,
-        imageAsset: 'assets/images/sc_autres_sport.png',
+        imageAsset: 'assets/images/sc_autres_sport.jpg',
         imageUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
         infos: [
           if (match.sport.isNotEmpty)

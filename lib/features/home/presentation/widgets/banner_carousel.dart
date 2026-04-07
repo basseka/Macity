@@ -9,6 +9,7 @@ import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
 import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
 import 'package:pulz_app/features/offers/state/offers_provider.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
 
 /// Item unifie pour le carrousel : soit un banner, soit une offre pro.
 class _CarouselItem {
@@ -60,11 +61,13 @@ class BannerCarouselDialog extends ConsumerWidget {
       );
     }
 
+    final city = ref.watch(selectedCityProvider).toLowerCase();
     final banners = bannersAsync.valueOrNull ?? [];
     final offers = offersAsync.valueOrNull ?? [];
 
     final items = <_CarouselItem>[
-      ...banners.map(_CarouselItem.fromBanner),
+      // Banners : afficher uniquement pour Toulouse (pas de colonne city)
+      if (city == 'toulouse') ...banners.map(_CarouselItem.fromBanner),
       ...offers.map(_CarouselItem.fromOffer),
     ];
 

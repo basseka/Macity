@@ -96,4 +96,8 @@ class ActivityService {
 
   /// Partage avec moi consulte.
   void sharedWithMeView() => _log('shared_with_me_view');
+
+  /// Check-in explicite a un lieu.
+  void venueCheckIn({required int venueId}) =>
+      _log('venue_check_in', {'venue_id': venueId});
 }

@@ -100,8 +100,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               children: [
                 // Background image
                 Image.asset(
-                  'assets/images/start-01.png',
+                  'assets/images/start-01.jpg',
                   fit: BoxFit.cover,
+                  cacheWidth: 300,
                 ),
                 // Dark overlay gradient
                 Container(

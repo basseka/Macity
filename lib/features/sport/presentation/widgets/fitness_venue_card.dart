@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,7 +15,7 @@ class FitnessVenueCard extends ConsumerWidget {
   static const _logoMap = <String, String>{
     'basic-fit': 'assets/images/logo_salle_basicfit.png',
     'fitness park': 'assets/images/logo_salle_fitnesspark.png',
-    'interval': 'assets/images/logo_salle_interval.png',
+    'interval': 'assets/images/logo_salle_interval.jpg',
     'clark powell': 'assets/images/logo_salle_calrkpowel.png',
     'movida': 'assets/images/logo_salle_movida.png',
   };
@@ -59,13 +60,23 @@ class FitnessVenueCard extends ConsumerWidget {
                     clipBehavior: Clip.antiAlias,
                     alignment: Alignment.center,
                     child: photo.isNotEmpty
-                        ? Image.asset(
-                            photo,
-                            width: 48,
-                            height: 48,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const SizedBox(width: 48, height: 48),
-                          )
+                        ? photo.startsWith('http')
+                            ? CachedNetworkImage(
+                                imageUrl: photo,
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                                memCacheWidth: 96,
+                                errorWidget: (_, __, ___) => const Text('\uD83D\uDCAA', style: TextStyle(fontSize: 24)),
+                              )
+                            : Image.asset(
+                                photo,
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                                cacheWidth: 96,
+                                errorBuilder: (_, __, ___) => const Text('\uD83D\uDCAA', style: TextStyle(fontSize: 24)),
+                              )
                         : const Text(
                             '\uD83D\uDCAA',
                             style: TextStyle(fontSize: 24),
@@ -180,6 +191,7 @@ class FitnessVenueCard extends ConsumerWidget {
       ItemDetailSheet(
         title: commerce.nom,
         emoji: '\uD83D\uDCAA',
+        videoUrl: commerce.videoUrl.isNotEmpty ? commerce.videoUrl : null,
         infos: [
           if (commerce.categorie.isNotEmpty)
             DetailInfoItem(Icons.category_outlined, commerce.categorie),

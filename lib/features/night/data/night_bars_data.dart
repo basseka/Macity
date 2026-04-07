@@ -1099,7 +1099,7 @@ class NightBarsData {
       ouvert: true,
       lienMaps: 'https://maps.google.com/?q=Hiboo+Club+23+Rue+Nicolas+Bachelier+Toulouse',
       siteWeb: 'https://www.instagram.com/hiboo.club/',
-      photo: 'assets/images/pochette_hibooclub.png',
+      photo: 'assets/images/pochette_hibooclub.jpg',
       latitude: 43.6025,
       longitude: 1.4450,
     ),

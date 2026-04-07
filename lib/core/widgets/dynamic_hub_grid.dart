@@ -210,7 +210,7 @@ class _AvenirBanner extends ConsumerWidget {
     return GestureDetector(
       onTap: () => ref.read(modeSubcategoriesProvider.notifier).select(mode, 'A venir'),
       child: Container(
-        height: 84,
+        height: 96,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: gradient,
@@ -228,8 +228,9 @@ class _AvenirBanner extends ConsumerWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.asset(
-                  'assets/images/pochette_default.png',
+                  'assets/images/pochette_default.jpg',
                   fit: BoxFit.cover,
+                  cacheWidth: 300,
                   errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ),

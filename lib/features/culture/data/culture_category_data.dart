@@ -34,7 +34,7 @@ class CultureCategoryData {
       name: 'A venir',
       emoji: '\uD83D\uDCC5',
       subcategories: [
-        CultureSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_cettesemaine.png'),
+        CultureSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_cettesemaine.jpg'),
       ],
     ),
     CultureCategoryGroup(
@@ -56,8 +56,8 @@ class CultureCategoryData {
       name: 'Patrimoine & monuments',
       emoji: '\uD83C\uDFF0',
       subcategories: [
-        CultureSubcategory(label: 'Monument historique', searchTag: 'Monument historique', emoji: '\uD83C\uDFF0', group: 'Patrimoine & monuments', image: 'assets/images/pochette_monument.png'),
-        CultureSubcategory(label: 'Bibliotheque', searchTag: 'Bibliotheque', emoji: '\uD83D\uDCDA', group: 'Patrimoine & monuments', image: 'assets/images/pochette_bibliotheque.png'),
+        CultureSubcategory(label: 'Monument historique', searchTag: 'Monument historique', emoji: '\uD83C\uDFF0', group: 'Patrimoine & monuments', image: 'assets/images/pochette_monument.jpg'),
+        CultureSubcategory(label: 'Bibliotheque', searchTag: 'Bibliotheque', emoji: '\uD83D\uDCDA', group: 'Patrimoine & monuments', image: 'assets/images/pochette_bibliotheque.jpg'),
       ],
     ),
     CultureCategoryGroup(

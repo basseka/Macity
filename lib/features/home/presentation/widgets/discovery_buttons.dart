@@ -33,15 +33,6 @@ class DiscoveryButtons extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           _DiscoveryChip(
-            emoji: '\u2B50',
-            label: 'Top',
-            gradient: const LinearGradient(
-              colors: [Color(0xFFE6A817), Color(0xFFE91E8C)],
-            ),
-            onTap: () => TopPicksSheet.show(context),
-          ),
-          const SizedBox(width: 8),
-          _DiscoveryChip(
             emoji: '\uD83C\uDF89',
             label: 'Week-end',
             gradient: const LinearGradient(
