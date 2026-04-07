@@ -13,6 +13,7 @@ class WeekendPick {
   final String horaires;
   final String lieu;
   final String categorie;
+  final bool isMatch;
 
   const WeekendPick({
     required this.identifiant,
@@ -23,6 +24,7 @@ class WeekendPick {
     required this.horaires,
     required this.lieu,
     required this.categorie,
+    this.isMatch = false,
   });
 
   factory WeekendPick.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class WeekendPick {
       horaires: json['horaires'] as String? ?? '',
       lieu: json['lieu'] as String? ?? '',
       categorie: json['categorie'] as String? ?? '',
+      isMatch: json['is_match'] as bool? ?? false,
     );
   }
 }

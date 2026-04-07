@@ -5,8 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/weekend_picks_provider.dart';
+import 'package:pulz_app/features/sport/data/supabase_api_service.dart';
+import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
 
 class WeekendPicksSheet extends ConsumerWidget {
   const WeekendPicksSheet({super.key});
@@ -351,14 +354,67 @@ class _PickCard extends StatelessWidget {
     return DateFormat('EEEE d MMMM', 'fr_FR').format(d);
   }
 
+  /// Retourne la meilleure image disponible pour un match :
+  /// photo_url > logo_dom > logo_ext > photo du pick > null
+  String? _matchImageUrl(SupabaseMatch match) {
+    if (match.photoUrl.isNotEmpty) return match.photoUrl;
+    if (match.logoDom.isNotEmpty) return match.logoDom;
+    if (match.logoExt.isNotEmpty) return match.logoExt;
+    if (pick.photoUrl.isNotEmpty) return pick.photoUrl;
+    return null;
+  }
+
   Future<void> _openEvent(BuildContext context) async {
-    // Charger l'event complet depuis la DB
-    try {
-      final event = await ScrapedEventsSupabaseService().fetchEventById(pick.identifiant);
-      if (event != null && context.mounted) {
-        Navigator.pop(context);
-        EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.jpg');
-      }
-    } catch (_) {}
+    if (pick.isMatch) {
+      // Match sportif → extraire l'id numérique de "match_727"
+      final idStr = pick.identifiant.replaceFirst('match_', '');
+      final matchId = int.tryParse(idStr);
+      if (matchId == null) return;
+
+      try {
+        final match = await SupabaseApiService().fetchMatchById(matchId);
+        if (match != null && context.mounted) {
+          Navigator.pop(context);
+          ItemDetailSheet.show(
+            context,
+            ItemDetailSheet(
+              title: match.equipe2.isNotEmpty
+                  ? '${match.equipe1}  vs  ${match.equipe2}'
+                  : match.equipe1,
+              imageAsset: 'assets/images/sc_autres_sport.jpg',
+              imageUrl: _matchImageUrl(match),
+              infos: [
+                if (match.sport.isNotEmpty)
+                  DetailInfoItem(Icons.sports, match.sport),
+                if (match.competition.isNotEmpty)
+                  DetailInfoItem(Icons.emoji_events_outlined, match.competition),
+                if (match.date.isNotEmpty)
+                  DetailInfoItem(Icons.calendar_today, match.date),
+                if (match.heure.isNotEmpty)
+                  DetailInfoItem(Icons.access_time, match.heure),
+                if (match.lieu.isNotEmpty)
+                  DetailInfoItem(Icons.location_on_outlined, match.lieu),
+              ],
+              primaryAction: match.billetterie.isNotEmpty
+                  ? DetailAction(
+                      icon: Icons.confirmation_number_outlined,
+                      label: 'Billetterie',
+                      url: match.billetterie,
+                    )
+                  : null,
+            ),
+          );
+        }
+      } catch (_) {}
+    } else {
+      // Event scrapé classique
+      try {
+        final event = await ScrapedEventsSupabaseService().fetchEventById(pick.identifiant);
+        if (event != null && context.mounted) {
+          Navigator.pop(context);
+          EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.jpg');
+        }
+      } catch (_) {}
+    }
   }
 }

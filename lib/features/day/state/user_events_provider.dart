@@ -115,6 +115,36 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
     await _persistLocal();
   }
 
+  /// Met à jour un événement existant : upload photo si nouvelle → update Supabase → update state.
+  Future<void> updateEvent(UserEvent event) async {
+    // 1. Upload de la nouvelle photo si présente
+    String? photoUrl = event.photoUrl;
+    if (event.photoPath != null && event.photoPath!.isNotEmpty) {
+      try {
+        photoUrl = await _supabase.uploadPhoto(event.photoPath!);
+        debugPrint('[UserEvents] photo upload OK: $photoUrl');
+      } catch (e) {
+        debugPrint('[UserEvents] photo upload FAILED: $e');
+      }
+    }
+
+    // 2. Mettre à jour l'event avec l'URL de la photo
+    final eventWithUrl = event.copyWith(photoUrl: photoUrl);
+
+    // 3. Update dans Supabase
+    try {
+      await _supabase.updateEvent(eventWithUrl);
+      debugPrint('[UserEvents] update Supabase OK');
+    } catch (e) {
+      debugPrint('[UserEvents] update Supabase FAILED: $e');
+      rethrow;
+    }
+
+    // 4. Mettre à jour le state et le cache local
+    state = state.map((e) => e.id == event.id ? eventWithUrl : e).toList();
+    await _persistLocal();
+  }
+
   /// Supprime un événement de Supabase et du state.
   Future<void> removeEvent(String id) async {
     try {

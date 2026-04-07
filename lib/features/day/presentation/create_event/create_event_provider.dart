@@ -14,6 +14,7 @@ final createEventProvider =
   (ref) => CreateEventNotifier(ref),
 );
 
+
 class CreateEventNotifier extends StateNotifier<CreateEventState> {
   final Ref _ref;
 
@@ -23,6 +24,118 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     if (proState.status == ProAuthStatus.approved && proState.profile != null) {
       state = state.copyWith(organisateurNom: proState.profile!.nom);
     }
+  }
+
+  /// Charge un événement existant dans le state pour l'édition.
+  void loadEvent(UserEvent e) {
+    // Parser la date
+    DateTime? dateDebut;
+    TimeOfDay? heureDebut;
+    DateTime? dateFin;
+    TimeOfDay? heureFin;
+
+    if (e.date.isNotEmpty) {
+      try { dateDebut = DateTime.parse(e.date); } catch (_) {}
+    }
+    if (e.heure.isNotEmpty) {
+      final parts = e.heure.split(':');
+      if (parts.length >= 2) {
+        heureDebut = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
+    if (e.dateFin.isNotEmpty) {
+      try { dateFin = DateTime.parse(e.dateFin); } catch (_) {}
+    }
+    if (e.heureFin.isNotEmpty) {
+      final parts = e.heureFin.split(':');
+      if (parts.length >= 2) {
+        heureFin = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
+
+    // Trouver la catégorie parente à partir de la sous-catégorie
+    String? categorie;
+    for (final entry in kSubcategories.entries) {
+      if (entry.value.contains(e.categorie)) {
+        categorie = entry.key;
+        break;
+      }
+    }
+
+    // Extraire accessibilité
+    Set<String> accessibilite = {};
+    if (e.accessibilite != null && e.accessibilite!['options'] is List) {
+      accessibilite = Set<String>.from(e.accessibilite!['options'] as List);
+    }
+
+    // Extraire règles
+    String ageMinimum = '';
+    String materielRequis = '';
+    String conditionsAnnulation = '';
+    if (e.regles != null) {
+      ageMinimum = e.regles!['age_minimum'] as String? ?? '';
+      materielRequis = e.regles!['materiel_requis'] as String? ?? '';
+      conditionsAnnulation = e.regles!['conditions_annulation'] as String? ?? '';
+    }
+
+    state = CreateEventState(
+      isEditing: true,
+      editingEventId: e.id,
+      existingPhotoUrl: e.photoUrl,
+      categorie: categorie,
+      sousCategorie: e.categorie,
+      format: e.format.isNotEmpty ? e.format : null,
+      titre: e.titre,
+      descriptionCourte: e.descriptionCourte,
+      dateDebut: dateDebut,
+      heureDebut: heureDebut,
+      dateFin: dateFin,
+      heureFin: heureFin,
+      recurrenceType: e.recurrence?['type'] as String?,
+      lieuType: e.lieuType.isNotEmpty ? e.lieuType : null,
+      lieuNom: e.lieuNom.isNotEmpty ? e.lieuNom : null,
+      lieuAdresse: e.lieuAdresse,
+      ville: e.ville,
+      pays: e.pays,
+      estGratuit: e.estGratuit,
+      prix: e.prix != null ? e.prix.toString() : '',
+      prixReduit: e.prixReduit != null ? e.prixReduit.toString() : '',
+      prixGroupe: e.prixGroupe != null ? e.prixGroupe.toString() : '',
+      prixEarlyBird: e.prixEarlyBird != null ? e.prixEarlyBird.toString() : '',
+      lienBilletterie: e.lienBilletterie,
+      descriptionLongue: e.descriptionLongue,
+      publicCible: e.publicCible,
+      niveau: e.niveau,
+      organisateurType: e.organisateurType,
+      organisateurNom: e.organisateurNom,
+      organisateurEmail: e.organisateurEmail,
+      organisateurTelephone: e.organisateurTelephone,
+      organisateurSite: e.organisateurSite,
+      participantsMin: e.participantsMin?.toString() ?? '',
+      participantsMax: e.participantsMax?.toString() ?? '',
+      inscriptionType: e.inscriptionType,
+      priority: e.priority,
+      videoUrl: e.videoUrl,
+      tags: e.tags,
+      programme: e.programme
+              ?.map((p) => ProgrammeSession(
+                    heure: p['heure'] as String? ?? '',
+                    activite: p['activite'] as String? ?? '',
+                    intervenant: p['intervenant'] as String? ?? '',
+                  ))
+              .toList() ??
+          [],
+      accessibilite: accessibilite,
+      ageMinimum: ageMinimum,
+      materielRequis: materielRequis,
+      conditionsAnnulation: conditionsAnnulation,
+    );
   }
 
   void updateCategorie(String value) {
@@ -292,7 +405,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
 
     try {
       final s = state;
-      final id = '${DateTime.now().millisecondsSinceEpoch}';
+      final id = s.isEditing ? s.editingEventId! : '${DateTime.now().millisecondsSinceEpoch}';
       final dateStr = s.dateDebut != null
           ? DateFormat('yyyy-MM-dd').format(s.dateDebut!)
           : '';
@@ -330,6 +443,9 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         }
       }
 
+      // En mode edition, garder l'ancienne photo si pas de nouvelle
+      final photoUrl = s.isEditing && s.photoPath == null ? s.existingPhotoUrl : null;
+
       final event = UserEvent(
         id: id,
         titre: s.titre.trim(),
@@ -341,6 +457,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         lieuNom: s.lieuNom ?? '',
         lieuAdresse: s.lieuAdresse.trim(),
         photoPath: s.photoPath,
+        photoUrl: photoUrl,
         videoUrl: uploadedVideoUrl ?? s.videoUrl,
         ville: s.ville,
         lienBilletterie: s.lienBilletterie.trim(),
@@ -390,24 +507,32 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         priority: s.priority,
       );
 
-      String? establishmentId;
-      final proState = _ref.read(proAuthProvider);
-      if (proState.status == ProAuthStatus.approved &&
-          proState.profile != null) {
-        establishmentId = proState.profile!.id;
+      if (s.isEditing) {
+        // Mode édition : update
+        await _ref
+            .read(userEventsProvider.notifier)
+            .updateEvent(event);
+      } else {
+        // Mode création
+        String? establishmentId;
+        final proState = _ref.read(proAuthProvider);
+        if (proState.status == ProAuthStatus.approved &&
+            proState.profile != null) {
+          establishmentId = proState.profile!.id;
+        }
+
+        await _ref
+            .read(userEventsProvider.notifier)
+            .addEvent(event, establishmentId: establishmentId);
+
+        ActivityService.instance.eventCreated(
+          eventId: event.id,
+          titre: event.titre,
+          categorie: event.categorie,
+          rubrique: event.rubrique,
+          ville: event.ville,
+        );
       }
-
-      await _ref
-          .read(userEventsProvider.notifier)
-          .addEvent(event, establishmentId: establishmentId);
-
-      ActivityService.instance.eventCreated(
-        eventId: event.id,
-        titre: event.titre,
-        categorie: event.categorie,
-        rubrique: event.rubrique,
-        ville: event.ville,
-      );
 
       // Rafraichir le feed pour inclure le nouvel event
       _ref.invalidate(paginatedFeedProvider);

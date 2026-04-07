@@ -81,6 +81,25 @@ class SupabaseApiService {
     }
   }
 
+  /// Fetch a single match by its id.
+  Future<SupabaseMatch?> fetchMatchById(int id) async {
+    try {
+      final response = await _dio.get(
+        'matchs',
+        queryParameters: <String, String>{
+          'select': '*',
+          'id': 'eq.$id',
+          'limit': '1',
+        },
+      );
+      final data = response.data as List;
+      if (data.isEmpty) return null;
+      return SupabaseMatch.fromJson(data[0] as Map<String, dynamic>);
+    } on DioException catch (_) {
+      return null;
+    }
+  }
+
   /// Search matches by team name, sport, competition, or venue.
   Future<List<SupabaseMatch>> searchMatches(String query,
       {int limit = 15}) async {

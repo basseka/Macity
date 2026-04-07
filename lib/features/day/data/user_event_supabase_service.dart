@@ -259,6 +259,19 @@ class UserEventSupabaseService {
         .toList();
   }
 
+  /// Met à jour un événement existant par son id.
+  Future<void> updateEvent(UserEvent event) async {
+    final userId = await UserIdentityService.getUserId();
+    await _restDio.patch(
+      'user_events',
+      queryParameters: {'id': 'eq.${event.id}'},
+      data: event.toSupabaseJson(userId: userId),
+      options: Options(
+        headers: {'Prefer': 'return=minimal'},
+      ),
+    );
+  }
+
   /// Supprime un événement par son id.
   Future<void> deleteEvent(String id) async {
     await _restDio.delete(

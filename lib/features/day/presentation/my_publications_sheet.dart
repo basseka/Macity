@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
+import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 
 /// Provider qui recupere uniquement les events du user courant.
@@ -89,6 +90,14 @@ class MyPublicationsSheet extends ConsumerWidget {
                       final event = events[index];
                       return _PublicationCard(
                         event: event,
+                        onEdit: () {
+                          Navigator.pop(context);
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (_) => CreateEventPage(eventToEdit: event),
+                            ),
+                          );
+                        },
                         onDelete: () => _confirmDelete(context, ref, event),
                       );
                     },
@@ -224,9 +233,10 @@ class MyPublicationsSheet extends ConsumerWidget {
 
 class _PublicationCard extends StatelessWidget {
   final UserEvent event;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _PublicationCard({required this.event, required this.onDelete});
+  const _PublicationCard({required this.event, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -323,6 +333,21 @@ class _PublicationCard extends StatelessWidget {
               ),
 
             const SizedBox(width: 4),
+
+            // Edit
+            GestureDetector(
+              onTap: onEdit,
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7B2D8E).withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF7B2D8E)),
+              ),
+            ),
+            const SizedBox(width: 6),
 
             // Delete
             GestureDetector(

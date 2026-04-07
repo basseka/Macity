@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
+import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
 import 'package:pulz_app/features/day/presentation/create_event/steps/step_details.dart';
 import 'package:pulz_app/features/day/presentation/create_event/steps/step_essentials.dart';
@@ -10,11 +11,13 @@ import 'package:pulz_app/features/day/presentation/create_event/steps/step_when_
 import 'package:pulz_app/features/day/presentation/create_event/widgets/step_indicator.dart';
 import 'package:pulz_app/core/services/stripe_service.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
+import 'package:pulz_app/features/day/domain/models/user_event.dart';
 
 class CreateEventPage extends ConsumerStatefulWidget {
   final String? initialPhotoPath;
+  final UserEvent? eventToEdit;
 
-  const CreateEventPage({super.key, this.initialPhotoPath});
+  const CreateEventPage({super.key, this.initialPhotoPath, this.eventToEdit});
 
   @override
   ConsumerState<CreateEventPage> createState() => _CreateEventPageState();
@@ -25,15 +28,19 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
   static const _primaryColor = Color(0xFF7B2D8E);
   static const _primaryDarkColor = Color(0xFF4A1259);
 
+  bool get _isEditing => widget.eventToEdit != null;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    if (widget.initialPhotoPath != null) {
-      Future.microtask(() {
+    Future.microtask(() {
+      if (widget.eventToEdit != null) {
+        ref.read(createEventProvider.notifier).loadEvent(widget.eventToEdit!);
+      } else if (widget.initialPhotoPath != null) {
         ref.read(createEventProvider.notifier).updatePhotoPath(widget.initialPhotoPath!);
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -73,9 +80,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
           icon: const Icon(Icons.close, color: _primaryDarkColor),
           onPressed: () => _confirmExit(context),
         ),
-        title: const Text(
-          'Creer un evenement',
-          style: TextStyle(
+        title: Text(
+          _isEditing ? 'Modifier l\'evenement' : 'Creer un evenement',
+          style: const TextStyle(
             color: _primaryDarkColor,
             fontSize: 15,
             fontWeight: FontWeight.bold,
@@ -212,7 +219,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                             ),
                           )
                         : Text(
-                            _isLastStep(state) ? 'Publier' : 'Suivant',
+                            _isLastStep(state)
+                                ? (_isEditing ? 'Modifier' : 'Publier')
+                                : 'Suivant',
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -285,8 +294,10 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     if (_isLastStep(state)) {
       final success = await notifier.submit();
       if (success && mounted) {
+        // Rafraîchir la liste des publications
+        ref.invalidate(myPublicationsProvider);
         final priority = state.priority;
-        if ((priority == 'P1' || priority == 'P2') && notifier.lastCreatedEventId != null) {
+        if (!_isEditing && (priority == 'P1' || priority == 'P2') && notifier.lastCreatedEventId != null) {
           // Boost payant sélectionné → paiement Stripe
           final userId = await UserIdentityService.getUserId();
           final sortedDates = state.boostDates.toList()..sort();
@@ -328,8 +339,8 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
               child: const Icon(Icons.check, color: Colors.white, size: 30),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Evenement ajoute\navec succes !',
+            Text(
+              _isEditing ? 'Evenement modifie\navec succes !' : 'Evenement ajoute\navec succes !',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,

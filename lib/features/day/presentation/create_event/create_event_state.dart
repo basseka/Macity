@@ -102,6 +102,11 @@ const categoryToMode = <String, String>{
 
 /// State du wizard de creation d'evenement.
 class CreateEventState {
+  // Mode edition
+  final bool isEditing;
+  final String? editingEventId;
+  final String? existingPhotoUrl;
+
   // Navigation
   final int currentStep;
   final bool isSubmitting;
@@ -165,6 +170,9 @@ class CreateEventState {
   final String conditionsAnnulation;
 
   const CreateEventState({
+    this.isEditing = false,
+    this.editingEventId,
+    this.existingPhotoUrl,
     this.currentStep = 0,
     this.isSubmitting = false,
     this.errorMessage,
@@ -216,6 +224,9 @@ class CreateEventState {
   });
 
   CreateEventState copyWith({
+    bool? isEditing,
+    String? editingEventId,
+    String? existingPhotoUrl,
     int? currentStep,
     bool? isSubmitting,
     String? errorMessage,
@@ -270,6 +281,9 @@ class CreateEventState {
     bool clearHeureFin = false,
   }) {
     return CreateEventState(
+      isEditing: isEditing ?? this.isEditing,
+      editingEventId: editingEventId ?? this.editingEventId,
+      existingPhotoUrl: existingPhotoUrl ?? this.existingPhotoUrl,
       currentStep: currentStep ?? this.currentStep,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -328,7 +342,7 @@ class CreateEventState {
         if (categorie == null) return 'Choisissez une categorie';
         if (sousCategorie == null) return 'Choisissez une sous-categorie';
         if (titre.trim().isEmpty) return 'Le titre est requis';
-        if (photoPath == null && videoPath == null) return 'Une photo ou video est requise';
+        if (photoPath == null && videoPath == null && existingPhotoUrl == null) return 'Une photo ou video est requise';
         return null;
       case 1:
         if (dateDebut == null) return 'La date de debut est requise';

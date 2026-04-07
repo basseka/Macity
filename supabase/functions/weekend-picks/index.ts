@@ -1,8 +1,12 @@
 // Edge Function: weekend-picks
-// Utilise Claude pour selectionner les 3 events majeurs du week-end par ville.
-// Les resultats sont caches dans la table weekend_picks.
+// Strategie double execution :
+//   - Lundi 8h UTC  : apercu brut sans IA (matchs + events, pas de resume editorial)
+//   - Jeudi 17h UTC : selection IA avec resume editorial (ecrase le lundi)
 //
-// Usage: POST /weekend-picks { "ville": "Lyon" }
+// Params: POST { "ville": "Lyon", "no_ai": true, "force": true }
+//   - no_ai  : skip Claude, prend les events bruts (lundi)
+//   - force  : ignore le cache et regenere (obligatoire pour le jeudi)
+//
 // Deploy: supabase functions deploy weekend-picks --no-verify-jwt
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -50,26 +54,25 @@ interface EventSummary {
   categorie: string;
   photo: string;
   rubrique: string;
+  isMatch: boolean;
 }
 
 async function fetchWeekendEvents(ville: string, saturday: string, sunday: string): Promise<EventSummary[]> {
-  // Samedi
+  // Scraped events — Samedi
   const resSat = await fetch(
     `${SUPABASE_URL}/rest/v1/scraped_events?select=identifiant,nom_de_la_manifestation,date_debut,horaires,lieu_nom,categorie_de_la_manifestation,photo_url,rubrique&ville=ilike.${ville}&date_debut=gte.${saturday}&date_debut=lte.${saturday}&photo_url=neq.&order=date_debut.asc&limit=50`,
     { headers: supaHeaders },
   );
   const satEvents: Record<string, string>[] = await resSat.json();
 
-  // Dimanche
+  // Scraped events — Dimanche
   const resSun = await fetch(
     `${SUPABASE_URL}/rest/v1/scraped_events?select=identifiant,nom_de_la_manifestation,date_debut,horaires,lieu_nom,categorie_de_la_manifestation,photo_url,rubrique&ville=ilike.${ville}&date_debut=gte.${sunday}&date_debut=lte.${sunday}&photo_url=neq.&order=date_debut.asc&limit=50`,
     { headers: supaHeaders },
   );
   const sunEvents: Record<string, string>[] = await resSun.json();
 
-  const allEvents = [...satEvents, ...sunEvents];
-
-  return allEvents.map((e) => ({
+  const scrapedEvents: EventSummary[] = [...satEvents, ...sunEvents].map((e) => ({
     identifiant: e.identifiant,
     nom: e.nom_de_la_manifestation,
     date: e.date_debut,
@@ -78,35 +81,81 @@ async function fetchWeekendEvents(ville: string, saturday: string, sunday: strin
     categorie: e.categorie_de_la_manifestation || "",
     photo: e.photo_url || "",
     rubrique: e.rubrique || "day",
+    isMatch: false,
+  }));
+
+  // Matchs sportifs du week-end (table matchs)
+  const resMatchs = await fetch(
+    `${SUPABASE_URL}/rest/v1/matchs?select=id,sport,equipe_dom,equipe_ext,competition,lieu,ville,date,heure,photo_url,logo_dom,logo_ext,url&ville=eq.${ville}&and=(date.gte.${saturday},date.lte.${sunday})&order=date.asc,heure.asc`,
+    { headers: supaHeaders },
+  );
+  const matchRows: Record<string, string>[] = await resMatchs.json();
+
+  const matchEvents: EventSummary[] = matchRows.map((m) => {
+    const title = m.equipe_ext
+      ? `${m.equipe_dom} vs ${m.equipe_ext}`
+      : m.equipe_dom || m.competition || m.sport;
+    const photo = m.photo_url || m.logo_dom || m.logo_ext || "";
+    return {
+      identifiant: `match_${m.id}`,
+      nom: title,
+      date: m.date,
+      horaires: m.heure || "",
+      lieu: m.lieu || "",
+      categorie: m.sport || "",
+      photo,
+      rubrique: "sport",
+      isMatch: true,
+    };
+  });
+
+  console.log(`[weekend-picks] ${ville}: ${scrapedEvents.length} scraped events + ${matchEvents.length} matchs`);
+  return [...matchEvents, ...scrapedEvents];
+}
+
+// ─── Selection sans IA (lundi) ──────────────────────────────
+
+function selectWithoutAi(events: EventSummary[]): Pick[] {
+  // Priorite : matchs d'abord (les plus attendus), puis events avec photo
+  const matchPicks = events.filter((e) => e.isMatch && e.nom);
+  const eventPicks = events.filter((e) => !e.isMatch && e.photo);
+
+  // Prendre tous les matchs + completer avec les events jusqu'a 9 max
+  const selected = [...matchPicks, ...eventPicks].slice(0, 9);
+
+  return selected.map((e) => ({
+    identifiant: e.identifiant,
+    resume: e.isMatch
+      ? `${e.categorie}${e.horaires ? ` — ${e.horaires}` : ""}${e.lieu ? ` — ${e.lieu}` : ""}`
+      : `${e.categorie}${e.lieu ? ` a ${e.lieu}` : ""}`,
+    isMatch: e.isMatch,
   }));
 }
 
-// ─── Appel Claude ────────────────────────────────────────────
+// ─── Selection avec IA (jeudi) ──────────────────────────────
 
 interface Pick {
   identifiant: string;
   resume: string;
+  isMatch: boolean;
 }
 
 async function askClaude(ville: string, events: EventSummary[]): Promise<Pick[]> {
   if (!ANTHROPIC_API_KEY) {
-    console.log("[weekend-picks] pas de cle ANTHROPIC_API_KEY");
-    // Fallback : prendre les 3 premiers events avec photo
-    return events.slice(0, 3).map((e) => ({
-      identifiant: e.identifiant,
-      resume: `${e.categorie} a ${e.lieu || ville}`,
-    }));
+    console.log("[weekend-picks] pas de cle ANTHROPIC_API_KEY — fallback sans IA");
+    return selectWithoutAi(events);
   }
 
   const eventList = events.map((e, i) =>
-    `${i + 1}. "${e.nom}" — ${e.date} ${e.horaires} — ${e.lieu} — ${e.categorie}`
+    `${i + 1}. [${e.isMatch ? "MATCH" : "EVENT"}] "${e.nom}" — ${e.date} ${e.horaires} — ${e.lieu} — ${e.categorie}`
   ).join("\n");
 
-  const prompt = `Tu es un expert local de ${ville}. Voici les evenements de ce week-end :
+  const prompt = `Tu es un expert local de ${ville}. Voici les evenements et matchs de ce week-end :
 
 ${eventList}
 
-Choisis les 3 evenements les plus importants, populaires ou incontournables pour ce week-end.
+Choisis les 3 evenements/matchs les plus importants, populaires ou incontournables pour ce week-end.
+Inclus au moins 1 match sportif si disponible.
 Pour chacun, ecris un resume editorial accrocheur de 1 a 2 phrases qui donne envie d'y aller.
 
 Reponds UNIQUEMENT avec un JSON valide, sans commentaire :
@@ -137,11 +186,7 @@ Les index correspondent aux numeros dans la liste ci-dessus.`;
     if (!res.ok) {
       const err = await res.text();
       console.error(`[weekend-picks] Claude error: ${res.status} ${err.substring(0, 200)}`);
-      // Fallback
-      return events.slice(0, 3).map((e) => ({
-        identifiant: e.identifiant,
-        resume: `${e.categorie} a ${e.lieu || ville}`,
-      }));
+      return selectWithoutAi(events);
     }
 
     const data = await res.json();
@@ -151,10 +196,7 @@ Les index correspondent aux numeros dans la liste ci-dessus.`;
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       console.error("[weekend-picks] Pas de JSON dans la reponse Claude");
-      return events.slice(0, 3).map((e) => ({
-        identifiant: e.identifiant,
-        resume: `${e.categorie} a ${e.lieu || ville}`,
-      }));
+      return selectWithoutAi(events);
     }
 
     const picks: { index: number; resume: string }[] = JSON.parse(jsonMatch[0]);
@@ -162,14 +204,11 @@ Les index correspondent aux numeros dans la liste ci-dessus.`;
     return picks.map((p) => {
       const event = events[p.index - 1];
       if (!event) return null;
-      return { identifiant: event.identifiant, resume: p.resume };
+      return { identifiant: event.identifiant, resume: p.resume, isMatch: event.isMatch };
     }).filter((p): p is Pick => p !== null);
   } catch (e) {
     console.error(`[weekend-picks] Claude error: ${(e as Error).message}`);
-    return events.slice(0, 3).map((ev) => ({
-      identifiant: ev.identifiant,
-      resume: `${ev.categorie} a ${ev.lieu || ville}`,
-    }));
+    return selectWithoutAi(events);
   }
 }
 
@@ -204,6 +243,8 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const ville: string = body.ville || "";
+    const noAi: boolean = body.no_ai === true;
+    const force: boolean = body.force === true;
 
     if (!ville) {
       return new Response(
@@ -214,19 +255,22 @@ Deno.serve(async (req) => {
 
     const { saturday, sunday, weekStart } = getWeekendDates();
 
-    // Verifier le cache
-    const cached = await getCachedPicks(ville, weekStart);
-    if (cached) {
-      console.log(`[weekend-picks] ${ville}: cache hit (${cached.length} picks)`);
-      return new Response(
-        JSON.stringify({ success: true, ville, cached: true, picks: cached }),
-        { headers: { "Content-Type": "application/json" } },
-      );
+    // Verifier le cache (sauf si force=true)
+    if (!force) {
+      const cached = await getCachedPicks(ville, weekStart);
+      if (cached) {
+        console.log(`[weekend-picks] ${ville}: cache hit (${cached.length} picks)`);
+        return new Response(
+          JSON.stringify({ success: true, ville, cached: true, picks: cached }),
+          { headers: { "Content-Type": "application/json" } },
+        );
+      }
     }
 
     // Fetch events du week-end
     const events = await fetchWeekendEvents(ville, saturday, sunday);
-    console.log(`[weekend-picks] ${ville}: ${events.length} events ce week-end (${saturday} - ${sunday})`);
+    const matchCount = events.filter((e) => e.isMatch).length;
+    console.log(`[weekend-picks] ${ville}: ${events.length} events (${matchCount} matchs) — mode: ${noAi ? "brut" : "IA"} — force: ${force}`);
 
     if (events.length === 0) {
       return new Response(
@@ -235,11 +279,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Demander a Claude
-    const aiPicks = await askClaude(ville, events);
+    // Selection : sans IA (lundi) ou avec IA (jeudi)
+    const rawPicks = noAi
+      ? selectWithoutAi(events)
+      : await askClaude(ville, events);
 
     // Enrichir avec les donnees completes de l'event
-    const enrichedPicks = aiPicks.map((p) => {
+    const enrichedPicks = rawPicks.map((p) => {
       const event = events.find((e) => e.identifiant === p.identifiant);
       return {
         identifiant: p.identifiant,
@@ -250,14 +296,22 @@ Deno.serve(async (req) => {
         horaires: event?.horaires || "",
         lieu: event?.lieu || "",
         categorie: event?.categorie || "",
+        is_match: event?.isMatch || false,
       };
     });
 
-    // Sauvegarder dans le cache
+    // Sauvegarder dans le cache (ecrase le precedent grace a on_conflict)
     await savePicks(ville, weekStart, enrichedPicks);
 
     return new Response(
-      JSON.stringify({ success: true, ville, cached: false, picks: enrichedPicks }),
+      JSON.stringify({
+        success: true,
+        ville,
+        cached: false,
+        mode: noAi ? "brut" : "ia",
+        matchs: matchCount,
+        picks: enrichedPicks,
+      }),
       { headers: { "Content-Type": "application/json" } },
     );
   } catch (e) {
