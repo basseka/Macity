@@ -233,7 +233,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                   Flexible(
                     child: SingleChildScrollView(
                       physics: isPaged ? const NeverScrollableScrollPhysics() : null,
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -286,67 +286,69 @@ class EventFullscreenPopup extends ConsumerWidget {
                               ),
                             ),
                           ],
-
-                          const SizedBox(height: 10),
-
-                          // ── Boutons actions ──
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _iconButton(
-                                icon: isLiked ? Icons.favorite : Icons.favorite_border,
-                                color: isLiked ? Colors.red : Colors.white,
-                                onTap: () => ref.read(likesProvider.notifier).toggle(
-                                  event.identifiant,
-                                  meta: LikeMetadata(
-                                    title: event.titre,
-                                    imageUrl: event.photoPath,
-                                    category: event.categorie,
-                                  ),
-                                ),
-                              ),
-                              _actionButton(
-                                icon: Icons.share_outlined,
-                                label: 'Partager',
-                                color: Colors.white,
-                                onTap: () => _shareEvent(),
-                              ),
-                              _actionButton(
-                                icon: Icons.people_alt_outlined,
-                                label: 'Envoyer',
-                                color: const Color(0xFF6C5CE7),
-                                onTap: () => _shareInApp(context),
-                              ),
-                            ],
-                          ),
-
-                          // Billetterie
-                          if (event.reservationUrl.isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 44,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _openUrl(event.reservationUrl),
-                                icon: const Icon(Icons.confirmation_number_outlined, size: 18),
-                                label: const Text(
-                                  'Billetterie',
-                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFE91E8C),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                  elevation: 0,
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
                   ),
+
+                  // ── Boutons actions fixes ──
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, event.reservationUrl.isNotEmpty ? 8 : 16),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _iconButton(
+                          icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                          color: isLiked ? Colors.red : Colors.white,
+                          onTap: () => ref.read(likesProvider.notifier).toggle(
+                            event.identifiant,
+                            meta: LikeMetadata(
+                              title: event.titre,
+                              imageUrl: event.photoPath,
+                              category: event.categorie,
+                            ),
+                          ),
+                        ),
+                        _actionButton(
+                          icon: Icons.share_outlined,
+                          label: 'Partager',
+                          color: Colors.white,
+                          onTap: () => _shareEvent(),
+                        ),
+                        _actionButton(
+                          icon: Icons.people_alt_outlined,
+                          label: 'Envoyer',
+                          color: const Color(0xFF6C5CE7),
+                          onTap: () => _shareInApp(context),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── Billetterie fixe en bas ──
+                  if (event.reservationUrl.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _openUrl(event.reservationUrl),
+                          icon: const Icon(Icons.confirmation_number_outlined, size: 18),
+                          label: const Text(
+                            'Billetterie',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFE91E8C),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
