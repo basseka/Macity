@@ -12,6 +12,10 @@ import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+import 'package:pulz_app/features/home/presentation/widgets/discovery_buttons.dart';
+import 'package:pulz_app/features/reported_events/presentation/report_event_modal.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -109,38 +113,94 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Ligne 2 : barre de recherche
-          GestureDetector(
-            onTap: () => _openSearch(context),
-            child: Container(
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.shade300, width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 14),
-                  Icon(Icons.search, color: const Color(0xFF7B2D8E), size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Rechercher un evenement, un lieu...',
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
+          // Ligne 2 : barre de recherche + bouton Signaler
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _openSearch(context),
+                  child: Container(
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 14),
+                        const Icon(
+                          Icons.search,
+                          color: Color(0xFF7B2D8E),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Rechercher un evenement, un lieu...',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(width: 8),
+              // Bouton "Signaler" compact rouge — style Waze
+              Material(
+                color: const Color(0xFFDC2626),
+                borderRadius: BorderRadius.circular(20),
+                elevation: 0,
+                child: InkWell(
+                  onTap: _openReportModal,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.35),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.flag,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Signaler',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -165,6 +225,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               SizedBox(height: isLandscape ? 4 : 6),
 
+              // Boutons decouverte en haut
+              const DiscoveryButtons(),
+              const SizedBox(height: 12),
+
               // Section: Sortir
               _buildSectionHeader('Sortir', Icons.celebration_outlined),
               const SizedBox(height: 6),
@@ -178,6 +242,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildGridRow(_explorerModes, ratio: ratio.clamp(1.0, 1.6)),
 
               const SizedBox(height: 16),
+
+              // Section: Signalements communautaires (style Waze)
+              _buildSectionHeader('Ca bouge pres de toi', Icons.flag_outlined),
+              const SizedBox(height: 6),
+              const ReportedEventsMap(),
+              const SizedBox(height: 8),
+              const ReportedEventsCarousel(),
+
+              // Espace en bas pour ne pas cacher le contenu derriere le FAB
+              const SizedBox(height: 80),
             ],
           ),
         );
@@ -311,6 +385,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       builder: (_) => const SearchEventsBottomSheet(),
     );
   }
+
+  void _openReportModal() {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ReportEventModal(),
+    );
+  }
 }
 
 /// Bottom sheet version of the mode grid (used from nav bar "Explorer" button).
@@ -366,6 +450,8 @@ class HomeScreenSheet extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const DiscoveryButtons(),
+                  const SizedBox(height: 12),
                   _buildSectionHeader('Sortir', Icons.celebration_outlined),
                   const SizedBox(height: 6),
                   _buildGridRow(context, ref, _sortirModes),

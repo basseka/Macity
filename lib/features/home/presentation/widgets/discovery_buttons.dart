@@ -11,7 +11,7 @@ class DiscoveryButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 2),
       child: Row(
         children: [
           _DiscoveryChip(
@@ -22,7 +22,7 @@ class DiscoveryButtons extends StatelessWidget {
             ),
             onTap: () => RightNowSheet.show(context),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           _DiscoveryChip(
             emoji: '\uD83D\uDCCD',
             label: 'Proche',
@@ -31,7 +31,7 @@ class DiscoveryButtons extends StatelessWidget {
             ),
             onTap: () => NearbySheet.show(context),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           _DiscoveryChip(
             emoji: '\uD83C\uDF89',
             label: 'Week-end',
@@ -65,28 +65,28 @@ class _DiscoveryChip extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 3),
           decoration: BoxDecoration(
             gradient: gradient,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(9),
             boxShadow: [
               BoxShadow(
-                color: gradient.colors.first.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: gradient.colors.first.withValues(alpha: 0.25),
+                blurRadius: 6,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 12)),
-              const SizedBox(width: 3),
+              Text(emoji, style: const TextStyle(fontSize: 10)),
+              const SizedBox(width: 2),
               Flexible(
                 child: Text(
                   label,
                   style: GoogleFonts.poppins(
-                    fontSize: 10,
+                    fontSize: 8,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),

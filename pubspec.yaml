@@ -1,7 +1,7 @@
 name: pulz_app
 description: PUL'Z - Explore ta ville (Day, Sport, Family, Night)
 publish_to: 'none'
-version: 1.0.55+60
+version: 1.0.59+64
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -35,6 +35,7 @@ dependencies:
   firebase_messaging: ^15.2.1
   flutter_local_notifications: ^18.0.1
   timezone: ^0.10.0
+  app_badge_plus: ^1.2.0
 
   # Images
   cached_network_image: ^3.3.0
@@ -66,7 +67,7 @@ dependencies:
   connectivity_plus: ^5.0.2
 
   # Intl (date formatting)
-  intl: any
+  intl: ^0.20.2
 
   # UUID
   uuid: ^4.2.2
@@ -93,8 +94,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
+  remove_alpha_ios: true
   image_path: "assets/icon/app_icon.png"
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#7B2D8E"
   adaptive_icon_foreground: "assets/icon/app_icon.png"
   adaptive_icon_round: "assets/icon/app_icon.png"
 

@@ -7,8 +7,13 @@
 -keep class io.flutter.plugins.** { *; }
 
 # Dart / Gson / JSON
--keepattributes *Annotation*
+-keepattributes Signature,*Annotation*
 -dontwarn sun.misc.**
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+
+# Flutter Local Notifications (uses Gson TypeToken internally)
+-keep class com.dexterous.** { *; }
 
 # OkHttp (used by Dio)
 -dontwarn okhttp3.**

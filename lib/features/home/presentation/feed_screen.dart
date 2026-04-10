@@ -33,7 +33,6 @@ import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:pulz_app/features/home/state/feed_video_controller.dart';
-import 'package:pulz_app/features/home/presentation/widgets/discovery_buttons.dart';
 import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
@@ -44,6 +43,9 @@ import 'package:pulz_app/core/widgets/animated_ad_banner.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/features/reported_events/presentation/report_event_modal.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 
 final _foodScrapedProvider = FutureProvider.family<List<Event>, String>((ref, city) async {
   final now = DateTime.now();
@@ -66,7 +68,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     'Concert': ['concert', 'musique'],
     'Spectacles': ['spectacle', 'opera', 'comedie', 'humour', 'stand-up'],
     'Theatre': ['theatre', 'théâtre'],
-    'Soiree': ['soiree', 'soirée', 'club', 'dj', 'night'],
+    'Salon': ['exposition', 'salon', 'expo', 'foire', 'vernissage'],
+    'Soiree': ['soiree', 'soirée', 'club', 'dj', 'night', 'showcase'],
     'Famille': ['famille', 'enfant', 'family', 'jeune public'],
     'Food': ['food', 'restaurant', 'gastronomie', 'marche', 'brunch'],
   };
@@ -354,6 +357,37 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      // Bouton "Signaler" rond rouge avec flash blanc — style Waze compact
+                      Material(
+                        color: const Color(0xFFDC2626),
+                        shape: const CircleBorder(),
+                        elevation: 0,
+                        child: InkWell(
+                          onTap: _openReportModal,
+                          customBorder: const CircleBorder(),
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFDC2626)
+                                      .withValues(alpha: 0.45),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.bolt,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
         ],
@@ -371,6 +405,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     AppMode.gaming,
     AppMode.tourisme,
   ];
+
+  void _openReportModal() {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ReportEventModal(),
+    );
+  }
 
   void _showCategoryMenu(BuildContext context) {
     showModalBottomSheet(
@@ -1064,9 +1108,48 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       child: CustomScrollView(
         controller: scrollController,
         slivers: [
-          // Discovery + Boosted insérés en haut du feed scroll
+          // Discovery + signalements commu + Boosted inseres en haut du feed scroll
           if (!_isLandscape) ...[
-            const SliverToBoxAdapter(child: DiscoveryButtons()),
+            // DiscoveryButtons deplace dans Explorer (home_screen)
+            // Section : signalements communautaires (style Waze) — EN PREMIER
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.flag,
+                      size: 14,
+                      color: Color(0xFFDC2626),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Ca bouge pres de toi',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: ReportedEventsMap(height: 280),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: ReportedEventsCarousel(),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            // Boosted events (A la une + Au top)
             const SliverToBoxAdapter(child: BoostedEventsCarousel()),
             const SliverToBoxAdapter(child: BoostedP2Carousel()),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
