@@ -515,7 +515,8 @@ class EventFullscreenPopup extends ConsumerWidget {
       context,
       eventId: event.identifiant,
       eventTitle: event.titre,
-      currentPriority: 'P4', // TODO: passer la vraie priorité si disponible
+      eventDate: event.dateDebut,
+      currentPriority: 'P4',
     );
   }
 

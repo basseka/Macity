@@ -56,7 +56,7 @@ Future<List<UserEvent>> _fetchByPriority(String city, String priority, int limit
 /// Events boostés P1 pour la ville sélectionnée (max depuis app_config).
 final boostedEventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  final max = await _getConfigInt('boosted_p1_max', 4);
+  final max = await _getConfigInt('boosted_p1_max', 5);
   return _fetchByPriority(city, 'P1', max);
 });
 

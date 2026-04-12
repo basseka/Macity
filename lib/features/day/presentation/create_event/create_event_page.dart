@@ -16,8 +16,9 @@ import 'package:pulz_app/features/day/domain/models/user_event.dart';
 class CreateEventPage extends ConsumerStatefulWidget {
   final String? initialPhotoPath;
   final UserEvent? eventToEdit;
+  final int initialStep;
 
-  const CreateEventPage({super.key, this.initialPhotoPath, this.eventToEdit});
+  const CreateEventPage({super.key, this.initialPhotoPath, this.eventToEdit, this.initialStep = 0});
 
   @override
   ConsumerState<CreateEventPage> createState() => _CreateEventPageState();
@@ -33,10 +34,13 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _pageController = PageController(initialPage: widget.initialStep);
     Future.microtask(() {
       if (widget.eventToEdit != null) {
-        ref.read(createEventProvider.notifier).loadEvent(widget.eventToEdit!);
+        ref.read(createEventProvider.notifier).loadEvent(
+          widget.eventToEdit!,
+          initialStep: widget.initialStep,
+        );
       } else if (widget.initialPhotoPath != null) {
         ref.read(createEventProvider.notifier).updatePhotoPath(widget.initialPhotoPath!);
       }
@@ -294,15 +298,21 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     if (_isLastStep(state)) {
       final success = await notifier.submit();
       if (success && mounted) {
-        // Rafraîchir la liste des publications
         ref.invalidate(myPublicationsProvider);
         final priority = state.priority;
-        if (!_isEditing && (priority == 'P1' || priority == 'P2') && notifier.lastCreatedEventId != null) {
-          // Boost payant sélectionné → paiement Stripe
+        final isPaidBoost = !_isEditing &&
+            (priority == 'P1' || priority == 'P2') &&
+            notifier.lastCreatedEventId != null;
+
+        if (isPaidBoost) {
+          // Boost payant : ouvrir Stripe AVANT le message de succes
           final userId = await UserIdentityService.getUserId();
           final sortedDates = state.boostDates.toList()..sort();
-          final startDate = sortedDates.isNotEmpty ? sortedDates.first : DateTime.now();
-          StripeService.checkout(
+          final startDate = sortedDates.isNotEmpty
+              ? sortedDates.first
+              : DateTime.now();
+          if (!mounted) return;
+          final opened = await StripeService.checkout(
             eventId: notifier.lastCreatedEventId!,
             eventTitle: state.titre,
             priority: priority,
@@ -310,15 +320,27 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             days: state.boostDates.length.clamp(1, 30),
             startDate: startDate,
           );
+          if (!mounted) return;
+          if (opened) {
+            // Stripe s'est ouvert — afficher un message adapte
+            _showPaidBoostPendingAndPop();
+          } else {
+            // Stripe n'a pas pu s'ouvrir — event cree mais boost en attente
+            _showSuccessAndPop(
+              subtitle:
+                  'Event cree ! Le boost sera actif apres validation du paiement.',
+            );
+          }
+        } else {
+          _showSuccessAndPop();
         }
-        _showSuccessAndPop();
       }
     } else {
       notifier.nextStep();
     }
   }
 
-  void _showSuccessAndPop() {
+  void _showSuccessAndPop({String? subtitle}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -350,7 +372,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Il sera visible dans la rubrique correspondante.',
+              subtitle ?? 'Il sera visible dans la rubrique correspondante.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),
@@ -364,6 +386,77 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Fermer',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Affiche apres que Stripe s'est ouvert — l'utilisateur revient dans l'app
+  /// apres avoir paye (ou annule). Le webhook Stripe activera le boost.
+  void _showPaidBoostPendingAndPop() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Color(0xFFFF6B00), Color(0xFFE91E8C)],
+                ),
+              ),
+              child: const Icon(
+                Icons.rocket_launch,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Evenement cree !',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: _primaryDarkColor,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Le boost sera actif des que le paiement sera confirme.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6B00),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

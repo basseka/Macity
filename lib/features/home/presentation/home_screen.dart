@@ -157,49 +157,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              // Bouton "Signaler" compact rouge — style Waze
-              Material(
-                color: const Color(0xFFDC2626),
-                borderRadius: BorderRadius.circular(20),
-                elevation: 0,
-                child: InkWell(
-                  onTap: _openReportModal,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    height: 36,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFDC2626).withValues(alpha: 0.35),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.flag,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Signaler',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ],
@@ -244,7 +201,40 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: 16),
 
               // Section: Signalements communautaires (style Waze)
-              _buildSectionHeader('Ca bouge pres de toi', Icons.flag_outlined),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSectionHeader('Ca bouge pres de toi', Icons.flag_outlined),
+                  ),
+                  Material(
+                    color: const Color(0xFFDC2626),
+                    borderRadius: BorderRadius.circular(20),
+                    child: InkWell(
+                      onTap: _openReportModal,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        height: 28,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.flag, color: Colors.white, size: 12),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Signaler',
+                              style: GoogleFonts.poppins(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 6),
               const ReportedEventsMap(),
               const SizedBox(height: 8),

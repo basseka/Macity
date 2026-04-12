@@ -357,37 +357,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Bouton "Signaler" rond rouge avec flash blanc — style Waze compact
-                      Material(
-                        color: const Color(0xFFDC2626),
-                        shape: const CircleBorder(),
-                        elevation: 0,
-                        child: InkWell(
-                          onTap: _openReportModal,
-                          customBorder: const CircleBorder(),
-                          child: Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFDC2626)
-                                      .withValues(alpha: 0.45),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.bolt,
-                              color: Colors.white,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
         ],
@@ -1123,12 +1092,41 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       color: Color(0xFFDC2626),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      'Ca bouge pres de toi',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        'Ca bouge pres de toi',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Material(
+                      color: const Color(0xFFDC2626),
+                      borderRadius: BorderRadius.circular(20),
+                      child: InkWell(
+                        onTap: _openReportModal,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          height: 26,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.flag, color: Colors.white, size: 11),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Signaler',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
