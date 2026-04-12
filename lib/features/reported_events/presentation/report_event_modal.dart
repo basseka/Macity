@@ -17,7 +17,8 @@ import 'package:pulz_app/features/reported_events/state/reported_events_provider
 /// 5. Photo optionnelle
 /// 6. CTA "Signaler ici"
 class ReportEventModal extends ConsumerStatefulWidget {
-  const ReportEventModal({super.key});
+  final String? initialVideoPath;
+  const ReportEventModal({super.key, this.initialVideoPath});
 
   @override
   ConsumerState<ReportEventModal> createState() => _ReportEventModalState();
@@ -25,19 +26,24 @@ class ReportEventModal extends ConsumerStatefulWidget {
 
 class _ReportEventModalState extends ConsumerState<ReportEventModal> {
   final TextEditingController _titleCtrl = TextEditingController();
+  final TextEditingController _locationCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Lance la geolocalisation immediatement
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(reportFormProvider.notifier).initLocation();
+      // Si lance depuis le bouton video, pre-remplir le chemin video
+      if (widget.initialVideoPath != null) {
+        ref.read(reportFormProvider.notifier).setVideo(widget.initialVideoPath!);
+      }
     });
   }
 
   @override
   void dispose() {
     _titleCtrl.dispose();
+    _locationCtrl.dispose();
     super.dispose();
   }
 
@@ -73,6 +79,7 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
   Future<void> _submit() async {
     final notifier = ref.read(reportFormProvider.notifier);
     notifier.setTitle(_titleCtrl.text);
+    notifier.setLocationName(_locationCtrl.text);
     final id = await notifier.submit();
     if (!mounted) return;
     if (id != null) {
@@ -166,6 +173,13 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
                   children: [
                     // Localisation GPS (sans carte)
                     _LocationBadge(state: state),
+                    const SizedBox(height: 10),
+
+                    // Lieu (pre-rempli par reverse geocoding, editable)
+                    _LocationNameField(
+                      controller: _locationCtrl,
+                      state: state,
+                    ),
                     const SizedBox(height: 14),
 
                     // Categorie
@@ -241,6 +255,47 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
                       onClear: () =>
                           ref.read(reportFormProvider.notifier).setPhoto(null),
                     ),
+
+                    // Video attachee (depuis le bouton camera)
+                    if (state.localVideoPath != null) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7B2D8E).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: const Color(0xFF7B2D8E).withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.videocam,
+                              size: 16,
+                              color: Color(0xFF7B2D8E),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Video attachee (10s max)',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF4A1259),
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.check_circle,
+                              size: 16,
+                              color: Color(0xFF10B981),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     if (state.error != null) ...[
                       const SizedBox(height: 8),
@@ -379,12 +434,18 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
         return 'ex: Concert improvise dans la rue';
       case 'fete':
         return 'ex: Fete de quartier place...';
+      case 'festival':
+        return 'ex: Festival musique au parc';
       case 'marche':
         return 'ex: Marche de Noel sur...';
       case 'sport':
         return 'ex: Tournoi 3x3 au parc';
       case 'food':
         return 'ex: Food truck devant...';
+      case 'exposition':
+        return 'ex: Expo photo au musee...';
+      case 'salon':
+        return 'ex: Salon du livre place...';
       default:
         return 'Decris en quelques mots...';
     }
@@ -528,14 +589,20 @@ class _CategoryGrid extends StatelessWidget {
         Color(0xFF7C3AED), Color(0xFF9333EA),),
     _CatItem('fete', Icons.celebration_rounded, 'Fete',
         Color(0xFFE91E8C), Color(0xFFEC4899),),
+    _CatItem('festival', Icons.festival_rounded, 'Festival',
+        Color(0xFF6C5CE7), Color(0xFFA29BFE),),
     _CatItem('marche', Icons.storefront_rounded, 'Marche',
         Color(0xFF10B981), Color(0xFF34D399),),
     _CatItem('sport', Icons.sports_soccer_rounded, 'Sport',
         Color(0xFFE11D48), Color(0xFFFB7185),),
     _CatItem('food', Icons.restaurant_rounded, 'Food',
         Color(0xFFD97706), Color(0xFFFBBF24),),
-    _CatItem('autre', Icons.more_horiz_rounded, 'Autre',
+    _CatItem('exposition', Icons.palette_rounded, 'Expo',
         Color(0xFF0891B2), Color(0xFF22D3EE),),
+    _CatItem('salon', Icons.groups_rounded, 'Salon',
+        Color(0xFF059669), Color(0xFF6EE7B7),),
+    _CatItem('autre', Icons.more_horiz_rounded, 'Autre',
+        Color(0xFF64748B), Color(0xFF94A3B8),),
   ];
 
   @override
@@ -726,6 +793,98 @@ class _PhotoButton extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ───────────────────────────────────────────
+// Champ lieu (reverse geocode + editable)
+// ───────────────────────────────────────────
+
+class _LocationNameField extends StatefulWidget {
+  final TextEditingController controller;
+  final ReportFormState state;
+
+  const _LocationNameField({
+    required this.controller,
+    required this.state,
+  });
+
+  @override
+  State<_LocationNameField> createState() => _LocationNameFieldState();
+}
+
+class _LocationNameFieldState extends State<_LocationNameField> {
+  bool _prefilled = false;
+
+  @override
+  void didUpdateWidget(covariant _LocationNameField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Pre-remplir une seule fois quand le reverse geocode arrive
+    if (!_prefilled &&
+        widget.state.locationName.isNotEmpty &&
+        widget.controller.text.isEmpty) {
+      widget.controller.text = widget.state.locationName;
+      _prefilled = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: widget.controller,
+      maxLength: 80,
+      style: GoogleFonts.poppins(fontSize: 12),
+      decoration: InputDecoration(
+        hintText: 'Bar, rue, place...',
+        hintStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          color: Colors.grey.shade400,
+        ),
+        prefixIcon: Icon(
+          Icons.place_outlined,
+          size: 16,
+          color: Colors.grey.shade500,
+        ),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 36,
+          minHeight: 36,
+        ),
+        suffixIcon: widget.state.locationName.isNotEmpty &&
+                widget.controller.text.isEmpty
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.white,
+        isDense: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: Color(0xFF7B2D8E),
+            width: 1.4,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 10,
+          vertical: 10,
+        ),
+        counterText: '',
       ),
     );
   }

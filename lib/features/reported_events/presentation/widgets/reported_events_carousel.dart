@@ -72,6 +72,7 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
           height: 58,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 4),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(width: 6),
@@ -88,7 +89,10 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                   useRootNavigator: true,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (_) => ReportedEventDetailSheet(event: event),
+                  builder: (_) => _PagedDetailSheet(
+                    events: sorted,
+                    initialIndex: index,
+                  ),
                 ),
               );
 
@@ -193,6 +197,82 @@ class _EmptyHint extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ───────────────────────────────────────────
+// Detail sheet swipable (PageView entre affiches)
+// ───────────────────────────────────────────
+
+class _PagedDetailSheet extends StatefulWidget {
+  final List<ReportedEvent> events;
+  final int initialIndex;
+
+  const _PagedDetailSheet({
+    required this.events,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_PagedDetailSheet> createState() => _PagedDetailSheetState();
+}
+
+class _PagedDetailSheetState extends State<_PagedDetailSheet> {
+  late PageController _pageCtrl;
+  late int _current;
+
+  @override
+  void initState() {
+    super.initState();
+    _current = widget.initialIndex;
+    _pageCtrl = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Dots indicateur
+        Container(
+          margin: const EdgeInsets.only(top: 8, bottom: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(widget.events.length, (i) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: i == _current ? 16 : 6,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: i == _current
+                      ? const Color(0xFF7B2D8E)
+                      : Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              );
+            }),
+          ),
+        ),
+        // PageView des detail sheets
+        Expanded(
+          child: PageView.builder(
+            controller: _pageCtrl,
+            itemCount: widget.events.length,
+            onPageChanged: (i) => setState(() => _current = i),
+            itemBuilder: (_, index) => ReportedEventDetailSheet(
+              event: widget.events[index],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

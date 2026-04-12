@@ -28,12 +28,15 @@ class EventRepository {
     // Essayer les scraped events (fonctionne pour toutes les villes scrapées)
     final source = _subcategoryToSource[subcategory];
     if (source != null) {
+      // Festivals statiques n'ont pas de photo — ne pas filtrer par photo
+      final noPhotoRequired = source == 'day_festival';
       final events = await _scrapedService.fetchEvents(
         rubrique: 'day',
         source: source,
         dateGte: _todayStr(),
         lieuNom: lieuNom,
         ville: city,
+        requirePhoto: !noPhotoRequired,
       );
       if (events.isNotEmpty) return _dedup(events);
     }

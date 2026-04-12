@@ -10,6 +10,7 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 
 /// Service Supabase pour les signalements communautaires (style Waze).
@@ -118,6 +119,51 @@ class ReportedEventsService {
     }
   }
 
+  /// Upload video courte (10s max). Meme strategie que _uploadPhotoLight.
+  Future<String?> _uploadVideoLight(String localPath) async {
+    try {
+      await Future<void>.delayed(Duration.zero);
+      final file = File(localPath);
+      if (!await file.exists()) return null;
+
+      final bytes = await file.readAsBytes();
+      if (bytes.isEmpty) return null;
+      // Garde-fou : refuse > 20 MB
+      if (bytes.length > 20 * 1024 * 1024) {
+        debugPrint('[ReportedEvents] video too large: ${bytes.length} bytes');
+        return null;
+      }
+
+      await Future<void>.delayed(Duration.zero);
+
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final fileName = '${ts}_report.mp4';
+
+      await _storageDio
+          .post(
+            'object/user-events/$fileName',
+            data: bytes,
+            options: Options(
+              headers: {'Content-Type': 'video/mp4'},
+              sendTimeout: const Duration(seconds: 30),
+              receiveTimeout: const Duration(seconds: 30),
+            ),
+          )
+          .timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          debugPrint('[ReportedEvents] video upload timeout');
+          throw TimeoutException('Video upload timeout');
+        },
+      );
+
+      return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+    } catch (e, st) {
+      debugPrint('[ReportedEvents] _uploadVideoLight failed: $e\n$st');
+      return null;
+    }
+  }
+
   /// Signale un evenement communautaire (style Waze).
   ///
   /// Utilise la fonction RPC `upsert_reported_event` qui :
@@ -135,6 +181,8 @@ class ReportedEventsService {
     required double lat,
     required double lng,
     String? localPhotoPath,
+    String? localVideoPath,
+    String locationName = '',
   }) async {
     // Yield au scheduler avant les operations lourdes pour eviter ANR
     await Future<void>.delayed(Duration.zero);
@@ -142,11 +190,37 @@ class ReportedEventsService {
     final userId = await UserIdentityService.getUserId();
 
     String? photoUrl;
+    String? videoUrl;
     if (localPhotoPath != null && localPhotoPath.isNotEmpty) {
-      // Upload "light" non bloquant. Si echec, on continue sans photo.
       photoUrl = await _uploadPhotoLight(localPhotoPath);
       if (photoUrl == null) {
         debugPrint('[ReportedEvents] photo upload returned null, continuing without photo');
+      }
+    }
+
+    // Upload video si presente
+    if (localVideoPath != null && localVideoPath.isNotEmpty) {
+      videoUrl = await _uploadVideoLight(localVideoPath);
+      if (videoUrl == null) {
+        debugPrint('[ReportedEvents] video upload returned null, continuing without video');
+      }
+
+      // Si pas de photo, extraire un thumbnail de la video comme photo
+      if (photoUrl == null) {
+        try {
+          final thumbPath = await VideoThumbnail.thumbnailFile(
+            video: localVideoPath,
+            imageFormat: ImageFormat.JPEG,
+            maxWidth: 800,
+            quality: 70,
+          );
+          if (thumbPath != null) {
+            photoUrl = await _uploadPhotoLight(thumbPath);
+            debugPrint('[ReportedEvents] video thumbnail uploaded: $photoUrl');
+          }
+        } catch (e) {
+          debugPrint('[ReportedEvents] thumbnail extraction failed: $e');
+        }
       }
     }
 
@@ -165,6 +239,7 @@ class ReportedEventsService {
       'p_lat': lat,
       'p_lng': lng,
       'p_photo_url': photoUrl,
+      'p_video_url': videoUrl,
     };
     debugPrint('[ReportedEvents] rpc payload: $payload');
 
@@ -218,6 +293,28 @@ class ReportedEventsService {
       unawaited(_triggerPosterGeneration(id));
     }
 
+    // PATCH les champs extra (pas dans la RPC pour eviter de la modifier)
+    final patchData = <String, dynamic>{};
+    if (locationName.isNotEmpty) patchData['location_name'] = locationName;
+    if (patchData.isNotEmpty) {
+      try {
+        await _restDio.patch(
+          'reported_events?id=eq.$id',
+          data: patchData,
+          options: Options(
+            headers: {'Prefer': 'return=minimal'},
+          ),
+        );
+      } catch (e) {
+        if (e is DioException) {
+          debugPrint('[ReportedEvents] PATCH failed: ${e.response?.statusCode} body=${e.response?.data}');
+          debugPrint('[ReportedEvents] PATCH data was: $patchData');
+        } else {
+          debugPrint('[ReportedEvents] extra fields patch failed: $e');
+        }
+      }
+    }
+
     return id;
   }
 
@@ -250,7 +347,7 @@ class ReportedEventsService {
     final nowIso = DateTime.now().toUtc().toIso8601String();
     final query = <String, String>{
       'select': '*',
-      'status': 'eq.published',
+      'status': 'in.(published,ai_generating)',
       'expires_at': 'gt.$nowIso',
       'order': 'created_at.desc',
       'limit': '200',

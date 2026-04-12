@@ -13,7 +13,7 @@ import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet
 import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/home/presentation/widgets/discovery_buttons.dart';
-import 'package:pulz_app/features/reported_events/presentation/report_event_modal.dart';
+import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 
@@ -207,10 +207,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: _buildSectionHeader('Ca bouge pres de toi', Icons.flag_outlined),
                   ),
                   Material(
-                    color: const Color(0xFFDC2626),
+                    color: const Color(0xFF7B2D8E),
                     borderRadius: BorderRadius.circular(20),
                     child: InkWell(
-                      onTap: _openReportModal,
+                      onTap: _openVideoReport,
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
                         height: 28,
@@ -218,14 +218,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.flag, color: Colors.white, size: 12),
-                            const SizedBox(width: 4),
                             Text(
                               'Signaler',
                               style: GoogleFonts.poppins(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDC2626),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -377,12 +391,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _openReportModal() {
-    showModalBottomSheet(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const ReportEventModal(),
+    _openSnapCamera();
+  }
+
+  void _openVideoReport() {
+    _openSnapCamera();
+  }
+
+  void _openSnapCamera() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const SnapCameraScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
     );
   }
 }

@@ -39,7 +39,6 @@ class ReportedEventPosterCard extends StatelessWidget {
     final firstPhoto = event.firstPhoto;
     final hasPhoto = firstPhoto != null && firstPhoto.isNotEmpty;
 
-    final emojiSize = isUltra ? 16.0 : (isCompact ? 22.0 : 28.0);
     final titleFontSize = isUltra ? 10.0 : (isCompact ? 12.0 : 14.0);
     final metaFontSize = isUltra ? 8.0 : (isCompact ? 9.0 : 10.0);
     final padding = isUltra ? 6.0 : (isCompact ? 8.0 : 12.0);
@@ -113,14 +112,37 @@ class ReportedEventPosterCard extends StatelessWidget {
                 ),
               ),
 
-              // Top-right : emoji (+ compteur photos si plusieurs)
+              // Top-right : badges (video, photos)
               Positioned(
-                top: padding - 4,
+                top: padding,
                 right: padding,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (event.photos.length > 1) ...[
+                    // Badge video
+                    if (event.videos.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.play_arrow, size: 10, color: Colors.white),
+                            SizedBox(width: 2),
+                            Icon(Icons.videocam, size: 10, color: Colors.white),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    // Badge photos
+                    if (event.photos.length > 1)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 5,
@@ -150,12 +172,6 @@ class ReportedEventPosterCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 6),
-                    ],
-                    Text(
-                      g?.emoji ?? '📍',
-                      style: TextStyle(fontSize: emojiSize),
-                    ),
                   ],
                 ),
               ),
@@ -287,9 +303,32 @@ class ReportedEventPosterCard extends StatelessWidget {
   }
 }
 
-class _TimeBadge extends StatelessWidget {
+class _TimeBadge extends StatefulWidget {
   final String label;
   const _TimeBadge({required this.label});
+
+  @override
+  State<_TimeBadge> createState() => _TimeBadgeState();
+}
+
+class _TimeBadgeState extends State<_TimeBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -302,17 +341,24 @@ class _TimeBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: Color(0xFFDC2626),
-              shape: BoxShape.circle,
+          AnimatedBuilder(
+            animation: _ctrl,
+            builder: (_, __) => Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Color.lerp(
+                  const Color(0xFFDC2626),
+                  const Color(0xFFDC2626).withValues(alpha: 0.2),
+                  _ctrl.value,
+                ),
+                shape: BoxShape.circle,
+              ),
             ),
           ),
           const SizedBox(width: 5),
           Text(
-            label.toUpperCase(),
+            widget.label.toUpperCase(),
             style: GoogleFonts.poppins(
               fontSize: 8,
               fontWeight: FontWeight.w800,

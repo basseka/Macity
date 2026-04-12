@@ -30,22 +30,9 @@ class BoostedEventsCarousel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-          child: Row(
-            children: [
-              const Icon(Icons.rocket_launch, size: 14, color: Color(0xFFFF6B00)),
-              const SizedBox(width: 6),
-              Text(
-                'A la une',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
+          child: _ShimmerTitle(),
         ),
         SizedBox(
           height: 160,
@@ -270,22 +257,9 @@ class BoostedP2Carousel extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-              child: Row(
-                children: [
-                  const Icon(Icons.trending_up, size: 14, color: _accentColor),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Au top',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
+              child: _ShimmerTitleAuTop(),
             ),
             SizedBox(
               height: 100,
@@ -418,6 +392,138 @@ class _P2Card extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Titre "A la une" avec effet shimmer/scintillement dore.
+class _ShimmerTitle extends StatefulWidget {
+  const _ShimmerTitle();
+
+  @override
+  State<_ShimmerTitle> createState() => _ShimmerTitleState();
+}
+
+class _ShimmerTitleState extends State<_ShimmerTitle>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(-1.0 + 3.0 * _ctrl.value, 0),
+              end: Alignment(-0.5 + 3.0 * _ctrl.value, 0),
+              colors: const [
+                Colors.white,
+                Color(0xFFFFD700),
+                Colors.white,
+              ],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: child!,
+        );
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.rocket_launch, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            'A la une',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Titre "Au top" avec effet shimmer rose/blanc.
+class _ShimmerTitleAuTop extends StatefulWidget {
+  const _ShimmerTitleAuTop();
+
+  @override
+  State<_ShimmerTitleAuTop> createState() => _ShimmerTitleAuTopState();
+}
+
+class _ShimmerTitleAuTopState extends State<_ShimmerTitleAuTop>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(-1.0 + 3.0 * _ctrl.value, 0),
+              end: Alignment(-0.5 + 3.0 * _ctrl.value, 0),
+              colors: const [
+                Colors.white,
+                Color(0xFFE91E8C),
+                Colors.white,
+              ],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: child!,
+        );
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.trending_up, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            'Au top',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

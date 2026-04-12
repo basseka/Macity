@@ -16,10 +16,14 @@ class ReportedEvent {
   final double lat;
   final double lng;
   final String? ville;
+  final String locationName;
 
   /// Photos accumulees au fur et a mesure que des users signalent le meme event.
   /// Chaque URL pointe vers le bucket Supabase `user-events`.
   final List<String> photos;
+
+  /// Videos courtes accumulees (10s max chacune).
+  final List<String> videos;
 
   /// Nombre de personnes distinctes qui ont signale cet event.
   /// 1 = uniquement le reporter original, >1 = signalements communautaires.
@@ -47,7 +51,9 @@ class ReportedEvent {
     required this.lat,
     required this.lng,
     this.ville,
+    this.locationName = '',
     this.photos = const [],
+    this.videos = const [],
     this.reportCount = 1,
     this.reporterIds = const [],
     required this.status,
@@ -87,7 +93,13 @@ class ReportedEvent {
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       ville: json['ville'] as String?,
+      locationName: (json['location_name'] as String?) ?? '',
       photos: photos,
+      videos: (json['videos'] is List)
+          ? (json['videos'] as List).map((e) => e.toString()).toList()
+          : (json['video_url'] is String && (json['video_url'] as String).isNotEmpty)
+              ? [json['video_url'] as String]
+              : const <String>[],
       reportCount: (json['report_count'] as num?)?.toInt() ?? 1,
       reporterIds: reporterIdsRaw is List
           ? reporterIdsRaw.map((e) => e.toString()).toList()
