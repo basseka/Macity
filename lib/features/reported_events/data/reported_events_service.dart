@@ -10,7 +10,6 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
-import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 
 /// Service Supabase pour les signalements communautaires (style Waze).
@@ -254,19 +253,13 @@ class ReportedEventsService {
       'status': 'eq.published',
       'expires_at': 'gt.$nowIso',
       'order': 'created_at.desc',
-      'limit': '50',
+      'limit': '200',
     };
 
-    // Filtrage geographique par bounding box autour du centre ville
-    final bbox = ville != null ? CityCenters.boundingBox(ville) : null;
-    if (bbox != null) {
-      query['lat'] = 'gte.${bbox.minLat}';
-      // PostgREST n'accepte pas 2 fois la meme cle dans queryParameters,
-      // on utilise donc l'API "and" qui combine plusieurs conditions
-      query['and'] =
-          '(lat.gte.${bbox.minLat},lat.lte.${bbox.maxLat},lng.gte.${bbox.minLng},lng.lte.${bbox.maxLng})';
-      query.remove('lat'); // On utilise uniquement le and()
-    }
+    // Pas de filtre geo — on charge tous les signalements de France
+    // pour que l'utilisateur puisse voir les autres villes en dezoomant.
+    // La carte centre sur la ville selectionnee (zoom 12) mais les markers
+    // des autres villes sont visibles en naviguant.
 
     debugPrint('[ReportedEvents] fetchActive query: $query');
 
