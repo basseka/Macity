@@ -394,6 +394,83 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 
+  SliverList _buildSignalementsSection() {
+    return SliverList(
+      delegate: SliverChildListDelegate([
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+          child: Row(
+            children: [
+              const Icon(Icons.flag, size: 14, color: Color(0xFFDC2626)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Ca bouge pres de toi',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Material(
+                color: const Color(0xFF7B2D8E),
+                borderRadius: BorderRadius.circular(20),
+                child: InkWell(
+                  onTap: _openVideoReport,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    height: 26,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Signaler',
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Container(
+                          width: 9,
+                          height: 9,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDC2626),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                blurRadius: 6,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: ReportedEventsMap(height: 280),
+        ),
+        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: ReportedEventsCarousel(),
+        ),
+        const SizedBox(height: 16),
+      ]),
+    );
+  }
+
   void _showCategoryMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -830,6 +907,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return 'assets/images/pochette_course.png';
   }
 
+  static const _filterIcons = <String, IconData>{
+    'Concert': Icons.music_note,
+    'Spectacles': Icons.theater_comedy,
+    'Theatre': Icons.curtains,
+    'Salon': Icons.palette,
+    'Soiree': Icons.nightlife,
+    'Famille': Icons.family_restroom,
+    'Food': Icons.restaurant,
+  };
+
   Widget _buildFeed() {
     // Invalider le feed quand la ville change
     ref.listen(selectedCityProvider, (prev, next) {
@@ -838,21 +925,37 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       }
     });
 
-    // Special case: Famille & Food use dedicated community events providers
-    if (_activeFilter == 'Famille') {
-      final userEvents = ref.watch(familyUserEventsProvider);
-      final scrapedAsync = ref.watch(familyScrapedEventsProvider);
-      final scraped = scrapedAsync.valueOrNull ?? [];
-      return _buildCommunityFeed([...userEvents, ...scraped], Icons.family_restroom, 'famille');
-    }
-    if (_activeFilter == 'Food') {
-      final userEvents = ref.watch(foodUserEventsProvider);
-      final city = ref.watch(selectedCityProvider);
-      final scrapedAsync = ref.watch(_foodScrapedProvider(city));
-      final scraped = scrapedAsync.valueOrNull ?? [];
-      return _buildCommunityFeed([...userEvents, ...scraped], Icons.restaurant, 'food');
+    // Filtre actif → community feed (grille 3 colonnes groupee par jour)
+    if (_activeFilter != null) {
+      // Famille et Food ont des providers dedies
+      if (_activeFilter == 'Famille') {
+        final userEvents = ref.watch(familyUserEventsProvider);
+        final scrapedAsync = ref.watch(familyScrapedEventsProvider);
+        final scraped = scrapedAsync.valueOrNull ?? [];
+        return _buildCommunityFeed([...userEvents, ...scraped], Icons.family_restroom, 'famille');
+      }
+      if (_activeFilter == 'Food') {
+        final userEvents = ref.watch(foodUserEventsProvider);
+        final city = ref.watch(selectedCityProvider);
+        final scrapedAsync = ref.watch(_foodScrapedProvider(city));
+        final scraped = scrapedAsync.valueOrNull ?? [];
+        return _buildCommunityFeed([...userEvents, ...scraped], Icons.restaurant, 'food');
+      }
+
+      // Autres filtres : utilise le feed pagine filtre par keywords
+      final feedState = ref.watch(paginatedFeedProvider);
+      if (feedState.events.isEmpty && feedState.isLoading) {
+        return const Center(
+          child: CircularProgressIndicator(color: _accentColor),
+        );
+      }
+      final filtered = feedState.events.where(_matchesFilter).toList();
+      final icon = _filterIcons[_activeFilter] ?? Icons.event;
+      final label = _activeFilter!.toLowerCase();
+      return _buildCommunityFeed(filtered, icon, label);
     }
 
+    // "Tout" : feed grid classique (2 colonnes, pagination)
     final feedState = ref.watch(paginatedFeedProvider);
 
     if (feedState.events.isEmpty && feedState.isLoading) {
@@ -1055,6 +1158,32 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     // Matchs exclus du feed
 
+    if (dayGroups.isEmpty && !_isLandscape) {
+      // Meme quand il n'y a pas d'events, afficher la section signalements
+      return CustomScrollView(
+        slivers: [
+          _buildSignalementsSection(),
+          const SliverToBoxAdapter(child: BoostedEventsCarousel()),
+          const SliverToBoxAdapter(child: BoostedP2Carousel()),
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.event_busy, size: 48, color: Colors.white.withValues(alpha: 0.2)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Aucun evenement a venir',
+                    style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.4)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
     if (dayGroups.isEmpty) {
       return Center(
         child: Column(

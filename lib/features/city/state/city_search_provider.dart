@@ -40,13 +40,26 @@ const _availableCities = [
   VilleModel(nom: 'Strasbourg', codePostal: '67000', departement: 'Bas-Rhin', population: 290576),
   VilleModel(nom: 'Toulon', codePostal: '83000', departement: 'Var', population: 178745),
   VilleModel(nom: 'Toulouse', codePostal: '31000', departement: 'Haute-Garonne', population: 504078),
+  // DOM-TOM
+  VilleModel(nom: 'Fort-de-France', codePostal: '97200', departement: 'Martinique', population: 78126),
+  VilleModel(nom: 'Pointe-a-Pitre', codePostal: '97110', departement: 'Guadeloupe', population: 15410),
+  VilleModel(nom: 'Cayenne', codePostal: '97300', departement: 'Guyane', population: 63652),
+  VilleModel(nom: 'Saint-Denis', codePostal: '97400', departement: 'Reunion', population: 154765),
+  VilleModel(nom: 'Mamoudzou', codePostal: '97600', departement: 'Mayotte', population: 71437),
 ];
 
 final citySearchResultsProvider = FutureProvider<List<VilleModel>>((ref) async {
   final query = ref.watch(citySearchQueryProvider).toLowerCase();
   if (query.isEmpty) return _availableCities;
 
+  // Normalise : remplace tirets et espaces pour matcher "fort de" avec "Fort-de-France"
+  final normalizedQuery = query.replaceAll('-', ' ').replaceAll('  ', ' ');
   return _availableCities
-      .where((v) => v.nom.toLowerCase().contains(query))
+      .where((v) {
+        final normalizedNom = v.nom.toLowerCase().replaceAll('-', ' ');
+        return normalizedNom.contains(normalizedQuery) ||
+            v.nom.toLowerCase().contains(query) ||
+            v.departement.toLowerCase().contains(query);
+      })
       .toList();
 });

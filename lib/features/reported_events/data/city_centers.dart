@@ -44,6 +44,12 @@ class CityCenters {
     'strasbourg': (lat: 48.5734, lng: 7.7521),
     'toulon': (lat: 43.1242, lng: 5.9280),
     'toulouse': (lat: 43.6047, lng: 1.4442),
+    // DOM-TOM
+    'fort-de-france': (lat: 14.6161, lng: -61.0588),
+    'pointe-a-pitre': (lat: 16.2411, lng: -61.5331),
+    'cayenne': (lat: 4.9372, lng: -52.3260),
+    'saint-denis': (lat: -20.8823, lng: 55.4504),
+    'mamoudzou': (lat: -12.7806, lng: 45.2278),
   };
 
   /// Rayon de filtrage autour du centre ville (degres).
