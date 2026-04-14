@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:ui';
@@ -13,8 +14,6 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
 
 /// Gere l'enregistrement du token FCM dans Supabase
@@ -60,9 +59,6 @@ class FcmService {
 
     // Demander explicitement la permission notifications (Android 13+)
     await androidPlugin?.requestNotificationsPermission();
-
-    // Demander la permission alarmes exactes (Android 12+)
-    await androidPlugin?.requestExactAlarmsPermission();
 
     // Initialiser flutter_local_notifications avec le tap handler
     await _localNotifications.initialize(
@@ -121,56 +117,10 @@ class FcmService {
     }
   }
 
-  /// Programme une notification locale tous les jours a 18h00.
+  /// ID legacy de l'ancienne notification locale 18h (remplacee par daily
+  /// digest server-side). Conserve pour l'annuler au prochain lancement des
+  /// anciens builds qui l'avaient planifiee.
   static const _dailyReminderId = 88000;
-
-  static Future<void> _scheduleDailyReminder() async {
-    try {
-      tz.initializeTimeZones();
-      final paris = tz.getLocation('Europe/Paris');
-
-      // Annuler l'ancienne pour eviter les doublons
-      await _localNotifications.cancel(_dailyReminderId);
-
-      final now = tz.TZDateTime.now(paris);
-      var scheduled = tz.TZDateTime(paris, now.year, now.month, now.day, 18, 0);
-      // Si 18h est deja passe aujourd'hui, programmer pour demain
-      if (scheduled.isBefore(now)) {
-        scheduled = scheduled.add(const Duration(days: 1));
-      }
-
-      await _localNotifications.zonedSchedule(
-        _dailyReminderId,
-        'De nouveaux events t\'attendent !',
-        'Decouvre les derniers evenements dans ta ville',
-        scheduled,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            _androidChannel.id,
-            _androidChannel.name,
-            channelDescription: _androidChannel.description,
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@drawable/ic_notification',
-            color: const Color(0xFF9C27B0),
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-
-      debugPrint('[FCM] Notification quotidienne 18h programmee pour $scheduled');
-    } catch (e) {
-      debugPrint('[FCM] Erreur planification 18h: $e');
-    }
-  }
 
   /// Affiche la notification même quand l'app est au premier plan.
   /// Encode les données FCM dans le payload pour récupération au tap.
@@ -250,6 +200,36 @@ class FcmService {
       await prefs.setString('device_id', id);
     }
     return id;
+  }
+
+  /// Remet le compteur de badge a zero, localement ET cote serveur.
+  /// A appeler quand l'utilisateur ouvre l'app (onResume, cold start).
+  static Future<void> resetBadge() async {
+    // 1. Clear du badge natif iOS/Android
+    try {
+      if (await AppBadgePlus.isSupported()) {
+        await AppBadgePlus.updateBadge(0);
+      }
+    } catch (e) {
+      debugPrint('[FCM] AppBadgePlus reset failed: $e');
+    }
+
+    // 2. Reset du compteur cote serveur pour ce device
+    try {
+      final userId = await UserIdentityService.getUserId();
+      final deviceId = await _getDeviceId();
+      await _dio.patch(
+        'user_fcm_tokens',
+        queryParameters: {
+          'user_id': 'eq.$userId',
+          'device_id': 'eq.$deviceId',
+        },
+        data: {'badge_count': 0},
+        options: Options(headers: {'Prefer': 'return=minimal'}),
+      );
+    } catch (e) {
+      debugPrint('[FCM] badge_count server reset failed: $e');
+    }
   }
 
   /// Annuler tous les listeners FCM.

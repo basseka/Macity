@@ -5,6 +5,8 @@ import 'package:pulz_app/features/reported_events/presentation/reported_event_de
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 
 /// Tier de popularite d'un signalement.
 enum _HeatTier { hot, warm, normal }
@@ -56,7 +58,16 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
     final eventsAsync = ref.watch(reportedEventsFeedProvider);
 
     return eventsAsync.when(
-      data: (events) {
+      data: (allEvents) {
+        // Filtrer par ville selectionnee (bounding box ~25km)
+        final city = ref.watch(selectedCityProvider);
+        final bbox = CityCenters.boundingBox(city);
+        final events = bbox != null
+            ? allEvents.where((e) =>
+                e.lat >= bbox.minLat && e.lat <= bbox.maxLat &&
+                e.lng >= bbox.minLng && e.lng <= bbox.maxLng).toList()
+            : allEvents;
+
         if (events.isEmpty) return const _EmptyHint();
 
         // Trier par score decroissant (photos + reports)

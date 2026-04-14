@@ -350,7 +350,7 @@ class ReportedEventsService {
       'status': 'in.(published,ai_generating)',
       'expires_at': 'gt.$nowIso',
       'order': 'created_at.desc',
-      'limit': '200',
+      'limit': '1000',
     };
 
     // Pas de filtre geo — on charge tous les signalements de France

@@ -3,92 +3,258 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Politique de confidentialite - M-City</title>
+  <title>Politique de confidentialité — MaCity</title>
+  <meta name="description" content="Politique de confidentialité de l'application MaCity. Données collectées, utilisation, vos droits RGPD.">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px; color: #1a1a2e; line-height: 1.6; }
-    h1 { color: #6C5CE7; font-size: 24px; }
-    h2 { color: #333; font-size: 18px; margin-top: 28px; }
+    :root {
+      --primary: #7B2D8E;
+      --primary-dark: #4A1259;
+      --accent: #E91E8C;
+      --text: #1a1a2e;
+      --muted: #666;
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #eaeaea;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0;
+      color: var(--text);
+      line-height: 1.65;
+      background: var(--bg);
+    }
+    .header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--accent));
+      color: white;
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header .date {
+      font-size: 14px;
+      opacity: 0.9;
+      margin: 0;
+    }
+    .container {
+      background: var(--card);
+      padding: 40px 32px;
+      margin: 0;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+    }
+    h2 {
+      color: var(--primary);
+      font-size: 20px;
+      margin-top: 36px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    h2:first-of-type { margin-top: 0; }
+    h3 {
+      font-size: 16px;
+      color: var(--text);
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
     p, li { font-size: 15px; }
-    ul { padding-left: 20px; }
-    .date { color: #888; font-size: 13px; }
+    ul { padding-left: 22px; }
+    li { margin-bottom: 6px; }
+    strong { color: var(--primary-dark); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .intro {
+      background: #f8f0fa;
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin-bottom: 28px;
+    }
+    .intro p { margin: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #f8f0fa;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+    .footer {
+      background: var(--primary-dark);
+      color: white;
+      padding: 28px 32px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .footer a { color: white; text-decoration: underline; }
+    @media (max-width: 640px) {
+      .header { padding: 28px 20px; }
+      .header h1 { font-size: 26px; }
+      .container { padding: 28px 20px; }
+      h2 { font-size: 18px; }
+    }
   </style>
 </head>
 <body>
 
-<h1>Politique de confidentialite</h1>
-<p class="date">Derniere mise a jour : 19 mars 2026</p>
+  <div class="header">
+    <h1>Politique de confidentialité</h1>
+    <p class="date">MaCity &middot; Dernière mise à jour : 8 avril 2026</p>
+  </div>
 
-<p><strong>M-City</strong> (ci-apres "l'Application") est editee par Celado DC. Cette politique de confidentialite decrit comment nous collectons, utilisons et protegeons vos donnees personnelles.</p>
+  <div class="container">
 
-<h2>1. Donnees collectees</h2>
-<p>Lors de votre utilisation de l'Application, nous collectons les donnees suivantes :</p>
-<ul>
-  <li><strong>Prenom</strong> : pour personnaliser votre experience</li>
-  <li><strong>Adresse e-mail</strong> : pour identifier votre compte</li>
-  <li><strong>Numero de telephone</strong> : pour permettre a vos contacts de vous retrouver sur l'Application</li>
-  <li><strong>Ville</strong> : pour afficher les evenements et actualites pertinents dans votre zone geographique</li>
-  <li><strong>Preferences et centres d'interet</strong> : pour personnaliser le contenu affiche (sport, culture, sorties, etc.)</li>
-  <li><strong>Identifiant d'appareil</strong> : un identifiant anonyme genere localement pour associer vos donnees a votre appareil</li>
-</ul>
+    <div class="intro">
+      <p><strong>MaCity</strong> est une application mobile de découverte d'événements locaux (concerts, spectacles, matchs, restaurants, salons, etc.) pour les villes françaises. Cette politique décrit clairement quelles données l'application collecte, pourquoi, et quels sont vos droits conformément au Règlement Général sur la Protection des Données (RGPD).</p>
+    </div>
 
-<h2>2. Utilisation des donnees</h2>
-<p>Vos donnees sont utilisees exclusivement pour :</p>
-<ul>
-  <li>Afficher les evenements, actualites et lieux correspondant a votre ville et vos preferences</li>
-  <li>Vous envoyer des notifications sur les evenements de vos mairies</li>
-  <li>Permettre le partage d'evenements entre utilisateurs de l'Application</li>
-  <li>Ameliorer le fonctionnement de l'Application</li>
-</ul>
+    <h2>1. Identité du responsable de traitement</h2>
+    <p>L'application <strong>MaCity</strong> (package : <code>com.macity.app</code>) est éditée et publiée sur Google Play par son développeur. Pour toute question relative à vos données personnelles, vous pouvez nous contacter par e-mail à l'adresse indiquée en section 11.</p>
 
-<h2>3. Partage des donnees</h2>
-<p><strong>Nous ne vendons, ne louons et ne partageons aucune donnee personnelle avec des tiers.</strong></p>
-<p>Vos donnees ne sont accessibles qu'aux services techniques necessaires au fonctionnement de l'Application (hebergement, notifications push).</p>
+    <h2>2. Principe général : anonymat par défaut</h2>
+    <p>MaCity est conçue pour fonctionner <strong>sans création de compte obligatoire</strong>. Aucun nom, prénom, adresse e-mail ou numéro de téléphone n'est requis pour utiliser les fonctionnalités principales de l'application. Vous pouvez consulter les événements, les lieux, et même recevoir des notifications sans vous identifier.</p>
 
-<h2>4. Stockage et securite</h2>
-<ul>
-  <li>Les donnees sont stockees sur des serveurs securises <strong>Supabase</strong> (infrastructure cloud)</li>
-  <li>Toutes les communications sont chiffrees via <strong>HTTPS/TLS</strong></li>
-  <li>L'acces aux bases de donnees est restreint par des politiques de securite (Row Level Security)</li>
-</ul>
+    <h2>3. Données collectées</h2>
 
-<h2>5. Conservation des donnees</h2>
-<p>Vos donnees sont conservees tant que votre profil est actif dans l'Application. Les evenements expires sont automatiquement supprimes.</p>
+    <h3>3.1 Identifiant technique anonyme</h3>
+    <p>Lors du premier lancement, l'application génère un <strong>identifiant UUID aléatoire</strong> stocké localement sur votre appareil. Cet identifiant :</p>
+    <ul>
+      <li>N'est <strong>pas</strong> un identifiant publicitaire (AAID)</li>
+      <li>Ne contient aucune information personnelle</li>
+      <li>Ne peut pas être associé à votre identité réelle</li>
+      <li>Sert uniquement à sauvegarder vos préférences (ville, likes, notifications) côté serveur</li>
+    </ul>
 
-<h2>6. Vos droits</h2>
-<p>Conformement au Reglement General sur la Protection des Donnees (RGPD), vous disposez des droits suivants :</p>
-<ul>
-  <li><strong>Acces</strong> : obtenir une copie de vos donnees personnelles</li>
-  <li><strong>Rectification</strong> : corriger vos informations</li>
-  <li><strong>Suppression</strong> : demander l'effacement de vos donnees</li>
-  <li><strong>Portabilite</strong> : recevoir vos donnees dans un format lisible</li>
-</ul>
-<p>Pour exercer ces droits, contactez-nous a l'adresse ci-dessous.</p>
+    <h3>3.2 Jeton de notifications (FCM token)</h3>
+    <p>Si vous acceptez les notifications, l'application enregistre un <strong>jeton Firebase Cloud Messaging</strong> fourni par Google. Ce jeton nous permet de vous envoyer des rappels d'événements que vous avez aimés, sans connaître votre identité. Vous pouvez le révoquer à tout moment en désactivant les notifications dans les paramètres système.</p>
 
-<h2>7. Permissions de l'appareil</h2>
-<p>L'Application peut demander les permissions suivantes :</p>
-<ul>
-  <li><strong>Localisation</strong> : pour determiner votre position et afficher les evenements a proximite</li>
-  <li><strong>Notifications</strong> : pour vous informer des actualites de vos mairies et de vos evenements a venir</li>
-  <li><strong>Stockage / Photos</strong> : pour permettre l'ajout de photos lors de la creation d'evenements</li>
-</ul>
-<p>Chaque permission est demandee de maniere explicite et peut etre revoquee a tout moment dans les parametres de votre appareil.</p>
+    <h3>3.3 Préférences utilisateur</h3>
+    <p>L'application enregistre votre <strong>ville sélectionnée</strong>, vos <strong>événements favoris (likes)</strong>, vos <strong>préférences de notification</strong>, et les <strong>modes d'exploration activés</strong> (Day, Night, Sport, Culture, etc.). Ces données sont associées à votre identifiant UUID uniquement.</p>
 
-<h2>8. Services tiers</h2>
-<ul>
-  <li><strong>Firebase Cloud Messaging</strong> : pour l'envoi de notifications push (Google)</li>
-  <li><strong>Supabase</strong> : pour le stockage des donnees et des fichiers</li>
-</ul>
-<p>Ces services disposent de leurs propres politiques de confidentialite.</p>
+    <h3>3.4 Localisation (avec votre consentement explicite)</h3>
+    <p>Avec votre accord, l'application peut accéder à votre <strong>position géographique</strong> pour :</p>
+    <ul>
+      <li>Afficher les événements et lieux à proximité sur une carte</li>
+      <li>Calculer la distance entre vous et un événement</li>
+    </ul>
+    <p>Votre position <strong>n'est jamais stockée sur nos serveurs</strong>. Elle est utilisée uniquement en local sur votre appareil pour les besoins d'affichage. Vous pouvez révoquer cette autorisation à tout moment dans les paramètres système de votre téléphone.</p>
 
-<h2>9. Modifications</h2>
-<p>Nous nous reservons le droit de modifier cette politique de confidentialite. Toute modification sera publiee sur cette page avec une date de mise a jour.</p>
+    <h3>3.5 Accès aux contacts (avec votre consentement explicite)</h3>
+    <p>Si vous utilisez la fonction « Partager un événement à un ami », l'application peut accéder à votre <strong>liste de contacts locaux</strong>. Ces contacts :</p>
+    <ul>
+      <li>Sont lus uniquement au moment où vous ouvrez l'écran de partage</li>
+      <li><strong>Ne sont jamais transmis à nos serveurs</strong></li>
+      <li><strong>Ne sont jamais stockés</strong> en dehors de votre appareil</li>
+      <li>Servent uniquement à afficher la liste dans l'interface de partage natif</li>
+    </ul>
 
-<h2>10. Contact</h2>
-<p>Pour toute question relative a cette politique de confidentialite :</p>
-<p>
-  <strong>Celado DC</strong><br>
-  E-mail : <a href="mailto:contact@celadodc.com">contact@celadodc.com</a>
-</p>
+    <h3>3.6 Photos (création d'événement)</h3>
+    <p>Si vous créez un événement public via l'application, vous pouvez joindre une ou plusieurs photos. Ces photos sont <strong>hébergées sur Supabase Storage</strong> et rendues publiquement accessibles via l'événement. Vous pouvez supprimer l'événement (et donc les photos associées) à tout moment depuis l'application.</p>
+
+    <h3>3.7 Compte professionnel (optionnel)</h3>
+    <p>Si vous êtes un organisateur d'événements ou un établissement et choisissez de créer un <strong>compte professionnel vérifié</strong>, nous collecterons en plus :</p>
+    <ul>
+      <li>Votre adresse e-mail (identification)</li>
+      <li>Un mot de passe chiffré (authentification via Supabase Auth)</li>
+      <li>Le nom de votre établissement et son SIRET (pour la vérification officielle)</li>
+      <li>Optionnellement, un lien Instagram professionnel</li>
+    </ul>
+    <p>Ces informations ne sont collectées que si vous optez explicitement pour un compte pro. L'utilisation standard de l'application ne nécessite aucune inscription.</p>
+
+    <h3>3.8 Paiements (optionnels)</h3>
+    <p>Si vous réalisez un paiement in-app (ex : boost d'événement, billetterie), le traitement est effectué par <strong>Stripe</strong>. MaCity ne stocke <strong>jamais</strong> vos informations de carte bancaire. Stripe est un prestataire certifié PCI-DSS niveau 1.</p>
+
+    <h2>4. Utilisation des données</h2>
+    <p>Vos données sont utilisées exclusivement pour :</p>
+    <ul>
+      <li>Afficher les événements, lieux et actualités correspondant à votre ville et vos préférences</li>
+      <li>Vous envoyer des notifications de rappel pour les événements que vous avez aimés</li>
+      <li>Vous notifier des annonces officielles de votre mairie (si vous êtes abonné)</li>
+      <li>Permettre le partage d'événements entre utilisateurs (en local sur votre appareil)</li>
+      <li>Traiter les paiements in-app via Stripe</li>
+      <li>Améliorer le fonctionnement général de l'application</li>
+    </ul>
+
+    <h2>5. Partage avec des tiers</h2>
+    <p><strong>Nous ne vendons, ne louons et ne partageons jamais vos données personnelles à des fins commerciales ou publicitaires.</strong></p>
+    <p>Vos données sont uniquement accessibles aux prestataires techniques strictement nécessaires au fonctionnement de l'application :</p>
+    <table>
+      <thead><tr><th>Prestataire</th><th>Rôle</th><th>Localisation</th></tr></thead>
+      <tbody>
+        <tr><td>Supabase</td><td>Base de données + stockage fichiers</td><td>Union européenne</td></tr>
+        <tr><td>Google Firebase (FCM)</td><td>Envoi notifications push</td><td>Union européenne / États-Unis</td></tr>
+        <tr><td>Stripe</td><td>Paiements in-app</td><td>Union européenne</td></tr>
+      </tbody>
+    </table>
+    <p>Chacun de ces prestataires dispose de ses propres politiques de confidentialité et est conforme au RGPD.</p>
+
+    <h2>6. Sécurité et stockage</h2>
+    <ul>
+      <li>Toutes les communications entre l'application et nos serveurs sont chiffrées via <strong>HTTPS / TLS 1.2+</strong></li>
+      <li>Les bases de données Supabase sont protégées par des politiques d'accès strictes (<strong>Row Level Security</strong>)</li>
+      <li>Les mots de passe des comptes professionnels sont hashés (bcrypt) côté Supabase Auth — ils ne sont jamais stockés en clair</li>
+      <li>Aucune donnée personnelle n'est stockée en clair sur votre appareil en dehors de l'UUID anonyme</li>
+    </ul>
+
+    <h2>7. Durée de conservation</h2>
+    <ul>
+      <li><strong>UUID et préférences</strong> : conservés tant que l'application est installée sur votre appareil. Supprimés si vous désinstallez ou réinitialisez l'application.</li>
+      <li><strong>Jeton FCM</strong> : supprimé automatiquement si vous désactivez les notifications ou désinstallez l'application.</li>
+      <li><strong>Événements expirés</strong> : supprimés automatiquement après leur date de fin.</li>
+      <li><strong>Comptes professionnels</strong> : conservés tant que le compte est actif. Suppression sur demande (section 8).</li>
+    </ul>
+
+    <h2>8. Vos droits (RGPD)</h2>
+    <p>Conformément au Règlement Général sur la Protection des Données (UE 2016/679), vous disposez des droits suivants :</p>
+    <ul>
+      <li><strong>Droit d'accès</strong> : obtenir une copie de vos données personnelles</li>
+      <li><strong>Droit de rectification</strong> : corriger des informations inexactes</li>
+      <li><strong>Droit à l'effacement (« droit à l'oubli »)</strong> : demander la suppression de vos données</li>
+      <li><strong>Droit à la portabilité</strong> : recevoir vos données dans un format lisible par machine</li>
+      <li><strong>Droit à la limitation du traitement</strong> : demander que nous cessions d'utiliser vos données</li>
+      <li><strong>Droit d'opposition</strong> : refuser le traitement de vos données</li>
+      <li><strong>Droit de retrait du consentement</strong> : pour les permissions optionnelles (localisation, contacts, notifications)</li>
+    </ul>
+    <p>Pour exercer l'un de ces droits, contactez-nous à l'adresse e-mail indiquée en section 11. Nous répondrons dans un délai maximum de 30 jours.</p>
+    <p>Vous avez également le droit d'introduire une réclamation auprès de la <a href="https://www.cnil.fr" target="_blank" rel="noopener">CNIL</a> si vous estimez que le traitement de vos données n'est pas conforme au RGPD.</p>
+
+    <h2>9. Identifiants publicitaires</h2>
+    <p>MaCity <strong>n'utilise aucun identifiant publicitaire</strong> (AAID sur Android, IDFA sur iOS). L'application ne contient aucune publicité, aucun SDK de tracking marketing, aucun outil d'attribution publicitaire. Aucune donnée n'est partagée avec des régies publicitaires.</p>
+
+    <h2>10. Enfants de moins de 13 ans</h2>
+    <p>MaCity est destinée aux utilisateurs âgés de <strong>13 ans et plus</strong>. Nous ne collectons pas sciemment de données concernant les enfants de moins de 13 ans. Si vous êtes parent ou tuteur et avez connaissance d'une telle collecte, contactez-nous immédiatement pour que nous supprimions les données concernées.</p>
+
+    <h2>11. Contact</h2>
+    <p>Pour toute question, demande ou réclamation concernant vos données personnelles :</p>
+    <p>
+      <strong>MaCity</strong><br>
+      E-mail : <a href="mailto:contact@macity.app">contact@macity.app</a>
+    </p>
+
+    <h2>12. Modifications de cette politique</h2>
+    <p>Nous pouvons être amenés à mettre à jour cette politique de confidentialité pour refléter des évolutions légales, techniques ou fonctionnelles. Toute modification importante sera signalée dans l'application et sur cette page, avec une nouvelle date de mise à jour en en-tête.</p>
+
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2026 MaCity &middot; Tous droits réservés<br>
+    <a href="mailto:contact@macity.app">contact@macity.app</a></p>
+  </div>
 
 </body>
 </html>

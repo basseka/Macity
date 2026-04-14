@@ -90,6 +90,14 @@ class MyPublicationsSheet extends ConsumerWidget {
                       final event = events[index];
                       return _PublicationCard(
                         event: event,
+                        onBoost: () {
+                          Navigator.pop(context);
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (_) => CreateEventPage(eventToEdit: event, initialStep: 2),
+                            ),
+                          );
+                        },
                         onEdit: () {
                           Navigator.pop(context);
                           Navigator.of(context, rootNavigator: true).push(
@@ -233,10 +241,11 @@ class MyPublicationsSheet extends ConsumerWidget {
 
 class _PublicationCard extends StatelessWidget {
   final UserEvent event;
+  final VoidCallback onBoost;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _PublicationCard({required this.event, required this.onEdit, required this.onDelete});
+  const _PublicationCard({required this.event, required this.onBoost, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -333,6 +342,21 @@ class _PublicationCard extends StatelessWidget {
               ),
 
             const SizedBox(width: 4),
+
+            // Boost
+            GestureDetector(
+              onTap: onBoost,
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6EB4).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.rocket_launch_outlined, size: 15, color: Color(0xFFE91E8C)),
+              ),
+            ),
+            const SizedBox(width: 6),
 
             // Edit
             GestureDetector(

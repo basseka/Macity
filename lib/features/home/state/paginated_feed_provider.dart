@@ -46,6 +46,17 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
     _loadInitial();
   }
 
+  /// Pour le tri du feed : les events multi-jours en cours (date_debut < today, date_fin >= today)
+  /// sont triés comme s'ils commençaient aujourd'hui, pour ne pas noyer le feed.
+  static String _effectiveDate(Event e) {
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    if (e.dateDebut.compareTo(todayStr) < 0 && e.dateFin.isNotEmpty && e.dateFin.compareTo(todayStr) >= 0) {
+      return todayStr;
+    }
+    return e.dateDebut;
+  }
+
   String get _todayStr {
     final now = DateTime.now();
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -113,7 +124,8 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
       _pendingUserEvents = userFiltered.where((ue) => ue.dateDebut.compareTo(lastScrapedDate) > 0).toList();
 
       final allEvents = [...events, ...userInRange];
-      allEvents.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+      // Tri : events multi-jours en cours triés comme s'ils commençaient aujourd'hui
+      allEvents.sort((a, b) => _effectiveDate(a).compareTo(_effectiveDate(b)));
 
       final hasMoreResult = rawCount >= _pageSize;
 
@@ -162,7 +174,7 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
 
       // Merge et re-trier par date
       final allEvents = [...state.events, ...unique, ...userToAdd];
-      allEvents.sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+      allEvents.sort((a, b) => _effectiveDate(a).compareTo(_effectiveDate(b)));
 
       final hasMoreResult = rawCount >= _pageSize;
 

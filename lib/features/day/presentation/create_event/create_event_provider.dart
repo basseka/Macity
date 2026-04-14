@@ -27,7 +27,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
   }
 
   /// Charge un événement existant dans le state pour l'édition.
-  void loadEvent(UserEvent e) {
+  void loadEvent(UserEvent e, {int initialStep = 0}) {
     // Parser la date
     DateTime? dateDebut;
     TimeOfDay? heureDebut;
@@ -88,6 +88,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       isEditing: true,
       editingEventId: e.id,
       existingPhotoUrl: e.photoUrl,
+      currentStep: initialStep,
       categorie: categorie,
       sousCategorie: e.categorie,
       format: e.format.isNotEmpty ? e.format : null,

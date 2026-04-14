@@ -430,9 +430,9 @@
     // Init map
     const map = L.map('map').setView([43.6047, 1.4442], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 20,
     }).addTo(map);
 
     const styleLayers = {};
@@ -478,10 +478,12 @@
     async function loadGroups() {
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+      const ville = document.title.split('—').pop()?.trim() || 'Toulouse';
       const { data, error } = await supabase
         .from('groups')
         .select('*')
-        .eq('is_visible', true);
+        .eq('is_visible', true)
+        .eq('ville', ville);
 
       if (error) {
         showError(`Erreur de chargement : ${error.message}`);
@@ -626,7 +628,8 @@
       // Geocode address via Nominatim
       let lat, lng;
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', Toulouse, France')}&limit=1`);
+        const villeGeo = document.title.split('—').pop()?.trim() || 'Toulouse';
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address + ', ' + villeGeo + ', France')}&limit=1`);
         const results = await res.json();
         if (results.length > 0) {
           lat = parseFloat(results[0].lat);
@@ -646,8 +649,9 @@
 
       // Insert into Supabase (is_visible = false → moderation)
       const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const villeInsert = document.title.split('—').pop()?.trim() || 'Toulouse';
       const { error } = await supabase.from('groups').insert({
-        name, music_style: style, address, latitude: lat, longitude: lng, is_visible: false,
+        name, music_style: style, address, latitude: lat, longitude: lng, is_visible: false, ville: villeInsert,
       });
 
       if (error) {

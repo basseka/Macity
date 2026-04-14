@@ -53,7 +53,7 @@ final citySearchResultsProvider = FutureProvider<List<VilleModel>>((ref) async {
   if (query.isEmpty) return _availableCities;
 
   // Normalise : remplace tirets et espaces pour matcher "fort de" avec "Fort-de-France"
-  final normalizedQuery = query.replaceAll('-', ' ').replaceAll('  ', ' ');
+  final normalizedQuery = query.trim().replaceAll('-', ' ').replaceAll('  ', ' ');
   return _availableCities
       .where((v) {
         final normalizedNom = v.nom.toLowerCase().replaceAll('-', ' ');

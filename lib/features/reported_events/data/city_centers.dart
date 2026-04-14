@@ -53,10 +53,10 @@ class CityCenters {
   };
 
   /// Rayon de filtrage autour du centre ville (degres).
-  /// 0.25 lat = ~27 km. 0.35 lng = ~26-28 km selon la latitude.
+  /// 0.32 lat = ~35 km. 0.45 lng = ~33-37 km selon la latitude.
   /// Couvre toute la metropole / agglo de la ville.
-  static const double _deltaLat = 0.25;
-  static const double _deltaLng = 0.35;
+  static const double _deltaLat = 0.32;
+  static const double _deltaLng = 0.45;
 
   /// Retourne le centre d'une ville, ou null si inconnue.
   static ({double lat, double lng})? center(String city) {

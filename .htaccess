@@ -1,0 +1,2 @@
+  # .htaccess à la racine de macity.app                                                                                                                                                                                            
+RewriteEngine On                                                                                                                                                                                                           RewriteRule ^event/(.+)$ https://dpqxefmwjfvoysacwgef.supabase.co/functions/v1/open-event?id=$1 [R=302,L]

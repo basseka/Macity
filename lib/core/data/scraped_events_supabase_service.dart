@@ -51,7 +51,10 @@ class ScrapedEventsSupabaseService {
     } else if (sourceNotIn != null && sourceNotIn.isNotEmpty) {
       params['source'] = 'not.in.(${sourceNotIn.join(",")})';
     }
-    if (dateGte != null) params['date_debut'] = 'gte.$dateGte';
+    if (dateGte != null) {
+      // Inclure les events multi-jours dont date_fin >= today
+      params['or'] = '(date_debut.gte.$dateGte,date_fin.gte.$dateGte)';
+    }
     if (lieuNom != null) params['lieu_nom'] = 'ilike.*$lieuNom*';
     if (ville != null) params['ville'] = 'ilike.$ville';
 
@@ -69,6 +72,11 @@ class ScrapedEventsSupabaseService {
 
   /// Fetch all events across rubriques, sorted by date, with pagination.
   /// Returns (filteredEvents, rawDbCount) to correctly determine hasMore.
+  ///
+  /// Fait 2 requêtes en parallèle :
+  ///  1. Events qui commencent aujourd'hui ou après (date_debut >= today)
+  ///  2. Events multi-jours en cours (date_debut < today AND date_fin >= today)
+  /// Puis fusionne et trie.
   Future<(List<Event>, int)> fetchAllEvents({
     String? dateGte,
     String? ville,
@@ -76,25 +84,51 @@ class ScrapedEventsSupabaseService {
     int offset = 0,
     List<String>? rubriques,
   }) async {
-    final params = <String, String>{
+    final commonParams = <String, String>{
       'select': '*',
       'order': 'date_debut.asc',
-      'limit': '$limit',
-      'offset': '$offset',
       'photo_url': 'neq.',
     };
-    if (dateGte != null) params['date_debut'] = 'gte.$dateGte';
-    if (ville != null) params['ville'] = 'ilike.$ville';
+    if (ville != null) commonParams['ville'] = 'ilike.$ville';
     if (rubriques != null && rubriques.isNotEmpty) {
-      params['rubrique'] = 'in.(${rubriques.join(",")})';
+      commonParams['rubrique'] = 'in.(${rubriques.join(",")})';
     }
 
-    final response = await _dio.get(
-      'scraped_events',
-      queryParameters: params,
-    );
-    final data = response.data as List;
-    return (await compute(_parseAndFilter, data), data.length);
+    // 1. Events futurs (date_debut >= today) — paginé normalement
+    final futureParams = Map<String, String>.from(commonParams);
+    futureParams['limit'] = '$limit';
+    futureParams['offset'] = '$offset';
+    if (dateGte != null) futureParams['date_debut'] = 'gte.$dateGte';
+
+    // 2. Events multi-jours en cours (date_debut < today AND date_fin >= today) — tous, une seule fois
+    final ongoingParams = Map<String, String>.from(commonParams);
+    ongoingParams['limit'] = '200';
+    ongoingParams['offset'] = '0';
+    if (dateGte != null) {
+      ongoingParams['date_debut'] = 'lt.$dateGte';
+      ongoingParams['date_fin'] = 'gte.$dateGte';
+    }
+
+    final results = await Future.wait([
+      _dio.get('scraped_events', queryParameters: futureParams),
+      if (dateGte != null && offset == 0)
+        _dio.get('scraped_events', queryParameters: ongoingParams),
+    ]);
+
+    final futureData = results[0].data as List;
+    final ongoingData = results.length > 1 ? results[1].data as List : <dynamic>[];
+
+    final futureEvents = await compute(_parseAndFilter, futureData);
+    final ongoingEvents = ongoingData.isNotEmpty
+        ? await compute(_parseAndFilter, ongoingData)
+        : <Event>[];
+
+    // Dedup (au cas ou un event serait dans les deux)
+    final seenIds = futureEvents.map((e) => e.identifiant).toSet();
+    final uniqueOngoing = ongoingEvents.where((e) => !seenIds.contains(e.identifiant)).toList();
+
+    final allEvents = [...uniqueOngoing, ...futureEvents];
+    return (allEvents, futureData.length);
   }
 
   /// Fetch a single event by its identifiant.

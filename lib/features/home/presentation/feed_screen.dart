@@ -426,7 +426,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Signaler',
+                          'Notif Live',
                           style: GoogleFonts.poppins(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -942,17 +942,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         return _buildCommunityFeed([...userEvents, ...scraped], Icons.restaurant, 'food');
       }
 
-      // Autres filtres : utilise le feed pagine filtre par keywords
-      final feedState = ref.watch(paginatedFeedProvider);
-      if (feedState.events.isEmpty && feedState.isLoading) {
-        return const Center(
-          child: CircularProgressIndicator(color: _accentColor),
-        );
-      }
-      final filtered = feedState.events.where(_matchesFilter).toList();
-      final icon = _filterIcons[_activeFilter] ?? Icons.event;
-      final label = _activeFilter!.toLowerCase();
-      return _buildCommunityFeed(filtered, icon, label);
+      // Autres filtres : meme feed grid que "Tout" avec pagination infinie
+      // _matchesFilter est applique dans _buildFeedGrid
     }
 
     // "Tout" : feed grid classique (2 colonnes, pagination)
@@ -1158,7 +1149,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     // Matchs exclus du feed
 
-    if (dayGroups.isEmpty && !_isLandscape) {
+    if (dayGroups.isEmpty && !_isLandscape && _activeFilter == null) {
       // Meme quand il n'y a pas d'events, afficher la section signalements
       return CustomScrollView(
         slivers: [
@@ -1216,7 +1207,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         controller: scrollController,
         slivers: [
           // Discovery + signalements commu + Boosted inseres en haut du feed scroll
-          if (!_isLandscape) ...[
+          if (!_isLandscape && _activeFilter == null) ...[
             // DiscoveryButtons deplace dans Explorer (home_screen)
             // Section : signalements communautaires (style Waze) — EN PREMIER
             SliverToBoxAdapter(
@@ -1253,7 +1244,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Signaler',
+                                'Notif Live',
                                 style: GoogleFonts.poppins(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,

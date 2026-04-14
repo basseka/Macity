@@ -128,7 +128,7 @@ class WeekendPicksSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Les 3 incontournables\nselectionnes chaque vendredi pour $city.',
+            'Les 5 incontournables\nselectionnes chaque vendredi pour $city.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 11,

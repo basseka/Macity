@@ -62,7 +62,9 @@ class StepEssentials extends ConsumerWidget {
             DropdownButtonFormField<String>(
               key: ValueKey(state.categorie),
               isExpanded: true,
-              initialValue: state.sousCategorie,
+              value: (kSubcategories[state.categorie] ?? []).contains(state.sousCategorie)
+                  ? state.sousCategorie
+                  : null,
               decoration: _inputDecoration('Choisir'),
               style: const TextStyle(fontSize: 13, color: Colors.black87),
               items: (kSubcategories[state.categorie] ?? [])

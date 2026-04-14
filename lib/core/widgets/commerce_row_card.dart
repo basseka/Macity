@@ -32,8 +32,29 @@ class CommerceRowCard extends ConsumerWidget {
     return _categoryFallbackAsset(commerce.categorie);
   }
 
+  /// Normalise une chaine : lowercase + retire les accents. Indispensable
+  /// pour matcher "médiathèque" (DB) avec "mediatheque" (constante code).
+  static String _normalize(String s) {
+    return s
+        .toLowerCase()
+        .replaceAll('é', 'e')
+        .replaceAll('è', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('ë', 'e')
+        .replaceAll('à', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('ä', 'a')
+        .replaceAll('ô', 'o')
+        .replaceAll('ö', 'o')
+        .replaceAll('î', 'i')
+        .replaceAll('ï', 'i')
+        .replaceAll('ù', 'u')
+        .replaceAll('û', 'u')
+        .replaceAll('ç', 'c');
+  }
+
   static String? _categoryFallbackAsset(String category) {
-    final cat = category.toLowerCase();
+    final cat = _normalize(category);
     if (cat.contains('coquin')) return 'assets/images/pochette_coquin.png';
     if (cat.contains('strip')) return 'assets/images/pochette_strip.png';
     if (cat.contains('spicy')) return 'assets/images/pochette_spicy.png';
@@ -53,25 +74,49 @@ class CommerceRowCard extends ConsumerWidget {
     if (cat.contains('gaming') || cat.contains('arcade')) return 'assets/images/pochette_gaming.jpg';
     if (cat.contains('yoga')) return 'assets/images/pochette_yoga.jpg';
     if (cat.contains('bowling')) return 'assets/images/pochette_bowling.png';
-    if (cat.contains('bibliotheque')) return 'assets/images/pochette_bibliotheque.jpg';
+    if (cat.contains('bibliotheque') || cat.contains('mediatheque')) return 'assets/images/pochette_bibliotheque.jpg';
     if (cat.contains('monument')) return 'assets/images/pochette_monument.jpg';
     if (cat.contains('opera')) return 'assets/images/pochette_opera.jpg';
     return null;
   }
 
-  Widget _buildImage(String? image, ModeTheme modeTheme) {
-    // Pas de photo DB → placeholder générique
-    if (image == null) {
-      return Container(
-        color: modeTheme.chipBgColor,
-        child: Center(
-          child: Icon(
-            _categoryIcon(commerce.categorie),
-            size: 28,
-            color: modeTheme.primaryColor.withValues(alpha: 0.5),
+  /// Placeholder final : asset catégorie si dispo, sinon icône sur fond teint.
+  Widget _fallbackPlaceholder(ModeTheme modeTheme) {
+    final assetFallback = _categoryFallbackAsset(commerce.categorie);
+    if (assetFallback != null) {
+      return Image.asset(
+        assetFallback,
+        fit: BoxFit.cover,
+        cacheWidth: 300,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (_, __, ___) => Container(
+          color: modeTheme.chipBgColor,
+          child: Center(
+            child: Icon(
+              _categoryIcon(commerce.categorie),
+              size: 28,
+              color: modeTheme.primaryColor.withValues(alpha: 0.5),
+            ),
           ),
         ),
       );
+    }
+    return Container(
+      color: modeTheme.chipBgColor,
+      child: Center(
+        child: Icon(
+          _categoryIcon(commerce.categorie),
+          size: 28,
+          color: modeTheme.primaryColor.withValues(alpha: 0.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage(String? image, ModeTheme modeTheme) {
+    // Pas de photo DB → placeholder catégorie ou icône
+    if (image == null) {
+      return _fallbackPlaceholder(modeTheme);
     }
 
     final src = image;
@@ -83,7 +128,9 @@ class CommerceRowCard extends ConsumerWidget {
         fit: BoxFit.cover,
         filterQuality: FilterQuality.medium,
         placeholder: (_, __) => Container(color: modeTheme.chipBgColor),
-        errorWidget: (_, __, ___) => Container(color: modeTheme.chipBgColor),
+        // Fallback : si l'URL http est cassée, on affiche l'asset catégorie
+        // au lieu d'un carré vide.
+        errorWidget: (_, __, ___) => _fallbackPlaceholder(modeTheme),
       );
     }
 
@@ -92,7 +139,7 @@ class CommerceRowCard extends ConsumerWidget {
       fit: BoxFit.cover,
       cacheWidth: 300,
       filterQuality: FilterQuality.medium,
-      errorBuilder: (_, __, ___) => Container(color: modeTheme.chipBgColor),
+      errorBuilder: (_, __, ___) => _fallbackPlaceholder(modeTheme),
     );
   }
 
@@ -354,7 +401,7 @@ class CommerceRowCard extends ConsumerWidget {
   }
 
   static IconData _categoryIcon(String category) {
-    final cat = category.toLowerCase();
+    final cat = _normalize(category);
     if (cat.contains('restaurant') || cat.contains('food')) return Icons.restaurant;
     if (cat.contains('bar') || cat.contains('pub') || cat.contains('nuit')) return Icons.local_bar;
     if (cat.contains('club') || cat.contains('discotheque')) return Icons.nightlife;
@@ -372,7 +419,7 @@ class CommerceRowCard extends ConsumerWidget {
     if (cat.contains('parc')) return Icons.park;
     if (cat.contains('ferme')) return Icons.nature;
     if (cat.contains('patinoire')) return Icons.ice_skating;
-    if (cat.contains('bibliotheque')) return Icons.menu_book;
+    if (cat.contains('bibliotheque') || cat.contains('mediatheque')) return Icons.menu_book;
     if (cat.contains('chicha')) return Icons.smoking_rooms;
     if (cat.contains('epicerie') || cat.contains('tabac')) return Icons.store;
     if (cat.contains('apero')) return Icons.liquor;

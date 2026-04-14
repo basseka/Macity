@@ -1,0 +1,12 @@
+  [               
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {                                                                                                                                                                                                                  
+        "namespace": "android_app",
+        "package_name": "com.macity.app",                                                                                                                                                                                          
+        "sha256_cert_fingerprints": [
+          "1D:33:15:9C:7D:F3:1C:69:5E:F4:A1:5A:3F:F1:F6:52:F7:1F:F0:50:D6:47:13:A2:D5:CB:86:B0:88:CB:05:BB"                                                                                                                        
+        ]                                                                                                                                                                                                                          
+      }                                                                                                                                                                                                                            
+    }                                                                                                                                                                                                                              
+  ]     

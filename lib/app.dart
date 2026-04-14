@@ -38,7 +38,20 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ShareIntentService.init(ref);
       _setupNotificationTapHandler();
+      // Reset du badge au cold start (l'utilisateur a ouvert l'app
+      // donc les notifs en attente sont consommees).
+      FcmService.resetBadge();
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // Quand l'utilisateur revient dans l'app (foreground),
+    // on efface le badge sur l'icone du launcher.
+    if (state == AppLifecycleState.resumed) {
+      FcmService.resetBadge();
+    }
   }
 
   void _initDeepLinks() {
