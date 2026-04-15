@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_chat.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
 
 /// Bottom sheet de detail d'un signalement.
@@ -78,6 +79,45 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
     );
   }
 
+  Widget _buildReporterFooter() {
+    final prenom = event.reporterPrenom;
+    final contributors = event.contributors;
+    final extra = contributors.length - 3;
+    final stackList = contributors.take(3).toList();
+
+    final label = (prenom != null && prenom.isNotEmpty)
+        ? 'Signale par $prenom${contributors.length > 1 ? " et ${contributors.length - 1} autre${contributors.length - 1 > 1 ? "s" : ""}" : ""}  \u00b7  ${_relativeAge()}'
+        : 'Signale par la commu  \u00b7  ${_relativeAge()}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          if (stackList.isNotEmpty)
+            _AvatarStack(contributors: stackList, extraCount: extra > 0 ? extra : 0)
+          else
+            _SingleAvatar(url: event.reporterAvatarUrl),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                color: Colors.grey.shade700,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _relativeAge() {
     final diff = DateTime.now().difference(event.createdAt);
     if (diff.inMinutes < 1) return 'a l\'instant';
@@ -90,10 +130,19 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
   Widget build(BuildContext context) {
     final g = event.generated;
     final mediaQuery = MediaQuery.of(context);
+    final keyboard = mediaQuery.viewInsets.bottom;
 
-    return Container(
+    final maxH = keyboard > 0
+        ? (mediaQuery.size.height - keyboard - mediaQuery.padding.top - 20)
+        : mediaQuery.size.height * 0.78;
+
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: Container(
       constraints: BoxConstraints(
-        maxHeight: mediaQuery.size.height * 0.78,
+        maxHeight: maxH,
       ),
       decoration: const BoxDecoration(
         color: Color(0xFFF8F0FA),
@@ -385,7 +434,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '#$t',
+                                t,
                                 style: GoogleFonts.poppins(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
@@ -400,73 +449,53 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
 
                   const SizedBox(height: 18),
 
-                  // Footer "Signale par la commu"
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.flag_outlined,
-                          size: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Signale par la commu  ·  ${_relativeAge()}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: Colors.grey.shade700,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Footer "Signale par {prenom}" + avatar
+                  _buildReporterFooter(),
+
+                  const SizedBox(height: 14),
+
+                  // Chat communautaire (auto-detruit a l'expiration de l'event)
+                  ReportedEventChat(eventId: event.id),
                 ],
               ),
             ),
           ),
 
-          // CTA "Y aller"
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: _openItinerary,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7B2D8E),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+          // CTA "Y aller" — masque quand le clavier est ouvert pour eviter
+          // le chevauchement avec l'input du chat.
+          if (keyboard == 0)
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: _openItinerary,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B2D8E),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
-                  ),
-                  icon: const Icon(Icons.directions, size: 18),
-                  label: Text(
-                    'Y aller',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                    icon: const Icon(Icons.directions, size: 18),
+                    label: Text(
+                      'Y aller',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
+    ),
     );
   }
 }
@@ -1064,6 +1093,121 @@ class _AnimatedBorderPhotoState extends State<_AnimatedBorderPhoto>
         );
       },
       child: widget.child,
+    );
+  }
+}
+
+
+class _SingleAvatar extends StatelessWidget {
+  final String? url;
+  const _SingleAvatar({this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasUrl = url != null && url!.isNotEmpty;
+    if (hasUrl) {
+      return Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+              color: const Color(0xFFE91E8C).withValues(alpha: 0.6), width: 1.5),
+          image: DecorationImage(image: NetworkImage(url!), fit: BoxFit.cover),
+        ),
+      );
+    }
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
+        ),
+      ),
+      child: const Icon(Icons.person, color: Colors.white, size: 16),
+    );
+  }
+}
+
+class _AvatarStack extends StatelessWidget {
+  final List<ReportedEventContributor> contributors;
+  final int extraCount;
+  const _AvatarStack({required this.contributors, this.extraCount = 0});
+
+  static const double _size = 26;
+  static const double _overlap = 9;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = contributors.length + (extraCount > 0 ? 1 : 0);
+    final width = _size + (total - 1) * (_size - _overlap);
+    return SizedBox(
+      width: width,
+      height: _size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          for (var i = 0; i < contributors.length; i++)
+            Positioned(
+              left: i * (_size - _overlap),
+              child: _circle(child: _innerAvatar(contributors[i].avatarUrl)),
+            ),
+          if (extraCount > 0)
+            Positioned(
+              left: contributors.length * (_size - _overlap),
+              child: _circle(
+                child: Container(
+                  color: const Color(0xFF4A1259),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "+$extraCount",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _circle({required Widget child}) {
+    return Container(
+      width: _size,
+      height: _size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      child: ClipOval(child: child),
+    );
+  }
+
+  Widget _innerAvatar(String? url) {
+    if (url != null && url.isNotEmpty) {
+      return Image.network(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fallback());
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
+        ),
+      ),
+      child: const Icon(Icons.person, color: Colors.white, size: 14),
     );
   }
 }

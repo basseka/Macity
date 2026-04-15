@@ -166,7 +166,7 @@ class ModeShell extends ConsumerWidget {
                     onTap: () => AccountMenu.show(context, ref),
                     child: Padding(
                       padding: const EdgeInsets.all(11),
-                      child: AccountMenu.buildButton(),
+                      child: AccountMenu.buildButton(ref: ref),
                     ),
                   ),
                 ],

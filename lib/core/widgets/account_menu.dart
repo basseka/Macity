@@ -14,10 +14,26 @@ import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 class AccountMenu {
   AccountMenu._();
 
-  static Widget buildButton() {
+  static Widget buildButton({WidgetRef? ref, double size = 22}) {
+    final iconSize = size * 0.64;
+    final avatarUrl = ref?.watch(userAvatarUrlProvider).valueOrNull;
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFFE91E8C), width: 1),
+          image: DecorationImage(
+            image: NetworkImage(avatarUrl),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
     return Container(
-      width: 22,
-      height: 22,
+      width: size,
+      height: size,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
@@ -26,7 +42,7 @@ class AccountMenu {
           colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
         ),
       ),
-      child: const Icon(Icons.person, color: Colors.white, size: 14),
+      child: Icon(Icons.person, color: Colors.white, size: iconSize),
     );
   }
 

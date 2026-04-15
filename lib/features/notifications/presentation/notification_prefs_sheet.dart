@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/data/detailed_interests.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/today_events_provider.dart';
@@ -41,6 +43,12 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
   final _selectedDetailed = <String>{};
   // Categories depliees dans l'UI
   final _expandedCategories = <String>{};
+
+  final _prenomController = TextEditingController();
+  String? _initialPrenom;
+  String? _avatarUrl;
+  String? _newAvatarPath;
+  bool _avatarRemoved = false;
 
   final _villeController = TextEditingController();
   final _selectedVilles = <String>[];
@@ -90,6 +98,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     _villeController.removeListener(_onVilleTextChanged);
     _villeDebounce?.cancel();
     _villeController.dispose();
+    _prenomController.dispose();
     super.dispose();
   }
 
@@ -102,11 +111,16 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
         final villes = (profile['villes_notifications'] as List?)?.cast<String>() ?? [];
         final ville = (profile['ville'] as String?) ?? '';
         final resolvedVilles = villes.isNotEmpty ? villes : (ville.isNotEmpty ? [ville] : <String>[]);
+        final prenom = (profile['prenom'] as String?) ?? '';
+        final avatar = profile['avatar_url'] as String?;
         setState(() {
           _selectedModes.addAll(prefs);
           _selectedDetailed.addAll(detailed);
           _selectedVilles.addAll(resolvedVilles);
           _initialVilles = List.of(resolvedVilles);
+          _prenomController.text = prenom;
+          _initialPrenom = prenom;
+          _avatarUrl = (avatar != null && avatar.isNotEmpty) ? avatar : null;
           _loading = false;
         });
       } else {
@@ -148,6 +162,25 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
       final currentHub = ref.read(selectedCityProvider);
       if (_selectedHub != currentHub) {
         ref.read(selectedCityProvider.notifier).setCity(_selectedHub);
+      }
+
+      // Profil : prenom
+      final newPrenom = _prenomController.text.trim();
+      if (newPrenom.isNotEmpty && newPrenom != (_initialPrenom ?? '')) {
+        await _service.updatePrenom(newPrenom);
+        ref.invalidate(userPrenomProvider);
+      }
+
+      // Profil : avatar
+      if (_newAvatarPath != null) {
+        try {
+          final url = await _service.uploadAvatar(_newAvatarPath!);
+          await _service.updateAvatar(url);
+          ref.invalidate(userAvatarUrlProvider);
+        } catch (_) {}
+      } else if (_avatarRemoved) {
+        await _service.updateAvatar(null);
+        ref.invalidate(userAvatarUrlProvider);
       }
 
       ref.invalidate(userPreferencesProvider);
@@ -267,7 +300,15 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
+                  // ── Mon profil ──
+                  _buildSectionHeader(
+                    'Mon profil',
+                    'Modifie ton prenom/pseudo et ta photo',
+                  ),
+                  if (!_loading) _buildProfileSection(),
+
                   // ── Mes mairies ──
+                  const SizedBox(height: 16),
                   _buildSectionHeader(
                     'Mes mairies',
                     'Recevez les notifications de plusieurs mairies',
@@ -340,6 +381,155 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
         ),
       ),
     );
+  }
+
+  // ── Section profil (avatar + prenom) ──
+  Widget _buildProfileSection() {
+    final hasLocalAvatar = _newAvatarPath != null;
+    final hasRemoteAvatar = !_avatarRemoved && _avatarUrl != null && !hasLocalAvatar;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 4),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _pickAvatar,
+            child: Stack(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey.shade100,
+                    border: Border.all(color: _accentColor.withValues(alpha: 0.5), width: 2),
+                    image: hasLocalAvatar
+                        ? DecorationImage(
+                            image: FileImage(File(_newAvatarPath!)),
+                            fit: BoxFit.cover,
+                          )
+                        : hasRemoteAvatar
+                            ? DecorationImage(
+                                image: NetworkImage(_avatarUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                  ),
+                  child: (!hasLocalAvatar && !hasRemoteAvatar)
+                      ? Icon(Icons.person, color: Colors.grey.shade400, size: 32)
+                      : null,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: _accentColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.edit, size: 11, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: TextField(
+              controller: _prenomController,
+              style: const TextStyle(fontSize: 14, color: _darkColor),
+              decoration: InputDecoration(
+                labelText: 'Prenom ou pseudo',
+                labelStyle: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: _accentColor),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAvatar() async {
+    final hasAvatar = _newAvatarPath != null ||
+        (!_avatarRemoved && _avatarUrl != null);
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<_AvatarAction>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera, color: _darkColor),
+              title: const Text('Prendre une photo'),
+              onTap: () => Navigator.pop(ctx, _AvatarAction.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: _darkColor),
+              title: const Text('Choisir dans la galerie'),
+              onTap: () => Navigator.pop(ctx, _AvatarAction.gallery),
+            ),
+            if (hasAvatar)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                title: const Text('Retirer la photo',
+                    style: TextStyle(color: Colors.redAccent)),
+                onTap: () => Navigator.pop(ctx, _AvatarAction.remove),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+    if (source == _AvatarAction.remove) {
+      setState(() {
+        _newAvatarPath = null;
+        _avatarRemoved = true;
+      });
+      return;
+    }
+    try {
+      final picked = await picker.pickImage(
+        source: source == _AvatarAction.camera
+            ? ImageSource.camera
+            : ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (picked != null && mounted) {
+        setState(() {
+          _newAvatarPath = picked.path;
+          _avatarRemoved = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de selectionner cette image')),
+        );
+      }
+    }
   }
 
   // ── Section header ──
@@ -710,6 +900,8 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     } catch (_) {}
   }
 }
+
+enum _AvatarAction { camera, gallery, remove }
 
 class _CommuneResult {
   final String nom;

@@ -110,34 +110,17 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         return;
       }
 
-      // PRIORITE 1 : lastKnown instantane (cache OS, < 1s)
-      try {
-        final lastKnown = await Geolocator.getLastKnownPosition();
-        if (lastKnown != null) {
-          debugPrint('[ReportForm] lastKnown instant: ${lastKnown.latitude}, ${lastKnown.longitude}');
-          state = state.copyWith(
-            lat: lastKnown.latitude,
-            lng: lastKnown.longitude,
-            isLocating: false,
-          );
-          _reverseGeocode(lastKnown.latitude, lastKnown.longitude);
-          // Affine en background sans bloquer
-          _refinePosition();
-          return;
-        }
-      } catch (e) {
-        debugPrint('[ReportForm] lastKnown failed: $e');
-      }
-
-      // PRIORITE 2 : high accuracy (5-10m, timeout 8s)
+      // PRIORITE 1 : high accuracy FRAIS (5-10m, timeout 8s).
+      // lastKnown peut etre un cache OS de plusieurs minutes/km : on l'evite
+      // pour le signalement Live Notif qui doit etre precis a chaque appui.
       try {
         final pos = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
+            accuracy: LocationAccuracy.best,
             timeLimit: Duration(seconds: 8),
           ),
         );
-        debugPrint('[ReportForm] high: ${pos.latitude}, ${pos.longitude} (acc=${pos.accuracy}m)');
+        debugPrint('[ReportForm] fresh high: ${pos.latitude}, ${pos.longitude} (acc=${pos.accuracy}m)');
         state = state.copyWith(
           lat: pos.latitude,
           lng: pos.longitude,
@@ -147,6 +130,26 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         return;
       } catch (e) {
         debugPrint('[ReportForm] high accuracy failed: $e');
+      }
+
+      // PRIORITE 2 (fallback) : lastKnown si la high accuracy a timeout
+      // (ex: indoor sans signal). Affichera quand meme un avertissement implicite
+      // car on continue d'affiner en background.
+      try {
+        final lastKnown = await Geolocator.getLastKnownPosition();
+        if (lastKnown != null) {
+          debugPrint('[ReportForm] fallback lastKnown: ${lastKnown.latitude}, ${lastKnown.longitude}');
+          state = state.copyWith(
+            lat: lastKnown.latitude,
+            lng: lastKnown.longitude,
+            isLocating: false,
+          );
+          _reverseGeocode(lastKnown.latitude, lastKnown.longitude);
+          _refinePosition();
+          return;
+        }
+      } catch (e) {
+        debugPrint('[ReportForm] lastKnown failed: $e');
       }
 
       state = state.copyWith(

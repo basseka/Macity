@@ -33,6 +33,15 @@ class ReportedEvent {
   /// soit compte plusieurs fois).
   final List<String> reporterIds;
 
+  /// Prenom/pseudo du premier reporter (denormalise pour affichage rapide).
+  final String? reporterPrenom;
+
+  /// URL avatar du premier reporter (denormalise).
+  final String? reporterAvatarUrl;
+
+  /// Liste des contributeurs (multi-reporters) avec prenom + avatar.
+  final List<ReportedEventContributor> contributors;
+
   /// 'ai_generating' | 'published' | 'rejected' | 'expired'
   final String status;
 
@@ -56,6 +65,9 @@ class ReportedEvent {
     this.videos = const [],
     this.reportCount = 1,
     this.reporterIds = const [],
+    this.reporterPrenom,
+    this.reporterAvatarUrl,
+    this.contributors = const [],
     required this.status,
     this.generated,
     required this.startsAt,
@@ -104,6 +116,18 @@ class ReportedEvent {
       reporterIds: reporterIdsRaw is List
           ? reporterIdsRaw.map((e) => e.toString()).toList()
           : const <String>[],
+      reporterPrenom: (json['reporter_prenom'] as String?)?.trim().isNotEmpty == true
+          ? (json['reporter_prenom'] as String).trim()
+          : null,
+      reporterAvatarUrl: (json['reporter_avatar_url'] as String?)?.isNotEmpty == true
+          ? json['reporter_avatar_url'] as String
+          : null,
+      contributors: (json['contributors'] is List)
+          ? (json['contributors'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map(ReportedEventContributor.fromJson)
+              .toList()
+          : const <ReportedEventContributor>[],
       status: json['status'] as String,
       generated: gen is Map<String, dynamic>
           ? ReportedEventGenerated.fromJson(gen)
@@ -111,6 +135,28 @@ class ReportedEvent {
       startsAt: DateTime.parse(json['starts_at'] as String),
       expiresAt: DateTime.parse(json['expires_at'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
+}
+
+/// Un contributeur d'un signalement (multi-reporters).
+class ReportedEventContributor {
+  final String userId;
+  final String prenom;
+  final String? avatarUrl;
+
+  const ReportedEventContributor({
+    required this.userId,
+    required this.prenom,
+    this.avatarUrl,
+  });
+
+  factory ReportedEventContributor.fromJson(Map<String, dynamic> json) {
+    final avatar = json['avatar_url'] as String?;
+    return ReportedEventContributor(
+      userId: (json['user_id'] as String?) ?? '',
+      prenom: (json['prenom'] as String?) ?? 'Anonyme',
+      avatarUrl: (avatar != null && avatar.isNotEmpty) ? avatar : null,
     );
   }
 }

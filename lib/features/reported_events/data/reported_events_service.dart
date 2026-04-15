@@ -10,6 +10,7 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
+import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 
@@ -189,6 +190,21 @@ class ReportedEventsService {
 
     final userId = await UserIdentityService.getUserId();
 
+    // Recupere le profil pour denormaliser prenom/avatar dans le signalement.
+    String? reporterPrenom;
+    String? reporterAvatarUrl;
+    try {
+      final profile = await UserProfileService().fetchProfile();
+      if (profile != null) {
+        final p = (profile['prenom'] as String?)?.trim();
+        if (p != null && p.isNotEmpty) reporterPrenom = p;
+        final a = profile['avatar_url'] as String?;
+        if (a != null && a.isNotEmpty) reporterAvatarUrl = a;
+      }
+    } catch (_) {
+      // Pas bloquant : on signale en anonyme.
+    }
+
     String? photoUrl;
     String? videoUrl;
     if (localPhotoPath != null && localPhotoPath.isNotEmpty) {
@@ -293,9 +309,37 @@ class ReportedEventsService {
       unawaited(_triggerPosterGeneration(id));
     }
 
+    // Append le user comme contributor (idempotent cote DB via user_id).
+    if (reporterPrenom != null) {
+      try {
+        await _restDio.post(
+          'rpc/add_reporter_contributor',
+          data: {
+            'p_event_id': id,
+            'p_user_id': userId,
+            'p_prenom': reporterPrenom,
+            'p_avatar_url': reporterAvatarUrl,
+          },
+          options: Options(
+            sendTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 5),
+          ),
+        );
+      } catch (e) {
+        debugPrint('[ReportedEvents] add_reporter_contributor failed: $e');
+      }
+    }
+
     // PATCH les champs extra (pas dans la RPC pour eviter de la modifier)
     final patchData = <String, dynamic>{};
     if (locationName.isNotEmpty) patchData['location_name'] = locationName;
+    // Identite du reporter : SEULEMENT si nouvelle row (on garde le 1er reporter).
+    if (!wasMerged) {
+      if (reporterPrenom != null) patchData['reporter_prenom'] = reporterPrenom;
+      if (reporterAvatarUrl != null) {
+        patchData['reporter_avatar_url'] = reporterAvatarUrl;
+      }
+    }
     if (patchData.isNotEmpty) {
       try {
         await _restDio.patch(

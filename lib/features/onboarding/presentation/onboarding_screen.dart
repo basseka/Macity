@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/data/detailed_interests.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
@@ -31,6 +33,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _selectedDetailed = <String>{};
   final _expandedCategories = <String>{};
   bool _submitting = false;
+  String? _avatarPath;
   String _selectedVille = '';
   Timer? _villeDebounce;
   List<_CommuneResult> _villeSuggestions = [];
@@ -66,12 +69,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final allModes = {..._selectedModes, ...modesFromDetailed};
 
       final svc = UserProfileService();
+      String? avatarUrl;
+      if (_avatarPath != null) {
+        try {
+          avatarUrl = await svc.uploadAvatar(_avatarPath!);
+        } catch (_) {
+          // Upload non bloquant : on continue sans avatar.
+        }
+      }
       await svc.upsert(
         prenom: _prenomController.text.trim(),
         email: _emailController.text.trim(),
         telephone: _phoneController.text.trim(),
         ville: _selectedVille,
         preferences: allModes.toList(),
+        avatarUrl: avatarUrl,
       );
       if (_selectedDetailed.isNotEmpty) {
         await svc.updateDetailedPreferences(_selectedDetailed.toList());
@@ -125,6 +137,67 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _loginError = 'Erreur de connexion, reessayez';
           _submitting = false;
         });
+      }
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: const Color(0xFF1A0A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera, color: Colors.white),
+              title: Text('Prendre une photo',
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.white),
+              title: Text('Choisir dans la galerie',
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            if (_avatarPath != null)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                title: Text('Retirer la photo',
+                    style: GoogleFonts.poppins(
+                        color: Colors.redAccent, fontSize: 14)),
+                onTap: () => Navigator.pop(ctx, null),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) {
+      if (mounted) setState(() => _avatarPath = null);
+      return;
+    }
+
+    try {
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (picked != null && mounted) {
+        setState(() => _avatarPath = picked.path);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de selectionner cette image')),
+        );
       }
     }
   }
@@ -406,13 +479,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // ── Sign Up fields ──
   List<Widget> _buildSignUpFields() {
     return [
-      // Prenom
+      // Avatar picker
+      Center(child: _buildAvatarPicker()),
+      const SizedBox(height: 18),
+
+      // Prenom ou pseudo
       _buildField(
         controller: _prenomController,
-        label: 'Prenom',
+        label: 'Prenom ou pseudo',
         icon: Icons.person_outline,
-        validator: (v) =>
-            v == null || v.trim().isEmpty ? 'Entrez votre prenom' : null,
+        validator: (v) => v == null || v.trim().isEmpty
+            ? 'Entrez votre prenom ou pseudo'
+            : null,
       ),
       const SizedBox(height: 14),
 
@@ -855,6 +933,54 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (_) {
       // Silently ignore network errors
     }
+  }
+
+  Widget _buildAvatarPicker() {
+    return GestureDetector(
+      onTap: _pickAvatar,
+      child: Stack(
+        children: [
+          Container(
+            width: 92,
+            height: 92,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.08),
+              border: Border.all(
+                color: _accentColor.withValues(alpha: 0.6),
+                width: 2,
+              ),
+              image: _avatarPath != null
+                  ? DecorationImage(
+                      image: FileImage(File(_avatarPath!)),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: _avatarPath == null
+                ? const Icon(Icons.person_add_alt_1,
+                    color: Colors.white54, size: 36)
+                : null,
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: const BoxDecoration(
+                color: _accentColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _avatarPath == null ? Icons.camera_alt : Icons.edit,
+                size: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildField({

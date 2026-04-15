@@ -39,6 +39,18 @@ final userPrenomProvider = FutureProvider<String>((ref) async {
   }
 });
 
+/// URL de la photo de profil de l'utilisateur (depuis Supabase).
+final userAvatarUrlProvider = FutureProvider<String?>((ref) async {
+  try {
+    final profile = await UserProfileService().fetchProfile();
+    if (profile == null) return null;
+    final url = profile['avatar_url'] as String?;
+    return (url != null && url.isNotEmpty) ? url : null;
+  } catch (_) {
+    return null;
+  }
+});
+
 /// Ville de l'utilisateur (depuis Supabase).
 final userVilleProvider = FutureProvider<String>((ref) async {
   try {

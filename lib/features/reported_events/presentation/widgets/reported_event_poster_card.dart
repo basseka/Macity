@@ -423,7 +423,7 @@ class _TagChip extends StatelessWidget {
         ),
       ),
       child: Text(
-        '#$label',
+        label,
         style: GoogleFonts.poppins(
           fontSize: 8,
           fontWeight: FontWeight.w600,

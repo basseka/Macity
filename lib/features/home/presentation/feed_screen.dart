@@ -264,7 +264,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               Builder(builder: (_) {
                 final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
                 return Text(
-                  prenom.isNotEmpty ? 'Salut, $prenom' : 'MaCity',
+                  prenom.isNotEmpty ? prenom : 'MaCity',
                   style: GoogleFonts.poppins(
                     fontSize: 8,
                     fontWeight: FontWeight.w500,
@@ -277,7 +277,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 onTap: () => AccountMenu.show(context, ref),
                 child: Padding(
                   padding: const EdgeInsets.all(11),
-                  child: AccountMenu.buildButton(),
+                  child: AccountMenu.buildButton(ref: ref),
                 ),
               ),
             ],
@@ -426,7 +426,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Notif Live',
+                          'Live Notif',
                           style: GoogleFonts.poppins(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -1244,7 +1244,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Notif Live',
+                                'Live Notif',
                                 style: GoogleFonts.poppins(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,

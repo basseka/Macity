@@ -93,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Builder(builder: (_) {
                   final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
                   return Text(
-                    prenom.isNotEmpty ? 'Salut, $prenom' : 'MaCity',
+                    prenom.isNotEmpty ? prenom : 'MaCity',
                     style: GoogleFonts.poppins(
                       fontSize: 8,
                       fontWeight: FontWeight.w500,
@@ -107,7 +107,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onTap: () => AccountMenu.show(context, ref),
                 child: Padding(
                   padding: const EdgeInsets.all(11),
-                  child: AccountMenu.buildButton(),
+                  child: AccountMenu.buildButton(ref: ref, size: 60),
                 ),
               ),
             ],
@@ -219,7 +219,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Notif Live',
+                              'Live Notif',
                               style: GoogleFonts.poppins(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
