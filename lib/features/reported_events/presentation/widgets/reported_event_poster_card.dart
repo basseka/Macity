@@ -464,6 +464,7 @@ class _ShimmerPlaceholderState extends State<_ShimmerPlaceholder>
 
   @override
   Widget build(BuildContext context) {
+    final isUltra = widget.height < 80;
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (context, _) {
@@ -483,21 +484,26 @@ class _ShimmerPlaceholderState extends State<_ShimmerPlaceholder>
             ),
           ),
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.auto_awesome, size: 24, color: Color(0xFF7B2D8E)),
-                const SizedBox(height: 6),
-                Text(
-                  'Generation IA...',
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF7B2D8E),
+            child: isUltra
+                ? const Icon(Icons.auto_awesome, size: 18, color: Color(0xFF7B2D8E))
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.auto_awesome, size: 24, color: Color(0xFF7B2D8E)),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Generation IA...',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF7B2D8E),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
           ),
         );
       },

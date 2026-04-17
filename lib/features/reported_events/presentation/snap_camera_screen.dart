@@ -37,6 +37,7 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
 
   static const _categories = <_CatDef>[
     _CatDef('concert', Icons.music_note_rounded, 'Concert', Color(0xFF7C3AED)),
+    _CatDef('soiree', Icons.nightlife_rounded, 'Soiree', Color(0xFFEC4899)),
     _CatDef('fete', Icons.celebration_rounded, 'Fete', Color(0xFFE91E8C)),
     _CatDef('festival', Icons.festival_rounded, 'Festival', Color(0xFF6C5CE7)),
     _CatDef('marche', Icons.storefront_rounded, 'Marche', Color(0xFF10B981)),

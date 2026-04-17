@@ -45,6 +45,7 @@ import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dar
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_legend.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 
 final _foodScrapedProvider = FutureProvider.family<List<Event>, String>((ref, city) async {
@@ -408,7 +409,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   'Ca bouge pres de toi',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
@@ -461,7 +462,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: ReportedEventsMap(height: 280),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
+        const ReportedEventsLegend(),
+        const SizedBox(height: 6),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
           child: ReportedEventsCarousel(),
@@ -1226,7 +1229,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         'Ca bouge pres de toi',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
                       ),
@@ -1282,7 +1285,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 child: ReportedEventsMap(height: 280),
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            const SliverToBoxAdapter(child: SizedBox(height: 6)),
+            const SliverToBoxAdapter(child: ReportedEventsLegend()),
+            const SliverToBoxAdapter(child: SizedBox(height: 6)),
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 12),

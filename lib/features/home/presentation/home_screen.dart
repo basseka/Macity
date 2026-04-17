@@ -15,6 +15,7 @@ import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/home/presentation/widgets/discovery_buttons.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_legend.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -251,7 +252,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(height: 6),
               const ReportedEventsMap(),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
+              const ReportedEventsLegend(),
+              const SizedBox(height: 6),
               const ReportedEventsCarousel(),
 
               // Espace en bas pour ne pas cacher le contenu derriere le FAB

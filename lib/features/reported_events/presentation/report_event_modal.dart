@@ -432,6 +432,8 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
     switch (c) {
       case 'concert':
         return 'ex: Concert improvise dans la rue';
+      case 'soiree':
+        return 'ex: Soiree au bar/club...';
       case 'fete':
         return 'ex: Fete de quartier place...';
       case 'festival':
@@ -587,6 +589,8 @@ class _CategoryGrid extends StatelessWidget {
   static const _categories = <_CatItem>[
     _CatItem('concert', Icons.music_note_rounded, 'Concert',
         Color(0xFF7C3AED), Color(0xFF9333EA),),
+    _CatItem('soiree', Icons.nightlife_rounded, 'Soiree',
+        Color(0xFFEC4899), Color(0xFFF472B6),),
     _CatItem('fete', Icons.celebration_rounded, 'Fete',
         Color(0xFFE91E8C), Color(0xFFEC4899),),
     _CatItem('festival', Icons.festival_rounded, 'Festival',

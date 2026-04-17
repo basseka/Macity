@@ -72,7 +72,7 @@ class _BoostedCard extends StatelessWidget {
         badge: 'A la une',
       ),
       child: Container(
-        width: 260,
+        width: 230,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
@@ -454,7 +454,7 @@ class _ShimmerTitleState extends State<_ShimmerTitle>
             'A la une',
             style: GoogleFonts.poppins(
               fontSize: 16,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

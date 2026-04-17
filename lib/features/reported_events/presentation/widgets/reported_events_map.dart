@@ -111,7 +111,8 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       final title = (e.generated?.title ?? e.rawTitle).replaceAll("'", "\\'");
       final photoCount = e.photos.length;
       final reportCount = e.reportCount;
-      return "{id:'${e.id}',lat:${e.lat},lng:${e.lng},emoji:'$emoji',title:'$title',photos:$photoCount,reports:$reportCount}";
+      final category = e.category.replaceAll("'", "\\'");
+      return "{id:'${e.id}',lat:${e.lat},lng:${e.lng},emoji:'$emoji',title:'$title',photos:$photoCount,reports:$reportCount,category:'$category'}";
     }).join(',');
     await _controller.runJavaScript('setReports([$js])');
   }
@@ -134,50 +135,30 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     #map { width: 100vw; height: 100vh; }
     .leaflet-control-attribution { font-size: 8px; }
 
-    .orange-pulse {
-      width: 16px; height: 16px;
-      background: #F97316;
-      border-radius: 50%;
-      border: 2.5px solid white;
-      box-shadow: 0 0 0 0 rgba(249,115,22,0.7), 0 2px 6px rgba(0,0,0,0.3);
-      animation: orangepulse 1.8s ease-out infinite;
-      cursor: pointer;
-    }
-    @keyframes orangepulse {
-      0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0.7), 0 2px 6px rgba(0,0,0,0.3); }
-      70%  { box-shadow: 0 0 0 14px rgba(249,115,22,0), 0 2px 6px rgba(0,0,0,0.3); }
-      100% { box-shadow: 0 0 0 0 rgba(249,115,22,0), 0 2px 6px rgba(0,0,0,0.3); }
-    }
-
-    .red-pulse {
+    /* Pins par famille. Meme base visuelle (18px, bordure blanche, pulse 1.6s).
+       Une couleur par famille, 5 familles max pour rester lisible. */
+    .fam-pulse {
       width: 18px; height: 18px;
-      background: #DC2626;
       border-radius: 50%;
       border: 2.5px solid white;
-      box-shadow: 0 0 0 0 rgba(220,38,38,0.6), 0 2px 6px rgba(0,0,0,0.3);
-      animation: redpulse 1.5s ease-out infinite;
       cursor: pointer;
+      animation: fampulse 1.6s ease-out infinite;
     }
-    @keyframes redpulse {
-      0%   { box-shadow: 0 0 0 0 rgba(220,38,38,0.6), 0 2px 6px rgba(0,0,0,0.3); }
-      70%  { box-shadow: 0 0 0 12px rgba(220,38,38,0), 0 2px 6px rgba(0,0,0,0.3); }
-      100% { box-shadow: 0 0 0 0 rgba(220,38,38,0), 0 2px 6px rgba(0,0,0,0.3); }
+    @keyframes fampulse {
+      0%   { box-shadow: 0 0 0 0 var(--pulse-color), 0 2px 6px rgba(0,0,0,0.3); }
+      70%  { box-shadow: 0 0 0 14px transparent, 0 2px 6px rgba(0,0,0,0.3); }
+      100% { box-shadow: 0 0 0 0 transparent, 0 2px 6px rgba(0,0,0,0.3); }
     }
-
-    .hotspot-pulse {
-      width: 22px; height: 22px;
-      background: linear-gradient(135deg, #7B2D8E, #DC2626);
-      border-radius: 50%;
-      border: 3px solid white;
-      box-shadow: 0 0 0 0 rgba(123, 45, 142, 0.8), 0 2px 8px rgba(0,0,0,0.4);
-      animation: hotpulse 1.2s ease-out infinite;
-      cursor: pointer;
-    }
-    @keyframes hotpulse {
-      0%   { box-shadow: 0 0 0 0 rgba(123,45,142,0.8), 0 2px 8px rgba(0,0,0,0.4); transform: scale(1); }
-      50%  { box-shadow: 0 0 0 18px rgba(220,38,38,0), 0 2px 8px rgba(0,0,0,0.4); transform: scale(1.15); }
-      100% { box-shadow: 0 0 0 0 rgba(123,45,142,0), 0 2px 8px rgba(0,0,0,0.4); transform: scale(1); }
-    }
+    /* Violet - Vie nocturne (concert, soiree, festival) */
+    .fam-nightlife { background: #7C3AED; --pulse-color: rgba(124,58,237,0.7); }
+    /* Orange - Food (food, marche) */
+    .fam-food      { background: #F97316; --pulse-color: rgba(249,115,22,0.7); }
+    /* Bleu - Culture (salon, exposition) */
+    .fam-culture   { background: #0891B2; --pulse-color: rgba(8,145,178,0.7); }
+    /* Vert - Sport */
+    .fam-sport     { background: #10B981; --pulse-color: rgba(16,185,129,0.7); }
+    /* Rouge - General (fete + fallback) */
+    .fam-general   { background: #DC2626; --pulse-color: rgba(220,38,38,0.7); }
 
     .user-dot {
       width: 14px; height: 14px;
@@ -239,26 +220,21 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
 
     let centeredOnCity = false;
 
+    // Mapping categorie -> famille visuelle. 5 familles max pour rester lisible.
+    const FAMILY_BY_CATEGORY = {
+      concert: 'nightlife', soiree: 'nightlife', festival: 'nightlife',
+      food: 'food', marche: 'food',
+      salon: 'culture', exposition: 'culture',
+      sport: 'sport',
+      fete: 'general',
+    };
+
     function setReports(reports) {
       clusterGroup.clearLayers();
-      // Score max pour identifier le #1
-      let maxScore = 0;
       reports.forEach(r => {
-        const s = (r.photos || 0) + (r.reports || 0);
-        if (s > maxScore) maxScore = s;
-      });
-
-      reports.forEach(r => {
-        const score = (r.photos || 0) + (r.reports || 0);
-        // 3 tiers : hot (top score >= 4), warm (2+ reports ou 2+ photos), normal
-        let cls, size, zOff;
-        if (score >= 4 && score === maxScore) {
-          cls = 'hotspot-pulse'; size = 22; zOff = 500;
-        } else if ((r.reports || 0) >= 2 || (r.photos || 0) >= 2) {
-          cls = 'red-pulse'; size = 18; zOff = 200;
-        } else {
-          cls = 'orange-pulse'; size = 16; zOff = 0;
-        }
+        const family = FAMILY_BY_CATEGORY[r.category] || 'general';
+        const cls = 'fam-pulse fam-' + family;
+        const size = 18;
         const anchor = size / 2;
         const marker = L.marker([r.lat, r.lng], {
           icon: L.divIcon({
@@ -267,7 +243,6 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
             iconSize: [size, size],
             iconAnchor: [anchor, anchor],
           }),
-          zIndexOffset: zOff,
         });
         marker.on('click', function() {
           FlutterReportTap.postMessage(r.id);

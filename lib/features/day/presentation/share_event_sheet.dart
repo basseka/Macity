@@ -6,7 +6,8 @@ import 'package:pulz_app/core/services/activity_service.dart';
 import 'package:pulz_app/features/day/data/shared_events_service.dart';
 import 'package:pulz_app/features/day/state/shared_events_provider.dart';
 
-/// Bottom sheet pour partager un event avec des contacts in-app.
+/// Bottom sheet pour partager un event avec des contacts.
+/// Utilise le Contact Picker systeme Android (pas de permission READ_CONTACTS).
 class ShareEventSheet extends ConsumerStatefulWidget {
   final String eventId;
   final String eventTitle;
@@ -32,17 +33,25 @@ class ShareEventSheet extends ConsumerStatefulWidget {
 }
 
 class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
-  final _selected = <String>{}; // user_ids selectionnes
+  static const _accent = Color(0xFF6C5CE7);
+  static const _playStoreLink =
+      'https://play.google.com/apps/internaltest/4700923192632434389';
+
+  final List<PickedContact> _picked = [];
+  bool _picking = false;
   bool _sending = false;
   bool _sent = false;
 
+  List<PickedContact> get _pulzRecipients =>
+      _picked.where((p) => p.isOnPulz).toList();
+  List<PickedContact> get _nonPulzRecipients =>
+      _picked.where((p) => !p.isOnPulz).toList();
+
   @override
   Widget build(BuildContext context) {
-    final contactsAsync = ref.watch(appContactsProvider);
-
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.75,
+        maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -63,210 +72,126 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6C5CE7).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.people_alt_rounded, color: Color(0xFF6C5CE7), size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Partager avec',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1A1A2E),
-                        ),
-                      ),
-                      Text(
-                        widget.eventTitle,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey.shade500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
+          _buildHeader(),
+          const SizedBox(height: 12),
           const Divider(height: 1),
-
-          // Content
           Flexible(
-            child: _sent
-                ? _buildSentState()
-                : contactsAsync.when(
-                    data: (contacts) {
-                      if (contacts.isEmpty) return _buildNoContacts();
-                      return _buildContactsList(contacts);
-                    },
-                    loading: () => Padding(
-                      padding: const EdgeInsets.all(48),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: CircularProgressIndicator(
-                              color: const Color(0xFF6C5CE7),
-                              strokeWidth: 2.5,
-                              backgroundColor: const Color(0xFF6C5CE7).withValues(alpha: 0.12),
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Text(
-                            'Detection des contacts...',
-                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500),
-                          ),
-                        ],
-                      ),
-                    ),
-                    error: (_, __) => _buildNoContacts(),
-                  ),
+            child: _sent ? _buildSentState() : _buildBody(),
           ),
-
-          // Send button
-          if (!_sent)
-            contactsAsync.whenData((contacts) {
-                  if (contacts.isEmpty) return null;
-                  return true;
-                }).valueOrNull ==
-                true
-            ? _buildSendButton()
-            : const SizedBox.shrink(),
+          if (!_sent) _buildActions(),
         ],
       ),
     );
   }
 
-  Widget _buildContactsList(List<AppContact> contacts) {
-    return ListView.separated(
-      shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: contacts.length,
-      separatorBuilder: (_, __) => Divider(height: 1, indent: 72, color: Colors.grey.shade100),
-      itemBuilder: (context, index) {
-        final contact = contacts[index];
-        final isSelected = _selected.contains(contact.userId);
-        final displayName = contact.contactName ?? contact.prenom;
-
-        return ListTile(
-          onTap: () => setState(() {
-            if (isSelected) {
-              _selected.remove(contact.userId);
-            } else {
-              _selected.add(contact.userId);
-            }
-          }),
-          leading: CircleAvatar(
-            backgroundColor: isSelected
-                ? const Color(0xFF6C5CE7)
-                : const Color(0xFF6C5CE7).withValues(alpha: 0.1),
-            child: isSelected
-                ? const Icon(Icons.check, color: Colors.white, size: 20)
-                : Text(
-                    displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF6C5CE7),
-                    ),
-                  ),
-          ),
-          title: Text(
-            displayName,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: const Color(0xFF1A1A2E),
-            ),
-          ),
-          subtitle: contact.prenom.isNotEmpty && contact.contactName != null
-              ? Text(
-                  contact.prenom,
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
-                )
-              : null,
-          trailing: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 24,
-            height: 24,
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isSelected ? const Color(0xFF6C5CE7) : Colors.transparent,
-              border: Border.all(
-                color: isSelected ? const Color(0xFF6C5CE7) : Colors.grey.shade300,
-                width: 2,
-              ),
+              color: _accent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: isSelected
-                ? const Icon(Icons.check, size: 14, color: Colors.white)
-                : null,
+            child: const Icon(Icons.people_alt_rounded, color: _accent, size: 22),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSendButton() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-        child: SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: ElevatedButton(
-            onPressed: _selected.isEmpty || _sending ? null : _share,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
-              disabledBackgroundColor: Colors.grey.shade200,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              elevation: 0,
-            ),
-            child: _sending
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : Text(
-                    _selected.isEmpty
-                        ? 'Selectionner des contacts'
-                        : 'Partager avec ${_selected.length} personne${_selected.length > 1 ? 's' : ''}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _selected.isEmpty ? Colors.grey.shade400 : Colors.white,
-                    ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Partager avec',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1A1A2E),
                   ),
+                ),
+                Text(
+                  widget.eventTitle,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildNoContacts() {
+  Widget _buildBody() {
+    if (_picked.isEmpty) return _buildEmptyState();
+    return ListView.separated(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _picked.length,
+      separatorBuilder: (_, __) =>
+          Divider(height: 1, indent: 72, color: Colors.grey.shade100),
+      itemBuilder: (context, index) => _buildRecipientTile(_picked[index], index),
+    );
+  }
+
+  Widget _buildRecipientTile(PickedContact c, int index) {
+    final onPulz = c.isOnPulz;
+    final initial = c.displayName.isNotEmpty ? c.displayName[0].toUpperCase() : '?';
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: onPulz
+            ? _accent.withValues(alpha: 0.12)
+            : Colors.grey.shade200,
+        child: Text(
+          initial,
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: onPulz ? _accent : Colors.grey.shade600,
+          ),
+        ),
+      ),
+      title: Text(
+        c.displayName.isEmpty ? 'Contact sans nom' : c.displayName,
+        style: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF1A1A2E),
+        ),
+      ),
+      subtitle: Row(
+        children: [
+          Icon(
+            onPulz ? Icons.check_circle : Icons.person_add_outlined,
+            size: 13,
+            color: onPulz ? const Color(0xFF4CAF50) : Colors.orange.shade400,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            onPulz ? 'Sur Pulz' : 'A inviter par SMS',
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: onPulz ? const Color(0xFF4CAF50) : Colors.orange.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+      trailing: IconButton(
+        icon: Icon(Icons.close, size: 18, color: Colors.grey.shade400),
+        onPressed: () => setState(() => _picked.removeAt(index)),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -274,48 +199,136 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: _accent.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.contacts_outlined, size: 30, color: Colors.grey.shade400),
+            child: const Icon(Icons.person_add_alt_1, size: 30, color: _accent),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
-            'Aucun contact sur M-City',
+            'Ajoute des amis',
             style: GoogleFonts.poppins(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
+              color: const Color(0xFF1A1A2E),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
-            'Invite tes amis a telecharger l\'app\npour partager des events !',
+            'Choisis tes contacts pour partager cet event.\nDeja sur Pulz : envoi direct.\nPas encore : invitation SMS avec lien.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400, height: 1.4),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 46,
-            child: ElevatedButton.icon(
-              onPressed: () => Share.share(
-                'Rejoins-moi sur M-City pour decouvrir les events autour de toi !\nhttps://play.google.com/apps/internaltest/4700923192632434389',
-              ),
-              icon: const Icon(Icons.send_rounded, size: 18),
-              label: Text(
-                'Inviter un ami',
-                style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C5CE7),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-              ),
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Colors.grey.shade500,
+              height: 1.4,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActions() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                onPressed: _picking || _sending ? null : _addContact,
+                icon: _picking
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: _accent,
+                        ),
+                      )
+                    : const Icon(Icons.add_rounded, color: _accent, size: 20),
+                label: Text(
+                  _picking ? 'Recherche...' : 'Ajouter un contact',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _accent,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: _accent.withValues(alpha: 0.5)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            if (_pulzRecipients.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: _sending ? null : _sharePulz,
+                  icon: _sending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.send_rounded, size: 18),
+                  label: Text(
+                    'Partager avec ${_pulzRecipients.length} ami${_pulzRecipients.length > 1 ? 's' : ''} sur Pulz',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _accent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+            if (_nonPulzRecipients.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton.icon(
+                  onPressed: _sending ? null : _inviteBySms,
+                  icon: const Icon(Icons.sms_outlined, size: 18),
+                  label: Text(
+                    'Inviter ${_nonPulzRecipients.length} ami${_nonPulzRecipients.length > 1 ? 's' : ''} par SMS',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade400,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -333,7 +346,11 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
               color: Color(0xFFE8F5E9),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_circle_rounded, size: 36, color: Color(0xFF4CAF50)),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              size: 36,
+              color: Color(0xFF4CAF50),
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -348,7 +365,11 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
           Text(
             'Tes amis verront cet event\ndans leur section "Partages avec moi"',
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500, height: 1.4),
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: Colors.grey.shade500,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 20),
           TextButton(
@@ -357,7 +378,7 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
               'Fermer',
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF6C5CE7),
+                color: _accent,
               ),
             ),
           ),
@@ -366,33 +387,101 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
     );
   }
 
-  Future<void> _share() async {
+  Future<void> _addContact() async {
+    setState(() => _picking = true);
+    try {
+      final service = ref.read(sharedEventsServiceProvider);
+      final result = await service.pickContactAndMatch();
+      if (!mounted) return;
+      if (result == null) return; // annule
+      // Dedup : meme userId (Pulz) ou meme numero
+      final alreadyAdded = _picked.any((p) {
+        if (p.isOnPulz && result.isOnPulz) {
+          return p.pulzUser!.userId == result.pulzUser!.userId;
+        }
+        return p.phone == result.phone && result.phone.isNotEmpty;
+      });
+      if (alreadyAdded) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Deja ajoute',
+              style: GoogleFonts.poppins(fontSize: 13),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+      setState(() => _picked.add(result));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur : $e'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  Future<void> _sharePulz() async {
+    final recipients = _pulzRecipients;
+    if (recipients.isEmpty) return;
     setState(() => _sending = true);
     try {
       final service = ref.read(sharedEventsServiceProvider);
       await service.shareEvent(
         eventId: widget.eventId,
-        toUserIds: _selected.toList(),
+        toUserIds: recipients.map((p) => p.pulzUser!.userId).toList(),
       );
       ActivityService.instance.eventShared(
         eventId: widget.eventId,
-        nbDestinataires: _selected.length,
+        nbDestinataires: recipients.length,
       );
       ref.invalidate(sharedWithMeProvider);
+      if (!mounted) return;
       setState(() {
         _sending = false;
-        _sent = true;
+        // Retirer les Pulz envoyes, garder les non-Pulz en attente d'invite SMS
+        _picked.removeWhere((p) => p.isOnPulz);
+        _sent = _picked.isEmpty;
       });
-    } catch (e) {
-      setState(() => _sending = false);
-      if (mounted) {
+      if (!_sent) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors du partage : $e'),
-            backgroundColor: Colors.red.shade400,
+            content: Text(
+              '${recipients.length} envoi${recipients.length > 1 ? 's' : ''} effectue${recipients.length > 1 ? 's' : ''}',
+              style: GoogleFonts.poppins(fontSize: 13),
+            ),
+            backgroundColor: const Color(0xFF4CAF50),
           ),
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _sending = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors du partage : $e'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
     }
+  }
+
+  Future<void> _inviteBySms() async {
+    final recipients = _nonPulzRecipients;
+    if (recipients.isEmpty) return;
+    final message =
+        'Salut ! Rejoins-moi sur Pulz pour decouvrir "${widget.eventTitle}" et les events autour de toi :\n$_playStoreLink';
+    await Share.share(message, subject: 'Rejoins-moi sur Pulz');
+    if (!mounted) return;
+    setState(() {
+      _picked.removeWhere((p) => !p.isOnPulz);
+      _sent = _picked.isEmpty;
+    });
   }
 }

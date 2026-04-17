@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
@@ -23,6 +22,22 @@ class AppContact {
   });
 }
 
+/// Resultat d'un pick via le Contact Picker systeme.
+/// [pulzUser] non-null si le numero matche un utilisateur Pulz.
+class PickedContact {
+  final String displayName;
+  final String phone;
+  final AppContact? pulzUser;
+
+  const PickedContact({
+    required this.displayName,
+    required this.phone,
+    this.pulzUser,
+  });
+
+  bool get isOnPulz => pulzUser != null;
+}
+
 /// Service pour le partage d'events entre utilisateurs.
 class SharedEventsService {
   final Dio _dio;
@@ -36,65 +51,55 @@ class SharedEventsService {
   }
 
   // ─────────────────────────────────────────
-  // Contacts : lire & matcher
+  // Contacts : Android Contact Picker (un a la fois, sans permission)
   // ─────────────────────────────────────────
 
-  /// Demande la permission contacts et lit les numeros.
-  Future<List<AppContact>> findAppContacts() async {
-    final status = await Permission.contacts.request();
-    debugPrint('[SHARE-DEBUG] contacts permission: $status');
-    if (!status.isGranted) {
-      debugPrint('[SHARE-DEBUG] permission NOT granted');
-      return [];
+  /// Ouvre le Contact Picker systeme et matche le numero retourne.
+  /// Aucune permission n'est requise (le picker tourne dans le processus systeme).
+  /// Retourne null si l'utilisateur a annule.
+  Future<PickedContact?> pickContactAndMatch() async {
+    final contact = await FlutterContacts.openExternalPick();
+    if (contact == null) return null;
+
+    final normalizedPhones = contact.phones
+        .map((p) => _normalizePhone(p.number))
+        .where((p) => p.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (normalizedPhones.isEmpty) {
+      return PickedContact(displayName: contact.displayName, phone: '');
     }
-
-    final contacts = await FlutterContacts.getContacts(withProperties: true);
-    debugPrint('[SHARE-DEBUG] contacts loaded: ${contacts.length}');
-
-    // Extraire tous les numeros, normalises
-    final phoneToName = <String, String>{};
-    for (final c in contacts) {
-      for (final phone in c.phones) {
-        final normalized = _normalizePhone(phone.number);
-        debugPrint('[SHARE-DEBUG] ${c.displayName}: raw="${phone.number}" -> normalized="$normalized"');
-        if (normalized.isNotEmpty) {
-          phoneToName[normalized] = c.displayName;
-        }
-      }
-    }
-
-    debugPrint('[SHARE-DEBUG] unique phones: ${phoneToName.length}');
-    if (phoneToName.isEmpty) return [];
-
-    // Appeler la RPC Supabase pour trouver les users correspondants
-    final myUserId = await UserIdentityService.getUserId();
-    final phones = phoneToName.keys.toList();
-    debugPrint('[SHARE-DEBUG] calling RPC with ${phones.length} phones, first 5: ${phones.take(5).toList()}');
 
     try {
+      final myUserId = await UserIdentityService.getUserId();
       final response = await _dio.post(
         'rpc/find_users_by_phones',
-        data: {'phones': phones},
+        data: {'phones': normalizedPhones},
       );
       final data = response.data as List;
-      debugPrint('[SHARE-DEBUG] RPC returned ${data.length} matches');
-      return data
-          .map((row) {
-            final uid = row['user_id'] as String;
-            final tel = row['telephone'] as String;
-            return AppContact(
-              userId: uid,
-              prenom: row['prenom'] as String? ?? '',
-              telephone: tel,
-              contactName: phoneToName[tel],
-            );
-          })
-          .where((c) => c.userId != myUserId) // exclure soi-meme
-          .toList();
+      for (final row in data) {
+        final uid = row['user_id'] as String;
+        if (uid == myUserId) continue;
+        final tel = row['telephone'] as String;
+        return PickedContact(
+          displayName: contact.displayName,
+          phone: tel,
+          pulzUser: AppContact(
+            userId: uid,
+            prenom: row['prenom'] as String? ?? '',
+            telephone: tel,
+            contactName: contact.displayName,
+          ),
+        );
+      }
     } catch (e) {
-      debugPrint('[SharedEvents] findAppContacts RPC failed: $e');
-      return [];
+      debugPrint('[SharedEvents] pickContactAndMatch RPC failed: $e');
     }
+    return PickedContact(
+      displayName: contact.displayName,
+      phone: normalizedPhones.first,
+    );
   }
 
   /// Normalise un numero : garde uniquement les chiffres,
