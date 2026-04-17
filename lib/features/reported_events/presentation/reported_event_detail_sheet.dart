@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_chat.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
 
 /// Bottom sheet de detail d'un signalement.
 ///
@@ -169,10 +170,13 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                 children: [
                   // Affiche poster (toujours visible)
                   Center(
-                    child: ReportedEventPosterCard(
-                      event: event,
-                      width: mediaQuery.size.width - 32,
-                      height: 220,
+                    child: ReportedEventViewTracker(
+                      eventId: event.id,
+                      child: ReportedEventPosterCard(
+                        event: event,
+                        width: mediaQuery.size.width - 32,
+                        height: 220,
+                      ),
                     ),
                   ),
 

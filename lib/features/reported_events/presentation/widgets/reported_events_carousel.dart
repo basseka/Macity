@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
@@ -91,18 +92,21 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
               final event = sorted[index];
               final tier = _tierFor(event, maxScore);
 
-              final card = ReportedEventPosterCard(
-                event: event,
-                width: tier == _HeatTier.hot ? 92 : (tier == _HeatTier.warm ? 86 : 82),
-                height: 50,
-                onTap: () => showModalBottomSheet(
-                  context: context,
-                  useRootNavigator: true,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => _PagedDetailSheet(
-                    events: sorted,
-                    initialIndex: index,
+              final card = ReportedEventViewTracker(
+                eventId: event.id,
+                child: ReportedEventPosterCard(
+                  event: event,
+                  width: tier == _HeatTier.hot ? 92 : (tier == _HeatTier.warm ? 86 : 82),
+                  height: 50,
+                  onTap: () => showModalBottomSheet(
+                    context: context,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => _PagedDetailSheet(
+                      events: sorted,
+                      initialIndex: index,
+                    ),
                   ),
                 ),
               );

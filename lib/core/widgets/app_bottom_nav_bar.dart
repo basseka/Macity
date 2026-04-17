@@ -21,6 +21,10 @@ import 'package:pulz_app/features/notifications/presentation/notification_prefs_
 /// 0=Accueil, 1=MaVille, 2=Offres, 3=Explorer, 4=Favoris
 final navBarIndexProvider = StateProvider<int>((ref) => 0);
 
+/// Garde contre les ouvertures multiples de sheets/dialogs via la nav bar.
+/// Reset automatiquement quand le sheet se ferme (via .whenComplete).
+bool _navBarSheetOpen = false;
+
 class AppBottomNavBar extends ConsumerWidget {
   final int currentIndex;
 
@@ -87,8 +91,11 @@ class AppBottomNavBar extends ConsumerWidget {
                 label: 'Offres',
                 isActive: _selectedIndex == 2,
                 onTap: () {
+                  if (_navBarSheetOpen) return;
                   ref.read(navBarIndexProvider.notifier).state = 2;
-                  BannerCarouselDialog.show(_navContext);
+                  _navBarSheetOpen = true;
+                  BannerCarouselDialog.show(_navContext)
+                      .whenComplete(() => _navBarSheetOpen = false);
                 },
               ),
               // 4 - Explorer
@@ -119,13 +126,15 @@ class AppBottomNavBar extends ConsumerWidget {
   }
 
   void _showSheet(Widget sheet) {
+    if (_navBarSheetOpen) return;
+    _navBarSheetOpen = true;
     showModalBottomSheet(
       context: _navContext,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => sheet,
-    );
+    ).whenComplete(() => _navBarSheetOpen = false);
   }
 
   void _showCityPicker(BuildContext context) {

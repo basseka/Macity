@@ -25,8 +25,8 @@ class _CarouselItem {
 class BannerCarouselDialog extends ConsumerWidget {
   const BannerCarouselDialog({super.key});
 
-  static void show(BuildContext context) {
-    showDialog(
+  static Future<void> show(BuildContext context) {
+    return showDialog(
       context: context,
       useRootNavigator: true,
       barrierDismissible: true,

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 /// Modele d'un signalement communautaire (style Waze).
 ///
 /// Stocke dans la table Supabase `reported_events`. Une edge function
@@ -45,6 +47,10 @@ class ReportedEvent {
   /// 'ai_generating' | 'published' | 'rejected' | 'expired'
   final String status;
 
+  /// Nombre de vues reelles trackees cote app (visibility_detector).
+  /// Additione au compteur fictif [fakeViews] pour l'affichage.
+  final int realViews;
+
   /// Output Claude (null tant que l'edge function n'a pas tourne).
   final ReportedEventGenerated? generated;
 
@@ -69,6 +75,7 @@ class ReportedEvent {
     this.reporterAvatarUrl,
     this.contributors = const [],
     required this.status,
+    this.realViews = 0,
     this.generated,
     required this.startsAt,
     required this.expiresAt,
@@ -84,6 +91,37 @@ class ReportedEvent {
 
   /// Le signalement a-t-il ete corrobore par plusieurs users ?
   bool get isCommunityConfirmed => reportCount >= 2;
+
+  /// Floor fictif stable par event (seed = id), croissant avec l'age et la
+  /// popularite. Donne un compteur credible aux events peu vus.
+  ///
+  /// Composants : base (31-65) + popularite (reports/photos/contribs)
+  /// + croissance log(age, plafond 6h). Clamp : [31, 1295].
+  int get fakeViews {
+    if (isGenerating) return 0;
+    final rnd = Random(id.hashCode.abs());
+    final base = 31 + rnd.nextInt(35);
+    final popularity = reportCount * 55
+                     + photos.length * 22
+                     + contributors.length * 18;
+    final ageMin = DateTime.now().difference(createdAt).inMinutes.clamp(0, 360);
+    final timeGrowth = (120 * log(1 + ageMin / 10)).round();
+    return (base + popularity + timeGrowth).clamp(31, 1295);
+  }
+
+  /// Compteur de vues affichable : fake (floor) + real (tracking).
+  /// Le fake donne un plancher credible, le real s'accumule par-dessus.
+  int get displayViews => fakeViews + realViews;
+
+  /// Vues formatees : "1.2k" au-dela de 1000, sinon nombre brut.
+  String get displayViewsFormatted {
+    final v = displayViews;
+    if (v >= 1000) {
+      final k = (v / 100).round() / 10;
+      return '${k.toStringAsFixed(k.truncateToDouble() == k ? 0 : 1)}k';
+    }
+    return '$v';
+  }
 
   factory ReportedEvent.fromSupabaseJson(Map<String, dynamic> json) {
     final gen = json['generated'];
@@ -129,6 +167,7 @@ class ReportedEvent {
               .toList()
           : const <ReportedEventContributor>[],
       status: json['status'] as String,
+      realViews: (json['real_views'] as num?)?.toInt() ?? 0,
       generated: gen is Map<String, dynamic>
           ? ReportedEventGenerated.fromJson(gen)
           : null,

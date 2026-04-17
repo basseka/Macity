@@ -112,13 +112,18 @@ class ReportedEventPosterCard extends StatelessWidget {
                 ),
               ),
 
-              // Top-right : badges (video, photos)
+              // Top-right : badges (vues, video, photos)
               Positioned(
                 top: padding,
                 right: padding,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Compteur de vues (cache en mode ultra-compact)
+                    if (!isUltra) ...[
+                      _ViewsBadge(count: event.displayViewsFormatted),
+                      const SizedBox(width: 4),
+                    ],
                     // Badge video
                     if (event.videos.isNotEmpty) ...[
                       Container(
@@ -394,6 +399,40 @@ class _CommunityBadge extends StatelessWidget {
           const SizedBox(width: 3),
           Text(
             '×$count',
+            style: GoogleFonts.poppins(
+              fontSize: 8,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Badge "N vues" fictif affiche sur l'affiche poster.
+/// Les vues sont generees deterministiquement cote client (cf. ReportedEvent.fakeViews).
+class _ViewsBadge extends StatelessWidget {
+  final String count;
+  const _ViewsBadge({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.visibility, size: 10, color: Colors.white),
+          const SizedBox(width: 3),
+          Text(
+            count,
             style: GoogleFonts.poppins(
               fontSize: 8,
               fontWeight: FontWeight.w800,
