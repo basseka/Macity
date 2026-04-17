@@ -1,7 +1,7 @@
 name: pulz_app
 description: PUL'Z - Explore ta ville (Day, Sport, Family, Night)
 publish_to: 'none'
-version: 1.0.62+67
+version: 1.0.64+71
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -62,6 +62,9 @@ dependencies:
 
   # Local storage
   shared_preferences: ^2.2.2
+
+  # Supabase Realtime (websocket subscriptions)
+  supabase_flutter: ^2.8.0
 
   # Connectivity
   connectivity_plus: ^5.0.2

@@ -9,6 +9,7 @@ import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
+import 'package:pulz_app/features/reported_events/state/reported_events_realtime_provider.dart';
 
 /// Mini-carte Leaflet (WebView) qui affiche les signalements actifs sous forme
 /// de points rouges pulsants. Pattern adapte de `VenuesMapView`.
@@ -292,6 +293,10 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
 
   @override
   Widget build(BuildContext context) {
+    // Active l'abonnement Realtime tant que la carte est montee.
+    // Chaque INSERT/UPDATE invalide automatiquement le feed provider.
+    ref.watch(reportedEventsRealtimeProvider);
+
     final eventsAsync = ref.watch(reportedEventsFeedProvider);
     final city = ref.watch(selectedCityProvider);
 
