@@ -1,7 +1,7 @@
 name: pulz_app
 description: PUL'Z - Explore ta ville (Day, Sport, Family, Night)
 publish_to: 'none'
-version: 1.0.66+74
+version: 1.0.67+75
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
