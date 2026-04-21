@@ -5,6 +5,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 
+/// Nombre max de photos par signalement. Au-dela, l'UX devient lourde et
+/// les uploads mobiles prennent trop de temps.
+const int kMaxReportPhotos = 4;
+
 /// Etat du formulaire de signalement (modal Waze-style).
 @immutable
 class ReportFormState {
@@ -13,7 +17,12 @@ class ReportFormState {
   final String category;
   final String rawTitle;
   final String locationName;
-  final String? localPhotoPath;
+  /// Identifiant OSM du POI reverse-geocode (format "<osm_type>/<osm_id>").
+  /// NULL pour les signalements faits hors POI nomme (rue, place generique).
+  final String? osmId;
+  /// Photos locales selectionnees (jusqu'a [kMaxReportPhotos]).
+  /// Uploadees en serie a la soumission.
+  final List<String> localPhotoPaths;
   final String? localVideoPath;
   final bool isLocating;
   final bool isSubmitting;
@@ -25,7 +34,8 @@ class ReportFormState {
     this.category = '',
     this.rawTitle = '',
     this.locationName = '',
-    this.localPhotoPath,
+    this.osmId,
+    this.localPhotoPaths = const [],
     this.localVideoPath,
     this.isLocating = false,
     this.isSubmitting = false,
@@ -35,19 +45,22 @@ class ReportFormState {
   bool get canSubmit =>
       category.isNotEmpty && !isSubmitting;
 
+  bool get canAddMorePhotos => localPhotoPaths.length < kMaxReportPhotos;
+
   ReportFormState copyWith({
     double? lat,
     double? lng,
     String? category,
     String? rawTitle,
     String? locationName,
-    String? localPhotoPath,
+    String? osmId,
+    List<String>? localPhotoPaths,
     String? localVideoPath,
     bool? isLocating,
     bool? isSubmitting,
     String? error,
-    bool clearPhoto = false,
     bool clearError = false,
+    bool clearOsmId = false,
   }) {
     return ReportFormState(
       lat: lat ?? this.lat,
@@ -55,7 +68,8 @@ class ReportFormState {
       category: category ?? this.category,
       rawTitle: rawTitle ?? this.rawTitle,
       locationName: locationName ?? this.locationName,
-      localPhotoPath: clearPhoto ? null : (localPhotoPath ?? this.localPhotoPath),
+      osmId: clearOsmId ? null : (osmId ?? this.osmId),
+      localPhotoPaths: localPhotoPaths ?? this.localPhotoPaths,
       localVideoPath: localVideoPath ?? this.localVideoPath,
       isLocating: isLocating ?? this.isLocating,
       isSubmitting: isSubmitting ?? this.isSubmitting,
@@ -218,29 +232,70 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
           address['pedestrian'] ??
           address['square'];
 
+      // Capture l'osm_id SI Nominatim a matche un POI nomme (pas une rue
+      // ni une zone generique). Sert de cle de dedup pour les grands lieux
+      // ou le rayon GPS ~80m ne suffit pas (African Safari, stades, malls).
+      final osmType = data['osm_type'] as String?;
+      final osmIdRaw = data['osm_id'];
+      final osmClass = data['class'] as String?;
+      const poiClasses = {
+        'leisure', 'tourism', 'amenity', 'shop', 'building', 'sport',
+        'historic', 'office',
+      };
+      String? osmKey;
+      if (osmType != null &&
+          osmIdRaw != null &&
+          osmClass != null &&
+          poiClasses.contains(osmClass)) {
+        osmKey = '$osmType/$osmIdRaw';
+      }
+
       if (name != null && name is String && name.isNotEmpty) {
         // Ajoute le quartier/commune si dispo
         final suburb = address['suburb'] ?? address['neighbourhood'] ?? '';
         final label = suburb.isNotEmpty ? '$name, $suburb' : name;
-        state = state.copyWith(locationName: label);
-        debugPrint('[ReportForm] reverse geocode: $label');
+        state = state.copyWith(locationName: label, osmId: osmKey);
+        debugPrint('[ReportForm] reverse geocode: $label (osm=$osmKey, class=$osmClass)');
+      } else if (osmKey != null) {
+        state = state.copyWith(osmId: osmKey);
       }
     } catch (e) {
       debugPrint('[ReportForm] reverse geocode failed: $e');
     }
   }
+  /// Remplace la liste de photos par une seule (ou la vide si null).
+  /// Utilise par le flow single-photo (camera preview, legacy).
   void setPhoto(String? path) {
-    if (path == null) {
-      state = state.copyWith(clearPhoto: true);
+    if (path == null || path.isEmpty) {
+      state = state.copyWith(localPhotoPaths: const []);
     } else {
-      state = state.copyWith(localPhotoPath: path);
+      state = state.copyWith(localPhotoPaths: [path]);
     }
+  }
+
+  /// Ajoute des photos a la liste existante, en tronquant a [kMaxReportPhotos].
+  void addPhotos(Iterable<String> paths) {
+    final current = state.localPhotoPaths;
+    final merged = [...current, ...paths];
+    final capped = merged.length > kMaxReportPhotos
+        ? merged.sublist(0, kMaxReportPhotos)
+        : merged;
+    state = state.copyWith(localPhotoPaths: capped);
+  }
+
+  void removePhotoAt(int index) {
+    final current = state.localPhotoPaths;
+    if (index < 0 || index >= current.length) return;
+    final next = [...current]..removeAt(index);
+    state = state.copyWith(localPhotoPaths: next);
   }
 
   void clearError() => state = state.copyWith(clearError: true);
 
-  /// Soumet le signalement. Renvoie l'id de la row creee, ou null en cas d'erreur.
-  Future<String?> submit() async {
+  /// Soumet le signalement.
+  /// Renvoie un [ReportSubmitResult] (id + nombre de photos en echec),
+  /// ou null en cas d'erreur globale.
+  Future<ReportSubmitResult?> submit() async {
     if (!state.canSubmit) return null;
     if (state.lat == null || state.lng == null) {
       state = state.copyWith(error: 'GPS pas encore pret, patiente...');
@@ -248,18 +303,19 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
     }
     state = state.copyWith(isSubmitting: true, clearError: true);
     try {
-      final id = await _svc.reportEvent(
+      final result = await _svc.reportEvent(
         category: state.category,
         rawTitle: state.rawTitle.trim(),
         lat: state.lat!,
         lng: state.lng!,
-        localPhotoPath: state.localPhotoPath,
+        localPhotoPaths: state.localPhotoPaths,
         localVideoPath: state.localVideoPath,
         locationName: state.locationName.trim(),
+        osmId: state.osmId,
       );
       // On reset apres succes
       state = const ReportFormState();
-      return id;
+      return result;
     } catch (e) {
       debugPrint('[ReportForm] submit error: $e');
       state = state.copyWith(

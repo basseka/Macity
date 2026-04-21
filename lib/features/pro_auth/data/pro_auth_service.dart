@@ -179,6 +179,33 @@ class ProAuthService {
     }
   }
 
+  /// Verifie le code 6-chiffres envoye par mail a l'inscription.
+  /// Retourne true si le code matche → profil passe a approved=true cote DB.
+  Future<bool> verifyApprovalCode({
+    required String code,
+    required String accessToken,
+  }) async {
+    final res = await _restDio.post(
+      'rpc/verify_pro_approval_code',
+      data: {'p_code': code},
+      options: Options(
+        headers: {'Authorization': 'Bearer $accessToken'},
+      ),
+    );
+    return res.data == true;
+  }
+
+  /// Regenere un nouveau code et le renvoie par mail (bouton "Renvoyer").
+  Future<void> resendApprovalCode({required String accessToken}) async {
+    await _restDio.post(
+      'rpc/regenerate_pro_approval_code',
+      data: const <String, dynamic>{},
+      options: Options(
+        headers: {'Authorization': 'Bearer $accessToken'},
+      ),
+    );
+  }
+
   /// Recupere le profil pro depuis Supabase pour un user_id donne.
   Future<ProProfile?> fetchProfile(String userId, String accessToken) async {
     try {

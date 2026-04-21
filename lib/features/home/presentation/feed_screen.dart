@@ -64,17 +64,41 @@ class FeedScreen extends ConsumerStatefulWidget {
 class _FeedScreenState extends ConsumerState<FeedScreen> {
   static const _accentColor = Color(0xFFE91E8C);
 
-  // Filters
-  static const _filters = <String, List<String>>{
-    'Concert': ['concert', 'musique'],
-    'Spectacles': ['spectacle', 'opera', 'comedie', 'humour', 'stand-up'],
-    'Theatre': ['theatre', 'théâtre'],
-    'Salon': ['exposition', 'salon', 'expo', 'foire', 'vernissage'],
-    'Soiree': ['soiree', 'soirée', 'club', 'dj', 'night', 'showcase'],
-    'Famille': ['famille', 'enfant', 'family', 'jeune public'],
-    'Food': ['food', 'restaurant', 'gastronomie', 'marche', 'brunch'],
+  // ── Filtres hierarchiques (2 niveaux) ────────────────────────────
+  // Niveau 1 : onglet (Tout = null, ou un des _tabs)
+  // Niveau 2 : sous-filtre optionnel du tab actif
+  static const _tabs = <String>['En Scène', 'Event', 'Clubbing'];
+  static const _subFilters = <String, List<String>>{
+    'En Scène': ['Concerts', 'Théâtre', 'One-man-show', 'Danse', 'Comédie musicale', 'Opéra', 'Humour'],
+    'Event': ['Salon/expo', 'Soirée', 'Famille', 'Food', 'Sport'],
+    'Clubbing': ['Bar', 'Club & Disco'],
   };
-  String? _activeFilter;
+  // Mots-cles matches contre event.categorie/type/titre (toLowerCase)
+  static const _subKeywords = <String, List<String>>{
+    'Concerts': ['concert', 'musique'],
+    'Théâtre': ['theatre', 'théâtre'],
+    'One-man-show': ['one-man', 'one man', 'stand-up', 'stand up'],
+    'Danse': ['danse', 'ballet'],
+    'Comédie musicale': ['comedie musicale', 'comédie musicale'],
+    'Opéra': ['opera', 'opéra'],
+    'Humour': ['humour'],
+    'Salon/expo': ['salon', 'expo', 'foire', 'vernissage'],
+    'Soirée': ['soiree', 'soirée'],
+    'Sport': ['sport', 'match', 'tournoi', 'competition', 'compétition'],
+    'Bar': ['bar', 'pub', 'cocktail'],
+    'Club & Disco': ['club', 'disco', 'dj', 'boite de nuit', 'boîte de nuit'],
+  };
+  // Keywords pour "En Scène" sans sous-filtre (union des sous-cats)
+  static const _enSceneKeywords = <String>[
+    'concert', 'musique', 'theatre', 'théâtre',
+    'one-man', 'one man', 'stand-up', 'stand up',
+    'danse', 'ballet',
+    'comedie musicale', 'comédie musicale',
+    'opera', 'opéra', 'humour',
+  ];
+
+  String? _activeTab; // null = Tout
+  String? _activeSub; // null = pas de sous-filtre
 
   // Search state
   final _searchController = TextEditingController();
@@ -594,95 +618,165 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildFilterBar() {
-    return SizedBox(
-      height: 28,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: [
-          // "Tout" chip
-          Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: GestureDetector(
-              onTap: () => setState(() => _activeFilter = null),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _activeFilter == null
-                      ? _accentColor
-                      : Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: _activeFilter == null
-                        ? _accentColor
-                        : Colors.white.withValues(alpha: 0.15),
-                  ),
+    return Column(
+      children: [
+        // ── Row 1 : onglets principaux ───────────────────────
+        // Hauteur augmentee a 40 pour donner une zone de tap confortable
+        // (Material Design recommande 48, 40 est un bon compromis visuel).
+        SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            children: [
+              _buildChip(
+                label: 'Tout',
+                selected: _activeTab == null,
+                onTap: () => setState(() {
+                  _activeTab = null;
+                  _activeSub = null;
+                }),
+              ),
+              for (final tab in _tabs)
+                _buildChip(
+                  label: tab,
+                  selected: _activeTab == tab,
+                  onTap: () => setState(() {
+                    if (_activeTab == tab) {
+                      // Re-tap → retour sur Tout
+                      _activeTab = null;
+                      _activeSub = null;
+                    } else {
+                      _activeTab = tab;
+                      _activeSub = null;
+                    }
+                  }),
                 ),
-                child: Text(
-                  'Tout',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: _activeFilter == null ? FontWeight.w600 : FontWeight.w400,
-                    color: _activeFilter == null ? Colors.white : Colors.white60,
+            ],
+          ),
+        ),
+        // ── Row 2 : sous-filtres (visible uniquement si tab actif) ──
+        if (_activeTab != null) ...[
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                for (final sub in _subFilters[_activeTab]!)
+                  _buildChip(
+                    label: sub,
+                    selected: _activeSub == sub,
+                    isSubFilter: true,
+                    onTap: () => setState(() {
+                      _activeSub = _activeSub == sub ? null : sub;
+                    }),
                   ),
-                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    bool isSubFilter = false,
+  }) {
+    // La zone de tap couvre toute la hauteur du SizedBox parent + la marge
+    // droite entre chips. HitTestBehavior.opaque garantit qu'un tap sur
+    // une zone transparente (entre pilule et bord) declenche bien onTap.
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isSubFilter ? 10 : 12,
+              vertical: isSubFilter ? 6 : 7,
+            ),
+            decoration: BoxDecoration(
+              color: selected ? _accentColor : Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected ? _accentColor : Colors.white.withValues(alpha: 0.15),
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: isSubFilter ? 10 : 11,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected ? Colors.white : Colors.white60,
               ),
             ),
           ),
-          // Category chips
-          for (final label in _filters.keys)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: GestureDetector(
-                onTap: () => setState(() {
-                  _activeFilter = _activeFilter == label ? null : label;
-                }),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _activeFilter == label
-                        ? _accentColor
-                        : Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: _activeFilter == label
-                          ? _accentColor
-                          : Colors.white.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: _activeFilter == label ? FontWeight.w600 : FontWeight.w400,
-                      color: _activeFilter == label ? Colors.white : Colors.white60,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }
 
+  /// Matching d'un Event contre les filtres actifs.
   bool _matchesFilter(Event e) {
-    if (_activeFilter == null) return true;
-    final keywords = _filters[_activeFilter]!;
+    if (_activeTab == null) return true;
+
     final cat = e.categorie.toLowerCase();
     final type = e.type.toLowerCase();
     final titre = e.titre.toLowerCase();
-    for (final kw in keywords) {
-      if (cat.contains(kw) || type.contains(kw) || titre.contains(kw)) return true;
+    final rubrique = e.rubrique.toLowerCase();
+
+    bool matchAnyKw(List<String> kws) {
+      for (final kw in kws) {
+        if (cat.contains(kw) || type.contains(kw) || titre.contains(kw)) return true;
+      }
+      return false;
     }
-    return false;
+
+    switch (_activeTab) {
+      case 'En Scène':
+        // rubrique day ou culture
+        if (rubrique != 'day' && rubrique != 'culture') return false;
+        if (_activeSub == null) return matchAnyKw(_enSceneKeywords);
+        return matchAnyKw(_subKeywords[_activeSub]!);
+
+      case 'Event':
+        // Gestion par sous-filtre (les Event events sont heterogenes par nature)
+        if (_activeSub == null) {
+          // Union : famille OU food OU salon/expo OU soiree-pas-night OU sport
+          if (rubrique == 'family' || rubrique == 'food') return true;
+          if (matchAnyKw(_subKeywords['Salon/expo']!)) return true;
+          if (rubrique != 'night' && matchAnyKw(_subKeywords['Soirée']!)) return true;
+          if (matchAnyKw(_subKeywords['Sport']!)) return true;
+          return false;
+        }
+        switch (_activeSub) {
+          case 'Famille':
+            return rubrique == 'family';
+          case 'Food':
+            return rubrique == 'food';
+          case 'Salon/expo':
+            return matchAnyKw(_subKeywords['Salon/expo']!);
+          case 'Soirée':
+            return rubrique != 'night' && matchAnyKw(_subKeywords['Soirée']!);
+          case 'Sport':
+            return matchAnyKw(_subKeywords['Sport']!);
+        }
+        return false;
+
+      case 'Clubbing':
+        if (rubrique != 'night') return false;
+        if (_activeSub == null) return true;
+        return matchAnyKw(_subKeywords[_activeSub]!);
+    }
+    return true;
   }
 
-  bool _matchMatchesFilter(SupabaseMatch m) {
-    if (_activeFilter == null) return true;
-    // Matches are sport — only show if no filter is active
-    return false;
-  }
 
   // ── Search results ──
 
@@ -910,16 +1004,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return 'assets/images/pochette_course.png';
   }
 
-  static const _filterIcons = <String, IconData>{
-    'Concert': Icons.music_note,
-    'Spectacles': Icons.theater_comedy,
-    'Theatre': Icons.curtains,
-    'Salon': Icons.palette,
-    'Soiree': Icons.nightlife,
-    'Famille': Icons.family_restroom,
-    'Food': Icons.restaurant,
-  };
-
   Widget _buildFeed() {
     // Invalider le feed quand la ville change
     ref.listen(selectedCityProvider, (prev, next) {
@@ -929,15 +1013,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     });
 
     // Filtre actif → community feed (grille 3 colonnes groupee par jour)
-    if (_activeFilter != null) {
-      // Famille et Food ont des providers dedies
-      if (_activeFilter == 'Famille') {
+    if (_activeTab != null) {
+      // Famille et Food ont des providers dedies (Event > Famille / Event > Food)
+      if (_activeSub == 'Famille') {
         final userEvents = ref.watch(familyUserEventsProvider);
         final scrapedAsync = ref.watch(familyScrapedEventsProvider);
         final scraped = scrapedAsync.valueOrNull ?? [];
         return _buildCommunityFeed([...userEvents, ...scraped], Icons.family_restroom, 'famille');
       }
-      if (_activeFilter == 'Food') {
+      if (_activeSub == 'Food') {
         final userEvents = ref.watch(foodUserEventsProvider);
         final city = ref.watch(selectedCityProvider);
         final scrapedAsync = ref.watch(_foodScrapedProvider(city));
@@ -1152,7 +1236,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     // Matchs exclus du feed
 
-    if (dayGroups.isEmpty && !_isLandscape && _activeFilter == null) {
+    if (dayGroups.isEmpty && !_isLandscape && _activeTab == null) {
       // Meme quand il n'y a pas d'events, afficher la section signalements
       return CustomScrollView(
         slivers: [
@@ -1210,7 +1294,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         controller: scrollController,
         slivers: [
           // Discovery + signalements commu + Boosted inseres en haut du feed scroll
-          if (!_isLandscape && _activeFilter == null) ...[
+          if (!_isLandscape && _activeTab == null) ...[
             // DiscoveryButtons deplace dans Explorer (home_screen)
             // Section : signalements communautaires (style Waze) — EN PREMIER
             SliverToBoxAdapter(

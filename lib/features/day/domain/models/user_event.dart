@@ -441,6 +441,7 @@ class UserEvent {
         commune: ville,
         categorie: categorie,
         type: categorie,
+        rubrique: rubrique,
         photoPath: resolvedPhoto,
         videoUrl: videoUrl.isNotEmpty ? videoUrl : null,
         reservationUrl: lienBilletterie,

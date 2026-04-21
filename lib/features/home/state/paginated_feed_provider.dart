@@ -4,7 +4,6 @@ import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
-import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/sport/data/supabase_api_service.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
 
@@ -22,7 +21,11 @@ class PaginatedFeedState {
   });
 }
 
-const _pageSize = 100;
+/// Taille d'une page du feed. 200 permet de couvrir en moyenne 4-5 jours
+/// d'events a Toulouse (40-50 events/jour en semaine), ce qui evite que les
+/// events recemment scrapes d'un jour dense tombent en page 2 et passent
+/// inapercus parce que l'user ne scrolle pas jusqu'au bout.
+const _pageSize = 200;
 
 final paginatedFeedProvider =
     StateNotifierProvider<PaginatedFeedNotifier, PaginatedFeedState>(
@@ -68,15 +71,8 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
     state = const PaginatedFeedState(isLoading: true);
 
     try {
-      // Preferences utilisateur
-      final prefs = await _ref.read(userPreferencesProvider.future);
-      final hasPrefs = prefs.isNotEmpty;
-      final rubriques = <String>[];
-      if (!hasPrefs || prefs.contains('day')) rubriques.add('day');
-      if (!hasPrefs || prefs.contains('culture')) rubriques.add('culture');
-      if (!hasPrefs || prefs.contains('night')) rubriques.add('night');
-      if (!hasPrefs || prefs.contains('family')) rubriques.add('family');
-      if (!hasPrefs || prefs.contains('food')) rubriques.add('food');
+      // Le feed affiche toutes les rubriques, independamment des preferences utilisateur.
+      final rubriques = ['day', 'culture', 'night', 'family', 'food'];
       _rubriques = rubriques;
 
       final (events, rawCount) = await _service.fetchAllEvents(
@@ -90,16 +86,13 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
 
       // Matchs (une seule fois)
       List<SupabaseMatch> matches = [];
-      final wantSport = !hasPrefs || prefs.contains('sport');
-      if (wantSport) {
-        try {
-          matches = await _matchService.fetchMatches(
-            ville: _city,
-            dateGte: _todayStr,
-          );
-        } catch (e) {
-          debugPrint('[PaginatedFeed] matches error: $e');
-        }
+      try {
+        matches = await _matchService.fetchMatches(
+          ville: _city,
+          dateGte: _todayStr,
+        );
+      } catch (e) {
+        debugPrint('[PaginatedFeed] matches error: $e');
       }
 
       // User events — attendre qu'ils soient charges si la liste est vide

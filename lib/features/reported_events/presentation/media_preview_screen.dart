@@ -125,9 +125,9 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
     final notifier = ref.read(reportFormProvider.notifier);
     notifier.setTitle(_titleCtrl.text);
     notifier.setLocationName(_locationCtrl.text);
-    final id = await notifier.submit();
+    final result = await notifier.submit();
     if (!mounted) return;
-    if (id != null) {
+    if (result != null) {
       // Garder une ref au container avant le pop
       final container = ProviderScope.containerOf(context);
       Navigator.of(context).pop();

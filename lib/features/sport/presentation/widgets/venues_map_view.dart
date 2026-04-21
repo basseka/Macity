@@ -20,6 +20,16 @@ class VenuesMapView extends StatefulWidget {
   /// Couleur de fond du cercle par categorie (hex, ex: '#D97706').
   final Map<String, String>? categoryColors;
 
+  /// Callback optionnel au tap sur un marqueur. Si fourni, le popup Leaflet
+  /// natif et le panneau "le plus proche" sont masques — Flutter ouvre sa
+  /// propre vue (typiquement un bottom sheet detail).
+  final void Function(CommerceModel venue)? onVenueTap;
+
+  /// Afficher le panneau "venue le plus proche" et la polyline user -> venue
+  /// quand la position utilisateur est detectee. Desactiver pour un rendu
+  /// carte plus sobre (ex: carte clubs).
+  final bool showClosestPanel;
+
   const VenuesMapView({
     super.key,
     required this.venues,
@@ -30,6 +40,8 @@ class VenuesMapView extends StatefulWidget {
     this.initialZoom,
     this.showLabels = false,
     this.categoryColors,
+    this.onVenueTap,
+    this.showClosestPanel = true,
   });
 
   @override
@@ -51,6 +63,10 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       ..addJavaScriptChannel(
         'FlutterLocation',
         onMessageReceived: (_) => _handleLocationRequest(),
+      )
+      ..addJavaScriptChannel(
+        'FlutterVenueTap',
+        onMessageReceived: (msg) => _handleVenueTap(msg.message),
       )
       ..setNavigationDelegate(
         NavigationDelegate(
@@ -116,6 +132,12 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     );
   }
 
+  void _handleVenueTap(String indexStr) {
+    final i = int.tryParse(indexStr);
+    if (i == null || i < 0 || i >= widget.venues.length) return;
+    widget.onVenueTap?.call(widget.venues[i]);
+  }
+
   /// Géolocalisation manuelle (bouton)
   Future<void> _handleLocationRequest() async {
     try {
@@ -167,8 +189,13 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       .replaceAll('\n', '\\n');
 
   Future<void> _loadHtml() async {
-    final venuesJs = widget.venues.map((v) {
-      return "{ nom: '${_escapeJs(v.nom)}', cat: '${_escapeJs(v.categorie)}', "
+    final venuesJs = widget.venues
+        .asMap()
+        .entries
+        .map((entry) {
+      final i = entry.key;
+      final v = entry.value;
+      return "{ idx: $i, nom: '${_escapeJs(v.nom)}', cat: '${_escapeJs(v.categorie)}', "
           "adresse: '${_escapeJs(v.adresse)}', "
           "lat: ${v.latitude}, lng: ${v.longitude}, "
           "site: '${_escapeJs(v.siteWeb)}' }";
@@ -274,6 +301,8 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     const CAT_COLORS = $categoryColorsJs;
     const INIT_ZOOM = ${widget.initialZoom ?? 0};
     const SHOW_LABELS = ${widget.showLabels};
+    const USE_FLUTTER_TAP = ${widget.onVenueTap != null};
+    const SHOW_CLOSEST = ${widget.showClosestPanel};
     // Centre dynamique : moyenne des coordonnees des venues, fallback Toulouse
     let centerLat = 43.6047, centerLng = 1.4442;
     if (VENUES.length > 0) {
@@ -290,22 +319,21 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     VENUES.forEach(v => {
       if (!v.lat || !v.lng) return;
       const emoji = CAT_ICONS ? CAT_ICONS[v.cat] : null;
-      const catColor = CAT_COLORS ? CAT_COLORS[v.cat] : null;
+      const catColor = (CAT_COLORS ? CAT_COLORS[v.cat] : null) || ACCENT;
       let iconHtml;
-      if (emoji && catColor && SHOW_LABELS) {
-        iconHtml = '<div class="marker-labeled"><div class="marker-label">' + v.nom + '</div><div class="marker-colored" style="background:' + catColor + ';border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px ' + catColor + '80;font-size:18px;">' + emoji + '</div></div>';
-      } else if (emoji && catColor) {
-        iconHtml = '<div class="marker-colored" style="background:' + catColor + ';border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px ' + catColor + '80;font-size:18px;">' + emoji + '</div>';
-      } else if (emoji && SHOW_LABELS) {
-        iconHtml = '<div class="marker-labeled"><div class="marker-label">' + v.nom + '</div><div class="marker-emoji">' + emoji + '</div></div>';
+      const dotStyle = 'background:' + catColor + ';border:3px solid white;border-radius:50%;width:18px;height:18px;box-shadow:0 2px 6px ' + catColor + '80;';
+      const coloredEmojiStyle = 'background:' + catColor + ';border:3px solid white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px ' + catColor + '80;font-size:18px;';
+      if (emoji && SHOW_LABELS) {
+        iconHtml = '<div class="marker-labeled"><div class="marker-label">' + v.nom + '</div><div style="' + coloredEmojiStyle + '">' + emoji + '</div></div>';
       } else if (emoji) {
-        iconHtml = '<div class="marker-emoji">' + emoji + '</div>';
+        iconHtml = '<div style="' + coloredEmojiStyle + '">' + emoji + '</div>';
+      } else if (SHOW_LABELS) {
+        iconHtml = '<div class="marker-labeled"><div class="marker-label">' + v.nom + '</div><div style="' + dotStyle + '"></div></div>';
       } else {
-        iconHtml = '<div class="marker-icon" style="background:' + ACCENT + '"></div>';
+        iconHtml = '<div style="' + dotStyle + '"></div>';
       }
-      const hasColor = emoji && catColor;
-      const iconSz = emoji && SHOW_LABELS ? [70, 50] : hasColor ? [36, 36] : emoji ? [32, 32] : [28, 28];
-      const iconAn = emoji && SHOW_LABELS ? [35, 50] : hasColor ? [18, 18] : emoji ? [16, 16] : [14, 14];
+      const iconSz = emoji && SHOW_LABELS ? [70, 50] : emoji ? [36, 36] : SHOW_LABELS ? [70, 34] : [18, 18];
+      const iconAn = emoji && SHOW_LABELS ? [35, 50] : emoji ? [18, 18] : SHOW_LABELS ? [35, 34] : [9, 9];
       const marker = L.marker([v.lat, v.lng], {
         icon: L.divIcon({
           className: '',
@@ -313,9 +341,13 @@ class _VenuesMapViewState extends State<VenuesMapView> {
           iconSize: iconSz, iconAnchor: iconAn, popupAnchor: [0, -16],
         }),
       }).addTo(map);
-      let popup = '<div class="popup-name">' + v.nom + '</div><div class="popup-cat">' + v.cat + '</div><div class="popup-address">' + v.adresse + '</div>';
-      if (v.site) popup += '<a class="popup-link" href="' + v.site + '" target="_blank">Site web &rarr;</a>';
-      marker.bindPopup(popup);
+      if (USE_FLUTTER_TAP) {
+        marker.on('click', () => FlutterVenueTap.postMessage(String(v.idx)));
+      } else {
+        let popup = '<div class="popup-name">' + v.nom + '</div><div class="popup-cat">' + v.cat + '</div><div class="popup-address">' + v.adresse + '</div>';
+        if (v.site) popup += '<a class="popup-link" href="' + v.site + '" target="_blank">Site web &rarr;</a>';
+        marker.bindPopup(popup);
+      }
       allMarkers.push({ ...v, marker });
     });
 
@@ -344,10 +376,16 @@ class _VenuesMapViewState extends State<VenuesMapView> {
         }).addTo(map);
         userMarker.bindPopup('<b>Ma position</b>');
       }
-      findClosest();
-      const c = getClosest();
-      if (c) { map.fitBounds(L.latLngBounds([[userLat, userLng], [c.lat, c.lng]]), { padding: [60, 60] }); }
-      else { map.setView([userLat, userLng], 12); }
+      if (SHOW_CLOSEST) {
+        findClosest();
+        const c = getClosest();
+        if (c) { map.fitBounds(L.latLngBounds([[userLat, userLng], [c.lat, c.lng]]), { padding: [60, 60] }); }
+        else { map.setView([userLat, userLng], 12); }
+      } else {
+        // Zoom 16 : vue ~400-800m autour du user, compromis entre "voir les
+        // venues proches" et "garder du contexte de quartier".
+        map.setView([userLat, userLng], 16);
+      }
     }
 
     // Callback erreur depuis Flutter

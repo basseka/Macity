@@ -13,7 +13,10 @@ import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
+import 'package:pulz_app/features/night/presentation/night_clubs_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_hub_grid.dart';
+import 'package:pulz_app/features/night/presentation/night_spicy_fullscreen_map.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/core/state/categories_provider.dart';
@@ -25,6 +28,52 @@ class NightScreen extends ConsumerWidget {
 
   /// Catégories qui sont des sub_grids (affichent leurs enfants au lieu de venues).
   static const _subGridTags = {'Spicy'};
+
+  /// Categorie → map fullscreen associee. Les 4 types de bars partagent une
+  /// carte combinee (Bars carte) ; les clubs ont leur propre carte dediee.
+  static bool _categoryHasMap(String category) {
+    if (category == 'Club Discotheque') return true;
+    if (nightBarCategories.contains(category)) return true;
+    if (category == 'Spicy' || nightSpicyCategories.contains(category)) return true;
+    return false;
+  }
+
+  /// Libelle raccourci pour l'en-tete de la liste venues.
+  static String _displayLabel(String category) {
+    switch (category) {
+      case 'Club Discotheque':
+        return 'Club disco';
+      case 'Bar a cocktails':
+        return 'Cocktails';
+      case 'Bar a chicha':
+        return 'Chicha';
+      default:
+        return category;
+    }
+  }
+
+  static void _openMapFor(WidgetRef ref, String category) {
+    if (category == 'Club Discotheque') {
+      ref
+          .read(modeSubcategoriesProvider.notifier)
+          .select('night', NightClubsFullscreenMap.mapTag);
+      return;
+    }
+    if (nightBarCategories.contains(category)) {
+      // Memorise la cat source pour que le bouton "Liste" de la carte y revienne.
+      ref.read(nightBarsMapSourceProvider.notifier).state = category;
+      ref
+          .read(modeSubcategoriesProvider.notifier)
+          .select('night', NightBarsFullscreenMap.mapTag);
+      return;
+    }
+    if (category == 'Spicy' || nightSpicyCategories.contains(category)) {
+      ref.read(nightSpicyMapSourceProvider.notifier).state = category;
+      ref
+          .read(modeSubcategoriesProvider.notifier)
+          .select('night', NightSpicyFullscreenMap.mapTag);
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,9 +87,15 @@ class NightScreen extends ConsumerWidget {
         Expanded(
           child: selectedCategory == null
               ? const NightHubGrid()
-              : _subGridTags.contains(selectedCategory)
-                  ? _buildSubGrid(context, ref, selectedCategory)
-                  : _buildVenueList(context, ref, selectedCategory),
+              : NightClubsFullscreenMap.isMapTag(selectedCategory)
+                  ? const NightClubsFullscreenMap()
+                  : NightBarsFullscreenMap.isMapTag(selectedCategory)
+                      ? const NightBarsFullscreenMap()
+                      : NightSpicyFullscreenMap.isMapTag(selectedCategory)
+                          ? const NightSpicyFullscreenMap()
+                          : _subGridTags.contains(selectedCategory)
+                              ? _buildSubGrid(context, ref, selectedCategory)
+                              : _buildVenueList(context, ref, selectedCategory),
         ),
       ],
     );
@@ -59,9 +114,48 @@ class NightScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
+              if (_categoryHasMap(parentTag)) ...[
+                InkWell(
+                  onTap: () => _openMapFor(ref, parentTag),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.near_me, size: 14, color: Colors.white),
+                        SizedBox(width: 5),
+                        Text(
+                          'Carte',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               Expanded(
                 child: Text(
-                  parentTag,
+                  _displayLabel(parentTag),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
@@ -157,9 +251,48 @@ class NightScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
+              if (_categoryHasMap(category)) ...[
+                InkWell(
+                  onTap: () => _openMapFor(ref, category),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.near_me, size: 14, color: Colors.white),
+                        SizedBox(width: 5),
+                        Text(
+                          'Carte',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               Expanded(
                 child: Text(
-                  category,
+                  _displayLabel(category),
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
@@ -167,7 +300,7 @@ class NightScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 4),
               InkWell(
                 onTap: () {
                   ref.read(modeSubcategoriesProvider.notifier).select('night', null);
@@ -209,12 +342,13 @@ class NightScreen extends ConsumerWidget {
               ? _buildUserEventsList(context, ref)
               : venuesAsync.when(
                   data: (venues) {
-                    // Filter matching user events for this subcategory
-                    final matchingEvents = ref.watch(nightUserEventsProvider).where((e) {
-                      final cat = e.categorie.toLowerCase();
-                      final tag = category.toLowerCase();
-                      return cat.contains(tag) || tag.contains(cat);
-                    }).toList();
+                    // Filter matching user events for this subcategory.
+                    // Utilise matchesNightCategoryTag pour inclure les
+                    // sous-categories synonymes (DJ set, Showcase, Soiree
+                    // -> Club Discotheque, etc.).
+                    final matchingEvents = ref.watch(nightUserEventsProvider)
+                        .where((e) => matchesNightCategoryTag(e.categorie, category))
+                        .toList();
 
                     if (venues.isEmpty && matchingEvents.isEmpty) {
                       return const EmptyStateWidget(

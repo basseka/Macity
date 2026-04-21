@@ -16,6 +16,7 @@ import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
 import 'package:pulz_app/features/food/presentation/food_hub_grid.dart';
+import 'package:pulz_app/features/food/presentation/food_restaurants_fullscreen_map.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -49,7 +50,9 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         Expanded(
           child: selectedCategory == null
               ? const FoodHubGrid()
-              : _buildVenueList(context, ref, selectedCategory),
+              : FoodRestaurantsFullscreenMap.isMapTag(selectedCategory)
+                  ? const FoodRestaurantsFullscreenMap()
+                  : _buildVenueList(context, ref, selectedCategory),
         ),
       ],
     );
@@ -69,9 +72,50 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
+              if (category == 'Restaurant') ...[
+                InkWell(
+                  onTap: () => ref
+                      .read(modeSubcategoriesProvider.notifier)
+                      .select('food', FoodRestaurantsFullscreenMap.mapTag),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.near_me, size: 14, color: Colors.white),
+                        SizedBox(width: 5),
+                        Text(
+                          'Carte',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               Expanded(
                 child: Text(
                   category,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,

@@ -86,7 +86,13 @@ class ScrapedEventsSupabaseService {
   }) async {
     final commonParams = <String, String>{
       'select': '*',
-      'order': 'date_debut.asc',
+      // Tri primaire par date de l'event, secondaire par horaire.
+      // Sans order secondaire, les events du meme jour sont renvoyes dans un
+      // ordre dependant du plan Postgres (souvent par id d'insertion) — ce
+      // qui pousse les events recemment scrapes en fin de bucket, parfois
+      // hors de la page 1. Ordonner par horaires.asc donne un ordre
+      // chronologique reel dans la journee (matin -> soir), et surtout stable.
+      'order': 'date_debut.asc,horaires.asc',
       'photo_url': 'neq.',
     };
     if (ville != null) commonParams['ville'] = 'ilike.$ville';

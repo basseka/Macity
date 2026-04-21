@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
@@ -120,8 +121,8 @@ class AccountMenu {
                   subtitle: 'Mes evenements crees',
                   gradientColors: const [Color(0xFF00B894), Color(0xFF00CEC9)],
                   onTap: () {
-                    Navigator.pop(ctx);
-                    MyPublicationsSheet.show(context);
+                    // Stack sur l'AccountMenu → le chevron retour ramene ici
+                    MyPublicationsSheet.show(ctx, fromAccountMenu: true);
                   },
                 ),
                 const SizedBox(height: 8),
@@ -132,13 +133,12 @@ class AccountMenu {
                   subtitle: 'Lieux et events aimes',
                   gradientColors: const [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
                   onTap: () {
-                    Navigator.pop(ctx);
                     showModalBottomSheet(
-                      context: context,
+                      context: ctx,
                       useRootNavigator: true,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (_) => const LikedPlacesBottomSheet(),
+                      builder: (_) => const LikedPlacesBottomSheet(fromAccountMenu: true),
                     );
                   },
                 ),
@@ -146,12 +146,11 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.tune_rounded,
-                  label: 'Mes preferences',
+                  label: 'Mon profil',
                   subtitle: 'Ville, centres d\'interet',
                   gradientColors: const [Color(0xFF4A1259), Color(0xFF6B2D7B)],
                   onTap: () {
-                    Navigator.pop(ctx);
-                    NotificationPrefsSheet.show(context);
+                    NotificationPrefsSheet.show(ctx, fromAccountMenu: true);
                   },
                 ),
                 const SizedBox(height: 8),
@@ -204,6 +203,21 @@ class AccountMenu {
               MaterialPageRoute(
                 builder: (_) => const CreateEventPage(),
               ),
+            );
+          },
+        ),
+        const SizedBox(height: 10),
+        _menuItem(
+          ctx: ctx,
+          icon: Icons.auto_awesome_rounded,
+          label: 'Scanner un flyer (IA)',
+          subtitle: 'Pre-remplit l\'event depuis une photo',
+          gradientColors: const [Color(0xFF7C3AED), Color(0xFFEC4899)],
+          onTap: () {
+            Navigator.pop(ctx);
+            AddEventBottomSheet.triggerScanFlow(
+              context: rootContext,
+              ref: ref,
             );
           },
         ),

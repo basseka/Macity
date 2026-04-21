@@ -107,6 +107,12 @@ class CreateEventState {
   final String? editingEventId;
   final String? existingPhotoUrl;
 
+  /// Compteur incremente a chaque bulk-update exterieur (loadEvent, prefillFromScan).
+  /// Utilise comme Key sur les TextFormField pour forcer leur recreation avec
+  /// la nouvelle initialValue (sinon les champs restent bloques sur la valeur
+  /// initiale car ils sont controles par leur TextEditingController interne).
+  final int prefillRevision;
+
   // Navigation
   final int currentStep;
   final bool isSubmitting;
@@ -173,6 +179,7 @@ class CreateEventState {
     this.isEditing = false,
     this.editingEventId,
     this.existingPhotoUrl,
+    this.prefillRevision = 0,
     this.currentStep = 0,
     this.isSubmitting = false,
     this.errorMessage,
@@ -227,6 +234,7 @@ class CreateEventState {
     bool? isEditing,
     String? editingEventId,
     String? existingPhotoUrl,
+    int? prefillRevision,
     int? currentStep,
     bool? isSubmitting,
     String? errorMessage,
@@ -284,6 +292,7 @@ class CreateEventState {
       isEditing: isEditing ?? this.isEditing,
       editingEventId: editingEventId ?? this.editingEventId,
       existingPhotoUrl: existingPhotoUrl ?? this.existingPhotoUrl,
+      prefillRevision: prefillRevision ?? this.prefillRevision,
       currentStep: currentStep ?? this.currentStep,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),

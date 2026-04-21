@@ -46,11 +46,13 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
 
   Future<void> _loadSession() async {
     final connected = await _sessionService.isConnected();
+    debugPrint('[ProAuth] _loadSession: isConnected=$connected');
     if (!connected) {
       state = const ProAuthState(status: ProAuthStatus.notConnected);
       return;
     }
     final profile = await _sessionService.getProfile();
+    debugPrint('[ProAuth] _loadSession: profile=${profile?.nom ?? "null"} approved=${profile?.approved}');
     if (profile == null) {
       state = const ProAuthState(status: ProAuthStatus.notConnected);
       return;
@@ -148,14 +150,28 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
       final profile = await _sessionService.getProfile();
       final accessToken = await _sessionService.getAccessToken();
       final refreshTokenStr = await _sessionService.getRefreshToken();
+      debugPrint(
+        '[ProAuth] refreshStatus reads: profile=${profile != null} '
+        'accessToken=${accessToken != null} refreshToken=${refreshTokenStr != null}',
+      );
 
+      // Si un des reads secure storage renvoie null, on NE VIRE PAS la
+      // session. Ca peut arriver sur iOS avant "first unlock" complet apres
+      // un reboot, ou lors d'une race condition au cold start. On laisse la
+      // session telle que chargee par _loadSession (base sur le cache local).
+      // Un vrai logout ne passe que par l'action "Se deconnecter".
       if (profile == null || accessToken == null || refreshTokenStr == null) {
-        state = const ProAuthState(status: ProAuthStatus.notConnected);
-        await _sessionService.clearSession();
+        debugPrint(
+          '[ProAuth] refreshStatus: partial null reads, keeping cached session '
+          '(do NOT clear — probably transient keychain hiccup)',
+        );
         return;
       }
 
-      // Rafraichir le token avant de fetch
+      // Rafraichir le token. Si ca rate (reseau, timeout, etc.), on garde
+      // l'ancien access token pour tenter fetchProfile quand meme, MAIS on
+      // n'efface rien : au pire la session reste telle quelle jusqu'a la
+      // prochaine fois ou le reseau marche.
       final newTokens = await _authService.refreshToken(refreshTokenStr);
       final token = newTokens?.accessToken ?? accessToken;
       if (newTokens != null) {
@@ -165,10 +181,20 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
         );
       }
 
+      // fetchProfile peut renvoyer null pour plusieurs raisons :
+      //   1. Reseau indisponible (glitch, sortie de tunnel, Wi-Fi qui switch)
+      //   2. Token expire (401) — rare ici car on vient de le refresh
+      //   3. Profil supprime cote DB (legitime)
+      // Impossible de distinguer 1 de 3 depuis le catch actuel. On prefere
+      // garder la session locale pour ne PAS logout l'user a chaque glitch
+      // reseau. Si le profil a vraiment ete supprime, un appel API en echec
+      // le forcera a se reconnecter plus tard de lui-meme.
       final updated = await _authService.fetchProfile(profile.userId, token);
       if (updated == null) {
-        state = const ProAuthState(status: ProAuthStatus.notConnected);
-        await _sessionService.clearSession();
+        debugPrint(
+          '[ProAuth] fetchProfile returned null — keeping cached session '
+          '(probably network error, not a real logout)',
+        );
         return;
       }
 
@@ -181,7 +207,54 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
         profile: updated,
       );
     } catch (e) {
+      // Ici aussi : ne pas clearSession. Les erreurs imprevues ne doivent pas
+      // deconnecter l'user ; le state reste celui charge depuis le cache local.
       debugPrint('[ProAuth] refreshStatus error: $e');
+    }
+  }
+
+  /// Verifie le code 6-chiffres recu par mail. Si match, passe en approved.
+  /// Retourne true si verifie, false si code incorrect.
+  Future<bool> verifyCode(String code) async {
+    final accessToken = await _sessionService.getAccessToken();
+    if (accessToken == null) return false;
+
+    state = state.copyWith(isSubmitting: true, error: null);
+    try {
+      final ok = await _authService.verifyApprovalCode(
+        code: code,
+        accessToken: accessToken,
+      );
+      if (!ok) {
+        state = state.copyWith(
+          isSubmitting: false,
+          error: 'Code incorrect',
+        );
+        return false;
+      }
+      // Refresh pour recuperer approved=true + mettre a jour le state
+      await refreshStatus();
+      state = state.copyWith(isSubmitting: false);
+      return true;
+    } catch (e) {
+      debugPrint('[ProAuth] verifyCode error: $e');
+      state = state.copyWith(
+        isSubmitting: false,
+        error: _parseError(e),
+      );
+      return false;
+    }
+  }
+
+  /// Demande le renvoi d'un nouveau code par mail.
+  Future<void> resendCode() async {
+    final accessToken = await _sessionService.getAccessToken();
+    if (accessToken == null) return;
+    try {
+      await _authService.resendApprovalCode(accessToken: accessToken);
+    } catch (e) {
+      debugPrint('[ProAuth] resendCode error: $e');
+      rethrow;
     }
   }
 

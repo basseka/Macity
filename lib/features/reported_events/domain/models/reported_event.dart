@@ -20,6 +20,11 @@ class ReportedEvent {
   final String? ville;
   final String locationName;
 
+  /// Identifiant OSM du POI, format "<osm_type>/<osm_id>" (ex: "way/12345").
+  /// Utilise cote DB pour grouper les signalements faits dans un meme grand
+  /// lieu (parc, stade, mall) quelle que soit la distance GPS exacte.
+  final String? osmId;
+
   /// Photos accumulees au fur et a mesure que des users signalent le meme event.
   /// Chaque URL pointe vers le bucket Supabase `user-events`.
   final List<String> photos;
@@ -67,6 +72,7 @@ class ReportedEvent {
     required this.lng,
     this.ville,
     this.locationName = '',
+    this.osmId,
     this.photos = const [],
     this.videos = const [],
     this.reportCount = 1,
@@ -144,6 +150,9 @@ class ReportedEvent {
       lng: (json['lng'] as num).toDouble(),
       ville: json['ville'] as String?,
       locationName: (json['location_name'] as String?) ?? '',
+      osmId: (json['osm_id'] as String?)?.isNotEmpty == true
+          ? json['osm_id'] as String
+          : null,
       photos: photos,
       videos: (json['videos'] is List)
           ? (json['videos'] as List).map((e) => e.toString()).toList()

@@ -124,18 +124,15 @@ class FcmService {
 
   /// Affiche la notification même quand l'app est au premier plan.
   /// Encode les données FCM dans le payload pour récupération au tap.
+  ///
+  /// Sur Android, Firebase n'affiche PAS la notif systeme quand l'app est au
+  /// premier plan, meme si le payload contient un champ notification. Il faut
+  /// donc toujours afficher une local notification en foreground, en prenant
+  /// les champs title/body du bloc notification OU a defaut de data.
   static Future<void> _showForegroundNotification(
       RemoteMessage message) async {
-    // Si le message a un bloc notification, Android l'affiche deja tout seul
-    // en foreground via le canal par defaut. Ne pas creer de doublon.
-    if (message.notification != null) {
-      debugPrint('[FCM] foreground: skip (notification block present, Android handles it)');
-      return;
-    }
-
-    // Data-only message : title/body dans data
-    final title = message.data['title'] as String?;
-    final body = message.data['body'] as String?;
+    final title = message.notification?.title ?? message.data['title'] as String?;
+    final body = message.notification?.body ?? message.data['body'] as String?;
     if (title == null && body == null) return;
 
     debugPrint('[FCM] foreground data-only: $title');

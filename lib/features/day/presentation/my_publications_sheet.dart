@@ -15,15 +15,17 @@ final myPublicationsProvider = FutureProvider<List<UserEvent>>((ref) {
 });
 
 class MyPublicationsSheet extends ConsumerWidget {
-  const MyPublicationsSheet({super.key});
+  const MyPublicationsSheet({super.key, this.fromAccountMenu = false});
 
-  static void show(BuildContext context) {
+  final bool fromAccountMenu;
+
+  static void show(BuildContext context, {bool fromAccountMenu = false}) {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const MyPublicationsSheet(),
+      builder: (_) => MyPublicationsSheet(fromAccountMenu: fromAccountMenu),
     );
   }
 
@@ -42,15 +44,33 @@ class MyPublicationsSheet extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 10),
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
+          SizedBox(
+            height: 44,
+            child: Row(
+              children: [
+                if (fromAccountMenu)
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left, size: 26),
+                    color: Colors.grey.shade700,
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: 'Retour',
+                  )
+                else
+                  const SizedBox(width: 48),
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 48),
+              ],
             ),
           ),
           _buildHeader(eventsAsync.valueOrNull?.length ?? 0),

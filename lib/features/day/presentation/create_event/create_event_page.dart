@@ -18,7 +18,22 @@ class CreateEventPage extends ConsumerStatefulWidget {
   final UserEvent? eventToEdit;
   final int initialStep;
 
-  const CreateEventPage({super.key, this.initialPhotoPath, this.eventToEdit, this.initialStep = 0});
+  /// Donnees brutes extraites par l'edge function `scan-event-flyer`.
+  /// Appliquees dans [initState] via [CreateEventNotifier.prefillFromScan].
+  /// Utilise quand on entre dans le wizard DEPUIS un point exterieur (nav bar,
+  /// menu compte) : il faut passer la prefill par le widget pour survivre
+  /// a l'autoDispose du provider.
+  final Map<String, dynamic>? scanPrefillData;
+  final String? scanPrefillPhotoUrl;
+
+  const CreateEventPage({
+    super.key,
+    this.initialPhotoPath,
+    this.eventToEdit,
+    this.initialStep = 0,
+    this.scanPrefillData,
+    this.scanPrefillPhotoUrl,
+  });
 
   @override
   ConsumerState<CreateEventPage> createState() => _CreateEventPageState();
@@ -41,6 +56,12 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
           widget.eventToEdit!,
           initialStep: widget.initialStep,
         );
+      } else if (widget.scanPrefillData != null &&
+          widget.scanPrefillPhotoUrl != null) {
+        ref.read(createEventProvider.notifier).prefillFromScan(
+              data: widget.scanPrefillData!,
+              photoUrl: widget.scanPrefillPhotoUrl!,
+            );
       } else if (widget.initialPhotoPath != null) {
         ref.read(createEventProvider.notifier).updatePhotoPath(widget.initialPhotoPath!);
       }
@@ -223,7 +244,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                             ),
                           )
                         : Text(
-                            _isLastStep(state)
+                            (_isLastStep(state) || _isPrefillFastPublish(state))
                                 ? (_isEditing ? 'Modifier' : 'Publier')
                                 : 'Suivant',
                             style: const TextStyle(
@@ -291,12 +312,38 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     return state.currentStep == CreateEventState.totalSteps - 1;
   }
 
+  /// Fast-publish depuis le scan IA : quand l'user arrive direct a l'etape
+  /// Pricing apres un scan, le bouton principal publie (on saute les etapes
+  /// 4 et 5 avec leurs valeurs par defaut — deja remplies par prefillFromScan).
+  bool _isPrefillFastPublish(CreateEventState state) {
+    return state.prefillRevision > 0 &&
+        state.currentStep == 2 &&
+        !_isEditing;
+  }
+
   Future<void> _onNextOrSubmit(
     CreateEventState state,
     CreateEventNotifier notifier,
   ) async {
-    if (_isLastStep(state)) {
+    final fastPublish = _isPrefillFastPublish(state);
+    debugPrint(
+      '[CreateEventPage] button tap step=${state.currentStep} '
+      'isLast=${_isLastStep(state)} fastPublish=$fastPublish',
+    );
+    if (_isLastStep(state) || fastPublish) {
       final success = await notifier.submit();
+      // Remonte toute erreur de submit via un SnackBar bien visible.
+      if (!success && mounted) {
+        final msg = ref.read(createEventProvider).errorMessage ?? 'Publication echouee';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.shade700,
+            content: Text(msg),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
       if (success && mounted) {
         ref.invalidate(myPublicationsProvider);
         final priority = state.priority;

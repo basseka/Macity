@@ -3,19 +3,59 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
-class StepEssentials extends ConsumerWidget {
+class StepEssentials extends ConsumerStatefulWidget {
   const StepEssentials({super.key});
 
+  @override
+  ConsumerState<StepEssentials> createState() => _StepEssentialsState();
+}
+
+class _StepEssentialsState extends ConsumerState<StepEssentials> {
   static const _primaryColor = Color(0xFF7B2D8E);
   static const _darkColor = Color(0xFF4A1259);
 
+  late final TextEditingController _titreController;
+  late final TextEditingController _descCourteController;
+  bool _initialized = false;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    _titreController = TextEditingController();
+    _descCourteController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _titreController.dispose();
+    _descCourteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(createEventProvider);
     final notifier = ref.read(createEventProvider.notifier);
+    final isPro =
+        ref.watch(proAuthProvider).status == ProAuthStatus.approved;
+
+    if (!_initialized) {
+      _initialized = true;
+      _titreController.text = state.titre;
+      _descCourteController.text = state.descriptionCourte;
+    }
+    // Resync quand le wizard est pre-rempli (loadEvent / prefillFromScan).
+    ref.listen<CreateEventState>(createEventProvider, (prev, next) {
+      if (prev != null && prev.prefillRevision != next.prefillRevision) {
+        _titreController.text = next.titre;
+        _descCourteController.text = next.descriptionCourte;
+      }
+    });
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -32,6 +72,76 @@ class StepEssentials extends ConsumerWidget {
             style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
           ),
           const SizedBox(height: 14),
+
+          // Raccourci IA : scan d'un flyer pour pre-remplir le formulaire.
+          // Visible uniquement pour les pros approuves.
+          if (isPro && !state.isEditing) ...[
+            InkWell(
+              onTap: () => AddEventBottomSheet.triggerScanFlow(
+                context: context,
+                ref: ref,
+                alreadyOnWizard: true,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Scanner un flyer (IA)',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            'Remplit automatiquement toutes les etapes',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
 
           // Categorie
           _sectionLabel('Categorie *'),
@@ -109,7 +219,7 @@ class StepEssentials extends ConsumerWidget {
 
           // Titre
           TextFormField(
-            initialValue: state.titre,
+            controller: _titreController,
             decoration: _inputDecoration('Titre de l\'evenement *'),
             style: const TextStyle(fontSize: 13),
             onChanged: notifier.updateTitre,
@@ -118,7 +228,7 @@ class StepEssentials extends ConsumerWidget {
 
           // Description courte
           TextFormField(
-            initialValue: state.descriptionCourte,
+            controller: _descCourteController,
             decoration: _inputDecoration('Description courte'),
             style: const TextStyle(fontSize: 13),
             maxLines: 2,
@@ -131,6 +241,7 @@ class StepEssentials extends ConsumerWidget {
           const SizedBox(height: 6),
           _PhotoPicker(
             photoPath: state.photoPath,
+            existingPhotoUrl: state.existingPhotoUrl,
             onPicked: notifier.updatePhotoPath,
           ),
           const SizedBox(height: 10),
@@ -179,12 +290,21 @@ class StepEssentials extends ConsumerWidget {
 
 class _PhotoPicker extends StatelessWidget {
   final String? photoPath;
+  /// URL reseau d'une photo deja uploadee (mode edition ou prefill par scan IA).
+  /// Affichee si [photoPath] local est absent.
+  final String? existingPhotoUrl;
   final ValueChanged<String> onPicked;
 
-  const _PhotoPicker({required this.photoPath, required this.onPicked});
+  const _PhotoPicker({
+    required this.photoPath,
+    required this.onPicked,
+    this.existingPhotoUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final hasPhoto = photoPath != null ||
+        (existingPhotoUrl != null && existingPhotoUrl!.isNotEmpty);
     return GestureDetector(
       onTap: () => _pick(context),
       child: Container(
@@ -194,10 +314,10 @@ class _PhotoPicker extends StatelessWidget {
           color: Colors.grey.shade50,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: photoPath != null
+            color: hasPhoto
                 ? const Color(0xFF7B2D8E).withValues(alpha: 0.3)
                 : Colors.grey.shade200,
-            width: photoPath != null ? 1.5 : 1,
+            width: hasPhoto ? 1.5 : 1,
           ),
         ),
         child: photoPath != null
@@ -210,7 +330,29 @@ class _PhotoPicker extends StatelessWidget {
                   errorBuilder: (_, __, ___) => _placeholder(),
                 ),
               )
-            : _placeholder(),
+            : (existingPhotoUrl != null && existingPhotoUrl!.isNotEmpty)
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(11),
+                    child: Image.network(
+                      existingPhotoUrl!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      loadingBuilder: (_, child, progress) {
+                        if (progress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            value: progress.expectedTotalBytes != null
+                                ? progress.cumulativeBytesLoaded /
+                                    progress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (_, __, ___) => _placeholder(),
+                    ),
+                  )
+                : _placeholder(),
       ),
     );
   }

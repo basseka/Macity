@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
+import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/home/presentation/home_screen.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
@@ -186,7 +187,7 @@ class AppBottomNavBar extends ConsumerWidget {
 
     switch (status) {
       case ProAuthStatus.approved:
-        _showProActionChoice(context);
+        _showProActionChoice(context, ref);
       case ProAuthStatus.pendingApproval:
         showModalBottomSheet(
           context: context,
@@ -208,7 +209,7 @@ class AppBottomNavBar extends ConsumerWidget {
     }
   }
 
-  void _showProActionChoice(BuildContext context) {
+  void _showProActionChoice(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
@@ -250,6 +251,24 @@ class AppBottomNavBar extends ConsumerWidget {
                     MaterialPageRoute(
                       builder: (_) => const CreateEventPage(),
                     ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Color(0xFF7C3AED),
+                ),
+                title: const Text('Scanner un flyer (IA)'),
+                subtitle: const Text(
+                  'Pre-remplit l\'event a partir d\'une photo',
+                  style: TextStyle(fontSize: 11),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  AddEventBottomSheet.triggerScanFlow(
+                    context: context,
+                    ref: ref,
                   );
                 },
               ),

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/notifications/data/mairie_notifications_service.dart';
+import 'package:pulz_app/features/notifications/presentation/manage_mairies_sheet.dart';
 import 'package:pulz_app/features/notifications/state/mairie_notifications_provider.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart'
     show userVilleProvider, userVillesNotificationsProvider;
@@ -315,6 +316,21 @@ class _MairieNotificationsSheetState
                 ],
               ),
             ),
+
+          // Bouton gestion mairies (ajout / suppression)
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => ManageMairiesSheet.show(context),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.tune_rounded, color: Colors.white, size: 18),
+            ),
+          ),
         ],
       ),
     );

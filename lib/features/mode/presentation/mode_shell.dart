@@ -246,10 +246,8 @@ class ModeShell extends ConsumerWidget {
             // Subcategory breadcrumb
             _SubcategoryBreadcrumb(isLandscape: isLandscape),
 
-            // Video banner (hidden in landscape and for Fete musique map)
-            if (!isLandscape &&
-                !(ref.watch(currentModeProvider) == 'day' &&
-                    ref.watch(modeSubcategoriesProvider)['day'] == 'Fete musique'))
+            // Video banner (hidden in landscape, en vue carte plein ecran et Fete musique)
+            if (!isLandscape && !_isFullscreenMapView(ref))
               const ModeVideoBanner(),
 
             // Child content (mode screen)
@@ -379,6 +377,19 @@ class ModeShell extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Vrai si la selection courante correspond a une vue carte plein ecran
+  /// ou a l'ecran fete de la musique (tous masquent le video banner).
+  static bool _isFullscreenMapView(WidgetRef ref) {
+    final mode = ref.watch(currentModeProvider);
+    final sub = ref.watch(modeSubcategoriesProvider)[mode];
+    if (sub == null) return false;
+    if (mode == 'day' && sub == 'Fete musique') return true;
+    if (mode == 'night' && (sub == 'Club Discotheque carte' ||
+        sub == 'Bars carte' || sub == 'Spicy carte')) return true;
+    if (mode == 'food' && sub == 'Restaurant carte') return true;
+    return false;
   }
 }
 

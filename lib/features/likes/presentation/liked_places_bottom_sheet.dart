@@ -13,7 +13,9 @@ import 'package:pulz_app/features/likes/presentation/liked_item_detail_sheet.dar
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 
 class LikedPlacesBottomSheet extends ConsumerWidget {
-  const LikedPlacesBottomSheet({super.key});
+  const LikedPlacesBottomSheet({super.key, this.fromAccountMenu = false});
+
+  final bool fromAccountMenu;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,19 +45,37 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle
-              const SizedBox(height: 10),
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+              // Handle + retour (si depuis le menu compte)
+              SizedBox(
+                height: 44,
+                child: Row(
+                  children: [
+                    if (fromAccountMenu)
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left, size: 26),
+                        color: Colors.white,
+                        onPressed: () => Navigator.pop(context),
+                        tooltip: 'Retour',
+                      )
+                    else
+                      const SizedBox(width: 48),
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 48),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
               // Header
               Padding(

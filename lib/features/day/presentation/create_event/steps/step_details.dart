@@ -62,6 +62,19 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
       _maxController.text = state.participantsMax;
     }
 
+    // Resync quand le wizard est pre-rempli (loadEvent / prefillFromScan).
+    ref.listen<CreateEventState>(createEventProvider, (prev, next) {
+      if (prev != null && prev.prefillRevision != next.prefillRevision) {
+        _descLongueController.text = next.descriptionLongue;
+        _orgNomController.text = next.organisateurNom;
+        _orgEmailController.text = next.organisateurEmail;
+        _orgTelController.text = next.organisateurTelephone;
+        _orgSiteController.text = next.organisateurSite;
+        _minController.text = next.participantsMin;
+        _maxController.text = next.participantsMax;
+      }
+    });
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Column(

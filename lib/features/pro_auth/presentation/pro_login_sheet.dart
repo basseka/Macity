@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/pro_auth/data/pro_auth_service.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 class ProLoginSheet extends ConsumerStatefulWidget {
@@ -40,6 +41,60 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
     _passwordController.dispose();
     _telephoneController.dispose();
     super.dispose();
+  }
+
+  /// Regles de robustesse mot de passe pour l'inscription :
+  ///   - min 10 caracteres
+  ///   - au moins 1 majuscule
+  ///   - au moins 1 chiffre
+  /// Le login existant ne passe pas par cette validation (users historiques
+  /// avec d'anciens mdp courts doivent pouvoir se reconnecter).
+  String? _validatePasswordStrong(String? v) {
+    if (v == null || v.trim().isEmpty) return 'Le mot de passe est requis';
+    final p = v.trim();
+    if (p.length < 10) return 'Au moins 10 caracteres';
+    if (!RegExp(r'[A-Z]').hasMatch(p)) return 'Au moins 1 majuscule';
+    if (!RegExp(r'\d').hasMatch(p)) return 'Au moins 1 chiffre';
+    return null;
+  }
+
+  /// Barre de progression visuelle des criteres de robustesse.
+  Widget _buildPasswordStrengthHint() {
+    final p = _passwordController.text;
+    if (p.isEmpty) return const SizedBox.shrink();
+    final checks = <({String label, bool ok})>[
+      (label: '10+ caracteres', ok: p.length >= 10),
+      (label: '1 majuscule', ok: RegExp(r'[A-Z]').hasMatch(p)),
+      (label: '1 chiffre', ok: RegExp(r'\d').hasMatch(p)),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 2,
+        children: [
+          for (final c in checks)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  c.ok ? Icons.check_circle : Icons.radio_button_unchecked,
+                  size: 12,
+                  color: c.ok ? Colors.green : Colors.grey.shade400,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  c.label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: c.ok ? Colors.green : Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -249,16 +304,10 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                     ),
                   ),
                   obscureText: _obscurePassword,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Le mot de passe est requis';
-                    }
-                    if (v.trim().length < 6) {
-                      return 'Minimum 6 caracteres';
-                    }
-                    return null;
-                  },
+                  validator: _validatePasswordStrong,
+                  onChanged: (_) => setState(() {}),
                 ),
+                _buildPasswordStrengthHint(),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _telephoneController,
@@ -532,13 +581,29 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
 
   void _onSuccess(ProAuthStatus status) {
     if (_showSuccess) return;
+
+    // Inscription ou login non-encore-verifie → enchaine directement sur la
+    // saisie du code 6 chiffres (ProPendingSheet), sans ecran intermediaire.
+    if (status == ProAuthStatus.pendingApproval) {
+      final rootNav = Navigator.of(context, rootNavigator: true);
+      rootNav.pop();
+      Future<void>.delayed(const Duration(milliseconds: 150), () {
+        if (!rootNav.mounted) return;
+        showModalBottomSheet<void>(
+          context: rootNav.context,
+          useRootNavigator: true,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const ProPendingSheet(),
+        );
+      });
+      return;
+    }
+
+    // Login direct d'un user deja approuve → ecran de succes classique
     setState(() {
       _showSuccess = true;
-      _successMessage = status == ProAuthStatus.approved
-          ? 'Connexion reussie !'
-          : _isLoginMode
-              ? 'Connexion reussie ! En attente de validation.'
-              : 'Inscription reussie ! En attente de validation par notre equipe.';
+      _successMessage = 'Connexion reussie !';
     });
   }
 }

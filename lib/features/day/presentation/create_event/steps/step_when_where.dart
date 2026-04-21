@@ -50,6 +50,15 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
       _lieuNomController.text = state.lieuNom ?? '';
     }
 
+    // Resynchronise les controllers quand le state a ete pre-rempli
+    // (loadEvent ou prefillFromScan) apres la 1ere construction.
+    ref.listen<CreateEventState>(createEventProvider, (prev, next) {
+      if (prev != null && prev.prefillRevision != next.prefillRevision) {
+        _adresseController.text = next.lieuAdresse;
+        _lieuNomController.text = next.lieuNom ?? '';
+      }
+    });
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Column(

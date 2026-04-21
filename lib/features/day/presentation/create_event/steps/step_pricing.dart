@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
+import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
 import 'package:pulz_app/features/day/state/boost_prices_provider.dart';
 import 'package:pulz_app/features/day/state/boost_availability_provider.dart';
 import 'package:intl/intl.dart';
@@ -56,6 +57,17 @@ class _StepPricingState extends ConsumerState<StepPricing> {
       _prixEarlyBirdController.text = state.prixEarlyBird;
     }
 
+    // Resync quand le wizard est pre-rempli (loadEvent / prefillFromScan).
+    ref.listen<CreateEventState>(createEventProvider, (prev, next) {
+      if (prev != null && prev.prefillRevision != next.prefillRevision) {
+        _lienController.text = next.lienBilletterie;
+        _prixController.text = next.prix;
+        _prixReduitController.text = next.prixReduit;
+        _prixGroupeController.text = next.prixGroupe;
+        _prixEarlyBirdController.text = next.prixEarlyBird;
+      }
+    });
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Column(
@@ -71,6 +83,21 @@ class _StepPricingState extends ConsumerState<StepPricing> {
             style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
           ),
           const SizedBox(height: 14),
+
+          // Classement feed : n'apparait que si le wizard vient d'etre
+          // pre-rempli par l'IA (scan de flyer). Permet au pro de corriger
+          // la categorisation pour que l'event tombe dans le bon onglet.
+          if (state.prefillRevision > 0) ...[
+            _FeedClassificationSelector(
+              currentCategorie: state.categorie,
+              currentSousCategorie: state.sousCategorie,
+              onPick: (cat, sub) {
+                notifier.updateCategorie(cat);
+                notifier.updateSousCategorie(sub);
+              },
+            ),
+            const SizedBox(height: 14),
+          ],
 
           // Boost (en premier)
           Container(
@@ -535,6 +562,179 @@ class _BoostOption extends StatelessWidget {
               const SizedBox(width: 8),
               Icon(Icons.check_circle, size: 18, color: color),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Sélecteur de classement feed (apparait apres scan IA)
+// ───────────────────────────────────────────────────────────────────────────
+
+class _FeedClassificationSelector extends StatelessWidget {
+  final String? currentCategorie;
+  final String? currentSousCategorie;
+  /// Callback appele avec (categorie, sous_categorie) pour mise a jour du state.
+  final void Function(String categorie, String sousCategorie) onPick;
+
+  const _FeedClassificationSelector({
+    required this.currentCategorie,
+    required this.currentSousCategorie,
+    required this.onPick,
+  });
+
+  static const _options = <_FeedClassOption>[
+    _FeedClassOption(
+      id: 'clubbing',
+      label: 'Clubbing',
+      emoji: '🎧',
+      categorie: 'Nuit / Soiree',
+      sousCategorie: 'Club',
+      gradient: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+    ),
+    _FeedClassOption(
+      id: 'event',
+      label: 'Evenement',
+      emoji: '🎉',
+      categorie: 'Fete / Communautaire',
+      sousCategorie: 'Fete de quartier',
+      gradient: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+    ),
+    _FeedClassOption(
+      id: 'scene',
+      label: 'En scene',
+      emoji: '🎤',
+      categorie: 'Musique / Concert',
+      sousCategorie: 'Concert',
+      gradient: [Color(0xFF0EA5E9), Color(0xFF6366F1)],
+    ),
+  ];
+
+  String? get _currentId {
+    for (final o in _options) {
+      if (o.categorie == currentCategorie && o.sousCategorie == currentSousCategorie) {
+        return o.id;
+      }
+    }
+    // Match partiel sur la categorie parente (l'IA peut avoir mis une
+    // sous-categorie precise comme "DJ set" qui equivaut a clubbing).
+    if (currentCategorie == 'Nuit / Soiree') return 'clubbing';
+    if (currentCategorie == 'Musique / Concert') return 'scene';
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = _currentId;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5E8FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, size: 13, color: Color(0xFF7C3AED)),
+              SizedBox(width: 5),
+              Text(
+                'Classement dans le feed',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF4A1259),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              for (final opt in _options) ...[
+                Expanded(
+                  child: _OptionTile(
+                    opt: opt,
+                    selected: selected == opt.id,
+                    onTap: () => onPick(opt.categorie, opt.sousCategorie),
+                  ),
+                ),
+                if (opt.id != _options.last.id) const SizedBox(width: 6),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeedClassOption {
+  final String id;
+  final String label;
+  final String emoji;
+  final String categorie;
+  final String sousCategorie;
+  final List<Color> gradient;
+  const _FeedClassOption({
+    required this.id,
+    required this.label,
+    required this.emoji,
+    required this.categorie,
+    required this.sousCategorie,
+    required this.gradient,
+  });
+}
+
+class _OptionTile extends StatelessWidget {
+  final _FeedClassOption opt;
+  final bool selected;
+  final VoidCallback onTap;
+  const _OptionTile({
+    required this.opt,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        decoration: BoxDecoration(
+          gradient: selected
+              ? LinearGradient(colors: opt.gradient)
+              : null,
+          color: selected ? null : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selected ? Colors.transparent : Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(opt.emoji, style: const TextStyle(fontSize: 13)),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                opt.label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: selected ? Colors.white : const Color(0xFF4A1259),
+                ),
+              ),
+            ),
           ],
         ),
       ),

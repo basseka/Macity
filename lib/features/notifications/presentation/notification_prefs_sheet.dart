@@ -14,15 +14,17 @@ import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 
 class NotificationPrefsSheet extends ConsumerStatefulWidget {
-  const NotificationPrefsSheet({super.key});
+  const NotificationPrefsSheet({super.key, this.fromAccountMenu = false});
 
-  static void show(BuildContext context) {
+  final bool fromAccountMenu;
+
+  static void show(BuildContext context, {bool fromAccountMenu = false}) {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const NotificationPrefsSheet(),
+      builder: (_) => NotificationPrefsSheet(fromAccountMenu: fromAccountMenu),
     );
   }
 
@@ -268,24 +270,40 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
         ),
         child: Column(
           children: [
-            // Handle + titre
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 4),
-              child: Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+            // Handle + retour (si depuis le menu compte)
+            SizedBox(
+              height: 44,
+              child: Row(
+                children: [
+                  if (widget.fromAccountMenu)
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left, size: 26),
+                      color: Colors.grey.shade700,
+                      onPressed: () => Navigator.pop(context),
+                      tooltip: 'Retour',
+                    )
+                  else
+                    const SizedBox(width: 48),
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 48),
+                ],
               ),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'Mes preferences',
+                'Mon profil',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

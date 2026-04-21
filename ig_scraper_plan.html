@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan scraper Instagram — Pulz</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f0fa 0%, #ffffff 100%);
+      color: #1f2937;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1 {
+      font-size: 32px;
+      color: #4A1259;
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: #6b7280;
+      font-size: 15px;
+      margin-bottom: 40px;
+    }
+    .badge-safe {
+      display: inline-block;
+      background: #10B981;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    section {
+      background: white;
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(74, 18, 89, 0.06);
+      border: 1px solid #f0e4f7;
+    }
+    h2 {
+      font-size: 20px;
+      color: #7B2D8E;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .num {
+      background: #7B2D8E;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    h3 {
+      font-size: 15px;
+      color: #4A1259;
+      margin: 20px 0 10px;
+      font-weight: 700;
+    }
+    p, li { font-size: 14px; color: #374151; }
+    ul, ol { padding-left: 22px; margin: 10px 0; }
+    li { margin-bottom: 4px; }
+    code {
+      background: #f3e8ff;
+      color: #6b21a8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 13px;
+    }
+    pre {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 12.5px;
+      line-height: 1.55;
+      margin: 12px 0;
+    }
+    pre .keyword { color: #c084fc; }
+    pre .comment { color: #6b7280; font-style: italic; }
+    pre .string { color: #a7f3d0; }
+    pre .type { color: #fbbf24; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid #f3e8ff;
+    }
+    th {
+      background: #faf5ff;
+      color: #6b21a8;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .total-row td {
+      background: linear-gradient(90deg, #7C3AED 0%, #EC4899 100%);
+      color: white;
+      font-weight: 700;
+      border: none;
+    }
+    .archi {
+      background: #fafafa;
+      border: 2px dashed #d8b4fe;
+      border-radius: 16px;
+      padding: 30px;
+      margin: 24px 0;
+    }
+    .arch-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 26px;
+      flex-wrap: wrap;
+    }
+    .arch-box {
+      flex: 1;
+      min-width: 180px;
+      background: white;
+      border: 2px solid #7B2D8E;
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(123, 45, 142, 0.1);
+    }
+    .arch-box.storage { border-color: #0891B2; }
+    .arch-box.ai { border-color: #EC4899; }
+    .arch-box.app { border-color: #10B981; }
+    .arch-box.ig { border-color: #E1306C; background: linear-gradient(135deg, #E1306C 0%, #833AB4 100%); color: white; }
+    .arch-box .title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .arch-box .sub {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .arch-box.ig .sub { color: rgba(255,255,255,0.85); }
+    .arrow {
+      font-size: 28px;
+      color: #7B2D8E;
+      font-weight: bold;
+      flex: 0 0 auto;
+    }
+    .arrow-down {
+      text-align: center;
+      font-size: 28px;
+      color: #7B2D8E;
+      margin: -12px 0 -12px 0;
+    }
+    .step-num {
+      display: inline-block;
+      background: #7B2D8E;
+      color: white;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 22px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 10px 0;
+      padding: 10px 14px;
+      background: #f9fafb;
+      border-left: 3px solid #7B2D8E;
+      border-radius: 6px;
+    }
+    .step .body { flex: 1; font-size: 13px; }
+    .step .body code { font-size: 12px; }
+    .callout {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 14px 18px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    .callout strong { color: #92400e; }
+    .callout-green {
+      background: #d1fae5;
+      border-left-color: #10b981;
+    }
+    .callout-green strong { color: #065f46; }
+    .question-block {
+      background: #faf5ff;
+      border: 1px solid #d8b4fe;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .question-block .q {
+      font-weight: 700;
+      color: #6b21a8;
+      margin-bottom: 6px;
+    }
+    .question-block .opt {
+      font-size: 13px;
+      color: #4b5563;
+      margin-left: 12px;
+    }
+    .tech-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+    .tech-card {
+      background: #faf5ff;
+      border: 1px solid #e9d5ff;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .tech-card .tech-name {
+      font-weight: 700;
+      color: #6b21a8;
+      font-size: 13px;
+    }
+    .tech-card .tech-desc {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 3px;
+    }
+    .savings {
+      font-size: 18px;
+      color: #065f46;
+      font-weight: 700;
+      text-align: center;
+      padding: 14px;
+      background: #d1fae5;
+      border-radius: 10px;
+      margin-top: 12px;
+    }
+    .status-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-scanned { background: #d1fae5; color: #065f46; }
+    .status-failed { background: #fee2e2; color: #991b1b; }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Scraper Instagram → App Pulz
+      <span class="badge-safe">✓ LECTURE PASSIVE UNIQUEMENT</span>
+    </h1>
+    <p class="subtitle">Plan technique simplifié — un seul compte IG, pas de publication auto, juste du scan d'events</p>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 1 : VUE D'ENSEMBLE                 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">1</span>Vue d'ensemble — ce que fait le système</h2>
+      <p>Un <strong>worker automatisé</strong> se connecte avec <strong>TON compte Instagram</strong> existant, visite les comptes que tu as ajoutés dans un panneau admin (L'Étoile, Bikini, Bodega, etc.), prend un <strong>screenshot de chaque nouveau post</strong>, puis envoie ce screenshot à l'IA (Claude Haiku) qui extrait automatiquement titre/date/lieu/catégorie. L'event est ensuite inséré dans <code>user_events</code> avec la bonne ville.</p>
+
+      <div class="callout callout-green">
+        <strong>Pourquoi c'est safe :</strong> pas de création de comptes, pas de mass-follow, pas de publication automatique, pas de spam. Juste un compte qui scrolle et prend des captures — un pattern que des milliers d'humains ont sans se faire bannir.
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 2 : ARCHITECTURE VISUELLE          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">2</span>Architecture visuelle</h2>
+      <p>Voici les 4 briques techniques qui composent le système :</p>
+
+      <div class="archi">
+        <!-- Ligne 1 : Admin Flutter -->
+        <div class="arch-row">
+          <div class="arch-box app">
+            <div class="title">📱 Admin Flutter</div>
+            <div class="sub">Tu ajoutes les comptes IG à suivre<br/>(handle + ville)</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="arch-box storage">
+            <div class="title">🗄️ Supabase DB</div>
+            <div class="sub">Table <code>ig_followed_accounts</code><br/>Table <code>ig_scraped_posts</code></div>
+          </div>
+        </div>
+
+        <div class="arrow-down">↓</div>
+
+        <!-- Ligne 2 : Worker cron -->
+        <div class="arch-row">
+          <div class="arch-box ig">
+            <div class="title">🤖 Worker Playwright</div>
+            <div class="sub">Cloud Run cron 3×/jour<br/>Lit la table, visite chaque compte</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="arch-box ig">
+            <div class="title">📸 Instagram</div>
+            <div class="sub">Login @ton_compte<br/>Scroll + screenshot des posts</div>
+          </div>
+        </div>
+
+        <div class="arrow-down">↓</div>
+
+        <!-- Ligne 3 : IA -->
+        <div class="arch-row">
+          <div class="arch-box storage">
+            <div class="title">☁️ Supabase Storage</div>
+            <div class="sub">Upload screenshot<br/>(auto-purge 30j)</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="arch-box ai">
+            <div class="title">🧠 Claude Haiku 4.5</div>
+            <div class="sub">Extraction titre/date/lieu<br/>Via <code>scan-event-flyer</code></div>
+          </div>
+        </div>
+
+        <div class="arrow-down">↓</div>
+
+        <!-- Ligne 4 : Publication -->
+        <div class="arch-row">
+          <div class="arch-box app" style="flex: 1;">
+            <div class="title">✨ user_events</div>
+            <div class="sub">Event inséré dans l'app avec <strong>ville forcée</strong><br/>Visible dans le feed Pulz</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Détail du cron worker (3× par jour)</h3>
+      <div class="step"><span class="step-num">1</span><div class="body">Login sur <code>@ton_compte</code> (session persistée, on ne se re-log pas à chaque run)</div></div>
+      <div class="step"><span class="step-num">2</span><div class="body">Lit la table <code>ig_followed_accounts</code> (active=true)</div></div>
+      <div class="step"><span class="step-num">3</span><div class="body">Pour chaque compte : visite le profil, récupère les 10 derniers posts</div></div>
+      <div class="step"><span class="step-num">4</span><div class="body">Ignore les posts déjà en DB (dédup par <code>ig_post_id</code>)</div></div>
+      <div class="step"><span class="step-num">5</span><div class="body">Pour chaque nouveau post : <strong>screenshot → Storage → scan IA → event créé</strong></div></div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 3 : STRUCTURE DB                   -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">3</span>Structure DB (2 tables à créer)</h2>
+
+      <h3>Table 1 — Les comptes IG à surveiller</h3>
+<pre><span class="keyword">CREATE TABLE</span> ig_followed_accounts (
+  id               <span class="type">BIGSERIAL</span> <span class="keyword">PRIMARY KEY</span>,
+  handle           <span class="type">TEXT</span> <span class="keyword">NOT NULL UNIQUE</span>,     <span class="comment">-- 'etoile_toulouse'</span>
+  ville            <span class="type">TEXT</span> <span class="keyword">NOT NULL</span>,            <span class="comment">-- 'Toulouse'</span>
+  active           <span class="type">BOOLEAN</span> <span class="keyword">DEFAULT</span> true,
+  last_checked_at  <span class="type">TIMESTAMPTZ</span>,
+  notes            <span class="type">TEXT</span>,
+  created_at       <span class="type">TIMESTAMPTZ</span> <span class="keyword">DEFAULT</span> now()
+);</pre>
+
+      <h3>Table 2 — Historique des posts scrapés</h3>
+<pre><span class="keyword">CREATE TABLE</span> ig_scraped_posts (
+  id              <span class="type">BIGSERIAL</span> <span class="keyword">PRIMARY KEY</span>,
+  ig_handle       <span class="type">TEXT</span> <span class="keyword">NOT NULL</span>,
+  ig_post_id      <span class="type">TEXT</span> <span class="keyword">NOT NULL</span>,           <span class="comment">-- shortcode IG pour dédup</span>
+  ville           <span class="type">TEXT</span> <span class="keyword">NOT NULL</span>,
+  posted_at       <span class="type">TIMESTAMPTZ</span>,
+  scraped_at      <span class="type">TIMESTAMPTZ</span> <span class="keyword">DEFAULT</span> now(),
+  screenshot_url  <span class="type">TEXT</span>,
+  scan_event_id   <span class="type">TEXT</span>,                    <span class="comment">-- FK vers user_events</span>
+  scan_status     <span class="type">TEXT</span> <span class="keyword">DEFAULT</span> <span class="string">'pending'</span>,  <span class="comment">-- pending/scanned/skipped/failed</span>
+  scan_error      <span class="type">TEXT</span>,
+  <span class="keyword">UNIQUE</span>(ig_handle, ig_post_id)
+);</pre>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 4 : ADMIN UI                       -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">4</span>Panneau admin — ce que TU vas voir dans l'app</h2>
+      <p>Accessible via ton menu compte pro (ou un back-office web, à choisir). 2-3 écrans simples :</p>
+
+      <h3>Écran 1 — Sources Instagram</h3>
+      <table>
+        <thead>
+          <tr><th>Handle</th><th>Ville</th><th>Dernière visite</th><th>État</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>@etoile_toulouse</code></td><td>Toulouse</td><td>il y a 2h</td><td><span class="status-chip status-scanned">Actif</span></td><td>Désactiver</td></tr>
+          <tr><td><code>@bikini_ramonville</code></td><td>Toulouse</td><td>il y a 2h</td><td><span class="status-chip status-scanned">Actif</span></td><td>Désactiver</td></tr>
+          <tr><td><code>@bodega_toulouse</code></td><td>Toulouse</td><td>il y a 2h</td><td><span class="status-chip status-scanned">Actif</span></td><td>Désactiver</td></tr>
+          <tr><td><code>@weather_paris</code></td><td>Paris</td><td>il y a 2h</td><td><span class="status-chip status-scanned">Actif</span></td><td>Désactiver</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 8px; color: #6b7280; font-size: 13px;">Bouton <strong>+ Ajouter compte</strong> : formulaire (handle + ville) pour étendre.</p>
+
+      <h3>Écran 2 — Posts scrapés récents (7 jours)</h3>
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Source IG</th><th>Ville</th><th>Event détecté</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Auj. 14h32</td><td>@etoile_toulouse</td><td>Toulouse</td><td>BSF Showcase — 01/05</td><td><span class="status-chip status-scanned">✓ scanné</span></td></tr>
+          <tr><td>Auj. 11h15</td><td>@bikini_ramonville</td><td>Toulouse</td><td>Orelsan — 15/06</td><td><span class="status-chip status-scanned">✓ scanné</span></td></tr>
+          <tr><td>Auj. 10h20</td><td>@bodega_toulouse</td><td>Toulouse</td><td>(non détecté)</td><td><span class="status-chip status-failed">✗ failed</span></td></tr>
+          <tr><td>Auj. 10h18</td><td>@bodega_toulouse</td><td>Toulouse</td><td>Soirée salsa — 28/04</td><td><span class="status-chip status-pending">⏳ pending</span></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Écran 3 — Détail d'un post</h3>
+      <ul>
+        <li>Screenshot original affiché en grand</li>
+        <li>JSON extrait par l'IA (titre, date, lieu, catégorie, etc.)</li>
+        <li>Bouton <strong>Re-scanner</strong> si l'IA a raté</li>
+        <li>Bouton <strong>Ignorer</strong> si pas un event (post promo, selfie, etc.)</li>
+        <li>Lien vers l'event publié dans l'app</li>
+      </ul>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 5 : COÛTS                          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">5</span>Coûts mensuels (35 villes, 1 compte IG)</h2>
+      <table>
+        <thead>
+          <tr><th>Poste</th><th>Détail</th><th>Montant</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Cloud Run worker</td><td>1 cron 3×/jour, ~15 min CPU/run</td><td>~5 €</td></tr>
+          <tr><td>Proxy résidentiel</td><td>1 IP statique (évite ban)</td><td>~10 €</td></tr>
+          <tr><td>Storage screenshots</td><td>Auto-purge à 30 jours</td><td>~2 €</td></tr>
+          <tr><td>Claude Haiku IA</td><td>~5 000 scans/mois à 0,2 c€/scan</td><td>~10 €</td></tr>
+          <tr class="total-row"><td colspan="2"><strong>TOTAL MENSUEL</strong></td><td><strong>~30 €</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="savings">
+        💰 Annuel : ~350 € au lieu de ~6 600 € (plan à 35 comptes publiant)
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 6 : VOLUMES                        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">6</span>Volumes estimés</h2>
+      <div class="tech-list">
+        <div class="tech-card">
+          <div class="tech-name">35 villes × 20 comptes</div>
+          <div class="tech-desc">~700 comptes IG surveillés au total</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">3-5 nouveaux posts/semaine/compte</div>
+          <div class="tech-desc">~3-5 k scans IA / mois</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">3 passages cron / jour</div>
+          <div class="tech-desc">Activité "humaine raisonnable"</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">Ban risk</div>
+          <div class="tech-desc">Très faible — mois sans ban typique</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 7 : STACK TECHNIQUE                -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">7</span>Ce qu'il nous faut techniquement</h2>
+      <div class="tech-list">
+        <div class="tech-card">
+          <div class="tech-name">🎭 Playwright (Node.js)</div>
+          <div class="tech-desc">Automatisation navigateur pour login + scroll + screenshot IG</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">☁️ Cloud Run (Google)</div>
+          <div class="tech-desc">Conteneur Docker exécuté 3×/jour via Cloud Scheduler</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">🌐 Bright Data ou IPRoyal</div>
+          <div class="tech-desc">1 proxy résidentiel statique dédié (localisation France)</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">🗄️ Supabase Storage</div>
+          <div class="tech-desc">Bucket privé <code>ig-scraped</code> pour screenshots</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">🧠 scan-event-flyer</div>
+          <div class="tech-desc">Edge function existante + ajout param <code>ville</code></div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-name">📱 Admin Flutter</div>
+          <div class="tech-desc">2-3 écrans dans le menu compte pro</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SECTION 8 : QUESTIONS                      -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section>
+      <h2><span class="num">8</span>Questions à trancher avant de coder</h2>
+
+      <div class="question-block">
+        <div class="q">1. Ton compte IG existant : Business/Creator ou perso ?</div>
+        <div class="opt">Pas bloquant, mais perso pardonne moins en cas d'excès. Business recommandé.</div>
+      </div>
+
+      <div class="question-block">
+        <div class="q">2. Où veux-tu le panneau admin ?</div>
+        <div class="opt">A. Dans l'app Flutter existante (via menu compte pro, accessible depuis ton iPhone)</div>
+        <div class="opt">B. Back-office web séparé (desktop-first, plus confortable pour gérer 700 comptes)</div>
+      </div>
+
+      <div class="question-block">
+        <div class="q">3. Validation humaine avant publication ?</div>
+        <div class="opt">A. Le scan IA insère directement dans <code>user_events</code> → visible instantanément dans l'app</div>
+        <div class="opt">B. Le scan va dans une file de "brouillons" → tu dois valider chaque event avant publication (plus safe mais plus de boulot)</div>
+      </div>
+
+      <div class="question-block">
+        <div class="q">4. Par quoi on commence ?</div>
+        <div class="opt">A. Migration SQL + modif scan-event-flyer + worker Playwright minimal (pure technique)</div>
+        <div class="opt">B. Tout d'un coup : les 2 tables + worker + admin UI Flutter</div>
+      </div>
+    </section>
+
+    <footer>
+      Plan technique Pulz — Scraper Instagram — généré pour validation<br/>
+      <em>Une fois tes réponses aux 4 questions ci-dessus, je peux démarrer le scaffold en 1-2 jours</em>
+    </footer>
+  </div>
+</body>
+</html>

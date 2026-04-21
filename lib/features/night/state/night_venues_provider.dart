@@ -18,6 +18,42 @@ const _subGridChildren = <String, List<String>>{
   'Spicy': ['Coquin', 'Strip'],
 };
 
+/// Aliases de sous-categorie → onglet night. Quand un user_event a une
+/// sous-categorie semantiquement proche (ex: "DJ set", "Showcase", "Soiree"
+/// = clubbing), on veut qu'il remonte dans l'onglet correspondant meme si le
+/// nom exact ne contient pas le tag.
+const _nightCategoryAliases = <String, Set<String>>{
+  'club discotheque': {
+    'dj set',
+    'showcase',
+    'soiree',
+    'soirée',
+    'soiree privee',
+    'club',
+    'clubbing',
+    'afterclub',
+  },
+  'bar de nuit': {'bar', 'afterwork', 'after work', 'apero', 'apéro'},
+  'bar a cocktails': {'cocktail', 'cocktails', 'mixologie'},
+  'pub': {'pub', 'biere', 'bière', 'taproom'},
+  'bar a chicha': {'chicha', 'shisha', 'narguile'},
+};
+
+/// Match "tolerant" entre la sous-categorie d'un user_event et un onglet night.
+/// Couvre 3 cas :
+///   1. Match direct bidirectionnel (ex: cat="Club" matche tag="Club Discotheque")
+///   2. Alias curated : "DJ set"/"Showcase"/"Soiree" → Club Discotheque
+///   3. Insensible a la casse et aux accents
+bool matchesNightCategoryTag(String eventCategorie, String searchTag) {
+  final cat = eventCategorie.toLowerCase().trim();
+  final tag = searchTag.toLowerCase().trim();
+  if (cat.isEmpty || tag.isEmpty) return false;
+  if (cat.contains(tag) || tag.contains(cat)) return true;
+  final aliases = _nightCategoryAliases[tag];
+  if (aliases != null && aliases.any((a) => cat.contains(a))) return true;
+  return false;
+}
+
 /// Evenements utilisateur filtres pour la rubrique "night".
 final nightUserEventsProvider = Provider<List<Event>>((ref) {
   final city = ref.watch(selectedCityProvider);
@@ -59,11 +95,7 @@ int _nightUserCount(List<Event> userEvents, List<Event> scrapedEvents, String se
   if (searchTag == 'A venir') {
     return _upcomingOnly(userEvents).length + _upcomingOnly(scrapedEvents).length;
   }
-  return userEvents.where((e) {
-    final cat = e.categorie.toLowerCase();
-    final tag = searchTag.toLowerCase();
-    return cat.contains(tag) || tag.contains(cat);
-  }).length;
+  return userEvents.where((e) => matchesNightCategoryTag(e.categorie, searchTag)).length;
 }
 
 final nightCategoryCountProvider =
@@ -108,6 +140,94 @@ final nightCategoryCountProvider =
   final venues = await repository.searchByVille(ville: city, query: searchTag);
   return venues.length + uc;
 });
+
+/// 4 sous-categories de bars affichees sur la carte combinee.
+const nightBarCategories = ['Bar de nuit', 'Bar a cocktails', 'Pub', 'Bar a chicha'];
+
+/// Sous-categories Spicy (Coquin + Strip) pour la carte combinee.
+const nightSpicyCategories = ['Coquin', 'Strip'];
+
+/// Tous les etablissements Spicy (Coquin + Strip) de la ville courante.
+final nightSpicyForMapProvider = FutureProvider<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final results = <CommerceModel>[];
+  for (final cat in nightSpicyCategories) {
+    try {
+      final venues = await VenuesSupabaseService().fetchVenues(
+        mode: 'night', ville: city, category: cat,
+      );
+      if (venues.isNotEmpty) {
+        results.addAll(venues);
+        continue;
+      }
+    } catch (_) {}
+    results.addAll(NightBarsData.toulouseBars.where((b) =>
+        b.categorie == cat &&
+        b.ville.toLowerCase() == city.toLowerCase()));
+  }
+  return _dedupeByNameAndPosition(results);
+});
+
+/// Tous les bars (4 types combines) de la ville courante. Utilise par la vue
+/// carte des bars avec pins colores par type.
+final nightBarsForMapProvider = FutureProvider<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final results = <CommerceModel>[];
+  for (final cat in nightBarCategories) {
+    try {
+      final venues = await VenuesSupabaseService().fetchVenues(
+        mode: 'night', ville: city, category: cat,
+      );
+      if (venues.isNotEmpty) {
+        results.addAll(venues);
+        continue;
+      }
+    } catch (_) {}
+    results.addAll(NightBarsData.toulouseBars.where((b) =>
+        b.categorie == cat &&
+        b.ville.toLowerCase() == city.toLowerCase()));
+  }
+  return _dedupeByNameAndPosition(results);
+});
+
+/// Tous les clubs/discotheques de la ville courante, independamment de la
+/// sous-categorie selectionnee. Utilise par la vue carte des clubs.
+///
+/// Dedupliqué sur (nom + lat + lng) pour ne pas empiler des markers
+/// identiques quand la DB a plusieurs rows pour le meme etablissement.
+final nightClubsForMapProvider = FutureProvider<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  List<CommerceModel> venues;
+  try {
+    venues = await VenuesSupabaseService().fetchVenues(
+      mode: 'night', ville: city, category: 'Club Discotheque',
+    );
+    if (venues.isEmpty) {
+      venues = NightBarsData.toulouseBars
+          .where((b) =>
+              b.categorie == 'Club Discotheque' &&
+              b.ville.toLowerCase() == city.toLowerCase())
+          .toList();
+    }
+  } catch (_) {
+    venues = NightBarsData.toulouseBars
+        .where((b) =>
+            b.categorie == 'Club Discotheque' &&
+            b.ville.toLowerCase() == city.toLowerCase())
+        .toList();
+  }
+  return _dedupeByNameAndPosition(venues);
+});
+
+List<CommerceModel> _dedupeByNameAndPosition(List<CommerceModel> venues) {
+  final seen = <String>{};
+  final out = <CommerceModel>[];
+  for (final v in venues) {
+    final key = '${v.nom.trim().toLowerCase()}|${v.latitude.toStringAsFixed(5)}|${v.longitude.toStringAsFixed(5)}';
+    if (seen.add(key)) out.add(v);
+  }
+  return out;
+}
 
 final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);

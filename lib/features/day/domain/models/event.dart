@@ -24,6 +24,7 @@ class Event with _$Event {
     @JsonKey(name: 'type_de_manifestation') @Default('') String type,
     @JsonKey(name: 'categorie_de_la_manifestation') @Default('') String categorie,
     @JsonKey(name: 'theme_de_la_manifestation') @Default('') String theme,
+    @Default('') String rubrique,
     @JsonKey(name: 'manifestation_gratuite') @Default('') String manifestationGratuite,
     @JsonKey(name: 'tarif_normal') @Default('') String tarifNormal,
     @JsonKey(name: 'reservation_site_internet') @Default('') String reservationUrl,

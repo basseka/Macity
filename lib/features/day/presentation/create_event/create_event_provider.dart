@@ -139,6 +139,92 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     );
   }
 
+  /// Pre-remplit le state a partir des donnees extraites par l'IA sur un
+  /// flyer scanne (edge function `scan-event-flyer`). L'user peut ensuite
+  /// reviser chaque champ dans le wizard existant.
+  ///
+  /// [photoUrl] est l'URL deja uploadee par [EventScanService] ; on la
+  /// mappe sur `existingPhotoUrl` pour que le submit ne re-uploade pas.
+  void prefillFromScan({
+    required Map<String, dynamic> data,
+    required String photoUrl,
+  }) {
+    // Helpers de parsing defensif (l'IA peut renvoyer des types inattendus).
+    String? str(dynamic v) {
+      if (v == null) return null;
+      final s = v.toString().trim();
+      return s.isEmpty ? null : s;
+    }
+
+    DateTime? parseDate(dynamic v) {
+      final s = str(v);
+      if (s == null) return null;
+      try { return DateTime.parse(s); } catch (_) { return null; }
+    }
+
+    TimeOfDay? parseTime(dynamic v) {
+      final s = str(v);
+      if (s == null) return null;
+      final m = RegExp(r'^(\d{1,2})[:h](\d{2})').firstMatch(s);
+      if (m == null) return null;
+      final h = int.tryParse(m.group(1)!) ?? 0;
+      final mn = int.tryParse(m.group(2)!) ?? 0;
+      if (h > 23 || mn > 59) return null;
+      return TimeOfDay(hour: h, minute: mn);
+    }
+
+    // Validation des enums : on garde seulement les valeurs que le wizard
+    // reconnait. Sinon null -> l'user choisit.
+    String? cat = str(data['categorie']);
+    if (cat != null && !kEventCategories.contains(cat)) cat = null;
+
+    String? sub = str(data['sous_categorie']);
+    if (cat != null && sub != null) {
+      final subs = kSubcategories[cat];
+      if (subs == null || !subs.contains(sub)) sub = null;
+    } else if (cat == null) {
+      sub = null;
+    }
+
+    String? fmt = str(data['format']);
+    if (fmt != null && !kEventFormats.contains(fmt)) fmt = null;
+
+    final tags = data['tags'];
+    final List<String> tagList = tags is List
+        ? tags.whereType<String>().take(10).toList()
+        : const [];
+
+    // On merge avec le state courant (qui contient deja l'organisateurNom
+    // pre-rempli depuis le profil pro). prefillRevision++ force le rebuild
+    // des TextFormField qui sinon restent bloques sur leur initialValue.
+    // currentStep=2 : jump direct a l'etape Pricing/Boost ; le pro peut alors
+    // choisir le classement feed (Clubbing/Event/En scene) et le niveau de
+    // boost, puis publier directement sans passer par les etapes 4/5.
+    state = state.copyWith(
+      currentStep: 2,
+      existingPhotoUrl: photoUrl,
+      prefillRevision: state.prefillRevision + 1,
+      categorie: cat,
+      sousCategorie: sub,
+      format: fmt,
+      titre: str(data['titre']) ?? '',
+      descriptionCourte: str(data['description_courte']) ?? '',
+      descriptionLongue: str(data['description_longue']) ?? '',
+      dateDebut: parseDate(data['date_debut']),
+      heureDebut: parseTime(data['heure_debut']),
+      dateFin: parseDate(data['date_fin']),
+      heureFin: parseTime(data['heure_fin']),
+      lieuNom: str(data['lieu_nom']),
+      lieuAdresse: str(data['lieu_adresse']) ?? '',
+      ville: str(data['ville']) ?? state.ville,
+      estGratuit: data['est_gratuit'] == true,
+      prix: (str(data['prix']) ?? '').replaceAll(RegExp(r'[^\d.,]'), ''),
+      lienBilletterie: str(data['lien_billetterie']) ?? '',
+      tags: tagList,
+      clearError: true,
+    );
+  }
+
   void updateCategorie(String value) {
     state = state.copyWith(
       categorie: value,
@@ -395,9 +481,20 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
 
   /// Soumet l'evenement.
   Future<bool> submit() async {
+    debugPrint(
+      '[CreateEvent] submit() called. step=${state.currentStep} '
+      'isEditing=${state.isEditing} '
+      'titre="${state.titre}" '
+      'cat="${state.categorie}" sousCat="${state.sousCategorie}" '
+      'date=${state.dateDebut} heure=${state.heureDebut} '
+      'ville="${state.ville}" '
+      'photoPath=${state.photoPath} existingPhotoUrl=${state.existingPhotoUrl} '
+      'prefillRev=${state.prefillRevision}',
+    );
     // Valider l'etape courante d'abord
     final error = state.validateCurrentStep();
     if (error != null) {
+      debugPrint('[CreateEvent] submit blocked by validation: $error');
       state = state.copyWith(errorMessage: error);
       return false;
     }
@@ -444,8 +541,15 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         }
       }
 
-      // En mode edition, garder l'ancienne photo si pas de nouvelle
-      final photoUrl = s.isEditing && s.photoPath == null ? s.existingPhotoUrl : null;
+      // Preserve l'URL d'une photo deja uploadee :
+      //  - Mode edition sans nouvelle photo : on garde existingPhotoUrl
+      //  - Mode creation via scan IA : existingPhotoUrl = URL de l'upload
+      //    fait par EventScanService (la photo est deja dans Storage).
+      // Si on n'a pas de photoPath local mais un existingPhotoUrl, on utilise
+      // ce dernier pour eviter que l'event soit insere sans photo.
+      final photoUrl = (s.photoPath == null || s.photoPath!.isEmpty)
+          ? s.existingPhotoUrl
+          : null;
 
       final event = UserEvent(
         id: id,
@@ -539,9 +643,14 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       _ref.invalidate(paginatedFeedProvider);
 
       lastCreatedEventId = event.id;
+      debugPrint(
+        '[CreateEvent] submit OK id=${event.id} rubrique=${event.rubrique} '
+        'categorie=${event.categorie} photoUrl=${event.photoUrl}',
+      );
       state = state.copyWith(isSubmitting: false);
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[CreateEvent] submit FAILED: $e\n$st');
       state = state.copyWith(
         isSubmitting: false,
         errorMessage: 'Erreur : $e',

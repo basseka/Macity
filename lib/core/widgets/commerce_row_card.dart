@@ -7,7 +7,10 @@ import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
+import 'package:dio/dio.dart';
+import 'package:pulz_app/core/config/supabase_config.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
+import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
@@ -24,7 +27,9 @@ class CommerceRowCard extends ConsumerWidget {
   });
 
   /// Retourne la photo DB, l'asset explicite, ou la pochette par defaut.
-  String? _resolveImage() {
+  String? _resolveImage() => _resolveImageFor(commerce, imageAsset);
+
+  static String? _resolveImageFor(CommerceModel commerce, String? imageAsset) {
     if (imageAsset != null) return imageAsset;
     if (commerce.photo.isNotEmpty && commerce.photo.startsWith('http')) {
       return commerce.photo;
@@ -275,8 +280,17 @@ class CommerceRowCard extends ConsumerWidget {
     );
   }
 
-  void _openDetail(BuildContext context) {
-    final image = _resolveImage();
+  void _openDetail(BuildContext context) =>
+      showDetailSheet(context, commerce, imageAsset: imageAsset);
+
+  /// Ouvre le bottom sheet detail pour ce commerce. Appelable depuis n'importe
+  /// quel point (tap liste, marqueur carte, etc.).
+  static void showDetailSheet(
+    BuildContext context,
+    CommerceModel commerce, {
+    String? imageAsset,
+  }) {
+    final image = _resolveImageFor(commerce, imageAsset);
     final isNetwork = image != null && image.startsWith('http');
     ItemDetailSheet.show(
       context,
@@ -287,10 +301,10 @@ class CommerceRowCard extends ConsumerWidget {
         imageUrl: isNetwork ? image : null,
         videoUrl: commerce.videoUrl.isNotEmpty
             ? commerce.videoUrl
-            : _defaultVideoUrl(),
+            : _defaultVideoUrlFor(commerce),
         likeId: 'night_${commerce.nom}',
         isVerified: commerce.isVerified,
-        photoGallery: _buildPhotoGallery(),
+        photoGallery: _buildPhotoGalleryFor(commerce),
         infos: [
           if (commerce.categorie.isNotEmpty)
             DetailInfoItem(Icons.category_outlined, commerce.categorie),
@@ -322,7 +336,7 @@ class CommerceRowCard extends ConsumerWidget {
               url: 'tel:${commerce.telephone.replaceAll(' ', '')}',
             ),
         ],
-        shareText: _buildShareText(),
+        shareText: _buildShareTextFor(commerce),
       ),
     );
   }
@@ -347,15 +361,12 @@ class CommerceRowCard extends ConsumerWidget {
   ];
 
   /// Construit la galerie photo pour le detail.
-  List<String> _buildPhotoGallery() {
-    // Si le proprio a revendique, ses propres photos seront ici
-    // TODO: charger les photos du proprio depuis la DB
+  static List<String> _buildPhotoGalleryFor(CommerceModel commerce) {
     final photos = <String>[];
     if (commerce.photo.isNotEmpty && commerce.photo.startsWith('http')) {
       photos.add(commerce.photo);
     }
 
-    // Si pas assez de photos et non verifie → photos generiques par categorie
     if (!commerce.isVerified && photos.length < 6) {
       final cat = commerce.categorie.toLowerCase();
       List<String>? defaults;
@@ -379,8 +390,7 @@ class CommerceRowCard extends ConsumerWidget {
   static const _defaultClubVideo =
       'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/user-events/teaser_disco_1.mp4';
 
-  String? _defaultVideoUrl() {
-    // Seulement pour les clubs/discotheques non revendiques
+  static String? _defaultVideoUrlFor(CommerceModel commerce) {
     if (commerce.isVerified) return null;
     final cat = commerce.categorie.toLowerCase();
     if (cat.contains('club') || cat.contains('discotheque')) {
@@ -389,7 +399,7 @@ class CommerceRowCard extends ConsumerWidget {
     return null;
   }
 
-  String _buildShareText() {
+  static String _buildShareTextFor(CommerceModel commerce) {
     final buffer = StringBuffer();
     buffer.writeln(commerce.nom);
     if (commerce.adresse.isNotEmpty) buffer.writeln(commerce.adresse);
@@ -561,17 +571,52 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
     super.dispose();
   }
 
+  /// Appelle l'edge function validate-siret pour verifier le SIRET contre
+  /// l'API SIRENE. Retourne null si valide, sinon un message d'erreur.
+  Future<String?> _validateSiret(String siret) async {
+    try {
+      final dio = Dio(BaseOptions(
+        baseUrl: '${SupabaseConfig.supabaseUrl}/functions/v1/',
+        receiveTimeout: const Duration(seconds: 10),
+      ));
+      dio.interceptors.add(SupabaseInterceptor());
+      final res = await dio.post('validate-siret', data: {'siret': siret});
+      final data = res.data as Map<String, dynamic>;
+      if (data['valid'] == true) return null;
+      return (data['reason'] as String?) ?? 'SIRET non valide';
+    } catch (e) {
+      debugPrint('[ClaimVenue] SIRET validation error: $e');
+      return 'Impossible de verifier le SIRET. Reessaie.';
+    }
+  }
+
   Future<void> _submit() async {
-    if (_siretController.text.isEmpty && _urlController.text.isEmpty) return;
+    final siret = _siretController.text.trim();
+    final proof = _urlController.text.trim();
+    if (siret.isEmpty && proof.isEmpty) return;
     setState(() => _loading = true);
 
     try {
+      // Si SIRET fourni, on le valide d'abord contre l'API SIRENE.
+      if (siret.isNotEmpty) {
+        final err = await _validateSiret(siret);
+        if (err != null) {
+          if (mounted) {
+            setState(() => _loading = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('SIRET invalide : $err')),
+            );
+          }
+          return;
+        }
+      }
+
       final userId = await UserIdentityService.getUserId();
       await VenuesSupabaseService().claimVenue(
         venueName: widget.commerceName,
         proId: userId,
-        siret: _siretController.text.trim(),
-        proofUrl: _urlController.text.trim(),
+        siret: siret,
+        proofUrl: proof,
         message: _messageController.text.trim(),
       );
       if (mounted) {
@@ -666,7 +711,7 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 16),
-        _buildField('Numero SIRET', _siretController, 'Ex: 123 456 789 00012', TextInputType.number),
+        _buildField('SIRET ou numero RNA', _siretController, 'SIRET (14 chiffres) ou W + 9 chiffres (asso)', TextInputType.text),
         const SizedBox(height: 12),
         _buildField('Site web ou reseau social', _urlController, 'https://...', TextInputType.url),
         const SizedBox(height: 12),

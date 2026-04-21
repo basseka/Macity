@@ -47,42 +47,63 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
     super.dispose();
   }
 
-  Future<void> _pickPhoto(ImageSource source) async {
+  Future<void> _pickFromCamera() async {
     try {
       final xFile = await ImagePicker().pickImage(
-        source: source,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 60,
+        source: ImageSource.camera,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 75,
         requestFullMetadata: false,
         preferredCameraDevice: CameraDevice.rear,
       );
       if (xFile != null && mounted) {
-        ref.read(reportFormProvider.notifier).setPhoto(xFile.path);
+        ref.read(reportFormProvider.notifier).addPhotos([xFile.path]);
       }
     } catch (e) {
-      debugPrint('[ReportEventModal] pickPhoto failed: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Echec du chargement de la photo',
-              style: GoogleFonts.poppins(fontSize: 12),
-            ),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
+      debugPrint('[ReportEventModal] pickFromCamera failed: $e');
+      _showErrorToast('Echec du chargement de la photo');
     }
+  }
+
+  Future<void> _pickFromGallery() async {
+    final remaining = kMaxReportPhotos -
+        ref.read(reportFormProvider).localPhotoPaths.length;
+    if (remaining <= 0) return;
+    try {
+      final files = await ImagePicker().pickMultiImage(
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 75,
+        requestFullMetadata: false,
+        limit: remaining,
+      );
+      if (files.isEmpty || !mounted) return;
+      final paths = files.map((x) => x.path).toList(growable: false);
+      ref.read(reportFormProvider.notifier).addPhotos(paths);
+    } catch (e) {
+      debugPrint('[ReportEventModal] pickFromGallery failed: $e');
+      _showErrorToast('Echec du chargement des photos');
+    }
+  }
+
+  void _showErrorToast(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.poppins(fontSize: 12)),
+        backgroundColor: Colors.red.shade700,
+      ),
+    );
   }
 
   Future<void> _submit() async {
     final notifier = ref.read(reportFormProvider.notifier);
     notifier.setTitle(_titleCtrl.text);
     notifier.setLocationName(_locationCtrl.text);
-    final id = await notifier.submit();
+    final result = await notifier.submit();
     if (!mounted) return;
-    if (id != null) {
+    if (result != null) {
       // Invalide le feed pour recharger apres ~3s (le temps que l'edge function finisse)
       Future.delayed(const Duration(seconds: 3), () {
         ref.invalidate(reportedEventsFeedProvider);
@@ -90,7 +111,8 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
       // Et un refresh immediat aussi pour voir le placeholder shimmer
       ref.invalidate(reportedEventsFeedProvider);
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFF7B2D8E),
           content: Text(
@@ -101,6 +123,23 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
           duration: const Duration(seconds: 3),
         ),
       );
+      // Remonte les echecs photos a l'utilisateur (C).
+      if (result.photoFailures > 0) {
+        final n = result.photoFailures;
+        messenger.showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.orange.shade800,
+            content: Text(
+              n == 1
+                  ? '1 photo n\'a pas pu etre envoyee'
+                  : '$n photos n\'ont pas pu etre envoyees',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -248,12 +287,13 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
 
                     const SizedBox(height: 8),
 
-                    // Photo optionnelle
-                    _PhotoButton(
-                      photoPath: state.localPhotoPath,
-                      onPick: () => _showPhotoSheet(),
-                      onClear: () =>
-                          ref.read(reportFormProvider.notifier).setPhoto(null),
+                    // Photos optionnelles (jusqu'a 4)
+                    _PhotosPicker(
+                      photoPaths: state.localPhotoPaths,
+                      onPick: _showPhotoSheet,
+                      onRemoveAt: (i) => ref
+                          .read(reportFormProvider.notifier)
+                          .removePhotoAt(i),
                     ),
 
                     // Video attachee (depuis le bouton camera)
@@ -386,6 +426,9 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
   }
 
   void _showPhotoSheet() {
+    final remaining = kMaxReportPhotos -
+        ref.read(reportFormProvider).localPhotoPaths.length;
+    if (remaining <= 0) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -405,20 +448,22 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
               onTap: () {
                 Navigator.pop(context);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) _pickPhoto(ImageSource.camera);
+                  if (mounted) _pickFromCamera();
                 });
               },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: Color(0xFF7B2D8E)),
               title: Text(
-                'Choisir depuis la galerie',
+                remaining == kMaxReportPhotos
+                    ? 'Choisir depuis la galerie (jusqu\'a $kMaxReportPhotos)'
+                    : 'Ajouter depuis la galerie (encore $remaining)',
                 style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
               ),
               onTap: () {
                 Navigator.pop(context);
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) _pickPhoto(ImageSource.gallery);
+                  if (mounted) _pickFromGallery();
                 });
               },
             ),
@@ -701,103 +746,142 @@ class _CatItem {
 }
 
 // ───────────────────────────────────────────
-// Bouton photo
+// Grille multi-photos (jusqu'a kMaxReportPhotos)
 // ───────────────────────────────────────────
 
-class _PhotoButton extends StatelessWidget {
-  final String? photoPath;
+class _PhotosPicker extends StatelessWidget {
+  final List<String> photoPaths;
   final VoidCallback onPick;
-  final VoidCallback onClear;
+  final ValueChanged<int> onRemoveAt;
 
-  const _PhotoButton({
-    required this.photoPath,
+  const _PhotosPicker({
+    required this.photoPaths,
     required this.onPick,
-    required this.onClear,
+    required this.onRemoveAt,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (photoPath != null) {
-      return Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: Image.file(
-                File(photoPath!),
-                width: 28,
-                height: 28,
-                fit: BoxFit.cover,
-              ),
+    if (photoPaths.isEmpty) {
+      return GestureDetector(
+        onTap: onPick,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0D6F7).withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF7B2D8E).withValues(alpha: 0.3),
+              width: 1.2,
+              strokeAlign: BorderSide.strokeAlignInside,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Photo ajoutee',
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.camera_alt_rounded,
+                size: 18,
+                color: Color(0xFF7B2D8E),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Ajouter des photos (jusqu\'a $kMaxReportPhotos)',
                 style: GoogleFonts.poppins(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF4A1259),
                 ),
               ),
-            ),
-            SizedBox(
-              width: 28,
-              height: 28,
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                iconSize: 14,
-                icon: const Icon(Icons.close),
-                onPressed: onClear,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
-    return GestureDetector(
-      onTap: onPick,
-      child: Container(
-        height: 48,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF0D6F7).withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF7B2D8E).withValues(alpha: 0.3),
-            width: 1.2,
-            strokeAlign: BorderSide.strokeAlignInside,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.camera_alt_rounded,
-              size: 18,
-              color: Color(0xFF7B2D8E),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Ajouter une photo (optionnel)',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF4A1259),
+    final canAddMore = photoPaths.length < kMaxReportPhotos;
+    return SizedBox(
+      height: 72,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: photoPaths.length + (canAddMore ? 1 : 0),
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          if (i < photoPaths.length) {
+            return _PhotoThumb(
+              path: photoPaths[i],
+              onRemove: () => onRemoveAt(i),
+            );
+          }
+          // Tuile "+"
+          return GestureDetector(
+            onTap: onPick,
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0D6F7).withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFF7B2D8E).withValues(alpha: 0.35),
+                  width: 1.2,
+                ),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: Color(0xFF7B2D8E),
+                size: 28,
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
+    );
+  }
+}
+
+class _PhotoThumb extends StatelessWidget {
+  final String path;
+  final VoidCallback onRemove;
+
+  const _PhotoThumb({required this.path, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.file(
+            File(path),
+            width: 72,
+            height: 72,
+            fit: BoxFit.cover,
+          ),
+        ),
+        Positioned(
+          top: -6,
+          right: -6,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: const BoxDecoration(
+                color: Colors.black87,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close,
+                size: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pulz_app/core/config/supabase_config.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
@@ -13,6 +14,15 @@ import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
+
+/// Resultat de la soumission d'un signalement.
+/// [photoFailures] = nombre de photos qui n'ont pas pu etre uploadees
+/// (remonte a l'utilisateur via un toast).
+class ReportSubmitResult {
+  final String id;
+  final int photoFailures;
+  const ReportSubmitResult({required this.id, this.photoFailures = 0});
+}
 
 /// Service Supabase pour les signalements communautaires (style Waze).
 ///
@@ -73,17 +83,27 @@ class ReportedEventsService {
         return null;
       }
 
-      // Read async sur isolate Dart, non bloquant
-      final bytes = await file.readAsBytes();
-      debugPrint('[ReportedEvents] photo bytes: ${bytes.length ~/ 1024} KB');
+      // Compression JPEG 1024px / quality 80 : garantit un payload leger
+      // meme quand ImagePicker n'a pas applique ses contraintes (HEIC iOS,
+      // certains chemins gallery). Sans ca, des photos plein cadre (~3-8 MB)
+      // peuvent timeout en upload sur reseau lent et silencieusement disparaitre.
+      Uint8List? bytes = await FlutterImageCompress.compressWithFile(
+        localPath,
+        minWidth: 1024,
+        minHeight: 1024,
+        quality: 80,
+        format: CompressFormat.jpeg,
+      );
+      bytes ??= await file.readAsBytes();
+      debugPrint('[ReportedEvents] photo compressed: ${bytes.length ~/ 1024} KB');
 
       if (bytes.isEmpty) {
         debugPrint('[ReportedEvents] photo empty, skipping');
         return null;
       }
-      // Garde-fou : refuse > 5 MB
+      // Garde-fou : refuse > 5 MB (ne devrait jamais arriver apres compression)
       if (bytes.length > 5 * 1024 * 1024) {
-        debugPrint('[ReportedEvents] photo too large, skipping: ${bytes.length} bytes');
+        debugPrint('[ReportedEvents] photo too large after compression: ${bytes.length} bytes');
         return null;
       }
 
@@ -175,15 +195,19 @@ class ReportedEventsService {
   /// Le declenchement de l'edge function `generate-event-poster` ne se fait
   /// que pour les NOUVELLES rows (pas de regeneration d'affiche quand on merge).
   ///
-  /// Retourne l'id de la row (existante ou nouvelle).
-  Future<String> reportEvent({
+  /// Multi-photos : on uploade les photos en serie, puis on appelle la RPC
+  /// une fois avec la premiere URL. Pour chaque URL supplementaire, on rappelle
+  /// la RPC (le merge detecte qu'on est le meme reporter sur la meme row et
+  /// se contente d'appender l'URL dans le tableau `photos`).
+  Future<ReportSubmitResult> reportEvent({
     required String category,
     required String rawTitle,
     required double lat,
     required double lng,
-    String? localPhotoPath,
+    List<String> localPhotoPaths = const [],
     String? localVideoPath,
     String locationName = '',
+    String? osmId,
   }) async {
     // Yield au scheduler avant les operations lourdes pour eviter ANR
     await Future<void>.delayed(Duration.zero);
@@ -205,16 +229,22 @@ class ReportedEventsService {
       // Pas bloquant : on signale en anonyme.
     }
 
-    String? photoUrl;
-    String? videoUrl;
-    if (localPhotoPath != null && localPhotoPath.isNotEmpty) {
-      photoUrl = await _uploadPhotoLight(localPhotoPath);
-      if (photoUrl == null) {
-        debugPrint('[ReportedEvents] photo upload returned null, continuing without photo');
+    // Boucle upload des photos : on garde les URLs reussies et on compte
+    // les echecs pour les remonter a l'UI (toast utilisateur).
+    final photoUrls = <String>[];
+    int photoFailures = 0;
+    for (final path in localPhotoPaths) {
+      if (path.isEmpty) continue;
+      final url = await _uploadPhotoLight(path);
+      if (url == null) {
+        photoFailures++;
+        debugPrint('[ReportedEvents] photo upload failed: $path');
+      } else {
+        photoUrls.add(url);
       }
     }
 
-    // Upload video si presente
+    String? videoUrl;
     if (localVideoPath != null && localVideoPath.isNotEmpty) {
       videoUrl = await _uploadVideoLight(localVideoPath);
       if (videoUrl == null) {
@@ -222,7 +252,7 @@ class ReportedEventsService {
       }
 
       // Si pas de photo, extraire un thumbnail de la video comme photo
-      if (photoUrl == null) {
+      if (photoUrls.isEmpty) {
         try {
           final thumbPath = await VideoThumbnail.thumbnailFile(
             video: localVideoPath,
@@ -231,8 +261,11 @@ class ReportedEventsService {
             quality: 70,
           );
           if (thumbPath != null) {
-            photoUrl = await _uploadPhotoLight(thumbPath);
-            debugPrint('[ReportedEvents] video thumbnail uploaded: $photoUrl');
+            final thumbUrl = await _uploadPhotoLight(thumbPath);
+            if (thumbUrl != null) {
+              photoUrls.add(thumbUrl);
+              debugPrint('[ReportedEvents] video thumbnail uploaded: $thumbUrl');
+            }
           }
         } catch (e) {
           debugPrint('[ReportedEvents] thumbnail extraction failed: $e');
@@ -246,6 +279,7 @@ class ReportedEventsService {
     // Generation d'un UUID cote client pour le cas "nouvelle row".
     // La RPC l'utilisera si pas de merge, sinon elle ignore ce id.
     final clientId = const Uuid().v4();
+    final firstPhotoUrl = photoUrls.isNotEmpty ? photoUrls.first : null;
 
     final payload = {
       'p_id': clientId,
@@ -254,8 +288,9 @@ class ReportedEventsService {
       'p_category': category,
       'p_lat': lat,
       'p_lng': lng,
-      'p_photo_url': photoUrl,
+      'p_photo_url': firstPhotoUrl,
       'p_video_url': videoUrl,
+      'p_osm_id': (osmId != null && osmId.isNotEmpty) ? osmId : null,
     };
     debugPrint('[ReportedEvents] rpc payload: $payload');
 
@@ -302,6 +337,28 @@ class ReportedEventsService {
     final wasMerged = (row['was_merged'] as bool?) ?? false;
 
     debugPrint('[ReportedEvents] was_merged=$wasMerged id=$id');
+
+    // Appende les photos supplementaires via des appels RPC suivants.
+    // Le merge detecte qu'on est le meme reporter sur la meme row
+    // (osm_id ou bbox + category + 6h) et se contente d'ajouter l'URL
+    // au tableau `photos` (report_count pas incremente, reporter_ids pas
+    // duplique). Ca evite une migration du schema pour un flow peu frequent.
+    for (int i = 1; i < photoUrls.length; i++) {
+      final extraPayload = {...payload, 'p_photo_url': photoUrls[i]};
+      try {
+        await _restDio.post(
+          'rpc/upsert_reported_event',
+          data: extraPayload,
+          options: Options(
+            sendTimeout: const Duration(seconds: 8),
+            receiveTimeout: const Duration(seconds: 8),
+          ),
+        );
+      } catch (e) {
+        debugPrint('[ReportedEvents] extra photo append failed (${photoUrls[i]}): $e');
+        photoFailures++;
+      }
+    }
 
     // Ne trigger l'IA que pour les NOUVELLES rows
     // (les merges gardent l'affiche IA originale).
@@ -359,7 +416,7 @@ class ReportedEventsService {
       }
     }
 
-    return id;
+    return ReportSubmitResult(id: id, photoFailures: photoFailures);
   }
 
   Future<void> _triggerPosterGeneration(String id) async {
