@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
@@ -156,10 +158,11 @@ class CommerceRowCard extends ConsumerWidget {
     return GestureDetector(
       onTap: () => _openDetail(context),
       child: Card(
-      elevation: 2,
-      shadowColor: Colors.black12,
+      elevation: 0,
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        side: const BorderSide(color: AppColors.line),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -216,10 +219,11 @@ class CommerceRowCard extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             commerce.nom,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: modeTheme.primaryDarkColor,
+                            style: GoogleFonts.geist(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -0.15,
+                              color: AppColors.text,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -256,7 +260,7 @@ class CommerceRowCard extends ConsumerWidget {
                         const SizedBox(width: 8),
                         _buildActionIcon(
                           Icons.share_outlined,
-                          Colors.grey.shade400,
+                          AppColors.textFaint,
                           () {
                             final buffer = StringBuffer();
                             buffer.writeln(commerce.nom);
@@ -441,14 +445,14 @@ class CommerceRowCard extends ConsumerWidget {
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {
     return Row(
       children: [
-        Icon(icon, size: 13, color: iconColor),
+        Icon(icon, size: 12, color: iconColor),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
+            style: GoogleFonts.geist(
               fontSize: 11,
-              color: Colors.grey.shade600,
+              color: AppColors.textDim,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -473,7 +477,7 @@ class CommerceRowCard extends ConsumerWidget {
       child: Icon(
         isLiked ? Icons.favorite : Icons.favorite_border,
         size: 16,
-        color: isLiked ? Colors.red : Colors.grey.shade400,
+        color: isLiked ? AppColors.magenta : AppColors.textFaint,
       ),
     );
   }
