@@ -48,10 +48,8 @@ import 'package:pulz_app/core/widgets/animated_ad_banner.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
-import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
-import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_legend.dart';
-import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 
 final _foodScrapedProvider = FutureProvider.family<List<Event>, String>((ref, city) async {
   final now = DateTime.now();
@@ -528,29 +526,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 200),
       ),
-    );
-  }
-
-  SliverList _buildSignalementsSection() {
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-          child: _SignalementsHeader(onLivePressed: _openVideoReport),
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: ReportedEventsMap(height: 280),
-        ),
-        const SizedBox(height: 6),
-        const ReportedEventsLegend(),
-        const SizedBox(height: 6),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: ReportedEventsCarousel(),
-        ),
-        const SizedBox(height: 16),
-      ]),
     );
   }
 
@@ -1328,10 +1303,21 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // Matchs exclus du feed
 
     if (dayGroups.isEmpty && !_isLandscape && _activeTab == null) {
-      // Meme quand il n'y a pas d'events, afficher la section signalements
+      // Meme quand il n'y a pas d'events, afficher les boosted + bouton map live
       return CustomScrollView(
         slivers: [
-          _buildSignalementsSection(),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: _MapLiveButton(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const MapLivePage(),
+                  ),
+                ),
+              ),
+            ),
+          ),
           const SliverToBoxAdapter(child: BoostedEventsCarousel()),
           const SliverToBoxAdapter(child: BoostedP2Carousel()),
           SliverFillRemaining(
@@ -1386,31 +1372,20 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         slivers: [
           // Discovery + signalements commu + Boosted inseres en haut du feed scroll
           if (!_isLandscape && _activeTab == null) ...[
-            // DiscoveryButtons deplace dans Explorer (home_screen)
-            // Section : signalements communautaires (style Waze) — EN PREMIER
+            // Bouton "Map Live" compact -> ouvre la page dediee signalements
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-                child: _SignalementsHeader(onLivePressed: _openVideoReport),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: _MapLiveButton(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const MapLivePage(),
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: ReportedEventsMap(height: 280),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 6)),
-            const SliverToBoxAdapter(child: ReportedEventsLegend()),
-            const SliverToBoxAdapter(child: SizedBox(height: 6)),
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: ReportedEventsCarousel(),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            // Boosted events (A la une + Au top)
+            // Boosted events (A la une + Au top) - maintenant en premier
             const SliverToBoxAdapter(child: BoostedEventsCarousel()),
             const SliverToBoxAdapter(child: BoostedP2Carousel()),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
@@ -1853,44 +1828,84 @@ class _StaggeredFeedTile extends StatelessWidget {
   }
 }
 
-/// Header de la section "Ca bouge pres de toi" + bouton Live Notif.
-/// Factorise entre le main feed et la branche empty-state.
-class _SignalementsHeader extends StatelessWidget {
-  final VoidCallback onLivePressed;
-  const _SignalementsHeader({required this.onLivePressed});
+/// Bouton compact "Map Live" sur le home → ouvre la page MapLivePage.
+/// Affiche un pin magenta pulsant + label "MAP LIVE" + "Ca bouge pres de toi".
+class _MapLiveButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _MapLiveButton({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(color: AppColors.line),
-          ),
-          alignment: Alignment.center,
-          child: const Icon(Icons.flag, size: 12, color: AppColors.magenta),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.line),
+          boxShadow: AppShadows.neon(AppColors.magenta, blur: 10, y: 3),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            'Ca bouge pres de toi',
-            style: GoogleFonts.geist(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.15,
-              color: AppColors.text,
+        child: Row(
+          children: [
+            // Pin chip avec pulse
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    gradient: AppGradients.primary,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.map_outlined, size: 17, color: Colors.white),
+                ),
+                const Positioned(
+                  right: -2,
+                  top: -2,
+                  child: _LiveDot(),
+                ),
+              ],
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'MAP LIVE',
+                    style: GoogleFonts.geistMono(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 2.0,
+                      color: AppColors.magenta,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Ca bouge pres de toi',
+                    style: GoogleFonts.geist(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.15,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 13,
+              color: AppColors.textFaint,
+            ),
+          ],
         ),
-        GradientPillButton(
-          label: 'Live Notif',
-          onPressed: onLivePressed,
-        ),
-      ],
+      ),
     );
   }
 }
