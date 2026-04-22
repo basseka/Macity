@@ -7,6 +7,8 @@ import 'package:video_player/video_player.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/core/services/activity_service.dart';
 import 'package:pulz_app/features/day/presentation/share_event_sheet.dart';
@@ -98,7 +100,7 @@ class EventFullscreenPopup extends ConsumerWidget {
             ),
             clipBehavior: Clip.antiAlias,
             child: Container(
-              color: const Color(0xFF1A1A2E),
+              color: AppColors.surface,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -132,40 +134,29 @@ class EventFullscreenPopup extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: badge == 'A la une'
-                                      ? [const Color(0xFFFF6B00), const Color(0xFFE91E8C)]
-                                      : [const Color(0xFF6C5CE7), const Color(0xFFA29BFE)],
+                                gradient: AppGradients.primary,
+                                boxShadow: AppShadows.neon(
+                                  AppColors.magenta,
+                                  blur: 14,
+                                  y: 4,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (badge == 'A la une' ? const Color(0xFFFF6B00) : const Color(0xFF6C5CE7)).withValues(alpha: 0.5),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    badge == 'A la une' ? Icons.rocket_launch : Icons.star,
-                                    size: 16, color: Colors.white,
+                                    badge == 'A la une' ? Icons.star : Icons.trending_up,
+                                    size: 14, color: Colors.white,
                                   ),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(width: 8),
                                   Text(
                                     badge!.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w900,
+                                    style: GoogleFonts.geistMono(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
                                       color: Colors.white,
-                                      letterSpacing: 2,
+                                      letterSpacing: 2.0,
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    badge == 'A la une' ? Icons.rocket_launch : Icons.star,
-                                    size: 16, color: Colors.white,
                                   ),
                                 ],
                               ),
@@ -178,13 +169,14 @@ class EventFullscreenPopup extends ConsumerWidget {
                           child: GestureDetector(
                             onTap: () => Navigator.of(context).pop(),
                             child: Container(
-                              width: 34,
-                              height: 34,
+                              width: 36,
+                              height: 36,
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.4),
+                                color: AppColors.bg.withValues(alpha: 0.55),
                                 shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.line),
                               ),
-                              child: const Icon(Icons.close, color: Colors.white, size: 20),
+                              child: const Icon(Icons.close, color: Colors.white, size: 18),
                             ),
                           ),
                         ),
@@ -196,12 +188,18 @@ class EventFullscreenPopup extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE91E8C),
-                                borderRadius: BorderRadius.circular(12),
+                                gradient: AppGradients.primary,
+                                borderRadius: BorderRadius.circular(AppRadius.chip),
+                                boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'GRATUIT',
-                                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.geistMono(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.2,
+                                ),
                               ),
                             ),
                           ),
@@ -209,17 +207,18 @@ class EventFullscreenPopup extends ConsumerWidget {
                         Positioned(
                           left: 16,
                           right: 16,
-                          bottom: 12,
+                          bottom: 14,
                           child: Text(
                             event.categorie.toLowerCase().contains('opera')
                                 ? event.titre.toUpperCase()
                                 : event.titre,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                            style: GoogleFonts.geist(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w600,
                               color: Colors.white,
                               height: 1.2,
-                              shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
+                              letterSpacing: -0.3,
+                              shadows: const [Shadow(blurRadius: 6, color: Colors.black54)],
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
@@ -258,15 +257,19 @@ class EventFullscreenPopup extends ConsumerWidget {
                               padding: const EdgeInsets.only(bottom: 6),
                               child: Row(
                                 children: [
-                                  Icon(Icons.verified, size: 15, color: const Color(0xFFFFD700).withValues(alpha: 0.9)),
+                                  Icon(
+                                    Icons.verified,
+                                    size: 15,
+                                    color: const Color(0xFFFBBF24).withValues(alpha: 0.9),
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       'Par ${event.organisateurNom}',
-                                      style: TextStyle(
+                                      style: GoogleFonts.geist(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.white.withValues(alpha: 0.9),
+                                        color: AppColors.text,
                                       ),
                                     ),
                                   ),
@@ -279,9 +282,9 @@ class EventFullscreenPopup extends ConsumerWidget {
                             const SizedBox(height: 10),
                             Text(
                               _description,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.85),
+                              style: GoogleFonts.geist(
+                                fontSize: 13,
+                                color: AppColors.textDim,
                                 height: 1.5,
                               ),
                             ),
@@ -300,7 +303,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                       children: [
                         _iconButton(
                           icon: isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: isLiked ? Colors.red : Colors.white,
+                          color: isLiked ? AppColors.magenta : AppColors.text,
                           onTap: () => ref.read(likesProvider.notifier).toggle(
                             event.identifiant,
                             meta: LikeMetadata(
@@ -313,13 +316,13 @@ class EventFullscreenPopup extends ConsumerWidget {
                         _actionButton(
                           icon: Icons.share_outlined,
                           label: 'Partager',
-                          color: Colors.white,
+                          color: AppColors.text,
                           onTap: () => _shareEvent(),
                         ),
                         _actionButton(
                           icon: Icons.people_alt_outlined,
                           label: 'Envoyer',
-                          color: const Color(0xFF6C5CE7),
+                          color: AppColors.violet,
                           onTap: () => _shareInApp(context),
                         ),
                       ],
@@ -341,10 +344,20 @@ class EventFullscreenPopup extends ConsumerWidget {
                             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE91E8C),
+                            backgroundColor: AppColors.magenta,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.iconBtn),
+                            ),
                             elevation: 0,
+                          ).copyWith(
+                            textStyle: WidgetStatePropertyAll(
+                              GoogleFonts.geist(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -366,17 +379,17 @@ class EventFullscreenPopup extends ConsumerWidget {
 
   Widget _infoRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 7),
       child: Row(
         children: [
-          Icon(icon, size: 15, color: Colors.white.withValues(alpha: 0.8)),
+          Icon(icon, size: 14, color: AppColors.magenta),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: GoogleFonts.geist(
                 fontSize: 13,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: AppColors.text,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -395,11 +408,11 @@ class EventFullscreenPopup extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(9),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: AppColors.surfaceHi,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.line),
         ),
         child: Icon(icon, size: 18, color: color),
       ),
@@ -415,25 +428,24 @@ class EventFullscreenPopup extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3),
-          ),
+          color: AppColors.surfaceHi,
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+          border: Border.all(color: AppColors.line),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 15, color: color),
-            const SizedBox(width: 4),
+            const SizedBox(width: 5),
             Text(
               label,
-              style: TextStyle(
+              style: GoogleFonts.geist(
                 fontSize: 11,
                 color: color,
                 fontWeight: FontWeight.w500,
+                letterSpacing: -0.1,
               ),
             ),
           ],
