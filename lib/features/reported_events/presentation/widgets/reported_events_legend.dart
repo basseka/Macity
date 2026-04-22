@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 
 /// Legende compacte affichee entre la carte et le carousel.
 /// 5 familles = 5 couleurs, en phase avec les pins de la carte.
@@ -6,22 +8,22 @@ class ReportedEventsLegend extends StatelessWidget {
   const ReportedEventsLegend({super.key});
 
   static const _items = <_LegendItem>[
-    _LegendItem(Color(0xFF7C3AED), 'Night'),
-    _LegendItem(Color(0xFFF97316), 'Food'),
-    _LegendItem(Color(0xFF0891B2), 'Culture'),
-    _LegendItem(Color(0xFF10B981), 'Sport'),
-    _LegendItem(Color(0xFFDC2626), 'Fiesta'),
+    _LegendItem(AppColors.catNight, 'Night'),
+    _LegendItem(AppColors.catFood, 'Food'),
+    _LegendItem(AppColors.catCult, 'Culture'),
+    _LegendItem(AppColors.catSport, 'Sport'),
+    _LegendItem(AppColors.catFiesta, 'Fiesta'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 21,
+      height: 22,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: _items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 11),
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (_, i) {
           final it = _items[i];
           return Row(
@@ -32,11 +34,11 @@ class ReportedEventsLegend extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: it.color,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.2),
+                  border: Border.all(color: AppColors.bg, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: it.color.withOpacity(0.45),
-                      blurRadius: 4,
+                      color: it.color.withValues(alpha: 0.55),
+                      blurRadius: 6,
                       spreadRadius: 0.5,
                     ),
                   ],
@@ -44,11 +46,12 @@ class ReportedEventsLegend extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                it.label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF6B7280),
+                it.label.toUpperCase(),
+                style: GoogleFonts.geistMono(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 1.4,
+                  color: AppColors.textDim,
                 ),
               ),
             ],

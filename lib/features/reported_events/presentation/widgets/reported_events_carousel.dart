@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
@@ -114,7 +115,7 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
               if (tier == _HeatTier.normal) return card;
 
               if (tier == _HeatTier.hot) {
-                // Hot : bordure violet↔rouge clignotante + ombre
+                // Hot : bordure violet <-> magenta clignotante + glow neon
                 return AnimatedBuilder(
                   animation: _blinkAnim,
                   builder: (context, child) {
@@ -123,18 +124,18 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: Color.lerp(
-                            const Color(0xFF7B2D8E),
-                            const Color(0xFFDC2626),
+                            AppColors.violet,
+                            AppColors.magenta,
                             _blinkAnim.value,
                           )!,
                           width: 2.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7B2D8E)
-                                .withValues(alpha: 0.35 * _blinkAnim.value),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
+                            color: AppColors.magenta
+                                .withValues(alpha: 0.45 * _blinkAnim.value),
+                            blurRadius: 14,
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
@@ -145,18 +146,18 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                 );
               }
 
-              // Warm : bordure rouge fixe + legere ombre
+              // Warm : bordure magenta fixe + leger glow
               return Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFDC2626).withValues(alpha: 0.6),
+                    color: AppColors.magenta.withValues(alpha: 0.55),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFDC2626).withValues(alpha: 0.15),
-                      blurRadius: 6,
+                      color: AppColors.magenta.withValues(alpha: 0.2),
+                      blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ],
@@ -173,7 +174,10 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
           child: SizedBox(
             width: 14,
             height: 14,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.magenta,
+            ),
           ),
         ),
       ),
@@ -192,21 +196,21 @@ class _EmptyHint extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 4),
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.line),
       ),
       child: Row(
         children: [
-          const Icon(Icons.flag_outlined, color: Color(0xFF7B2D8E), size: 22),
+          const Icon(Icons.flag_outlined, color: AppColors.magenta, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Personne n\'a encore signale par ici. Sois le premier !',
-              style: GoogleFonts.poppins(
-                fontSize: 11,
+              style: GoogleFonts.geist(
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF4A1259),
+                color: AppColors.textDim,
               ),
             ),
           ),
@@ -264,12 +268,11 @@ class _PagedDetailSheetState extends State<_PagedDetailSheet> {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: i == _current ? 16 : 6,
+                width: i == _current ? 18 : 6,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: i == _current
-                      ? const Color(0xFF7B2D8E)
-                      : Colors.grey.shade400,
+                  gradient: i == _current ? AppGradients.primary : null,
+                  color: i == _current ? null : AppColors.lineStrong,
                   borderRadius: BorderRadius.circular(3),
                 ),
               );

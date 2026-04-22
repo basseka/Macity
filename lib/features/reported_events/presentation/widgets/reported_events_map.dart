@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
@@ -36,7 +37,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0xFFF8F0FA))
+      ..setBackgroundColor(AppColors.bg)
       ..setUserAgent('PulzApp/1.0 (https://pulzapp.fr)')
       ..addJavaScriptChannel(
         'FlutterReportTap',
@@ -151,43 +152,43 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       100% { box-shadow: 0 0 0 0 transparent, 0 2px 6px rgba(0,0,0,0.3); }
     }
     /* Violet - Vie nocturne (concert, soiree, festival) */
-    .fam-nightlife { background: #7C3AED; --pulse-color: rgba(124,58,237,0.7); }
+    .fam-nightlife { background: #A855F7; --pulse-color: rgba(168,85,247,0.7); }
     /* Orange - Food (food, marche) */
-    .fam-food      { background: #F97316; --pulse-color: rgba(249,115,22,0.7); }
-    /* Bleu - Culture (salon, exposition) */
-    .fam-culture   { background: #0891B2; --pulse-color: rgba(8,145,178,0.7); }
+    .fam-food      { background: #FB923C; --pulse-color: rgba(251,146,60,0.7); }
+    /* Cyan - Culture (salon, exposition) */
+    .fam-culture   { background: #22D3EE; --pulse-color: rgba(34,211,238,0.7); }
     /* Vert - Sport */
-    .fam-sport     { background: #10B981; --pulse-color: rgba(16,185,129,0.7); }
+    .fam-sport     { background: #22C55E; --pulse-color: rgba(34,197,94,0.7); }
     /* Rouge - General (fete + fallback) */
-    .fam-general   { background: #DC2626; --pulse-color: rgba(220,38,38,0.7); }
+    .fam-general   { background: #EF4444; --pulse-color: rgba(239,68,68,0.7); }
 
     .user-dot {
       width: 14px; height: 14px;
-      background: #4285F4;
+      background: #22D3EE;
       border: 3px solid white;
       border-radius: 50%;
-      box-shadow: 0 0 0 2px rgba(66,133,244,0.3), 0 2px 6px rgba(0,0,0,0.25);
+      box-shadow: 0 0 0 2px rgba(34,211,238,0.35), 0 2px 6px rgba(0,0,0,0.3);
     }
 
-    /* Override des clusters pour matcher le theme orange/rouge "signalement" */
+    /* Clusters : magenta pour petit, violet pour grand (theme brand) */
     .marker-cluster-small {
-      background-color: rgba(249, 115, 22, 0.25);
+      background-color: rgba(255, 61, 139, 0.22);
     }
     .marker-cluster-small div {
-      background-color: #F97316;
+      background-color: #FF3D8B;
     }
     .marker-cluster-medium,
     .marker-cluster-large {
-      background-color: rgba(220, 38, 38, 0.25);
+      background-color: rgba(168, 85, 247, 0.22);
     }
     .marker-cluster-medium div,
     .marker-cluster-large div {
-      background-color: #DC2626;
+      background-color: #A855F7;
       color: white;
       font-weight: 700;
       font-size: 11px;
       border: 2px solid white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
     }
   </style>
 </head>
@@ -318,9 +319,13 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     });
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: SizedBox(
+      borderRadius: BorderRadius.circular(AppRadius.hero),
+      child: Container(
         height: widget.height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.hero),
+          border: Border.all(color: AppColors.line),
+        ),
         child: Stack(
           children: [
             WebViewWidget(
@@ -336,7 +341,10 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
                 child: SizedBox(
                   width: 22,
                   height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.magenta,
+                  ),
                 ),
               ),
           ],
