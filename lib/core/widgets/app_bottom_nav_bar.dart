@@ -223,17 +223,22 @@ class AppBottomNavBar extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(ctx).size.height * 0.9,
+        ),
         decoration: const BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           border: Border(top: BorderSide(color: AppColors.line)),
         ),
         child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               const SizedBox(height: 10),
               Container(
                 width: 40,
@@ -319,7 +324,8 @@ class AppBottomNavBar extends ConsumerWidget {
                 },
               ),
               const SizedBox(height: 16),
-            ],
+              ],
+            ),
           ),
         ),
       ),

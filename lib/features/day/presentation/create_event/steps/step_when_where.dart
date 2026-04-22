@@ -292,8 +292,13 @@ class _DatePickerField extends StatelessWidget {
       isScrollControlled: true,
       builder: (ctx) {
         final bottomPadding = MediaQuery.of(ctx).viewPadding.bottom;
+        final screenHeight = MediaQuery.of(ctx).size.height;
+        // En paysage (~350-400px), 320 overflow. On cap a 80% de l'ecran.
+        final pickerHeight = screenHeight * 0.8 < 320
+            ? screenHeight * 0.8
+            : 320.0;
         return Container(
-          height: 320 + bottomPadding,
+          height: pickerHeight + bottomPadding,
           decoration: const BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -415,8 +420,13 @@ class _TimePickerField extends StatelessWidget {
       isScrollControlled: true,
       builder: (ctx) {
         final bottomPadding = MediaQuery.of(ctx).viewPadding.bottom;
+        final screenHeight = MediaQuery.of(ctx).size.height;
+        // En paysage (~350-400px), 320 overflow. On cap a 80% de l'ecran.
+        final pickerHeight = screenHeight * 0.8 < 320
+            ? screenHeight * 0.8
+            : 320.0;
         return Container(
-          height: 320 + bottomPadding,
+          height: pickerHeight + bottomPadding,
           decoration: const BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
