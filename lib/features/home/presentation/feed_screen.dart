@@ -381,9 +381,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         Text.rich(
           TextSpan(
             style: GoogleFonts.geist(
-              fontSize: 21,
+              fontSize: 18,
               fontWeight: FontWeight.w400,
-              height: 1.15,
+              height: 1.2,
               letterSpacing: -0.6,
               color: AppColors.text,
             ),
