@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/presentation/widgets/city_list_tile.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/city/state/city_search_provider.dart';
@@ -36,15 +37,15 @@ class _CityPickerBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final modeTheme = ref.watch(modeThemeProvider);
     final searchResults = ref.watch(citySearchResultsProvider);
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
       height: screenHeight * 0.7,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(top: BorderSide(color: AppColors.line)),
       ),
       child: Column(
         children: [
@@ -54,7 +55,7 @@ class _CityPickerBottomSheetState
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.lineStrong,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -66,30 +67,33 @@ class _CityPickerBottomSheetState
               children: [
                 Text(
                   'Choisir une ville',
-                  style: TextStyle(
+                  style: GoogleFonts.geist(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: modeTheme.primaryDarkColor,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.4,
+                    color: AppColors.text,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: modeTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    gradient: AppGradients.primary,
+                    borderRadius: BorderRadius.circular(AppRadius.chip),
+                    boxShadow: AppShadows.neon(AppColors.magenta, blur: 10, y: 3),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.location_on, size: 14, color: modeTheme.primaryColor),
+                      const Icon(Icons.location_on, size: 14, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
                         ref.watch(selectedCityProvider),
-                        style: TextStyle(
+                        style: GoogleFonts.geist(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: modeTheme.primaryColor,
+                          letterSpacing: -0.1,
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -106,35 +110,37 @@ class _CityPickerBottomSheetState
               controller: _searchController,
               onChanged: _onSearchChanged,
               autofocus: true,
+              style: GoogleFonts.geist(fontSize: 14, color: AppColors.text),
               decoration: InputDecoration(
                 hintText: 'Rechercher une ville...',
-                hintStyle: TextStyle(color: Colors.grey.shade500),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: modeTheme.primaryColor,
-                ),
+                hintStyle: GoogleFonts.geist(color: AppColors.textFaint),
+                prefixIcon: const Icon(Icons.search, color: AppColors.magenta),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         onPressed: () {
                           _searchController.clear();
-                          ref.read(citySearchQueryProvider.notifier).state =
-                              '';
+                          ref.read(citySearchQueryProvider.notifier).state = '';
                         },
-                        icon: const Icon(Icons.clear, size: 20),
+                        icon: const Icon(
+                          Icons.clear,
+                          size: 20,
+                          color: AppColors.textFaint,
+                        ),
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: AppColors.surfaceHi,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  borderSide: const BorderSide(color: AppColors.line),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  borderSide: const BorderSide(color: AppColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: modeTheme.primaryColor,
-                    width: 1.5,
-                  ),
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  borderSide: const BorderSide(color: AppColors.magenta, width: 1.5),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -154,8 +160,8 @@ class _CityPickerBottomSheetState
                   return Center(
                     child: Text(
                       'Aucune ville trouvee',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
+                      style: GoogleFonts.geist(
+                        color: AppColors.textFaint,
                         fontSize: 14,
                       ),
                     ),
@@ -165,7 +171,8 @@ class _CityPickerBottomSheetState
                 return ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   itemCount: cities.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, color: AppColors.line),
                   itemBuilder: (context, index) {
                     final ville = cities[index];
                     return CityListTile(
@@ -180,15 +187,13 @@ class _CityPickerBottomSheetState
                   },
                 );
               },
-              loading: () => Center(
-                child: CircularProgressIndicator(
-                  color: modeTheme.primaryColor,
-                ),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.magenta),
               ),
               error: (error, _) => Center(
                 child: Text(
                   'Erreur de recherche',
-                  style: TextStyle(color: Colors.grey.shade500),
+                  style: GoogleFonts.geist(color: AppColors.textFaint),
                 ),
               ),
             ),

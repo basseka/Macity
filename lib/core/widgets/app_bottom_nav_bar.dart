@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/router/app_router.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
@@ -43,20 +45,21 @@ class AppBottomNavBar extends ConsumerWidget {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.line)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, -3),
+            color: Color(0x66000000),
+            blurRadius: 16,
+            offset: Offset(0, -4),
           ),
         ],
       ),
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomPadding),
         child: SizedBox(
-          height: 52,
+          height: 58,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -216,35 +219,40 @@ class AppBottomNavBar extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          border: Border(top: BorderSide(color: AppColors.line)),
         ),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Container(
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.lineStrong,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Que souhaitez-vous faire ?',
-                style: TextStyle(
+                style: GoogleFonts.geist(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A1259),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.4,
+                  color: AppColors.text,
                 ),
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.event, color: Color(0xFF7B2D8E)),
-                title: const Text('Ajouter un evenement'),
+                leading: const Icon(Icons.event, color: AppColors.magenta),
+                title: Text(
+                  'Ajouter un evenement',
+                  style: GoogleFonts.geist(color: AppColors.text),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   Navigator.of(context).push(
@@ -257,12 +265,15 @@ class AppBottomNavBar extends ConsumerWidget {
               ListTile(
                 leading: const Icon(
                   Icons.auto_awesome_rounded,
-                  color: Color(0xFF7C3AED),
+                  color: AppColors.violet,
                 ),
-                title: const Text('Scanner un flyer (IA)'),
-                subtitle: const Text(
+                title: Text(
+                  'Scanner un flyer (IA)',
+                  style: GoogleFonts.geist(color: AppColors.text),
+                ),
+                subtitle: Text(
                   'Pre-remplit l\'event a partir d\'une photo',
-                  style: TextStyle(fontSize: 11),
+                  style: GoogleFonts.geist(fontSize: 11, color: AppColors.textFaint),
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -273,9 +284,11 @@ class AppBottomNavBar extends ConsumerWidget {
                 },
               ),
               ListTile(
-                leading:
-                    const Icon(Icons.local_offer, color: Color(0xFFE91E8C)),
-                title: const Text('Creer une offre promotionnelle'),
+                leading: const Icon(Icons.local_offer, color: AppColors.magenta),
+                title: Text(
+                  'Creer une offre promotionnelle',
+                  style: GoogleFonts.geist(color: AppColors.text),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   showModalBottomSheet(
@@ -288,9 +301,11 @@ class AppBottomNavBar extends ConsumerWidget {
                 },
               ),
               ListTile(
-                leading:
-                    const Icon(Icons.tune, color: Color(0xFF4A1259)),
-                title: const Text('Mes preferences'),
+                leading: const Icon(Icons.tune, color: AppColors.cyan),
+                title: Text(
+                  'Mes preferences',
+                  style: GoogleFonts.geist(color: AppColors.text),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   NotificationPrefsSheet.show(context);
@@ -322,27 +337,43 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? Colors.black : Colors.black54;
+    final color = isActive ? AppColors.text : AppColors.textFaint;
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 56,
+        width: 64,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 2),
-            if (isActive)
-              Container(
-                width: 5,
-                height: 5,
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                  shape: BoxShape.circle,
+            // Top magenta bar indicator (animated selection)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: isActive ? 22 : 0,
+              height: 2.5,
+              decoration: BoxDecoration(
+                gradient: isActive ? AppGradients.primary : null,
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(3),
                 ),
+                boxShadow: isActive
+                    ? AppShadows.neon(AppColors.magenta, blur: 8, y: 1)
+                    : null,
               ),
+            ),
+            const SizedBox(height: 4),
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: GoogleFonts.geist(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+                letterSpacing: -0.05,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),

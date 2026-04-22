@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/domain/models/ville.dart';
 
 class CityListTile extends StatelessWidget {
@@ -15,19 +17,28 @@ class CityListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      leading: const CircleAvatar(
-        backgroundColor: Color(0xFFF0F0F0),
-        child: Icon(
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceHi,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.line),
+        ),
+        alignment: Alignment.center,
+        child: const Icon(
           Icons.location_city,
-          color: Color(0xFF666666),
-          size: 20,
+          color: AppColors.textDim,
+          size: 18,
         ),
       ),
       title: Text(
         ville.nom,
-        style: const TextStyle(
+        style: GoogleFonts.geist(
           fontWeight: FontWeight.w600,
           fontSize: 15,
+          letterSpacing: -0.2,
+          color: AppColors.text,
         ),
       ),
       subtitle: Text(
@@ -35,27 +46,29 @@ class CityListTile extends StatelessWidget {
           if (ville.codePostal.isNotEmpty) ville.codePostal,
           if (ville.departement.isNotEmpty) ville.departement,
         ].join(' - '),
-        style: TextStyle(
-          color: Colors.grey.shade600,
-          fontSize: 13,
+        style: GoogleFonts.geist(
+          color: AppColors.textFaint,
+          fontSize: 12,
         ),
       ),
       trailing: ville.population > 0
           ? Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 8,
+                horizontal: 9,
                 vertical: 4,
               ),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.surfaceHi,
+                borderRadius: BorderRadius.circular(AppRadius.chip),
+                border: Border.all(color: AppColors.line),
               ),
               child: Text(
                 ville.populationFormatted,
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontSize: 11,
+                style: GoogleFonts.geistMono(
+                  color: AppColors.textDim,
+                  fontSize: 10,
                   fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
                 ),
               ),
             )
