@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
@@ -24,24 +25,22 @@ class AccountMenu {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFFE91E8C), width: 1),
+          border: Border.all(color: AppColors.magenta, width: 1.5),
           image: DecorationImage(
             image: NetworkImage(avatarUrl),
             fit: BoxFit.cover,
           ),
+          boxShadow: AppShadows.neon(AppColors.magenta, blur: 6, y: 2),
         ),
       );
     }
     return Container(
       width: size,
       height: size,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
-        ),
+        gradient: AppGradients.primary,
+        boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
       ),
       child: Icon(Icons.person, color: Colors.white, size: iconSize),
     );
@@ -61,12 +60,9 @@ class AccountMenu {
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         decoration: const BoxDecoration(
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFCF8FF), Colors.white],
-          ),
+          border: Border(top: BorderSide(color: AppColors.line)),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -74,44 +70,47 @@ class AccountMenu {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Container(
-                  width: 30,
-                  height: 3,
+                  width: 36,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE91E8C).withValues(alpha: 0.3),
+                    color: AppColors.lineStrong,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 Text(
                   isProConnected
                       ? (proState.profile?.nom ?? 'Espace pro')
                       : (prenom.isNotEmpty ? 'Bonjour, $prenom' : 'Mon compte'),
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1A0A2E),
+                  style: GoogleFonts.geist(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    color: AppColors.text,
                   ),
                 ),
                 if (ville.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.location_on, size: 11, color: Colors.grey.shade400),
-                      const SizedBox(width: 2),
+                      const Icon(Icons.location_on, size: 11, color: AppColors.textFaint),
+                      const SizedBox(width: 3),
                       Text(
                         ville,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.geistMono(
                           fontSize: 10,
-                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 1.2,
+                          color: AppColors.textFaint,
                         ),
                       ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 ..._buildProActions(ctx, context, ref),
                 const SizedBox(height: 8),
                 _menuItem(
@@ -296,63 +295,76 @@ class AccountMenu {
   }) {
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            color: AppColors.surfaceHi,
+            border: Border.all(color: AppColors.line),
             boxShadow: [
               BoxShadow(
-                color: gradientColors[0].withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+                color: gradientColors[0].withValues(alpha: 0.18),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Row(
             children: [
               Container(
-                width: 30,
-                height: 30,
+                width: 34,
+                height: 34,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(9),
+                  borderRadius: BorderRadius.circular(10),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: gradientColors,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: gradientColors[0].withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: Colors.white, size: 15),
+                child: Icon(icon, color: Colors.white, size: 16),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       label,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
+                      style: GoogleFonts.geist(
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1A0A2E),
+                        letterSpacing: -0.15,
+                        color: AppColors.text,
                       ),
                     ),
+                    const SizedBox(height: 1),
                     Text(
                       subtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 9,
-                        color: Colors.grey.shade500,
+                      style: GoogleFonts.geist(
+                        fontSize: 10,
+                        color: AppColors.textFaint,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 18),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textFaint,
+                size: 18,
+              ),
             ],
           ),
         ),
