@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
+import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
+import 'package:pulz_app/features/admin/presentation/widgets/admin_pin_gesture.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
@@ -63,7 +65,13 @@ class _BoostedCard extends StatelessWidget {
         ? DateFormat('EEE d MMM', 'fr_FR').format(parsed)
         : event.date;
 
-    return GestureDetector(
+    return AdminPinGesture(
+      source: AdminPinSource.userEvents,
+      identifiant: event.id,
+      eventName: event.titre,
+      dateFin: event.dateFin,
+      dateDebutFallback: event.date,
+      child: GestureDetector(
       onTap: () => EventFullscreenPopup.showPaged(
         context,
         events: allEvents.map((e) => e.toEvent()).toList(),
@@ -123,25 +131,31 @@ class _BoostedCard extends StatelessWidget {
               ),
             ),
 
-            // Badge BOOST
+            // Badge BOOST / EPINGLE ADMIN
             Positioned(
               top: 8,
               left: 8,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF6B00), Color(0xFFE91E8C)],
+                  gradient: LinearGradient(
+                    colors: event.priority == 'ADMIN'
+                        ? const [Color(0xFFFFD700), Color(0xFFFF8C00)]
+                        : const [Color(0xFFFF6B00), Color(0xFFE91E8C)],
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.rocket_launch, size: 10, color: Colors.white),
+                    Icon(
+                      event.priority == 'ADMIN' ? Icons.push_pin : Icons.rocket_launch,
+                      size: 10,
+                      color: Colors.white,
+                    ),
                     const SizedBox(width: 4),
                     Text(
-                      'SPONSORISE',
+                      event.priority == 'ADMIN' ? 'EPINGLE' : 'SPONSORISE',
                       style: GoogleFonts.poppins(
                         fontSize: 7,
                         fontWeight: FontWeight.w800,
@@ -225,6 +239,7 @@ class _BoostedCard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -296,7 +311,13 @@ class _P2Card extends StatelessWidget {
         ? DateFormat('EEE d MMM', 'fr_FR').format(parsed)
         : event.date;
 
-    return GestureDetector(
+    return AdminPinGesture(
+      source: AdminPinSource.userEvents,
+      identifiant: event.id,
+      eventName: event.titre,
+      dateFin: event.dateFin,
+      dateDebutFallback: event.date,
+      child: GestureDetector(
       onTap: () => EventFullscreenPopup.showPaged(
         context,
         events: allEvents.map((e) => e.toEvent()).toList(),
@@ -316,8 +337,10 @@ class _P2Card extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Photo
-            ClipRRect(
+            // Photo (avec badge pin si admin)
+            Stack(
+              children: [
+                ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: SizedBox(
                 width: 80,
@@ -334,6 +357,23 @@ class _P2Card extends StatelessWidget {
                         child: const Icon(Icons.event, color: Colors.white24, size: 28),
                       ),
               ),
+            ),
+                if (event.priority == 'ADMIN')
+                  Positioned(
+                    top: 4,
+                    left: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(Icons.push_pin, size: 10, color: Colors.white),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: 10),
             // Infos
@@ -393,6 +433,7 @@ class _P2Card extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

@@ -13,6 +13,8 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
+import 'package:pulz_app/features/admin/presentation/widgets/admin_pin_gesture.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/home/state/today_events_provider.dart';
 import 'package:pulz_app/features/home/state/paginated_feed_provider.dart';
@@ -1107,6 +1109,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           initialIndex: idx,
           fallbackAssetBuilder: _resolvePochette,
         ),
+        pinSource: AdminPinSource.scrapedEvents,
+        pinIdentifiant: e.identifiant,
+        pinEventName: e.titre,
+        pinDateFin: e.dateFin,
+        pinDateDebut: e.dateDebut,
       ));
     }
 
@@ -1231,6 +1238,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           initialIndex: idx,
           fallbackAssetBuilder: _resolvePochette,
         ),
+        pinSource: AdminPinSource.scrapedEvents,
+        pinIdentifiant: e.identifiant,
+        pinEventName: e.titre,
+        pinDateFin: e.dateFin,
+        pinDateDebut: e.dateDebut,
       ));
     }
 
@@ -1492,6 +1504,14 @@ class _FeedItem {
   final String tag;
   final VoidCallback onTap;
 
+  // Metadata admin pin (appui-long -> popup "A la une / Au top").
+  // Optionnel : si [pinIdentifiant] null, l'appui-long est no-op.
+  final AdminPinSource? pinSource;
+  final String? pinIdentifiant;
+  final String? pinEventName;
+  final String? pinDateFin;
+  final String? pinDateDebut;
+
   const _FeedItem({
     required this.title,
     required this.subtitle,
@@ -1501,6 +1521,11 @@ class _FeedItem {
     required this.badge,
     required this.tag,
     required this.onTap,
+    this.pinSource,
+    this.pinIdentifiant,
+    this.pinEventName,
+    this.pinDateFin,
+    this.pinDateDebut,
   });
 
   bool get hasVideo => videoUrl != null && videoUrl!.isNotEmpty;
@@ -1523,8 +1548,23 @@ class _FeedTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasPin = item.pinSource != null && (item.pinIdentifiant?.isNotEmpty ?? false);
     return RepaintBoundary(
-      child: GestureDetector(
+      child: hasPin
+          ? AdminPinGesture(
+              source: item.pinSource!,
+              identifiant: item.pinIdentifiant!,
+              eventName: item.pinEventName ?? item.title,
+              dateFin: item.pinDateFin ?? '',
+              dateDebutFallback: item.pinDateDebut,
+              child: _buildTap(context),
+            )
+          : _buildTap(context),
+    );
+  }
+
+  Widget _buildTap(BuildContext context) {
+    return GestureDetector(
         onTap: item.onTap,
         child: Stack(
           fit: StackFit.expand,
@@ -1625,7 +1665,6 @@ class _FeedTile extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

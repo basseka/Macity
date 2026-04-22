@@ -630,6 +630,125 @@ export async function fetchCasinoBarriere(): Promise<ScrapedEvent[]> {
   } catch (e) { console.error("Casino Barriere error:", e); return []; }
 }
 
+// ── Poney Club Toulouse 2026 (via Xceed) ──
+// Le site poneyclubtoulouse.fr est une SPA React (HTML vide). La billetterie
+// passe par Xceed, qui expose un JSON-LD Schema.org Event propre sur chaque
+// page detail. On liste depuis xceed.me/fr/toulouse puis on fetche les details.
+
+function isoToParisDateTime(iso: string): { date: string; time: string } {
+  if (!iso) return { date: "", time: "" };
+  const dt = new Date(iso);
+  if (isNaN(dt.getTime())) return { date: "", time: "" };
+  const dp = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Europe/Paris",
+  }).formatToParts(dt);
+  const y = dp.find(p => p.type === "year")?.value ?? "";
+  const mo = dp.find(p => p.type === "month")?.value ?? "";
+  const d = dp.find(p => p.type === "day")?.value ?? "";
+  const tp = new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris", hour12: false,
+  }).formatToParts(dt);
+  const h = tp.find(p => p.type === "hour")?.value ?? "";
+  const mi = tp.find(p => p.type === "minute")?.value ?? "";
+  return { date: y && mo && d ? `${y}-${mo}-${d}` : "", time: h && mi ? `${h}h${mi}` : "" };
+}
+
+const PONEY_ELECTRONIC_GENRES = ["techno","house","electro","electronic","dnb","drum & bass","trance","hardstyle","tech-house","deep-house","progressive","minimal","big-room","future-house","bass"];
+
+function parsePoneyJsonLd(data: any, eventId: string): ScrapedEvent | null {
+  if (!data || !["Event", "MusicEvent"].includes(data["@type"])) return null;
+  const name = (data.name ?? "").trim();
+  if (!name) return null;
+  const { date: startDate, time: horaires } = isoToParisDateTime(data.startDate ?? "");
+  if (!startDate || !isFutureDate(startDate)) return null;
+  const { date: endDate } = isoToParisDateTime(data.endDate ?? "");
+
+  // Image: picker l'affiche 1:1 (square) de preference, sinon la premiere dispo
+  let photoUrl = "";
+  const img = data.image;
+  if (Array.isArray(img)) {
+    const square = img.find((u: unknown) => typeof u === "string" && u.includes("ar=1:1"));
+    photoUrl = (typeof square === "string" ? square : (typeof img[0] === "string" ? img[0] : ""));
+  } else if (typeof img === "string") {
+    photoUrl = img;
+  }
+
+  // Classification DJ set vs concert selon les genres
+  const performers = Array.isArray(data.performer) ? data.performer : [];
+  const genres = performers.map((p: any) => ((p?.genre ?? "") + "").toLowerCase()).join(" ");
+  const isElectronic = PONEY_ELECTRONIC_GENRES.some(g => genres.includes(g));
+  const source = isElectronic ? "day_djset" : "day_concert";
+  const typeName = isElectronic ? "DJ Set" : "Concert";
+
+  const desc = (data.description ?? "").toString().replace(/\s+/g, " ").trim();
+
+  // Venue en dur: Xceed met parfois "Toulouse" comme locality alors que le
+  // Poney Club est reellement a Blagnac 31700 (parking aeroport).
+  return makeEvent({
+    identifiant: `poney_${eventId}_${startDate}`,
+    source,
+    rubrique: "day",
+    nom_de_la_manifestation: name,
+    descriptif_court: desc.slice(0, 200),
+    descriptif_long: desc,
+    date_debut: startDate,
+    date_fin: endDate || startDate,
+    horaires,
+    lieu_nom: "PONEY CLUB",
+    lieu_adresse_2: "Parking P3 Aéroport Toulouse-Blagnac",
+    commune: "Blagnac",
+    code_postal: 31700,
+    type_de_manifestation: typeName,
+    categorie_de_la_manifestation: typeName,
+    manifestation_gratuite: "non",
+    reservation_site_internet: data.url ?? "",
+    photo_url: photoUrl,
+  });
+}
+
+export async function fetchPoneyClub(): Promise<ScrapedEvent[]> {
+  try {
+    const listHtml = await fetchHtml("https://xceed.me/fr/toulouse", 15000);
+
+    // Discover (id -> slug) pour tous les events "*-poney-club-*"
+    const refs = new Map<string, string>();
+    const reList = /\/fr\/toulouse\/event\/([a-z0-9-]*poney-club[a-z0-9-]*)\/(\d+)/g;
+    let m: RegExpExecArray | null;
+    while ((m = reList.exec(listHtml)) !== null) {
+      const slug = m[1];
+      const id = m[2];
+      // Skip le "season pass" (SKU bundle, pas d'event date)
+      if (/(^|[-])pass$/.test(slug)) continue;
+      if (!refs.has(id)) refs.set(id, slug);
+    }
+    if (refs.size === 0) { console.log("poney-club: aucun event trouve"); return []; }
+
+    const entries = [...refs.entries()];
+    const events: ScrapedEvent[] = [];
+    const BATCH = 10;
+    for (let i = 0; i < entries.length; i += BATCH) {
+      const batch = entries.slice(i, i + BATCH);
+      const results = await Promise.all(batch.map(async ([id, slug]): Promise<ScrapedEvent | null> => {
+        try {
+          const html = await fetchHtml(`https://xceed.me/fr/toulouse/event/${slug}/${id}`, 12000);
+          const ldRe = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g;
+          let mm: RegExpExecArray | null;
+          while ((mm = ldRe.exec(html)) !== null) {
+            let data: any;
+            try { data = JSON.parse(mm[1]); } catch { continue; }
+            if (!data || !["Event", "MusicEvent"].includes(data["@type"])) continue;
+            return parsePoneyJsonLd(data, id);
+          }
+          return null;
+        } catch { return null; }
+      }));
+      for (const ev of results) if (ev) events.push(ev);
+    }
+    console.log(`poney-club: ${events.length} events`);
+    return events;
+  } catch (e) { console.error("Poney Club error:", e); return []; }
+}
+
 // ── Categorize ODS events ──
 export function categorizeEvent(e: ScrapedEvent): string {
   const type = (e.type_de_manifestation || "").toLowerCase();
@@ -652,7 +771,7 @@ export async function fetchAllToulouseSources(): Promise<ScrapedEvent[]> {
   const w = (source: string, fn: () => Promise<ScrapedEvent[]>) =>
     withErrorLogging("scrape-day", source, "toulouse", fn);
 
-  const [ods, bikini, operaTls, zenith, tfg, tlTourisme, interference, metronum, leRex, bascala, comdt, casinoBarriere, onctPhotos] = await Promise.all([
+  const [ods, bikini, operaTls, zenith, tfg, tlTourisme, interference, metronum, leRex, bascala, comdt, casinoBarriere, poneyClub, onctPhotos] = await Promise.all([
     w("ods-toulouse", fetchODS),
     w("bikini", fetchBikini),
     w("opera-toulouse", fetchOperaToulouse),
@@ -665,6 +784,7 @@ export async function fetchAllToulouseSources(): Promise<ScrapedEvent[]> {
     w("bascala", fetchBascala),
     w("comdt", fetchCOMDT),
     w("casino-barriere", fetchCasinoBarriere),
+    w("poney-club", fetchPoneyClub),
     fetchONCTPhotos(),  // photo map, not ScrapedEvent[]
   ]);
 
@@ -675,5 +795,5 @@ export async function fetchAllToulouseSources(): Promise<ScrapedEvent[]> {
   );
 
   // Curated first for dedup priority
-  return [...zenith, ...leRex, ...bascala, ...comdt, ...casinoBarriere, ...tfg, ...operaTls, ...bikini, ...interference, ...metronum, ...tlTourisme, ...taggedOds];
+  return [...zenith, ...poneyClub, ...leRex, ...bascala, ...comdt, ...casinoBarriere, ...tfg, ...operaTls, ...bikini, ...interference, ...metronum, ...tlTourisme, ...taggedOds];
 }
