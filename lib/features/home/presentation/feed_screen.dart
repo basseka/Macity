@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/branded/gradient_pill_button.dart';
@@ -1233,13 +1232,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            sliver: SliverMasonryGrid.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childCount: dayGroups[day]!.length,
-              itemBuilder: (context, index) =>
-                  _StaggeredFeedTile(item: dayGroups[day]![index], index: index),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.78,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) =>
+                    _StaggeredFeedTile(item: dayGroups[day]![index], index: index),
+                childCount: dayGroups[day]!.length,
+              ),
             ),
           ),
         ],
@@ -1391,15 +1395,20 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             ),
             if (_activeTab != null)
               SliverPadding(
-                key: ValueKey('masonry_$day'),
+                key: ValueKey('grid2_$day'),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                sliver: SliverMasonryGrid.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childCount: dayGroups[day]!.length,
-                  itemBuilder: (context, index) =>
-                      _StaggeredFeedTile(item: dayGroups[day]![index], index: index),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 0.78,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) =>
+                        _StaggeredFeedTile(item: dayGroups[day]![index], index: index),
+                    childCount: dayGroups[day]!.length,
+                  ),
                 ),
               )
             else
@@ -1420,22 +1429,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               ),
           ],
-          // DEBUG strip visible quand filtre actif
-          if (_activeTab != null)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Text(
-                  'DEBUG: ${flatEvents.length} events / ${dayGroups.length} jours '
-                  '— hasMore=$hasMore — raw=${data.events.length}',
-                  style: GoogleFonts.geistMono(
-                    fontSize: 10,
-                    color: AppColors.textDim,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
