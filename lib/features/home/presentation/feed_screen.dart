@@ -1303,16 +1303,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     // Matchs exclus du feed
 
-    // Auto-load pages suivantes quand un filtre est actif : comme le filtre
-    // est client-side, une page fetch peut donner 0-3 matches et le scroll ne
-    // declenche pas de loadMore (liste trop courte). On charge toutes les
-    // pages disponibles tant qu'un filtre est actif (arret sur hasMore=false
-    // via le provider). `isLoadingMore` evite les post-frame callbacks en
-    // boucle pendant qu'un fetch est en cours.
+    // Auto-load pages suivantes quand un filtre est actif.
+    if (_activeTab != null) {
+      debugPrint('[Feed] filter=$_activeTab hasMore=$hasMore '
+          'isLoadingMore=$isLoadingMore rawEvents=${data.events.length} '
+          'filtered=${flatEvents.length} days=${dayGroups.length}');
+    }
     if (_activeTab != null &&
         hasMore &&
         onLoadMore != null &&
         !isLoadingMore) {
+      debugPrint('[Feed] -> scheduling loadMore (filter actif, hasMore, not loading)');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) onLoadMore();
       });
