@@ -158,19 +158,29 @@ class UserEventSupabaseService {
     );
 
     if (establishmentId != null) {
-      await insertEstablishmentEvent(
-        establishmentId: establishmentId,
-        title: event.titre,
-        date: event.date,
-        heure: event.heure,
-        description: event.description,
-        city: event.ville,
-        photoUrl: event.photoUrl,
-      );
+      // Skip si pas de date -> establishment_events a un starts_at NOT NULL
+      // qui rejette les payloads invalides. L'event est quand meme sauve dans
+      // user_events, juste pas de notifs aux likers (acceptable en fast-
+      // publish, l'user peut editer la date plus tard).
+      if (event.date.isEmpty) {
+        debugPrint('[UserEvents] skip establishment_events (date vide)');
+      } else {
+        await insertEstablishmentEvent(
+          establishmentId: establishmentId,
+          title: event.titre,
+          date: event.date,
+          heure: event.heure,
+          description: event.description,
+          city: event.ville,
+          photoUrl: event.photoUrl,
+        );
+      }
     }
   }
 
   /// Insère dans establishment_events pour notifier les likers du lieu.
+  /// NB : [date] doit etre au format YYYY-MM-DD (sinon 400 Supabase). Le
+  /// caller doit filtrer les dates vides en amont (voir insertEvent).
   Future<void> insertEstablishmentEvent({
     required String establishmentId,
     required String title,

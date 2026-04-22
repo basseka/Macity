@@ -504,6 +504,15 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       return false;
     }
 
+    // Validation globale des champs requis (utile quand on fast-publish
+    // avant l'etape When/Where, ex: scan IA qui n'a pas extrait la date).
+    if (state.dateDebut == null || state.heureDebut == null) {
+      const msg = 'Renseigne la date et l\'heure avant de publier.';
+      debugPrint('[CreateEvent] submit blocked: date/heure manquants');
+      state = state.copyWith(errorMessage: msg, currentStep: 1);
+      return false;
+    }
+
     state = state.copyWith(isSubmitting: true, clearError: true);
 
     try {
