@@ -27,7 +27,7 @@ class MapLivePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mapHeight = MediaQuery.of(context).size.height * 0.55;
+    final mapHeight = MediaQuery.of(context).size.height * 0.42;
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -76,9 +76,9 @@ class MapLivePage extends ConsumerWidget {
                       child: Text(
                         'Ca bouge pres de toi',
                         style: GoogleFonts.geist(
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          letterSpacing: -0.2,
+                          letterSpacing: -0.15,
                           color: AppColors.text,
                         ),
                       ),
