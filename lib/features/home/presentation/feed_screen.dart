@@ -1878,21 +1878,20 @@ class _MapLiveButton extends StatelessWidget {
                 children: [
                   Text(
                     'MAP LIVE',
-                    style: GoogleFonts.geistMono(
-                      fontSize: 9,
+                    style: GoogleFonts.geist(
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 2.0,
-                      color: AppColors.magenta,
+                      letterSpacing: -0.15,
+                      color: AppColors.text,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Ca bouge pres de toi',
+                    'event en live',
                     style: GoogleFonts.geist(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.15,
-                      color: AppColors.text,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.textFaint,
                     ),
                   ),
                 ],
