@@ -131,21 +131,50 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             // Error message
             if (state.errorMessage != null)
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+                constraints: const BoxConstraints(maxHeight: 90),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.red.shade200),
+                  color: AppColors.magenta.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.magenta.withValues(alpha: 0.45),
+                  ),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red.shade700, size: 18),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.magenta,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        state.errorMessage!,
-                        style: TextStyle(fontSize: 12, color: Colors.red.shade700),
+                      child: SingleChildScrollView(
+                        child: Text(
+                          state.errorMessage!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.text,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => ref
+                          .read(createEventProvider.notifier)
+                          .clearError(),
+                      behavior: HitTestBehavior.opaque,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.close,
+                          size: 16,
+                          color: AppColors.textFaint,
+                        ),
                       ),
                     ),
                   ],

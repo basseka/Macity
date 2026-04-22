@@ -479,6 +479,11 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     }
   }
 
+  /// Dismiss le banner d'erreur courant.
+  void clearError() {
+    state = state.copyWith(clearError: true);
+  }
+
   /// Soumet l'evenement.
   Future<bool> submit() async {
     debugPrint(
@@ -653,10 +658,43 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       debugPrint('[CreateEvent] submit FAILED: $e\n$st');
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: 'Erreur : $e',
+        errorMessage: _friendlyError(e),
       );
       return false;
     }
+  }
+
+  /// Reduit une exception (souvent DioException) a un message court et lisible
+  /// pour l'UI. Le detail complet reste dans debugPrint pour les logs.
+  String _friendlyError(Object e) {
+    final s = e.toString();
+    if (s.contains('DioException')) {
+      // Extraire status code si present (pattern "status code of NNN")
+      final statusMatch = RegExp(r'status code of (\d{3})').firstMatch(s);
+      if (statusMatch != null) {
+        final code = statusMatch.group(1);
+        if (code == '400') return 'Donnees invalides (400). Verifie les champs.';
+        if (code == '401' || code == '403') {
+          return 'Authentification requise ($code).';
+        }
+        if (code == '409') return 'Conflit (409). Evenement deja existant ?';
+        if (code == '413') return 'Fichier trop volumineux.';
+        if (code!.startsWith('5')) {
+          return 'Erreur serveur ($code). Reessaie dans un instant.';
+        }
+        return 'Erreur reseau ($code).';
+      }
+      if (s.contains('timeout') || s.contains('Timeout')) {
+        return 'Connexion trop lente. Verifie ton reseau.';
+      }
+      return 'Erreur reseau. Verifie ta connexion.';
+    }
+    if (s.contains('SocketException')) {
+      return 'Pas de connexion internet.';
+    }
+    // Fallback : message brut, tronque
+    final raw = s.replaceFirst('Exception: ', '');
+    return raw.length > 120 ? '${raw.substring(0, 117)}...' : raw;
   }
 
   /// ID du dernier event créé (pour le paiement Stripe).
