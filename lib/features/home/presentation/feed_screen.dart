@@ -1825,14 +1825,31 @@ class _StaggeredFeedTile extends StatelessWidget {
 
 /// Pill compact "MAP LIVE" a cote du greeting -> ouvre la page MapLivePage.
 /// Icone map + pulse dot + label "MAP LIVE" rouge + badge count live.
-class _MapLivePill extends ConsumerWidget {
+class _MapLivePill extends ConsumerStatefulWidget {
   final VoidCallback onTap;
   const _MapLivePill({required this.onTap});
 
+  @override
+  ConsumerState<_MapLivePill> createState() => _MapLivePillState();
+}
+
+class _MapLivePillState extends ConsumerState<_MapLivePill>
+    with SingleTickerProviderStateMixin {
   static const _yellow = Color(0xFFFFD700);
 
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  );
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final eventsAsync = ref.watch(reportedEventsFeedProvider);
     final city = ref.watch(selectedCityProvider);
     final bbox = CityCenters.boundingBox(city);
@@ -1850,8 +1867,26 @@ class _MapLivePill extends ConsumerWidget {
       orElse: () => 0,
     );
 
+    // Scintille uniquement quand il y a au moins une notif.
+    if (count > 0 && !_ctrl.isAnimating) {
+      _ctrl.repeat(reverse: true);
+    } else if (count == 0 && _ctrl.isAnimating) {
+      _ctrl.stop();
+      _ctrl.value = 1.0;
+    }
+
+    final Widget label = Text(
+      'MAP LIVE',
+      style: GoogleFonts.geist(
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0.3,
+        color: _yellow,
+      ),
+    );
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
@@ -1862,25 +1897,31 @@ class _MapLivePill extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _LiveDot(),
-            const SizedBox(width: 6),
-            Text(
-              'MAP LIVE',
-              style: GoogleFonts.geist(
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.3,
-                color: _yellow,
-              ),
-            ),
+            if (count > 0)
+              FadeTransition(
+                opacity: Tween(begin: 0.45, end: 1.0).animate(_ctrl),
+                child: label,
+              )
+            else
+              label,
             if (count > 0) ...[
               const SizedBox(width: 6),
-              Text(
-                '$count',
-                style: GoogleFonts.geistMono(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w400,
-                  color: _yellow,
+              Container(
+                width: 18,
+                height: 18,
+                decoration: const BoxDecoration(
+                  color: AppColors.magenta,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.geistMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    height: 1.0,
+                  ),
                 ),
               ),
             ],
