@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/home/presentation/widgets/boosted_events_carousel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -215,7 +216,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: AppColors.bg,
         body: SafeArea(
           bottom: false,
           child: _buildBody(context),
@@ -240,154 +241,263 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: logo + greeting + account
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/icon/app_icon.png',
-                  width: 28,
-                  height: 28,
-                  fit: BoxFit.cover,
-                  cacheWidth: 300,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          // Row 1 : brand chip + city block + pseudo + avatar
+          _buildBrandRow(),
+          if (!_isSearching) ...[
+            const SizedBox(height: 14),
+            _buildGreetingBlock(),
+            const SizedBox(height: 14),
+          ] else
+            const SizedBox(height: 10),
+          // Row 2 : menu + search (ou TextField actif)
+          _buildSearchRow(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBrandRow() {
+    final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
+    return Row(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.brand),
+          child: Image.asset(
+            'assets/icon/app_icon.png',
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            cacheWidth: 300,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => showModalBottomSheet(
+              context: context,
+              useRootNavigator: true,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const CityPickerBottomSheet(),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'TA VILLE',
+                  style: GoogleFonts.geistMono(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.8,
+                    color: AppColors.textFaint,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => showModalBottomSheet(
-                  context: context,
-                  useRootNavigator: true,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => const CityPickerBottomSheet(),
-                ),
-                child: Row(
+                const SizedBox(height: 1),
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       ref.watch(selectedCityProvider),
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
+                      style: GoogleFonts.geist(
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        letterSpacing: -0.2,
+                        color: AppColors.text,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Icon(
+                    const SizedBox(width: 2),
+                    const Icon(
                       Icons.keyboard_arrow_down,
-                      size: 16,
-                      color: Colors.white.withValues(alpha: 0.7),
+                      size: 18,
+                      color: AppColors.textDim,
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
+        ),
+        if (prenom.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: Text(
+              prenom,
+              style: GoogleFonts.geist(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textFaint,
               ),
-              const Spacer(),
-              Builder(builder: (_) {
-                final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
-                return Text(
-                  prenom.isNotEmpty ? prenom : 'MaCity',
-                  style: GoogleFonts.poppins(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white70,
-                  ),
-                );
-              }),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => AccountMenu.show(context, ref),
-                child: Padding(
-                  padding: const EdgeInsets.all(11),
-                  child: AccountMenu.buildButton(ref: ref),
+            ),
+          ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => AccountMenu.show(context, ref),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: AccountMenu.buildButton(ref: ref),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGreetingBlock() {
+    final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
+    final todayAsync = ref.watch(todayTomorrowEventsProvider);
+    final count = todayAsync.valueOrNull == null
+        ? 0
+        : todayAsync.value!.events.length + todayAsync.value!.matches.length;
+
+    final helloText = prenom.isNotEmpty ? 'Salut $prenom. ' : 'Salut. ';
+    final italicText = count > 0
+        ? '$count sorties autour de toi.'
+        : 'Explore ta ville.';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const _LiveDot(),
+            const SizedBox(width: 6),
+            Text(
+              'ÇA BOUGE MAINTENANT',
+              style: GoogleFonts.geistMono(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 2.0,
+                color: AppColors.magenta,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text.rich(
+          TextSpan(
+            style: GoogleFonts.geist(
+              fontSize: 26,
+              fontWeight: FontWeight.w400,
+              height: 1.1,
+              letterSpacing: -0.9,
+              color: AppColors.text,
+            ),
+            children: [
+              TextSpan(text: helloText),
+              TextSpan(
+                text: italicText,
+                style: GoogleFonts.instrumentSerif(
+                  fontSize: 26,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w400,
+                  height: 1.1,
+                  letterSpacing: -0.4,
+                  foreground: Paint()
+                    ..shader = AppGradients.editorial.createShader(
+                      const Rect.fromLTWH(0, 0, 360, 40),
+                    ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // Row 2: search bar + hamburger menu
-          _isSearching
-              ? TextField(
-                    controller: _searchController,
-                    autofocus: true,
-                    onChanged: _onSearchChanged,
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: 'Nom, lieu, artiste...',
-                      hintStyle: GoogleFonts.inter(fontSize: 13, color: Colors.white38),
-                      prefixIcon: const Icon(Icons.search, color: _accentColor, size: 18),
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white38, size: 18),
-                        onPressed: () {
-                          setState(() {
-                            _isSearching = false;
-                            _searchController.clear();
-                            _searchResults = null;
-                          });
-                        },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchRow() {
+    if (_isSearching) {
+      return TextField(
+        controller: _searchController,
+        autofocus: true,
+        onChanged: _onSearchChanged,
+        style: GoogleFonts.geist(fontSize: 14, color: AppColors.text),
+        decoration: InputDecoration(
+          hintText: 'Nom, lieu, artiste...',
+          hintStyle: GoogleFonts.geist(fontSize: 13, color: AppColors.textFaint),
+          prefixIcon: const Icon(Icons.search, color: AppColors.magenta, size: 18),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.close, color: AppColors.textFaint, size: 18),
+            onPressed: () {
+              setState(() {
+                _isSearching = false;
+                _searchController.clear();
+                _searchResults = null;
+              });
+            },
+          ),
+          filled: true,
+          fillColor: AppColors.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.input),
+            borderSide: const BorderSide(color: AppColors.line),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.input),
+            borderSide: const BorderSide(color: AppColors.line),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.input),
+            borderSide: const BorderSide(color: AppColors.magenta, width: 1.5),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          isDense: true,
+        ),
+      );
+    }
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => _showCategoryMenu(context),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.iconBtn),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: const Icon(Icons.menu, color: AppColors.textDim, size: 18),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _isSearching = true),
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.input),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 14),
+                  const Icon(Icons.search, color: AppColors.magenta, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Rechercher un evenement, un lieu...',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.geist(
+                        fontSize: 13,
+                        color: AppColors.textFaint,
                       ),
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.08),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      isDense: true,
                     ),
-                  )
-                : Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => _showCategoryMenu(context),
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                          ),
-                          child: const Icon(Icons.menu, color: Colors.white60, size: 18),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _isSearching = true),
-                          child: Container(
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                            ),
-                            child: Row(
-                              children: [
-                                const SizedBox(width: 14),
-                                const Icon(Icons.search, color: _accentColor, size: 18),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Rechercher un evenement, un lieu...',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(fontSize: 12, color: Colors.white38),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
-        ],
-      ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1665,6 +1775,43 @@ class _FeedTile extends StatelessWidget {
             ),
           ],
         ),
+    );
+  }
+}
+
+// Pulse dot (6px) pour le greeting block — opacite 1 <-> 0.6.
+class _LiveDot extends StatefulWidget {
+  const _LiveDot();
+  @override
+  State<_LiveDot> createState() => _LiveDotState();
+}
+
+class _LiveDotState extends State<_LiveDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: Tween(begin: 0.6, end: 1.0).animate(_c),
+      child: Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+          color: AppColors.magenta,
+          shape: BoxShape.circle,
+          boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 0),
+        ),
+      ),
     );
   }
 }
