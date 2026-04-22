@@ -44,7 +44,10 @@ class AppBottomNavBar extends ConsumerWidget {
     final _selectedIndex = ref.watch(navBarIndexProvider);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Container(
+    return Material(
+      color: AppColors.surface,
+      elevation: 0,
+      child: Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.line)),
@@ -126,6 +129,7 @@ class AppBottomNavBar extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 
