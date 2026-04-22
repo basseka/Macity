@@ -1420,6 +1420,22 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               ),
           ],
+          // DEBUG strip visible quand filtre actif
+          if (_activeTab != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Text(
+                  'DEBUG: ${flatEvents.length} events / ${dayGroups.length} jours '
+                  '— hasMore=$hasMore — raw=${data.events.length}',
+                  style: GoogleFonts.geistMono(
+                    fontSize: 10,
+                    color: AppColors.textDim,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
