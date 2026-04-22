@@ -269,7 +269,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final bgImage = _modeBackgroundImages[mode.name];
 
     return Material(
-      borderRadius: BorderRadius.circular(AppRadius.card),
       elevation: 0,
       color: AppColors.surface,
       clipBehavior: Clip.antiAlias,
@@ -498,7 +497,6 @@ class HomeScreenSheet extends ConsumerWidget {
     final bgImage = _modeBackgroundImages[mode.name];
 
     return Material(
-      borderRadius: BorderRadius.circular(AppRadius.card),
       elevation: 0,
       color: AppColors.surface,
       clipBehavior: Clip.antiAlias,
