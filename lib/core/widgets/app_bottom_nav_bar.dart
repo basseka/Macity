@@ -347,29 +347,13 @@ class _NavBarItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Top magenta bar indicator (animated selection)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: isActive ? 22 : 0,
-              height: 2.5,
-              decoration: BoxDecoration(
-                gradient: isActive ? AppGradients.primary : null,
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(3),
-                ),
-                boxShadow: isActive
-                    ? AppShadows.neon(AppColors.magenta, blur: 8, y: 1)
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 4),
             Icon(icon, color: color, size: 22),
             const SizedBox(height: 3),
             Text(
               label,
               style: GoogleFonts.geist(
                 fontSize: 9.5,
-                fontWeight: FontWeight.w500,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                 letterSpacing: -0.05,
                 color: color,
               ),
