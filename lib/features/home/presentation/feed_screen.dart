@@ -347,13 +347,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildGreetingBlock() {
-    final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
     final todayAsync = ref.watch(todayTomorrowEventsProvider);
     final count = todayAsync.valueOrNull == null
         ? 0
         : todayAsync.value!.events.length + todayAsync.value!.matches.length;
 
-    final helloText = prenom.isNotEmpty ? 'Salut $prenom. ' : 'Salut. ';
     final italicText = count > 0
         ? '$count sorties autour de toi.'
         : 'Explore ta ville.';
@@ -381,32 +379,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Text.rich(
-                TextSpan(
-                  style: GoogleFonts.geist(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    height: 1.25,
-                    letterSpacing: -0.6,
-                    color: AppColors.text,
-                  ),
-                  children: [
-                    TextSpan(text: helloText),
-                    TextSpan(
-                      text: italicText,
-                      style: GoogleFonts.instrumentSerif(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w400,
-                        height: 1.25,
-                        letterSpacing: -0.2,
-                        foreground: Paint()
-                          ..shader = AppGradients.editorial.createShader(
-                            const Rect.fromLTWH(0, 0, 260, 28),
-                          ),
-                      ),
+              child: Text(
+                italicText,
+                style: GoogleFonts.instrumentSerif(
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w400,
+                  height: 1.25,
+                  letterSpacing: -0.2,
+                  foreground: Paint()
+                    ..shader = AppGradients.editorial.createShader(
+                      const Rect.fromLTWH(0, 0, 260, 28),
                     ),
-                  ],
                 ),
               ),
             ),
