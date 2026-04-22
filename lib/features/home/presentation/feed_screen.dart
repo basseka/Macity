@@ -1872,29 +1872,30 @@ class _MapLiveButton extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'MAP LIVE',
-                    style: GoogleFonts.geist(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: -0.15,
-                      color: AppColors.text,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'MAP LIVE ',
+                      style: GoogleFonts.geist(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.15,
+                        color: AppColors.magenta,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'event en live',
-                    style: GoogleFonts.geist(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.textFaint,
+                    TextSpan(
+                      text: 'event en live',
+                      style: GoogleFonts.geist(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textFaint,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const Icon(
