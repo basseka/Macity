@@ -377,33 +377,48 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           ],
         ),
         const SizedBox(height: 6),
-        Text.rich(
-          TextSpan(
-            style: GoogleFonts.geist(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              height: 1.25,
-              letterSpacing: -0.6,
-              color: AppColors.text,
-            ),
-            children: [
-              TextSpan(text: helloText),
-              TextSpan(
-                text: italicText,
-                style: GoogleFonts.instrumentSerif(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w400,
-                  height: 1.25,
-                  letterSpacing: -0.2,
-                  foreground: Paint()
-                    ..shader = AppGradients.editorial.createShader(
-                      const Rect.fromLTWH(0, 0, 260, 28),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  style: GoogleFonts.geist(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    height: 1.25,
+                    letterSpacing: -0.6,
+                    color: AppColors.text,
+                  ),
+                  children: [
+                    TextSpan(text: helloText),
+                    TextSpan(
+                      text: italicText,
+                      style: GoogleFonts.instrumentSerif(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w400,
+                        height: 1.25,
+                        letterSpacing: -0.2,
+                        foreground: Paint()
+                          ..shader = AppGradients.editorial.createShader(
+                            const Rect.fromLTWH(0, 0, 260, 28),
+                          ),
+                      ),
                     ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 10),
+            _MapLivePill(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MapLivePage(),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -1306,18 +1321,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       // Meme quand il n'y a pas d'events, afficher les boosted + bouton map live
       return CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: _MapLiveButton(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MapLivePage(),
-                  ),
-                ),
-              ),
-            ),
-          ),
           const SliverToBoxAdapter(child: BoostedEventsCarousel()),
           const SliverToBoxAdapter(child: BoostedP2Carousel()),
           SliverFillRemaining(
@@ -1372,19 +1375,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         slivers: [
           // Discovery + signalements commu + Boosted inseres en haut du feed scroll
           if (!_isLandscape && _activeTab == null) ...[
-            // Bouton "Map Live" compact -> ouvre la page dediee signalements
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: _MapLiveButton(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const MapLivePage(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
             // Boosted events (A la une + Au top) - maintenant en premier
             const SliverToBoxAdapter(child: BoostedEventsCarousel()),
             const SliverToBoxAdapter(child: BoostedP2Carousel()),
@@ -1828,80 +1818,37 @@ class _StaggeredFeedTile extends StatelessWidget {
   }
 }
 
-/// Bouton compact "Map Live" sur le home → ouvre la page MapLivePage.
-/// Affiche un pin magenta pulsant + label "MAP LIVE" + "Ca bouge pres de toi".
-class _MapLiveButton extends StatelessWidget {
+/// Pill compact "MAP LIVE" a cote du greeting -> ouvre la page MapLivePage.
+/// Icone map + pulse dot + label "MAP LIVE" rouge.
+class _MapLivePill extends StatelessWidget {
   final VoidCallback onTap;
-  const _MapLiveButton({required this.onTap});
+  const _MapLivePill({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(color: AppColors.line),
-          boxShadow: AppShadows.neon(AppColors.magenta, blur: 10, y: 3),
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+          border: Border.all(color: AppColors.magenta.withValues(alpha: 0.45)),
+          boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Pin chip avec pulse
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.primary,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.map_outlined, size: 17, color: Colors.white),
-                ),
-                const Positioned(
-                  right: -2,
-                  top: -2,
-                  child: _LiveDot(),
-                ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'MAP LIVE ',
-                      style: GoogleFonts.geist(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.15,
-                        color: AppColors.magenta,
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'event en live',
-                      style: GoogleFonts.geist(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.textFaint,
-                      ),
-                    ),
-                  ],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            const _LiveDot(),
+            const SizedBox(width: 6),
+            Text(
+              'MAP LIVE',
+              style: GoogleFonts.geist(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+                color: AppColors.magenta,
               ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 13,
-              color: AppColors.textFaint,
             ),
           ],
         ),
