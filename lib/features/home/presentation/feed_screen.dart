@@ -1825,12 +1825,33 @@ class _StaggeredFeedTile extends StatelessWidget {
 
 /// Pill compact "MAP LIVE" a cote du greeting -> ouvre la page MapLivePage.
 /// Icone map + pulse dot + label "MAP LIVE" rouge + badge count live.
-class _MapLivePill extends ConsumerWidget {
+class _MapLivePill extends ConsumerStatefulWidget {
   final VoidCallback onTap;
   const _MapLivePill({required this.onTap});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MapLivePill> createState() => _MapLivePillState();
+}
+
+class _MapLivePillState extends ConsumerState<_MapLivePill>
+    with SingleTickerProviderStateMixin {
+  // Couleurs "CTA jaune" — attire l'oeil sur fond dark.
+  static const _yellow = Color(0xFFFFD700);
+  static const _yellowDeep = Color(0xFFFBBF24);
+
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final eventsAsync = ref.watch(reportedEventsFeedProvider);
     final city = ref.watch(selectedCityProvider);
     final bbox = CityCenters.boundingBox(city);
@@ -1849,50 +1870,81 @@ class _MapLivePill extends ConsumerWidget {
     );
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.chip),
-          border: Border.all(color: AppColors.magenta.withValues(alpha: 0.45)),
-          boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _LiveDot(),
-            const SizedBox(width: 6),
-            Text(
-              'MAP LIVE',
-              style: GoogleFonts.geist(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-                color: AppColors.magenta,
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (_, __) {
+          final t = _ctrl.value; // 0.0 <-> 1.0
+          final scale = 1.0 + 0.04 * t;
+          final glowAlpha = 0.45 + 0.35 * t;
+          return Transform.scale(
+            scale: scale,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+              decoration: BoxDecoration(
+                color: _yellow.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(AppRadius.chip),
+                border: Border.all(color: _yellow.withValues(alpha: 0.7), width: 1.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: _yellow.withValues(alpha: glowAlpha),
+                    blurRadius: 14,
+                    spreadRadius: 0.5,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _LiveDot(),
+                  const SizedBox(width: 6),
+                  Text(
+                    'MAP LIVE',
+                    style: GoogleFonts.geist(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                      color: _yellow,
+                      shadows: [
+                        Shadow(
+                          color: _yellowDeep.withValues(alpha: 0.7),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (count > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [_yellow, _yellowDeep],
+                        ),
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _yellow.withValues(alpha: 0.6),
+                            blurRadius: 6,
+                            spreadRadius: 0.3,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        '$count',
+                        style: GoogleFonts.geistMono(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (count > 0) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                decoration: BoxDecoration(
-                  gradient: AppGradients.primary,
-                  borderRadius: BorderRadius.circular(AppRadius.chip),
-                  boxShadow: AppShadows.neon(AppColors.magenta, blur: 6, y: 1),
-                ),
-                child: Text(
-                  '$count',
-                  style: GoogleFonts.geistMono(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
+          );
+        },
       ),
     );
   }
