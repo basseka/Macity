@@ -66,8 +66,6 @@ class FeedScreen extends ConsumerStatefulWidget {
 }
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
-  static const _accentColor = Color(0xFFE91E8C);
-
   // ── Filtres hierarchiques (2 niveaux) ────────────────────────────
   // Niveau 1 : onglet (Tout = null, ou un des _tabs)
   // Niveau 2 : sous-filtre optionnel du tab actif
@@ -537,37 +535,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       delegate: SliverChildListDelegate([
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-          child: Row(
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(7),
-                  border: Border.all(color: AppColors.line),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(Icons.flag, size: 12, color: AppColors.magenta),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Ca bouge pres de toi',
-                  style: GoogleFonts.geist(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.2,
-                    color: AppColors.text,
-                  ),
-                ),
-              ),
-              GradientPillButton(
-                label: 'Live Notif',
-                onPressed: _openVideoReport,
-              ),
-            ],
-          ),
+          child: _SignalementsHeader(onLivePressed: _openVideoReport),
         ),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
@@ -881,11 +849,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             const SizedBox(
               width: 24,
               height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2, color: _accentColor),
+              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.magenta),
             ),
             if (_searchController.text.split(' ').where((w) => w.length > 1).length >= 3) ...[
               const SizedBox(height: 12),
-              Text('Recherche en cours...', style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.4))),
+              Text(
+                'Recherche en cours...',
+                style: GoogleFonts.geist(fontSize: 12, color: AppColors.textFaint),
+              ),
             ],
           ],
         ),
@@ -901,11 +872,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2A2A3E), Color(0xFF1A1A2E)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _accentColor.withValues(alpha: 0.3)),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.line),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -915,19 +884,32 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [Color(0xFF7B2D8E), Color(0xFFE91E8C)]),
-                        borderRadius: BorderRadius.circular(8),
+                        gradient: AppGradients.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
                       ),
                       child: const Icon(Icons.auto_awesome, size: 12, color: Colors.white),
                     ),
                     const SizedBox(width: 8),
-                    Text('Pour toi', style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.5))),
+                    Text(
+                      'POUR TOI',
+                      style: GoogleFonts.geistMono(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 1.8,
+                        color: AppColors.textFaint,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Text(
                   _aiMessage!,
-                  style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9), height: 1.5),
+                  style: GoogleFonts.geist(
+                    fontSize: 13,
+                    color: AppColors.text,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -944,7 +926,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           // Resultats classiques en dessous
           if (_searchResults != null && _searchResults!.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text('Autres resultats', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.4))),
+            Text(
+              'AUTRES RESULTATS',
+              style: GoogleFonts.geistMono(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1.8,
+                color: AppColors.textFaint,
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         ],
@@ -956,11 +946,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search, size: 48, color: Colors.white.withValues(alpha: 0.15)),
-            const SizedBox(height: 8),
+            const Icon(Icons.search, size: 48, color: AppColors.textFaint),
+            const SizedBox(height: 10),
             Text(
               'Tape au moins 2 lettres',
-              style: GoogleFonts.inter(fontSize: 13, color: Colors.white38),
+              style: GoogleFonts.geist(fontSize: 13, color: AppColors.textFaint),
             ),
           ],
         ),
@@ -971,7 +961,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       return Center(
         child: Text(
           'Aucun resultat',
-          style: GoogleFonts.inter(fontSize: 13, color: Colors.white38),
+          style: GoogleFonts.geist(fontSize: 13, color: AppColors.textFaint),
         ),
       );
     }
@@ -1035,40 +1025,80 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2A3E),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.line),
         ),
         child: Row(
           children: [
             if (photo.isNotEmpty && photo.startsWith('http'))
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(imageUrl: photo, width: 50, height: 50, fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const SizedBox(width: 50, height: 50)),
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl: photo,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => Container(
+                    width: 50,
+                    height: 50,
+                    color: AppColors.surfaceHi,
+                  ),
+                ),
               )
             else
-              Container(width: 50, height: 50, decoration: BoxDecoration(
-                color: const Color(0xFF3A3A4E), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.event, color: Colors.white24, size: 20)),
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceHi,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.event, color: AppColors.textFaint, size: 20),
+              ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(titre, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+                  Text(
+                    titre,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.geist(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.15,
+                      color: AppColors.text,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text('$date ${horaires.isNotEmpty ? "- $horaires" : ""} ${lieu.isNotEmpty ? "- $lieu" : ""}',
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.5))),
+                  Text(
+                    '$date ${horaires.isNotEmpty ? "- $horaires" : ""} ${lieu.isNotEmpty ? "- $lieu" : ""}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.geist(fontSize: 10, color: AppColors.textFaint),
+                  ),
                 ],
               ),
             ),
             if (gratuit)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(6)),
-                child: const Text('GRATUIT', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.green)),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.chip),
+                  boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
+                ),
+                child: Text(
+                  'GRATUIT',
+                  style: GoogleFonts.geistMono(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
+                    color: Colors.white,
+                  ),
+                ),
               ),
           ],
         ),
@@ -1130,7 +1160,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     if (feedState.events.isEmpty && feedState.isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: _accentColor),
+        child: CircularProgressIndicator(color: AppColors.magenta),
       );
     }
 
@@ -1160,11 +1190,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(emptyIcon, size: 48, color: Colors.white.withValues(alpha: 0.2)),
+            Icon(emptyIcon, size: 48, color: AppColors.textFaint),
             const SizedBox(height: 12),
             Text(
               'Aucun evenement $label a venir',
-              style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.4)),
+              style: GoogleFonts.geist(fontSize: 14, color: AppColors.textFaint),
             ),
           ],
         ),
@@ -1214,52 +1244,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         for (final day in sortedDays) ...[
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          day == today
-                              ? "Aujourd'hui"
-                              : day == tomorrow
-                                  ? 'Demain'
-                                  : _capitalize(DateFormat('EEEE', 'fr_FR').format(day)),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          DateFormat('EEEE d MMMM', 'fr_FR').format(day),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.45),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _accentColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${dayGroups[day]!.length}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: _accentColor,
-                      ),
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+              child: _DayHeaderRow(
+                day: day,
+                today: today,
+                tomorrow: tomorrow,
+                count: dayGroups[day]!.length,
               ),
             ),
           ),
@@ -1351,11 +1341,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.event_busy, size: 48, color: Colors.white.withValues(alpha: 0.2)),
+                  const Icon(Icons.event_busy, size: 48, color: AppColors.textFaint),
                   const SizedBox(height: 12),
                   Text(
                     'Aucun evenement a venir',
-                    style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.4)),
+                    style: GoogleFonts.geist(fontSize: 14, color: AppColors.textFaint),
                   ),
                 ],
               ),
@@ -1401,68 +1391,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             // Section : signalements communautaires (style Waze) — EN PREMIER
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.flag,
-                      size: 14,
-                      color: Color(0xFFDC2626),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Ca bouge pres de toi',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Material(
-                      color: const Color(0xFF7B2D8E),
-                      borderRadius: BorderRadius.circular(20),
-                      child: InkWell(
-                        onTap: _openVideoReport,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          height: 26,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Live Notif',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Container(
-                                width: 9,
-                                height: 9,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFDC2626),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.white.withValues(alpha: 0.5),
-                                      blurRadius: 6,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+                child: _SignalementsHeader(onLivePressed: _openVideoReport),
               ),
             ),
             const SliverToBoxAdapter(
@@ -1490,52 +1420,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             SliverToBoxAdapter(
               key: ValueKey('header_$day'),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            day == today
-                                ? "Aujourd'hui"
-                                : day == tomorrow
-                                    ? 'Demain'
-                                    : _capitalize(DateFormat('EEEE', 'fr_FR').format(day)),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            DateFormat('EEEE d MMMM', 'fr_FR').format(day),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.45),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _accentColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${dayGroups[day]!.length}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: _accentColor,
-                        ),
-                      ),
-                    ),
-                  ],
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+                child: _DayHeaderRow(
+                  day: day,
+                  today: today,
+                  tomorrow: tomorrow,
+                  count: dayGroups[day]!.length,
                 ),
               ),
             ),
@@ -1562,8 +1452,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
 // ── Day header for flat list ──
@@ -1753,6 +1641,121 @@ class _FeedTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Header de la section "Ca bouge pres de toi" + bouton Live Notif.
+/// Factorise entre le main feed et la branche empty-state.
+class _SignalementsHeader extends StatelessWidget {
+  final VoidCallback onLivePressed;
+  const _SignalementsHeader({required this.onLivePressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: AppColors.line),
+          ),
+          alignment: Alignment.center,
+          child: const Icon(Icons.flag, size: 12, color: AppColors.magenta),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Ca bouge pres de toi',
+            style: GoogleFonts.geist(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
+              color: AppColors.text,
+            ),
+          ),
+        ),
+        GradientPillButton(
+          label: 'Live Notif',
+          onPressed: onLivePressed,
+        ),
+      ],
+    );
+  }
+}
+
+/// Header d'une journee dans le feed (titre Aujourd'hui/Demain + date
+/// complete + pastille compteur).
+class _DayHeaderRow extends StatelessWidget {
+  final DateTime day;
+  final DateTime today;
+  final DateTime tomorrow;
+  final int count;
+  const _DayHeaderRow({
+    required this.day,
+    required this.today,
+    required this.tomorrow,
+    required this.count,
+  });
+
+  String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+  @override
+  Widget build(BuildContext context) {
+    final label = day == today
+        ? "Aujourd'hui"
+        : day == tomorrow
+            ? 'Demain'
+            : _capitalize(DateFormat('EEEE', 'fr_FR').format(day));
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.geist(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.4,
+                  color: AppColors.text,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                DateFormat('EEEE d MMMM', 'fr_FR').format(day).toUpperCase(),
+                style: GoogleFonts.geistMono(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 1.6,
+                  color: AppColors.textFaint,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
+          decoration: BoxDecoration(
+            gradient: AppGradients.primary,
+            borderRadius: BorderRadius.circular(AppRadius.chip),
+            boxShadow: AppShadows.neon(AppColors.magenta, blur: 10, y: 3),
+          ),
+          child: Text(
+            '$count',
+            style: GoogleFonts.geistMono(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
