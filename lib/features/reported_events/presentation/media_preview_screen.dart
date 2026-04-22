@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -571,14 +572,14 @@ class _InlineField extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 10),
-          Icon(icon, size: 14, color: Colors.grey.shade400),
+          Icon(icon, size: 14, color: AppColors.textFaint),
           const SizedBox(width: 6),
           Text(
             label,
             style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: Colors.grey.shade400,
+              color: AppColors.textFaint,
             ),
           ),
           const SizedBox(width: 8),
@@ -598,7 +599,7 @@ class _InlineField extends StatelessWidget {
                 hintStyle: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textDim,
                 ),
                 counterText: '',
                 filled: true,

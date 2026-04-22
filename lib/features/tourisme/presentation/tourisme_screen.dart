@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -579,7 +580,7 @@ class TourismeScreen extends ConsumerWidget {
                         children: [
                           Text(tip.title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: modeTheme.primaryDarkColor)),
                           const SizedBox(height: 4),
-                          Text(tip.description, style: TextStyle(fontSize: 12, color: Colors.grey.shade600, height: 1.4)),
+                          Text(tip.description, style: TextStyle(fontSize: 12, color: AppColors.textDim, height: 1.4)),
                         ],
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 
 class StepIndicator extends StatelessWidget {
   final int currentStep;
@@ -37,7 +38,7 @@ class StepIndicator extends StatelessWidget {
                       ? _primaryColor
                       : isActive
                           ? _primaryColor.withValues(alpha: 0.6)
-                          : Colors.grey.shade200,
+                          : AppColors.line,
                   borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
@@ -49,7 +50,7 @@ class StepIndicator extends StatelessWidget {
           'Etape ${currentStep + 1}/$totalSteps — ${_labels[currentStep]}',
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey.shade500,
+            color: AppColors.textFaint,
             fontWeight: FontWeight.w500,
           ),
         ),

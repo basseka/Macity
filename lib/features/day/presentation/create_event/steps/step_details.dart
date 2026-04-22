@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
@@ -291,12 +292,12 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
   static InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -304,7 +305,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       isDense: true,

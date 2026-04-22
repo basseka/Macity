@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -156,7 +157,7 @@ class ModeShell extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: 2),
-                        Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Colors.grey.shade600),
+                        Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textDim),
                       ],
                     ),
                   ),
@@ -185,9 +186,9 @@ class ModeShell extends ConsumerWidget {
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.shade300, width: 1),
+                        border: Border.all(color: AppColors.lineStrong, width: 1),
                       ),
-                      child: Icon(Icons.menu, color: Colors.grey.shade600, size: 18),
+                      child: Icon(Icons.menu, color: AppColors.textDim, size: 18),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -207,18 +208,18 @@ class ModeShell extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade300, width: 1),
+                          border: Border.all(color: AppColors.lineStrong, width: 1),
                         ),
                         child: Row(
                           children: [
                             const SizedBox(width: 12),
-                            Icon(Icons.search, color: Colors.grey.shade400, size: 16),
+                            Icon(Icons.search, color: AppColors.textFaint, size: 16),
                             const SizedBox(width: 6),
                             Text(
                               'Trouve un evenement',
                               style: GoogleFonts.inter(
                                 fontSize: 10,
-                                color: Colors.grey.shade400,
+                                color: AppColors.textFaint,
                               ),
                             ),
                           ],
@@ -483,7 +484,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
                                 colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
                               )
                             : null,
-                        color: isActive ? null : Colors.grey.shade300,
+                        color: isActive ? null : AppColors.lineStrong,
                       ),
                       padding: EdgeInsets.all(isActive ? 3 : 1.5),
                       child: ClipOval(
@@ -565,7 +566,7 @@ class _SubcategoryBreadcrumb extends ConsumerWidget {
             child: Icon(
               Icons.chevron_right_rounded,
               size: 14,
-              color: Colors.grey.shade400,
+              color: AppColors.textFaint,
             ),
           ),
           Flexible(

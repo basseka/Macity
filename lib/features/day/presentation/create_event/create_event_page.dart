@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
@@ -206,8 +207,8 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                     child: OutlinedButton(
                       onPressed: notifier.skipStep,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.grey.shade600,
-                        side: BorderSide(color: Colors.grey.shade300),
+                        foregroundColor: AppColors.textDim,
+                        side: BorderSide(color: AppColors.lineStrong),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -421,7 +422,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             Text(
               subtitle ?? 'Il sera visible dans la rubrique correspondante.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 12, color: AppColors.textFaint),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -492,7 +493,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             Text(
               'Le boost sera actif des que le paiement sera confirme.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 12, color: AppColors.textFaint),
             ),
             const SizedBox(height: 20),
             SizedBox(

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
@@ -436,7 +437,7 @@ class _FavCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: AppColors.line),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -564,13 +565,13 @@ class _FavCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.chevron_right, size: 14, color: Colors.grey.shade400),
+                      Icon(Icons.chevron_right, size: 14, color: AppColors.textFaint),
                       const SizedBox(width: 2),
                       Text(
                         'Voir le detail',
                         style: GoogleFonts.poppins(
                           fontSize: 10,
-                          color: Colors.grey.shade400,
+                          color: AppColors.textFaint,
                         ),
                       ),
                     ],

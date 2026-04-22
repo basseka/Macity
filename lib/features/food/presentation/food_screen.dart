@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -296,7 +297,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
             child: Center(
               child: Text(
                 'Aucun restaurant pour ce filtre',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                style: TextStyle(fontSize: 13, color: AppColors.textFaint),
               ),
             ),
           ),
@@ -323,7 +324,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                       '${filtered.length} restaurant${filtered.length > 1 ? 's' : ''}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade500,
+                        color: AppColors.textFaint,
                       ),
                     ),
                   ),
@@ -503,7 +504,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+                color: AppColors.textDim,
               ),
             ),
           ),
@@ -605,7 +606,7 @@ class _RestaurantRowCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: AppColors.line),
         ),
         child: Row(
           children: [
@@ -648,12 +649,12 @@ class _RestaurantRowCard extends StatelessWidget {
                   if (venue.quartier.isNotEmpty)
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 10, color: Colors.grey.shade500),
+                        Icon(Icons.location_on, size: 10, color: AppColors.textFaint),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
                             venue.quartier,
-                            style: GoogleFonts.inter(fontSize: 10, color: Colors.grey.shade500),
+                            style: GoogleFonts.inter(fontSize: 10, color: AppColors.textFaint),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -664,12 +665,12 @@ class _RestaurantRowCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.access_time, size: 10, color: Colors.grey.shade500),
+                        Icon(Icons.access_time, size: 10, color: AppColors.textFaint),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
                             venue.horaires,
-                            style: GoogleFonts.inter(fontSize: 10, color: Colors.grey.shade500),
+                            style: GoogleFonts.inter(fontSize: 10, color: AppColors.textFaint),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -719,7 +720,7 @@ class _RestaurantRowCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 8,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade700,
+                          color: AppColors.textDim,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

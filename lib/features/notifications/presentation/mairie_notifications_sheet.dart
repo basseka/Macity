@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -74,7 +75,7 @@ class _MairieNotificationsSheetState
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -158,7 +159,7 @@ class _MairieNotificationsSheetState
                       'Chargement des actus...',
                       style: GoogleFonts.poppins(
                         fontSize: 13,
-                        color: Colors.grey.shade500,
+                        color: AppColors.textFaint,
                       ),
                     ),
                   ],
@@ -184,13 +185,13 @@ class _MairieNotificationsSheetState
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
+                        color: AppColors.textDim,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Impossible de charger les notifications',
-                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
+                      style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textFaint),
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
@@ -414,7 +415,7 @@ class _MairieNotificationsSheetState
           Icon(
             Icons.filter_alt_off_rounded,
             size: 40,
-            color: Colors.grey.shade300,
+            color: AppColors.lineStrong,
           ),
           const SizedBox(height: 12),
           Text(
@@ -422,7 +423,7 @@ class _MairieNotificationsSheetState
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.grey.shade500,
+              color: AppColors.textFaint,
             ),
           ),
         ],
@@ -455,7 +456,7 @@ class _MairieNotificationsSheetState
             style: GoogleFonts.poppins(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
+              color: AppColors.textDim,
             ),
           ),
           const SizedBox(height: 6),
@@ -466,7 +467,7 @@ class _MairieNotificationsSheetState
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 13,
-              color: Colors.grey.shade400,
+              color: AppColors.textFaint,
               height: 1.4,
             ),
           ),
@@ -570,7 +571,7 @@ class _NotificationCard extends StatelessWidget {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.grey.shade300,
+                              color: AppColors.lineStrong,
                             ),
                           ),
                         ),
@@ -685,7 +686,7 @@ class _NotificationCard extends StatelessWidget {
                               timeAgo,
                               style: GoogleFonts.poppins(
                                 fontSize: 11,
-                                color: Colors.grey.shade400,
+                                color: AppColors.textFaint,
                               ),
                             ),
                           ],
@@ -712,7 +713,7 @@ class _NotificationCard extends StatelessWidget {
                       notification.body,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
+                        color: AppColors.textDim,
                         height: 1.45,
                       ),
                       maxLines: 3,

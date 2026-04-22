@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/constants/app_constants.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -20,7 +21,7 @@ class ModeDotsIndicator extends ConsumerWidget {
           final isActive = index == modeIndex;
           final dotColor = isActive
               ? modeTheme.primaryColor
-              : Colors.grey.shade400;
+              : AppColors.textFaint;
 
           return AnimatedContainer(
             duration: const Duration(milliseconds: 300),

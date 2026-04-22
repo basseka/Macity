@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -32,11 +33,11 @@ class ModeChipBar extends ConsumerWidget {
                 context.go(mode.routePath);
               },
               selectedColor: modeTheme.chipBgColor,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: AppColors.line,
               labelStyle: TextStyle(
                 color: isSelected
                     ? modeTheme.chipTextColor
-                    : Colors.grey.shade600,
+                    : AppColors.textDim,
                 fontWeight:
                     isSelected ? FontWeight.w700 : FontWeight.w500,
                 fontSize: 13,
@@ -44,7 +45,7 @@ class ModeChipBar extends ConsumerWidget {
               side: BorderSide(
                 color: isSelected
                     ? modeTheme.chipStrokeColor
-                    : Colors.grey.shade300,
+                    : AppColors.lineStrong,
                 width: isSelected ? 1.5 : 1.0,
               ),
               shape: RoundedRectangleBorder(

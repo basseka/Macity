@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
@@ -209,7 +210,7 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.lineStrong,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -239,7 +240,7 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
                   widget.eventTitle,
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: Colors.grey.shade500,
+                    color: AppColors.textFaint,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -293,7 +294,7 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
                             : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isActive ? opt.color : Colors.grey.shade300,
+                          color: isActive ? opt.color : AppColors.lineStrong,
                           width: isActive ? 2 : 1,
                         ),
                       ),
@@ -308,14 +309,14 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
                               fontWeight: FontWeight.w700,
                               color: isActive
                                   ? opt.color
-                                  : Colors.grey.shade600,
+                                  : AppColors.textDim,
                             ),
                           ),
                           Text(
                             '${opt.price}\u20AC/jour',
                             style: GoogleFonts.poppins(
                               fontSize: 9,
-                              color: Colors.grey.shade500,
+                              color: AppColors.textFaint,
                             ),
                           ),
                         ],
@@ -337,7 +338,7 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
                 Icon(
                   Icons.calendar_month,
                   size: 14,
-                  color: Colors.grey.shade700,
+                  color: AppColors.textDim,
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -345,7 +346,7 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
                   style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textDim,
                   ),
                 ),
               ],
@@ -458,7 +459,7 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
                       )
                       .color,
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledBackgroundColor: AppColors.lineStrong,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -496,7 +497,7 @@ class _BoostEventSheetState extends State<BoostEventSheet> {
               'Pas maintenant',
               style: GoogleFonts.poppins(
                 fontSize: 12,
-                color: Colors.grey.shade400,
+                color: AppColors.textFaint,
               ),
             ),
           ),
@@ -643,7 +644,7 @@ class _LegendDot extends StatelessWidget {
           label,
           style: GoogleFonts.poppins(
             fontSize: 9,
-            color: Colors.grey.shade600,
+            color: AppColors.textDim,
           ),
         ),
       ],

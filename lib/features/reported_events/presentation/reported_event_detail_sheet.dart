@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -95,7 +96,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.line),
       ),
       child: Row(
         children: [
@@ -109,7 +110,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
               label,
               style: GoogleFonts.poppins(
                 fontSize: 11,
-                color: Colors.grey.shade700,
+                color: AppColors.textDim,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -157,7 +158,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.lineStrong,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -225,7 +226,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                     height: 160,
                                     fit: BoxFit.cover,
                                     placeholder: (_, __) => Container(
-                                      color: Colors.grey.shade200,
+                                      color: AppColors.line,
                                       child: const Center(
                                         child: SizedBox(
                                           width: 16,
@@ -237,7 +238,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                       ),
                                     ),
                                     errorWidget: (_, __, ___) => Container(
-                                      color: Colors.grey.shade200,
+                                      color: AppColors.line,
                                       child: const Icon(
                                         Icons.broken_image,
                                         color: Colors.grey,
@@ -280,7 +281,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                 border: Border.all(
                                   color: isActive
                                       ? const Color(0xFF7B2D8E)
-                                      : Colors.grey.shade300,
+                                      : AppColors.lineStrong,
                                   width: isActive ? 2.5 : 1,
                                 ),
                                 boxShadow: isActive
@@ -303,11 +304,11 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                   height: 56,
                                   fit: BoxFit.cover,
                                   placeholder: (_, __) => Container(
-                                    color: Colors.grey.shade200,
+                                    color: AppColors.line,
                                   ),
                                   errorWidget: (_, __, ___) =>
                                       Container(
-                                    color: Colors.grey.shade200,
+                                    color: AppColors.line,
                                     child: const Icon(
                                       Icons.broken_image,
                                       size: 14,
@@ -412,7 +413,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,
-                            color: Colors.grey.shade700,
+                            color: AppColors.textDim,
                           ),
                         ),
                       ],
@@ -623,13 +624,13 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.videocam_off,
-                            size: 28, color: Colors.grey.shade400),
+                            size: 28, color: AppColors.textFaint),
                         const SizedBox(height: 6),
                         Text(
                           'Video indisponible',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
-                            color: Colors.grey.shade500,
+                            color: AppColors.textFaint,
                           ),
                         ),
                       ],
@@ -675,7 +676,7 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
                     )
                   : Container(
                       height: 180,
-                      color: Colors.grey.shade200,
+                      color: AppColors.line,
                       child: const Center(
                         child: SizedBox(
                           width: 20,
@@ -1066,7 +1067,7 @@ class _AnimatedBorderPhotoState extends State<_AnimatedBorderPhoto>
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade300, width: 1),
+          border: Border.all(color: AppColors.lineStrong, width: 1),
         ),
         child: widget.child,
       );

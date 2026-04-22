@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
@@ -69,7 +70,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           const SizedBox(height: 2),
           Text(
             'Decrivez votre evenement',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 12, color: AppColors.textFaint),
           ),
           const SizedBox(height: 14),
 
@@ -267,12 +268,12 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
   static InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -280,7 +281,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       isDense: true,
@@ -316,7 +317,7 @@ class _PhotoPicker extends StatelessWidget {
           border: Border.all(
             color: hasPhoto
                 ? const Color(0xFF7B2D8E).withValues(alpha: 0.3)
-                : Colors.grey.shade200,
+                : AppColors.line,
             width: hasPhoto ? 1.5 : 1,
           ),
         ),
@@ -361,11 +362,11 @@ class _PhotoPicker extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.add_a_photo_outlined, size: 32, color: Colors.grey.shade300),
+        Icon(Icons.add_a_photo_outlined, size: 32, color: AppColors.lineStrong),
         const SizedBox(height: 6),
         Text(
           'Appuyez pour ajouter une photo',
-          style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+          style: TextStyle(fontSize: 11, color: AppColors.textFaint),
         ),
       ],
     );
@@ -415,7 +416,7 @@ class _VideoPicker extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.lineStrong),
         ),
         child: videoPath != null
             ? Stack(

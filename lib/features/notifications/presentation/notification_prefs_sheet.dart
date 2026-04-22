@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -278,7 +279,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                   if (widget.fromAccountMenu)
                     IconButton(
                       icon: const Icon(Icons.chevron_left, size: 26),
-                      color: Colors.grey.shade700,
+                      color: AppColors.textDim,
                       onPressed: () => Navigator.pop(context),
                       tooltip: 'Retour',
                     )
@@ -290,7 +291,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: AppColors.lineStrong,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -433,7 +434,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                             : null,
                   ),
                   child: (!hasLocalAvatar && !hasRemoteAvatar)
-                      ? Icon(Icons.person, color: Colors.grey.shade400, size: 32)
+                      ? Icon(Icons.person, color: AppColors.textFaint, size: 32)
                       : null,
                 ),
                 Positioned(
@@ -458,18 +459,18 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
               style: const TextStyle(fontSize: 14, color: _darkColor),
               decoration: InputDecoration(
                 labelText: 'Prenom ou pseudo',
-                labelStyle: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                labelStyle: TextStyle(fontSize: 13, color: AppColors.textDim),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -600,7 +601,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 border: Border.all(
                   color: modeSelected
                       ? _accentColor.withValues(alpha: 0.3)
-                      : Colors.grey.shade200,
+                      : AppColors.line,
                 ),
               ),
               child: Row(
@@ -615,7 +616,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                         color: modeSelected ? _accentColor : Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: modeSelected ? _accentColor : Colors.grey.shade400,
+                          color: modeSelected ? _accentColor : AppColors.textFaint,
                           width: 1.5,
                         ),
                       ),
@@ -625,7 +626,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Icon(cat.icon, size: 18, color: modeSelected ? _accentColor : Colors.grey.shade600),
+                  Icon(cat.icon, size: 18, color: modeSelected ? _accentColor : AppColors.textDim),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -633,7 +634,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: modeSelected ? _darkColor : Colors.grey.shade700,
+                        color: modeSelected ? _darkColor : AppColors.textDim,
                       ),
                     ),
                   ),
@@ -657,7 +658,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
                     size: 20,
-                    color: Colors.grey.shade500,
+                    color: AppColors.textFaint,
                   ),
                 ],
               ),
@@ -687,7 +688,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                         border: Border.all(
                           color: selected
                               ? _accentColor
-                              : Colors.grey.shade300,
+                              : AppColors.lineStrong,
                         ),
                       ),
                       child: Row(
@@ -696,7 +697,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                           Icon(
                             item.icon,
                             size: 14,
-                            color: selected ? Colors.white : Colors.grey.shade600,
+                            color: selected ? Colors.white : AppColors.textDim,
                           ),
                           const SizedBox(width: 5),
                           Text(
@@ -704,7 +705,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                              color: selected ? Colors.white : Colors.grey.shade700,
+                              color: selected ? Colors.white : AppColors.textDim,
                             ),
                           ),
                         ],
@@ -735,7 +736,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
               color: selected ? _accentColor : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: selected ? _accentColor : Colors.grey.shade300,
+                color: selected ? _accentColor : AppColors.lineStrong,
               ),
             ),
             child: Row(
@@ -744,7 +745,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 Icon(
                   Icons.location_city,
                   size: 14,
-                  color: selected ? Colors.white : Colors.grey.shade600,
+                  color: selected ? Colors.white : AppColors.textDim,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -752,7 +753,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                    color: selected ? Colors.white : Colors.grey.shade700,
+                    color: selected ? Colors.white : AppColors.textDim,
                   ),
                 ),
               ],
@@ -797,8 +798,8 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
           style: GoogleFonts.inter(fontSize: 14),
           decoration: InputDecoration(
             hintText: 'Ajouter une ville...',
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-            prefixIcon: Icon(Icons.add_location_alt, size: 20, color: Colors.grey.shade500),
+            hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 13),
+            prefixIcon: Icon(Icons.add_location_alt, size: 20, color: AppColors.textFaint),
             filled: true,
             fillColor: Colors.grey.shade100,
             border: OutlineInputBorder(
@@ -819,7 +820,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: AppColors.lineStrong),
               boxShadow: [
                 BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8),
               ],
@@ -863,12 +864,12 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                         ),
                         Text(
                           commune.codePostal,
-                          style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade500),
+                          style: GoogleFonts.inter(fontSize: 12, color: AppColors.textFaint),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           commune.departement,
-                          style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade400),
+                          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textFaint),
                         ),
                       ],
                     ),

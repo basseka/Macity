@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -51,7 +52,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                 if (fromAccountMenu)
                   IconButton(
                     icon: const Icon(Icons.chevron_left, size: 26),
-                    color: Colors.grey.shade700,
+                    color: AppColors.textDim,
                     onPressed: () => Navigator.pop(context),
                     tooltip: 'Retour',
                   )
@@ -63,7 +64,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                       width: 36,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: AppColors.lineStrong,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -94,7 +95,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                     const SizedBox(height: 14),
                     Text(
                       'Chargement...',
-                      style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500),
+                      style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
                     ),
                   ],
                 ),
@@ -169,7 +170,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                 if (count > 0)
                   Text(
                     '$count evenement${count > 1 ? 's' : ''}',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
+                    style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textFaint),
                   ),
               ],
             ),
@@ -204,14 +205,14 @@ class MyPublicationsSheet extends ConsumerWidget {
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
+              color: AppColors.textDim,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Tes evenements crees apparaitront ici',
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
           ),
         ],
       ),
@@ -236,7 +237,7 @@ class MyPublicationsSheet extends ConsumerWidget {
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Annuler',
-              style: GoogleFonts.poppins(color: Colors.grey.shade500),
+              style: GoogleFonts.poppins(color: AppColors.textFaint),
             ),
           ),
           TextButton(
@@ -284,7 +285,7 @@ class _PublicationCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: AppColors.line),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -327,11 +328,11 @@ class _PublicationCard extends StatelessWidget {
                     Row(
                       children: [
                         if (dateStr.isNotEmpty) ...[
-                          Icon(Icons.calendar_today, size: 10, color: Colors.grey.shade400),
+                          Icon(Icons.calendar_today, size: 10, color: AppColors.textFaint),
                           const SizedBox(width: 3),
                           Text(
                             dateStr,
-                            style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500),
+                            style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textFaint),
                           ),
                           const SizedBox(width: 6),
                         ],

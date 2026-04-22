@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
@@ -121,7 +122,7 @@ class FitnessVenueCard extends ConsumerWidget {
                               Icon(
                                 Icons.location_on_outlined,
                                 size: 14,
-                                color: Colors.grey.shade600,
+                                color: AppColors.textDim,
                               ),
                               const SizedBox(width: 4),
                               Expanded(
@@ -129,7 +130,7 @@ class FitnessVenueCard extends ConsumerWidget {
                                   commerce.adresse,
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.grey.shade600,
+                                    color: AppColors.textDim,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -173,7 +174,7 @@ class FitnessVenueCard extends ConsumerWidget {
                   _buildActionButton(
                     icon: Icons.share_outlined,
                     label: 'Partager',
-                    color: Colors.grey.shade600,
+                    color: AppColors.textDim,
                     onTap: () => _share(),
                   ),
                 ],

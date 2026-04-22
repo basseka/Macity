@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/features/notifications/state/mairie_notifications_provider.dart';
@@ -198,7 +199,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -233,7 +234,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                         'Ajoutez ou retirez les villes suivies',
                         style: GoogleFonts.poppins(
                           fontSize: 11,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textDim,
                         ),
                       ),
                     ],
@@ -260,18 +261,18 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
+                          border: Border.all(color: AppColors.line),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline, size: 16, color: Colors.grey.shade500),
+                            Icon(Icons.info_outline, size: 16, color: AppColors.textFaint),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Aucune mairie suivie pour le moment',
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.textDim,
                                 ),
                               ),
                             ),
@@ -310,13 +311,13 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                       style: GoogleFonts.inter(fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'Ajouter une ville...',
-                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                        prefixIcon: Icon(Icons.add_location_alt, size: 20, color: Colors.grey.shade500),
+                        hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 13),
+                        prefixIcon: Icon(Icons.add_location_alt, size: 20, color: AppColors.textFaint),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
+                          borderSide: BorderSide(color: AppColors.line),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -324,7 +325,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
+                          borderSide: BorderSide(color: AppColors.line),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
@@ -336,7 +337,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: AppColors.lineStrong),
                         ),
                         child: ListView.builder(
                           shrinkWrap: true,
@@ -379,12 +380,12 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                                     ),
                                     Text(
                                       c.codePostal,
-                                      style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade500),
+                                      style: GoogleFonts.inter(fontSize: 12, color: AppColors.textFaint),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
                                       c.departement,
-                                      style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade400),
+                                      style: GoogleFonts.inter(fontSize: 11, color: AppColors.textFaint),
                                     ),
                                   ],
                                 ),

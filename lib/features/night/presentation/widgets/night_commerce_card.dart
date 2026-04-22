@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -77,7 +78,7 @@ class NightCommerceCard extends ConsumerWidget {
                         Icon(
                           Icons.access_time,
                           size: 14,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textDim,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -85,7 +86,7 @@ class NightCommerceCard extends ConsumerWidget {
                             commerce.horaires,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: AppColors.textDim,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -102,7 +103,7 @@ class NightCommerceCard extends ConsumerWidget {
                         Icon(
                           Icons.near_me_outlined,
                           size: 14,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textDim,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -110,7 +111,7 @@ class NightCommerceCard extends ConsumerWidget {
                             commerce.distance,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: AppColors.textDim,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

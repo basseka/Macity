@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
@@ -85,7 +86,7 @@ class _SearchEventsBottomSheetState
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.lineStrong,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -110,16 +111,16 @@ class _SearchEventsBottomSheetState
                 hintText: 'Nom, lieu, artiste...',
                 hintStyle: GoogleFonts.inter(
                   fontSize: 14,
-                  color: Colors.grey.shade400,
+                  color: AppColors.textFaint,
                 ),
                 prefixIcon: Icon(
                   Icons.search,
-                  color: Colors.grey.shade400,
+                  color: AppColors.textFaint,
                   size: 20,
                 ),
                 suffixIcon: _controller.text.isNotEmpty
                     ? IconButton(
-                        icon: Icon(Icons.clear, color: Colors.grey.shade400, size: 18),
+                        icon: Icon(Icons.clear, color: AppColors.textFaint, size: 18),
                         onPressed: () {
                           _controller.clear();
                           _onQueryChanged('');
@@ -179,7 +180,7 @@ class _SearchEventsBottomSheetState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.search, size: 48, color: Colors.grey.shade300),
+              Icon(Icons.search, size: 48, color: AppColors.lineStrong),
               const SizedBox(height: 8),
               Text(
                 'Tape au moins 2 lettres',
@@ -234,11 +235,11 @@ class _VenueSearchTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: AppColors.line),
         ),
         child: Row(
           children: [
-            Icon(Icons.place, size: 18, color: Colors.grey.shade500),
+            Icon(Icons.place, size: 18, color: AppColors.textFaint),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -257,7 +258,7 @@ class _VenueSearchTile extends StatelessWidget {
                   if (venue.categorie.isNotEmpty)
                     Text(
                       venue.categorie,
-                      style: GoogleFonts.inter(fontSize: 9, color: Colors.grey.shade600),
+                      style: GoogleFonts.inter(fontSize: 9, color: AppColors.textDim),
                       maxLines: 1,
                     ),
                 ],
@@ -266,7 +267,7 @@ class _VenueSearchTile extends StatelessWidget {
             if (venue.horaires.isNotEmpty)
               Text(
                 venue.horaires,
-                style: GoogleFonts.inter(fontSize: 8, color: Colors.grey.shade500),
+                style: GoogleFonts.inter(fontSize: 8, color: AppColors.textFaint),
               ),
           ],
         ),

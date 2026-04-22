@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
@@ -138,7 +139,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +164,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                     '${msgs.length}',
                     style: GoogleFonts.poppins(
                       fontSize: 11,
-                      color: Colors.grey.shade500,
+                      color: AppColors.textFaint,
                     ),
                   ),
                   loading: () => const SizedBox(
@@ -196,7 +197,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   'Impossible de charger la discussion',
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+                  style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textDim),
                 ),
               ),
               data: (messages) {
@@ -208,7 +209,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                         'Sois le premier a poser une question !',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: Colors.grey.shade500,
+                          color: AppColors.textFaint,
                         ),
                       ),
                     ),
@@ -248,7 +249,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                 'Termine ton inscription pour participer a la discussion.',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textDim,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -270,7 +271,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                       decoration: InputDecoration(
                         hintText: 'Pose une question...',
                         hintStyle: TextStyle(
-                            fontSize: 13, color: Colors.grey.shade400),
+                            fontSize: 13, color: AppColors.textFaint),
                         counterText: '',
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
@@ -279,11 +280,11 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
+                          borderSide: BorderSide(color: AppColors.line),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
+                          borderSide: BorderSide(color: AppColors.line),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -392,7 +393,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                           _formatTime(msg.createdAt),
                           style: GoogleFonts.poppins(
                             fontSize: 9,
-                            color: Colors.grey.shade500,
+                            color: AppColors.textFaint,
                           ),
                         ),
                       ],
@@ -413,7 +414,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
           if (!isMine)
             IconButton(
               icon: Icon(Icons.flag_outlined,
-                  size: 14, color: Colors.grey.shade400),
+                  size: 14, color: AppColors.textFaint),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
               tooltip: 'Signaler',

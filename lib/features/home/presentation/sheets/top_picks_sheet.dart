@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -33,13 +34,13 @@ class TopPicksSheet extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 10),
-            Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+            Container(width: 36, height: 4, decoration: BoxDecoration(color: AppColors.lineStrong, borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 40),
             const Icon(Icons.explore_outlined, size: 48, color: Color(0xFFE91E8C)),
             const SizedBox(height: 16),
             Text('$city arrive bientot !', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF4A1259))),
             const SizedBox(height: 8),
-            Text('Les incontournables de $city seront disponibles prochainement.', textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+            Text('Les incontournables de $city seront disponibles prochainement.', textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textDim)),
           ],
         ),
       );
@@ -60,7 +61,7 @@ class TopPicksSheet extends ConsumerWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -175,7 +176,7 @@ class TopPicksSheet extends ConsumerWidget {
                         pick.description,
                         style: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textDim,
                         ),
                       ),
                       if (pick.tip != null) ...[

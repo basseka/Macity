@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
@@ -80,7 +81,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
           const SizedBox(height: 2),
           Text(
             'Tarification et lien d\'achat',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 12, color: AppColors.textFaint),
           ),
           const SizedBox(height: 14),
 
@@ -148,7 +149,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                 const SizedBox(height: 4),
                 Text(
                   'Augmentez la visibilite de votre event',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 11, color: AppColors.textFaint),
                 ),
                 const SizedBox(height: 12),
                 ..._buildBoostOptions(ref, state, notifier),
@@ -240,7 +241,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
           const SizedBox(height: 4),
           Text(
             'Doit commencer par http:// ou https://',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+            style: TextStyle(fontSize: 11, color: AppColors.textFaint),
           ),
           const SizedBox(height: 16),
         ],
@@ -283,7 +284,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Touchez les jours souhaites', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+                    child: Text('Touchez les jours souhaites', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDim)),
                   ),
                   if (count > 0)
                     GestureDetector(
@@ -291,10 +292,10 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          color: AppColors.line,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text('Effacer', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                        child: Text('Effacer', style: TextStyle(fontSize: 10, color: AppColors.textDim)),
                       ),
                     ),
                 ],
@@ -337,7 +338,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                       Flexible(
                         child: Text(
                           '$count jour${count > 1 ? 's' : ''} x ${bp.amountCents ~/ 100}\u20AC',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDim),
                         ),
                       ),
                       Text(
@@ -383,7 +384,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                 color: isSelected ? color : (day.isFull ? Colors.grey.shade100 : Colors.white),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade200,
+                  color: isSelected ? color : AppColors.line,
                   width: 1,
                 ),
               ),
@@ -395,12 +396,12 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: isSelected ? Colors.white : (day.isFull ? Colors.grey.shade400 : const Color(0xFF1A1A2E)),
+                      color: isSelected ? Colors.white : (day.isFull ? AppColors.textFaint : const Color(0xFF1A1A2E)),
                     ),
                   ),
                   Text(
                     DateFormat('MMM', 'fr_FR').format(day.date),
-                    style: TextStyle(fontSize: 8, color: isSelected ? Colors.white70 : Colors.grey.shade500),
+                    style: TextStyle(fontSize: 8, color: isSelected ? Colors.white70 : AppColors.textFaint),
                   ),
                   const SizedBox(height: 2),
                   Container(
@@ -426,7 +427,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
       children: [
         Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+        Text(label, style: TextStyle(fontSize: 9, color: AppColors.textFaint)),
       ],
     );
   }
@@ -472,12 +473,12 @@ class _StepPricingState extends ConsumerState<StepPricing> {
   static InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -485,7 +486,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       isDense: true,
@@ -523,7 +524,7 @@ class _BoostOption extends StatelessWidget {
           color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : Colors.grey.shade200,
+            color: isSelected ? color : AppColors.line,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -545,7 +546,7 @@ class _BoostOption extends StatelessWidget {
                   ),
                   Text(
                     description,
-                    style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 10, color: AppColors.textFaint),
                   ),
                 ],
               ),
@@ -714,7 +715,7 @@ class _OptionTile extends StatelessWidget {
           color: selected ? null : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: selected ? Colors.transparent : Colors.grey.shade300,
+            color: selected ? Colors.transparent : AppColors.lineStrong,
             width: 1,
           ),
         ),

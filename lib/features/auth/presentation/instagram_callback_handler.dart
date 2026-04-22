@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -102,7 +103,7 @@ class _InstagramCallbackHandlerState
                   'Connexion Instagram en cours...',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textDim,
                   ),
                 ),
               ],

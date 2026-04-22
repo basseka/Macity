@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -122,16 +123,16 @@ class EventCard extends ConsumerWidget {
                           width: double.infinity,
                           placeholder: (_, __) => pochette != null
                               ? Image.asset(pochette, fit: BoxFit.cover, width: double.infinity)
-                              : Container(color: Colors.grey.shade200),
+                              : Container(color: AppColors.line),
                           errorWidget: (_, __, ___) => pochette != null
                               ? Image.asset(pochette, fit: BoxFit.cover, width: double.infinity, cacheWidth: 300)
-                              : Container(color: Colors.grey.shade200),
+                              : Container(color: AppColors.line),
                         )
                       : Image.asset(
                           pochette!,
                           fit: BoxFit.cover,
                           cacheWidth: 300,
-                          errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
+                          errorBuilder: (_, __, ___) => Container(color: AppColors.line),
                         ),
                 ),
                 // Gradient overlay
@@ -328,7 +329,7 @@ class EventCard extends ConsumerWidget {
                     event.descriptifCourt,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: AppColors.textDim,
                       height: 1.4,
                     ),
                     maxLines: 2,
@@ -379,7 +380,7 @@ class EventCard extends ConsumerWidget {
                       },
                       icon: Icon(
                         isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked ? Colors.red : Colors.grey.shade500,
+                        color: isLiked ? Colors.red : AppColors.textFaint,
                         size: 22,
                       ),
                       constraints: const BoxConstraints(
@@ -399,7 +400,7 @@ class EventCard extends ConsumerWidget {
                       onPressed: () => _shareEvent(),
                       icon: Icon(
                         Icons.share_outlined,
-                        color: Colors.grey.shade500,
+                        color: AppColors.textFaint,
                         size: 22,
                       ),
                       constraints: const BoxConstraints(
@@ -430,7 +431,7 @@ class EventCard extends ConsumerWidget {
             text,
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade700,
+              color: AppColors.textDim,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

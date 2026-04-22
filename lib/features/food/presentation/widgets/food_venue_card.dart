@@ -127,7 +127,7 @@ class FoodVenueCard extends ConsumerWidget {
             ],
 
             const SizedBox(height: 12),
-            Divider(height: 1, color: Colors.grey.shade200),
+            Divider(height: 1, color: AppColors.line),
             const SizedBox(height: 12),
 
             Row(

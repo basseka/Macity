@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
@@ -262,12 +263,12 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
   static InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -275,7 +276,7 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       isDense: true,
@@ -313,7 +314,7 @@ class _GalleryPicker extends StatelessWidget {
                       errorBuilder: (_, __, ___) => Container(
                         width: 70,
                         height: 70,
-                        color: Colors.grey.shade200,
+                        color: AppColors.line,
                         child: const Icon(Icons.broken_image, size: 20),
                       ),
                     ),
@@ -349,9 +350,9 @@ class _GalleryPicker extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: AppColors.line),
                 ),
-                child: Icon(Icons.add_photo_alternate, color: Colors.grey.shade400, size: 24),
+                child: Icon(Icons.add_photo_alternate, color: AppColors.textFaint, size: 24),
               ),
             ),
         ],

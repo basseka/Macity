@@ -2153,7 +2153,7 @@ class _VenueRowCard extends StatelessWidget {
           children: [
             Icon(
               _resolveIcon(venue.categorie),
-              color: Colors.grey.shade600,
+              color: AppColors.textDim,
               size: 18,
             ),
             const SizedBox(width: 8),
@@ -2175,7 +2175,7 @@ class _VenueRowCard extends StatelessWidget {
                   if (venue.categorie.isNotEmpty)
                     Text(
                       venue.categorie,
-                      style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 9, color: AppColors.textDim),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

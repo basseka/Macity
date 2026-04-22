@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -41,7 +42,7 @@ class SharedWithMeSheet extends ConsumerWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -81,7 +82,7 @@ class SharedWithMeSheet extends ConsumerWidget {
                     const SizedBox(height: 14),
                     Text(
                       'Chargement...',
-                      style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500),
+                      style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
                     ),
                   ],
                 ),
@@ -91,11 +92,11 @@ class SharedWithMeSheet extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.wifi_off_rounded, size: 32, color: Colors.grey.shade300),
+                    Icon(Icons.wifi_off_rounded, size: 32, color: AppColors.lineStrong),
                     const SizedBox(height: 12),
                     Text(
                       'Impossible de charger',
-                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey.shade500),
+                      style: GoogleFonts.poppins(fontSize: 14, color: AppColors.textFaint),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
@@ -151,7 +152,7 @@ class SharedWithMeSheet extends ConsumerWidget {
                 if (count > 0)
                   Text(
                     '$count event${count > 1 ? 's' : ''}',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
+                    style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textFaint),
                   ),
               ],
             ),
@@ -186,14 +187,14 @@ class SharedWithMeSheet extends ConsumerWidget {
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.grey.shade600,
+              color: AppColors.textDim,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             'Quand un ami partagera un event\navec toi, il apparaitra ici',
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400, height: 1.4),
+            style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint, height: 1.4),
           ),
         ],
       ),
@@ -266,21 +267,21 @@ class _SharedEventCard extends StatelessWidget {
                   Row(
                     children: [
                       if (dateStr.isNotEmpty) ...[
-                        Icon(Icons.calendar_today, size: 12, color: Colors.grey.shade400),
+                        Icon(Icons.calendar_today, size: 12, color: AppColors.textFaint),
                         const SizedBox(width: 4),
                         Text(
                           dateStr,
-                          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
+                          style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textFaint),
                         ),
                         const SizedBox(width: 10),
                       ],
                       if (event.lieuNom.isNotEmpty) ...[
-                        Icon(Icons.place, size: 12, color: Colors.grey.shade400),
+                        Icon(Icons.place, size: 12, color: AppColors.textFaint),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
                             event.lieuNom,
-                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
+                            style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textFaint),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

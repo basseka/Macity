@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -110,7 +111,7 @@ class MatchCard extends ConsumerWidget {
                   Icon(
                     Icons.calendar_today,
                     size: 14,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textDim,
                   ),
                   const SizedBox(width: 4),
                   Flexible(
@@ -120,7 +121,7 @@ class MatchCard extends ConsumerWidget {
                           : match.date,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.textDim,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -132,7 +133,7 @@ class MatchCard extends ConsumerWidget {
                   Icon(
                     Icons.location_on_outlined,
                     size: 14,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textDim,
                   ),
                   const SizedBox(width: 4),
                   Flexible(
@@ -140,7 +141,7 @@ class MatchCard extends ConsumerWidget {
                       match.lieu,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.textDim,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

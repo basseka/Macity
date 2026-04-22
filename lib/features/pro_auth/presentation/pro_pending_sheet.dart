@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
@@ -101,7 +102,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -137,7 +138,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
               TextSpan(
                 style: TextStyle(
                   fontSize: 13,
-                  color: Colors.grey.shade700,
+                  color: AppColors.textDim,
                   height: 1.4,
                 ),
                 children: [
@@ -175,7 +176,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
               decoration: InputDecoration(
                 hintText: '------',
                 hintStyle: TextStyle(
-                  color: Colors.grey.shade300,
+                  color: AppColors.lineStrong,
                   letterSpacing: 8,
                 ),
                 filled: true,
@@ -183,7 +184,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.lineStrong),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -191,7 +192,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.lineStrong),
                 ),
               ),
               onSubmitted: (_) => _submit(),

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -181,7 +182,7 @@ class _EventAfficheCard extends StatelessWidget {
       fallbackImage,
       fit: BoxFit.cover,
       cacheWidth: 300,
-      errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300),
+      errorBuilder: (_, __, ___) => Container(color: AppColors.lineStrong),
     );
   }
 

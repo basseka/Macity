@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/pro_auth/data/pro_auth_service.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
@@ -80,14 +81,14 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 Icon(
                   c.ok ? Icons.check_circle : Icons.radio_button_unchecked,
                   size: 12,
-                  color: c.ok ? Colors.green : Colors.grey.shade400,
+                  color: c.ok ? Colors.green : AppColors.textFaint,
                 ),
                 const SizedBox(width: 3),
                 Text(
                   c.label,
                   style: TextStyle(
                     fontSize: 10,
-                    color: c.ok ? Colors.green : Colors.grey.shade500,
+                    color: c.ok ? Colors.green : AppColors.textFaint,
                   ),
                 ),
               ],
@@ -134,7 +135,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   width: 30,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.lineStrong,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -173,7 +174,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                     : 'Inscrivez-vous pour publier des evenements',
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textDim,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -403,7 +404,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
               width: 30,
               height: 3,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -481,7 +482,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: isActive ? Colors.white : Colors.grey.shade600,
+              color: isActive ? Colors.white : AppColors.textDim,
             ),
           ),
         ),
@@ -495,7 +496,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       prefixIcon: Icon(icon, color: _primaryColor, size: 16),
       prefixIconConstraints: const BoxConstraints(minWidth: 36),
       filled: true,
@@ -503,7 +504,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       isDense: true,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: AppColors.lineStrong),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -511,7 +512,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: AppColors.lineStrong),
       ),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

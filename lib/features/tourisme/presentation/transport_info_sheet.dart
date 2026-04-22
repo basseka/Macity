@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
@@ -98,7 +99,7 @@ class TransportInfoView extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text('Infos transport pour $city\nbientot disponibles',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                    style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                 if (site != null) ...[
                   const SizedBox(height: 16),
                   _buildTransportLink(site.name, site.url, site.color),
@@ -143,7 +144,7 @@ class TransportInfoView extends ConsumerWidget {
               const SizedBox(height: 8),
               if (transport.velo['name'] != null && (transport.velo['name'] as String).isNotEmpty)
                 Text(transport.velo['name'] as String,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                    style: TextStyle(fontSize: 13, color: AppColors.textDim)),
             ],
           ],
         );
@@ -214,11 +215,11 @@ class TransportInfoView extends ConsumerWidget {
   Widget _sectionTitle(String title, IconData icon, String subtitle) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.grey.shade700),
+        Icon(icon, size: 18, color: AppColors.textDim),
         const SizedBox(width: 8),
         Text(title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
         const Spacer(),
-        Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+        Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textFaint)),
       ],
     );
   }

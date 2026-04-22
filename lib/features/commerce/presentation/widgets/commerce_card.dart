@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -67,7 +68,7 @@ class CommerceCard extends ConsumerWidget {
                             Icon(
                               Icons.near_me_outlined,
                               size: 13,
-                              color: Colors.grey.shade500,
+                              color: AppColors.textFaint,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -75,7 +76,7 @@ class CommerceCard extends ConsumerWidget {
                                 commerce.distance,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.textDim,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -146,7 +147,7 @@ class CommerceCard extends ConsumerWidget {
             const SizedBox(height: 12),
 
             // Divider
-            Divider(height: 1, color: Colors.grey.shade200),
+            Divider(height: 1, color: AppColors.line),
 
             const SizedBox(height: 12),
 
@@ -176,7 +177,7 @@ class CommerceCard extends ConsumerWidget {
                 _buildActionButton(
                   icon: Icons.share_outlined,
                   label: 'Partager',
-                  color: Colors.grey.shade600,
+                  color: AppColors.textDim,
                   onTap: () => _share(),
                 ),
               ],

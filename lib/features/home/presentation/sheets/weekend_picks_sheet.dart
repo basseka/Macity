@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -50,7 +51,7 @@ class WeekendPicksSheet extends ConsumerWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade700,
+              color: AppColors.textDim,
               borderRadius: BorderRadius.circular(2),
             ),
           ),

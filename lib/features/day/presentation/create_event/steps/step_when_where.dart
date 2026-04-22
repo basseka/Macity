@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
@@ -71,7 +72,7 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
           const SizedBox(height: 2),
           Text(
             'Date, heure et lieu de l\'evenement',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 12, color: AppColors.textFaint),
           ),
           const SizedBox(height: 14),
 
@@ -218,11 +219,11 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
                   decoration: BoxDecoration(
                     color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: AppColors.line),
                   ),
                   child: Text(
                     state.pays,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 13, color: AppColors.textDim),
                   ),
                 ),
               ),
@@ -244,12 +245,12 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
   static InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
       fillColor: Colors.grey.shade50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -257,7 +258,7 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       isDense: true,
@@ -306,7 +307,7 @@ class _DatePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
                     const Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                     TextButton(
@@ -348,19 +349,19 @@ class _DatePickerField extends StatelessWidget {
           color: hasValue ? _primaryColor.withValues(alpha: 0.06) : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: hasValue ? _primaryColor.withValues(alpha: 0.3) : Colors.grey.shade200,
+            color: hasValue ? _primaryColor.withValues(alpha: 0.3) : AppColors.line,
           ),
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today, size: 16, color: hasValue ? _primaryColor : Colors.grey.shade400),
+            Icon(Icons.calendar_today, size: 16, color: hasValue ? _primaryColor : AppColors.textFaint),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
                 hasValue ? DateFormat('d MMM yyyy', 'fr_FR').format(value!) : label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: hasValue ? _primaryColor : Colors.grey.shade500,
+                  color: hasValue ? _primaryColor : AppColors.textFaint,
                   fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -416,7 +417,7 @@ class _TimePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
                     const Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                     TextButton(
@@ -458,19 +459,19 @@ class _TimePickerField extends StatelessWidget {
           color: hasValue ? _primaryColor.withValues(alpha: 0.06) : Colors.grey.shade50,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: hasValue ? _primaryColor.withValues(alpha: 0.3) : Colors.grey.shade200,
+            color: hasValue ? _primaryColor.withValues(alpha: 0.3) : AppColors.line,
           ),
         ),
         child: Row(
           children: [
-            Icon(Icons.access_time, size: 16, color: hasValue ? _primaryColor : Colors.grey.shade400),
+            Icon(Icons.access_time, size: 16, color: hasValue ? _primaryColor : AppColors.textFaint),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
                 hasValue ? '${value!.hour.toString().padLeft(2, '0')}:${value!.minute.toString().padLeft(2, '0')}' : label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: hasValue ? _primaryColor : Colors.grey.shade500,
+                  color: hasValue ? _primaryColor : AppColors.textFaint,
                   fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
                 ),
                 overflow: TextOverflow.ellipsis,

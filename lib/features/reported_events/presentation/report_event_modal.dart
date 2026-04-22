@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -167,7 +168,7 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
               width: 32,
               height: 3,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -248,12 +249,12 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
                         hintText: _placeholderForCategory(state.category),
                         hintStyle: GoogleFonts.poppins(
                           fontSize: 12,
-                          color: Colors.grey.shade400,
+                          color: AppColors.textFaint,
                         ),
                         prefixIcon: Icon(
                           Icons.edit_outlined,
                           size: 16,
-                          color: Colors.grey.shade500,
+                          color: AppColors.textFaint,
                         ),
                         prefixIconConstraints: const BoxConstraints(
                           minWidth: 36,
@@ -264,11 +265,11 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
                         isDense: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: BorderSide(color: AppColors.lineStrong),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: BorderSide(color: AppColors.lineStrong),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -391,8 +392,8 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFDC2626),
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      disabledForegroundColor: Colors.grey.shade500,
+                      disabledBackgroundColor: AppColors.lineStrong,
+                      disabledForegroundColor: AppColors.textFaint,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -516,7 +517,7 @@ class _LocationBadge extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: AppColors.line),
         ),
         child: Row(
           children: [
@@ -530,7 +531,7 @@ class _LocationBadge extends ConsumerWidget {
               'On te localise...',
               style: GoogleFonts.poppins(
                 fontSize: 12,
-                color: Colors.grey.shade600,
+                color: AppColors.textDim,
               ),
             ),
           ],
@@ -556,7 +557,7 @@ class _LocationBadge extends ConsumerWidget {
                 state.error ?? 'Impossible de te localiser',
                 style: GoogleFonts.poppins(
                   fontSize: 11,
-                  color: Colors.grey.shade700,
+                  color: AppColors.textDim,
                 ),
               ),
             ),
@@ -679,7 +680,7 @@ class _CategoryGrid extends StatelessWidget {
               color: isSelected ? null : Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isSelected ? cat.colorStart : Colors.grey.shade300,
+                color: isSelected ? cat.colorStart : AppColors.lineStrong,
                 width: isSelected ? 1.5 : 1,
               ),
               boxShadow: isSelected
@@ -928,12 +929,12 @@ class _LocationNameFieldState extends State<_LocationNameField> {
         hintText: 'Bar, rue, place...',
         hintStyle: GoogleFonts.poppins(
           fontSize: 12,
-          color: Colors.grey.shade400,
+          color: AppColors.textFaint,
         ),
         prefixIcon: Icon(
           Icons.place_outlined,
           size: 16,
-          color: Colors.grey.shade500,
+          color: AppColors.textFaint,
         ),
         prefixIconConstraints: const BoxConstraints(
           minWidth: 36,
@@ -955,11 +956,11 @@ class _LocationNameFieldState extends State<_LocationNameField> {
         isDense: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppColors.lineStrong),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: AppColors.lineStrong),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),

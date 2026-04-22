@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
@@ -66,7 +67,7 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.lineStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -115,7 +116,7 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
                   widget.eventTitle,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: Colors.grey.shade500,
+                    color: AppColors.textFaint,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -147,12 +148,12 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
       leading: CircleAvatar(
         backgroundColor: onPulz
             ? _accent.withValues(alpha: 0.12)
-            : Colors.grey.shade200,
+            : AppColors.line,
         child: Text(
           initial,
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            color: onPulz ? _accent : Colors.grey.shade600,
+            color: onPulz ? _accent : AppColors.textDim,
           ),
         ),
       ),
@@ -183,7 +184,7 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
         ],
       ),
       trailing: IconButton(
-        icon: Icon(Icons.close, size: 18, color: Colors.grey.shade400),
+        icon: Icon(Icons.close, size: 18, color: AppColors.textFaint),
         onPressed: () => setState(() => _picked.removeAt(index)),
       ),
     );
@@ -219,7 +220,7 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 12,
-              color: Colors.grey.shade500,
+              color: AppColors.textFaint,
               height: 1.4,
             ),
           ),
@@ -367,7 +368,7 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 13,
-              color: Colors.grey.shade500,
+              color: AppColors.textFaint,
               height: 1.4,
             ),
           ),

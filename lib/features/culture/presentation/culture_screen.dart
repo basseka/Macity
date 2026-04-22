@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/widgets/community_event_card.dart';
@@ -476,7 +477,7 @@ class CultureScreen extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textDim,
                 ),
               ),
             ),
@@ -978,7 +979,7 @@ class _GalleryCard extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 gallery.horaires,
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                style: TextStyle(fontSize: 11, color: AppColors.textDim),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -997,7 +998,7 @@ class _GalleryCard extends ConsumerWidget {
                           const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => _share(),
-                            child: Icon(Icons.share_outlined, color: Colors.grey.shade400, size: 16),
+                            child: Icon(Icons.share_outlined, color: AppColors.textFaint, size: 16),
                           ),
                         ],
                       ),

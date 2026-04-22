@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
@@ -72,7 +73,7 @@ class _NearbySheetState extends ConsumerState<NearbySheet> {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.lineStrong,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -115,7 +116,7 @@ class _NearbySheetState extends ConsumerState<NearbySheet> {
                       color: active ? _accent : Colors.white,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: active ? _accent : Colors.grey.shade300,
+                        color: active ? _accent : AppColors.lineStrong,
                       ),
                     ),
                     alignment: Alignment.center,
@@ -124,7 +125,7 @@ class _NearbySheetState extends ConsumerState<NearbySheet> {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: active ? Colors.white : Colors.grey.shade700,
+                        color: active ? Colors.white : AppColors.textDim,
                       ),
                     ),
                   ),

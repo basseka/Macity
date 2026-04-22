@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/features/day/data/event_scan_service.dart';
@@ -43,7 +44,7 @@ class AddEventBottomSheet extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.lineStrong,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -82,7 +83,7 @@ class AddEventBottomSheet extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: AppColors.textDim,
                 height: 1.4,
               ),
             ),
@@ -153,7 +154,7 @@ class AddEventBottomSheet extends ConsumerWidget {
                 'Annuler',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade500,
+                  color: AppColors.textFaint,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -336,7 +337,7 @@ class _ScanLoadingDialog extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Quelques secondes',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 11, color: AppColors.textDim),
             ),
           ],
         ),
