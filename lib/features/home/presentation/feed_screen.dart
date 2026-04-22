@@ -1301,6 +1301,21 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     // Matchs exclus du feed
 
+    // Auto-load pages suivantes quand un filtre est actif : comme le filtre
+    // est client-side, une page fetch peut donner 0-3 matches et le scroll ne
+    // declenche pas de loadMore (liste trop courte). On force le chargement
+    // jusqu'a avoir assez d'events filtres (ou plus de pages).
+    const kFilteredTargetCount = 30;
+    if (_activeTab != null &&
+        hasMore &&
+        onLoadMore != null &&
+        !isLoadingMore &&
+        flatEvents.length < kFilteredTargetCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) onLoadMore();
+      });
+    }
+
     if (dayGroups.isEmpty && !_isLandscape && _activeTab == null) {
       // Meme quand il n'y a pas d'events, afficher les boosted + bouton map live
       return CustomScrollView(
