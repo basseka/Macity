@@ -1868,7 +1868,7 @@ class _MapLivePill extends ConsumerWidget {
               'MAP LIVE',
               style: GoogleFonts.geist(
                 fontSize: 11,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w400,
                 letterSpacing: 0.3,
                 color: _yellow,
               ),
@@ -1879,7 +1879,7 @@ class _MapLivePill extends ConsumerWidget {
                 '$count',
                 style: GoogleFonts.geistMono(
                   fontSize: 10,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w400,
                   color: _yellow,
                 ),
               ),
