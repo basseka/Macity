@@ -35,12 +35,6 @@ class FoodScreen extends ConsumerStatefulWidget {
 }
 
 class _FoodScreenState extends ConsumerState<FoodScreen> {
-  // Filtres restaurant
-  int _filterTab = 0; // 0=Theme, 1=Quartier, 2=Style
-  String _selectedTheme = 'Tous';
-  String _selectedQuartier = 'Tous';
-  String _selectedStyle = 'Tous';
-
   @override
   Widget build(BuildContext context) {
     final selectedCategory = ref.watch(foodCategoryProvider);
@@ -256,52 +250,12 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   Widget _buildRestaurantsFiltered(
       WidgetRef ref, List<RestaurantVenue> allVenues, modeTheme, {bool hideThemeFilter = false, String placeholderAsset = 'assets/images/pochette_restaurant.jpg'}) {
 
-    // Filtrer selon le filtre actif (comparaison insensible a la casse)
-    final filtered = allVenues.where((r) {
-      if (!hideThemeFilter && _selectedTheme != 'Tous' &&
-          r.theme.toLowerCase() != _selectedTheme.toLowerCase()) return false;
-      if (_selectedQuartier != 'Tous' &&
-          r.quartier.toLowerCase() != _selectedQuartier.toLowerCase()) return false;
-      if (_selectedStyle != 'Tous' &&
-          r.style.toLowerCase() != _selectedStyle.toLowerCase()) return false;
-      return true;
-    }).toList();
-
-    // Options du filtre actif
-    List<String> currentOptions;
-    String currentValue;
-    void Function(String) onSelect;
-
-    final effectiveFilterTab = hideThemeFilter && _filterTab == 0 ? 1 : _filterTab;
-    switch (effectiveFilterTab) {
-      case 0:
-        currentOptions = RestaurantVenuesData.themes;
-        currentValue = _selectedTheme;
-        onSelect = (v) => setState(() => _selectedTheme = v);
-      case 1:
-        currentOptions = RestaurantVenuesData.quartiers;
-        currentValue = _selectedQuartier;
-        onSelect = (v) => setState(() => _selectedQuartier = v);
-      default:
-        currentOptions = RestaurantVenuesData.styles;
-        currentValue = _selectedStyle;
-        onSelect = (v) => setState(() => _selectedStyle = v);
-    }
-
-    if (filtered.isEmpty) {
-      return Column(
-        children: [
-          _buildFilterHeader(modeTheme, currentOptions, currentValue, onSelect, hideThemeTab: hideThemeFilter),
-          const SizedBox(height: 8),
-          Expanded(
-            child: Center(
-              child: Text(
-                'Aucun restaurant pour ce filtre',
-                style: TextStyle(fontSize: 13, color: AppColors.textFaint),
-              ),
-            ),
-          ),
-        ],
+    if (allVenues.isEmpty) {
+      return Center(
+        child: Text(
+          'Aucun restaurant',
+          style: TextStyle(fontSize: 13, color: AppColors.textFaint),
+        ),
       );
     }
 
@@ -310,18 +264,17 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       color: modeTheme.primaryColor,
       child: CustomScrollView(
         slivers: [
-          // Onglets + chips + compteur en header
+          // Compteur en header
           SliverToBoxAdapter(
             child: Column(
               children: [
-                _buildFilterHeader(modeTheme, currentOptions, currentValue, onSelect, hideThemeTab: hideThemeFilter),
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      '${filtered.length} restaurant${filtered.length > 1 ? 's' : ''}',
+                      '${allVenues.length} restaurant${allVenues.length > 1 ? 's' : ''}',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textFaint,
@@ -340,100 +293,14 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _RestaurantRowCard(venue: filtered[index], placeholderAsset: placeholderAsset),
+                  child: _RestaurantRowCard(venue: allVenues[index], placeholderAsset: placeholderAsset),
                 ),
-                childCount: filtered.length,
+                childCount: allVenues.length,
               ),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterHeader(
-    dynamic modeTheme,
-    List<String> currentOptions,
-    String currentValue,
-    void Function(String) onSelect,
-    {bool hideThemeTab = false}
-  ) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              if (!hideThemeTab) ...[
-                _buildFilterTab('Theme', 0, modeTheme.primaryColor),
-                const SizedBox(width: 8),
-              ],
-              _buildFilterTab('Quartier', 1, modeTheme.primaryColor),
-              const SizedBox(width: 8),
-              _buildFilterTab('Style', 2, modeTheme.primaryColor),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 34,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: currentOptions.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 6),
-            itemBuilder: (context, index) {
-              final option = currentOptions[index];
-              final isSelected = option == currentValue;
-              return GestureDetector(
-                onTap: () => onSelect(option),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? modeTheme.primaryColor
-                        : modeTheme.primaryColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    option,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                      color: isSelected ? Colors.white : modeTheme.primaryDarkColor,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFilterTab(String label, int index, Color primaryColor) {
-    final isActive = _filterTab == index;
-    return GestureDetector(
-      onTap: () => setState(() => _filterTab = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActive ? primaryColor : primaryColor.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: isActive ? Colors.white : primaryColor,
-          ),
-        ),
       ),
     );
   }
