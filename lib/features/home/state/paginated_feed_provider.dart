@@ -135,12 +135,7 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
   }
 
   Future<void> loadNextPage() async {
-    debugPrint('[PaginatedFeed] loadNextPage called. _loadingNext=$_loadingNext '
-        'hasMore=${state.hasMore} offset=$_offset totalEvents=${state.events.length}');
-    if (_loadingNext || !state.hasMore) {
-      debugPrint('[PaginatedFeed] -> skipped (loadingNext or no more)');
-      return;
-    }
+    if (_loadingNext || !state.hasMore) return;
     _loadingNext = true;
     // Expose le loading pour que l'UI (auto-load sur filtre) ne fire pas en
     // boucle pendant qu'un fetch est en cours.
@@ -183,9 +178,6 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
       allEvents.sort((a, b) => _effectiveDate(a).compareTo(_effectiveDate(b)));
 
       final hasMoreResult = rawCount >= _pageSize;
-      debugPrint('[PaginatedFeed] next page done. rawCount=$rawCount '
-          'unique=${unique.length} total=${allEvents.length} '
-          'hasMore=$hasMoreResult');
 
       state = PaginatedFeedState(
         events: allEvents,

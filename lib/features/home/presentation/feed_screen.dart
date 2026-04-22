@@ -1304,16 +1304,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // Matchs exclus du feed
 
     // Auto-load pages suivantes quand un filtre est actif.
-    if (_activeTab != null) {
-      debugPrint('[Feed] filter=$_activeTab hasMore=$hasMore '
-          'isLoadingMore=$isLoadingMore rawEvents=${data.events.length} '
-          'filtered=${flatEvents.length} days=${dayGroups.length}');
-    }
     if (_activeTab != null &&
         hasMore &&
         onLoadMore != null &&
         !isLoadingMore) {
-      debugPrint('[Feed] -> scheduling loadMore (filter actif, hasMore, not loading)');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) onLoadMore();
       });
