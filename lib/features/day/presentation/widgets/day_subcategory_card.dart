@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 
 class DaySubcategoryCard extends StatefulWidget {
   final String emoji;
@@ -66,10 +68,13 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
   @override
   Widget build(BuildContext context) {
     return Material(
-      borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      shadowColor: Colors.black26,
+      color: AppColors.surface,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        side: const BorderSide(color: AppColors.line),
+      ),
       child: InkWell(
         onTap: widget.onTap,
         child: Stack(
@@ -89,13 +94,12 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
               Container(
                 decoration: BoxDecoration(gradient: widget.gradient),
               ),
-            // Dark overlay for text readability
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.4),
-              ),
+            // Bottom dark shade (respecte le gradient mode au dessus)
+            const DecoratedBox(
+              decoration: BoxDecoration(gradient: AppGradients.cardShade),
+              child: SizedBox.expand(),
             ),
-            // Blink glow overlay
+            // Blink glow overlay (magenta au lieu de pink)
             if (widget.blink)
               AnimatedBuilder(
                 animation: _glowAnimation,
@@ -104,32 +108,37 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
                   return Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.pinkAccent.withValues(alpha: 0.9 * v),
+                        color: AppColors.magenta.withValues(alpha: 0.9 * v),
                         width: 2.5 + 1.5 * v,
                       ),
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.pink.withValues(alpha: 0.25 * v),
+                          AppColors.magenta.withValues(alpha: 0.25 * v),
                           Colors.transparent,
-                          Colors.pink.withValues(alpha: 0.15 * v),
+                          AppColors.magenta.withValues(alpha: 0.15 * v),
                         ],
                       ),
                     ),
                   );
                 },
               ),
-            // Scraper badge
+            // Scraper badge (eclair editorial)
             if (widget.isScraped)
               Positioned(
-                top: 6,
-                right: 6,
+                top: 8,
+                right: 8,
                 child: Container(
-                  padding: const EdgeInsets.all(3),
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.85),
+                    gradient: AppGradients.editorial,
                     shape: BoxShape.circle,
+                    boxShadow: AppShadows.neon(
+                      const Color(0xFFFBBF24),
+                      blur: 6,
+                      y: 1,
+                    ),
                   ),
                   child: const Icon(Icons.bolt, size: 10, color: Colors.white),
                 ),
@@ -137,7 +146,7 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
             // Label + count
             Center(
               child: Padding(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -146,36 +155,39 @@ class _DaySubcategoryCardState extends State<DaySubcategoryCard>
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: GoogleFonts.geist(
                         color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
                         height: 1.3,
-                        shadows: [
-                          Shadow(blurRadius: 3, color: Colors.black54),
+                        shadows: const [
+                          Shadow(blurRadius: 4, color: Colors.black54),
                         ],
                       ),
                     ),
                     if (widget.count != null) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 5),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
+                          horizontal: 9,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(10),
+                          gradient: AppGradients.primary,
+                          borderRadius: BorderRadius.circular(AppRadius.chip),
+                          boxShadow: AppShadows.neon(
+                            AppColors.magenta,
+                            blur: 8,
+                            y: 2,
+                          ),
                         ),
                         child: Text(
                           '${widget.count}',
-                          style: const TextStyle(
+                          style: GoogleFonts.geistMono(
                             color: Colors.white,
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            shadows: [
-                              Shadow(blurRadius: 2, color: Colors.black45),
-                            ],
                           ),
                         ),
                       ),
