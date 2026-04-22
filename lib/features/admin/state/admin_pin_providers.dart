@@ -8,10 +8,14 @@ import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 const String kAdminEmail = 'basseka@yahoo.fr';
 
 /// True si le pro connecte est l'admin MaCity.
+/// NB : on accepte tous les status (approved, pendingApproval) tant que
+/// l'email correspond. Si approved=false, le pin echouera cote serveur de
+/// toute facon (RLS), on n'a pas besoin de bloquer l'UI.
 final isAdminProvider = Provider<bool>((ref) {
   final auth = ref.watch(proAuthProvider);
-  if (auth.status != ProAuthStatus.approved) return false;
-  return auth.profile?.email.toLowerCase() == kAdminEmail.toLowerCase();
+  final email = auth.profile?.email.toLowerCase();
+  if (email == null) return false;
+  return email == kAdminEmail.toLowerCase();
 });
 
 final adminPinServiceProvider =
