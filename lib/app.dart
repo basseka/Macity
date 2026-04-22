@@ -10,7 +10,7 @@ import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/services/fcm_service.dart';
 import 'package:pulz_app/core/services/share_intent_service.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
-import 'package:pulz_app/core/theme/app_theme.dart';
+import 'package:pulz_app/core/theme/macity_theme.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
@@ -259,7 +259,7 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
     return MaterialApp.router(
       title: 'MaCity',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: MacityTheme.dark(),
       routerConfig: appRouter,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
