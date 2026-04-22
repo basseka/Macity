@@ -1671,9 +1671,9 @@ class _SignalementsHeader extends StatelessWidget {
           child: Text(
             'Ca bouge pres de toi',
             style: GoogleFonts.geist(
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
-              letterSpacing: -0.2,
+              letterSpacing: -0.15,
               color: AppColors.text,
             ),
           ),
