@@ -14,6 +14,9 @@ class ReportedEventPosterCard extends StatelessWidget {
   final VoidCallback? onTap;
   final double width;
   final double height;
+  /// Mode bulle circulaire (style stories Instagram) : photo/gradient + emoji
+  /// + pulse dot live. Pas de titre/meta dans la bulle.
+  final bool circular;
 
   const ReportedEventPosterCard({
     super.key,
@@ -21,13 +24,20 @@ class ReportedEventPosterCard extends StatelessWidget {
     this.onTap,
     this.width = 240,
     this.height = 160,
+    this.circular = false,
   });
 
   @override
   Widget build(BuildContext context) {
     if (event.isGenerating) {
-      return _ShimmerPlaceholder(width: width, height: height);
+      return _ShimmerPlaceholder(
+        width: width,
+        height: height,
+        circular: circular,
+      );
     }
+
+    if (circular) return _buildCircular();
 
     // 3 modes d'affichage selon la taille : ultra-compact / compact / normal.
     final isUltra = height < 80;
@@ -297,6 +307,107 @@ class ReportedEventPosterCard extends StatelessWidget {
     );
   }
 
+  Widget _buildCircular() {
+    final g = event.generated;
+    final from = _parseHex(g?.gradientFrom) ?? const Color(0xFFA855F7);
+    final to = _parseHex(g?.gradientTo) ?? const Color(0xFFFF3D8B);
+    final firstPhoto = event.firstPhoto;
+    final hasPhoto = firstPhoto != null && firstPhoto.isNotEmpty;
+    final emoji = g?.emoji ?? '📍';
+
+    // Taille effective : on utilise min(w,h) pour garantir un cercle parfait.
+    final size = width < height ? width : height;
+
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [from, to],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: from.withValues(alpha: 0.45),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Photo de fond si fournie
+              if (hasPhoto)
+                CachedNetworkImage(
+                  imageUrl: firstPhoto,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => const SizedBox.shrink(),
+                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                ),
+
+              // Overlay sombre pour lisibilite de l'emoji sur photo
+              if (hasPhoto)
+                Container(color: Colors.black.withValues(alpha: 0.32)),
+
+              // Emoji centre
+              Center(
+                child: Text(
+                  emoji,
+                  style: TextStyle(
+                    fontSize: size * 0.42,
+                    shadows: const [
+                      Shadow(blurRadius: 6, color: Colors.black45),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Pulse dot LIVE top-right
+              Positioned(
+                top: size * 0.08,
+                right: size * 0.08,
+                child: _LivePulseDot(size: size * 0.18),
+              ),
+
+              // Badge compteur (photos / confirmations) bottom-right
+              if (event.photos.length > 1 || event.reportCount > 1)
+                Positioned(
+                  bottom: size * 0.04,
+                  right: size * 0.04,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 0.5),
+                    ),
+                    child: Text(
+                      '×${event.reportCount > 1 ? event.reportCount : event.photos.length}',
+                      style: GoogleFonts.geistMono(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   static Color? _parseHex(String? hex) {
     if (hex == null || hex.isEmpty) return null;
     var s = hex.trim();
@@ -473,10 +584,62 @@ class _TagChip extends StatelessWidget {
   }
 }
 
+/// Point magenta pulsant (opacite 1 <-> 0.4, 1s) — indicateur LIVE pour les
+/// bulles circulaires.
+class _LivePulseDot extends StatefulWidget {
+  final double size;
+  const _LivePulseDot({required this.size});
+
+  @override
+  State<_LivePulseDot> createState() => _LivePulseDotState();
+}
+
+class _LivePulseDotState extends State<_LivePulseDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: Tween(begin: 0.4, end: 1.0).animate(_c),
+      child: Container(
+        width: widget.size,
+        height: widget.size,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF3D8B),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF3D8B).withValues(alpha: 0.8),
+              blurRadius: 6,
+              spreadRadius: 0.5,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ShimmerPlaceholder extends StatefulWidget {
   final double width;
   final double height;
-  const _ShimmerPlaceholder({required this.width, required this.height});
+  final bool circular;
+  const _ShimmerPlaceholder({
+    required this.width,
+    required this.height,
+    this.circular = false,
+  });
 
   @override
   State<_ShimmerPlaceholder> createState() => _ShimmerPlaceholderState();
@@ -504,14 +667,16 @@ class _ShimmerPlaceholderState extends State<_ShimmerPlaceholder>
   @override
   Widget build(BuildContext context) {
     final isUltra = widget.height < 80;
+    final size = widget.width < widget.height ? widget.width : widget.height;
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (context, _) {
         return Container(
-          width: widget.width,
-          height: widget.height,
+          width: widget.circular ? size : widget.width,
+          height: widget.circular ? size : widget.height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            shape: widget.circular ? BoxShape.circle : BoxShape.rectangle,
+            borderRadius: widget.circular ? null : BorderRadius.circular(16),
             gradient: LinearGradient(
               begin: Alignment(-1 + 2 * _ctrl.value, -1),
               end: Alignment(1 + 2 * _ctrl.value, 1),

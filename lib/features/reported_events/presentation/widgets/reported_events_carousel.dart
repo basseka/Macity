@@ -82,23 +82,27 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
         final maxScore = sorted.first.photos.length + sorted.first.reportCount;
 
         return SizedBox(
-          height: 58,
+          height: 74,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             itemCount: sorted.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 6),
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final event = sorted[index];
               final tier = _tierFor(event, maxScore);
+              final bubbleSize = tier == _HeatTier.hot
+                  ? 64.0
+                  : (tier == _HeatTier.warm ? 58.0 : 54.0);
 
               final card = ReportedEventViewTracker(
                 eventId: event.id,
                 child: ReportedEventPosterCard(
                   event: event,
-                  width: tier == _HeatTier.hot ? 92 : (tier == _HeatTier.warm ? 86 : 82),
-                  height: 50,
+                  width: bubbleSize,
+                  height: bubbleSize,
+                  circular: true,
                   onTap: () => showModalBottomSheet(
                     context: context,
                     useRootNavigator: true,
@@ -112,57 +116,73 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                 ),
               );
 
-              if (tier == _HeatTier.normal) return card;
+              if (tier == _HeatTier.normal) return Center(child: card);
 
+              // Ring colore autour de la bulle (hot = anime, warm = fixe).
               if (tier == _HeatTier.hot) {
-                // Hot : bordure violet <-> magenta clignotante + glow neon
-                return AnimatedBuilder(
-                  animation: _blinkAnim,
-                  builder: (context, child) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Color.lerp(
-                            AppColors.violet,
-                            AppColors.magenta,
-                            _blinkAnim.value,
-                          )!,
-                          width: 2.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.magenta
-                                .withValues(alpha: 0.45 * _blinkAnim.value),
-                            blurRadius: 14,
-                            offset: const Offset(0, 3),
+                return Center(
+                  child: AnimatedBuilder(
+                    animation: _blinkAnim,
+                    builder: (context, child) {
+                      return Container(
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color.lerp(
+                                AppColors.violet,
+                                AppColors.magenta,
+                                _blinkAnim.value,
+                              )!,
+                              Color.lerp(
+                                AppColors.magenta,
+                                AppColors.violet,
+                                _blinkAnim.value,
+                              )!,
+                            ],
                           ),
-                        ],
-                      ),
-                      child: child,
-                    );
-                  },
-                  child: card,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.magenta.withValues(
+                                alpha: 0.5 * _blinkAnim.value,
+                              ),
+                              blurRadius: 14,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: card,
+                  ),
                 );
               }
 
-              // Warm : bordure magenta fixe + leger glow
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.magenta.withValues(alpha: 0.55),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.magenta.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+              // Warm : ring magenta fixe
+              return Center(
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.magenta, AppColors.violet],
                     ),
-                  ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.magenta.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: card,
                 ),
-                child: card,
               );
             },
           ),
