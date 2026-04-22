@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,7 +17,7 @@ class FoodVenueCard extends ConsumerWidget {
 
     return Card(
       elevation: 2,
-      shadowColor: Colors.black12,
+      shadowColor: AppColors.line,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -93,12 +94,12 @@ class FoodVenueCard extends ConsumerWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.access_time, size: 14, color: Colors.grey.shade500),
+                  Icon(Icons.access_time, size: 14, color: AppColors.textFaint),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       commerce.horaires,
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 10, color: AppColors.textDim),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -111,12 +112,12 @@ class FoodVenueCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade500),
+                  Icon(Icons.location_on_outlined, size: 14, color: AppColors.textFaint),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       commerce.adresse,
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 10, color: AppColors.textDim),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -168,7 +169,7 @@ class FoodVenueCard extends ConsumerWidget {
                 _buildAction(
                   icon: Icons.share_outlined,
                   label: 'Partager',
-                  color: Colors.grey.shade600,
+                  color: AppColors.textDim,
                   onTap: () {
                     final buffer = StringBuffer();
                     buffer.writeln(commerce.nom);

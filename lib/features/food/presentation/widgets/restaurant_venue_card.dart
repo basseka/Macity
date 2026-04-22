@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
@@ -20,7 +21,7 @@ class RestaurantVenueCard extends ConsumerWidget {
       onTap: () => _openDetail(context),
       child: Card(
         elevation: 2,
-        shadowColor: Colors.black12,
+        shadowColor: AppColors.line,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
@@ -86,7 +87,7 @@ class RestaurantVenueCard extends ConsumerWidget {
                 onTap: () => _share(),
                 child: Icon(
                   Icons.share_outlined,
-                  color: Colors.grey.shade400,
+                  color: AppColors.textFaint,
                   size: 16,
                 ),
               ),
@@ -159,7 +160,7 @@ class RestaurantVenueCard extends ConsumerWidget {
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 11, color: AppColors.textDim),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

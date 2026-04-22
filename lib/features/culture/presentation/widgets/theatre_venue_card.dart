@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -26,7 +27,7 @@ class TheatreVenueCard extends ConsumerWidget {
       onTap: () => _openDetail(context),
       child: Card(
       elevation: 2,
-      shadowColor: Colors.black12,
+      shadowColor: AppColors.line,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),
@@ -128,13 +129,13 @@ class TheatreVenueCard extends ConsumerWidget {
                             : '${events.length} spectacle${events.length > 1 ? 's' : ''} a venir',
                         style: TextStyle(
                           fontSize: 10,
-                          color: events.isEmpty ? Colors.grey.shade400 : modeTheme.primaryColor,
+                          color: events.isEmpty ? AppColors.textFaint : modeTheme.primaryColor,
                           fontWeight: events.isEmpty ? FontWeight.normal : FontWeight.w600,
                         ),
                       ),
                       loading: () => Text(
                         'Chargement...',
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                        style: TextStyle(fontSize: 10, color: AppColors.textFaint),
                       ),
                       error: (_, __) => const SizedBox.shrink(),
                     ),
@@ -159,7 +160,7 @@ class TheatreVenueCard extends ConsumerWidget {
                           onTap: () => _share(),
                           child: Icon(
                             Icons.share_outlined,
-                            color: Colors.grey.shade400,
+                            color: AppColors.textFaint,
                             size: 16,
                           ),
                         ),

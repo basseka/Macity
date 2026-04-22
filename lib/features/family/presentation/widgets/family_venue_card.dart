@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
@@ -17,7 +18,7 @@ class FamilyVenueCard extends ConsumerWidget {
 
     return Card(
       elevation: 2,
-      shadowColor: Colors.black12,
+      shadowColor: AppColors.line,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -92,7 +93,7 @@ class FamilyVenueCard extends ConsumerWidget {
                             Icon(
                               Icons.access_time,
                               size: 14,
-                              color: Colors.grey.shade600,
+                              color: AppColors.textDim,
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -100,7 +101,7 @@ class FamilyVenueCard extends ConsumerWidget {
                                 commerce.horaires,
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.textDim,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -144,7 +145,7 @@ class FamilyVenueCard extends ConsumerWidget {
                 _buildActionButton(
                   icon: Icons.share_outlined,
                   label: 'Partager',
-                  color: Colors.grey.shade600,
+                  color: AppColors.textDim,
                   onTap: () => _share(),
                 ),
               ],
