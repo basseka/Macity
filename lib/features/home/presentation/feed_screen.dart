@@ -392,14 +392,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               TextSpan(
                 text: italicText,
                 style: GoogleFonts.instrumentSerif(
-                  fontSize: 21,
+                  fontSize: 12,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w400,
-                  height: 1.15,
-                  letterSpacing: -0.3,
+                  height: 1.25,
+                  letterSpacing: -0.2,
                   foreground: Paint()
                     ..shader = AppGradients.editorial.createShader(
-                      const Rect.fromLTWH(0, 0, 300, 32),
+                      const Rect.fromLTWH(0, 0, 260, 28),
                     ),
                 ),
               ),
