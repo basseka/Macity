@@ -27,7 +27,7 @@ class MapLivePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mapHeight = MediaQuery.of(context).size.height * 0.42;
+    final mapHeight = MediaQuery.of(context).size.height * 0.52;
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
