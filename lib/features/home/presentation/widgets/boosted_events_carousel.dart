@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
 import 'package:pulz_app/features/admin/presentation/widgets/admin_pin_gesture.dart';
@@ -33,8 +34,12 @@ class BoostedEventsCarousel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
-          child: _ShimmerTitle(),
+          padding: EdgeInsets.fromLTRB(16, 10, 16, 8),
+          child: _SectionTitle(
+            prefix: 'A la',
+            accent: 'une',
+            icon: Icons.star,
+          ),
         ),
         SizedBox(
           height: 160,
@@ -82,18 +87,9 @@ class _BoostedCard extends StatelessWidget {
       child: Container(
         width: 230,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFFFF6B00).withValues(alpha: 0.4),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFFF6B00).withValues(alpha: 0.15),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.line),
+          boxShadow: AppShadows.card,
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -104,63 +100,52 @@ class _BoostedCard extends StatelessWidget {
               CachedNetworkImage(
                 imageUrl: event.resolvedPhoto!,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF1A0A2E), Color(0xFF2D1B4E)],
-                    ),
-                  ),
-                ),
+                placeholder: (_, __) => _gradientBg(),
                 errorWidget: (_, __, ___) => _gradientBg(),
               )
             else
               _gradientBg(),
 
-            // Gradient overlay
+            // Bottom shade (AppColors.bg transparent -> opaque)
             Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.85),
-                  ],
-                  stops: const [0.3, 1.0],
-                ),
-              ),
+              decoration: const BoxDecoration(gradient: AppGradients.cardShade),
             ),
 
-            // Badge BOOST / EPINGLE ADMIN
+            // Badge EPINGLE (admin) / A LA UNE
             Positioned(
-              top: 8,
-              left: 8,
+              top: 10,
+              left: 10,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: event.priority == 'ADMIN'
-                        ? const [Color(0xFFFFD700), Color(0xFFFF8C00)]
-                        : const [Color(0xFFFF6B00), Color(0xFFE91E8C)],
+                  gradient: event.priority == 'ADMIN'
+                      ? AppGradients.editorial
+                      : AppGradients.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.chip),
+                  boxShadow: AppShadows.neon(
+                    event.priority == 'ADMIN'
+                        ? const Color(0xFFFBBF24)
+                        : AppColors.magenta,
+                    blur: 10,
+                    y: 4,
                   ),
-                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      event.priority == 'ADMIN' ? Icons.push_pin : Icons.rocket_launch,
+                      event.priority == 'ADMIN' ? Icons.push_pin : Icons.star,
                       size: 10,
                       color: Colors.white,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      event.priority == 'ADMIN' ? 'EPINGLE' : 'SPONSORISE',
-                      style: GoogleFonts.poppins(
-                        fontSize: 7,
-                        fontWeight: FontWeight.w800,
+                      event.priority == 'ADMIN' ? 'EPINGLE' : 'A LA UNE',
+                      style: GoogleFonts.geistMono(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
-                        letterSpacing: 0.5,
+                        letterSpacing: 1.2,
                       ),
                     ),
                   ],
@@ -178,36 +163,41 @@ class _BoostedCard extends StatelessWidget {
                 children: [
                   Text(
                     event.titre,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.geist(
                       fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                       height: 1.2,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 10, color: Colors.white.withValues(alpha: 0.7)),
+                      const Icon(Icons.calendar_today, size: 9, color: AppColors.textDim),
                       const SizedBox(width: 4),
                       Text(
-                        dateLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: Colors.white.withValues(alpha: 0.7),
+                        dateLabel.toUpperCase(),
+                        style: GoogleFonts.geistMono(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 1.2,
+                          color: AppColors.textDim,
                         ),
                       ),
                       if (event.heure.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        Icon(Icons.access_time, size: 10, color: Colors.white.withValues(alpha: 0.7)),
+                        const Icon(Icons.access_time, size: 9, color: AppColors.textDim),
                         const SizedBox(width: 4),
                         Text(
                           event.heure,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: Colors.white.withValues(alpha: 0.7),
+                          style: GoogleFonts.geistMono(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1.2,
+                            color: AppColors.textDim,
                           ),
                         ),
                       ],
@@ -217,14 +207,14 @@ class _BoostedCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 10, color: Colors.white.withValues(alpha: 0.7)),
+                        const Icon(Icons.location_on, size: 9, color: AppColors.textFaint),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             event.lieuNom,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.geist(
                               fontSize: 10,
-                              color: Colors.white.withValues(alpha: 0.7),
+                              color: AppColors.textFaint,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -249,7 +239,7 @@ class _BoostedCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1A0A2E), Color(0xFF4A1259)],
+          colors: [AppColors.surface, AppColors.surfaceHi],
         ),
       ),
     );
@@ -259,8 +249,6 @@ class _BoostedCard extends StatelessWidget {
 /// Carrousel horizontal des events boostés P2 — "Au top".
 class BoostedP2Carousel extends ConsumerWidget {
   const BoostedP2Carousel({super.key});
-
-  static const _accentColor = Color(0xFFE91E8C);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -273,8 +261,12 @@ class BoostedP2Carousel extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
-              child: _ShimmerTitleAuTop(),
+              padding: EdgeInsets.fromLTRB(16, 10, 16, 8),
+              child: _SectionTitle(
+                prefix: 'Au',
+                accent: 'top',
+                icon: Icons.trending_up,
+              ),
             ),
             SizedBox(
               height: 100,
@@ -329,11 +321,9 @@ class _P2Card extends StatelessWidget {
         width: 220,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFE91E8C).withValues(alpha: 0.25),
-          ),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.line),
         ),
         child: Row(
           children: [
@@ -341,23 +331,23 @@ class _P2Card extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                width: 80,
-                height: 80,
-                child: hasPhoto
-                    ? CachedNetworkImage(
-                        imageUrl: event.resolvedPhoto!,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: const Color(0xFF2D1B4E)),
-                        errorWidget: (_, __, ___) => Container(color: const Color(0xFF2D1B4E)),
-                      )
-                    : Container(
-                        color: const Color(0xFF2D1B4E),
-                        child: const Icon(Icons.event, color: Colors.white24, size: 28),
-                      ),
-              ),
-            ),
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: hasPhoto
+                        ? CachedNetworkImage(
+                            imageUrl: event.resolvedPhoto!,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(color: AppColors.surfaceHi),
+                            errorWidget: (_, __, ___) => Container(color: AppColors.surfaceHi),
+                          )
+                        : Container(
+                            color: AppColors.surfaceHi,
+                            child: const Icon(Icons.event, color: AppColors.textFaint, size: 28),
+                          ),
+                  ),
+                ),
                 if (event.priority == 'ADMIN')
                   Positioned(
                     top: 4,
@@ -365,10 +355,13 @@ class _P2Card extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
-                        ),
+                        gradient: AppGradients.editorial,
                         borderRadius: BorderRadius.circular(6),
+                        boxShadow: AppShadows.neon(
+                          const Color(0xFFFBBF24),
+                          blur: 8,
+                          y: 2,
+                        ),
                       ),
                       child: const Icon(Icons.push_pin, size: 10, color: Colors.white),
                     ),
@@ -384,11 +377,12 @@ class _P2Card extends StatelessWidget {
                 children: [
                   Text(
                     event.titre,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                    style: GoogleFonts.geist(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
                       height: 1.2,
+                      letterSpacing: -0.15,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -396,13 +390,15 @@ class _P2Card extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 9, color: Colors.white.withValues(alpha: 0.5)),
+                      const Icon(Icons.calendar_today, size: 9, color: AppColors.textFaint),
                       const SizedBox(width: 3),
                       Text(
-                        dateLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 9,
-                          color: Colors.white.withValues(alpha: 0.5),
+                        dateLabel.toUpperCase(),
+                        style: GoogleFonts.geistMono(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 1.2,
+                          color: AppColors.textFaint,
                         ),
                       ),
                     ],
@@ -411,14 +407,14 @@ class _P2Card extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 9, color: Colors.white.withValues(alpha: 0.5)),
+                        const Icon(Icons.location_on, size: 9, color: AppColors.textFaint),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
                             event.lieuNom,
-                            style: GoogleFonts.poppins(
-                              fontSize: 9,
-                              color: Colors.white.withValues(alpha: 0.5),
+                            style: GoogleFonts.geist(
+                              fontSize: 9.5,
+                              color: AppColors.textFaint,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -438,134 +434,50 @@ class _P2Card extends StatelessWidget {
   }
 }
 
-/// Titre "A la une" avec effet shimmer/scintillement dore.
-class _ShimmerTitle extends StatefulWidget {
-  const _ShimmerTitle();
-
-  @override
-  State<_ShimmerTitle> createState() => _ShimmerTitleState();
-}
-
-class _ShimmerTitleState extends State<_ShimmerTitle>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
+/// Titre de section : "{prefix} {accent}" ou l'accent est en Instrument
+/// Serif italique + gradient editorial (magenta -> amber).
+class _SectionTitle extends StatelessWidget {
+  final String prefix;
+  final String accent;
+  final IconData icon;
+  const _SectionTitle({
+    required this.prefix,
+    required this.accent,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, child) {
-        return ShaderMask(
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment(-1.0 + 3.0 * _ctrl.value, 0),
-              end: Alignment(-0.5 + 3.0 * _ctrl.value, 0),
-              colors: const [
-                Colors.white,
-                Color(0xFFFFD700),
-                Colors.white,
-              ],
-            ).createShader(bounds);
-          },
-          blendMode: BlendMode.srcIn,
-          child: child!,
-        );
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.rocket_launch, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            'A la une',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 15, color: AppColors.magenta),
+        const SizedBox(width: 7),
+        Text(
+          prefix,
+          style: GoogleFonts.geist(
+            fontSize: 19,
+            fontWeight: FontWeight.w500,
+            letterSpacing: -0.4,
+            color: AppColors.text,
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Titre "Au top" avec effet shimmer rose/blanc.
-class _ShimmerTitleAuTop extends StatefulWidget {
-  const _ShimmerTitleAuTop();
-
-  @override
-  State<_ShimmerTitleAuTop> createState() => _ShimmerTitleAuTopState();
-}
-
-class _ShimmerTitleAuTopState extends State<_ShimmerTitleAuTop>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, child) {
-        return ShaderMask(
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment(-1.0 + 3.0 * _ctrl.value, 0),
-              end: Alignment(-0.5 + 3.0 * _ctrl.value, 0),
-              colors: const [
-                Colors.white,
-                Color(0xFFE91E8C),
-                Colors.white,
-              ],
-            ).createShader(bounds);
-          },
-          blendMode: BlendMode.srcIn,
-          child: child!,
-        );
-      },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.trending_up, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            'Au top',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          accent,
+          style: GoogleFonts.instrumentSerif(
+            fontSize: 22,
+            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.w400,
+            letterSpacing: -0.3,
+            foreground: Paint()
+              ..shader = AppGradients.editorial.createShader(
+                const Rect.fromLTWH(0, 0, 100, 28),
+              ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
