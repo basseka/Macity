@@ -799,33 +799,38 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     required VoidCallback onTap,
     bool isSubFilter = false,
   }) {
-    // La zone de tap couvre toute la hauteur du SizedBox parent + la marge
-    // droite entre chips. HitTestBehavior.opaque garantit qu'un tap sur
-    // une zone transparente (entre pilule et bord) declenche bien onTap.
+    // Zone de tap etendue : HitTestBehavior.opaque + Padding right capte les
+    // taps dans l'espace entre chips.
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.only(right: 6),
         child: Center(
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
             padding: EdgeInsets.symmetric(
-              horizontal: isSubFilter ? 10 : 12,
+              horizontal: isSubFilter ? 12 : 14,
               vertical: isSubFilter ? 6 : 7,
             ),
             decoration: BoxDecoration(
-              color: selected ? _accentColor : Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(16),
+              gradient: selected ? AppGradients.primary : null,
+              color: selected ? null : AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.chip),
               border: Border.all(
-                color: selected ? _accentColor : Colors.white.withValues(alpha: 0.15),
+                color: selected ? Colors.transparent : AppColors.line,
               ),
+              boxShadow: selected
+                  ? AppShadows.neon(AppColors.magenta, blur: 14, y: 5)
+                  : null,
             ),
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: isSubFilter ? 10 : 11,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                color: selected ? Colors.white : Colors.white60,
+              style: GoogleFonts.geist(
+                fontSize: isSubFilter ? 10.5 : 11.5,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                letterSpacing: -0.1,
+                color: selected ? Colors.white : AppColors.textDim,
               ),
             ),
           ),
