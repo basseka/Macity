@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
@@ -145,17 +147,18 @@ class MatchRowCard extends ConsumerWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 2),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [const Color(0xFF1A1A2E), const Color(0xFF16213E)],
+            colors: [AppColors.surface, AppColors.surfaceHi],
           ),
+          border: Border.all(color: AppColors.line),
           boxShadow: [
             BoxShadow(
-              color: modeTheme.primaryColor.withValues(alpha: 0.15),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: modeTheme.primaryColor.withValues(alpha: 0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -163,39 +166,66 @@ class MatchRowCard extends ConsumerWidget {
           children: [
             // Header : competition + countdown
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: modeTheme.primaryColor.withValues(alpha: 0.1),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                color: modeTheme.primaryColor.withValues(alpha: 0.15),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
               ),
               child: Row(
                 children: [
                   if (match.competition.isNotEmpty)
                     Expanded(
                       child: Text(
-                        match.competition,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: modeTheme.primaryColor),
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        match.competition.toUpperCase(),
+                        style: GoogleFonts.geistMono(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                          color: modeTheme.primaryColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   if (countdownLabel.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(
-                        color: daysLeft == 0 ? const Color(0xFFE91E8C) : modeTheme.primaryColor,
-                        borderRadius: BorderRadius.circular(8),
+                        gradient: daysLeft == 0 ? AppGradients.primary : null,
+                        color: daysLeft == 0 ? null : modeTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        boxShadow: daysLeft == 0
+                            ? AppShadows.neon(AppColors.magenta, blur: 8, y: 2)
+                            : null,
                       ),
                       child: Text(
                         countdownLabel,
-                        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5),
+                        style: GoogleFonts.geistMono(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   if (match.gratuit.toLowerCase() == 'oui') ...[
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)),
-                      child: const Text('GRATUIT', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.white)),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        gradient: AppGradients.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        boxShadow: AppShadows.neon(AppColors.magenta, blur: 6, y: 1),
+                      ),
+                      child: Text(
+                        'GRATUIT',
+                        style: GoogleFonts.geistMono(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ],
@@ -215,7 +245,12 @@ class MatchRowCard extends ConsumerWidget {
                         const SizedBox(height: 6),
                         Text(
                           match.equipe1,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                          style: GoogleFonts.geist(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.1,
+                            color: AppColors.text,
+                          ),
                           textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -237,11 +272,27 @@ class MatchRowCard extends ConsumerWidget {
                               ),
                             ),
                             alignment: Alignment.center,
-                            child: const Text('VS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
+                            child: Text(
+                              'VS',
+                              style: GoogleFonts.geistMono(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 4),
                           if (match.heure.isNotEmpty)
-                            Text(match.heure, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: modeTheme.primaryColor)),
+                            Text(
+                              match.heure,
+                              style: GoogleFonts.geistMono(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                                color: modeTheme.primaryColor,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -267,37 +318,69 @@ class MatchRowCard extends ConsumerWidget {
 
             // Footer : date + lieu + billetterie
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.03),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: const BoxDecoration(
+                color: Color(0x08FFFFFF),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(AppRadius.card)),
               ),
               child: Row(
                 children: [
                   if (match.date.isNotEmpty) ...[
-                    Icon(Icons.calendar_today, size: 11, color: Colors.white38),
+                    const Icon(Icons.calendar_today, size: 10, color: AppColors.textFaint),
                     const SizedBox(width: 4),
-                    Text(_formatDate(match.date), style: const TextStyle(fontSize: 10, color: Colors.white38)),
+                    Text(
+                      _formatDate(match.date).toUpperCase(),
+                      style: GoogleFonts.geistMono(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 1.0,
+                        color: AppColors.textFaint,
+                      ),
+                    ),
                   ],
                   if (match.lieu.isNotEmpty) ...[
                     const SizedBox(width: 10),
-                    Icon(Icons.location_on, size: 11, color: Colors.white38),
+                    const Icon(Icons.location_on, size: 10, color: AppColors.textFaint),
                     const SizedBox(width: 3),
-                    Expanded(child: Text(match.lieu, style: const TextStyle(fontSize: 10, color: Colors.white38), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    Expanded(
+                      child: Text(
+                        match.lieu,
+                        style: GoogleFonts.geist(
+                          fontSize: 10,
+                          color: AppColors.textFaint,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                   if (match.billetterie.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(
-                        color: modeTheme.primaryColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        color: modeTheme.primaryColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        border: Border.all(
+                          color: modeTheme.primaryColor.withValues(alpha: 0.35),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.confirmation_number_outlined, size: 10, color: modeTheme.primaryColor),
+                          Icon(
+                            Icons.confirmation_number_outlined,
+                            size: 10,
+                            color: modeTheme.primaryColor,
+                          ),
                           const SizedBox(width: 3),
-                          Text('Billets', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: modeTheme.primaryColor)),
+                          Text(
+                            'Billets',
+                            style: GoogleFonts.geist(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w600,
+                              color: modeTheme.primaryColor,
+                            ),
+                          ),
                         ],
                       ),
                     ),

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -134,11 +136,12 @@ class EventRowCard extends ConsumerWidget {
     return GestureDetector(
       onTap: () => _openDetail(context),
       child: Card(
-        elevation: 1.5,
-        shadowColor: Colors.black.withValues(alpha: 0.10),
+        elevation: 0,
+        color: AppColors.surface,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          side: const BorderSide(color: AppColors.line),
         ),
         clipBehavior: Clip.antiAlias,
         child: IntrinsicHeight(
@@ -160,24 +163,25 @@ class EventRowCard extends ConsumerWidget {
                     // Badge GRATUIT
                     if (event.isFree)
                       Positioned(
-                        top: 6,
-                        left: 6,
+                        top: 4,
+                        left: 4,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 1.5,
+                            horizontal: 6,
+                            vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE91E8C),
-                            borderRadius: BorderRadius.circular(4),
+                            gradient: AppGradients.primary,
+                            borderRadius: BorderRadius.circular(AppRadius.chip),
+                            boxShadow: AppShadows.neon(AppColors.magenta, blur: 6, y: 1),
                           ),
-                          child: const Text(
+                          child: Text(
                             'GRATUIT',
-                            style: TextStyle(
+                            style: GoogleFonts.geistMono(
                               color: Colors.white,
                               fontSize: 7,
                               fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
+                              letterSpacing: 1.0,
                             ),
                           ),
                         ),
@@ -200,16 +204,17 @@ class EventRowCard extends ConsumerWidget {
                         event.categorie.toLowerCase().contains('opera')
                             ? event.titre.toUpperCase()
                             : event.titre,
-                        style: TextStyle(
-                          fontSize: 10,
+                        style: GoogleFonts.geist(
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: modeTheme.primaryDarkColor,
+                          color: AppColors.text,
                           height: 1.2,
+                          letterSpacing: -0.15,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
 
                       // Date + lieu
                       if (dateLabel.isNotEmpty || event.lieuNom.isNotEmpty)
@@ -217,18 +222,20 @@ class EventRowCard extends ConsumerWidget {
                           children: [
                             if (dateLabel.isNotEmpty) ...[
                               Text(
-                                dateLabel,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: Colors.grey.shade600,
+                                dateLabel.toUpperCase(),
+                                style: GoogleFonts.geistMono(
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 1.0,
+                                  color: AppColors.textDim,
                                 ),
                               ),
                               if (event.lieuNom.isNotEmpty)
                                 Text(
                                   '  ·  ',
-                                  style: TextStyle(
+                                  style: GoogleFonts.geist(
                                     fontSize: 9,
-                                    color: Colors.grey.shade400,
+                                    color: AppColors.textFaint,
                                   ),
                                 ),
                             ],
@@ -236,9 +243,9 @@ class EventRowCard extends ConsumerWidget {
                               Flexible(
                                 child: Text(
                                   event.lieuNom,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: Colors.grey.shade600,
+                                  style: GoogleFonts.geist(
+                                    fontSize: 9.5,
+                                    color: AppColors.textFaint,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -247,7 +254,7 @@ class EventRowCard extends ConsumerWidget {
                           ],
                         ),
 
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
 
                       // Like + Share
                       Row(
@@ -269,18 +276,18 @@ class EventRowCard extends ConsumerWidget {
                                   ? Icons.favorite
                                   : Icons.favorite_border,
                               color: isLiked
-                                  ? Colors.red
-                                  : Colors.grey.shade400,
-                              size: 14,
+                                  ? AppColors.magenta
+                                  : AppColors.textFaint,
+                              size: 15,
                             ),
                           ),
                           const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => _shareEvent(),
-                            child: Icon(
+                            child: const Icon(
                               Icons.share_outlined,
-                              color: Colors.grey.shade400,
-                              size: 13,
+                              color: AppColors.textFaint,
+                              size: 14,
                             ),
                           ),
                         ],

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/domain/models/app_category.dart';
 import 'package:pulz_app/core/state/categories_provider.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
@@ -212,21 +213,16 @@ class _AvenirBanner extends ConsumerWidget {
       child: Container(
         height: 96,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           gradient: gradient,
-          boxShadow: [
-            BoxShadow(
-              color: gradient.colors.first.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: AppColors.line),
+          boxShadow: AppShadows.card,
         ),
         child: Stack(
           children: [
             Positioned.fill(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.card),
                 child: Image.asset(
                   'assets/images/pochette_default.jpg',
                   fit: BoxFit.cover,
@@ -236,50 +232,86 @@ class _AvenirBanner extends ConsumerWidget {
               ),
             ),
             Positioned.fill(
-              child: Container(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.black.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.bg.withValues(alpha: 0.55),
+                      AppColors.bg.withValues(alpha: 0.8),
+                    ],
+                  ),
                 ),
               ),
             ),
             Positioned(
-              top: 8,
-              right: 8,
+              top: 10,
+              right: 10,
               child: Container(
-                padding: const EdgeInsets.all(3),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.85),
+                  gradient: AppGradients.editorial,
                   shape: BoxShape.circle,
+                  boxShadow: AppShadows.neon(
+                    const Color(0xFFFBBF24),
+                    blur: 8,
+                    y: 2,
+                  ),
                 ),
-                child: const Icon(Icons.bolt, size: 10, color: Colors.white),
+                child: const Icon(Icons.bolt, size: 11, color: Colors.white),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+                  const Icon(Icons.auto_awesome, color: AppColors.magenta, size: 26),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'A venir',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'A ',
+                                style: GoogleFonts.geist(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: -0.4,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'venir',
+                                style: GoogleFonts.instrumentSerif(
+                                  fontSize: 22,
+                                  fontStyle: FontStyle.italic,
+                                  letterSpacing: -0.3,
+                                  foreground: Paint()
+                                    ..shader = AppGradients.editorial.createShader(
+                                      const Rect.fromLTWH(0, 0, 100, 28),
+                                    ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         if (subtitle != null)
-                          Text(
-                            subtitle!,
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.8),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              subtitle!.toUpperCase(),
+                              style: GoogleFonts.geistMono(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 1.4,
+                                color: Colors.white.withValues(alpha: 0.75),
+                              ),
                             ),
                           ),
                       ],
@@ -287,22 +319,27 @@ class _AvenirBanner extends ConsumerWidget {
                   ),
                   if (count != null && count > 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(12),
+                        gradient: AppGradients.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        boxShadow: AppShadows.neon(AppColors.magenta, blur: 10, y: 3),
                       ),
                       child: Text(
                         '$count',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
+                        style: GoogleFonts.geistMono(
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
                     ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, color: Colors.white70, size: 24),
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    size: 22,
+                  ),
                 ],
               ),
             ),
@@ -320,11 +357,12 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      title,
-      style: GoogleFonts.poppins(
-        fontSize: 12,
+      title.toUpperCase(),
+      style: GoogleFonts.geistMono(
+        fontSize: 10,
         fontWeight: FontWeight.w500,
-        color: Colors.grey.shade700,
+        letterSpacing: 1.6,
+        color: AppColors.textFaint,
       ),
     );
   }

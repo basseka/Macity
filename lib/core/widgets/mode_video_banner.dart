@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/core/constants/video_constants.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 
 class ModeVideoBanner extends ConsumerStatefulWidget {
@@ -76,10 +77,14 @@ class _ModeVideoBannerState extends ConsumerState<ModeVideoBanner> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
+            borderRadius: BorderRadius.circular(AppRadius.hero),
+            child: Container(
               height: 120,
               width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.hero),
+                border: Border.all(color: AppColors.line),
+              ),
               child: isReady
                   ? FittedBox(
                       fit: BoxFit.cover,
