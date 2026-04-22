@@ -48,8 +48,10 @@ import 'package:pulz_app/core/widgets/animated_ad_banner.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
+import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 
 final _foodScrapedProvider = FutureProvider.family<List<Event>, String>((ref, city) async {
   final now = DateTime.now();
@@ -1818,13 +1820,30 @@ class _StaggeredFeedTile extends StatelessWidget {
 }
 
 /// Pill compact "MAP LIVE" a cote du greeting -> ouvre la page MapLivePage.
-/// Icone map + pulse dot + label "MAP LIVE" rouge.
-class _MapLivePill extends StatelessWidget {
+/// Icone map + pulse dot + label "MAP LIVE" rouge + badge count live.
+class _MapLivePill extends ConsumerWidget {
   final VoidCallback onTap;
   const _MapLivePill({required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventsAsync = ref.watch(reportedEventsFeedProvider);
+    final city = ref.watch(selectedCityProvider);
+    final bbox = CityCenters.boundingBox(city);
+    final count = eventsAsync.maybeWhen(
+      data: (all) {
+        if (bbox == null) return all.length;
+        return all
+            .where((e) =>
+                e.lat >= bbox.minLat &&
+                e.lat <= bbox.maxLat &&
+                e.lng >= bbox.minLng &&
+                e.lng <= bbox.maxLng)
+            .length;
+      },
+      orElse: () => 0,
+    );
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1849,6 +1868,25 @@ class _MapLivePill extends StatelessWidget {
                 color: AppColors.magenta,
               ),
             ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.chip),
+                  boxShadow: AppShadows.neon(AppColors.magenta, blur: 6, y: 1),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.geistMono(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
