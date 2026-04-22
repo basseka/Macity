@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
+import 'package:pulz_app/core/widgets/branded/gradient_pill_button.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
@@ -52,7 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (!didPop) SystemNavigator.pop();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F0FA),
+        backgroundColor: AppColors.bg,
         bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
         body: SafeArea(
           bottom: false,
@@ -95,10 +97,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
                   return Text(
                     prenom.isNotEmpty ? prenom : 'MaCity',
-                    style: GoogleFonts.poppins(
-                      fontSize: 8,
+                    style: GoogleFonts.geist(
+                      fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF4A1259),
+                      color: AppColors.textFaint,
                     ),
                   );
                 }),
@@ -121,25 +123,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: GestureDetector(
                   onTap: () => _openSearch(context),
                   child: Container(
-                    height: 36,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.grey.shade300, width: 1),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppRadius.input),
+                      border: Border.all(color: AppColors.line),
                     ),
                     child: Row(
                       children: [
                         const SizedBox(width: 14),
                         const Icon(
                           Icons.search,
-                          color: Color(0xFF7B2D8E),
+                          color: AppColors.magenta,
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -147,9 +142,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: Text(
                             'Rechercher un evenement, un lieu...',
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.grey.shade400,
+                            style: GoogleFonts.geist(
+                              fontSize: 13,
+                              color: AppColors.textFaint,
                             ),
                           ),
                         ),
@@ -207,46 +202,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Expanded(
                     child: _buildSectionHeader('Ca bouge pres de toi', Icons.flag_outlined),
                   ),
-                  Material(
-                    color: const Color(0xFF7B2D8E),
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      onTap: _openVideoReport,
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        height: 28,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Live Notif',
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDC2626),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.5),
-                                    blurRadius: 6,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  GradientPillButton(
+                    label: 'Live Notif',
+                    onPressed: _openVideoReport,
                   ),
                 ],
               ),
@@ -269,14 +227,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF7B2D8E)),
-        const SizedBox(width: 6),
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: AppColors.line),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 12, color: AppColors.magenta),
+        ),
+        const SizedBox(width: 8),
         Text(
           title,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF4A1259),
+          style: GoogleFonts.geist(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.2,
+            color: AppColors.text,
           ),
         ),
       ],
@@ -300,12 +269,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final bgImage = _modeBackgroundImages[mode.name];
 
     return Material(
-      borderRadius: BorderRadius.circular(16),
-      elevation: 3,
-      shadowColor: theme.primaryColor.withValues(alpha: 0.3),
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      elevation: 0,
+      color: AppColors.surface,
       clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        side: const BorderSide(color: AppColors.line),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         onTap: () {
           ref.read(currentModeProvider.notifier).setMode(mode.name);
           context.go(mode.routePath);
@@ -331,17 +304,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
 
             // Gradient overlay (bottom-heavy for text readability)
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.1),
-                    Colors.black.withValues(alpha: 0.65),
-                  ],
-                ),
-              ),
+            const DecoratedBox(
+              decoration: BoxDecoration(gradient: AppGradients.cardShade),
+              child: SizedBox.expand(),
             ),
 
             // Text bottom-left
@@ -355,23 +320,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   Text(
                     mode.shortLabel,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                    style: GoogleFonts.geist(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
                       color: Colors.white,
-                      shadows: [const Shadow(blurRadius: 6, color: Colors.black54)],
+                      shadows: const [Shadow(blurRadius: 6, color: Colors.black54)],
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     mode.subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 9,
+                    style: GoogleFonts.geist(
+                      fontSize: 10,
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withValues(alpha: 0.85),
-                      shadows: [const Shadow(blurRadius: 4, color: Colors.black54)],
+                      shadows: const [Shadow(blurRadius: 4, color: Colors.black54)],
                     ),
                   ),
                 ],
@@ -436,8 +402,9 @@ class HomeScreenSheet extends ConsumerWidget {
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: const BoxDecoration(
-        color: Color(0xFFF8F0FA),
+        color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(top: BorderSide(color: AppColors.line)),
       ),
       child: Column(
         children: [
@@ -446,20 +413,21 @@ class HomeScreenSheet extends ConsumerWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: AppColors.lineStrong,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             'Explorer',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
+            style: GoogleFonts.geist(
+              fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF4A1259),
+              letterSpacing: -0.3,
+              color: AppColors.text,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -488,14 +456,25 @@ class HomeScreenSheet extends ConsumerWidget {
   Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF7B2D8E)),
-        const SizedBox(width: 6),
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: AppColors.line),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 12, color: AppColors.magenta),
+        ),
+        const SizedBox(width: 8),
         Text(
           title,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF4A1259),
+          style: GoogleFonts.geist(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.2,
+            color: AppColors.text,
           ),
         ),
       ],
@@ -519,12 +498,16 @@ class HomeScreenSheet extends ConsumerWidget {
     final bgImage = _modeBackgroundImages[mode.name];
 
     return Material(
-      borderRadius: BorderRadius.circular(16),
-      elevation: 3,
-      shadowColor: theme.primaryColor.withValues(alpha: 0.3),
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      elevation: 0,
+      color: AppColors.surface,
       clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        side: const BorderSide(color: AppColors.line),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         onTap: () {
           Navigator.pop(context);
           ref.read(currentModeProvider.notifier).setMode(mode.name);
@@ -548,17 +531,9 @@ class HomeScreenSheet extends ConsumerWidget {
                   ),
                 ),
               ),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.1),
-                    Colors.black.withValues(alpha: 0.65),
-                  ],
-                ),
-              ),
+            const DecoratedBox(
+              decoration: BoxDecoration(gradient: AppGradients.cardShade),
+              child: SizedBox.expand(),
             ),
             Positioned(
               left: 12,
@@ -570,23 +545,24 @@ class HomeScreenSheet extends ConsumerWidget {
                 children: [
                   Text(
                     mode.shortLabel,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                    style: GoogleFonts.geist(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
                       color: Colors.white,
-                      shadows: [const Shadow(blurRadius: 6, color: Colors.black54)],
+                      shadows: const [Shadow(blurRadius: 6, color: Colors.black54)],
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     mode.subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      fontSize: 9,
+                    style: GoogleFonts.geist(
+                      fontSize: 10,
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withValues(alpha: 0.85),
-                      shadows: [const Shadow(blurRadius: 4, color: Colors.black54)],
+                      shadows: const [Shadow(blurRadius: 4, color: Colors.black54)],
                     ),
                   ),
                 ],
