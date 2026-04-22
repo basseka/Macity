@@ -295,8 +295,9 @@ class _DatePickerField extends StatelessWidget {
         return Container(
           height: 320 + bottomPadding,
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(top: BorderSide(color: AppColors.line)),
           ),
           child: Column(
             children: [
@@ -307,27 +308,39 @@ class _DatePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
-                    const Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                    const Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
                         onPicked(selected);
                       },
-                      child: const Text('OK', style: TextStyle(color: _primaryColor, fontSize: 14, fontWeight: FontWeight.w600)),
+                      child: const Text('OK', style: TextStyle(color: AppColors.magenta, fontSize: 14, fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              const Divider(height: 1, color: AppColors.line),
               Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date,
-                  initialDateTime: selected,
-                  minimumDate: today,
-                  maximumDate: today.add(const Duration(days: 365)),
-                  onDateTimeChanged: (dt) => selected = dt,
+                child: CupertinoTheme(
+                  data: const CupertinoThemeData(
+                    brightness: Brightness.dark,
+                    primaryColor: AppColors.magenta,
+                    textTheme: CupertinoTextThemeData(
+                      dateTimePickerTextStyle: TextStyle(
+                        fontSize: 20,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ),
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date,
+                    initialDateTime: selected,
+                    minimumDate: today,
+                    maximumDate: today.add(const Duration(days: 365)),
+                    onDateTimeChanged: (dt) => selected = dt,
+                  ),
                 ),
               ),
               SizedBox(height: bottomPadding),
@@ -405,8 +418,9 @@ class _TimePickerField extends StatelessWidget {
         return Container(
           height: 320 + bottomPadding,
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(top: BorderSide(color: AppColors.line)),
           ),
           child: Column(
             children: [
@@ -417,27 +431,39 @@ class _TimePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
-                    const Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                    const Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
                         onPicked(TimeOfDay(hour: selected.hour, minute: selected.minute));
                       },
-                      child: const Text('OK', style: TextStyle(color: _primaryColor, fontSize: 14, fontWeight: FontWeight.w600)),
+                      child: const Text('OK', style: TextStyle(color: AppColors.magenta, fontSize: 14, fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              const Divider(height: 1, color: AppColors.line),
               Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.time,
-                  initialDateTime: selected,
-                  use24hFormat: true,
-                  minuteInterval: 5,
-                  onDateTimeChanged: (dt) => selected = dt,
+                child: CupertinoTheme(
+                  data: const CupertinoThemeData(
+                    brightness: Brightness.dark,
+                    primaryColor: AppColors.magenta,
+                    textTheme: CupertinoTextThemeData(
+                      dateTimePickerTextStyle: TextStyle(
+                        fontSize: 22,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ),
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    initialDateTime: selected,
+                    use24hFormat: true,
+                    minuteInterval: 5,
+                    onDateTimeChanged: (dt) => selected = dt,
+                  ),
                 ),
               ),
               SizedBox(height: bottomPadding),
