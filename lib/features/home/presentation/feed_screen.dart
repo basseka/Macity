@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/branded/gradient_pill_button.dart';
@@ -1223,6 +1224,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         videoUrl: e.videoUrl,
         badge: e.isFree ? 'GRATUIT' : '',
         tag: e.categorie,
+        timeLabel: e.horaires.toUpperCase().trim(),
         onTap: () => EventFullscreenPopup.showPaged(
           context,
           events: flatEvents,
@@ -1254,18 +1256,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-                childAspectRatio: 0.75,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => _FeedTile(item: dayGroups[day]![index]),
-                childCount: dayGroups[day]!.length,
-              ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            sliver: SliverMasonryGrid.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childCount: dayGroups[day]!.length,
+              itemBuilder: (context, index) =>
+                  _StaggeredFeedTile(item: dayGroups[day]![index], index: index),
             ),
           ),
         ],
@@ -1312,6 +1310,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         videoUrl: e.videoUrl,
         badge: e.isFree ? 'GRATUIT' : '',
         tag: e.categorie,
+        timeLabel: e.horaires.toUpperCase().trim(),
         onTap: () => EventFullscreenPopup.showPaged(
           context,
           events: flatEvents,
@@ -1429,22 +1428,36 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               ),
             ),
-            SliverPadding(
-              key: ValueKey('grid_$day'),
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 2,
-                  crossAxisSpacing: 2,
-                  childAspectRatio: 0.75,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _FeedTile(item: dayGroups[day]![index]),
+            if (_activeTab != null)
+              SliverPadding(
+                key: ValueKey('masonry_$day'),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                sliver: SliverMasonryGrid.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
                   childCount: dayGroups[day]!.length,
+                  itemBuilder: (context, index) =>
+                      _StaggeredFeedTile(item: dayGroups[day]![index], index: index),
+                ),
+              )
+            else
+              SliverPadding(
+                key: ValueKey('grid_$day'),
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 2,
+                    crossAxisSpacing: 2,
+                    childAspectRatio: 0.75,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _FeedTile(item: dayGroups[day]![index]),
+                    childCount: dayGroups[day]!.length,
+                  ),
                 ),
               ),
-            ),
           ],
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
@@ -1480,6 +1493,8 @@ class _FeedItem {
   final String? videoUrl;
   final String badge;
   final String tag;
+  /// Horaires formattes pour les tuiles 2-col (ex: "22H00", "18H - 23H").
+  final String timeLabel;
   final VoidCallback onTap;
 
   // Metadata admin pin (appui-long -> popup "A la une / Au top").
@@ -1498,6 +1513,7 @@ class _FeedItem {
     this.videoUrl,
     required this.badge,
     required this.tag,
+    this.timeLabel = '',
     required this.onTap,
     this.pinSource,
     this.pinIdentifiant,
@@ -1639,6 +1655,198 @@ class _FeedTile extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Staggered feed tile (grille 2 colonnes, filtres actifs) ──
+// Format screen-feed : photo/gradient plein + categorie haut-gauche mono,
+// chip horaire dessous, titre/lieu en bas.
+class _StaggeredFeedTile extends StatelessWidget {
+  final _FeedItem item;
+  final int index;
+  const _StaggeredFeedTile({required this.item, required this.index});
+
+  /// Hauteur pseudo-aleatoire deterministique par index, pour creer le
+  /// decalage visuel entre les 2 colonnes (Pinterest-style).
+  double _heightFor(int i) {
+    const variants = [190.0, 220.0, 175.0, 205.0, 230.0, 180.0];
+    return variants[i % variants.length];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasPin = item.pinSource != null &&
+        (item.pinIdentifiant?.isNotEmpty ?? false);
+    final tile = _buildTile(context);
+    return hasPin
+        ? AdminPinGesture(
+            source: item.pinSource!,
+            identifiant: item.pinIdentifiant!,
+            eventName: item.pinEventName ?? item.title,
+            dateFin: item.pinDateFin ?? '',
+            dateDebutFallback: item.pinDateDebut,
+            child: tile,
+          )
+        : tile;
+  }
+
+  Widget _buildTile(BuildContext context) {
+    final height = _heightFor(index);
+    final category = item.tag.toUpperCase();
+    final hasTime = item.timeLabel.isNotEmpty;
+
+    return GestureDetector(
+      onTap: item.onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        child: SizedBox(
+          height: height,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (item.hasVideo)
+                _VideoBackground(videoUrl: item.videoUrl!, tileId: item.title)
+              else
+                _ImageBackground(item: item),
+
+              // Overlay bas
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(gradient: AppGradients.cardShade),
+                ),
+              ),
+
+              // Video play icon bottom-right
+              if (item.hasVideo)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.bg.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(7),
+                      border: Border.all(color: AppColors.line),
+                    ),
+                    child: const Icon(Icons.play_arrow,
+                        color: Colors.white, size: 12),
+                  ),
+                ),
+
+              // GRATUIT badge top-right (si applicable)
+              if (item.badge.isNotEmpty && !item.hasVideo)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      gradient: AppGradients.primary,
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                      boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
+                    ),
+                    child: Text(
+                      item.badge,
+                      style: GoogleFonts.geistMono(
+                        fontSize: 7.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Categorie mono haut-gauche
+              if (category.isNotEmpty)
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: Text(
+                    category,
+                    style: GoogleFonts.geistMono(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.6,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      shadows: const [
+                        Shadow(blurRadius: 4, color: Colors.black54),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Chip horaire (glass) sous la categorie
+              if (hasTime)
+                Positioned(
+                  top: 28,
+                  left: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.bg.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Text(
+                      item.timeLabel,
+                      style: GoogleFonts.geistMono(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.8,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Titre + lieu en bas
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.title,
+                      style: GoogleFonts.geist(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        height: 1.2,
+                        letterSpacing: -0.2,
+                        shadows: const [
+                          Shadow(blurRadius: 6, color: Colors.black45),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (item.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        item.subtitle,
+                        style: GoogleFonts.geist(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textDim,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
