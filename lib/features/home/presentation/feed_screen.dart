@@ -381,10 +381,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         Text.rich(
           TextSpan(
             style: GoogleFonts.geist(
-              fontSize: 26,
+              fontSize: 21,
               fontWeight: FontWeight.w400,
-              height: 1.1,
-              letterSpacing: -0.9,
+              height: 1.15,
+              letterSpacing: -0.6,
               color: AppColors.text,
             ),
             children: [
@@ -392,14 +392,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               TextSpan(
                 text: italicText,
                 style: GoogleFonts.instrumentSerif(
-                  fontSize: 26,
+                  fontSize: 21,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w400,
-                  height: 1.1,
-                  letterSpacing: -0.4,
+                  height: 1.15,
+                  letterSpacing: -0.3,
                   foreground: Paint()
                     ..shader = AppGradients.editorial.createShader(
-                      const Rect.fromLTWH(0, 0, 360, 40),
+                      const Rect.fromLTWH(0, 0, 300, 32),
                     ),
                 ),
               ),
