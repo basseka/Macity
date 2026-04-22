@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/widgets/branded/gradient_pill_button.dart';
 import 'package:pulz_app/features/home/presentation/widgets/boosted_events_carousel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -535,61 +536,35 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return SliverList(
       delegate: SliverChildListDelegate([
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
           child: Row(
             children: [
-              const Icon(Icons.flag, size: 14, color: Color(0xFFDC2626)),
-              const SizedBox(width: 6),
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(color: AppColors.line),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Icons.flag, size: 12, color: AppColors.magenta),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Ca bouge pres de toi',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                  style: GoogleFonts.geist(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    color: AppColors.text,
                   ),
                 ),
               ),
-              Material(
-                color: const Color(0xFF7B2D8E),
-                borderRadius: BorderRadius.circular(20),
-                child: InkWell(
-                  onTap: _openVideoReport,
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    height: 26,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Live Notif',
-                          style: GoogleFonts.poppins(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Container(
-                          width: 9,
-                          height: 9,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDC2626),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.white.withValues(alpha: 0.5),
-                                blurRadius: 6,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              GradientPillButton(
+                label: 'Live Notif',
+                onPressed: _openVideoReport,
               ),
             ],
           ),
