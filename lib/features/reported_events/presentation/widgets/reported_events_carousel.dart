@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
-import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
@@ -108,7 +108,7 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                     useRootNavigator: true,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
-                    builder: (_) => _PagedDetailSheet(
+                    builder: (_) => ReportedEventsPagedSheet(
                       events: sorted,
                       initialIndex: index,
                     ),
@@ -240,77 +240,5 @@ class _EmptyHint extends StatelessWidget {
   }
 }
 
-// ───────────────────────────────────────────
-// Detail sheet swipable (PageView entre affiches)
-// ───────────────────────────────────────────
-
-class _PagedDetailSheet extends StatefulWidget {
-  final List<ReportedEvent> events;
-  final int initialIndex;
-
-  const _PagedDetailSheet({
-    required this.events,
-    required this.initialIndex,
-  });
-
-  @override
-  State<_PagedDetailSheet> createState() => _PagedDetailSheetState();
-}
-
-class _PagedDetailSheetState extends State<_PagedDetailSheet> {
-  late PageController _pageCtrl;
-  late int _current;
-
-  @override
-  void initState() {
-    super.initState();
-    _current = widget.initialIndex;
-    _pageCtrl = PageController(initialPage: widget.initialIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Dots indicateur
-        Container(
-          margin: const EdgeInsets.only(top: 8, bottom: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.events.length, (i) {
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: i == _current ? 18 : 6,
-                height: 5,
-                decoration: BoxDecoration(
-                  gradient: i == _current ? AppGradients.primary : null,
-                  color: i == _current ? null : AppColors.lineStrong,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              );
-            }),
-          ),
-        ),
-        // PageView des detail sheets
-        Expanded(
-          child: PageView.builder(
-            controller: _pageCtrl,
-            itemCount: widget.events.length,
-            onPageChanged: (i) => setState(() => _current = i),
-            itemBuilder: (_, index) => ReportedEventDetailSheet(
-              event: widget.events[index],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
+// _PagedDetailSheet a ete extrait dans
+// widgets/reported_events_paged_sheet.dart (ReportedEventsPagedSheet).

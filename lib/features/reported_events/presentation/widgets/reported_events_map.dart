@@ -8,7 +8,7 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
-import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_realtime_provider.dart';
 
@@ -95,14 +95,17 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   }
 
   void _handleMarkerTap(String id) {
-    final event = _lastEvents.where((e) => e.id == id).firstOrNull;
-    if (event == null) return;
+    final idx = _lastEvents.indexWhere((e) => e.id == id);
+    if (idx < 0) return;
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => ReportedEventDetailSheet(event: event),
+      builder: (_) => ReportedEventsPagedSheet(
+        events: _lastEvents,
+        initialIndex: idx,
+      ),
     );
   }
 
