@@ -1680,7 +1680,9 @@ class _FeedTile extends StatelessWidget {
 
   Widget _buildTap(BuildContext context) {
     return GestureDetector(
-        onTap: item.onTap,
+      onTap: item.onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -1690,54 +1692,47 @@ class _FeedTile extends StatelessWidget {
             else
               _ImageBackground(item: item),
 
-            // Gradient overlay
-            Positioned.fill(
+            // Gradient overlay (transparent -> bg 0x95)
+            const Positioned.fill(
               child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.8),
-                    ],
-                    stops: const [0.4, 1.0],
-                  ),
-                ),
+                decoration: BoxDecoration(gradient: AppGradients.cardShade),
               ),
             ),
 
             // Video icon indicator
             if (item.hasVideo)
               Positioned(
-                top: 4,
-                left: 4,
+                top: 5,
+                left: 5,
                 child: Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(4),
+                    color: AppColors.bg.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.line),
                   ),
-                  child: const Icon(Icons.play_arrow, color: Colors.white, size: 12),
+                  child: const Icon(Icons.play_arrow, color: Colors.white, size: 11),
                 ),
               ),
 
-            // Badge top-right
+            // Badge top-right (ex: GRATUIT)
             if (item.badge.isNotEmpty)
               Positioned(
-                top: 4,
-                right: 4,
+                top: 5,
+                right: 5,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE91E8C),
-                    borderRadius: BorderRadius.circular(4),
+                    gradient: AppGradients.primary,
+                    borderRadius: BorderRadius.circular(AppRadius.chip),
+                    boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
                   ),
                   child: Text(
                     item.badge,
-                    style: GoogleFonts.inter(
-                      fontSize: 7,
+                    style: GoogleFonts.geistMono(
+                      fontSize: 7.5,
                       fontWeight: FontWeight.w700,
+                      letterSpacing: 1.2,
                       color: Colors.white,
                     ),
                   ),
@@ -1746,30 +1741,32 @@ class _FeedTile extends StatelessWidget {
 
             // Title + subtitle bottom
             Positioned(
-              left: 4,
-              right: 4,
-              bottom: 4,
+              left: 6,
+              right: 6,
+              bottom: 6,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     item.title,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.geist(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                       height: 1.2,
+                      letterSpacing: -0.1,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (item.subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 1),
+                    const SizedBox(height: 2),
                     Text(
                       item.subtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 8,
-                        color: Colors.white60,
+                      style: GoogleFonts.geist(
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textDim,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1780,6 +1777,7 @@ class _FeedTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
     );
   }
 }
