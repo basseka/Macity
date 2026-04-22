@@ -186,7 +186,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                   child: TextFormField(
                     controller: _prixController,
                     decoration: _inputDecoration('Prix (EUR)'),
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13, color: AppColors.text),
                     keyboardType: TextInputType.number,
                     onChanged: notifier.updatePrix,
                   ),
@@ -196,7 +196,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                   child: TextFormField(
                     controller: _prixReduitController,
                     decoration: _inputDecoration('Tarif reduit'),
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13, color: AppColors.text),
                     keyboardType: TextInputType.number,
                     onChanged: notifier.updatePrixReduit,
                   ),
@@ -210,7 +210,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                   child: TextFormField(
                     controller: _prixGroupeController,
                     decoration: _inputDecoration('Tarif groupe'),
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13, color: AppColors.text),
                     keyboardType: TextInputType.number,
                     onChanged: notifier.updatePrixGroupe,
                   ),
@@ -220,7 +220,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
                   child: TextFormField(
                     controller: _prixEarlyBirdController,
                     decoration: _inputDecoration('Early bird'),
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13, color: AppColors.text),
                     keyboardType: TextInputType.number,
                     onChanged: notifier.updatePrixEarlyBird,
                   ),
@@ -234,7 +234,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
           TextFormField(
             controller: _lienController,
             decoration: _inputDecoration('Lien billetterie ou site (optionnel)'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             keyboardType: TextInputType.url,
             onChanged: notifier.updateLienBilletterie,
           ),
@@ -475,7 +475,7 @@ class _StepPricingState extends ConsumerState<StepPricing> {
       labelText: label,
       labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: AppColors.line),
@@ -723,7 +723,7 @@ class _OptionTile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(opt.emoji, style: const TextStyle(fontSize: 13)),
+            Text(opt.emoji, style: const TextStyle(fontSize: 13, color: AppColors.text)),
             const SizedBox(width: 4),
             Flexible(
               child: Text(

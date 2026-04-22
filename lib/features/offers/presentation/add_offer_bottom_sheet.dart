@@ -130,7 +130,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: "Titre de l'offre (ex: Massage offert)",
                   icon: Icons.local_offer,
                 ),
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13, color: AppColors.text),
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? 'Le titre est requis'
                     : null,
@@ -144,7 +144,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Description (ex: 30 min offert pour toute reservation)',
                   icon: Icons.description_outlined,
                 ),
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13, color: AppColors.text),
                 maxLines: 3,
               ),
               const SizedBox(height: 10),
@@ -156,7 +156,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Emoji (1 seul)',
                   icon: Icons.emoji_emotions_outlined,
                 ),
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13, color: AppColors.text),
               ),
               const SizedBox(height: 10),
 
@@ -214,7 +214,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Adresse',
                   icon: Icons.location_on_outlined,
                 ),
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13, color: AppColors.text),
               ),
               const SizedBox(height: 10),
 
@@ -225,7 +225,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   label: 'Nombre de places',
                   icon: Icons.people_outline,
                 ),
-                style: const TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13, color: AppColors.text),
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
@@ -251,7 +251,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                           : "Date d'expiration",
                       icon: Icons.calendar_today,
                     ),
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13, color: AppColors.text),
                     validator: (_) => _expiresAt == null
                         ? "La date d'expiration est requise"
                         : null,
@@ -324,7 +324,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
       labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       prefixIcon: Icon(icon, color: _primaryColor, size: 18),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: AppColors.line),

@@ -402,7 +402,7 @@ class _AdminAddEtablissementSheetState
         labelText: label,
         prefixIcon: Icon(icon, color: _primaryColor, size: 20),
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: AppColors.surfaceHi,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.lineStrong),
@@ -414,7 +414,7 @@ class _AdminAddEtablissementSheetState
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-      style: const TextStyle(fontSize: 14),
+      style: const TextStyle(fontSize: 14, color: AppColors.text),
     );
   }
 
@@ -431,7 +431,7 @@ class _AdminAddEtablissementSheetState
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: AppColors.surfaceHi,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.lineStrong),

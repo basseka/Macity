@@ -153,7 +153,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             children: kEventCategories.map((cat) {
               final selected = state.categorie == cat;
               return ChoiceChip(
-                label: Text(cat, style: const TextStyle(fontSize: 11)),
+                label: Text(cat, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -204,7 +204,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
                 final fmt = kEventFormats[i];
                 final selected = state.format == fmt;
                 return ChoiceChip(
-                  label: Text(fmt, style: const TextStyle(fontSize: 11)),
+                  label: Text(fmt, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                   selected: selected,
                   selectedColor: _primaryColor.withValues(alpha: 0.15),
                   checkmarkColor: _primaryColor,
@@ -222,7 +222,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           TextFormField(
             controller: _titreController,
             decoration: _inputDecoration('Titre de l\'evenement *'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateTitre,
           ),
           const SizedBox(height: 10),
@@ -231,7 +231,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           TextFormField(
             controller: _descCourteController,
             decoration: _inputDecoration('Description courte'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             maxLines: 2,
             onChanged: notifier.updateDescriptionCourte,
           ),
@@ -270,7 +270,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
       labelText: label,
       labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: AppColors.line),

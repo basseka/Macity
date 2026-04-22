@@ -277,7 +277,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 10),
                         filled: true,
-                        fillColor: Colors.grey.shade50,
+                        fillColor: AppColors.surfaceHi,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
                           borderSide: BorderSide(color: AppColors.line),

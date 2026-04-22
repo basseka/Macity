@@ -116,8 +116,9 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(top: BorderSide(color: AppColors.line)),
       ),
       child: _showSuccess
           ? _buildSuccessView()
@@ -147,7 +148,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: _primaryDarkColor,
+                  color: AppColors.text,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -156,8 +157,9 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
               // Toggle tabs
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppColors.surfaceHi,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.line),
                 ),
                 padding: const EdgeInsets.all(3),
                 child: Row(
@@ -184,7 +186,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 // ── Mode connexion ──
                 TextFormField(
                   controller: _emailController,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Email',
                     icon: Icons.email_outlined,
@@ -197,7 +199,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Mot de passe',
                     icon: Icons.lock_outline,
@@ -240,7 +242,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 // ── Mode inscription ──
                 TextFormField(
                   controller: _nomController,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Nom de la structure',
                     icon: Icons.business_outlined,
@@ -253,7 +255,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 DropdownButtonFormField<String>(
                   initialValue: _selectedType,
                   isExpanded: true,
-                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Type de structure',
                     icon: Icons.category_outlined,
@@ -263,7 +265,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                         (e) => DropdownMenuItem(
                           value: e.key,
                           child:
-                              Text(e.value, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+                              Text(e.value, style: const TextStyle(fontSize: 13, color: AppColors.text), overflow: TextOverflow.ellipsis),
                         ),
                       )
                       .toList(),
@@ -274,7 +276,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _emailController,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Email',
                     icon: Icons.email_outlined,
@@ -287,7 +289,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Mot de passe',
                     icon: Icons.lock_outline,
@@ -312,7 +314,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _telephoneController,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Telephone',
                     icon: Icons.phone_outlined,
@@ -496,23 +498,24 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
-      prefixIcon: Icon(icon, color: _primaryColor, size: 16),
+      labelStyle: const TextStyle(fontSize: 12, color: AppColors.textFaint),
+      floatingLabelStyle: const TextStyle(fontSize: 12, color: AppColors.magenta),
+      prefixIcon: Icon(icon, color: AppColors.magenta, size: 16),
       prefixIconConstraints: const BoxConstraints(minWidth: 36),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       isDense: true,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: AppColors.lineStrong),
+        borderSide: const BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: _primaryColor, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.magenta, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: AppColors.lineStrong),
+        borderSide: const BorderSide(color: AppColors.line),
       ),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

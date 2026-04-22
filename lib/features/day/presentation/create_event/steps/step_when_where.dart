@@ -129,7 +129,7 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
             children: ['Quotidien', 'Hebdomadaire', 'Mensuel'].map((r) {
               final selected = state.recurrenceType == r.toLowerCase();
               return FilterChip(
-                label: Text(r, style: const TextStyle(fontSize: 11)),
+                label: Text(r, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -153,7 +153,7 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
             children: kLieuTypes.map((lt) {
               final selected = state.lieuType == lt;
               return ChoiceChip(
-                label: Text(lt, style: const TextStyle(fontSize: 11)),
+                label: Text(lt, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -170,7 +170,7 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
           TextFormField(
             controller: _lieuNomController,
             decoration: _inputDecoration('Nom du lieu'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateLieuNom,
           ),
           const SizedBox(height: 10),
@@ -179,7 +179,7 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
           TextFormField(
             controller: _adresseController,
             decoration: _inputDecoration('Adresse'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateLieuAdresse,
           ),
           const SizedBox(height: 10),
@@ -247,7 +247,7 @@ class _StepWhenWhereState extends ConsumerState<StepWhenWhere> {
       labelText: label,
       labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: AppColors.line),

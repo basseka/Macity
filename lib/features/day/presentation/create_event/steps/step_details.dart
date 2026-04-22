@@ -112,7 +112,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
           TextFormField(
             controller: _descLongueController,
             decoration: _inputDecoration('Description detaillee'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             maxLines: 4,
             onChanged: notifier.updateDescriptionLongue,
           ),
@@ -127,7 +127,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
             children: kPublicCible.map((p) {
               final selected = state.publicCible == p;
               return ChoiceChip(
-                label: Text(p, style: const TextStyle(fontSize: 11)),
+                label: Text(p, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -149,7 +149,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
             children: kNiveaux.map((n) {
               final selected = state.niveau == n;
               return ChoiceChip(
-                label: Text(n, style: const TextStyle(fontSize: 11)),
+                label: Text(n, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -171,7 +171,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
             children: kOrganisateurTypes.map((t) {
               final selected = state.organisateurType == t;
               return ChoiceChip(
-                label: Text(t, style: const TextStyle(fontSize: 11)),
+                label: Text(t, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -186,14 +186,14 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
           TextFormField(
             controller: _orgNomController,
             decoration: _inputDecoration('Nom de l\'organisateur'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateOrganisateurNom,
           ),
           const SizedBox(height: 10),
           TextFormField(
             controller: _orgEmailController,
             decoration: _inputDecoration('Email'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             keyboardType: TextInputType.emailAddress,
             onChanged: notifier.updateOrganisateurEmail,
           ),
@@ -204,7 +204,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 child: TextFormField(
                   controller: _orgTelController,
                   decoration: _inputDecoration('Telephone'),
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   keyboardType: TextInputType.phone,
                   onChanged: notifier.updateOrganisateurTelephone,
                 ),
@@ -214,7 +214,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 child: TextFormField(
                   controller: _orgSiteController,
                   decoration: _inputDecoration('Site web'),
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   keyboardType: TextInputType.url,
                   onChanged: notifier.updateOrganisateurSite,
                 ),
@@ -232,7 +232,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 child: TextFormField(
                   controller: _minController,
                   decoration: _inputDecoration('Min'),
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   keyboardType: TextInputType.number,
                   onChanged: notifier.updateParticipantsMin,
                 ),
@@ -242,7 +242,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 child: TextFormField(
                   controller: _maxController,
                   decoration: _inputDecoration('Max'),
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   keyboardType: TextInputType.number,
                   onChanged: notifier.updateParticipantsMax,
                 ),
@@ -258,7 +258,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
             children: kInscriptionTypes.map((t) {
               final selected = state.inscriptionType == t;
               return ChoiceChip(
-                label: Text(t, style: const TextStyle(fontSize: 11)),
+                label: Text(t, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -294,7 +294,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
       labelText: label,
       labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: AppColors.line),

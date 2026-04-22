@@ -463,7 +463,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: AppColors.surfaceHi,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: AppColors.line),
@@ -801,7 +801,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
             hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 13),
             prefixIcon: Icon(Icons.add_location_alt, size: 20, color: AppColors.textFaint),
             filled: true,
-            fillColor: Colors.grey.shade100,
+            fillColor: AppColors.surfaceHi,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,

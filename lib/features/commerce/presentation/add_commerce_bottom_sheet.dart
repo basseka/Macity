@@ -232,7 +232,7 @@ class _AddCommerceBottomSheetState
       labelText: label,
       prefixIcon: Icon(icon, color: modeTheme.primaryColor, size: 20),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: AppColors.lineStrong),

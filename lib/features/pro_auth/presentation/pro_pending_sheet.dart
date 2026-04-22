@@ -180,7 +180,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
                   letterSpacing: 8,
                 ),
                 filled: true,
-                fillColor: Colors.grey.shade50,
+                fillColor: AppColors.surfaceHi,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

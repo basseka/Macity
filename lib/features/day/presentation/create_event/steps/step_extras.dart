@@ -108,7 +108,7 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
           TextFormField(
             controller: _videoUrlController,
             decoration: _inputDecoration('URL video (YouTube, etc.)'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             keyboardType: TextInputType.url,
             onChanged: notifier.updateVideoUrl,
           ),
@@ -122,7 +122,7 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
             runSpacing: 6,
             children: [
               ...state.tags.map((tag) => Chip(
-                    label: Text(tag, style: const TextStyle(fontSize: 11)),
+                    label: Text(tag, style: const TextStyle(fontSize: 11, color: AppColors.text)),
                     deleteIcon: const Icon(Icons.close, size: 14),
                     visualDensity: VisualDensity.compact,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -140,7 +140,7 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
                 child: TextFormField(
                   controller: _tagController,
                   decoration: _inputDecoration('Ajouter un tag'),
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(fontSize: 13, color: AppColors.text),
                   onFieldSubmitted: (v) => _addTag(v, state, notifier),
                 ),
               ),
@@ -197,7 +197,7 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
             final opt = _accessibiliteOptions[i];
             return CheckboxListTile(
               value: state.accessibilite.contains(opt),
-              title: Text(opt, style: const TextStyle(fontSize: 12)),
+              title: Text(opt, style: const TextStyle(fontSize: 12, color: AppColors.text)),
               activeColor: _primaryColor,
               contentPadding: EdgeInsets.zero,
               dense: true,
@@ -213,7 +213,7 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
           TextFormField(
             controller: _ageMinController,
             decoration: _inputDecoration('Age minimum'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             keyboardType: TextInputType.number,
             onChanged: notifier.updateAgeMinimum,
           ),
@@ -221,14 +221,14 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
           TextFormField(
             controller: _materielController,
             decoration: _inputDecoration('Materiel requis'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateMaterielRequis,
           ),
           const SizedBox(height: 10),
           TextFormField(
             controller: _annulationController,
             decoration: _inputDecoration('Conditions d\'annulation'),
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
             maxLines: 2,
             onChanged: notifier.updateConditionsAnnulation,
           ),
@@ -265,7 +265,7 @@ class _StepExtrasState extends ConsumerState<StepExtras> {
       labelText: label,
       labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       filled: true,
-      fillColor: Colors.grey.shade50,
+      fillColor: AppColors.surfaceHi,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: AppColors.line),
@@ -436,7 +436,7 @@ class _ProgrammeSessionRowState extends State<_ProgrammeSessionRow> {
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     ),
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: AppColors.text),
                     onChanged: (_) => _notifyChange(),
                   ),
                   const SizedBox(height: 4),
@@ -448,7 +448,7 @@ class _ProgrammeSessionRowState extends State<_ProgrammeSessionRow> {
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     ),
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: AppColors.text),
                     onChanged: (_) => _notifyChange(),
                   ),
                   const SizedBox(height: 4),
@@ -460,7 +460,7 @@ class _ProgrammeSessionRowState extends State<_ProgrammeSessionRow> {
                       isDense: true,
                       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     ),
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: AppColors.text),
                     onChanged: (_) => _notifyChange(),
                   ),
                 ],

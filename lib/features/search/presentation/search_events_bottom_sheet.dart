@@ -128,7 +128,7 @@ class _SearchEventsBottomSheetState
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: AppColors.surfaceHi,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
