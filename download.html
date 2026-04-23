@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#8E24AA" />
+  <title>MaCity — Télécharger l'app</title>
+  <meta name="description" content="Découvre tous les événements, sorties et bons plans de ta ville avec MaCity." />
+
+  <!-- Open Graph / partage -->
+  <meta property="og:title" content="MaCity — L'app de ta ville" />
+  <meta property="og:description" content="Événements, sorties, bons plans. Tout ce qu'il faut savoir sur ta ville." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://macity.app/download" />
+  <meta property="og:image" content="https://macity.app/macity_icon.png" />
+
+  <!-- Redirection automatique sur mobile (Android → Play Store, iOS → section iOS) -->
+  <script>
+    (function () {
+      var ua = navigator.userAgent || navigator.vendor || window.opera;
+      var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var isAndroid = /android/i.test(ua);
+
+      if (isAndroid) {
+        window.location.replace('https://play.google.com/store/apps/details?id=com.macity.app');
+      }
+      document.documentElement.classList.add(isIOS ? 'is-ios' : (isAndroid ? 'is-android' : 'is-desktop'));
+    })();
+  </script>
+
+  <style>
+    :root {
+      --purple: #8E24AA;
+      --pink: #E91E63;
+      --purple-dark: #6A1B9A;
+      --bg: #FCF4FA;
+      --text: #1A1A1A;
+      --muted: #666;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #FFFFFF 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 28px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(142, 36, 170, 0.18);
+      text-align: center;
+    }
+    .app-icon {
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 20px;
+      border-radius: 24px;
+      box-shadow: 0 12px 32px rgba(142, 36, 170, 0.35);
+      display: block;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, var(--purple) 0%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px 24px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin-bottom: 12px;
+      border: none;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(142, 36, 170, 0.35);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 10px 28px rgba(142, 36, 170, 0.45);
+    }
+    .btn-secondary {
+      background: #F5F0F5;
+      color: var(--text);
+    }
+    .btn-secondary:hover { background: #EEE5EE; }
+    .btn-disabled {
+      background: #F5F5F5;
+      color: #999;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .ios-waitlist {
+      margin-top: 24px;
+      padding: 16px;
+      background: #FAF5FB;
+      border-radius: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .ios-waitlist a {
+      color: var(--purple);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .ios-waitlist a:hover { color: var(--pink); }
+    .footer {
+      margin-top: 32px;
+      font-size: 13px;
+      color: #AAA;
+    }
+    .footer a { color: var(--muted); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    .btn-android, .btn-ios-placeholder { display: none; }
+    html.is-desktop .btn-android,
+    html.is-desktop .btn-ios-placeholder,
+    html.is-ios .btn-ios-placeholder,
+    html.is-android .btn-android { display: flex; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="macity_icon.png" alt="MaCity" class="app-icon" />
+    <h1>MaCity</h1>
+    <p class="tagline">Découvre tous les événements, sorties et bons plans près de chez toi.</p>
+
+    <!-- Bouton Android / Play Store -->
+    <a class="btn btn-primary btn-android"
+       href="https://play.google.com/store/apps/details?id=com.macity.app">
+      ▶ Télécharger sur Google Play
+    </a>
+
+    <!-- Bouton iOS : placeholder tant que l'app n'est pas sur l'App Store -->
+    <a class="btn btn-secondary btn-disabled btn-ios-placeholder"
+       href="#ios-info">
+      🍎 App Store — bientôt disponible
+    </a>
+
+    <!--
+      Quand l'app iOS sera publiée, remplace le bloc ci-dessus par :
+
+      <a class="btn btn-primary btn-ios-placeholder"
+         href="https://apps.apple.com/fr/app/macity/idXXXXXXXXX">
+        🍎 Télécharger sur l'App Store
+      </a>
+
+      Ou pour une beta TestFlight en attendant :
+
+      <a class="btn btn-secondary btn-ios-placeholder"
+         href="https://testflight.apple.com/join/XXXXXX">
+        🍎 Rejoindre la bêta TestFlight
+      </a>
+    -->
+
+    <div class="ios-waitlist" id="ios-info">
+      Tu es sur iPhone ? L'app arrive très bientôt sur l'App Store.
+      <br /><a href="mailto:contact@macity.app?subject=Me prévenir iOS">Me prévenir à la sortie →</a>
+    </div>
+
+    <div class="footer">
+      <a href="https://macity.app">macity.app</a>
+    </div>
+  </div>
+</body>
+</html>
