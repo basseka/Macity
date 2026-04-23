@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Splash natif affiché avant le démarrage de Flutter.
+     Écran violet uni (#1A0A2E = launch_color). Aucun logo : le splash Flutter
+     prend ensuite le relais avec le feu d'artifice animé. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <bitmap
-            android:gravity="fill"
-            android:src="@drawable/start" />
-    </item>
+    <item android:drawable="@color/launch_color" />
 </layer-list>
