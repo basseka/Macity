@@ -17,8 +17,10 @@ class ReportedEventChat extends ConsumerStatefulWidget {
 }
 
 class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
-  static const _accent = Color(0xFFE91E8C);
-  static const _dark = Color(0xFF4A1259);
+  // Accents : magenta pour les éléments actifs, surface élevée pour les bulles.
+  static const _accent = AppColors.magenta;
+  // Texte principal (crème) — la sheet est en dark theme.
+  static const _dark = AppColors.text;
 
   final _controller = TextEditingController();
   final _scrollCtrl = ScrollController();
@@ -137,9 +139,9 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surfaceHi,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.line),
+        border: Border.all(color: AppColors.lineStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,10 +369,13 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
+                  // isMine : bulle magenta subtile pour le distinguer ; autres :
+                  // surface sombre neutre (sinon blanc sur dark = texte invisible).
                   color: isMine
-                      ? _accent.withValues(alpha: 0.08)
-                      : Colors.grey.shade100,
+                      ? _accent.withValues(alpha: 0.18)
+                      : AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.line, width: 1),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,7 +408,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                       msg.content,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: const Color(0xFF1A0A2E),
+                        color: AppColors.text,
                       ),
                     ),
                   ],

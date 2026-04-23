@@ -94,9 +94,9 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surfaceHi,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.line),
+        border: Border.all(color: AppColors.lineStrong),
       ),
       child: Row(
         children: [
@@ -147,7 +147,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
         maxHeight: maxH,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFFF8F0FA),
+        color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -186,14 +186,14 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        const Icon(Icons.photo_library_outlined, size: 14, color: Color(0xFF7B2D8E)),
+                        const Icon(Icons.photo_library_outlined, size: 14, color: AppColors.magenta),
                         const SizedBox(width: 6),
                         Text(
                           '${event.photos.length} photos de la commu',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF4A1259),
+                            color: AppColors.text,
                           ),
                         ),
                       ],
@@ -280,14 +280,14 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                     BorderRadius.circular(10),
                                 border: Border.all(
                                   color: isActive
-                                      ? const Color(0xFF7B2D8E)
+                                      ? AppColors.magenta
                                       : AppColors.lineStrong,
                                   width: isActive ? 2.5 : 1,
                                 ),
                                 boxShadow: isActive
                                     ? [
                                         BoxShadow(
-                                          color: const Color(0xFF7B2D8E)
+                                          color: AppColors.magenta
                                               .withValues(alpha: 0.3),
                                           blurRadius: 6,
                                           offset: const Offset(0, 2),
@@ -329,14 +329,14 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                     const SizedBox(height: 14),
                     Row(
                       children: [
-                        const Icon(Icons.videocam, size: 14, color: Color(0xFF7B2D8E)),
+                        const Icon(Icons.videocam, size: 14, color: AppColors.magenta),
                         const SizedBox(width: 6),
                         Text(
                           '${event.videos.length} video${event.videos.length > 1 ? 's' : ''} de la commu',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF4A1259),
+                            color: AppColors.text,
                           ),
                         ),
                       ],
@@ -368,7 +368,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF1A0A2E),
+                        color: AppColors.text,
                         height: 1.4,
                       ),
                     ),
@@ -381,7 +381,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                       const Icon(
                         Icons.location_on,
                         size: 16,
-                        color: Color(0xFF7B2D8E),
+                        color: AppColors.magenta,
                       ),
                       const SizedBox(width: 6),
                       Expanded(
@@ -390,7 +390,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF4A1259),
+                            color: AppColors.text,
                           ),
                         ),
                       ),
@@ -405,7 +405,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                         const Icon(
                           Icons.auto_awesome,
                           size: 14,
-                          color: Color(0xFF7B2D8E),
+                          color: AppColors.magenta,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -434,7 +434,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                 vertical: 5,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7B2D8E)
+                                color: AppColors.magenta
                                     .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -443,7 +443,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                                 style: GoogleFonts.poppins(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF4A1259),
+                                  color: AppColors.text,
                                 ),
                               ),
                             ),
@@ -473,15 +473,31 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
               top: false,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
-                child: SizedBox(
+                child: Container(
                   width: double.infinity,
                   height: 50,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [AppColors.purpleDeep, AppColors.magenta],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.magenta.withValues(alpha: 0.35),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton.icon(
                     onPressed: _openItinerary,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7B2D8E),
+                      backgroundColor: Colors.transparent,
                       foregroundColor: Colors.white,
                       elevation: 0,
+                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -659,7 +675,7 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
                                 width: 56,
                                 height: 56,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF7B2D8E)
+                                  color: AppColors.magenta
                                       .withValues(alpha: 0.8),
                                   shape: BoxShape.circle,
                                 ),
@@ -1080,15 +1096,15 @@ class _AnimatedBorderPhotoState extends State<_AnimatedBorderPhoto>
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: Color.lerp(
-                const Color(0xFF7B2D8E),
-                const Color(0xFFE91E8C),
+                AppColors.magenta.withValues(alpha: 0.6),
+                AppColors.magenta,
                 _ctrl.value,
               )!,
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF7B2D8E).withValues(alpha: 0.3 * _ctrl.value),
+                color: AppColors.magenta.withValues(alpha: 0.3 * _ctrl.value),
                 blurRadius: 8,
                 spreadRadius: 1,
               ),
@@ -1117,7 +1133,7 @@ class _SingleAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-              color: const Color(0xFFE91E8C).withValues(alpha: 0.6), width: 1.5),
+              color: AppColors.magenta.withValues(alpha: 0.6), width: 1.5),
           image: DecorationImage(image: NetworkImage(url!), fit: BoxFit.cover),
         ),
       );
@@ -1130,7 +1146,7 @@ class _SingleAvatar extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
+          colors: [AppColors.text, Color(0xFFE91E8C)],
         ),
       ),
       child: const Icon(Icons.person, color: Colors.white, size: 16),
@@ -1166,7 +1182,7 @@ class _AvatarStack extends StatelessWidget {
               left: contributors.length * (_size - _overlap),
               child: _circle(
                 child: Container(
-                  color: const Color(0xFF4A1259),
+                  color: AppColors.text,
                   alignment: Alignment.center,
                   child: Text(
                     "+$extraCount",
@@ -1209,7 +1225,7 @@ class _AvatarStack extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF4A1259), Color(0xFFE91E8C)],
+          colors: [AppColors.text, Color(0xFFE91E8C)],
         ),
       ),
       child: const Icon(Icons.person, color: Colors.white, size: 14),
