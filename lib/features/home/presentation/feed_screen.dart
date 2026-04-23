@@ -58,6 +58,37 @@ final _foodScrapedProvider = FutureProvider.family<List<Event>, String>((ref, ci
   return ScrapedEventsSupabaseService().fetchEvents(rubrique: 'food', dateGte: today, ville: city);
 });
 
+/// Cinéma : filtre SERVEUR sur categorie_de_la_manifestation='cinéma'.
+/// Évite de charger tout le feed paginé + auto-load multi-pages quand on
+/// active le filtre Cinéma. Une seule requête = affichage instantané.
+final _cinemaScrapedProvider = FutureProvider.family<List<Event>, String>((ref, city) async {
+  final now = DateTime.now();
+  final today = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  final events = await ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    categorie: 'cinéma',
+    dateGte: today,
+    ville: city,
+    limit: 500,
+  );
+  // Filtrer les films dont toutes les séances du jour sont passées
+  final today0 = DateTime(now.year, now.month, now.day);
+  final re = RegExp(r'(\d{1,2})h(\d{2})');
+  return events.where((e) {
+    if (e.horaires.isEmpty) return true;
+    final d = DateTime.tryParse(e.dateDebut);
+    if (d == null) return true;
+    if (DateTime(d.year, d.month, d.day) != today0) return true;
+    for (final m in re.allMatches(e.horaires)) {
+      final h = int.parse(m.group(1)!);
+      final min = int.parse(m.group(2)!);
+      final t = DateTime(today0.year, today0.month, today0.day, h, min);
+      if (!t.isBefore(now)) return true;
+    }
+    return false;
+  }).toList();
+});
+
 class FeedScreen extends ConsumerStatefulWidget {
   const FeedScreen({super.key});
 
@@ -103,6 +134,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   String? _activeTab; // null = Tout
   String? _activeSub; // null = pas de sous-filtre
 
+  // Flag anti-spam : évite d'empiler plusieurs post-frame loadNextPage
+  // quand l'utilisateur tap rapidement entre plusieurs onglets.
+  bool _loadMoreScheduled = false;
+
   // Search state
   final _searchController = TextEditingController();
   final _searchService = UnifiedSearchService();
@@ -127,6 +162,41 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     _searchController.dispose();
     _feedScrollController.dispose();
     super.dispose();
+  }
+
+  /// Change l'onglet actif en toute sécurité : reset du scroll, des flags
+  /// internes et de la sous-catégorie. Évite les crashs dus à un scroll
+  /// controller désynchronisé avec une liste qui change brutalement.
+  void _switchTab(String? tab) {
+    if (_activeTab == tab) return;
+    _loadMoreScheduled = false;
+    _jumpFeedToTop();
+    setState(() {
+      _activeTab = tab;
+      _activeSub = null;
+    });
+  }
+
+  void _switchSubFilter(String? sub) {
+    if (_activeSub == sub) return;
+    _loadMoreScheduled = false;
+    _jumpFeedToTop();
+    setState(() {
+      _activeSub = sub;
+    });
+  }
+
+  /// Remet le ScrollController à 0 sans animation. Utilisé avant un changement
+  /// de filtre pour éviter que la position devienne invalide pour la nouvelle
+  /// liste (crash ScrollController "position out of range").
+  void _jumpFeedToTop() {
+    if (!_feedScrollController.hasClients) return;
+    try {
+      _feedScrollController.jumpTo(0);
+    } catch (_) {
+      // Silent : si la position était déjà invalide on laisse le framework
+      // reconstruire proprement.
+    }
   }
 
   void _onSearchChanged(String query) {
@@ -664,25 +734,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               _buildChip(
                 label: 'Tout',
                 selected: _activeTab == null,
-                onTap: () => setState(() {
-                  _activeTab = null;
-                  _activeSub = null;
-                }),
+                onTap: () => _switchTab(null),
               ),
               for (final tab in _tabs)
                 _buildChip(
                   label: tab,
                   selected: _activeTab == tab,
-                  onTap: () => setState(() {
-                    if (_activeTab == tab) {
-                      // Re-tap → retour sur Tout
-                      _activeTab = null;
-                      _activeSub = null;
-                    } else {
-                      _activeTab = tab;
-                      _activeSub = null;
-                    }
-                  }),
+                  onTap: () => _switchTab(_activeTab == tab ? null : tab),
                 ),
             ],
           ),
@@ -701,9 +759,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     label: sub,
                     selected: _activeSub == sub,
                     isSubFilter: true,
-                    onTap: () => setState(() {
-                      _activeSub = _activeSub == sub ? null : sub;
-                    }),
+                    onTap: () => _switchSubFilter(_activeSub == sub ? null : sub),
                   ),
               ],
             ),
@@ -1130,6 +1186,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         final scraped = scrapedAsync.valueOrNull ?? [];
         return _buildCommunityFeed([...userEvents, ...scraped], Icons.restaurant, 'food');
       }
+      if (_activeSub == 'Cinéma') {
+        final city = ref.watch(selectedCityProvider);
+        final scrapedAsync = ref.watch(_cinemaScrapedProvider(city));
+        // Pendant le chargement initial, afficher un spinner compact
+        if (scrapedAsync.isLoading && scrapedAsync.valueOrNull == null) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.magenta));
+        }
+        final scraped = scrapedAsync.valueOrNull ?? [];
+        return _buildCommunityFeed(scraped, Icons.local_movies, 'cinéma');
+      }
 
       // Autres filtres : meme feed grid que "Tout" avec pagination infinie
       // _matchesFilter est applique dans _buildFeedGrid
@@ -1312,12 +1378,21 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // Matchs exclus du feed
 
     // Auto-load pages suivantes quand un filtre est actif.
+    // Protection anti-spam : on ne planifie qu'UN seul loadNextPage à la fois
+    // (évite le crash quand l'user tap rapidement entre Event/Clubbing).
     if (_activeTab != null &&
         hasMore &&
         onLoadMore != null &&
-        !isLoadingMore) {
+        !isLoadingMore &&
+        !_loadMoreScheduled) {
+      _loadMoreScheduled = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) onLoadMore();
+        _loadMoreScheduled = false;
+        if (!mounted) return;
+        // Si le filtre a changé entre-temps, on annule : le nouveau build
+        // replanifiera lui-même si besoin.
+        if (_activeTab == null) return;
+        onLoadMore();
       });
     }
 
@@ -2060,6 +2135,12 @@ class _ImageBackground extends StatelessWidget {
         fit: BoxFit.cover,
         memCacheWidth: 300,
         fadeInDuration: Duration.zero,
+        // Forcer un Accept JPEG/PNG/WebP classique. Sans ça, certains CDN
+        // (Allociné notamment) renvoient de l'AVIF que le décodeur Android
+        // < 12 ne sait pas lire → `Failed to decode image: unimplemented`.
+        httpHeaders: const {
+          'Accept': 'image/jpeg,image/png,image/webp;q=0.9,*/*;q=0.5',
+        },
         placeholder: (_, __) => _assetFallback(),
         errorWidget: (_, __, ___) => _assetFallback(),
       );

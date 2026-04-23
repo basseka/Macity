@@ -148,6 +148,7 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
 
       final hasMoreResult = rawCount >= _pageSize;
 
+      if (!mounted) return;
       state = PaginatedFeedState(
         events: allEvents,
         matches: matches,
@@ -156,12 +157,13 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
       );
     } catch (e) {
       debugPrint('[PaginatedFeed] initial error: $e');
+      if (!mounted) return;
       state = const PaginatedFeedState(isLoading: false, hasMore: false);
     }
   }
 
   Future<void> loadNextPage() async {
-    if (_loadingNext || !state.hasMore) return;
+    if (!mounted || _loadingNext || !state.hasMore) return;
     _loadingNext = true;
     // Expose le loading pour que l'UI (auto-load sur filtre) ne fire pas en
     // boucle pendant qu'un fetch est en cours.
@@ -207,6 +209,7 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
 
       final hasMoreResult = rawCount >= _pageSize;
 
+      if (!mounted) return;
       state = PaginatedFeedState(
         events: allEvents,
         matches: state.matches,
@@ -215,6 +218,7 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
       );
     } catch (e) {
       debugPrint('[PaginatedFeed] next page error: $e');
+      if (!mounted) return;
       state = PaginatedFeedState(
         events: state.events,
         matches: state.matches,

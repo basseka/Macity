@@ -30,6 +30,7 @@ class ScrapedEventsSupabaseService {
     List<String>? sourceNotIn,
     String? lieuNom,
     String? ville,
+    String? categorie,
     int limit = 1000,
     int offset = 0,
     bool requirePhoto = true,
@@ -57,6 +58,7 @@ class ScrapedEventsSupabaseService {
     }
     if (lieuNom != null) params['lieu_nom'] = 'ilike.*$lieuNom*';
     if (ville != null) params['ville'] = 'ilike.$ville';
+    if (categorie != null) params['categorie_de_la_manifestation'] = 'eq.$categorie';
 
     final response = await _dio.get(
       'scraped_events',
