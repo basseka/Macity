@@ -72,7 +72,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   static const _tabs = <String>['En Scène', 'Event', 'Clubbing'];
   static const _subFilters = <String, List<String>>{
     'En Scène': ['Concerts', 'Théâtre', 'One-man-show', 'Danse', 'Comédie musicale', 'Opéra', 'Humour'],
-    'Event': ['Salon/expo', 'Soirée', 'Famille', 'Food', 'Sport'],
+    'Event': ['Cinéma', 'Salon/expo', 'Soirée', 'Famille', 'Food', 'Sport'],
     'Clubbing': ['Bar', 'Club & Disco'],
   };
   // Mots-cles matches contre event.categorie/type/titre (toLowerCase)
@@ -87,6 +87,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     'Salon/expo': ['salon', 'expo', 'foire', 'vernissage'],
     'Soirée': ['soiree', 'soirée'],
     'Sport': ['sport', 'match', 'tournoi', 'competition', 'compétition'],
+    'Cinéma': ['cinema', 'cinéma', 'film'],
     'Bar': ['bar', 'pub', 'cocktail'],
     'Club & Disco': ['club', 'disco', 'dj', 'boite de nuit', 'boîte de nuit'],
   };
@@ -784,11 +785,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       case 'Event':
         // Gestion par sous-filtre (les Event events sont heterogenes par nature)
         if (_activeSub == null) {
-          // Union : famille OU food OU salon/expo OU soiree-pas-night OU sport
+          // Union : famille OU food OU salon/expo OU soiree-pas-night OU sport OU cinéma
           if (rubrique == 'family' || rubrique == 'food') return true;
           if (matchAnyKw(_subKeywords['Salon/expo']!)) return true;
           if (rubrique != 'night' && matchAnyKw(_subKeywords['Soirée']!)) return true;
           if (matchAnyKw(_subKeywords['Sport']!)) return true;
+          if (matchAnyKw(_subKeywords['Cinéma']!)) return true;
           return false;
         }
         switch (_activeSub) {
@@ -802,6 +804,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             return rubrique != 'night' && matchAnyKw(_subKeywords['Soirée']!);
           case 'Sport':
             return matchAnyKw(_subKeywords['Sport']!);
+          case 'Cinéma':
+            return matchAnyKw(_subKeywords['Cinéma']!);
         }
         return false;
 

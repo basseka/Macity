@@ -54,7 +54,9 @@ final todayTomorrowEventsProvider =
       futures.add(scraperService.fetchEvents(rubrique: 'day', dateGte: todayStr, ville: city, limit: 50));
     }
     if (wantCulture) {
-      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city, limit: 50));
+      // Limit bumped to 300 pour couvrir les ~150-300 events cinéma/jour
+      // (16 cinémas × 10-15 films × J+1) + le reste de la rubrique culture.
+      futures.add(scraperService.fetchEvents(rubrique: 'culture', dateGte: todayStr, ville: city, limit: 300));
     }
     if (wantNight) {
       futures.add(scraperService.fetchEvents(rubrique: 'night', dateGte: todayStr, ville: city, limit: 50));
@@ -91,7 +93,12 @@ final todayTomorrowEventsProvider =
     final d = DateTime.tryParse(e.dateDebut);
     if (d == null) return false;
     final dateOnly = DateTime(d.year, d.month, d.day);
-    return !dateOnly.isBefore(today) && dateOnly.isBefore(endDate);
+    if (dateOnly.isBefore(today) || !dateOnly.isBefore(endDate)) return false;
+    // Si event aujourd'hui AVEC horaires : cacher si toutes les séances sont
+    // déjà passées (utile surtout pour les films cinéma qui ont des horaires
+    // agrégés "14h30, 17h00, 20h30"). Les events sans horaires restent affichés.
+    if (dateOnly == today && _allShowingsPast(e.horaires, now)) return false;
+    return true;
   }).toList();
 
   // Ajouter les user events de la semaine
@@ -144,7 +151,12 @@ final allFutureEventsProvider =
   final filtered = allEvents.where((e) {
     final d = DateTime.tryParse(e.dateDebut);
     if (d == null) return false;
-    return !DateTime(d.year, d.month, d.day).isBefore(today);
+    final dateOnly = DateTime(d.year, d.month, d.day);
+    if (dateOnly.isBefore(today)) return false;
+    // Si event aujourd'hui AVEC horaires : cacher si toutes les séances
+    // sont déjà passées. Les events sans horaires restent affichés.
+    if (dateOnly == today && _allShowingsPast(e.horaires, now)) return false;
+    return true;
   }).toList();
 
   // User events
@@ -164,3 +176,21 @@ final allFutureEventsProvider =
 
 String _fmt(DateTime d) =>
     '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+/// Parse une chaîne type "14h30, 17h00, 20h30" et retourne `true` si toutes
+/// les séances listées sont strictement dans le passé par rapport à [now].
+/// Si [raw] est vide ou ne contient aucun horaire parsable, retourne `false`
+/// (on ne filtre pas — les events sans horaires restent visibles).
+bool _allShowingsPast(String raw, DateTime now) {
+  if (raw.isEmpty) return false;
+  final re = RegExp(r'(\d{1,2})h(\d{2})');
+  final matches = re.allMatches(raw).toList();
+  if (matches.isEmpty) return false;
+  for (final m in matches) {
+    final h = int.parse(m.group(1)!);
+    final min = int.parse(m.group(2)!);
+    final showTime = DateTime(now.year, now.month, now.day, h, min);
+    if (!showTime.isBefore(now)) return false; // au moins une séance future
+  }
+  return true; // toutes passées
+}

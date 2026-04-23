@@ -81,13 +81,19 @@ class EventFullscreenPopup extends ConsumerWidget {
     final isLiked = likes.contains(event.identifiant);
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Center(
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isPaged ? 10 : 20, vertical: isPaged ? 20 : 40),
+        padding: EdgeInsets.only(
+          left: isPaged ? 10 : 20,
+          right: isPaged ? 10 : 20,
+          top: MediaQuery.of(context).padding.top + 8,
+          bottom: 0,
+        ),
         child: Material(
           color: Colors.transparent,
           child: Container(
-            constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
+            constraints: BoxConstraints(maxHeight: screenHeight),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
@@ -106,7 +112,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                 children: [
                   // ── Photo en haut (hauteur fixe) ──
                   SizedBox(
-                    height: screenHeight * 0.50,
+                    height: screenHeight * 0.40,
                     width: double.infinity,
                     child: Stack(
                       fit: StackFit.expand,
@@ -228,10 +234,10 @@ class EventFullscreenPopup extends ConsumerWidget {
                     ),
                   ),
 
-                  // ── Infos en dessous ──
+                  // ── Infos en dessous (scrollable) ──
                   Flexible(
                     child: SingleChildScrollView(
-                      physics: isPaged ? const NeverScrollableScrollPhysics() : null,
+                      physics: const ClampingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -247,9 +253,12 @@ class EventFullscreenPopup extends ConsumerWidget {
                           // Lieu
                           if (event.lieuNom.isNotEmpty)
                             _infoRow(Icons.location_on_outlined, event.lieuNom),
-                          // Horaires
+                          // Horaires : pills si multi-séances (cinéma),
+                          // sinon ligne classique.
                           if (event.horaires.isNotEmpty)
-                            _infoRow(Icons.access_time, event.horaires),
+                            event.horaires.contains(',')
+                                ? _horairesChips(event.horaires)
+                                : _infoRow(Icons.access_time, event.horaires),
 
                           // Organisateur (pro)
                           if (event.organisateurNom.isNotEmpty)
@@ -394,6 +403,54 @@ class EventFullscreenPopup extends ConsumerWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Horaires sous forme de chips (pour les séances cinéma / multi-horaires).
+  Widget _horairesChips(String raw) {
+    final times = raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 14, color: AppColors.magenta),
+              const SizedBox(width: 8),
+              Text(
+                times.length > 1 ? '${times.length} séances' : 'Séance',
+                style: GoogleFonts.geist(
+                  fontSize: 13,
+                  color: AppColors.text,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: times.map((t) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.magenta.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(AppRadius.chip),
+                border: Border.all(color: AppColors.magenta.withValues(alpha: 0.35)),
+              ),
+              child: Text(
+                t,
+                style: GoogleFonts.geist(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.text,
+                ),
+              ),
+            )).toList(),
           ),
         ],
       ),

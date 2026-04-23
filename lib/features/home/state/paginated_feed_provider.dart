@@ -60,6 +60,30 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
     return e.dateDebut;
   }
 
+  /// Retire les events du JOUR dont toutes les séances (horaires) sont déjà
+  /// passées. Utile surtout pour les films cinéma avec horaires agrégés
+  /// "11h15, 14h00". Les events sans horaires restent visibles.
+  static List<Event> _filterPastShowings(List<Event> events, DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    final re = RegExp(r'(\d{1,2})h(\d{2})');
+    return events.where((e) {
+      if (e.horaires.isEmpty) return true;
+      final d = DateTime.tryParse(e.dateDebut);
+      if (d == null) return true;
+      final dateOnly = DateTime(d.year, d.month, d.day);
+      if (dateOnly != today) return true;
+      final matches = re.allMatches(e.horaires).toList();
+      if (matches.isEmpty) return true;
+      for (final m in matches) {
+        final h = int.parse(m.group(1)!);
+        final min = int.parse(m.group(2)!);
+        final showTime = DateTime(today.year, today.month, today.day, h, min);
+        if (!showTime.isBefore(now)) return true; // au moins une séance future
+      }
+      return false; // toutes passées → exclure
+    }).toList();
+  }
+
   String get _todayStr {
     final now = DateTime.now();
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -75,7 +99,7 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
       final rubriques = ['day', 'culture', 'night', 'family', 'food'];
       _rubriques = rubriques;
 
-      final (events, rawCount) = await _service.fetchAllEvents(
+      final (rawEvents, rawCount) = await _service.fetchAllEvents(
         dateGte: _todayStr,
         ville: _city,
         limit: _pageSize,
@@ -83,6 +107,8 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
         rubriques: rubriques,
       );
       _offset = _pageSize;
+      // Filtre : cacher les films dont toutes les séances du jour sont passées
+      final events = _filterPastShowings(rawEvents, DateTime.now());
 
       // Matchs (une seule fois)
       List<SupabaseMatch> matches = [];
@@ -147,7 +173,7 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
     );
 
     try {
-      final (newEvents, rawCount) = await _service.fetchAllEvents(
+      final (rawNewEvents, rawCount) = await _service.fetchAllEvents(
         dateGte: _todayStr,
         ville: _city,
         limit: _pageSize,
@@ -155,6 +181,8 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
         rubriques: _rubriques,
       );
       _offset += _pageSize;
+      // Filtre : cacher les films dont toutes les séances du jour sont passées
+      final newEvents = _filterPastShowings(rawNewEvents, DateTime.now());
 
       // Deduplication
       final existingIds = state.events.map((e) => e.identifiant).toSet();
