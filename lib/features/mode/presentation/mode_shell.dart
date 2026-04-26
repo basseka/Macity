@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,19 +12,13 @@ import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
-import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
-import 'package:pulz_app/core/widgets/account_menu.dart';
-import 'package:pulz_app/features/city/state/city_provider.dart';
-import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
-import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
-import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/core/services/activity_service.dart';
 
@@ -101,16 +96,22 @@ class ModeShell extends ConsumerWidget {
           return;
         }
 
-        // Aucune navigation interne → retour à l'accueil
-        context.go('/home');
+        // Aucune navigation interne → retour à l'Explorer (rubrique parente).
+        // Si Explorer est dans le stack (push depuis Explorer), pop pour le revealer ;
+        // sinon (arrivee via go() depuis Feed/notif), reset sur /explorer.
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/explorer');
+        }
       },
       child: isFullscreen
         ? Scaffold(
-            backgroundColor: modeTheme.backgroundColor,
+            backgroundColor: EditorialColors.ink,
             body: SafeArea(child: child),
           )
         : Scaffold(
-      backgroundColor: modeTheme.backgroundColor,
+      backgroundColor: EditorialColors.ink,
       body: SwipeDetector(
         onSwipeLeft: () => ref.read(currentModeProvider.notifier).nextMode(),
         onSwipeRight: () => ref.read(currentModeProvider.notifier).previousMode(),
@@ -118,61 +119,6 @@ class ModeShell extends ConsumerWidget {
           bottom: false,
           child: Column(
           children: [
-            // Logo + ville + compte
-            Padding(
-              padding: EdgeInsets.only(left: 16, right: 16, top: isLandscape ? 4 : 8),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      'assets/icon/app_icon.png',
-                      width: 14,
-                      height: 14,
-                      fit: BoxFit.cover,
-                      cacheWidth: 300,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        useRootNavigator: true,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => const CityPickerBottomSheet(),
-                      );
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          ref.watch(selectedCityProvider),
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textDim),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => AccountMenu.show(context, ref),
-                    child: Padding(
-                      padding: const EdgeInsets.all(11),
-                      child: AccountMenu.buildButton(ref: ref),
-                    ),
-                  ),
-                ],
-              ),
-            ),
             // Menu hamburger + Barre de recherche
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 2 : 6),
@@ -183,12 +129,14 @@ class ModeShell extends ConsumerWidget {
                     child: Container(
                       width: 34,
                       height: 34,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                      decoration: const BoxDecoration(
+                        color: EditorialColors.dividerSoft,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.lineStrong, width: 1),
+                        border: Border.fromBorderSide(BorderSide(
+                            color: EditorialColors.dividerStrong, width: 1)),
                       ),
-                      child: Icon(Icons.menu, color: AppColors.textDim, size: 18),
+                      child: const Icon(Icons.menu,
+                          color: EditorialColors.paperMuted, size: 18),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -206,20 +154,22 @@ class ModeShell extends ConsumerWidget {
                       child: Container(
                         height: 34,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: EditorialColors.dividerSoft,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.lineStrong, width: 1),
+                          border: Border.all(
+                              color: EditorialColors.dividerStrong, width: 1),
                         ),
                         child: Row(
                           children: [
                             const SizedBox(width: 12),
-                            Icon(Icons.search, color: AppColors.textFaint, size: 16),
+                            const Icon(Icons.search,
+                                color: EditorialColors.paperMuted, size: 16),
                             const SizedBox(width: 6),
                             Text(
                               'Trouve un evenement',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.geist(
                                 fontSize: 10,
-                                color: AppColors.textFaint,
+                                color: EditorialColors.paperMuted,
                               ),
                             ),
                           ],
@@ -230,22 +180,8 @@ class ModeShell extends ConsumerWidget {
                 ],
               ),
             ),
-            // Mode bubble bar
-            _ModeBubbleBar(isLandscape: isLandscape),
-            // Indicator bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Container(
-                height: 2,
-                decoration: BoxDecoration(
-                  color: modeTheme.chipColor,
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-            ),
-
-            // Subcategory breadcrumb
-            _SubcategoryBreadcrumb(isLandscape: isLandscape),
+            // Subcategory breadcrumb retire : la masthead editoriale du screen
+            // affiche deja le sub-rubrique courant + bouton retour.
 
             // Video banner (hidden in landscape, en vue carte plein ecran et Fete musique)
             if (!isLandscape && !_isFullscreenMapView(ref))

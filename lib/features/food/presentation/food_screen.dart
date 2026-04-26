@@ -2,11 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
@@ -39,17 +42,42 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   Widget build(BuildContext context) {
     final selectedCategory = ref.watch(foodCategoryProvider);
 
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Expanded(
-          child: selectedCategory == null
-              ? const FoodHubGrid()
-              : FoodRestaurantsFullscreenMap.isMapTag(selectedCategory)
-                  ? const FoodRestaurantsFullscreenMap()
-                  : _buildVenueList(context, ref, selectedCategory),
-        ),
-      ],
+    // Carte plein ecran (sans chrome editorial)
+    if (selectedCategory != null &&
+        FoodRestaurantsFullscreenMap.isMapTag(selectedCategory)) {
+      return const FoodRestaurantsFullscreenMap();
+    }
+
+    return Container(
+      color: EditorialColors.ink,
+      child: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverToBoxAdapter(
+            child: EditorialMasthead(
+              kicker: selectedCategory == null
+                  ? 'Rubrique · Plaisirs'
+                  : 'Food · $selectedCategory',
+              title: selectedCategory ?? 'Food',
+              accent: RubricColors.food,
+              blurb: selectedCategory == null
+                  ? 'Restaurants, brunchs, marches — la carte gourmande de la ville.'
+                  : null,
+              onBack: selectedCategory == null
+                  ? () => context.go('/explorer')
+                  : () {
+                      ref
+                          .read(modeSubcategoriesProvider.notifier)
+                          .select('food', null);
+                      ref.read(dateRangeFilterProvider.notifier).state =
+                          const DateRangeFilter();
+                    },
+            ),
+          ),
+        ],
+        body: selectedCategory == null
+            ? const FoodHubGrid()
+            : _buildVenueList(context, ref, selectedCategory),
+      ),
     );
   }
 

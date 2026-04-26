@@ -116,7 +116,8 @@ class AppBottomNavBar extends ConsumerWidget {
                 isActive: _selectedIndex == 3,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 3;
-                  _showSheet(const HomeScreenSheet());
+                  _dismissOpenSheet();
+                  _navContext.go('/explorer');
                 },
               ),
               // 5 - Favoris

@@ -7,9 +7,6 @@ class TourismeHubGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DynamicHubGrid(
-      mode: 'tourisme',
-      cardWidth: 160,
-    );
+    return const DynamicHubGrid(mode: 'tourisme');
   }
 }

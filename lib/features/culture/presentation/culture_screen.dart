@@ -2,14 +2,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
@@ -39,17 +42,36 @@ class CultureScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(cultureCategoryProvider);
 
-    return Column(
-      children: [
-
-        const SizedBox(height: 12),
-
-        Expanded(
-          child: selectedCategory == null
-              ? const CultureHubGrid()
-              : _buildVenueList(context, ref, selectedCategory),
-        ),
-      ],
+    return Container(
+      color: EditorialColors.ink,
+      child: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverToBoxAdapter(
+            child: EditorialMasthead(
+              kicker: selectedCategory == null
+                  ? 'Rubrique · Cite'
+                  : 'Culture · $selectedCategory',
+              title: selectedCategory ?? 'Culture',
+              accent: RubricColors.culture,
+              blurb: selectedCategory == null
+                  ? 'Cinema, theatre, expositions, danse — l\'agenda culturel.'
+                  : null,
+              onBack: selectedCategory == null
+                  ? () => context.go('/explorer')
+                  : () {
+                      ref
+                          .read(modeSubcategoriesProvider.notifier)
+                          .select('culture', null);
+                      ref.read(dateRangeFilterProvider.notifier).state =
+                          const DateRangeFilter();
+                    },
+            ),
+          ),
+        ],
+        body: selectedCategory == null
+            ? const CultureHubGrid()
+            : _buildVenueList(context, ref, selectedCategory),
+      ),
     );
   }
 
@@ -62,57 +84,6 @@ class CultureScreen extends ConsumerWidget {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              InkWell(
-                onTap: () {
-                  ref.read(modeSubcategoriesProvider.notifier).select('culture', null);
-                  ref.read(dateRangeFilterProvider.notifier).state =
-                      const DateRangeFilter();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back_ios,
-                        size: 14,
-                        color: modeTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Culture',
-                        style: TextStyle(
-                          color: modeTheme.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
         Expanded(
           child: category == 'Musee'
               ? _buildMuseumVenuesList(ref)

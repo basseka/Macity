@@ -1,130 +1,145 @@
 import 'package:flutter/material.dart';
-import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/domain/models/app_category.dart';
 import 'package:pulz_app/core/state/categories_provider.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
-import 'package:pulz_app/core/theme/mode_theme.dart';
-import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/community_event_card.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_row_card.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_group_header.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_subcategory_card.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/features/day/domain/models/event.dart';
-import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
-import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/fete_musique_map_view.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
-import 'package:pulz_app/features/day/presentation/shared_with_me_sheet.dart';
-import 'package:pulz_app/features/day/state/shared_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
+/// Screen pilote de la refonte editoriale (handoff design 2026-04-25).
+/// Architecture inchangee : on garde les hubs (subcategories -> venues ->
+/// events). Seul le chrome visuel passe en dark editorial B3.
 class DayScreen extends ConsumerWidget {
   const DayScreen({super.key});
+
+  static const Color _accent = RubricColors.day;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedSubcategory = ref.watch(selectedDaySubcategoryProvider);
     final selectedVenue = ref.watch(selectedConcertVenueProvider);
 
-    Widget content;
-    if (selectedSubcategory == null) {
-      content = _buildSubcategoryGrid(context, ref);
-    } else if (selectedSubcategory == 'Fete musique') {
-      content = _buildFeteMusiqueMap(context, ref);
-    } else if (selectedVenue != null) {
-      content = _buildVenueEventsList(context, ref, selectedVenue, selectedSubcategory);
-    } else {
-      // Vérifie si cette catégorie a des venues enfants
-      final childrenAsync = ref.watch(
-        groupChildrenProvider((mode: 'day', groupe: selectedSubcategory)),
-      );
-      content = childrenAsync.when(
-        data: (children) {
-          if (children.isNotEmpty) {
-            return _buildVenueGrid(context, ref, selectedSubcategory, children);
-          }
-          return _buildEventsList(context, ref, selectedSubcategory);
-        },
-        loading: () => LoadingIndicator(color: ref.watch(modeThemeProvider).primaryColor),
-        error: (_, __) => _buildEventsList(context, ref, selectedSubcategory),
-      );
+    // Cas special : Fete musique = map plein ecran sans chrome editorial
+    if (selectedSubcategory == 'Fete musique') {
+      return _buildFeteMusiqueMap(context, ref);
     }
 
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Expanded(child: content),
-      ],
+    return Container(
+      color: EditorialColors.ink,
+      child: _buildContent(context, ref, selectedSubcategory, selectedVenue),
     );
   }
 
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    String? selectedSubcategory,
+    String? selectedVenue,
+  ) {
+    if (selectedSubcategory == null) {
+      return _buildSubcategoryGrid(context, ref);
+    }
+    if (selectedVenue != null) {
+      return _buildVenueEventsList(context, ref, selectedVenue, selectedSubcategory);
+    }
+    final childrenAsync = ref.watch(
+      groupChildrenProvider((mode: 'day', groupe: selectedSubcategory)),
+    );
+    return childrenAsync.when(
+      data: (children) {
+        if (children.isNotEmpty) {
+          return _buildVenueGrid(context, ref, selectedSubcategory, children);
+        }
+        return _buildEventsList(context, ref, selectedSubcategory);
+      },
+      loading: () => const Center(child: LoadingIndicator(color: _accent)),
+      error: (_, __) => _buildEventsList(context, ref, selectedSubcategory),
+    );
+  }
+
+  // ─── Etat 1 : grille des sous-rubriques (root) ────────────────────────
+
   Widget _buildSubcategoryGrid(BuildContext context, WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
     final catsAsync = ref.watch(modeRootCategoriesProvider('day'));
 
     return catsAsync.when(
       data: (subcategories) {
         final others = subcategories.where((c) => c.searchTag != 'A venir').toList();
         final hasAvenir = subcategories.any((c) => c.searchTag == 'A venir');
-        final gradient = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
-        );
 
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          children: [
-            if (hasAvenir) ...[
-              _DayAvenirBanner(gradient: gradient, ref: ref),
-              const SizedBox(height: 14),
-            ],
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: 1.1,
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: EditorialMasthead(
+                kicker: 'Rubrique · Sortir',
+                title: 'Sortir',
+                accent: _accent,
+                blurb:
+                    'Concerts, spectacles, festivals — la programmation du jour et a venir.',
+                onBack: () => context.go('/explorer'),
               ),
-              itemCount: others.length,
-              itemBuilder: (context, index) {
-                final sub = others[index];
-                final isFeteMusique = sub.searchTag == 'Fete musique';
-                final countAsync =
-                    ref.watch(daySubcategoryCountProvider(sub.searchTag));
-                return DaySubcategoryCard(
-                  emoji: '',
-                  label: sub.label,
-                  image: sub.imageUrl.isNotEmpty ? sub.imageUrl : null,
-                  count: isFeteMusique ? null : countAsync.valueOrNull,
-                  blink: false,
-                  isScraped: true,
-                  gradient: gradient,
-                  onTap: () {
-                    ref.read(selectedConcertVenueProvider.notifier).state = null;
-                    ref.read(modeSubcategoriesProvider.notifier).select('day', sub.searchTag);
+            ),
+            if (hasAvenir)
+              SliverToBoxAdapter(
+                child: _AvenirBanner(ref: ref, accent: _accent),
+              ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 18,
+                  crossAxisSpacing: 14,
+                  childAspectRatio: 0.82,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final sub = others[index];
+                    final countAsync =
+                        ref.watch(daySubcategoryCountProvider(sub.searchTag));
+                    return EditorialSubcategoryCard(
+                      label: sub.label,
+                      kicker: sub.label,
+                      imageUrl: sub.imageUrl.isNotEmpty ? sub.imageUrl : null,
+                      count: countAsync.valueOrNull,
+                      accent: _accent,
+                      onTap: () {
+                        ref.read(selectedConcertVenueProvider.notifier).state = null;
+                        ref.read(modeSubcategoriesProvider.notifier).select('day', sub.searchTag);
+                      },
+                    );
                   },
-                );
-              },
+                  childCount: others.length,
+                ),
+              ),
             ),
           ],
         );
       },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
+      loading: () => const Center(child: LoadingIndicator(color: _accent)),
+      error: (_, __) => AppErrorWidget(
         message: 'Erreur lors du chargement des categories',
         onRetry: () => ref.invalidate(modeRootCategoriesProvider('day')),
       ),
     );
   }
+
+  // ─── Etat 2 : grille des venues d'une sous-rubrique ───────────────────
 
   Widget _buildVenueGrid(
     BuildContext context,
@@ -132,69 +147,51 @@ class DayScreen extends ConsumerWidget {
     String subcategory,
     List<AppCategory> venues,
   ) {
-    final modeTheme = ref.watch(modeThemeProvider);
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  subcategory,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              _buildBackButton(ref, modeTheme, onTap: () {
-                ref.read(modeSubcategoriesProvider.notifier).select('day', null);
-              }),
-            ],
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: EditorialMasthead(
+            kicker: 'Day · $subcategory',
+            title: subcategory,
+            accent: _accent,
+            onBack: () =>
+                ref.read(modeSubcategoriesProvider.notifier).select('day', null),
           ),
         ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+          sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
-              mainAxisSpacing: 12,
+              mainAxisSpacing: 18,
               crossAxisSpacing: 12,
-              childAspectRatio: 0.85,
+              childAspectRatio: 0.72,
             ),
-            itemCount: venues.length,
-            itemBuilder: (context, index) {
-              final venue = venues[index];
-              final keyword = venue.meta('venue_keyword') ?? venue.searchTag;
-              final countAsync = ref.watch(concertVenueCountProvider(keyword));
-              return DaySubcategoryCard(
-                emoji: '',
-                label: venue.label,
-                image: venue.imageUrl.isNotEmpty ? venue.imageUrl : null,
-                count: countAsync.valueOrNull,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    modeTheme.primaryColor,
-                    modeTheme.primaryDarkColor,
-                  ],
-                ),
-                onTap: () {
-                  ref.read(selectedConcertVenueProvider.notifier).state = keyword;
-                },
-              );
-            },
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final venue = venues[index];
+                final keyword = venue.meta('venue_keyword') ?? venue.searchTag;
+                final countAsync = ref.watch(concertVenueCountProvider(keyword));
+                return EditorialSubcategoryCard(
+                  label: venue.label,
+                  kicker: subcategory,
+                  imageUrl: venue.imageUrl.isNotEmpty ? venue.imageUrl : null,
+                  count: countAsync.valueOrNull,
+                  accent: _accent,
+                  imageHeight: 90,
+                  onTap: () =>
+                      ref.read(selectedConcertVenueProvider.notifier).state = keyword,
+                );
+              },
+              childCount: venues.length,
+            ),
           ),
         ),
       ],
     );
   }
+
+  // ─── Etat 3 : liste events d'une venue ────────────────────────────────
 
   Widget _buildVenueEventsList(
     BuildContext context,
@@ -202,53 +199,43 @@ class DayScreen extends ConsumerWidget {
     String venueKeyword,
     String subcategory,
   ) {
-    final modeTheme = ref.watch(modeThemeProvider);
     final eventsAsync = ref.watch(dayVenueEventsProvider);
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  venueKeyword,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              _buildBackButton(ref, modeTheme, onTap: () {
-                ref.read(selectedConcertVenueProvider.notifier).state = null;
-              }),
-            ],
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: EditorialMasthead(
+            kicker: '$subcategory · Salle',
+            title: venueKeyword,
+            accent: _accent,
+            onBack: () =>
+                ref.read(selectedConcertVenueProvider.notifier).state = null,
           ),
         ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: eventsAsync.when(
-            data: (events) {
-              if (events.isEmpty) {
-                return const EmptyStateWidget(
+        eventsAsync.when(
+          data: (events) {
+            if (events.isEmpty) {
+              return const SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyStateWidget(
                   message: 'Aucun evenement trouve pour cette salle',
                   icon: Icons.event_busy,
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: events.length,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: EventRowCard(event: events[index]),
                 ),
               );
-            },
-            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-            error: (error, _) => AppErrorWidget(
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) => _editorialRowFromEvent(context, events[i]),
+                childCount: events.length,
+              ),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: LoadingIndicator(color: _accent)),
+          ),
+          error: (_, __) => SliverFillRemaining(
+            hasScrollBody: false,
+            child: AppErrorWidget(
               message: 'Erreur lors du chargement des evenements',
               onRetry: () => ref.invalidate(dayVenueEventsProvider),
             ),
@@ -258,105 +245,56 @@ class DayScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBackButton(WidgetRef ref, ModeTheme modeTheme, {required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.arrow_back_ios,
-              size: 14,
-              color: modeTheme.primaryColor,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'Retour',
-              style: TextStyle(
-                color: modeTheme.primaryColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeteMusiqueMap(BuildContext context, WidgetRef ref) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        ref.read(modeSubcategoriesProvider.notifier).select('day', null);
-      },
-      child: FeteMusiqueMapView(ville: ref.watch(selectedCityProvider)),
-    );
-  }
+  // ─── Etat 4 : liste events d'une sous-rubrique sans venues ────────────
 
   Widget _buildEventsList(
     BuildContext context,
     WidgetRef ref,
     String subcategory,
   ) {
-    final modeTheme = ref.watch(modeThemeProvider);
     final eventsAsync = ref.watch(dayEventsProvider);
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  subcategory,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              _buildBackButton(ref, modeTheme, onTap: () {
-                ref.read(modeSubcategoriesProvider.notifier).select('day', null);
-                ref.read(dateRangeFilterProvider.notifier).state =
-                    const DateRangeFilter();
-              }),
-            ],
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: EditorialMasthead(
+            kicker: 'Day · $subcategory',
+            title: subcategory,
+            accent: _accent,
+            onBack: () {
+              ref.read(modeSubcategoriesProvider.notifier).select('day', null);
+              ref.read(dateRangeFilterProvider.notifier).state =
+                  const DateRangeFilter();
+            },
           ),
         ),
-
-        const SizedBox(height: 8),
-
-        Expanded(
-          child: eventsAsync.when(
-            data: (events) {
-              if (events.isEmpty) {
-                return const EmptyStateWidget(
+        eventsAsync.when(
+          data: (events) {
+            if (events.isEmpty) {
+              return const SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyStateWidget(
                   message: 'Aucun evenement trouve pour cette categorie',
                   icon: Icons.event_busy,
-                );
-              }
-              if (subcategory == 'A venir') {
-                return _buildGroupedEventsList(context, events, modeTheme, ref);
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: events.length,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: EventRowCard(event: events[index]),
                 ),
               );
-            },
-            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-            error: (error, _) => AppErrorWidget(
+            }
+            if (subcategory == 'A venir') {
+              return _buildGroupedEventsSliver(context, events, ref);
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) => _editorialRowFromEvent(context, events[i]),
+                childCount: events.length,
+              ),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: LoadingIndicator(color: _accent)),
+          ),
+          error: (_, __) => SliverFillRemaining(
+            hasScrollBody: false,
+            child: AppErrorWidget(
               message: 'Erreur lors du chargement des evenements',
               onRetry: () => ref.invalidate(dayEventsProvider),
             ),
@@ -366,7 +304,11 @@ class DayScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGroupedEventsList(BuildContext context, List<Event> events, ModeTheme modeTheme, WidgetRef ref) {
+  Widget _buildGroupedEventsSliver(
+    BuildContext context,
+    List<Event> events,
+    WidgetRef ref,
+  ) {
     final filter = ref.watch(dateRangeFilterProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -380,13 +322,15 @@ class DayScreen extends ConsumerWidget {
       ..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
 
     if (filtered.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'Aucun evenement trouve',
-        icon: Icons.event_busy,
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: EmptyStateWidget(
+          message: 'Aucun evenement trouve',
+          icon: Icons.event_busy,
+        ),
       );
     }
 
-    // Group by date
     final grouped = <DateTime, List<Event>>{};
     for (final e in filtered) {
       final d = DateTime.tryParse(e.dateDebut)!;
@@ -395,45 +339,76 @@ class DayScreen extends ConsumerWidget {
     }
     final sortedDays = grouped.keys.toList()..sort();
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      children: [
-        const DateRangeChipBar(),
-        const SizedBox(height: 8),
-        for (final day in sortedDays) ...[
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 8),
-            child: Text(
-              day == today
-                  ? "Aujourd'hui"
-                  : day == tomorrow
-                      ? 'Demain'
-                      : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDim,
-              ),
-            ),
-          ),
-          for (final event in grouped[day]!) ...[
-            CommunityEventCard(
-              title: event.titre,
-              date: event.dateDebut,
-              time: event.horaires,
-              location: event.lieuNom,
-              photoUrl: event.photoPath,
-              tag: event.categorie.isNotEmpty ? event.categorie : null,
-              isFree: event.isFree,
-              hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
-              onTap: () => EventFullscreenPopup.show(
-                context, event, 'assets/images/pochette_concert.png',
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ],
-      ],
+    final children = <Widget>[
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: DateRangeChipBar(),
+      ),
+      const SizedBox(height: 4),
+    ];
+
+    for (final day in sortedDays) {
+      final dayLabel = day == today
+          ? "Aujourd'hui"
+          : day == tomorrow
+              ? 'Demain'
+              : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day));
+      children
+        ..add(EditorialGroupHeader(
+          kicker: dayLabel,
+          title: dayLabel,
+          count: grouped[day]!.length,
+          accent: _accent,
+        ))
+        ..addAll(grouped[day]!.map((e) => _editorialRowFromEvent(context, e)));
+    }
+
+    return SliverList(
+      delegate: SliverChildListDelegate(children),
+    );
+  }
+
+  Widget _buildFeteMusiqueMap(BuildContext context, WidgetRef ref) {
+    // Pas de PopScope ici : `ModeShell` enveloppe deja l'ecran avec un PopScope
+    // generique qui clear la sous-categorie au back. Ajouter un PopScope local
+    // declenchait les deux callbacks dans le meme back → l'outer voyait la
+    // sous-cat deja clearee et redirigeait vers /explorer.
+    return FeteMusiqueMapView(
+      ville: ref.watch(selectedCityProvider),
+      onBack: () =>
+          ref.read(modeSubcategoriesProvider.notifier).select('day', null),
+    );
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────
+
+  Widget _editorialRowFromEvent(BuildContext context, Event event) {
+    final parsed = DateTime.tryParse(event.dateDebut);
+    final monthAbbr = parsed != null
+        ? DateFormat('MMM', 'fr_FR').format(parsed).replaceAll('.', '').toUpperCase()
+        : null;
+    final dayNum = parsed?.day.toString();
+    final weekDay = parsed != null
+        ? DateFormat('EEE', 'fr_FR').format(parsed).toLowerCase()
+        : null;
+    final price = event.isFree
+        ? 'Gratuit'
+        : (event.tarifNormal.isNotEmpty ? event.tarifNormal : null);
+
+    return EditorialEventRowCard(
+      dateMonth: monthAbbr,
+      dateDay: dayNum,
+      weekDay: weekDay,
+      time: event.horaires,
+      title: event.titre,
+      subtitle: event.descriptifCourt.isNotEmpty ? event.descriptifCourt : null,
+      venue: event.lieuNom.isNotEmpty ? event.lieuNom : null,
+      price: price,
+      imageUrl: event.photoPath,
+      accent: _accent,
+      onTap: () => EventFullscreenPopup.show(
+        context, event, 'assets/images/pochette_concert.png',
+      ),
     );
   }
 
@@ -441,184 +416,65 @@ class DayScreen extends ConsumerWidget {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
-class _DayAvenirBanner extends StatelessWidget {
-  final LinearGradient gradient;
+/// Bandeau "A venir" en haut de la grille, version editoriale.
+/// Garde le tap -> ouvre la sous-rubrique "A venir".
+class _AvenirBanner extends StatelessWidget {
   final WidgetRef ref;
+  final Color accent;
 
-  const _DayAvenirBanner({required this.gradient, required this.ref});
+  const _AvenirBanner({required this.ref, required this.accent});
 
   @override
   Widget build(BuildContext context) {
     final count = ref.watch(daySubcategoryCountProvider('A venir')).valueOrNull;
-
     return GestureDetector(
-      onTap: () => ref.read(modeSubcategoriesProvider.notifier).select('day', 'A venir'),
+      onTap: () =>
+          ref.read(modeSubcategoriesProvider.notifier).select('day', 'A venir'),
       child: Container(
-        height: 84,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: gradient,
-          boxShadow: [
-            BoxShadow(
-              color: gradient.colors.first.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: EditorialColors.dividerSoft,
+          border: Border(left: BorderSide(color: accent, width: 3)),
         ),
-        child: Stack(
+        child: Row(
           children: [
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/images/pochette_cettesemaine.jpg',
-                  fit: BoxFit.cover,
-                  cacheWidth: 300,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.black.withValues(alpha: 0.45),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.85),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.bolt, size: 10, color: Colors.white),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
+            Icon(Icons.bolt, size: 18, color: accent),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'A venir',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    'A venir',
+                    style: EditorialText.catCardTitle(),
                   ),
-                  if (count != null && count > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$count',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, color: Colors.white70, size: 24),
+                  Text(
+                    'Selection editorialisee — concerts, spectacles, festivals.',
+                    style: EditorialText.subtitleItalic(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SharedWithMeBanner extends ConsumerWidget {
-  final WidgetRef ref;
-  const _SharedWithMeBanner({required this.ref});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final sharedAsync = ref.watch(sharedWithMeProvider);
-    final count = sharedAsync.valueOrNull?.length ?? 0;
-
-    // Ne pas afficher si aucun event partage ou en cours de chargement
-    if (count == 0) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: GestureDetector(
-        onTap: () => SharedWithMeSheet.show(context),
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF6C5CE7), Color(0xFFA29BFE)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF6C5CE7).withValues(alpha: 0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const Icon(Icons.people_alt_rounded, color: Colors.white, size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Partages avec moi',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
+            if (count != null && count > 0) ...[
+              Text(
+                count.toString(),
+                style: EditorialText.meta().copyWith(
+                  color: EditorialColors.paper,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
-                if (count > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$count',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                const SizedBox(width: 4),
-                const Icon(Icons.chevron_right, color: Colors.white70, size: 22),
-              ],
+              ),
+              const SizedBox(width: 6),
+            ],
+            const Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: EditorialColors.paperMuted,
             ),
-          ),
+          ],
         ),
       ),
     );

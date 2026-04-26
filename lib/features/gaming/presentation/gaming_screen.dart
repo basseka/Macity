@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
@@ -28,17 +31,36 @@ class GamingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(gamingCategoryProvider);
 
-    return Column(
-      children: [
-
-        const SizedBox(height: 12),
-
-        Expanded(
-          child: selectedCategory == null
-              ? const GamingHubGrid()
-              : _buildVenueList(context, ref, selectedCategory),
-        ),
-      ],
+    return Container(
+      color: EditorialColors.ink,
+      child: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverToBoxAdapter(
+            child: EditorialMasthead(
+              kicker: selectedCategory == null
+                  ? 'Rubrique · Joueurs'
+                  : 'Gaming · $selectedCategory',
+              title: selectedCategory ?? 'Gaming',
+              accent: RubricColors.gaming,
+              blurb: selectedCategory == null
+                  ? 'Arcade, VR, manga, e-sport — la culture geek et joueurs.'
+                  : null,
+              onBack: selectedCategory == null
+                  ? () => context.go('/explorer')
+                  : () {
+                      ref
+                          .read(modeSubcategoriesProvider.notifier)
+                          .select('gaming', null);
+                      ref.read(dateRangeFilterProvider.notifier).state =
+                          const DateRangeFilter();
+                    },
+            ),
+          ),
+        ],
+        body: selectedCategory == null
+            ? const GamingHubGrid()
+            : _buildVenueList(context, ref, selectedCategory),
+      ),
     );
   }
 
@@ -50,63 +72,9 @@ class GamingScreen extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(gamingVenuesProvider);
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              InkWell(
-                onTap: () {
-                  ref.read(modeSubcategoriesProvider.notifier).select('gaming', null);
-                  ref.read(dateRangeFilterProvider.notifier).state =
-                      const DateRangeFilter();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back_ios,
-                        size: 14,
-                        color: modeTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Categories',
-                        style: TextStyle(
-                          color: modeTheme.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Expanded(
-          child: category == 'A venir'
-              ? _buildGroupedVenues(context, ref, modeTheme)
-              : venuesAsync.when(
+    return category == 'A venir'
+        ? _buildGroupedVenues(context, ref, modeTheme)
+        : venuesAsync.when(
                   data: (venues) {
                     if (venues.isEmpty) {
                       return const EmptyStateWidget(
@@ -129,10 +97,7 @@ class GamingScreen extends ConsumerWidget {
                     message: 'Erreur lors du chargement des lieux',
                     onRetry: () => ref.invalidate(gamingVenuesProvider),
                   ),
-                ),
-        ),
-      ],
-    );
+                );
   }
 
   Widget _buildGroupedVenues(BuildContext context, WidgetRef ref, ModeTheme modeTheme) {

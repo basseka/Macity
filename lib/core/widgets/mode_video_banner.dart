@@ -75,14 +75,14 @@ class _ModeVideoBannerState extends ConsumerState<ModeVideoBanner> {
             size.height > 0;
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.zero,
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.hero),
+            borderRadius: BorderRadius.zero,
             child: Container(
               height: 120,
               width: double.infinity,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppRadius.hero),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(color: AppColors.line),
               ),
               child: isReady

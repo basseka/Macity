@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/sport/presentation/boxe_events_grid.dart';
 import 'package:pulz_app/features/sport/presentation/complexe_sportif_hub.dart';
@@ -51,16 +54,33 @@ class SportScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sub = ref.watch(sportSubcategoryProvider);
 
-    // Cartes plein ecran (sans barre titre)
+    // Cartes plein ecran (sans chrome editorial)
     if (SportFullscreenMap.isMapTag(sub)) {
       return SportFullscreenMap(mapTag: sub!);
     }
 
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        Expanded(child: _resolve(sub)),
-      ],
+    return Container(
+      color: EditorialColors.ink,
+      child: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverToBoxAdapter(
+            child: EditorialMasthead(
+              kicker: sub == null ? 'Rubrique · Active' : 'Sport · $sub',
+              title: sub ?? 'Sport',
+              accent: RubricColors.sport,
+              blurb: sub == null
+                  ? 'Matchs, courses, entrainement — l\'agenda sportif de la ville.'
+                  : null,
+              onBack: sub == null
+                  ? () => context.go('/explorer')
+                  : () => ref
+                      .read(modeSubcategoriesProvider.notifier)
+                      .select('sport', null),
+            ),
+          ),
+        ],
+        body: _resolve(sub),
+      ),
     );
   }
 

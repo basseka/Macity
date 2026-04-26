@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/core/utils/city_hub_resolver.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
@@ -131,7 +132,9 @@ class PaginatedFeedNotifier extends StateNotifier<PaginatedFeedState> {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final userFiltered = userEvents.where((ue) {
-        if (ue.ville.toLowerCase() != _city.toLowerCase()) return false;
+        // Hub resolution (Seysses -> Toulouse) pour les rows legacy.
+        final hub = CityHubResolver.resolveHub(ue.ville);
+        if (hub.toLowerCase() != _city.toLowerCase()) return false;
         final d = DateTime.tryParse(ue.date);
         if (d == null) return false;
         return !DateTime(d.year, d.month, d.day).isBefore(today);

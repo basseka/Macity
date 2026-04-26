@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/core/utils/city_hub_resolver.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
@@ -104,7 +105,9 @@ final todayTomorrowEventsProvider =
   // Ajouter les user events de la semaine
   final userEvents = ref.watch(userEventsProvider);
   final userFiltered = userEvents.where((ue) {
-    if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+    // Resolution commune -> hub (Seysses -> Toulouse) pour les rows legacy.
+    final hub = CityHubResolver.resolveHub(ue.ville);
+    if (hub.toLowerCase() != city.toLowerCase()) return false;
     final d = DateTime.tryParse(ue.date);
     if (d == null) return false;
     final dateOnly = DateTime(d.year, d.month, d.day);
@@ -162,7 +165,9 @@ final allFutureEventsProvider =
   // User events
   final userEvents = ref.watch(userEventsProvider);
   final userFiltered = userEvents.where((ue) {
-    if (ue.ville.toLowerCase() != city.toLowerCase()) return false;
+    // Resolution commune -> hub (Seysses -> Toulouse) pour les rows legacy.
+    final hub = CityHubResolver.resolveHub(ue.ville);
+    if (hub.toLowerCase() != city.toLowerCase()) return false;
     final d = DateTime.tryParse(ue.date);
     if (d == null) return false;
     return !DateTime(d.year, d.month, d.day).isBefore(today);

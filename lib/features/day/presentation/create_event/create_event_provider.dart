@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/services/activity_service.dart';
+import 'package:pulz_app/core/utils/city_hub_resolver.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
@@ -216,7 +217,14 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       heureFin: parseTime(data['heure_fin']),
       lieuNom: str(data['lieu_nom']),
       lieuAdresse: str(data['lieu_adresse']) ?? '',
-      ville: str(data['ville']) ?? state.ville,
+      // Sauvegarde le HUB ville (Toulouse) plutot que la commune (Seysses)
+      // pour que l'event apparaisse dans le feed du hub. CP fourni par l'IA.
+      ville: str(data['ville']) != null
+          ? CityHubResolver.resolveHub(
+              str(data['ville']),
+              str(data['code_postal']),
+            )
+          : state.ville,
       estGratuit: data['est_gratuit'] == true,
       prix: (str(data['prix']) ?? '').replaceAll(RegExp(r'[^\d.,]'), ''),
       lienBilletterie: str(data['lien_billetterie']) ?? '',

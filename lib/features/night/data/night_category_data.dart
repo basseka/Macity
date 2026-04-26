@@ -41,7 +41,7 @@ class NightCategoryData {
       name: 'Bars & vie nocturne',
       emoji: '\uD83C\uDF78',
       subcategories: [
-        NightSubcategory(label: 'Club / Discotheque', searchTag: 'Club Discotheque', emoji: '\uD83C\uDF86', group: 'Bars & vie nocturne', image: 'assets/images/pochette_discotheque.png'),
+        NightSubcategory(label: 'Discotheque', searchTag: 'Club Discotheque', emoji: '\uD83C\uDF86', group: 'Bars & vie nocturne', image: 'assets/images/pochette_discotheque.png'),
         NightSubcategory(label: 'Bar de nuit', searchTag: 'Bar de nuit', emoji: '\uD83C\uDF19', group: 'Bars & vie nocturne', image: 'assets/images/pochette_pub.png'),
         NightSubcategory(label: 'Bar a cocktails', searchTag: 'Bar a cocktails', emoji: '\uD83C\uDF79', group: 'Bars & vie nocturne', image: 'assets/images/pochette_pub.png'),
         NightSubcategory(label: 'Bar a chicha', searchTag: 'Bar a chicha', emoji: '\uD83D\uDCA8', group: 'Bars & vie nocturne', image: 'assets/images/pochette_chicha.png'),

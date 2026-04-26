@@ -26,12 +26,27 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
   late final PageController _pageCtrl;
   int _currentPage = 0;
 
+  /// Cle sur le widget chat — utilisee pour scroller vers le chat depuis la
+  /// pill "Discuter" sur le poster.
+  final GlobalKey _chatKey = GlobalKey();
+
   ReportedEvent get event => widget.event;
 
   @override
   void initState() {
     super.initState();
     _pageCtrl = PageController(viewportFraction: 0.85);
+  }
+
+  void _scrollToChat() {
+    final ctx = _chatKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+      alignment: 0.0, // amene le chat en haut du viewport
+    );
   }
 
   @override
@@ -177,6 +192,7 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                         event: event,
                         width: mediaQuery.size.width - 32,
                         height: 220,
+                        onDiscussTap: _scrollToChat,
                       ),
                     ),
                   ),
@@ -460,7 +476,10 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                   const SizedBox(height: 14),
 
                   // Chat communautaire (auto-detruit a l'expiration de l'event)
-                  ReportedEventChat(eventId: event.id),
+                  KeyedSubtree(
+                    key: _chatKey,
+                    child: ReportedEventChat(eventId: event.id),
+                  ),
                 ],
               ),
             ),

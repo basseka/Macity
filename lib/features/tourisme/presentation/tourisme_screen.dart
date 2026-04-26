@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
@@ -58,52 +61,75 @@ class TourismeScreen extends ConsumerWidget {
       return _buildCategoryContent(context, ref, selectedCategory);
     }
 
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        // Bouton Top incontournables
-        if (selectedCategory == null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GestureDetector(
-              onTap: () => TopPicksSheet.show(context),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFE6A817), Color(0xFFE91E8C)],
+    return Container(
+      color: EditorialColors.ink,
+      child: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverToBoxAdapter(
+            child: EditorialMasthead(
+              kicker: selectedCategory == null
+                  ? 'Rubrique · Visite'
+                  : 'Tourisme · $selectedCategory',
+              title: selectedCategory ?? 'Tourisme',
+              accent: RubricColors.tourisme,
+              blurb: selectedCategory == null
+                  ? 'Monuments, transports, top picks — la ville pour les visiteurs.'
+                  : null,
+              onBack: selectedCategory == null
+                  ? () => context.go('/explorer')
+                  : () {
+                      ref
+                          .read(modeSubcategoriesProvider.notifier)
+                          .select('tourisme', null);
+                      ref.read(dateRangeFilterProvider.notifier).state =
+                          const DateRangeFilter();
+                    },
+            ),
+          ),
+          if (selectedCategory == null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: GestureDetector(
+                  onTap: () => TopPicksSheet.show(context),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE6A817), Color(0xFFE91E8C)],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE6A817).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('\u2B50', style: TextStyle(fontSize: 14)),
+                        SizedBox(width: 6),
+                        Text(
+                          'Top incontournables',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                      ],
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFE6A817).withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('\u2B50', style: TextStyle(fontSize: 14)),
-                    SizedBox(width: 6),
-                    Text(
-                      'Top incontournables',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
-                    ),
-                  ],
                 ),
               ),
             ),
-          ),
-        if (selectedCategory == null) const SizedBox(height: 8),
-        Expanded(
-          child: selectedCategory == null
-              ? const TourismeHubGrid()
-              : _buildCategoryContent(context, ref, selectedCategory),
-        ),
-      ],
+          if (selectedCategory == null)
+            const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        ],
+        body: selectedCategory == null
+            ? const TourismeHubGrid()
+            : _buildCategoryContent(context, ref, selectedCategory),
+      ),
     );
   }
 

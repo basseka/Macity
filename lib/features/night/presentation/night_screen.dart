@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
@@ -80,26 +83,62 @@ class NightScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(nightCategoryProvider);
 
-    return Column(
-      children: [
+    // Cartes plein ecran (sans chrome editorial)
+    if (selectedCategory != null &&
+        (NightClubsFullscreenMap.isMapTag(selectedCategory) ||
+            NightBarsFullscreenMap.isMapTag(selectedCategory) ||
+            NightSpicyFullscreenMap.isMapTag(selectedCategory))) {
+      return _resolveContent(context, ref, selectedCategory);
+    }
 
-        const SizedBox(height: 12),
-
-        Expanded(
-          child: selectedCategory == null
-              ? const NightHubGrid()
-              : NightClubsFullscreenMap.isMapTag(selectedCategory)
-                  ? const NightClubsFullscreenMap()
-                  : NightBarsFullscreenMap.isMapTag(selectedCategory)
-                      ? const NightBarsFullscreenMap()
-                      : NightSpicyFullscreenMap.isMapTag(selectedCategory)
-                          ? const NightSpicyFullscreenMap()
-                          : _subGridTags.contains(selectedCategory)
-                              ? _buildSubGrid(context, ref, selectedCategory)
-                              : _buildVenueList(context, ref, selectedCategory),
-        ),
-      ],
+    return Container(
+      color: EditorialColors.ink,
+      child: NestedScrollView(
+        headerSliverBuilder: (_, __) => [
+          SliverToBoxAdapter(
+            child: EditorialMasthead(
+              kicker: selectedCategory == null
+                  ? 'Rubrique · After'
+                  : 'Night · ${_displayLabel(selectedCategory)}',
+              title: selectedCategory == null
+                  ? 'Nuit'
+                  : _displayLabel(selectedCategory),
+              accent: RubricColors.night,
+              blurb: selectedCategory == null
+                  ? 'Clubs, bars, soirees — la nuit, la ville change de visage.'
+                  : null,
+              onBack: selectedCategory == null
+                  ? () => context.go('/explorer')
+                  : () => ref
+                      .read(modeSubcategoriesProvider.notifier)
+                      .select('night', null),
+            ),
+          ),
+        ],
+        body: _resolveContent(context, ref, selectedCategory),
+      ),
     );
+  }
+
+  Widget _resolveContent(
+    BuildContext context,
+    WidgetRef ref,
+    String? selectedCategory,
+  ) {
+    if (selectedCategory == null) return const NightHubGrid();
+    if (NightClubsFullscreenMap.isMapTag(selectedCategory)) {
+      return const NightClubsFullscreenMap();
+    }
+    if (NightBarsFullscreenMap.isMapTag(selectedCategory)) {
+      return const NightBarsFullscreenMap();
+    }
+    if (NightSpicyFullscreenMap.isMapTag(selectedCategory)) {
+      return const NightSpicyFullscreenMap();
+    }
+    if (_subGridTags.contains(selectedCategory)) {
+      return _buildSubGrid(context, ref, selectedCategory);
+    }
+    return _buildVenueList(context, ref, selectedCategory);
   }
 
   Widget _buildSubGrid(BuildContext context, WidgetRef ref, String parentTag) {

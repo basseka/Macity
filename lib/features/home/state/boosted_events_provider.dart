@@ -137,12 +137,19 @@ Future<List<UserEvent>> _fetchAdminPinnedEvents(String pinType, String city) asy
     });
     final pins = response.data as List;
     if (pins.isEmpty) return const [];
-    final futures = pins.map<Future<UserEvent?>>((p) {
+    // Le `event_source` enregistre est utilise comme HINT (ordre de lookup),
+    // pas comme verite absolue : le feed peut historiquement avoir insere des
+    // pins avec le mauvais source (cf bug feed_screen.dart hardcode
+    // `scrapedEvents` pour tous les pins). Si la 1ere table est miss, on
+    // retombe sur l'autre — ca rattrape les rows orphelines deja en DB.
+    final futures = pins.map<Future<UserEvent?>>((p) async {
       final m = p as Map<String, dynamic>;
       final src = m['event_source'] as String;
       final id = m['event_identifiant'] as String;
-      if (src == 'user_events') return _fetchUserEventById(id);
-      return _fetchScrapedAsUserEvent(id);
+      if (src == 'user_events') {
+        return await _fetchUserEventById(id) ?? await _fetchScrapedAsUserEvent(id);
+      }
+      return await _fetchScrapedAsUserEvent(id) ?? await _fetchUserEventById(id);
     });
     final results = await Future.wait(futures);
     // Filtre par ville selectionnee (case insensitive, exact match).

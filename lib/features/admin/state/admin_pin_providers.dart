@@ -30,13 +30,19 @@ final activeAdminPinsProvider =
 
 /// Helper : lookup d'un pin pour un event donne (permet d'afficher le badge
 /// "epingle" sur les cards).
+///
+/// Match par `identifiant` uniquement, pas par `source`. Le feed insere
+/// historiquement avec un mauvais `source` (cf bug feed_screen.dart) — le
+/// service auto-detecte le bon source desormais, mais des rows orphelines
+/// existent encore en DB. Le match laxe permet de voir le pin existant
+/// quoiqu'il arrive.
 final pinForEventProvider = Provider.family<AdminPin?, ({AdminPinSource source, String identifiant})>((ref, key) {
   final pins = ref.watch(activeAdminPinsProvider).maybeWhen(
         data: (d) => d,
         orElse: () => const <AdminPin>[],
       );
   for (final p in pins) {
-    if (p.source == key.source && p.identifiant == key.identifiant) return p;
+    if (p.identifiant == key.identifiant) return p;
   }
   return null;
 });

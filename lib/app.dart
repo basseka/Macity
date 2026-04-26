@@ -123,6 +123,20 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         return;
       }
 
+      // Notification "ouvrir une URL externe" (ex: mise à jour requise,
+      // annonce marketing, lien press release…). Le champ data.url contient
+      // l'URL à ouvrir dans le navigateur externe.
+      if (type == 'open_url') {
+        final url = data['url'] as String? ?? '';
+        if (url.isNotEmpty) {
+          final uri = Uri.tryParse(url);
+          if (uri != null) {
+            launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        }
+        return;
+      }
+
       if (universe.isNotEmpty && validUniverses.contains(universe)) {
         // Naviguer vers le mode correspondant
         ref.read(modeSubcategoriesProvider.notifier).select(universe, null);
@@ -308,13 +322,17 @@ class _AppShellState extends ConsumerState<_AppShell> {
       // Synchroniser le provider avec la route
       if (newLocation == '/home' || newLocation == '/') {
         ref.read(navBarIndexProvider.notifier).state = 0;
+      } else if (newLocation.startsWith('/explorer')) {
+        ref.read(navBarIndexProvider.notifier).state = 3;
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final showNavBar = _location.startsWith('/home') || _location.startsWith('/mode');
+    final showNavBar = _location.startsWith('/home') ||
+        _location.startsWith('/mode') ||
+        _location.startsWith('/explorer');
 
     if (!showNavBar) return widget.child;
 

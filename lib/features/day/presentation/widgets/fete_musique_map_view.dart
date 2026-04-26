@@ -7,8 +7,9 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class FeteMusiqueMapView extends StatefulWidget {
   final String ville;
+  final VoidCallback? onBack;
 
-  const FeteMusiqueMapView({super.key, this.ville = 'Toulouse'});
+  const FeteMusiqueMapView({super.key, this.ville = 'Toulouse', this.onBack});
 
   @override
   State<FeteMusiqueMapView> createState() => _FeteMusiqueMapViewState();
@@ -182,6 +183,40 @@ class _FeteMusiqueMapViewState extends State<FeteMusiqueMapView> {
         if (_isLoading)
           const Center(
             child: CircularProgressIndicator(),
+          ),
+        // Bouton retour overlay haut-gauche — sort du mode plein ecran et
+        // ramene a la grille des sous-rubriques de Concert.
+        if (widget.onBack != null)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 12,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onBack,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.92),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.chevron_left,
+                    color: Color(0xFF1A0A2E),
+                    size: 26,
+                  ),
+                ),
+              ),
+            ),
           ),
       ],
     );

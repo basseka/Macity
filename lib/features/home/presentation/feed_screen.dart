@@ -12,7 +12,9 @@ import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:dio/dio.dart';
 import 'package:pulz_app/core/config/supabase_config.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
+import 'package:pulz_app/core/constants/event_categories.dart' as ev_cats;
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
@@ -102,19 +104,20 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   // Niveau 2 : sous-filtre optionnel du tab actif
   static const _tabs = <String>['En Scène', 'Event', 'Clubbing'];
   static const _subFilters = <String, List<String>>{
-    'En Scène': ['Concerts', 'Théâtre', 'One-man-show', 'Danse', 'Comédie musicale', 'Opéra', 'Humour'],
+    'En Scène': ['Concerts', 'Spectacle', 'Théâtre', 'One-man-show', 'Danse', 'Comédie musicale', 'Opéra', 'Humour'],
     'Event': ['Cinéma', 'Salon/expo', 'Soirée', 'Famille', 'Food', 'Sport'],
     'Clubbing': ['Bar', 'Club & Disco'],
   };
   // Mots-cles matches contre event.categorie/type/titre (toLowerCase)
   static const _subKeywords = <String, List<String>>{
     'Concerts': ['concert', 'musique'],
+    'Spectacle': ['spectacle', 'scène', 'scene', 'show'],
     'Théâtre': ['theatre', 'théâtre'],
     'One-man-show': ['one-man', 'one man', 'stand-up', 'stand up'],
     'Danse': ['danse', 'ballet'],
     'Comédie musicale': ['comedie musicale', 'comédie musicale'],
     'Opéra': ['opera', 'opéra'],
-    'Humour': ['humour'],
+    'Humour': ['humour', 'comedy', 'comique'],
     'Salon/expo': ['salon', 'expo', 'foire', 'vernissage'],
     'Soirée': ['soiree', 'soirée'],
     'Sport': ['sport', 'match', 'tournoi', 'competition', 'compétition'],
@@ -129,6 +132,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     'danse', 'ballet',
     'comedie musicale', 'comédie musicale',
     'opera', 'opéra', 'humour',
+    'spectacle', 'scène', 'scene',
   ];
 
   String? _activeTab; // null = Tout
@@ -816,17 +820,32 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   /// Matching d'un Event contre les filtres actifs.
+  ///
+  /// Strategie : on tente d'abord un match par sous-categorie EXACTE
+  /// (event cree par form/scan flyer avec une valeur de `kSubcategories`)
+  /// via `kSubcategoryToFilter`. Si l'event n'a pas de sous-cat reconnue
+  /// (events scraped legacy), on retombe sur le matching keyword historique.
   bool _matchesFilter(Event e) {
     if (_activeTab == null) return true;
 
+    // 1. Match exact par sous-categorie canonique (form / scan flyer)
+    if (ev_cats.matchesFilter(e.categorie, tab: _activeTab!, sub: _activeSub)) {
+      return true;
+    }
+
+    // 2. Fallback keyword (events scraped sans categorie canonique)
     final cat = e.categorie.toLowerCase();
     final type = e.type.toLowerCase();
     final titre = e.titre.toLowerCase();
+    final theme = e.theme.toLowerCase();
     final rubrique = e.rubrique.toLowerCase();
 
     bool matchAnyKw(List<String> kws) {
       for (final kw in kws) {
-        if (cat.contains(kw) || type.contains(kw) || titre.contains(kw)) return true;
+        if (cat.contains(kw) ||
+            type.contains(kw) ||
+            titre.contains(kw) ||
+            theme.contains(kw)) return true;
       }
       return false;
     }
@@ -1913,18 +1932,52 @@ class _MapLivePill extends ConsumerStatefulWidget {
 }
 
 class _MapLivePillState extends ConsumerState<_MapLivePill>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const _yellow = Color(0xFFFFD700);
+  static const _kLastSeenKey = 'map_live_last_seen_at';
 
   late final AnimationController _ctrl = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 900),
+    duration: const Duration(milliseconds: 400),
   );
+
+  /// Halo "non vu" : scintillement rapide autour de la pill quand au moins
+  /// une notif live n'a pas encore ete vue. Reset au tap sur la pill.
+  late final AnimationController _haloCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 350),
+  )..repeat(reverse: true);
+
+  DateTime? _lastSeenAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastSeen();
+  }
+
+  Future<void> _loadLastSeen() async {
+    final p = await SharedPreferences.getInstance();
+    final iso = p.getString(_kLastSeenKey);
+    if (iso == null || !mounted) return;
+    final dt = DateTime.tryParse(iso);
+    if (dt != null) setState(() => _lastSeenAt = dt);
+  }
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _haloCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _onTap(DateTime? mostRecent) async {
+    if (mostRecent != null) {
+      setState(() => _lastSeenAt = mostRecent);
+      final p = await SharedPreferences.getInstance();
+      await p.setString(_kLastSeenKey, mostRecent.toIso8601String());
+    }
+    widget.onTap();
   }
 
   @override
@@ -1932,19 +1985,30 @@ class _MapLivePillState extends ConsumerState<_MapLivePill>
     final eventsAsync = ref.watch(reportedEventsFeedProvider);
     final city = ref.watch(selectedCityProvider);
     final bbox = CityCenters.boundingBox(city);
-    final count = eventsAsync.maybeWhen(
+    final inBbox = eventsAsync.maybeWhen(
       data: (all) {
-        if (bbox == null) return all.length;
-        return all
-            .where((e) =>
-                e.lat >= bbox.minLat &&
-                e.lat <= bbox.maxLat &&
-                e.lng >= bbox.minLng &&
-                e.lng <= bbox.maxLng)
-            .length;
+        if (bbox == null) return all;
+        return all.where((e) =>
+            e.lat >= bbox.minLat &&
+            e.lat <= bbox.maxLat &&
+            e.lng >= bbox.minLng &&
+            e.lng <= bbox.maxLng).toList();
       },
-      orElse: () => 0,
+      orElse: () => const [],
     );
+    final count = inBbox.length;
+
+    // Determine s'il y a au moins une notif non vue (createdAt > lastSeenAt).
+    DateTime? mostRecent;
+    bool hasUnseen = false;
+    for (final e in inBbox) {
+      if (mostRecent == null || e.createdAt.isAfter(mostRecent)) {
+        mostRecent = e.createdAt;
+      }
+      if (_lastSeenAt == null || e.createdAt.isAfter(_lastSeenAt!)) {
+        hasUnseen = true;
+      }
+    }
 
     // Scintille uniquement quand il y a au moins une notif.
     if (count > 0 && !_ctrl.isAnimating) {
@@ -1964,15 +2028,16 @@ class _MapLivePillState extends ConsumerState<_MapLivePill>
       ),
     );
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.chip),
-          border: Border.all(color: AppColors.line),
+    final pill = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+        border: Border.all(
+          color: hasUnseen ? AppColors.magenta : AppColors.line,
+          width: hasUnseen ? 1.2 : 1,
         ),
+      ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2006,7 +2071,35 @@ class _MapLivePillState extends ConsumerState<_MapLivePill>
             ],
           ],
         ),
-      ),
+      );
+
+    return GestureDetector(
+      onTap: () => _onTap(mostRecent),
+      child: hasUnseen
+          ? AnimatedBuilder(
+              animation: _haloCtrl,
+              builder: (_, child) {
+                final t = _haloCtrl.value;
+                return Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppRadius.chip + 4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.magenta.withValues(
+                          alpha: 0.15 + 0.85 * t,
+                        ),
+                        blurRadius: 8 + 18 * t,
+                        spreadRadius: 0.5 + 3 * t,
+                      ),
+                    ],
+                  ),
+                  child: child,
+                );
+              },
+              child: pill,
+            )
+          : pill,
     );
   }
 }

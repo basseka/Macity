@@ -12,6 +12,10 @@ import 'package:pulz_app/features/reported_events/domain/models/reported_event.d
 class ReportedEventPosterCard extends StatelessWidget {
   final ReportedEvent event;
   final VoidCallback? onTap;
+
+  /// Callback specifique au pill "Discuter" en bas de carte. Si null, le tap
+  /// sur la pill se rabat sur `onTap`.
+  final VoidCallback? onDiscussTap;
   final double width;
   final double height;
   /// Mode bulle circulaire (style stories Instagram) : photo/gradient + emoji
@@ -22,6 +26,7 @@ class ReportedEventPosterCard extends StatelessWidget {
     super.key,
     required this.event,
     this.onTap,
+    this.onDiscussTap,
     this.width = 240,
     this.height = 160,
     this.circular = false,
@@ -122,13 +127,16 @@ class ReportedEventPosterCard extends StatelessWidget {
                 ),
               ),
 
-              // Top-right : badges (vues, video, photos)
+              // Top-right : badges (chat, vues, video, photos)
               Positioned(
                 top: padding,
                 right: padding,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Badge chat — affordance "tap pour discuter"
+                    const _ChatIconBadge(),
+                    const SizedBox(width: 4),
                     // Compteur de vues (cache en mode ultra-compact)
                     if (!isUltra) ...[
                       _ViewsBadge(count: event.displayViewsFormatted),
@@ -275,30 +283,12 @@ class ReportedEventPosterCard extends StatelessWidget {
                 ),
               ),
 
-              // Footer "commu" uniquement en mode large
+              // Footer "Discuter" — affordance forte uniquement en mode large
               if (!isCompact)
                 Positioned(
                   bottom: 8,
                   right: 10,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.flag,
-                        size: 9,
-                        color: Colors.white.withValues(alpha: 0.6),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        'commu',
-                        style: GoogleFonts.poppins(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: _DiscussPill(onTap: onDiscussTap ?? onTap),
                 ),
             ],
           ),
@@ -313,7 +303,6 @@ class ReportedEventPosterCard extends StatelessWidget {
     final to = _parseHex(g?.gradientTo) ?? const Color(0xFFFF3D8B);
     final firstPhoto = event.firstPhoto;
     final hasPhoto = firstPhoto != null && firstPhoto.isNotEmpty;
-    final emoji = g?.emoji ?? '📍';
 
     // Taille effective : on utilise min(w,h) pour garantir un cercle parfait.
     final size = width < height ? width : height;
@@ -355,22 +344,9 @@ class ReportedEventPosterCard extends StatelessWidget {
                   errorWidget: (_, __, ___) => const SizedBox.shrink(),
                 ),
 
-              // Overlay sombre pour lisibilite de l'emoji sur photo
+              // Overlay sombre subtil pour separer la bulle du fond
               if (hasPhoto)
-                Container(color: Colors.black.withValues(alpha: 0.32)),
-
-              // Emoji centre
-              Center(
-                child: Text(
-                  emoji,
-                  style: TextStyle(
-                    fontSize: size * 0.42,
-                    shadows: const [
-                      Shadow(blurRadius: 6, color: Colors.black45),
-                    ],
-                  ),
-                ),
-              ),
+                Container(color: Colors.black.withValues(alpha: 0.18)),
 
               // Pulse dot LIVE top-right
               Positioned(
@@ -578,6 +554,77 @@ class _TagChip extends StatelessWidget {
           fontSize: 8,
           fontWeight: FontWeight.w600,
           color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+/// Petite icone "bulle de chat" en haut a droite de la card poster — indique
+/// qu'on peut discuter sur l'event en tapant dessus.
+class _ChatIconBadge extends StatelessWidget {
+  const _ChatIconBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.25),
+          width: 0.5,
+        ),
+      ),
+      child: const Icon(
+        Icons.chat_bubble_outline,
+        size: 11,
+        color: Colors.white,
+      ),
+    );
+  }
+}
+
+/// Pill "Discuter" en bas a droite de la card — affordance forte pour le chat
+/// communautaire associe au signalement. Affichee uniquement en mode large.
+class _DiscussPill extends StatelessWidget {
+  final VoidCallback? onTap;
+  const _DiscussPill({this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.chat_bubble_rounded,
+                size: 12,
+                color: Color(0xFF1A0A2E),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                'Discuter',
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                  color: const Color(0xFF1A0A2E),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
