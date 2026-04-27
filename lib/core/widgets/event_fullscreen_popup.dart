@@ -305,7 +305,14 @@ class EventFullscreenPopup extends ConsumerWidget {
 
                   // ── Boutons actions fixes ──
                   Padding(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, event.reservationUrl.isNotEmpty ? 8 : 16),
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      8,
+                      20,
+                      event.reservationUrl.isNotEmpty
+                          ? 8
+                          : 16 + MediaQuery.of(context).padding.bottom,
+                    ),
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -341,10 +348,16 @@ class EventFullscreenPopup extends ConsumerWidget {
                   // ── Billetterie fixe en bas ──
                   if (event.reservationUrl.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        0,
+                        20,
+                        // Respect home indicator / gesture nav bar
+                        16 + MediaQuery.of(context).padding.bottom,
+                      ),
                       child: SizedBox(
                         width: double.infinity,
-                        height: 44,
+                        height: 52,
                         child: ElevatedButton.icon(
                           onPressed: () => _openUrl(event.reservationUrl),
                           icon: const Icon(Icons.confirmation_number_outlined, size: 18),

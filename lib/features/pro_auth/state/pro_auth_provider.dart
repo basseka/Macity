@@ -263,6 +263,26 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
     state = const ProAuthState(status: ProAuthStatus.notConnected);
   }
 
+  /// Supprime definitivement le compte pro (DB + auth) et clear la session.
+  /// Throw en cas d'erreur reseau / serveur — l'UI affiche un SnackBar.
+  Future<void> deleteAccount() async {
+    final token = await _sessionService.getAccessToken();
+    if (token == null) {
+      // Pas de session → on clean local et on sort.
+      await _sessionService.clearSession();
+      state = const ProAuthState(status: ProAuthStatus.notConnected);
+      return;
+    }
+    try {
+      await _authService.deleteAccount(accessToken: token);
+    } catch (e) {
+      debugPrint('[ProAuth] deleteAccount error: $e');
+      rethrow;
+    }
+    await _sessionService.clearSession();
+    state = const ProAuthState(status: ProAuthStatus.notConnected);
+  }
+
   String _parseError(Object e) {
     // Extraire le vrai message Supabase depuis DioException
     String msg = e.toString().toLowerCase();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
 import 'package:pulz_app/features/admin/state/admin_pin_providers.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
 import 'package:pulz_app/features/pro_auth/data/pro_auth_service.dart';
 import 'package:pulz_app/features/pro_auth/data/pro_session_service.dart';
@@ -202,6 +203,10 @@ class AdminPinGesture extends ConsumerWidget {
       messenger.showSnackBar(const SnackBar(content: Text('Session expirée')));
       return;
     }
+    // display_city = ville selectionnee par l'admin au moment du pin.
+    // Permet d'epingler un event de Blagnac depuis Toulouse et qu'il
+    // remonte dans le feed des users Toulouse (override de e.ville).
+    final selectedCity = ref.read(selectedCityProvider);
     final ok = await service.pin(
       source: source,
       identifiant: identifiant,
@@ -209,6 +214,7 @@ class AdminPinGesture extends ConsumerWidget {
       pinnedUntil: until,
       accessToken: token,
       adminEmail: auth.profile?.email,
+      displayCity: selectedCity,
     );
     if (!navigator.mounted) return;
     navigator.pop();

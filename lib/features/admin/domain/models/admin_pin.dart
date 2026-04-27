@@ -25,6 +25,7 @@ class AdminPin {
   final AdminPinType pinType;
   final DateTime pinnedUntil;
   final String? adminEmail;
+  final String? displayCity;
   final DateTime createdAt;
 
   const AdminPin({
@@ -35,6 +36,7 @@ class AdminPin {
     required this.pinnedUntil,
     required this.createdAt,
     this.adminEmail,
+    this.displayCity,
   });
 
   factory AdminPin.fromJson(Map<String, dynamic> json) => AdminPin(
@@ -44,6 +46,7 @@ class AdminPin {
         pinType: AdminPinTypeX.fromString(json['pin_type'] as String),
         pinnedUntil: DateTime.parse(json['pinned_until'] as String),
         adminEmail: json['admin_email'] as String?,
+        displayCity: json['display_city'] as String?,
         createdAt: DateTime.parse(json['created_at'] as String),
       );
 

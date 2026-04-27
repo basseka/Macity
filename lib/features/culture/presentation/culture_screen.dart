@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +12,6 @@ import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
-import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
@@ -21,7 +19,6 @@ import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:pulz_app/features/culture/presentation/culture_hub_grid.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart' show MuseumVenue;
-import 'package:pulz_app/features/culture/data/theatre_venues_data.dart' show TheatreVenue;
 import 'package:pulz_app/features/culture/presentation/widgets/dance_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/library_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/monument_venue_card.dart';
@@ -142,46 +139,181 @@ class CultureScreen extends ConsumerWidget {
     );
   }
 
+  // Liste plate de tous les events theatre + bouton "Filtrer par salle"
+  // (meme pattern que Concert/Spectacle/DJ Set dans le mode Day).
   Widget _buildTheatreVenuesList(WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-    final selectedId = ref.watch(selectedTheatreIdProvider);
-    final venuesAsync = ref.watch(theatreVenuesSupabaseProvider);
+    final selectedVenue = ref.watch(selectedTheatreVenueProvider);
+    final eventsState = ref.watch(cultureTheatreEventsProgressiveProvider);
+    final events = eventsState.events;
 
-    return venuesAsync.when(
-      data: (theatres) {
-        if (selectedId != null) {
-          final theatre = theatres.cast<TheatreVenue?>().firstWhere(
-            (t) => t!.id == selectedId,
-            orElse: () => null,
-          );
-          if (theatre != null) {
-            return _TheatreProgrammation(theatre: theatre);
-          }
-        }
+    if (eventsState.isLoading && events.isEmpty) {
+      return Center(child: LoadingIndicator(color: modeTheme.primaryColor));
+    }
+    if (events.isEmpty) {
+      return const EmptyStateWidget(
+        message: 'Aucun evenement theatre a venir',
+        icon: Icons.theater_comedy,
+      );
+    }
 
-        if (theatres.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucun theatre trouve',
-            icon: Icons.theater_comedy,
-          );
-        }
-        return GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 0.7,
+    final filtered = selectedVenue == null
+        ? events
+        : events.where((e) => e.lieuNom == selectedVenue).toList();
+
+    return Column(
+      children: [
+        _TheatreFilterBar(
+          selectedVenue: selectedVenue,
+          accent: modeTheme.primaryColor,
+          onTap: () => _showTheatreVenueFilterSheet(
+            ref, events, selectedVenue, modeTheme.primaryColor,
           ),
-          itemCount: theatres.length,
-          itemBuilder: (context, index) =>
-              _TheatreGridCard(theatre: theatres[index]),
-        );
-      },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des theatres',
-        onRetry: () => ref.invalidate(theatreVenuesSupabaseProvider),
+        ),
+        Expanded(
+          child: filtered.isEmpty
+              ? const EmptyStateWidget(
+                  message: 'Aucun evenement pour ce filtre',
+                  icon: Icons.event_busy,
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: EventRowCard(event: filtered[i]),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  void _showTheatreVenueFilterSheet(
+    WidgetRef ref,
+    List<Event> events,
+    String? currentSelection,
+    Color accent,
+  ) {
+    final byVenue = <String, int>{};
+    for (final e in events) {
+      if (e.lieuNom.isEmpty) continue;
+      byVenue[e.lieuNom] = (byVenue[e.lieuNom] ?? 0) + 1;
+    }
+    final venues = byVenue.entries.toList()
+      ..sort((a, b) {
+        final c = b.value.compareTo(a.value);
+        if (c != 0) return c;
+        return a.key.compareTo(b.key);
+      });
+
+    showModalBottomSheet<void>(
+      context: ref.context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollCtrl) => Container(
+          decoration: const BoxDecoration(
+            color: EditorialColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 8, bottom: 6),
+                width: 32,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: EditorialColors.dividerStrong,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 12, 8),
+                child: Row(
+                  children: [
+                    const Text(
+                      '✦',
+                      style: TextStyle(color: EditorialColors.magenta, fontSize: 11),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Filtrer par salle',
+                      style: TextStyle(
+                        color: EditorialColors.text,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (currentSelection != null)
+                      GestureDetector(
+                        onTap: () {
+                          ref.read(selectedTheatreVenueProvider.notifier).state = null;
+                          Navigator.of(sheetCtx).pop();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Effacer',
+                            style: TextStyle(
+                              color: accent,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: EditorialColors.dividerSoft),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollCtrl,
+                  padding: EdgeInsets.zero,
+                  itemCount: venues.length + 1,
+                  separatorBuilder: (_, __) => const Divider(
+                    height: 1,
+                    color: EditorialColors.dividerSoft,
+                    indent: 20,
+                    endIndent: 20,
+                  ),
+                  itemBuilder: (_, i) {
+                    if (i == 0) {
+                      return _TheatreVenueRow(
+                        label: 'Toutes les salles',
+                        count: events.length,
+                        selected: currentSelection == null,
+                        accent: accent,
+                        onTap: () {
+                          ref.read(selectedTheatreVenueProvider.notifier).state = null;
+                          Navigator.of(sheetCtx).pop();
+                        },
+                      );
+                    }
+                    final entry = venues[i - 1];
+                    return _TheatreVenueRow(
+                      label: entry.key,
+                      count: entry.value,
+                      selected: currentSelection == entry.key,
+                      accent: accent,
+                      onTap: () {
+                        ref.read(selectedTheatreVenueProvider.notifier).state = entry.key;
+                        Navigator.of(sheetCtx).pop();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -505,303 +637,116 @@ class CultureScreen extends ConsumerWidget {
   }
 }
 
-class _TheatreGridCard extends ConsumerWidget {
-  final TheatreVenue theatre;
+class _TheatreFilterBar extends StatelessWidget {
+  final String? selectedVenue;
+  final Color accent;
+  final VoidCallback onTap;
 
-  const _TheatreGridCard({required this.theatre});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
-    final eventsAsync = ref.watch(theatreVenueEventsProvider(theatre.id));
-    final eventCount = eventsAsync.whenOrNull(data: (e) => e.length) ?? 0;
-
-    return GestureDetector(
-      onTap: () => ref.read(selectedTheatreIdProvider.notifier).state = theatre.id,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  VenueImage(imageUrl: theatre.image, defaultAsset: 'assets/images/pochette_theatre.png'),
-                  if (theatre.hasOnlineTicket)
-                    Positioned(
-                      top: 4,
-                      left: 4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF059669),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'BILLETS',
-                          style: TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ),
-                  // ── Badge compteur events ──
-                  if (eventCount > 0)
-                    Positioned(
-                      bottom: 4,
-                      right: 4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: modeTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '$eventCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            theatre.name,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w600,
-              color: modeTheme.primaryDarkColor,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-}
-
-class _TheatreProgrammation extends ConsumerWidget {
-  final TheatreVenue theatre;
-
-  const _TheatreProgrammation({required this.theatre});
+  const _TheatreFilterBar({
+    required this.selectedVenue,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final modeTheme = ref.watch(modeThemeProvider);
-    final eventsAsync = ref.watch(theatreVenueEventsProvider(theatre.id));
-
-    return Column(
-      children: [
-        // Header with theatre image, name, and back button
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+  Widget build(BuildContext context) {
+    final active = selectedVenue != null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: active
+                ? accent.withValues(alpha: 0.12)
+                : EditorialColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: active ? accent : EditorialColors.dividerSoft,
+              width: 1,
+            ),
+          ),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: VenueImage(imageUrl: theatre.image, defaultAsset: 'assets/images/pochette_theatre.png'),
-                ),
-              ),
-              const SizedBox(width: 10),
+              Icon(Icons.filter_list, size: 14, color: active ? accent : EditorialColors.textDim),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  theatre.name,
+                  active ? selectedVenue! : 'Filtrer par salle',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: modeTheme.primaryDarkColor,
+                    color: active ? accent : EditorialColors.text,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () => ref.read(selectedTheatreIdProvider.notifier).state = null,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Theatres',
-                        style: TextStyle(
-                          color: modeTheme.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              Icon(
+                active ? Icons.close : Icons.expand_more,
+                size: 14,
+                color: active ? accent : EditorialColors.textDim,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
-        // Events grid 3 colonnes
-        Expanded(
-          child: eventsAsync.when(
-            data: (events) {
-              if (events.isEmpty) {
-                return const EmptyStateWidget(
-                  message: 'Aucun spectacle a venir',
-                  icon: Icons.theater_comedy,
-                );
-              }
-              return GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 0.6,
-                ),
-                itemCount: events.length,
-                itemBuilder: (context, index) => _TheatreEventCard(
-                  event: events[index],
-                  theatreImage: theatre.image,
-                ),
-              );
-            },
-            loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-            error: (error, _) => AppErrorWidget(
-              message: 'Erreur lors du chargement de la programmation',
-              onRetry: () => ref.invalidate(theatreVenueEventsProvider(theatre.id)),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _TheatreEventCard extends StatelessWidget {
-  final Event event;
-  final String theatreImage;
+class _TheatreVenueRow extends StatelessWidget {
+  final String label;
+  final int count;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
 
-  const _TheatreEventCard({required this.event, required this.theatreImage});
+  const _TheatreVenueRow({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final hasPhoto = event.photoPath != null && event.photoPath!.isNotEmpty;
-
-    return GestureDetector(
-      onTap: () => _openDetail(context),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          fit: StackFit.expand,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
           children: [
-            if (hasPhoto)
-              CachedNetworkImage(
-                imageUrl: event.photoPath!,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => _fallbackImage(),
-                errorWidget: (_, __, ___) => _fallbackImage(),
-              )
-            else
-              _fallbackImage(),
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0.4, 1.0],
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.8),
-                    ],
-                  ),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: selected ? accent : EditorialColors.text,
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Positioned(
-              left: 6,
-              right: 6,
-              bottom: 6,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    event.titre,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      shadows: [Shadow(blurRadius: 3, color: Colors.black54)],
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (event.datesAffichageHoraires.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        event.datesAffichageHoraires,
-                        style: TextStyle(
-                          fontSize: 8,
-                          color: Colors.white.withValues(alpha: 0.9),
-                          shadows: const [Shadow(blurRadius: 3, color: Colors.black54)],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
+            const SizedBox(width: 8),
+            Text(
+              '$count',
+              style: TextStyle(
+                color: selected ? accent : EditorialColors.textDim,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
               ),
             ),
+            if (selected) ...[
+              const SizedBox(width: 6),
+              Icon(Icons.check, size: 14, color: accent),
+            ],
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _fallbackImage() {
-    return VenueImage(imageUrl: theatreImage, defaultAsset: 'assets/images/pochette_theatre.png');
-  }
-
-  void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: event.titre,
-        imageAsset: theatreImage.isNotEmpty ? theatreImage : 'assets/images/pochette_theatre.png',
-        imageUrl: event.photoPath,
-        infos: [
-          if (event.descriptifCourt.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, event.descriptifCourt),
-          if (event.datesAffichageHoraires.isNotEmpty)
-            DetailInfoItem(Icons.calendar_today, event.datesAffichageHoraires),
-          if (event.lieuNom.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, event.lieuNom),
-          if (event.tarifNormal.isNotEmpty)
-            DetailInfoItem(Icons.euro, event.tarifNormal),
-        ],
-        primaryAction: event.reservationUrl.isNotEmpty
-            ? DetailAction(
-                icon: Icons.confirmation_number_outlined,
-                label: 'Billetterie',
-                url: event.reservationUrl,
-              )
-            : null,
-        shareText: '${event.titre}\n${event.datesAffichageHoraires}\n${event.lieuNom}\n\nDecouvre sur MaCity',
       ),
     );
   }

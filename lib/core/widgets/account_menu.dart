@@ -57,8 +57,12 @@ class AccountMenu {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(ctx).size.height * 0.9,
+        ),
         decoration: const BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -110,9 +114,9 @@ class AccountMenu {
                     ],
                   ),
                 ],
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
                 ..._buildProActions(ctx, context, ref),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.article_rounded,
@@ -124,7 +128,7 @@ class AccountMenu {
                     MyPublicationsSheet.show(ctx, fromAccountMenu: true);
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.favorite_rounded,
@@ -141,7 +145,7 @@ class AccountMenu {
                     );
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.tune_rounded,
@@ -154,6 +158,10 @@ class AccountMenu {
                 ),
                 const SizedBox(height: 8),
                 _buildConnectionButton(ctx, context, ref),
+                if (isProConnected) ...[
+                  const SizedBox(height: 5),
+                  _buildDeleteAccountButton(ctx, context, ref),
+                ],
                 const SizedBox(height: 16),
               ],
             ),
@@ -189,7 +197,7 @@ class AccountMenu {
         onTap: () {},
       ),
       if (proState.status == ProAuthStatus.approved) ...[
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
         _menuItem(
           ctx: ctx,
           icon: Icons.event_rounded,
@@ -205,7 +213,7 @@ class AccountMenu {
             );
           },
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
         _menuItem(
           ctx: ctx,
           icon: Icons.auto_awesome_rounded,
@@ -220,7 +228,7 @@ class AccountMenu {
             );
           },
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
         _menuItem(
           ctx: ctx,
           icon: Icons.local_offer_rounded,
@@ -285,6 +293,77 @@ class AccountMenu {
     );
   }
 
+  /// Bouton "Supprimer mon compte" (RGPD). Visible uniquement pour les pros
+  /// connectes. Confirmation modale obligatoire avant l'appel destructeur.
+  static Widget _buildDeleteAccountButton(
+    BuildContext ctx,
+    BuildContext rootContext,
+    WidgetRef ref,
+  ) {
+    return _menuItem(
+      ctx: ctx,
+      icon: Icons.delete_forever_rounded,
+      label: 'Supprimer mon compte',
+      subtitle: 'Action definitive et irreversible',
+      gradientColors: const [Color(0xFF8B0000), Color(0xFFB91C1C)],
+      onTap: () => _confirmDeleteAccount(ctx, rootContext, ref),
+    );
+  }
+
+  static Future<void> _confirmDeleteAccount(
+    BuildContext ctx,
+    BuildContext rootContext,
+    WidgetRef ref,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text(
+          'Supprimer votre compte ?',
+          style: TextStyle(color: AppColors.text, fontSize: 16),
+        ),
+        content: const Text(
+          'Cette action est definitive. Vos donnees pro seront supprimees '
+          'et vous ne pourrez plus vous connecter avec cet email. '
+          'Vous pourrez creer un nouveau compte plus tard si besoin.',
+          style: TextStyle(color: AppColors.textDim, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text(
+              'Annuler',
+              style: TextStyle(color: AppColors.textFaint),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text(
+              'Supprimer',
+              style: TextStyle(color: Color(0xFFE91E8C), fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final messenger = ScaffoldMessenger.of(rootContext);
+    Navigator.pop(ctx);
+    try {
+      await ref.read(proAuthProvider.notifier).deleteAccount();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Compte supprime')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Echec de la suppression — reessayez')),
+      );
+    }
+  }
+
   static Widget _menuItem({
     required BuildContext ctx,
     required IconData icon,
@@ -300,7 +379,7 @@ class AccountMenu {
         borderRadius: BorderRadius.circular(AppRadius.card),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.card),
             color: AppColors.surfaceHi,
@@ -343,7 +422,7 @@ class AccountMenu {
                     Text(
                       label,
                       style: GoogleFonts.geist(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.15,
                         color: AppColors.text,
@@ -353,7 +432,7 @@ class AccountMenu {
                     Text(
                       subtitle,
                       style: GoogleFonts.geist(
-                        fontSize: 10,
+                        fontSize: 9,
                         color: AppColors.textFaint,
                       ),
                     ),

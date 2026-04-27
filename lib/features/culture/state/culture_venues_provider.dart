@@ -208,8 +208,9 @@ final theatreVenueEventsProvider =
   );
 });
 
-/// Theatre sélectionné pour afficher sa programmation.
-final selectedTheatreIdProvider = StateProvider<String?>((ref) => null);
+/// Salle de theatre sélectionnée pour filtrer la liste plate des events
+/// theatre (lieuNom). null = afficher tous les events.
+final selectedTheatreVenueProvider = StateProvider<String?>((ref) => null);
 
 final cultureCategoryCountProvider =
     FutureProvider.family<int, String>((ref, searchTag) async {

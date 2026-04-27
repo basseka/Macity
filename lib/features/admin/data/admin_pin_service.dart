@@ -26,7 +26,7 @@ class AdminPinService {
         'admin_pins',
         queryParameters: {
           'pinned_until': 'gte.$nowIso',
-          'select': 'id,event_source,event_identifiant,pin_type,pinned_until,admin_email,created_at',
+          'select': 'id,event_source,event_identifiant,pin_type,pinned_until,admin_email,display_city,created_at',
           'order': 'created_at.desc',
         },
       );
@@ -74,6 +74,7 @@ class AdminPinService {
     required DateTime pinnedUntil,
     required String accessToken,
     String? adminEmail,
+    String? displayCity,
   }) async {
     try {
       final actualSource = await _resolveSource(identifiant, source);
@@ -91,6 +92,7 @@ class AdminPinService {
           'pin_type': pinType.value,
           'pinned_until': pinnedUntil.toUtc().toIso8601String(),
           'admin_email': adminEmail,
+          'display_city': displayCity,
         },
       );
       return true;

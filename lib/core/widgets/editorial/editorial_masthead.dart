@@ -27,6 +27,10 @@ class EditorialMasthead extends StatelessWidget {
   /// Actions a droite (search, menu...).
   final List<Widget>? actions;
 
+  /// Widget aligne a droite du titre, sur la meme ligne. Utile pour un
+  /// bouton de filtre / action contextuelle.
+  final Widget? titleTrailing;
+
   const EditorialMasthead({
     super.key,
     required this.kicker,
@@ -35,6 +39,7 @@ class EditorialMasthead extends StatelessWidget {
     this.blurb,
     this.onBack,
     this.actions,
+    this.titleTrailing,
   });
 
   @override
@@ -114,36 +119,49 @@ class EditorialMasthead extends StatelessWidget {
             ),
           ),
           const SizedBox(height: EditorialSpacing.sm),
-          // Titre — Playfair italic accent rubrique + point sans accent
+          // Titre — Playfair italic accent rubrique + point sans accent.
+          // Optionnellement un widget trailing aligne a droite (ex: bouton
+          // de filtre).
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: title,
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic,
-                      height: 1.05,
-                      letterSpacing: -0.6,
-                      color: accent,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: title,
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.italic,
+                            height: 1.05,
+                            letterSpacing: -0.6,
+                            color: accent,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '.',
+                          style: GoogleFonts.inter(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            height: 1.05,
+                            color: EditorialColors.text,
+                          ),
+                        ),
+                      ],
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  TextSpan(
-                    text: '.',
-                    style: GoogleFonts.inter(
-                      fontSize: 36,
-                      fontWeight: FontWeight.w700,
-                      height: 1.05,
-                      color: EditorialColors.text,
-                    ),
-                  ),
+                ),
+                if (titleTrailing != null) ...[
+                  const SizedBox(width: EditorialSpacing.md),
+                  titleTrailing!,
                 ],
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              ],
             ),
           ),
           if (blurb != null && blurb!.isNotEmpty) ...[

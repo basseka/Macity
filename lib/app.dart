@@ -232,11 +232,11 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
     final subcategory = container.read(modeSubcategoriesProvider)[currentMode];
 
     if (subcategory != null) {
-      // Niveau salle → retour à la grille des salles
+      // Niveau salle → retour à la liste des events
       if (currentMode == 'culture' && subcategory == 'Theatre') {
-        final theatreId = container.read(selectedTheatreIdProvider);
-        if (theatreId != null) {
-          container.read(selectedTheatreIdProvider.notifier).state = null;
+        final venue = container.read(selectedTheatreVenueProvider);
+        if (venue != null) {
+          container.read(selectedTheatreVenueProvider.notifier).state = null;
           return true;
         }
       }

@@ -10,7 +10,6 @@ import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
-import 'package:pulz_app/core/utils/date_formatter.dart';
 import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
@@ -25,7 +24,6 @@ import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
-import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/food/state/food_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
@@ -187,7 +185,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           child: category == 'A venir'
               ? _buildGroupedVenues(ref, modeTheme)
               : (category == 'Restaurant' || category == 'Guinguette' || category == 'Buffets' || category == 'Salon de the' || category == 'Brunch' || category == 'Spa hammam' || category == 'Massage' || category == 'Yoga meditation')
-                  ? _buildRestaurantsList(ref, presetTheme: _presetThemeForCategory(category), placeholderAsset: _placeholderForCategory(category))
+                  ? _buildRestaurantsList(ref, category: category, presetTheme: _presetThemeForCategory(category), placeholderAsset: _placeholderForCategory(category))
                   : venuesAsync.when(
                   data: (venues) {
                     if (venues.isEmpty) {
@@ -251,7 +249,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     }
   }
 
-  Widget _buildRestaurantsList(WidgetRef ref, {String? presetTheme, String placeholderAsset = 'assets/images/pochette_restaurant.jpg'}) {
+  Widget _buildRestaurantsList(WidgetRef ref, {required String category, String? presetTheme, String placeholderAsset = 'assets/images/pochette_restaurant.jpg'}) {
     final modeTheme = ref.watch(modeThemeProvider);
     // Toujours recharger depuis Supabase quand on ouvre la carte Restaurant
     final restaurantsAsync = ref.watch(restaurantsSupabaseProvider);
@@ -261,11 +259,32 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         final filtered = presetTheme != null
             ? venues.where((r) => r.theme.toLowerCase() == presetTheme.toLowerCase()).toList()
             : venues;
-        return _buildRestaurantsFiltered(ref, filtered, modeTheme, hideThemeFilter: presetTheme != null, placeholderAsset: placeholderAsset);
+        return _buildRestaurantsFiltered(ref, filtered, modeTheme, category: category, hideThemeFilter: presetTheme != null, placeholderAsset: placeholderAsset);
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (_, __) => _buildRestaurantsFiltered(
-          ref, <RestaurantVenue>[], modeTheme),
+          ref, <RestaurantVenue>[], modeTheme, category: category),
+    );
+  }
+
+  /// Convertit un RestaurantVenue en CommerceModel pour partager
+  /// CommerceRowCard avec les autres rubriques (Night/Clubs notamment).
+  /// La `categorie` est passee depuis la sous-rubrique courante pour que
+  /// le fallback image de CommerceRowCard pointe sur la bonne pochette.
+  static CommerceModel _restaurantToCommerce(RestaurantVenue v, String categorie) {
+    return CommerceModel(
+      nom: v.name,
+      adresse: v.adresse,
+      latitude: v.latitude,
+      longitude: v.longitude,
+      horaires: v.horaires,
+      categorie: categorie,
+      lienMaps: v.lienMaps,
+      telephone: v.telephone,
+      avis: v.description,
+      photo: v.photo,
+      siteWeb: v.websiteUrl,
+      isVerified: v.isVerified,
     );
   }
 
@@ -276,7 +295,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   }
 
   Widget _buildRestaurantsFiltered(
-      WidgetRef ref, List<RestaurantVenue> allVenues, modeTheme, {bool hideThemeFilter = false, String placeholderAsset = 'assets/images/pochette_restaurant.jpg'}) {
+      WidgetRef ref, List<RestaurantVenue> allVenues, modeTheme, {required String category, bool hideThemeFilter = false, String placeholderAsset = 'assets/images/pochette_restaurant.jpg'}) {
 
     if (allVenues.isEmpty) {
       return Center(
@@ -321,7 +340,10 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _RestaurantRowCard(venue: allVenues[index], placeholderAsset: placeholderAsset),
+                  child: CommerceRowCard(
+                    commerce: _restaurantToCommerce(allVenues[index], category),
+                    imageAsset: allVenues[index].photo.isEmpty ? placeholderAsset : null,
+                  ),
                 ),
                 childCount: allVenues.length,
               ),
@@ -486,228 +508,6 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
-// ── Carte restaurant en liste (style "A venir") ──
-class _RestaurantRowCard extends StatelessWidget {
-  final RestaurantVenue venue;
-  final String placeholderAsset;
-  const _RestaurantRowCard({required this.venue, this.placeholderAsset = 'assets/images/pochette_restaurant.jpg'});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _openDetail(context),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.line),
-        ),
-        child: Row(
-          children: [
-            // Photo
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 56,
-                height: 56,
-                child: venue.photo.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: venue.photo,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => _placeholder(),
-                        errorWidget: (_, __, ___) => _placeholder(),
-                      )
-                    : _placeholder(),
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // Infos
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    venue.name,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1A1A2E),
-                      height: 1.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  if (venue.quartier.isNotEmpty)
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 10, color: AppColors.textFaint),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            venue.quartier,
-                            style: GoogleFonts.inter(fontSize: 10, color: AppColors.textFaint),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (venue.horaires.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(Icons.access_time, size: 10, color: AppColors.textFaint),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            venue.horaires,
-                            style: GoogleFonts.inter(fontSize: 10, color: AppColors.textFaint),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            // Tags a droite
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 70),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  if (venue.theme.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF7B2D8E).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        venue.theme,
-                        style: GoogleFonts.inter(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF7B2D8E),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  if (venue.style.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F0F5),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        venue.style,
-                        style: GoogleFonts.inter(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textDim,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _placeholder() {
-    return Image.asset(
-      placeholderAsset,
-      fit: BoxFit.cover,
-      cacheWidth: 300,
-      errorBuilder: (_, __, ___) => Container(
-        color: const Color(0xFFF0F0F5),
-        child: const Icon(Icons.restaurant, size: 24, color: Colors.grey),
-      ),
-    );
-  }
-
-  static const _defaultRestaurantPhotos = [
-    'assets/images/plat-01.png',
-    'assets/images/plat-02.png',
-    'assets/images/plat-03.png',
-    'assets/images/plat-04.png',
-    'assets/images/plat-05.png',
-    'assets/images/plat-06.png',
-  ];
-
-  void _openDetail(BuildContext context) {
-    final photos = <String>[];
-    if (venue.photo.isNotEmpty && venue.photo.startsWith('http')) {
-      photos.add(venue.photo);
-    }
-    for (final p in _defaultRestaurantPhotos) {
-      if (photos.length >= 6) break;
-      if (!photos.contains(p)) photos.add(p);
-    }
-
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: venue.name,
-        emoji: '',
-        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : 'assets/images/pochette_restaurant.jpg',
-        imageUrl: venue.photo.isNotEmpty && venue.photo.startsWith('http') ? venue.photo : null,
-        photoGallery: photos,
-        infos: [
-          if (venue.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, venue.description),
-          if (venue.theme.isNotEmpty)
-            DetailInfoItem(Icons.restaurant_menu, 'Theme: ${venue.theme}'),
-          if (venue.style.isNotEmpty)
-            DetailInfoItem(Icons.style, 'Style: ${venue.style}'),
-          if (venue.quartier.isNotEmpty)
-            DetailInfoItem(Icons.location_city, 'Quartier: ${venue.quartier}'),
-          if (venue.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, venue.horaires),
-          if (venue.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, venue.adresse),
-          if (venue.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, venue.telephone),
-        ],
-        primaryAction: venue.websiteUrl.isNotEmpty
-            ? DetailAction(
-                icon: Icons.language, label: 'Site web', url: venue.websiteUrl)
-            : null,
-        secondaryActions: [
-          if (venue.lienMaps.isNotEmpty)
-            DetailAction(
-                icon: Icons.map_outlined, label: 'Maps', url: venue.lienMaps),
-          if (venue.telephone.isNotEmpty)
-            DetailAction(
-                icon: Icons.phone_outlined,
-                label: 'Appeler',
-                url: 'tel:${venue.telephone.replaceAll(' ', '')}'),
-        ],
-        shareText:
-            '${venue.name}\n${venue.adresse}\n${venue.telephone.isNotEmpty ? '${venue.telephone}\n' : ''}${venue.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
-    );
-  }
-}
-
-// ── Tuile grille restaurant (style Instagram, gardee pour reference) ──
 class _RestaurantGridTile extends StatelessWidget {
   final RestaurantVenue venue;
 

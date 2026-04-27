@@ -206,6 +206,18 @@ class ProAuthService {
     );
   }
 
+  /// Suppression du compte pro (RGPD). Appelle la RPC `delete_my_pro_account`
+  /// qui clean atomiquement pro_profiles + auth.users.
+  Future<void> deleteAccount({required String accessToken}) async {
+    await _restDio.post(
+      'rpc/delete_my_pro_account',
+      data: const <String, dynamic>{},
+      options: Options(
+        headers: {'Authorization': 'Bearer $accessToken'},
+      ),
+    );
+  }
+
   /// Recupere le profil pro depuis Supabase pour un user_id donne.
   Future<ProProfile?> fetchProfile(String userId, String accessToken) async {
     try {

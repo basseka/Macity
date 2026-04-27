@@ -54,6 +54,20 @@ class DayScreen extends ConsumerWidget {
     if (selectedSubcategory == null) {
       return _buildSubcategoryGrid(context, ref);
     }
+    // Concert / Spectacle / DJ Set : flat list de tous les events + filtre
+    // dynamique par salle (chips derivees du lieuNom des events charges).
+    // Map searchTag -> label affichable (DJ set != DJ Set).
+    const venueFilterableLabels = {
+      'Concert': 'Concert',
+      'Spectacle': 'Spectacle',
+      'DJ set': 'DJ Set',
+    };
+    final venueFilterableLabel = venueFilterableLabels[selectedSubcategory];
+    if (venueFilterableLabel != null) {
+      return _buildVenueFilterableList(
+        context, ref, selectedVenue, venueFilterableLabel,
+      );
+    }
     if (selectedVenue != null) {
       return _buildVenueEventsList(context, ref, selectedVenue, selectedSubcategory);
     }
@@ -72,6 +86,228 @@ class DayScreen extends ConsumerWidget {
     );
   }
 
+  // ─── Liste plate + filtre salles (Concert / Spectacle / DJ Set) ──────
+  //
+  // Design : afficher TOUS les events de la sous-rubrique dans une liste,
+  // avec un bouton "Filtrer" dans la masthead qui ouvre un bottom-sheet
+  // listant les salles (avec compteurs). Une fois une salle choisie, la
+  // liste se filtre. Les salles sont derivees dynamiquement du `lieuNom`
+  // des events charges. Generique : utilise pour Concert, Spectacle et
+  // DJ Set qui partagent ce pattern.
+  Widget _buildVenueFilterableList(
+    BuildContext context,
+    WidgetRef ref,
+    String? selectedVenue,
+    String label,
+  ) {
+    final eventsAsync = ref.watch(dayEventsProvider);
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: EditorialMasthead(
+            kicker: selectedVenue == null
+                ? 'Day · $label'
+                : 'Day · $label · $selectedVenue',
+            title: label,
+            accent: _accent,
+            onBack: () => ref
+                .read(modeSubcategoriesProvider.notifier)
+                .select('day', null),
+            titleTrailing: eventsAsync.maybeWhen(
+              data: (events) => _FilterButton(
+                active: selectedVenue != null,
+                accent: _accent,
+                onTap: () =>
+                    _showVenueFilterSheet(context, ref, events, selectedVenue),
+              ),
+              orElse: () => null,
+            ),
+          ),
+        ),
+        eventsAsync.when(
+          data: (events) {
+            final filtered = selectedVenue == null
+                ? events
+                : events.where((e) => e.lieuNom == selectedVenue).toList();
+
+            if (filtered.isEmpty) {
+              return const SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyStateWidget(
+                  message: 'Aucun evenement pour ce filtre',
+                  icon: Icons.event_busy,
+                ),
+              );
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) => _editorialRowFromEvent(context, filtered[i]),
+                childCount: filtered.length,
+              ),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: LoadingIndicator(color: _accent)),
+          ),
+          error: (_, __) => SliverFillRemaining(
+            hasScrollBody: false,
+            child: AppErrorWidget(
+              message: 'Erreur lors du chargement',
+              onRetry: () => ref.invalidate(dayEventsProvider),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showVenueFilterSheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<Event> events,
+    String? currentSelection,
+  ) {
+    // Salles uniques + count, sorted par count desc puis alpha
+    final byVenue = <String, int>{};
+    for (final e in events) {
+      if (e.lieuNom.isEmpty) continue;
+      byVenue[e.lieuNom] = (byVenue[e.lieuNom] ?? 0) + 1;
+    }
+    final venues = byVenue.entries.toList()
+      ..sort((a, b) {
+        final c = b.value.compareTo(a.value);
+        if (c != 0) return c;
+        return a.key.compareTo(b.key);
+      });
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.5,
+          minChildSize: 0.3,
+          maxChildSize: 0.85,
+          expand: false,
+          builder: (_, scrollCtrl) => Container(
+            decoration: const BoxDecoration(
+              color: EditorialColors.surface,
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 8, bottom: 6),
+                  width: 32,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: EditorialColors.dividerStrong,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 12, 8),
+                  child: Row(
+                    children: [
+                      const Text(
+                        '✦',
+                        style: TextStyle(
+                          color: EditorialColors.magenta,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Filtrer par salle',
+                        style: EditorialText.cardTitle().copyWith(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (currentSelection != null)
+                        GestureDetector(
+                          onTap: () {
+                            ref
+                                .read(selectedConcertVenueProvider.notifier)
+                                .state = null;
+                            Navigator.of(sheetCtx).pop();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              'Effacer',
+                              style: EditorialText.meta().copyWith(
+                                color: _accent,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const Divider(
+                  height: 1,
+                  color: EditorialColors.dividerSoft,
+                ),
+                Expanded(
+                  child: ListView.separated(
+                    controller: scrollCtrl,
+                    padding: EdgeInsets.zero,
+                    itemCount: venues.length + 1,
+                    separatorBuilder: (_, __) => const Divider(
+                      height: 1,
+                      color: EditorialColors.dividerSoft,
+                      indent: 20,
+                      endIndent: 20,
+                    ),
+                    itemBuilder: (_, i) {
+                      if (i == 0) {
+                        return _VenueRow(
+                          label: 'Toutes les salles',
+                          count: events.length,
+                          selected: currentSelection == null,
+                          accent: _accent,
+                          onTap: () {
+                            ref
+                                .read(selectedConcertVenueProvider.notifier)
+                                .state = null;
+                            Navigator.of(sheetCtx).pop();
+                          },
+                        );
+                      }
+                      final entry = venues[i - 1];
+                      return _VenueRow(
+                        label: entry.key,
+                        count: entry.value,
+                        selected: currentSelection == entry.key,
+                        accent: _accent,
+                        onTap: () {
+                          ref
+                              .read(selectedConcertVenueProvider.notifier)
+                              .state = entry.key;
+                          Navigator.of(sheetCtx).pop();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // ─── Etat 1 : grille des sous-rubriques (root) ────────────────────────
 
   Widget _buildSubcategoryGrid(BuildContext context, WidgetRef ref) {
@@ -79,7 +315,15 @@ class DayScreen extends ConsumerWidget {
 
     return catsAsync.when(
       data: (subcategories) {
-        final others = subcategories.where((c) => c.searchTag != 'A venir').toList();
+        final others = subcategories
+            .where((c) => c.searchTag != 'A venir' && c.searchTag != 'Autres')
+            .toList()
+          // "Fete musique" en dernier de la grille
+          ..sort((a, b) {
+            final aFete = a.searchTag == 'Fete musique' ? 1 : 0;
+            final bFete = b.searchTag == 'Fete musique' ? 1 : 0;
+            return aFete.compareTo(bFete);
+          });
         final hasAvenir = subcategories.any((c) => c.searchTag == 'A venir');
 
         return CustomScrollView(
@@ -473,6 +717,132 @@ class _AvenirBanner extends StatelessWidget {
               Icons.chevron_right,
               size: 18,
               color: EditorialColors.paperMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bouton "Filtrer par salle" dans la masthead (Concert / Spectacle / DJ Set).
+/// Pastille magenta a droite quand un filtre est actif.
+class _FilterButton extends StatelessWidget {
+  final bool active;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _FilterButton({
+    required this.active,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: active
+              ? accent.withValues(alpha: 0.18)
+              : EditorialColors.surfaceHi,
+          borderRadius: BorderRadius.circular(EditorialRadius.search),
+          border: Border.all(
+            color: active ? accent : EditorialColors.stroke,
+            width: active ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.tune_rounded,
+              size: 16,
+              color: active ? accent : EditorialColors.text,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Filtrer par salle',
+              style: EditorialText.chip(
+                color: active ? accent : EditorialColors.text,
+              ).copyWith(fontWeight: FontWeight.w600),
+            ),
+            if (active) ...[
+              const SizedBox(width: 6),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: EditorialColors.magenta,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Row dans le bottom-sheet de filtres : nom de salle + count + tick.
+class _VenueRow extends StatelessWidget {
+  final String label;
+  final int count;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _VenueRow({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              selected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_off,
+              size: 16,
+              color: selected ? accent : EditorialColors.textDim,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: EditorialText.cardTitle().copyWith(
+                  fontSize: 12,
+                  color: selected ? accent : EditorialColors.text,
+                  fontWeight:
+                      selected ? FontWeight.w600 : FontWeight.w500,
+                  letterSpacing: -0.1,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              count.toString(),
+              style: EditorialText.meta().copyWith(
+                fontSize: 9,
+                color: selected ? accent : EditorialColors.textMute,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ],
         ),
