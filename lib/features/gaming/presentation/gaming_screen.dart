@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_tile.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
-import 'package:pulz_app/core/utils/date_formatter.dart';
-import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
-import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/gaming/data/gaming_category_data.dart';
 import 'package:pulz_app/features/gaming/presentation/gaming_hub_grid.dart';
@@ -128,71 +124,37 @@ class GamingScreen extends ConsumerWidget {
     }).toList();
 
     final items = <Widget>[
-      const DateRangeChipBar(),
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: DateRangeChipBar(),
+      ),
       const SizedBox(height: 4),
     ];
 
-    // User events grouped by date
+    // User events grouped by date — style editorial Day-aligned
     if (userEvents.isNotEmpty) {
-      final dateGrouped = <String, List<Event>>{};
+      final dateGrouped = <DateTime, List<Event>>{};
       for (final e in userEvents) {
-        final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
-        dateGrouped.putIfAbsent(dateKey, () => []).add(e);
+        final d = DateTime.tryParse(e.dateDebut);
+        if (d == null) continue;
+        final dateOnly = DateTime(d.year, d.month, d.day);
+        dateGrouped.putIfAbsent(dateOnly, () => []).add(e);
       }
       final sortedDates = dateGrouped.keys.toList()..sort();
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final tomorrow = today.add(const Duration(days: 1));
 
-      for (final dateKey in sortedDates) {
-        final eventsForDate = dateGrouped[dateKey]!;
-        final parsed = DateTime.tryParse(dateKey);
-        String dateLabel;
-        if (parsed != null) {
-          final d = DateTime(parsed.year, parsed.month, parsed.day);
-          if (d == today) {
-            dateLabel = "Aujourd'hui";
-          } else if (d == tomorrow) {
-            dateLabel = 'Demain';
-          } else {
-            dateLabel = _capitalize(
-              DateFormat('EEEE d MMMM', 'fr_FR').format(parsed),
-            );
-          }
-        } else {
-          dateLabel = dateKey;
-        }
-
-        items.add(
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-            child: Text(
-              dateLabel,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDim,
-              ),
-            ),
-          ),
-        );
+      for (final day in sortedDates) {
+        final eventsForDate = dateGrouped[day]!;
+        items.add(editorialDateHeader(
+          editorialDayLabel(day),
+          RubricColors.gaming,
+          count: eventsForDate.length,
+        ));
         for (final event in eventsForDate) {
-          items.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              child: CommunityEventCard(
-                title: event.titre,
-                date: event.dateDebut,
-                time: event.horaires,
-                location: event.lieuNom,
-                photoUrl: event.photoPath,
-                tag: event.categorie.isNotEmpty ? event.categorie : null,
-                isFree: event.isFree,
-                hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
-                onTap: () => EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.jpg'),
-              ),
-            ),
-          );
+          items.add(editorialEventTileFromEvent(
+            context,
+            event,
+            RubricColors.gaming,
+          ));
         }
       }
     }
@@ -251,6 +213,4 @@ class GamingScreen extends ConsumerWidget {
     );
   }
 
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }

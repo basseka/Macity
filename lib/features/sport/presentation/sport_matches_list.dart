@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_row_card.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_tile.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
@@ -54,14 +55,18 @@ class SportMatchesList extends ConsumerWidget {
                     ? 'JO 2028'
                     : subcategory;
 
+    final isAvenir = subcategory == 'A venir';
+
     return Column(
       children: [
-        SportBackButton(
-          title: displayTitle,
-          label: backLabel,
-          onBack: onBack,
-        ),
-        const SizedBox(height: 8),
+        if (!isAvenir) ...[
+          SportBackButton(
+            title: displayTitle,
+            label: backLabel,
+            onBack: onBack,
+          ),
+          const SizedBox(height: 8),
+        ],
         Expanded(
           child: matchesAsync.when(
             data: (matches) {
@@ -96,9 +101,6 @@ class SportMatchesList extends ConsumerWidget {
 
   Widget _buildGroupedList(List<SupabaseMatch> matches, dynamic modeTheme, WidgetRef ref) {
     final filter = ref.watch(dateRangeFilterProvider);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
 
     final grouped = <DateTime, List<SupabaseMatch>>{};
     for (final m in matches) {
@@ -112,46 +114,61 @@ class SportMatchesList extends ConsumerWidget {
 
     return Builder(
       builder: (context) => ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.zero,
         children: [
-          const DateRangeChipBar(),
-          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: DateRangeChipBar(),
+          ),
+          const SizedBox(height: 4),
           for (final day in sortedDays) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 12, bottom: 8),
-              child: Text(
-                day == today
-                    ? "Aujourd'hui"
-                    : day == tomorrow
-                        ? 'Demain'
-                        : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDim,
-                ),
-              ),
+            editorialDateHeader(
+              editorialDayLabel(day),
+              RubricColors.sport,
+              count: grouped[day]!.length,
             ),
-            for (final match in grouped[day]!) ...[
-              CommunityEventCard(
-                title: match.equipe2.isNotEmpty
-                    ? '${match.equipe1}  vs  ${match.equipe2}'
-                    : match.equipe1,
-                subtitle: match.competition.isNotEmpty ? match.competition : null,
-                date: match.date,
-                time: match.heure.isNotEmpty ? match.heure : null,
-                location: match.lieu.isNotEmpty ? match.lieu : null,
-                photoUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
-                fallbackAsset: 'assets/images/sc_autres_sport.jpg',
-                tag: match.sport.isNotEmpty ? match.sport : null,
-                isFree: match.gratuit.toLowerCase() == 'oui',
-                onTap: () => _openMatchDetail(context, match),
-              ),
-              const SizedBox(height: 8),
-            ],
+            for (final match in grouped[day]!)
+              _matchToEditorialTile(context, match),
           ],
         ],
       ),
+    );
+  }
+
+  EditorialEventRowCard _matchToEditorialTile(
+    BuildContext context,
+    SupabaseMatch match,
+  ) {
+    final parsed = DateTime.tryParse(match.date);
+    final monthAbbr = parsed != null
+        ? DateFormat('MMM', 'fr_FR')
+            .format(parsed)
+            .replaceAll('.', '')
+            .toUpperCase()
+        : null;
+    final dayNum = parsed?.day.toString();
+    final weekDay = parsed != null
+        ? DateFormat('EEE', 'fr_FR').format(parsed).toLowerCase()
+        : null;
+    final title = match.equipe2.isNotEmpty
+        ? '${match.equipe1}  vs  ${match.equipe2}'
+        : match.equipe1;
+    final price = match.gratuit.toLowerCase() == 'oui' ? 'Gratuit' : null;
+    final imageUrl =
+        match.photoUrl.isNotEmpty ? match.photoUrl : 'assets/images/sc_autres_sport.jpg';
+
+    return EditorialEventRowCard(
+      dateMonth: monthAbbr,
+      dateDay: dayNum,
+      weekDay: weekDay,
+      time: match.heure.isNotEmpty ? match.heure : null,
+      title: title,
+      subtitle: match.competition.isNotEmpty ? match.competition : null,
+      venue: match.lieu.isNotEmpty ? match.lieu : null,
+      price: price,
+      imageUrl: imageUrl,
+      accent: RubricColors.sport,
+      onTap: () => _openMatchDetail(context, match),
     );
   }
 
@@ -185,6 +202,4 @@ class SportMatchesList extends ConsumerWidget {
     );
   }
 
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }

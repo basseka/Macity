@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_tile.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-
-import 'package:pulz_app/core/widgets/community_event_card.dart';
-import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
@@ -284,101 +280,105 @@ class NightScreen extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(nightVenuesProvider);
 
+    final isAvenir = category == 'A venir';
+
     return Column(
       children: [
-        // Back button row
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              if (_categoryHasMap(category)) ...[
-                InkWell(
-                  onTap: () => _openMapFor(ref, category),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+        // Back button row (masquee sur A venir : la masthead a deja un back)
+        if (!isAvenir) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                if (_categoryHasMap(category)) ...[
+                  InkWell(
+                    onTap: () => _openMapFor(ref, category),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
                         ),
-                      ],
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.near_me, size: 14, color: Colors.white),
+                          SizedBox(width: 5),
+                          Text(
+                            'Carte',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: const Row(
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(
+                    _displayLabel(category),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: modeTheme.primaryDarkColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                InkWell(
+                  onTap: () {
+                    ref.read(modeSubcategoriesProvider.notifier).select('night', null);
+                    ref.read(dateRangeFilterProvider.notifier).state =
+                        const DateRangeFilter();
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.near_me, size: 14, color: Colors.white),
-                        SizedBox(width: 5),
+                        Icon(
+                          Icons.arrow_back_ios,
+                          size: 14,
+                          color: modeTheme.primaryColor,
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          'Carte',
+                          'Categories',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            color: modeTheme.primaryColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
               ],
-              Expanded(
-                child: Text(
-                  _displayLabel(category),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              InkWell(
-                onTap: () {
-                  ref.read(modeSubcategoriesProvider.notifier).select('night', null);
-                  ref.read(dateRangeFilterProvider.notifier).state =
-                      const DateRangeFilter();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back_ios,
-                        size: 14,
-                        color: modeTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Categories',
-                        style: TextStyle(
-                          color: modeTheme.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
 
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
 
         Expanded(
-          child: category == 'A venir'
+          child: isAvenir
               ? _buildUserEventsList(context, ref)
               : venuesAsync.when(
                   data: (venues) {
@@ -465,10 +465,6 @@ class NightScreen extends ConsumerWidget {
   }
 
   Widget _buildDateGroupedEventsList(List<Event> events, ModeTheme modeTheme, BuildContext context) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-
     final grouped = <DateTime, List<Event>>{};
     for (final e in events) {
       final d = DateTime.tryParse(e.dateDebut);
@@ -479,47 +475,29 @@ class NightScreen extends ConsumerWidget {
     final sortedDays = grouped.keys.toList()..sort();
 
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.zero,
       children: [
-        const DateRangeChipBar(),
-        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: DateRangeChipBar(),
+        ),
+        const SizedBox(height: 4),
         for (final day in sortedDays) ...[
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 8),
-            child: Text(
-              day == today
-                  ? "Aujourd'hui"
-                  : day == tomorrow
-                      ? 'Demain'
-                      : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDim,
-              ),
-            ),
+          editorialDateHeader(
+            editorialDayLabel(day),
+            RubricColors.night,
+            count: grouped[day]!.length,
           ),
-          for (final event in grouped[day]!) ...[
-            CommunityEventCard(
-              title: event.titre,
-              date: event.dateDebut,
-              time: event.horaires,
-              location: event.lieuNom,
-              photoUrl: event.photoPath,
-              tag: event.categorie.isNotEmpty ? event.categorie : null,
-              isFree: event.isFree,
-              hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
-              onTap: () => EventFullscreenPopup.show(
-                context, event, 'assets/images/pochette_default.jpg',
-              ),
+          for (final event in grouped[day]!)
+            editorialEventTileFromEvent(
+              context,
+              event,
+              RubricColors.night,
+              fallbackImage: 'assets/images/pochette_default.jpg',
             ),
-            const SizedBox(height: 8),
-          ],
         ],
       ],
     );
   }
 
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }

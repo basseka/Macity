@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:pulz_app/core/widgets/community_event_card.dart';
-import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_tile.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
@@ -84,7 +82,9 @@ class CultureScreen extends ConsumerWidget {
         Expanded(
           child: category == 'Musee'
               ? _buildMuseumVenuesList(ref)
-              : category == 'Theatre'
+              : category == 'Cinema'
+                  ? _buildCinemaVenuesList(ref)
+                  : category == 'Theatre'
                   ? _buildTheatreVenuesList(ref)
                   : category == 'Danse'
                       ? _buildDanceVenuesList(ref, modeTheme)
@@ -305,6 +305,185 @@ class CultureScreen extends ConsumerWidget {
                       accent: accent,
                       onTap: () {
                         ref.read(selectedTheatreVenueProvider.notifier).state = entry.key;
+                        Navigator.of(sheetCtx).pop();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Liste plate de tous les events cinema + bouton "Filtrer par salle"
+  // (meme pattern que Theatre).
+  Widget _buildCinemaVenuesList(WidgetRef ref) {
+    final modeTheme = ref.watch(modeThemeProvider);
+    final selectedVenue = ref.watch(selectedCinemaVenueProvider);
+    final eventsState = ref.watch(cultureCinemaEventsProgressiveProvider);
+    final events = eventsState.events;
+
+    if (eventsState.isLoading && events.isEmpty) {
+      return Center(child: LoadingIndicator(color: modeTheme.primaryColor));
+    }
+    if (events.isEmpty) {
+      return const EmptyStateWidget(
+        message: 'Aucune seance de cinema a venir',
+        icon: Icons.movie,
+      );
+    }
+
+    final filtered = selectedVenue == null
+        ? events
+        : events.where((e) => e.lieuNom == selectedVenue).toList();
+
+    return Column(
+      children: [
+        _TheatreFilterBar(
+          selectedVenue: selectedVenue,
+          accent: modeTheme.primaryColor,
+          onTap: () => _showCinemaVenueFilterSheet(
+            ref, events, selectedVenue, modeTheme.primaryColor,
+          ),
+        ),
+        Expanded(
+          child: filtered.isEmpty
+              ? const EmptyStateWidget(
+                  message: 'Aucune seance pour ce filtre',
+                  icon: Icons.event_busy,
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: EventRowCard(event: filtered[i]),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  void _showCinemaVenueFilterSheet(
+    WidgetRef ref,
+    List<Event> events,
+    String? currentSelection,
+    Color accent,
+  ) {
+    final byVenue = <String, int>{};
+    for (final e in events) {
+      if (e.lieuNom.isEmpty) continue;
+      byVenue[e.lieuNom] = (byVenue[e.lieuNom] ?? 0) + 1;
+    }
+    final venues = byVenue.entries.toList()
+      ..sort((a, b) {
+        final c = b.value.compareTo(a.value);
+        if (c != 0) return c;
+        return a.key.compareTo(b.key);
+      });
+
+    showModalBottomSheet<void>(
+      context: ref.context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollCtrl) => Container(
+          decoration: const BoxDecoration(
+            color: EditorialColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 8, bottom: 6),
+                width: 32,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: EditorialColors.dividerStrong,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 12, 8),
+                child: Row(
+                  children: [
+                    const Text(
+                      '✦',
+                      style: TextStyle(color: EditorialColors.magenta, fontSize: 11),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Filtrer par salle',
+                      style: TextStyle(
+                        color: EditorialColors.text,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (currentSelection != null)
+                      GestureDetector(
+                        onTap: () {
+                          ref.read(selectedCinemaVenueProvider.notifier).state = null;
+                          Navigator.of(sheetCtx).pop();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Effacer',
+                            style: TextStyle(
+                              color: accent,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: EditorialColors.dividerSoft),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollCtrl,
+                  padding: EdgeInsets.zero,
+                  itemCount: venues.length + 1,
+                  separatorBuilder: (_, __) => const Divider(
+                    height: 1,
+                    color: EditorialColors.dividerSoft,
+                    indent: 20,
+                    endIndent: 20,
+                  ),
+                  itemBuilder: (_, i) {
+                    if (i == 0) {
+                      return _TheatreVenueRow(
+                        label: 'Toutes les salles',
+                        count: events.length,
+                        selected: currentSelection == null,
+                        accent: accent,
+                        onTap: () {
+                          ref.read(selectedCinemaVenueProvider.notifier).state = null;
+                          Navigator.of(sheetCtx).pop();
+                        },
+                      );
+                    }
+                    final entry = venues[i - 1];
+                    return _TheatreVenueRow(
+                      label: entry.key,
+                      count: entry.value,
+                      selected: currentSelection == entry.key,
+                      accent: accent,
+                      onTap: () {
+                        ref.read(selectedCinemaVenueProvider.notifier).state = entry.key;
                         Navigator.of(sheetCtx).pop();
                       },
                     );
@@ -548,7 +727,6 @@ class CultureScreen extends ConsumerWidget {
     final filter = ref.watch(dateRangeFilterProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
 
     final grouped = <DateTime, List<Event>>{};
     for (final e in events) {
@@ -564,50 +742,31 @@ class CultureScreen extends ConsumerWidget {
 
     return Builder(
       builder: (context) => ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.zero,
         children: [
-          const DateRangeChipBar(),
-          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: DateRangeChipBar(),
+          ),
+          const SizedBox(height: 4),
           for (final day in sortedDays) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 12, bottom: 8),
-              child: Text(
-                day == today
-                    ? "Aujourd'hui"
-                    : day == tomorrow
-                        ? 'Demain'
-                        : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDim,
-                ),
-              ),
+            editorialDateHeader(
+              editorialDayLabel(day),
+              RubricColors.culture,
+              count: grouped[day]!.length,
             ),
-            for (final event in grouped[day]!) ...[
-              CommunityEventCard(
-                title: event.titre,
-                date: event.dateDebut,
-                time: event.horaires,
-                location: event.lieuNom,
-                photoUrl: event.photoPath,
-                tag: event.categorie.isNotEmpty ? event.categorie : null,
-                isFree: event.isFree,
-                hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
-                onTap: () => EventFullscreenPopup.show(
-                  context, event, 'assets/images/pochette_culture_art.png',
-                ),
+            for (final event in grouped[day]!)
+              editorialEventTileFromEvent(
+                context,
+                event,
+                RubricColors.culture,
+                fallbackImage: 'assets/images/pochette_culture_art.png',
               ),
-              const SizedBox(height: 8),
-            ],
           ],
         ],
       ),
     );
   }
-
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   Widget _buildCommerceVenuesList(WidgetRef ref, ModeTheme modeTheme) {
     final venuesAsync = ref.watch(cultureVenuesProvider);

@@ -4,17 +4,15 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_tile.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
-import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
-import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
@@ -87,99 +85,103 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(foodVenuesProvider);
 
+    final isAvenir = category == 'A venir';
+
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              if (category == 'Restaurant') ...[
-                InkWell(
-                  onTap: () => ref
-                      .read(modeSubcategoriesProvider.notifier)
-                      .select('food', FoodRestaurantsFullscreenMap.mapTag),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+        if (!isAvenir) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                if (category == 'Restaurant') ...[
+                  InkWell(
+                    onTap: () => ref
+                        .read(modeSubcategoriesProvider.notifier)
+                        .select('food', FoodRestaurantsFullscreenMap.mapTag),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [modeTheme.primaryColor, modeTheme.primaryDarkColor],
                         ),
-                      ],
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.near_me, size: 14, color: Colors.white),
+                          SizedBox(width: 5),
+                          Text(
+                            'Carte',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: const Row(
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(
+                    category,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: modeTheme.primaryDarkColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                InkWell(
+                  onTap: () {
+                    ref.read(modeSubcategoriesProvider.notifier).select('food', null);
+                    ref.read(dateRangeFilterProvider.notifier).state =
+                        const DateRangeFilter();
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.near_me, size: 14, color: Colors.white),
-                        SizedBox(width: 5),
+                        Icon(
+                          Icons.arrow_back_ios,
+                          size: 14,
+                          color: modeTheme.primaryColor,
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          'Carte',
+                          'Categories',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            color: modeTheme.primaryColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
               ],
-              Expanded(
-                child: Text(
-                  category,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              InkWell(
-                onTap: () {
-                  ref.read(modeSubcategoriesProvider.notifier).select('food', null);
-                  ref.read(dateRangeFilterProvider.notifier).state =
-                      const DateRangeFilter();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.arrow_back_ios,
-                        size: 14,
-                        color: modeTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Categories',
-                        style: TextStyle(
-                          color: modeTheme.primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
 
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
 
         Expanded(
           child: category == 'A venir'
@@ -382,68 +384,37 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     }).toList();
 
     final items = <Widget>[
-      const DateRangeChipBar(),
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20),
+        child: DateRangeChipBar(),
+      ),
       const SizedBox(height: 4),
     ];
 
-    // User events grouped by date
+    // User events grouped by date — style editorial Day-aligned
     if (userEvents.isNotEmpty) {
-      final dateGrouped = <String, List<Event>>{};
+      final dateGrouped = <DateTime, List<Event>>{};
       for (final e in userEvents) {
-        final dateKey = e.dateDebut.isNotEmpty ? e.dateDebut.substring(0, 10) : '';
-        dateGrouped.putIfAbsent(dateKey, () => []).add(e);
+        final d = DateTime.tryParse(e.dateDebut);
+        if (d == null) continue;
+        final dateOnly = DateTime(d.year, d.month, d.day);
+        dateGrouped.putIfAbsent(dateOnly, () => []).add(e);
       }
       final sortedDates = dateGrouped.keys.toList()..sort();
-      final now = DateTime.now();
-      final todayStr = DateFormat('yyyy-MM-dd').format(now);
-      final tomorrowStr =
-          DateFormat('yyyy-MM-dd').format(now.add(const Duration(days: 1)));
 
-      for (final dateKey in sortedDates) {
-        final eventsForDate = dateGrouped[dateKey]!;
-        final String dateLabel;
-        if (dateKey == todayStr) {
-          dateLabel = "Aujourd'hui";
-        } else if (dateKey == tomorrowStr) {
-          dateLabel = 'Demain';
-        } else {
-          final parsed = DateTime.tryParse(dateKey);
-          dateLabel = parsed != null
-              ? _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(parsed))
-              : dateKey;
-        }
-
-        items.add(
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-            child: Text(
-              dateLabel,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDim,
-              ),
-            ),
-          ),
-        );
+      for (final day in sortedDates) {
+        final eventsForDate = dateGrouped[day]!;
+        items.add(editorialDateHeader(
+          editorialDayLabel(day),
+          RubricColors.food,
+          count: eventsForDate.length,
+        ));
         for (final event in eventsForDate) {
-          items.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              child: CommunityEventCard(
-                title: event.titre,
-                date: event.dateDebut,
-                time: event.horaires,
-                location: event.lieuNom,
-                photoUrl: event.photoPath,
-                tag: event.categorie.isNotEmpty ? event.categorie : null,
-                isFree: event.isFree,
-                hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
-                onTap: () => EventFullscreenPopup.show(
-                    context, event, 'assets/images/pochette_default.jpg'),
-              ),
-            ),
-          );
+          items.add(editorialEventTileFromEvent(
+            context,
+            event,
+            RubricColors.food,
+          ));
         }
       }
     }
@@ -504,8 +475,6 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     );
   }
 
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
 class _RestaurantGridTile extends StatelessWidget {

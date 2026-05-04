@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_event_tile.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
-import 'package:pulz_app/core/utils/date_formatter.dart';
-import 'package:pulz_app/core/widgets/community_event_card.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
-import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/family/presentation/family_hub_grid.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
-import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 import 'package:pulz_app/features/family/presentation/widgets/family_venue_row_card.dart';
-import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
@@ -211,7 +204,6 @@ class FamilyScreen extends ConsumerWidget {
     final filter = ref.watch(dateRangeFilterProvider);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
 
     // Combiner events communauté + scraped
     final scrapedEvents = scrapedAsync.valueOrNull ?? [];
@@ -244,45 +236,27 @@ class FamilyScreen extends ConsumerWidget {
     final sortedDays = grouped.keys.toList()..sort();
 
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.zero,
       children: [
-        const DateRangeChipBar(),
-        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: DateRangeChipBar(),
+        ),
+        const SizedBox(height: 4),
         for (final day in sortedDays) ...[
-          Padding(
-            padding: const EdgeInsets.only(top: 12, bottom: 8),
-            child: Text(
-              day == today
-                  ? "Aujourd'hui"
-                  : day == tomorrow
-                      ? 'Demain'
-                      : _capitalize(DateFormat('EEEE d MMMM', 'fr_FR').format(day)),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDim,
-              ),
-            ),
+          editorialDateHeader(
+            editorialDayLabel(day),
+            RubricColors.family,
+            count: grouped[day]!.length,
           ),
-          for (final event in grouped[day]!) ...[
-            CommunityEventCard(
-              title: event.titre,
-              date: event.dateDebut,
-              time: event.horaires,
-              location: event.lieuNom,
-              photoUrl: event.photoPath,
-              tag: event.categorie.isNotEmpty ? event.categorie : null,
-              isFree: event.isFree,
-              hasVideo: event.videoUrl != null && event.videoUrl!.isNotEmpty,
-              onTap: () => EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.jpg'),
+          for (final event in grouped[day]!)
+            editorialEventTileFromEvent(
+              context,
+              event,
+              RubricColors.family,
             ),
-            const SizedBox(height: 8),
-          ],
         ],
       ],
     );
   }
-
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
