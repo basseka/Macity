@@ -316,8 +316,9 @@ class ModeShell extends ConsumerWidget {
     );
   }
 
-  /// Vrai si la selection courante correspond a une vue carte plein ecran
-  /// ou a l'ecran fete de la musique (tous masquent le video banner).
+  /// Vrai si on doit masquer le video banner : vues carte plein ecran, fete
+  /// de la musique, ou sous-pages Tourisme (Visiter + ses sous-categories,
+  /// ou la video chevauchait le bouton "Categories" du sous-ecran).
   static bool _isFullscreenMapView(WidgetRef ref) {
     final mode = ref.watch(currentModeProvider);
     final sub = ref.watch(modeSubcategoriesProvider)[mode];
@@ -326,6 +327,9 @@ class ModeShell extends ConsumerWidget {
     if (mode == 'night' && (sub == 'Club Discotheque carte' ||
         sub == 'Bars carte' || sub == 'Spicy carte')) return true;
     if (mode == 'food' && sub == 'Restaurant carte') return true;
+    // Tourisme : masquer le banner sur toutes les sous-pages (Visiter +
+    // ses enfants Monument/Musee/etc., Plan touristique, Se deplacer).
+    if (mode == 'tourisme') return true;
     return false;
   }
 }
