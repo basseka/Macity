@@ -277,7 +277,7 @@ class AccountMenu {
     return _menuItem(
       ctx: ctx,
       icon: Icons.login_rounded,
-      label: 'Connexion',
+      label: 'Acces Pro',
       subtitle: 'Espace professionnel',
       gradientColors: const [Color(0xFFE91E8C), Color(0xFFFF6EB4)],
       onTap: () {
