@@ -11,7 +11,7 @@ class CultureHubGrid extends StatelessWidget {
     return DynamicHubGrid(
       mode: 'culture',
       countProvider: (tag) => cultureCategoryCountProvider(tag),
-      avenirSubtitle: 'Spectacles, expos, visites...',
+      avenirSubtitle: 'Selection editorialisee — theatre, expos, cinema.',
     );
   }
 }

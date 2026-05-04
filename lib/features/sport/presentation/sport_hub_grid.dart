@@ -73,6 +73,7 @@ class SportHubGrid extends ConsumerWidget {
           child: DynamicHubGrid(
             mode: 'sport',
             countProvider: (tag) => sportSubcategoryCountProvider(tag),
+            avenirSubtitle: 'Selection editorialisee — matchs, tournois, courses.',
           ),
         ),
       ],

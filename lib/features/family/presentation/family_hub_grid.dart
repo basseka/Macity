@@ -11,7 +11,7 @@ class FamilyHubGrid extends StatelessWidget {
     return DynamicHubGrid(
       mode: 'family',
       countProvider: (tag) => familyCategoryCountProvider(tag),
-      avenirSubtitle: 'Sorties en famille, parcs...',
+      avenirSubtitle: 'Selection editorialisee — parcs, ateliers, sorties.',
     );
   }
 }

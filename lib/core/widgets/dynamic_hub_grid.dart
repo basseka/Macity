@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/domain/models/app_category.dart';
 import 'package:pulz_app/core/state/categories_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_avenir_banner.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_kicker.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_subcategory_card.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -38,11 +39,13 @@ class DynamicHubGrid extends ConsumerWidget {
           children: [
             for (final group in groups) ...[
               if (_isAvenirGroup(group))
-                _AvenirBanner(
-                  accent: accent,
+                EditorialAvenirBanner(
                   mode: mode,
+                  accent: accent,
                   subtitle: avenirSubtitle,
-                  countProvider: countProvider,
+                  countProvider: countProvider != null
+                      ? countProvider!('A venir')
+                      : null,
                 )
               else
                 _buildSection(group, accent, ref),
@@ -133,80 +136,4 @@ class DynamicHubGrid extends ConsumerWidget {
   }
 }
 
-/// Banner "À venir" version editoriale : filet vertical accent +
-/// label + count tabular.
-class _AvenirBanner extends ConsumerWidget {
-  final Color accent;
-  final String mode;
-  final String? subtitle;
-  final CategoryCountProvider? countProvider;
-
-  const _AvenirBanner({
-    required this.accent,
-    required this.mode,
-    this.subtitle,
-    this.countProvider,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = countProvider != null
-        ? ref.watch(countProvider!('A venir')).valueOrNull
-        : null;
-    return Material(
-      color: EditorialColors.dividerSoft,
-      child: InkWell(
-        onTap: () =>
-            ref.read(modeSubcategoriesProvider.notifier).select(mode, 'A venir'),
-        splashColor: accent.withValues(alpha: 0.2),
-        highlightColor: accent.withValues(alpha: 0.08),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            border: Border(left: BorderSide(color: accent, width: 3)),
-          ),
-        child: Row(
-          children: [
-            Icon(Icons.bolt, size: 18, color: accent),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'A venir',
-                    style: EditorialText.catCardTitle(),
-                  ),
-                  if (subtitle != null && subtitle!.isNotEmpty)
-                    Text(
-                      subtitle!,
-                      style: EditorialText.subtitleItalic(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-            if (count != null && count > 0) ...[
-              Text(
-                count.toString(),
-                style: EditorialText.meta().copyWith(
-                  color: EditorialColors.paper,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-              const SizedBox(width: 6),
-            ],
-            const Icon(
-              Icons.chevron_right,
-              size: 18,
-              color: EditorialColors.paperMuted,
-            ),
-          ],
-        ),
-        ),
-      ),
-    );
-  }
-}
+// _AvenirBanner factorise dans editorial_avenir_banner.dart (2026-05-03).

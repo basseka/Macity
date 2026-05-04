@@ -7,6 +7,7 @@ import 'package:pulz_app/core/state/categories_provider.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
+import 'package:pulz_app/core/widgets/editorial/editorial_avenir_banner.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_event_row_card.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_group_header.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
@@ -340,7 +341,15 @@ class DayScreen extends ConsumerWidget {
             ),
             if (hasAvenir)
               SliverToBoxAdapter(
-                child: _AvenirBanner(ref: ref, accent: _accent),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: EditorialAvenirBanner(
+                    mode: 'day',
+                    accent: _accent,
+                    subtitle: 'Selection editorialisee — concerts, spectacles, festivals.',
+                    countProvider: daySubcategoryCountProvider('A venir'),
+                  ),
+                ),
               ),
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
@@ -660,70 +669,7 @@ class DayScreen extends ConsumerWidget {
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
-/// Bandeau "A venir" en haut de la grille, version editoriale.
-/// Garde le tap -> ouvre la sous-rubrique "A venir".
-class _AvenirBanner extends StatelessWidget {
-  final WidgetRef ref;
-  final Color accent;
-
-  const _AvenirBanner({required this.ref, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    final count = ref.watch(daySubcategoryCountProvider('A venir')).valueOrNull;
-    return GestureDetector(
-      onTap: () =>
-          ref.read(modeSubcategoriesProvider.notifier).select('day', 'A venir'),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: EditorialColors.dividerSoft,
-          border: Border(left: BorderSide(color: accent, width: 3)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.bolt, size: 18, color: accent),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'A venir',
-                    style: EditorialText.catCardTitle(),
-                  ),
-                  Text(
-                    'Selection editorialisee — concerts, spectacles, festivals.',
-                    style: EditorialText.subtitleItalic(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (count != null && count > 0) ...[
-              Text(
-                count.toString(),
-                style: EditorialText.meta().copyWith(
-                  color: EditorialColors.paper,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-              const SizedBox(width: 6),
-            ],
-            const Icon(
-              Icons.chevron_right,
-              size: 18,
-              color: EditorialColors.paperMuted,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// _AvenirBanner factorise dans editorial_avenir_banner.dart (2026-05-03).
 
 /// Bouton "Filtrer par salle" dans la masthead (Concert / Spectacle / DJ Set).
 /// Pastille magenta a droite quand un filtre est actif.

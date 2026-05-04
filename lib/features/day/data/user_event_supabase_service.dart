@@ -11,6 +11,7 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
+import 'package:pulz_app/features/pro_auth/data/pro_session_service.dart';
 
 /// Service Supabase pour les événements utilisateur.
 ///
@@ -19,10 +20,15 @@ import 'package:pulz_app/features/day/domain/models/user_event.dart';
 class UserEventSupabaseService {
   final Dio _restDio;
   final Dio _storageDio;
+  final ProSessionService _proSession;
 
-  UserEventSupabaseService({Dio? restDio, Dio? storageDio})
-      : _restDio = restDio ?? _createRestDio(),
-        _storageDio = storageDio ?? _createStorageDio();
+  UserEventSupabaseService({
+    Dio? restDio,
+    Dio? storageDio,
+    ProSessionService? proSession,
+  })  : _restDio = restDio ?? _createRestDio(),
+        _storageDio = storageDio ?? _createStorageDio(),
+        _proSession = proSession ?? ProSessionService();
 
   static Dio _createRestDio() {
     final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
@@ -36,6 +42,28 @@ class UserEventSupabaseService {
     );
     dio.interceptors.add(SupabaseInterceptor());
     return dio;
+  }
+
+  /// Lit la session pro pour les ecritures sur user_events. Si un pro approuve
+  /// est connecte, retourne son JWT + son auth UID. Sinon (null, null), et la
+  /// RLS server-side rejettera l'INSERT (pro-only depuis v81).
+  Future<({String? token, String? userId})> _proAuth() async {
+    try {
+      final profile = await _proSession.getProfile();
+      if (profile == null || !profile.approved) return (token: null, userId: null);
+      final token = await _proSession.getAccessToken();
+      if (token == null || token.isEmpty) return (token: null, userId: null);
+      return (token: token, userId: profile.userId);
+    } catch (_) {
+      return (token: null, userId: null);
+    }
+  }
+
+  Map<String, String> _writeHeaders(String? proToken, {String? prefer}) {
+    final h = <String, String>{};
+    if (prefer != null) h['Prefer'] = prefer;
+    if (proToken != null) h['Authorization'] = 'Bearer $proToken';
+    return h;
   }
 
   // ───────────────────────────────────────────
@@ -141,20 +169,20 @@ class UserEventSupabaseService {
   // CRUD PostgREST : table `user_events`
   // ───────────────────────────────────────────
 
-  /// Insère un événement utilisateur (avec user_id pour les notifications).
-  /// Si [establishmentId] est fourni, insère aussi dans establishment_events
-  /// pour déclencher les notifications aux likers.
+  /// Insère un événement utilisateur. Depuis v81, l'INSERT n'est autorise que
+  /// pour les comptes pro approuves : on injecte le JWT pro en Authorization
+  /// (override l'anon de SupabaseInterceptor) et on stocke l'auth UID comme
+  /// user_id (pour matcher la policy RLS qui joint sur pro_profiles.user_id).
   Future<void> insertEvent(
     UserEvent event, {
     String? establishmentId,
   }) async {
-    final userId = await UserIdentityService.getUserId();
+    final pro = await _proAuth();
+    final userId = pro.userId ?? await UserIdentityService.getUserId();
     await _restDio.post(
       'user_events',
       data: event.toSupabaseJson(userId: userId),
-      options: Options(
-        headers: {'Prefer': 'return=minimal'},
-      ),
+      options: Options(headers: _writeHeaders(pro.token, prefer: 'return=minimal')),
     );
 
     if (establishmentId != null) {
@@ -193,6 +221,7 @@ class UserEventSupabaseService {
     final time = heure.isNotEmpty ? heure : '00:00';
     final startsAt = '${date}T$time:00+02:00';
 
+    final pro = await _proAuth();
     await _restDio.post(
       'establishment_events',
       data: {
@@ -203,9 +232,7 @@ class UserEventSupabaseService {
         if (city != null) 'city': city,
         if (photoUrl != null) 'photo_url': photoUrl,
       },
-      options: Options(
-        headers: {'Prefer': 'return=minimal'},
-      ),
+      options: Options(headers: _writeHeaders(pro.token, prefer: 'return=minimal')),
     );
   }
 
@@ -271,22 +298,23 @@ class UserEventSupabaseService {
 
   /// Met à jour un événement existant par son id.
   Future<void> updateEvent(UserEvent event) async {
-    final userId = await UserIdentityService.getUserId();
+    final pro = await _proAuth();
+    final userId = pro.userId ?? await UserIdentityService.getUserId();
     await _restDio.patch(
       'user_events',
       queryParameters: {'id': 'eq.${event.id}'},
       data: event.toSupabaseJson(userId: userId),
-      options: Options(
-        headers: {'Prefer': 'return=minimal'},
-      ),
+      options: Options(headers: _writeHeaders(pro.token, prefer: 'return=minimal')),
     );
   }
 
   /// Supprime un événement par son id.
   Future<void> deleteEvent(String id) async {
+    final pro = await _proAuth();
     await _restDio.delete(
       'user_events',
       queryParameters: {'id': 'eq.$id'},
+      options: Options(headers: _writeHeaders(pro.token)),
     );
   }
 
@@ -311,8 +339,12 @@ class UserEventSupabaseService {
   }
 
   /// Supprime les événements expirés de l'utilisateur courant uniquement.
+  /// Depuis v81 + RLS pro-only : un user community recevra un 401/403, swallow
+  /// et noop (le caller wrappe deja en try/catch). Pour les pros, le JWT est
+  /// injecte et le DELETE passe sur leurs propres rows (matchees par user_id).
   Future<void> deleteExpiredEvents() async {
-    final userId = await UserIdentityService.getUserId();
+    final pro = await _proAuth();
+    final userId = pro.userId ?? await UserIdentityService.getUserId();
     final now = DateTime.now();
     final today =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -323,6 +355,7 @@ class UserEventSupabaseService {
         'date': 'lt.$today',
         'user_id': 'eq.$userId',
       },
+      options: Options(headers: _writeHeaders(pro.token)),
     );
   }
 }

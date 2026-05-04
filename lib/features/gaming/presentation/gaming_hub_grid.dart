@@ -11,7 +11,7 @@ class GamingHubGrid extends StatelessWidget {
     return DynamicHubGrid(
       mode: 'gaming',
       countProvider: (tag) => gamingCategoryCountProvider(tag),
-      avenirSubtitle: 'Tournois, conventions, events...',
+      avenirSubtitle: 'Selection editorialisee — tournois, conventions, events.',
     );
   }
 }

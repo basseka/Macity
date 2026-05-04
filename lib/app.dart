@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/core/services/app_update_service.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/services/fcm_service.dart';
 import 'package:pulz_app/core/services/share_intent_service.dart';
@@ -13,6 +14,8 @@ import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/macity_theme.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
+import 'package:pulz_app/core/widgets/force_update_screen.dart';
+import 'package:pulz_app/core/widgets/update_prompt_banner.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
@@ -31,6 +34,9 @@ class PulzApp extends ConsumerStatefulWidget {
 class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
   late final AppLinks _appLinks;
 
+  AppUpdateStatus? _updateStatus;
+  bool _bannerDismissed = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +49,16 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       // Reset du badge au cold start (l'utilisateur a ouvert l'app
       // donc les notifs en attente sont consommees).
       FcmService.resetBadge();
+      _checkAppUpdate();
     });
+  }
+
+  Future<void> _checkAppUpdate() async {
+    final status = await AppUpdateService.instance.check();
+    if (!mounted) return;
+    if (status.isForceUpdate || status.isUpdateAvailable) {
+      setState(() => _updateStatus = status);
+    }
   }
 
   @override
@@ -240,6 +255,13 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
           return true;
         }
       }
+      if (currentMode == 'culture' && subcategory == 'Cinema') {
+        final venue = container.read(selectedCinemaVenueProvider);
+        if (venue != null) {
+          container.read(selectedCinemaVenueProvider.notifier).state = null;
+          return true;
+        }
+      }
       if (currentMode == 'day') {
         final venue = container.read(selectedConcertVenueProvider);
         if (venue != null) {
@@ -286,7 +308,25 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       ],
       locale: const Locale('fr', 'FR'),
       builder: (context, child) {
-        return _AppShell(child: child!);
+        // Force update : remplace tout le contenu, bloque la nav.
+        final status = _updateStatus;
+        if (status != null && status.isForceUpdate) {
+          return ForceUpdateScreen(status: status);
+        }
+        // Update available : superpose une banniere fine au-dessus.
+        Widget content = _AppShell(child: child!);
+        if (status != null && status.isUpdateAvailable && !_bannerDismissed) {
+          content = Column(
+            children: [
+              UpdatePromptBanner(
+                status: status,
+                onDismissed: () => setState(() => _bannerDismissed = true),
+              ),
+              Expanded(child: content),
+            ],
+          );
+        }
+        return content;
       },
     );
   }

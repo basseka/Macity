@@ -11,7 +11,7 @@ class NightHubGrid extends StatelessWidget {
     return DynamicHubGrid(
       mode: 'night',
       countProvider: (tag) => nightCategoryCountProvider(tag),
-      avenirSubtitle: 'Soirees, events nocturnes...',
+      avenirSubtitle: 'Selection editorialisee — soirees, clubs, concerts.',
     );
   }
 }

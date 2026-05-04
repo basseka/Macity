@@ -11,7 +11,7 @@ class FoodHubGrid extends StatelessWidget {
     return DynamicHubGrid(
       mode: 'food',
       countProvider: (tag) => foodCategoryCountProvider(tag),
-      avenirSubtitle: 'Restaurants, brunchs, bien-etre...',
+      avenirSubtitle: 'Selection editorialisee — restaurants, brunchs, bars.',
     );
   }
 }

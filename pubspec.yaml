@@ -1,7 +1,7 @@
 name: pulz_app
 description: PUL'Z - Explore ta ville (Day, Sport, Family, Night)
 publish_to: 'none'
-version: 1.0.69+77
+version: 1.0.72+81
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -51,6 +51,10 @@ dependencies:
 
   # URL Launcher / Maps
   url_launcher: ^6.2.2
+
+  # App update check (lit app_versions Supabase, force/banner)
+  package_info_plus: ^8.0.2
+  in_app_update: ^4.2.3
 
   # Instagram Auth (Custom Tabs + Deep Links)
   flutter_custom_tabs: ^2.0.0+1
