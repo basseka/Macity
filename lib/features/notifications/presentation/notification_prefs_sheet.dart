@@ -454,29 +454,53 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: TextField(
-              controller: _prenomController,
-              style: const TextStyle(fontSize: 14, color: _darkColor),
-              decoration: InputDecoration(
-                labelText: 'Prenom ou pseudo',
-                labelStyle: TextStyle(fontSize: 13, color: AppColors.textDim),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                filled: true,
-                fillColor: AppColors.surfaceHi,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.line),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Prenom ou pseudo',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDim,
+                  ),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.line),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _prenomController,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Ex: Carlos',
+                    hintStyle: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textFaint,
+                    ),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.surfaceHi,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: AppColors.line),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: AppColors.line),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: _accentColor),
+                    ),
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: _accentColor),
-                ),
-              ),
+              ],
             ),
           ),
         ],

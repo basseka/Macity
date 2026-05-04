@@ -76,7 +76,7 @@ class ExplorerScreen extends ConsumerWidget {
   static const _modeMeta = <AppMode, _ModeMeta>{
     AppMode.day: _ModeMeta(
       section: 'Musique',
-      title: 'Concerts',
+      title: 'Scène',
       imageTag: 'CONCERT',
       accent: EditorialColors.gold,
     ),

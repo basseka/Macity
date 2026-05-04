@@ -7,9 +7,21 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 
-/// Provider qui charge l'URL vidéo banner pour le mode et la ville actuels.
+/// Donnees du banner video par mode/ville.
+class ModeBannerData {
+  /// URL de la vidéo en streaming (mp4).
+  final String videoUrl;
+
+  /// URL externe optionnelle. Si non null, un bouton "En savoir plus"
+  /// s'affiche sur le banner et le tap ouvre l'URL.
+  final String? linkUrl;
+
+  const ModeBannerData({required this.videoUrl, this.linkUrl});
+}
+
+/// Provider qui charge le banner pour le mode et la ville actuels.
 /// Retourne null si aucune vidéo n'est configurée pour cette combinaison.
-final modeBannerVideoProvider = FutureProvider<String?>((ref) async {
+final modeBannerVideoProvider = FutureProvider<ModeBannerData?>((ref) async {
   final mode = ref.watch(currentModeProvider);
   final ville = ref.watch(selectedCityProvider);
 
@@ -18,7 +30,7 @@ final modeBannerVideoProvider = FutureProvider<String?>((ref) async {
     dio.interceptors.add(SupabaseInterceptor());
 
     final response = await dio.get('mode_banners', queryParameters: {
-      'select': 'video_url',
+      'select': 'video_url,link_url',
       'mode': 'eq.$mode',
       'ville': 'ilike.$ville',
       'is_active': 'eq.true',
@@ -27,12 +39,21 @@ final modeBannerVideoProvider = FutureProvider<String?>((ref) async {
 
     final data = response.data as List;
     if (data.isNotEmpty) {
-      return data.first['video_url'] as String?;
+      final row = data.first as Map<String, dynamic>;
+      final video = row['video_url'] as String?;
+      if (video == null || video.isEmpty) return null;
+      final link = row['link_url'] as String?;
+      return ModeBannerData(
+        videoUrl: video,
+        linkUrl: (link != null && link.isNotEmpty) ? link : null,
+      );
     }
     return null;
   } catch (_) {
-    // Fallback hardcodé si Supabase inaccessible
-    return _fallbackUrl(mode, ville);
+    // Fallback hardcodé si Supabase inaccessible (pas de link_url côté fallback)
+    final fallback = _fallbackUrl(mode, ville);
+    if (fallback == null) return null;
+    return ModeBannerData(videoUrl: fallback);
   }
 });
 

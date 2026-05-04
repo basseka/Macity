@@ -177,11 +177,17 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
                   ? state.sousCategorie
                   : null,
               decoration: _inputDecoration('Choisir'),
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              style: const TextStyle(fontSize: 13, color: AppColors.text),
+              dropdownColor: AppColors.surfaceHi,
+              iconEnabledColor: AppColors.textDim,
               items: (kSubcategories[state.categorie] ?? [])
                   .map((sc) => DropdownMenuItem(
                         value: sc,
-                        child: Text(sc, overflow: TextOverflow.ellipsis),
+                        child: Text(
+                          sc,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: AppColors.text),
+                        ),
                       ))
                   .toList(),
               onChanged: (v) {

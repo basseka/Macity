@@ -76,17 +76,61 @@ final cultureMeettEventsProvider = FutureProvider<List<Event>>((ref) async {
   );
 });
 
+/// Sources scraped pour Cinema (rubrique=culture, categorie='cinéma').
+const _cinemaSources = <String>[
+  'allocine',
+  'abc',
+  'cosmograph',
+  'utopia',
+  'cratere',
+  'melies',
+  'atrium_post',
+];
+
 /// Combine tous les theatre events depuis la base scraped_events.
-/// Exclut les sources non-theatre (musees, visites, MEETT, balma) via filtre DB.
+/// Exclut les sources non-theatre (musees, visites, MEETT, balma, cinema) via filtre DB.
 final cultureTheatreEventsProvider = FutureProvider<List<Event>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   return ScrapedEventsSupabaseService().fetchEvents(
     rubrique: 'culture',
     dateGte: _todayStr(),
-    sourceNotIn: ['museum_toulouse', 'guided_tours', 'meett', 'balma_events'],
+    sourceNotIn: [
+      'museum_toulouse',
+      'guided_tours',
+      'meett',
+      'balma_events',
+      ..._cinemaSources,
+    ],
     ville: city,
   );
 });
+
+/// Cinema events scrapes (categorie='cinéma' en rubrique=culture).
+final cultureCinemaEventsProvider = FutureProvider<List<Event>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  return ScrapedEventsSupabaseService().fetchEvents(
+    rubrique: 'culture',
+    categorie: 'cinéma',
+    dateGte: _todayStr(),
+    ville: city,
+    requirePhoto: false,
+  );
+});
+
+/// Cinema events agreges progressivement (loading wrap).
+final cultureCinemaEventsProgressiveProvider =
+    Provider<({List<Event> events, bool isLoading})>((ref) {
+  final async = ref.watch(cultureCinemaEventsProvider);
+  return async.when(
+    data: (events) => (events: events, isLoading: false),
+    loading: () => (events: <Event>[], isLoading: true),
+    error: (_, __) => (events: <Event>[], isLoading: false),
+  );
+});
+
+/// Salle de cinema selectionnee pour filtrer la liste plate des events
+/// cinema (lieuNom). null = afficher tous les events.
+final selectedCinemaVenueProvider = StateProvider<String?>((ref) => null);
 
 /// Spectacles/theatre scrapes en rubrique day (pour Paris et autres villes).
 final cultureSpectacleEventsProvider = FutureProvider<List<Event>>((ref) async {
@@ -220,6 +264,14 @@ final cultureCategoryCountProvider =
   }
   if (searchTag == 'Theatre') {
     final venues = await ref.watch(theatreVenuesSupabaseProvider.future);
+    return venues.length;
+  }
+  if (searchTag == 'Cinema') {
+    final events = await ref.watch(cultureCinemaEventsProvider.future);
+    final venues = <String>{};
+    for (final e in events) {
+      if (e.lieuNom.isNotEmpty) venues.add(e.lieuNom);
+    }
     return venues.length;
   }
   if (searchTag == 'Danse') {

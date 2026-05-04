@@ -154,8 +154,9 @@ class SportMatchesList extends ConsumerWidget {
         ? '${match.equipe1}  vs  ${match.equipe2}'
         : match.equipe1;
     final price = match.gratuit.toLowerCase() == 'oui' ? 'Gratuit' : null;
-    final imageUrl =
-        match.photoUrl.isNotEmpty ? match.photoUrl : 'assets/images/sc_autres_sport.jpg';
+    final imageUrl = match.photoUrl.isNotEmpty
+        ? match.photoUrl
+        : MatchRowCard.resolveSportImage(match);
 
     return EditorialEventRowCard(
       dateMonth: monthAbbr,

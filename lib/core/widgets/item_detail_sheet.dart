@@ -11,6 +11,7 @@ import 'package:pulz_app/core/widgets/verified_badge.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart' show ClaimVenueSheet;
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/reviews/presentation/reviews_section.dart';
 
 /// Fiche detail generique ouverte au tap sur une carte (commerce, event, match, venue).
 /// Affichee en popup plein ecran avec pochette en fond et infos overlayees.
@@ -29,6 +30,7 @@ class ItemDetailSheet extends ConsumerWidget {
   final double imageHeightFraction;
   final bool isVerified;
   final List<String> photoGallery;
+  final ReviewsTarget? reviewsTarget;
 
   const ItemDetailSheet({
     super.key,
@@ -46,6 +48,7 @@ class ItemDetailSheet extends ConsumerWidget {
     this.imageHeightFraction = 1.0,
     this.isVerified = false,
     this.photoGallery = const [],
+    this.reviewsTarget,
   });
 
   static const _primaryColor = Color(0xFF7B2D8E);
@@ -301,6 +304,12 @@ class ItemDetailSheet extends ConsumerWidget {
                           if (extraContent != null) ...[
                             const SizedBox(height: 10),
                             extraContent!,
+                          ],
+
+                          // ── Section Avis (si commerce) ──
+                          if (reviewsTarget != null) ...[
+                            const SizedBox(height: 14),
+                            ReviewsSection(target: reviewsTarget!),
                           ],
 
                           const SizedBox(height: 14),

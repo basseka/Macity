@@ -67,6 +67,8 @@ class EtablissementsSupabaseService {
       photo: photo.isNotEmpty ? photo : _defaultPhoto(rubrique),
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+      sourceId: (json['id'] as num?)?.toInt(),
+      sourceTable: 'etablissement',
     );
   }
 

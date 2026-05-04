@@ -32,46 +32,53 @@ class CultureCategoryData {
   static const groups = [
     CultureCategoryGroup(
       name: 'A venir',
-      emoji: '\uD83D\uDCC5',
+      emoji: '📅',
       subcategories: [
-        CultureSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '\uD83D\uDCC5', group: 'A venir', image: 'assets/images/pochette_cettesemaine.jpg'),
+        CultureSubcategory(label: 'Agenda', searchTag: 'A venir', emoji: '📅', group: 'A venir', image: 'assets/images/pochette_cettesemaine.jpg'),
+      ],
+    ),
+    CultureCategoryGroup(
+      name: 'Cinema',
+      emoji: '🎬',
+      subcategories: [
+        CultureSubcategory(label: 'Cinema', searchTag: 'Cinema', emoji: '🎬', group: 'Cinema', image: 'assets/images/pochette_cinema.png'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Arts vivants',
-      emoji: '\uD83C\uDFAD',
+      emoji: '🎭',
       subcategories: [
-        CultureSubcategory(label: 'Theatre', searchTag: 'Theatre', emoji: '\uD83C\uDFAD', group: 'Arts vivants', image: 'assets/images/pochette_theatre.png'),
+        CultureSubcategory(label: 'Theatre', searchTag: 'Theatre', emoji: '🎭', group: 'Arts vivants', image: 'assets/images/pochette_theatre.png'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Musees & expositions',
-      emoji: '\uD83C\uDFDB\uFE0F',
+      emoji: '🏛️',
       subcategories: [
-        CultureSubcategory(label: 'Musee', searchTag: 'Musee', emoji: '\uD83C\uDFDB\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_musee.png'),
-        CultureSubcategory(label: 'Exposition', searchTag: 'Exposition', emoji: '\uD83D\uDDBC\uFE0F', group: 'Musees & expositions', image: 'assets/images/pochette_exposition.png'),
+        CultureSubcategory(label: 'Musee', searchTag: 'Musee', emoji: '🏛️', group: 'Musees & expositions', image: 'assets/images/pochette_musee.png'),
+        CultureSubcategory(label: 'Exposition', searchTag: 'Exposition', emoji: '🖼️', group: 'Musees & expositions', image: 'assets/images/pochette_exposition.png'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Patrimoine & monuments',
-      emoji: '\uD83C\uDFF0',
+      emoji: '🏰',
       subcategories: [
-        CultureSubcategory(label: 'Monument historique', searchTag: 'Monument historique', emoji: '\uD83C\uDFF0', group: 'Patrimoine & monuments', image: 'assets/images/pochette_monument.jpg'),
-        CultureSubcategory(label: 'Bibliotheque', searchTag: 'Bibliotheque', emoji: '\uD83D\uDCDA', group: 'Patrimoine & monuments', image: 'assets/images/pochette_bibliotheque.jpg'),
+        CultureSubcategory(label: 'Monument historique', searchTag: 'Monument historique', emoji: '🏰', group: 'Patrimoine & monuments', image: 'assets/images/pochette_monument.jpg'),
+        CultureSubcategory(label: 'Bibliotheque', searchTag: 'Bibliotheque', emoji: '📚', group: 'Patrimoine & monuments', image: 'assets/images/pochette_bibliotheque.jpg'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Visites & animations',
-      emoji: '\uD83C\uDFAA',
+      emoji: '🎪',
       subcategories: [
-        CultureSubcategory(label: 'Visites guidees', searchTag: 'Visites guidees', emoji: '\uD83C\uDFDB\uFE0F', group: 'Visites & animations', image: 'assets/images/pochette_visite.png'),
+        CultureSubcategory(label: 'Visites guidees', searchTag: 'Visites guidees', emoji: '🏛️', group: 'Visites & animations', image: 'assets/images/pochette_visite.png'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Art',
-      emoji: '\uD83C\uDFA8',
+      emoji: '🎨',
       subcategories: [
-        CultureSubcategory(label: 'Galerie d\'art', searchTag: 'Galerie d\'art', emoji: '\uD83C\uDFA8', group: 'Art', image: 'assets/images/pochette_culture_art.png'),
+        CultureSubcategory(label: 'Galerie d\'art', searchTag: 'Galerie d\'art', emoji: '🎨', group: 'Art', image: 'assets/images/pochette_culture_art.png'),
       ],
     ),
   ];

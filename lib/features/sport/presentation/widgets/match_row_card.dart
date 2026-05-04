@@ -87,24 +87,38 @@ class MatchRowCard extends ConsumerWidget {
     'fitness': 'assets/images/sc_autres_sport.jpg',
   };
 
-  String _resolveImage() {
+  String _resolveImage() => resolveSportImage(match);
+
+  /// Mapping intelligent equipe/sport -> asset pochette. Reutilise par les
+  /// listes "A venir" du hub Sport (sport_matches_list).
+  static String resolveSportImage(SupabaseMatch match) {
     final equipe = match.equipe1.toLowerCase();
-    if (equipe.contains('stade toulousain')) {
+    final equipe2 = match.equipe2.toLowerCase();
+    if (equipe.contains('stade toulousain') || equipe2.contains('stade toulousain')) {
       return 'assets/images/pochette_rugby-st.png';
     }
-    if (equipe.contains('colomiers') && match.sport.toLowerCase().contains('rugby')) {
+    if ((equipe.contains('colomiers') || equipe2.contains('colomiers')) &&
+        match.sport.toLowerCase().contains('rugby')) {
       return 'assets/images/pochette_rugby-colomiers.png';
     }
-    if (equipe.contains('tmb')) {
+    if (equipe.contains('tmb') || equipe2.contains('tmb')) {
       return 'assets/images/pochette_basketball-tmb.png';
     }
-    if (equipe.contains('tbc') || equipe.contains('toulouse bc')) {
+    if (equipe.contains('tbc') ||
+        equipe.contains('toulouse bc') ||
+        equipe.contains('toulouse basketball') ||
+        equipe2.contains('tbc') ||
+        equipe2.contains('toulouse bc') ||
+        equipe2.contains('toulouse basketball')) {
       return 'assets/images/pochette_basketball-tbc.png';
     }
-    if (equipe.contains('fenix')) {
+    if (equipe.contains('fenix') || equipe2.contains('fenix')) {
       return 'assets/images/pochette_handball-fenix.png';
     }
-    if (equipe.contains('tfc') || equipe.contains('toulouse fc')) {
+    if (equipe.contains('tfc') ||
+        equipe.contains('toulouse fc') ||
+        equipe2.contains('tfc') ||
+        equipe2.contains('toulouse fc')) {
       return 'assets/images/pochette_football-tfc.png';
     }
     if (match.billetterie.contains('uscnat.fr')) {

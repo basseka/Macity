@@ -274,6 +274,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   /// La `categorie` est passee depuis la sous-rubrique courante pour que
   /// le fallback image de CommerceRowCard pointe sur la bonne pochette.
   static CommerceModel _restaurantToCommerce(RestaurantVenue v, String categorie) {
+    final parsedId = int.tryParse(v.id);
     return CommerceModel(
       nom: v.name,
       adresse: v.adresse,
@@ -287,6 +288,8 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       photo: v.photo,
       siteWeb: v.websiteUrl,
       isVerified: v.isVerified,
+      sourceId: parsedId,
+      sourceTable: parsedId == null ? null : 'etablissement',
     );
   }
 

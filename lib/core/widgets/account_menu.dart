@@ -10,6 +10,9 @@ import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.d
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+import 'package:pulz_app/features/private_events/presentation/my_invitations_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/open_secret_box_screen.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
@@ -142,6 +145,54 @@ class AccountMenu {
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
                       builder: (_) => const LikedPlacesBottomSheet(fromAccountMenu: true),
+                    );
+                  },
+                ),
+                const SizedBox(height: 5),
+                _menuItem(
+                  ctx: ctx,
+                  icon: Icons.lock_outline,
+                  label: 'Mes soirees privees',
+                  subtitle: 'Coffres secrets sur invitation',
+                  gradientColors: const [Color(0xFFE91E8C), Color(0xFF7B2D8E)],
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyPrivateEventsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 5),
+                _menuItem(
+                  ctx: ctx,
+                  icon: Icons.key,
+                  label: 'Ouvrir un coffre',
+                  subtitle: 'J\'ai recu un lien + code',
+                  gradientColors: const [Color(0xFF00B4D8), Color(0xFF0077B6)],
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const OpenSecretBoxScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 5),
+                _menuItem(
+                  ctx: ctx,
+                  icon: Icons.celebration_outlined,
+                  label: 'Mes invitations',
+                  subtitle: 'Soirees ou j\'ai dit "Je viens"',
+                  gradientColors: const [Color(0xFF00B4D8), Color(0xFF48CAE4)],
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MyInvitationsScreen(),
+                      ),
                     );
                   },
                 ),

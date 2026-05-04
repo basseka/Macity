@@ -2029,7 +2029,7 @@ class _MapLivePillState extends ConsumerState<_MapLivePill>
     );
 
     final pill = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.chip),
@@ -2051,8 +2051,8 @@ class _MapLivePillState extends ConsumerState<_MapLivePill>
             if (count > 0) ...[
               const SizedBox(width: 6),
               Container(
-                width: 18,
-                height: 18,
+                width: 15,
+                height: 15,
                 decoration: const BoxDecoration(
                   color: AppColors.magenta,
                   shape: BoxShape.circle,
@@ -2061,7 +2061,7 @@ class _MapLivePillState extends ConsumerState<_MapLivePill>
                 child: Text(
                   '$count',
                   style: GoogleFonts.geistMono(
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                     height: 1.0,

@@ -16,6 +16,9 @@ import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/reviews/domain/models/commerce_review.dart';
+import 'package:pulz_app/features/reviews/presentation/reviews_section.dart';
+import 'package:pulz_app/features/reviews/state/commerce_summaries_provider.dart';
 
 /// Carte commerce en ligne : image a gauche, infos a droite.
 class CommerceRowCard extends ConsumerWidget {
@@ -155,6 +158,24 @@ class CommerceRowCard extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final image = _resolveImage();
 
+    // Pastille notes : prefetch en batch (debounce 50ms cote notifier).
+    final hasReviewTarget =
+        commerce.sourceId != null && commerce.sourceTable != null;
+    if (hasReviewTarget) {
+      ref.read(commerceSummariesProvider.notifier).request(
+            commerce.sourceTable!,
+            commerce.sourceId!,
+          );
+    }
+    final summaryKey = hasReviewTarget
+        ? '${commerce.sourceTable}:${commerce.sourceId}'
+        : '';
+    final summary = hasReviewTarget
+        ? ref.watch(
+            commerceSummariesProvider.select((m) => m[summaryKey]),
+          )
+        : null;
+
     return GestureDetector(
       onTap: () => _openDetail(context),
       child: Card(
@@ -229,6 +250,10 @@ class CommerceRowCard extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        if (summary != null && summary.reviewCount > 0) ...[
+                          const SizedBox(width: 4),
+                          _RatingPill(summary: summary),
+                        ],
                         const SizedBox(width: 4),
                         if (commerce.isVerified)
                           const VerifiedBadge.small()
@@ -341,6 +366,13 @@ class CommerceRowCard extends ConsumerWidget {
             ),
         ],
         shareText: _buildShareTextFor(commerce),
+        reviewsTarget: (commerce.sourceId != null && commerce.sourceTable != null)
+            ? ReviewsTarget(
+                kind: commerce.sourceTable!,
+                id: commerce.sourceId!,
+                name: commerce.nom,
+              )
+            : null,
       ),
     );
   }
@@ -486,6 +518,41 @@ class CommerceRowCard extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Icon(icon, size: 16, color: color),
+    );
+  }
+}
+
+/// Petite pastille note moyenne + count, affichee a droite du nom du commerce.
+class _RatingPill extends StatelessWidget {
+  final CommerceReviewSummary summary;
+
+  const _RatingPill({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFC107)),
+        const SizedBox(width: 2),
+        Text(
+          summary.avgRating.toStringAsFixed(1),
+          style: GoogleFonts.geist(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          '(${summary.reviewCount})',
+          style: GoogleFonts.geist(
+            fontSize: 9,
+            color: AppColors.textFaint,
+          ),
+        ),
+      ],
     );
   }
 }

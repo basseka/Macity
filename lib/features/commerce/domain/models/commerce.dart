@@ -29,6 +29,11 @@ class CommerceModel with _$CommerceModel {
     @Default(0) int displayCount,
     @Default('') String videoUrl,
     @Default(false) bool isVerified,
+    // ID + table source pour relier des avis (commerce_reviews.target_*).
+    // Nullables : les commerces fabriques sans backing DB (OSM enrichi, fallbacks)
+    // n'ont pas d'identifiant stable et ne supportent pas les avis.
+    int? sourceId,
+    String? sourceTable,
   }) = _CommerceModel;
 
   factory CommerceModel.fromJson(Map<String, dynamic> json) =>

@@ -319,6 +319,7 @@ class TourismeScreen extends ConsumerWidget {
 
     return Column(
       children: [
+        const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -326,7 +327,7 @@ class TourismeScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'Visiter',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: modeTheme.primaryDarkColor),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: modeTheme.primaryColor),
                 ),
               ),
               const SizedBox(width: 12),
@@ -410,6 +411,7 @@ class TourismeScreen extends ConsumerWidget {
 
     return Column(
       children: [
+        const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -420,7 +422,7 @@ class TourismeScreen extends ConsumerWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
-                    color: modeTheme.primaryDarkColor,
+                    color: modeTheme.primaryColor,
                   ),
                 ),
               ),
@@ -474,6 +476,7 @@ class TourismeScreen extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     return Column(
       children: [
+        const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -481,7 +484,7 @@ class TourismeScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'Se deplacer',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: modeTheme.primaryDarkColor),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: modeTheme.primaryColor),
                 ),
               ),
               InkWell(

@@ -104,7 +104,7 @@ enum AppMode {
   }
 
   static const order = [
-    AppMode.day, AppMode.night, AppMode.food, AppMode.sport,
-    AppMode.culture, AppMode.family, AppMode.gaming, AppMode.tourisme,
+    AppMode.day, AppMode.night, AppMode.culture, AppMode.family,
+    AppMode.food, AppMode.sport, AppMode.gaming, AppMode.tourisme,
   ];
 }

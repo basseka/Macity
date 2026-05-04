@@ -164,6 +164,8 @@ final nearbyProvider =
       photo: fv.photo,
       latitude: fv.latitude,
       longitude: fv.longitude,
+      sourceId: fv.id,
+      sourceTable: 'venue',
     );
     familyMap[fv.name.toLowerCase()] = cm;
   }
