@@ -225,6 +225,8 @@ class FitnessVenueCard extends ConsumerWidget {
         videoUrl: commerce.videoUrl.isNotEmpty ? commerce.videoUrl : null,
         photoGallery: gallery,
         description: commerce.description,
+        claimSourceTable: commerce.sourceTable,
+        claimSourceId: commerce.sourceId,
         infos: [
           if (commerce.categorie.isNotEmpty)
             DetailInfoItem(Icons.category_outlined, commerce.categorie),

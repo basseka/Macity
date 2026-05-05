@@ -91,6 +91,8 @@ class SportVenuesSupabaseService {
       horaires: json['horaires'] as String? ?? '',
       telephone: json['telephone'] as String? ?? '',
       photos: photos,
+      sourceId: (json['id'] as num?)?.toInt(),
+      sourceTable: 'sport_venues',
     );
   }
 

@@ -610,16 +610,32 @@ class _ClaimButton extends StatelessWidget {
 /// Bottom sheet de revendication d'un etablissement.
 class ClaimVenueSheet extends StatefulWidget {
   final String commerceName;
+  final String? sourceTable;
+  final int? sourceId;
 
-  const ClaimVenueSheet({super.key, required this.commerceName});
+  const ClaimVenueSheet({
+    super.key,
+    required this.commerceName,
+    this.sourceTable,
+    this.sourceId,
+  });
 
-  static void show(BuildContext context, String commerceName) {
+  static void show(
+    BuildContext context,
+    String commerceName, {
+    String? sourceTable,
+    int? sourceId,
+  }) {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => ClaimVenueSheet(commerceName: commerceName),
+      builder: (_) => ClaimVenueSheet(
+        commerceName: commerceName,
+        sourceTable: sourceTable,
+        sourceId: sourceId,
+      ),
     );
   }
 
@@ -631,6 +647,8 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
   final _siretController = TextEditingController();
   final _urlController = TextEditingController();
   final _messageController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _telephoneController = TextEditingController();
   bool _loading = false;
   bool _submitted = false;
 
@@ -639,6 +657,8 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
     _siretController.dispose();
     _urlController.dispose();
     _messageController.dispose();
+    _emailController.dispose();
+    _telephoneController.dispose();
     super.dispose();
   }
 
@@ -664,7 +684,17 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
   Future<void> _submit() async {
     final siret = _siretController.text.trim();
     final proof = _urlController.text.trim();
+    final email = _emailController.text.trim();
+    final telephone = _telephoneController.text.trim();
     if (siret.isEmpty && proof.isEmpty) return;
+    if (email.isEmpty && telephone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Indique au moins un email ou un telephone pour te recontacter.'),
+        ),
+      );
+      return;
+    }
     setState(() => _loading = true);
 
     try {
@@ -689,12 +719,34 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
         siret: siret,
         proofUrl: proof,
         message: _messageController.text.trim(),
+        email: email,
+        telephone: telephone,
+        sourceTable: widget.sourceTable,
+        sourceId: widget.sourceId,
       );
       if (mounted) {
         setState(() {
           _loading = false;
           _submitted = true;
         });
+      }
+    } on DioException catch (e) {
+      // 409 = anti-spam UNIQUE (user_id, venue_name) deja existant.
+      if (e.response?.statusCode == 409) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _submitted = true;
+          });
+        }
+        return;
+      }
+      debugPrint('[ClaimVenue] dio error: $e');
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur reseau, reessaie.')),
+        );
       }
     } catch (e) {
       debugPrint('[ClaimVenue] error: $e');
@@ -785,6 +837,10 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
         _buildField('SIRET ou numero RNA', _siretController, 'SIRET (14 chiffres) ou W + 9 chiffres (asso)', TextInputType.text),
         const SizedBox(height: 12),
         _buildField('Site web ou reseau social', _urlController, 'https://...', TextInputType.url),
+        const SizedBox(height: 12),
+        _buildField('Email de contact', _emailController, 'pour te recontacter', TextInputType.emailAddress),
+        const SizedBox(height: 12),
+        _buildField('Telephone (optionnel si email)', _telephoneController, '06 12 34 56 78', TextInputType.phone),
         const SizedBox(height: 12),
         _buildField('Message (optionnel)', _messageController, 'Informations complementaires...', TextInputType.multiline, maxLines: 3),
         const SizedBox(height: 20),

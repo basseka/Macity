@@ -315,7 +315,13 @@ class VenuesSupabaseService {
   }
 
   /// Revendiquer une venue par un pro.
-  /// Accepte soit venueId soit venueName (lookup par nom).
+  /// [sourceTable] + [sourceId] precisent dans quelle table source la
+  /// venue se trouve (venues, sport_venues, commerces, etc.) — permet a
+  /// l'admin d'identifier la fiche exacte. [venueId] reste un fallback
+  /// historique (lookup par nom dans `venues`).
+  ///
+  /// L'INSERT est UPSERT (ON CONFLICT user_id+venue_name) : un meme
+  /// device peut re-soumettre pour mettre a jour sa preuve sans erreur.
   Future<void> claimVenue({
     int? venueId,
     String? venueName,
@@ -323,10 +329,14 @@ class VenuesSupabaseService {
     String? siret,
     String? proofUrl,
     String? message,
+    String? email,
+    String? telephone,
+    String? sourceTable,
+    int? sourceId,
   }) async {
-    // Si pas de venueId, chercher par nom
+    // Lookup historique par nom dans `venues` si pas de venueId fourni.
     int? resolvedId = venueId;
-    if (resolvedId == null && venueName != null) {
+    if (resolvedId == null && venueName != null && sourceTable == null) {
       try {
         final res = await _dio.get('venues', queryParameters: {
           'select': 'id',
@@ -349,9 +359,15 @@ class VenuesSupabaseService {
         'proof_url': proofUrl ?? '',
         'message': message ?? '',
         'venue_name': venueName ?? '',
+        'email': email ?? '',
+        'telephone': telephone ?? '',
+        if (sourceTable != null) 'source_table': sourceTable,
+        if (sourceId != null) 'source_id': sourceId,
       },
       options: Options(
         headers: {'Prefer': 'return=minimal'},
+        // Le 409 (UNIQUE user_id+venue_name) leve une DioException ; le
+        // caller le mappe en "deja soumis - succes idempotent" cote UI.
       ),
     );
   }

@@ -34,6 +34,11 @@ class ItemDetailSheet extends ConsumerWidget {
   /// Description multi-paragraphes affichee sous la gallery (au-dessus des
   /// info rows). Vide = pas de bloc rendu.
   final String description;
+  /// Source (table + id) propagee au bouton "Revendiquer". Permet a
+  /// l'admin d'identifier la fiche exacte (sport_venues, venues, etc.).
+  /// Si null, le claim est cree avec juste le nom (mode legacy).
+  final String? claimSourceTable;
+  final int? claimSourceId;
 
   const ItemDetailSheet({
     super.key,
@@ -53,6 +58,8 @@ class ItemDetailSheet extends ConsumerWidget {
     this.photoGallery = const [],
     this.reviewsTarget,
     this.description = '',
+    this.claimSourceTable,
+    this.claimSourceId,
   });
 
   static const _primaryColor = Color(0xFF7B2D8E);
@@ -200,7 +207,12 @@ class ItemDetailSheet extends ConsumerWidget {
                                 child: isVerified
                                     ? const VerifiedBadge()
                                     : GestureDetector(
-                                        onTap: () => ClaimVenueSheet.show(context, title),
+                                        onTap: () => ClaimVenueSheet.show(
+                                          context,
+                                          title,
+                                          sourceTable: claimSourceTable,
+                                          sourceId: claimSourceId,
+                                        ),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                           decoration: BoxDecoration(
