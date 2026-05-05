@@ -31,6 +31,9 @@ class ItemDetailSheet extends ConsumerWidget {
   final bool isVerified;
   final List<String> photoGallery;
   final ReviewsTarget? reviewsTarget;
+  /// Description multi-paragraphes affichee sous la gallery (au-dessus des
+  /// info rows). Vide = pas de bloc rendu.
+  final String description;
 
   const ItemDetailSheet({
     super.key,
@@ -49,6 +52,7 @@ class ItemDetailSheet extends ConsumerWidget {
     this.isVerified = false,
     this.photoGallery = const [],
     this.reviewsTarget,
+    this.description = '',
   });
 
   static const _primaryColor = Color(0xFF7B2D8E);
@@ -234,8 +238,30 @@ class ItemDetailSheet extends ConsumerWidget {
 
                           const SizedBox(height: 10),
 
+                          // Description multi-paragraphes
+                          if (description.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.08),
+                                ),
+                              ),
+                              child: Text(
+                                description,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  height: 1.45,
+                                  color: Colors.white.withValues(alpha: 0.92),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+
                           // Photo gallery (grille 3x2)
-                          Builder(builder: (_) { debugPrint('[GALLERY] photoGallery.length=${photoGallery.length}, photos=$photoGallery'); return const SizedBox.shrink(); }),
                           if (photoGallery.isNotEmpty) ...[
                             GridView.count(
                               crossAxisCount: 3,

@@ -73,6 +73,10 @@ class SportVenuesSupabaseService {
   }
 
   static CommerceModel _mapToCommerce(Map<String, dynamic> json) {
+    final photosRaw = json['photos'];
+    final photos = photosRaw is List
+        ? photosRaw.whereType<String>().where((s) => s.isNotEmpty).toList()
+        : <String>[];
     return CommerceModel(
       nom: json['nom'] as String? ?? '',
       categorie: json['categorie'] as String? ?? '',
@@ -83,6 +87,10 @@ class SportVenuesSupabaseService {
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       videoUrl: json['video_url'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      horaires: json['horaires'] as String? ?? '',
+      telephone: json['telephone'] as String? ?? '',
+      photos: photos,
     );
   }
 

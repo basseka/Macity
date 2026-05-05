@@ -187,12 +187,35 @@ class FitnessVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
+    // Image principale : photos[0] si gallery, sinon photo single (URL ou
+    // asset local match par chaine), sinon emoji fallback.
+    final headerImageUrl = commerce.photos.isNotEmpty
+        ? commerce.photos.first
+        : (commerce.photo.startsWith('http') ? commerce.photo : null);
+    final headerAsset = headerImageUrl == null && commerce.photo.isNotEmpty &&
+            !commerce.photo.startsWith('http')
+        ? commerce.photo
+        : _resolvePhoto().startsWith('http') ? null : _resolvePhoto();
+    // Gallery : photos depuis DB. Si single photo URL existe et qu'on n'a
+    // pas deja de gallery, on la met en plus.
+    final gallery = <String>[
+      ...commerce.photos,
+      if (commerce.photos.isEmpty &&
+          commerce.photo.isNotEmpty &&
+          commerce.photo.startsWith('http'))
+        commerce.photo,
+    ];
+
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
         title: commerce.nom,
         emoji: '\uD83D\uDCAA',
+        imageUrl: headerImageUrl,
+        imageAsset: headerAsset,
         videoUrl: commerce.videoUrl.isNotEmpty ? commerce.videoUrl : null,
+        photoGallery: gallery,
+        description: commerce.description,
         infos: [
           if (commerce.categorie.isNotEmpty)
             DetailInfoItem(Icons.category_outlined, commerce.categorie),

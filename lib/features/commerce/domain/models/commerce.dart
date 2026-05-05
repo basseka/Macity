@@ -34,6 +34,12 @@ class CommerceModel with _$CommerceModel {
     // n'ont pas d'identifiant stable et ne supportent pas les avis.
     int? sourceId,
     String? sourceTable,
+    // Description multi-paragraphes (chain-level ou specifique salle).
+    // Affichee dans la fiche detail, sous le header.
+    @Default('') String description,
+    // Gallery photos officielles (array d'URLs). Affichee en haut de la
+    // fiche detail. Tombe sur [photo] (single) si vide.
+    @Default(<String>[]) List<String> photos,
   }) = _CommerceModel;
 
   factory CommerceModel.fromJson(Map<String, dynamic> json) =>
