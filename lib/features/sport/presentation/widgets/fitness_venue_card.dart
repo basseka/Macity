@@ -68,7 +68,11 @@ class FitnessVenueCard extends ConsumerWidget {
                                 height: 48,
                                 fit: BoxFit.cover,
                                 memCacheWidth: 96,
-                                errorWidget: (_, __, ___) => const Text('\uD83D\uDCAA', style: TextStyle(fontSize: 24)),
+                                errorWidget: (_, __, ___) => Icon(
+                                  Icons.fitness_center,
+                                  color: modeTheme.primaryColor,
+                                  size: 22,
+                                ),
                               )
                             : Image.asset(
                                 photo,
@@ -76,11 +80,16 @@ class FitnessVenueCard extends ConsumerWidget {
                                 height: 48,
                                 fit: BoxFit.cover,
                                 cacheWidth: 96,
-                                errorBuilder: (_, __, ___) => const Text('\uD83D\uDCAA', style: TextStyle(fontSize: 24)),
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Icons.fitness_center,
+                                  color: modeTheme.primaryColor,
+                                  size: 22,
+                                ),
                               )
-                        : const Text(
-                            '\uD83D\uDCAA',
-                            style: TextStyle(fontSize: 24),
+                        : Icon(
+                            Icons.fitness_center,
+                            color: modeTheme.primaryColor,
+                            size: 22,
                           ),
                   ),
 

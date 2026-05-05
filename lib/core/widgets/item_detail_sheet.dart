@@ -164,15 +164,9 @@ class ItemDetailSheet extends ConsumerWidget {
                       ),
                     ),
 
-                    // Emoji (masque si image reduite)
-                    if (emoji.isNotEmpty && imageHeightFraction >= 1.0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          emoji,
-                          style: const TextStyle(fontSize: 32),
-                        ),
-                      ),
+                    // Emoji header retire (decision design : pas d'emoticon
+                    // dans les fiches detail). Param `emoji` conserve pour
+                    // compat callers mais ignore.
 
                     if (imageHeightFraction >= 1.0) const Spacer(),
 
@@ -463,11 +457,7 @@ class ItemDetailSheet extends ConsumerWidget {
           colors: [Color(0xFF7B2D8E), Color(0xFFE91E8C)],
         ),
       ),
-      child: emoji.isNotEmpty
-          ? Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 80)),
-            )
-          : null,
+      // Emoji fallback retire — fond gradient seul.
     );
   }
 
