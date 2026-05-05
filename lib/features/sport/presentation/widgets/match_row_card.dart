@@ -466,6 +466,14 @@ class MatchRowCard extends ConsumerWidget {
             : isColomiers
                 ? 'assets/images/detail_colomier_rugby.jpg'
                 : _resolveImage();
+    // Si la pochette resolue est curated (specifique equipe/sport), on
+    // l'affiche en priorite. Sinon (fallback generique), on tente la
+    // photo scrapee. Evite que photoUrl generique remplace une bonne
+    // pochette locale dans le detail.
+    final isGenericFallback = image == 'assets/images/sc_autres_sport.jpg';
+    final detailImageUrl = isGenericFallback && match.photoUrl.isNotEmpty
+        ? match.photoUrl
+        : null;
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
@@ -473,7 +481,7 @@ class MatchRowCard extends ConsumerWidget {
             ? '${match.equipe1}  vs  ${match.equipe2}'
             : match.equipe1,
         imageAsset: image,
-        imageUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
+        imageUrl: detailImageUrl,
         infos: [
           if (match.sport.isNotEmpty)
             DetailInfoItem(Icons.sports, match.sport),
