@@ -174,14 +174,21 @@ class SportMatchesList extends ConsumerWidget {
   }
 
   void _openMatchDetail(BuildContext context, SupabaseMatch match) {
+    final image = MatchRowCard.resolveDetailImage(match);
+    // Cf. MatchRowCard._openDetail : pochette curated prioritaire, photo
+    // scrapee uniquement en fallback du generique.
+    final detailImageUrl =
+        MatchRowCard.isGenericSportImage(image) && match.photoUrl.isNotEmpty
+            ? match.photoUrl
+            : null;
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
         title: match.equipe2.isNotEmpty
             ? '${match.equipe1}  vs  ${match.equipe2}'
             : match.equipe1,
-        imageAsset: 'assets/images/sc_autres_sport.jpg',
-        imageUrl: match.photoUrl.isNotEmpty ? match.photoUrl : null,
+        imageAsset: image,
+        imageUrl: detailImageUrl,
         infos: [
           if (match.sport.isNotEmpty)
             DetailInfoItem(Icons.sports, match.sport),

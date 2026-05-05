@@ -87,7 +87,32 @@ class MatchRowCard extends ConsumerWidget {
     'fitness': 'assets/images/sc_autres_sport.jpg',
   };
 
-  String _resolveImage() => resolveSportImage(match);
+  /// Image detail (sheet) : pochette specifique haute definition pour
+  /// quelques cas curated (Stade Toulousain, Colomiers, Fenix, USC Natation),
+  /// sinon fallback sur [resolveSportImage]. Utilisee par les detail sheets
+  /// de match_row_card ET sport_matches_list (vue "A venir").
+  static String resolveDetailImage(SupabaseMatch match) {
+    final equipe1Lower = match.equipe1.toLowerCase();
+    final isRugby = match.sport.toLowerCase().contains('rugby');
+    if (match.sport.toLowerCase().contains('natation')) {
+      return 'assets/images/detail_toulouse_natation.jpg';
+    }
+    if (equipe1Lower.contains('fenix')) {
+      return 'assets/images/detail_fenix_hand.jpg';
+    }
+    if (equipe1Lower.contains('stade toulousain') && isRugby) {
+      return 'assets/images/detail_stadetoulousain_rugby.jpg';
+    }
+    if (equipe1Lower.contains('colomiers') && isRugby) {
+      return 'assets/images/detail_colomier_rugby.jpg';
+    }
+    return resolveSportImage(match);
+  }
+
+  /// Vrai si l'image resolue est le fallback generique (donc on peut
+  /// tenter [SupabaseMatch.photoUrl] comme alternative).
+  static bool isGenericSportImage(String image) =>
+      image == 'assets/images/sc_autres_sport.jpg';
 
   /// Mapping intelligent equipe/sport -> asset pochette. Reutilise par les
   /// listes "A venir" du hub Sport (sport_matches_list).
@@ -451,29 +476,15 @@ class MatchRowCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    final isNat = match.sport.toLowerCase().contains('natation');
-    final equipe1Lower = match.equipe1.toLowerCase();
-    final isRugby = match.sport.toLowerCase().contains('rugby');
-    final isColomiers = equipe1Lower.contains('colomiers') && isRugby;
-    final isStadeToulousain = equipe1Lower.contains('stade toulousain') && isRugby;
-    final isFenix = equipe1Lower.contains('fenix');
-    final image = isNat
-        ? 'assets/images/detail_toulouse_natation.jpg'
-        : isFenix
-            ? 'assets/images/detail_fenix_hand.jpg'
-            : isStadeToulousain
-            ? 'assets/images/detail_stadetoulousain_rugby.jpg'
-            : isColomiers
-                ? 'assets/images/detail_colomier_rugby.jpg'
-                : _resolveImage();
+    final image = resolveDetailImage(match);
     // Si la pochette resolue est curated (specifique equipe/sport), on
     // l'affiche en priorite. Sinon (fallback generique), on tente la
     // photo scrapee. Evite que photoUrl generique remplace une bonne
     // pochette locale dans le detail.
-    final isGenericFallback = image == 'assets/images/sc_autres_sport.jpg';
-    final detailImageUrl = isGenericFallback && match.photoUrl.isNotEmpty
-        ? match.photoUrl
-        : null;
+    final detailImageUrl =
+        isGenericSportImage(image) && match.photoUrl.isNotEmpty
+            ? match.photoUrl
+            : null;
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(
