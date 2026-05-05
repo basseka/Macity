@@ -27,26 +27,45 @@ final sportVenuesProvider =
     FutureProvider.family<List<CommerceModel>, String>((ref, sportType) async {
   final city = ref.watch(selectedCityProvider);
 
+  List<CommerceModel> venues = <CommerceModel>[];
   try {
     final service = SportVenuesSupabaseService();
     final results = await service.fetchVenues(sportType: sportType, ville: city);
-    if (results.isNotEmpty) return results;
+    if (results.isNotEmpty) venues = results;
   } catch (e) {
     debugPrint('[sportVenuesProvider] sport_venues error for $sportType: $e');
   }
 
-  // Fallback sur la table venues (donnees OSM)
-  final category = _sportTypeToCategory[sportType];
-  if (category != null) {
-    try {
-      return await VenuesSupabaseService().fetchVenues(
-        mode: 'sport', ville: city, category: category,
-      );
-    } catch (e) {
-      debugPrint('[sportVenuesProvider] venues fallback error: $e');
+  // Fallback sur la table venues (donnees OSM) si rien trouve
+  if (venues.isEmpty) {
+    final category = _sportTypeToCategory[sportType];
+    if (category != null) {
+      try {
+        venues = await VenuesSupabaseService().fetchVenues(
+          mode: 'sport', ville: city, category: category,
+        );
+      } catch (e) {
+        debugPrint('[sportVenuesProvider] venues fallback error: $e');
+      }
     }
   }
-  return <CommerceModel>[];
+
+  // Fitness : Gymnasia Rouffiac epinglee en tete (partenariat).
+  if (sportType == 'fitness' && venues.isNotEmpty) {
+    final pinned = <CommerceModel>[];
+    final rest = <CommerceModel>[];
+    for (final v in venues) {
+      final n = v.nom.toLowerCase();
+      if (n.contains('gymnasia') && n.contains('rouffiac')) {
+        pinned.add(v);
+      } else {
+        rest.add(v);
+      }
+    }
+    venues = [...pinned, ...rest];
+  }
+
+  return venues;
 });
 
 /// Combine toutes les venues raquette (5 sous-types).
