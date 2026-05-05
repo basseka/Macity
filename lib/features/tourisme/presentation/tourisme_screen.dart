@@ -15,6 +15,7 @@ import 'package:pulz_app/features/sport/presentation/widgets/venues_map_view.dar
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/tourisme/presentation/metro_tramway_map.dart';
 import 'package:pulz_app/features/tourisme/presentation/transport_info_sheet.dart';
+import 'package:pulz_app/features/city/data/city_coordinates.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -136,11 +137,16 @@ class TourismeScreen extends ConsumerWidget {
   Widget _buildTourismeMap(BuildContext context, WidgetRef ref, String title) {
     final modeTheme = ref.watch(modeThemeProvider);
     final pointsAsync = ref.watch(allTouristicPointsProvider);
+    final city = ref.watch(selectedCityProvider);
+    final cityCenter = CityCoordinates.of(city);
     final showLabels = title == 'Plan touristique';
 
     return pointsAsync.when(
       data: (points) {
         final filtered = points.where((p) => p.categorie != 'Lieu culturel').toList();
+        // Sans points, dezoom ville (12) + centre ville. Avec points, on garde 16
+        // pour la vue rapprochee initiale autour des venues.
+        final hasPoints = filtered.isNotEmpty;
         return Stack(
         children: [
           VenuesMapView(
@@ -148,8 +154,10 @@ class TourismeScreen extends ConsumerWidget {
             title: title,
             accentColor: '#0284C7',
             autoLocate: false,
-            initialZoom: 16,
+            initialZoom: hasPoints ? 16 : 12,
             showLabels: showLabels,
+            fallbackLat: cityCenter.lat,
+            fallbackLng: cityCenter.lng,
             categoryIcons: const {
               'Monument': '\u{1F3DB}\u{FE0F}',
               'Musee': '\u{1F3A8}',

@@ -30,6 +30,13 @@ class VenuesMapView extends StatefulWidget {
   /// carte plus sobre (ex: carte clubs).
   final bool showClosestPanel;
 
+  /// Centre fallback (lat/lng) utilise si la liste [venues] est vide. Permet
+  /// d'adapter la carte a la ville selectionnee meme quand aucun point n'a
+  /// encore ete renseigne (typiquement DOM-TOM, petites villes).
+  /// Si null, fallback Toulouse.
+  final double? fallbackLat;
+  final double? fallbackLng;
+
   const VenuesMapView({
     super.key,
     required this.venues,
@@ -42,6 +49,8 @@ class VenuesMapView extends StatefulWidget {
     this.categoryColors,
     this.onVenueTap,
     this.showClosestPanel = true,
+    this.fallbackLat,
+    this.fallbackLng,
   });
 
   @override
@@ -303,13 +312,18 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     const SHOW_LABELS = ${widget.showLabels};
     const USE_FLUTTER_TAP = ${widget.onVenueTap != null};
     const SHOW_CLOSEST = ${widget.showClosestPanel};
-    // Centre dynamique : moyenne des coordonnees des venues, fallback Toulouse
-    let centerLat = 43.6047, centerLng = 1.4442;
-    if (VENUES.length > 0) {
+    // Centre dynamique : moyenne des coordonnees des venues. Si aucun
+    // venue, fallback sur le centre de la ville selectionnee (passe par
+    // Flutter via fallbackLat/fallbackLng), sinon Toulouse.
+    let centerLat = ${widget.fallbackLat ?? 43.6047}, centerLng = ${widget.fallbackLng ?? 1.4442};
+    let hasVenues = VENUES.length > 0;
+    if (hasVenues) {
       centerLat = VENUES.reduce((s, v) => s + v.lat, 0) / VENUES.length;
       centerLng = VENUES.reduce((s, v) => s + v.lng, 0) / VENUES.length;
     }
-    const map = L.map('map').setView([centerLat, centerLng], INIT_ZOOM || 14);
+    // Sans venues on dezoome (vue ville ~12), avec on respecte INIT_ZOOM ou 14.
+    const initialZoomLevel = INIT_ZOOM || (hasVenues ? 14 : 12);
+    const map = L.map('map').setView([centerLat, centerLng], initialZoomLevel);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap', maxZoom: 19,
       referrerPolicy: 'origin',
