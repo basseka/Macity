@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#8E24AA" />
+  <title>MaCity Admin — Ajouter un event</title>
+  <meta name="robots" content="noindex,nofollow" />
+
+  <style>
+    :root {
+      --purple-dark: #6A1B9A;
+      --purple: #8E24AA;
+      --magenta: #E91E63;
+      --bg: #0D0618;
+      --surface: #1A0F2E;
+      --surface-hi: #241640;
+      --text: #F5F0FF;
+      --text-dim: #B5A8D0;
+      --text-faint: #7A6E95;
+      --line: rgba(255,255,255,0.08);
+      --line-strong: rgba(255,255,255,0.16);
+      --ok: #10b981;
+      --err: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at 20% 0%, #2D1245 0%, var(--bg) 70%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.4;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      margin-bottom: 4px;
+      background: linear-gradient(90deg, var(--purple) 0%, var(--magenta) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    label .req { color: var(--magenta); }
+    input[type="text"], input[type="date"], input[type="number"], input[type="url"], input[type="email"], input[type="password"], select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface-hi);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--magenta);
+    }
+    textarea { resize: vertical; min-height: 60px; }
+    .row { display: grid; gap: 12px; margin-bottom: 12px; }
+    .row.two { grid-template-columns: 1fr 1fr; }
+    .row.three { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 540px) { .row.two, .row.three { grid-template-columns: 1fr; } }
+    .row:last-child { margin-bottom: 0; }
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 10px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface-hi);
+      font-size: 14px;
+      user-select: none;
+    }
+    .checkbox input { width: 16px; height: 16px; accent-color: var(--magenta); }
+    /* Paste zone */
+    .paste-zone {
+      border: 2px dashed var(--line-strong);
+      border-radius: 12px;
+      padding: 36px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      background: var(--surface-hi);
+    }
+    .paste-zone:hover, .paste-zone.focus {
+      border-color: var(--magenta);
+      background: rgba(233, 30, 99, 0.05);
+    }
+    .paste-zone.has-image { padding: 10px; }
+    .paste-icon { font-size: 36px; margin-bottom: 8px; }
+    .paste-hint { color: var(--text-dim); font-size: 13px; }
+    .paste-hint strong { color: var(--text); }
+    .paste-preview {
+      max-width: 100%;
+      max-height: 280px;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto;
+    }
+    .paste-remove {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 14px;
+      background: var(--line);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      border: none;
+    }
+    .paste-browse {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, rgba(142, 36, 170, 0.25), rgba(233, 30, 99, 0.18));
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .paste-browse:hover {
+      border-color: var(--magenta);
+      transform: translateY(-1px);
+    }
+    /* Submit */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      width: 100%;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
+      color: white;
+      box-shadow: 0 8px 24px rgba(233, 30, 99, 0.35);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(233, 30, 99, 0.45);
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 1000;
+      max-width: 90%;
+      display: none;
+    }
+    .toast.ok { background: rgba(16, 185, 129, 0.15); color: var(--ok); border: 1px solid var(--ok); }
+    .toast.err { background: rgba(239, 68, 68, 0.15); color: var(--err); border: 1px solid var(--err); }
+    .toast.show { display: block; animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+    .login-card { max-width: 380px; margin: 80px auto; }
+    .login-card .btn { margin-top: 12px; }
+    #admin-area { display: none; }
+    .hidden { display: none !important; }
+    .helper { color: var(--text-faint); font-size: 11px; margin-top: 4px; }
+    .logout {
+      display: inline-block;
+      font-size: 12px;
+      color: var(--text-faint);
+      cursor: pointer;
+      margin-bottom: 16px;
+      user-select: none;
+    }
+    .logout:hover { color: var(--magenta); }
+
+    /* ─── Top toolbar (logout left, nav right) ─── */
+    .top-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .top-toolbar .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--line-strong);
+      background: var(--surface-hi);
+      color: var(--text);
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .top-toolbar .nav-btn:hover { border-color: var(--magenta); background: rgba(233, 30, 99, 0.08); }
+    .top-toolbar .nav-btn.primary {
+      background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(233, 30, 99, 0.3);
+    }
+    .top-toolbar .nav-btn.primary:hover { background: linear-gradient(135deg, var(--magenta), var(--purple-dark)); }
+
+    /* ─── Historique : grille des events ─── */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .event-tile {
+      background: var(--surface-hi);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .event-tile:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+    .event-tile.editing { border-color: var(--magenta); background: rgba(233, 30, 99, 0.08); }
+    .event-tile-img {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: var(--bg);
+      display: block;
+    }
+    .event-tile-img-empty {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: var(--text-faint);
+      background: linear-gradient(135deg, var(--surface), var(--bg));
+    }
+    .event-tile-body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .event-tile-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.3;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .event-tile-meta { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+    .event-tile-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .event-tile-btn {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.15s;
+    }
+    .event-tile-btn:hover { color: var(--text); border-color: var(--magenta); background: rgba(233, 30, 99, 0.1); }
+    .event-tile-btn.delete:hover { color: var(--err); border-color: var(--err); background: rgba(239, 68, 68, 0.1); }
+    .events-empty {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-faint);
+      font-size: 14px;
+    }
+    .events-section-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      margin: 20px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+    .events-section-label:first-child { margin-top: 0; }
+
+    /* ─── Sections par date / theme dans la grille ─── */
+    .events-date-section { margin-bottom: 28px; }
+    .events-date-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      margin: 0 0 14px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, rgba(142, 36, 170, 0.18), rgba(233, 30, 99, 0.10));
+      border-left: 3px solid var(--magenta);
+      border-radius: 8px;
+    }
+    .events-date-header .count {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .events-theme-section { margin-bottom: 18px; padding-left: 8px; }
+    .events-theme-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .events-theme-header::before {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 1px;
+      background: var(--text-faint);
+    }
+    .events-theme-header .count {
+      font-size: 10px;
+      color: var(--text-faint);
+      font-weight: 500;
+    }
+    .edit-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(233, 30, 99, 0.15), rgba(142, 36, 170, 0.1));
+      border: 1px solid var(--magenta);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .edit-banner strong { font-weight: 700; }
+    .cancel-edit {
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      color: var(--text-dim);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .cancel-edit:hover { color: var(--text); border-color: var(--magenta); }
+
+    /* ─── Autocomplete venue (custom dropdown, substring search) ─── */
+    .venue-input-wrapper { position: relative; }
+    .venue-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: var(--surface-hi);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    }
+    .venue-dropdown.hidden { display: none; }
+    .venue-result {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .venue-result:last-child { border-bottom: none; }
+    .venue-result:hover, .venue-result.active {
+      background: rgba(233, 30, 99, 0.12);
+    }
+    .venue-result-name { color: var(--text); font-weight: 600; }
+    .venue-result-meta { color: var(--text-dim); font-size: 11px; margin-top: 2px; }
+    .venue-result-empty {
+      padding: 14px;
+      text-align: center;
+      color: var(--text-faint);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- ═══ LOGIN ═══ -->
+    <div id="login-area">
+      <h1>🔐 Admin MaCity</h1>
+      <p class="subtitle">Connexion requise</p>
+      <div class="card login-card">
+        <div class="row"><div><label>Email</label><input type="email" id="login-email" placeholder="basseka@yahoo.fr" /></div></div>
+        <div class="row"><div><label>Mot de passe</label><input type="password" id="login-password" /></div></div>
+        <button class="btn btn-primary" id="login-btn">Se connecter</button>
+      </div>
+    </div>
+
+    <!-- ═══ FORMULAIRE EVENT ═══ -->
+    <div id="admin-area">
+      <!-- ═══ Top toolbar : logout (gauche) + nav (droite) ═══ -->
+      <div class="top-toolbar">
+        <span class="logout" id="logout-btn" style="margin-bottom: 0;">← Se déconnecter</span>
+        <div style="display:flex; gap:8px;">
+          <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
+          <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
+        </div>
+      </div>
+
+      <!-- ═══ VUE FORMULAIRE ═══ -->
+      <div id="form-view">
+      <h1>📅 Ajouter un event</h1>
+      <p class="subtitle" id="user-email">connecté en tant que —</p>
+
+      <!-- ═══ Bloc ERREUR (affiché si la création échoue) ═══ -->
+      <div id="error-card" class="hidden" style="
+        background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+        border: 1px solid var(--err);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+      ">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+          <div style="font-size:32px;">❌</div>
+          <div>
+            <div style="font-weight:800; font-size:18px; color:var(--err);">Échec de la création</div>
+            <div id="error-step" style="font-size:14px; color:var(--text); margin-top:2px;">—</div>
+          </div>
+        </div>
+        <div id="error-detail" style="
+          font-size:12px; color:var(--text-dim); margin-top:10px;
+          background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;
+          font-family: monospace; word-break: break-word; line-height: 1.5;
+        "></div>
+        <div id="error-hint" style="font-size:13px; color:var(--text-dim); margin-top:10px;"></div>
+        <div style="display:flex; gap:8px; margin-top:14px;">
+          <button type="button" id="error-close" style="
+            background:transparent; border:1px solid var(--line-strong); color:var(--text-dim);
+            padding:10px 18px; border-radius:12px; font-size:13px; cursor:pointer;
+          ">Fermer</button>
+        </div>
+      </div>
+
+      <!-- ═══ Bloc succès (affiché après création) ═══ -->
+      <div id="success-card" class="hidden" style="
+        background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+        border: 1px solid var(--ok);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+      ">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+          <div style="font-size:32px;">✅</div>
+          <div>
+            <div style="font-weight:800; font-size:18px; color:var(--ok);">Event créé avec succès !</div>
+            <div id="success-title" style="font-size:14px; color:var(--text); margin-top:2px;"></div>
+          </div>
+        </div>
+        <div id="success-meta" style="font-size:13px; color:var(--text-dim); margin-top:8px; line-height:1.6;"></div>
+        <div style="display:flex; gap:8px; margin-top:14px;">
+          <button type="button" id="success-new" class="btn btn-primary" style="width:auto; padding:10px 18px; font-size:13px;">
+            ✨ Créer un autre event
+          </button>
+          <button type="button" id="success-close" style="
+            background:transparent; border:1px solid var(--line-strong); color:var(--text-dim);
+            padding:10px 18px; border-radius:12px; font-size:13px; cursor:pointer;
+          ">Fermer</button>
+        </div>
+      </div>
+
+      <!-- ═══ Banniere mode edition ═══ -->
+      <div id="edit-banner" class="edit-banner hidden">
+        <span>✏️ <strong>Mode édition</strong> — modification de « <span id="edit-banner-title"></span> »</span>
+        <button type="button" class="cancel-edit" id="cancel-edit-btn">Annuler</button>
+      </div>
+
+      <form id="event-form">
+        <!-- Identité -->
+        <div class="card">
+          <h2>Identité</h2>
+          <div class="row"><div>
+            <label>Titre <span class="req">*</span></label>
+            <input type="text" name="nom_de_la_manifestation" required placeholder="Ex: Yannick Noah en concert" />
+          </div></div>
+          <div class="row"><div>
+            <label>Description courte</label>
+            <textarea name="descriptif_court" rows="2" maxlength="300"></textarea>
+          </div></div>
+          <div class="row"><div>
+            <label>Description longue</label>
+            <textarea name="descriptif_long" rows="4"></textarea>
+          </div></div>
+        </div>
+
+        <!-- Date + horaires -->
+        <div class="card">
+          <h2>Date &amp; horaires</h2>
+          <div class="row two">
+            <div><label>Date début <span class="req">*</span></label><input type="date" name="date_debut" required /></div>
+            <div><label>Date fin</label><input type="date" name="date_fin" /><div class="helper">Laisser vide = même jour que début</div></div>
+          </div>
+          <div class="row"><div>
+            <label>Horaire</label>
+            <input type="text" name="horaires" placeholder="Ex: 20h30" />
+          </div></div>
+        </div>
+
+        <!-- Catégorisation -->
+        <div class="card">
+          <h2>Catégorisation</h2>
+          <div class="row two">
+            <div>
+              <label>Rubrique <span class="req">*</span></label>
+              <select name="rubrique" required>
+                <option value="day">Day — Concerts & spectacles</option>
+                <option value="culture">Culture — Théâtre, expo, cinéma</option>
+                <option value="night">Night — Clubs, bars</option>
+                <option value="food">Food</option>
+                <option value="family">Family</option>
+              </select>
+            </div>
+            <div>
+              <label>Catégorie</label>
+              <select name="categorie_de_la_manifestation" id="category-select">
+                <option value="">— Choisir une catégorie —</option>
+                <optgroup label="🎭 En Scène">
+                  <option value="Concerts">Concerts</option>
+                  <option value="Spectacle">Spectacle</option>
+                  <option value="Théâtre">Théâtre</option>
+                  <option value="One-man-show">One-man-show</option>
+                  <option value="Danse">Danse</option>
+                  <option value="Comédie musicale">Comédie musicale</option>
+                  <option value="Opéra">Opéra</option>
+                  <option value="Humour">Humour</option>
+                </optgroup>
+                <optgroup label="🎟️ Event">
+                  <option value="Cinéma">Cinéma</option>
+                  <option value="Salon/expo">Salon/expo</option>
+                  <option value="Soirée">Soirée</option>
+                  <option value="Famille">Famille</option>
+                  <option value="Food">Food</option>
+                  <option value="Sport">Sport</option>
+                </optgroup>
+                <optgroup label="🌙 Clubbing">
+                  <option value="Bar">Bar</option>
+                  <option value="Club &amp; Disco">Club &amp; Disco</option>
+                </optgroup>
+              </select>
+              <div class="helper">Liste alignée avec les filtres du feed (ton event s'affichera dans le bon onglet).</div>
+            </div>
+          </div>
+          <div style="margin-top: 8px;">
+            <span class="logout" id="toggle-advanced" style="margin-bottom: 0;">▸ Afficher les options avancées (Type + Thème)</span>
+          </div>
+          <div class="row two hidden" id="advanced-fields" style="margin-top: 12px;">
+            <div>
+              <label>Type</label>
+              <input type="text" name="type_de_manifestation" placeholder="Ex: Concert" />
+              <div class="helper">Affine le filtre feed + détermine la pochette par défaut si pas d'affiche.</div>
+            </div>
+            <div>
+              <label>Thème</label>
+              <input type="text" name="theme_de_la_manifestation" placeholder="Ex: Variété française" />
+              <div class="helper">Mots-clés supplémentaires (utilisé par la search).</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lieu -->
+        <div class="card">
+          <h2>Lieu</h2>
+          <div class="row"><div>
+            <label>Nom du lieu <span class="req">*</span></label>
+            <div class="venue-input-wrapper">
+              <input type="text" name="lieu_nom" required placeholder="Tape n'importe quel mot du nom (ex: nine, étoile, bikini...)" autocomplete="off" />
+              <div id="venue-dropdown" class="venue-dropdown hidden"></div>
+            </div>
+            <div class="helper" id="venue-helper">Recherche dans n'importe quelle partie du nom — l'adresse et la ville sont auto-remplies au choix.</div>
+            <div id="venue-unknown-card" class="hidden" style="
+              margin-top: 10px;
+              padding: 12px 14px;
+              background: linear-gradient(135deg, rgba(142, 36, 170, 0.12), rgba(233, 30, 99, 0.08));
+              border: 1px dashed var(--magenta);
+              border-radius: 10px;
+            ">
+              <label class="checkbox" style="background:transparent; border:none; padding: 0;">
+                <input type="checkbox" id="add-venue-chk" />
+                <span>➕ Ajouter <strong id="add-venue-name"></strong> à la base des lieux</span>
+              </label>
+              <div class="helper" style="margin-top: 6px;">Cet établissement n'est pas dans la base. Coche pour l'enregistrer (nom + adresse + ville + type) — il apparaîtra dans l'auto-complétion ensuite.</div>
+            </div>
+          </div></div>
+          <div class="row"><div>
+            <label>Adresse</label>
+            <input type="text" name="lieu_adresse_2" placeholder="18 Chem. de la Loge" />
+          </div></div>
+          <div class="row three">
+            <div><label>Code postal</label><input type="number" name="code_postal" placeholder="31000" /></div>
+            <div><label>Commune</label><input type="text" name="commune" placeholder="Toulouse" /></div>
+            <div><label>Ville (filtre app) <span class="req">*</span></label><input type="text" name="ville" required placeholder="Toulouse" /></div>
+          </div>
+        </div>
+
+        <!-- Tarif + billetterie -->
+        <div class="card">
+          <h2>Tarif &amp; billetterie</h2>
+          <div class="row two">
+            <div>
+              <label class="checkbox">
+                <input type="checkbox" id="gratuit-chk" />
+                <span>Event gratuit</span>
+              </label>
+            </div>
+            <div id="tarif-wrap">
+              <label>Tarif</label>
+              <input type="text" name="tarif_normal" placeholder="Ex: 35 €" />
+            </div>
+          </div>
+          <div class="row"><div>
+            <label>Lien billetterie (URL complète)</label>
+            <input type="url" name="reservation_site_internet" placeholder="https://www.ticketmaster.fr/..." />
+          </div></div>
+        </div>
+
+        <!-- Photo via paste -->
+        <div class="card">
+          <h2>Affiche / photo</h2>
+          <div id="paste-zone" class="paste-zone" tabindex="0">
+            <div id="paste-empty">
+              <div class="paste-icon">🖼️</div>
+              <div class="paste-hint">Fais <strong>Ctrl+V</strong> pour coller, glisse une image ici, ou…</div>
+              <button type="button" class="paste-browse" id="browse-btn">📂 Explorer le PC</button>
+            </div>
+            <div id="paste-filled" class="hidden">
+              <img id="paste-preview" class="paste-preview" />
+              <div>
+                <button type="button" class="paste-browse" id="browse-btn-replace">📂 Remplacer</button>
+                <button type="button" class="paste-remove" id="paste-remove">× Retirer l'image</button>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="file-input" accept="image/*" class="hidden" />
+          <div class="helper">Si aucune photo : l'event n'apparaîtra pas dans le feed (le service filtre `photo_url` vide).</div>
+        </div>
+
+        <!-- Booster -->
+        <div class="card">
+          <h2>Boost</h2>
+          <div class="row two">
+            <div>
+              <label class="checkbox">
+                <input type="checkbox" id="boost-chk" />
+                <span>Booster l'event (admin pin)</span>
+              </label>
+            </div>
+            <div id="boost-type-wrap" class="hidden">
+              <label>Type de boost</label>
+              <select id="boost-type">
+                <option value="featured">Featured — À la une (gros carrousel)</option>
+                <option value="top">Top — En tête du feed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="submit-btn">✨ Créer l'event</button>
+      </form>
+      </div>
+      <!-- ═══ FIN VUE FORMULAIRE ═══ -->
+
+      <!-- ═══ VUE GRILLE "MES EVENTS" ═══ -->
+      <div id="events-view" class="hidden">
+        <h1>📋 Mes events <span id="history-count" style="color: var(--text-faint); font-weight: 400; font-size: 16px;"></span></h1>
+        <p class="subtitle">Triés par date, les plus proches en haut. Clique sur ✏️ pour modifier ou 🗑️ pour supprimer.</p>
+        <div id="history-list"></div>
+        <div id="history-empty" class="events-empty hidden">
+          Aucun event créé pour l'instant — clique sur « + Nouveau » pour en ajouter un.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.0";
+
+    const SUPABASE_URL = "https://dpqxefmwjfvoysacwgef.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwcXhlZm13amZ2b3lzYWN3Z2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyOTkxMTgsImV4cCI6MjA4NTg3NTExOH0.xzNidmrcNsUhpsTFcaaL_lXtHcx_MWzQHCPF7kY5i90";
+    const ADMIN_EMAILS = ["basseka@yahoo.fr", "djellalisr@gmail.com"];
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ─── État UI ───
+    const loginArea = document.getElementById("login-area");
+    const adminArea = document.getElementById("admin-area");
+    const toastEl = document.getElementById("toast");
+
+    function toast(msg, ok = true) {
+      toastEl.textContent = msg;
+      toastEl.className = `toast ${ok ? "ok" : "err"} show`;
+      setTimeout(() => toastEl.classList.remove("show"), 4000);
+    }
+
+    const successCard = document.getElementById("success-card");
+    document.getElementById("success-close").addEventListener("click", () => {
+      successCard.classList.add("hidden");
+    });
+    document.getElementById("success-new").addEventListener("click", () => {
+      successCard.classList.add("hidden");
+      window.scrollTo({ top: document.getElementById("event-form").offsetTop - 20, behavior: "smooth" });
+      document.querySelector('input[name="nom_de_la_manifestation"]').focus();
+    });
+
+    const errorCard = document.getElementById("error-card");
+    document.getElementById("error-close").addEventListener("click", () => {
+      errorCard.classList.add("hidden");
+    });
+
+    /** step = "Upload de la photo" | "Création de l'event" | "Boost / pin admin" */
+    function showError(step, err) {
+      successCard.classList.add("hidden");
+      document.getElementById("error-step").textContent = `Étape : ${step}`;
+
+      const detail = err?.message || err?.error_description || String(err) || "Erreur inconnue";
+      const code = err?.code ? `[${err.code}] ` : "";
+      const hint = err?.hint || err?.details || "";
+      document.getElementById("error-detail").textContent = code + detail + (hint ? "\n\nHint: " + hint : "");
+
+      // Pistes de diagnostic en fonction du message
+      let helper = "";
+      const d = (detail + " " + (hint || "")).toLowerCase();
+      if (d.includes("permission") || d.includes("policy") || d.includes("row-level security")) {
+        helper = "💡 Probleme de RLS — tu n'es peut-etre pas connecte en tant qu'admin. Verifie ton email en haut de page.";
+      } else if (d.includes("duplicate") || d.includes("unique")) {
+        helper = "💡 Cet event existe deja (meme titre + meme date). L'upsert aurait du le mettre a jour — verifie l'identifiant.";
+      } else if (d.includes("storage") || d.includes("bucket")) {
+        helper = "💡 Problème upload photo. Le bucket 'admin-events' existe-il bien ? Migration appliquee ?";
+      } else if (d.includes("network") || d.includes("fetch") || d.includes("failed to fetch")) {
+        helper = "💡 Erreur reseau. Verifie ta connexion internet.";
+      } else if (d.includes("not null") || d.includes("violates")) {
+        helper = "💡 Un champ obligatoire est vide ou invalide. Verifie titre, date debut et ville.";
+      }
+      document.getElementById("error-hint").textContent = helper;
+
+      errorCard.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showSuccess(info) {
+      errorCard.classList.add("hidden");
+      const titleEl = successCard.querySelector('div[style*="font-weight:800"]');
+      if (titleEl) titleEl.textContent = info.wasEditing ? "Event mis à jour !" : "Event créé avec succès !";
+      document.getElementById("success-title").textContent = `« ${info.titre} »`;
+      const dateLabel = info.dateDebut === info.dateFin
+        ? `📅 ${info.dateDebut}${info.horaires ? ` à ${info.horaires}` : ""}`
+        : `📅 ${info.dateDebut} → ${info.dateFin}${info.horaires ? ` (${info.horaires})` : ""}`;
+      const lieuLabel = info.lieuNom ? `📍 ${info.lieuNom} (${info.ville})` : `📍 ${info.ville}`;
+      const boostLabel = info.boosted
+        ? `⚡ Boosté — <strong>${info.boosted === "featured" ? "À la une" : "Top feed"}</strong>`
+        : "";
+      const photoLabel = info.photoUrl
+        ? `🖼️ Affiche uploadée`
+        : `⚠️ Pas d'affiche — l'event ne s'affichera pas dans le feed (filtre photo_url requis)`;
+      const billLabel = info.billetterie ? `🎟️ Billetterie : <a href="${info.billetterie}" target="_blank" style="color:var(--magenta);">${info.billetterie.substring(0, 40)}…</a>` : "";
+
+      document.getElementById("success-meta").innerHTML = [
+        dateLabel, lieuLabel, boostLabel, photoLabel, billLabel,
+      ].filter(Boolean).join("<br>");
+
+      successCard.classList.remove("hidden");
+    }
+
+    let currentUserEmail = null;
+    let editingEvent = null;       // event row en cours d'edition (null = mode creation)
+    let existingPhotoUrl = null;   // url photo deja en place (mode edition, sans replace)
+    let historyMap = {};           // id -> event row, pour retrouver les donnees au clic
+
+    function showAdmin(session) {
+      loginArea.style.display = "none";
+      adminArea.style.display = "block";
+      currentUserEmail = session.user.email;
+      document.getElementById("user-email").textContent = `connecté en tant que ${currentUserEmail}`;
+      loadHistory();
+      loadVenues();
+    }
+    function showLogin() {
+      loginArea.style.display = "block";
+      adminArea.style.display = "none";
+      currentUserEmail = null;
+      // Reset a la vue formulaire pour le prochain login
+      const fv = document.getElementById("form-view");
+      const ev = document.getElementById("events-view");
+      if (fv && ev) { fv.classList.remove("hidden"); ev.classList.add("hidden"); }
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "").replace(/[&<>"']/g, c => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+      }[c]));
+    }
+
+    // ─── Auth ───
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && ADMIN_EMAILS.includes(session.user.email)) showAdmin(session);
+      else showLogin();
+    });
+
+    document.getElementById("login-btn").addEventListener("click", async () => {
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      if (!email || !password) return toast("Email + mot de passe requis", false);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return toast("Erreur : " + error.message, false);
+      if (!ADMIN_EMAILS.includes(data.user.email)) {
+        await supabase.auth.signOut();
+        return toast("Accès refusé — seul l'admin peut se connecter", false);
+      }
+      showAdmin(data.session);
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      showLogin();
+    });
+
+    // ─── Toggle visibilité tarif / boost ───
+    const gratuitChk = document.getElementById("gratuit-chk");
+    const tarifWrap = document.getElementById("tarif-wrap");
+    gratuitChk.addEventListener("change", () => {
+      tarifWrap.classList.toggle("hidden", gratuitChk.checked);
+    });
+    const boostChk = document.getElementById("boost-chk");
+    const boostTypeWrap = document.getElementById("boost-type-wrap");
+    boostChk.addEventListener("change", () => {
+      boostTypeWrap.classList.toggle("hidden", !boostChk.checked);
+    });
+
+    // Toggle "options avancees" (Type + Theme)
+    const toggleAdvancedBtn = document.getElementById("toggle-advanced");
+    const advancedFields = document.getElementById("advanced-fields");
+    toggleAdvancedBtn.addEventListener("click", () => {
+      const wasHidden = advancedFields.classList.toggle("hidden");
+      toggleAdvancedBtn.textContent = wasHidden
+        ? "▸ Afficher les options avancées (Type + Thème)"
+        : "▾ Masquer les options avancées";
+    });
+
+    // ─── Paste image (Ctrl+V) + drag-drop + click = file picker ───
+    const pasteZone = document.getElementById("paste-zone");
+    const pastePreview = document.getElementById("paste-preview");
+    const pasteEmpty = document.getElementById("paste-empty");
+    const pasteFilled = document.getElementById("paste-filled");
+    const pasteRemove = document.getElementById("paste-remove");
+    const fileInput = document.getElementById("file-input");
+    let pastedBlob = null;
+
+    function loadBlob(blob) {
+      pastedBlob = blob;
+      const url = URL.createObjectURL(blob);
+      pastePreview.src = url;
+      pasteEmpty.classList.add("hidden");
+      pasteFilled.classList.remove("hidden");
+      pasteZone.classList.add("has-image");
+    }
+
+    function clearPastedImage() {
+      pastedBlob = null;
+      pastePreview.src = "";
+      pasteEmpty.classList.remove("hidden");
+      pasteFilled.classList.add("hidden");
+      pasteZone.classList.remove("has-image");
+      fileInput.value = "";
+    }
+
+    pasteRemove.addEventListener("click", (e) => {
+      // Stopper la bubble pour ne pas déclencher le click handler de paste-zone
+      // (qui ouvre le file picker).
+      e.stopPropagation();
+      clearPastedImage();
+    });
+
+    pasteZone.addEventListener("focus", () => pasteZone.classList.add("focus"));
+    pasteZone.addEventListener("blur", () => pasteZone.classList.remove("focus"));
+    // L'explorateur s'ouvre UNIQUEMENT via les boutons "Explorer" / "Remplacer".
+    // (avant : un click n'importe ou sur la zone l'ouvrait, trop intrusif).
+
+    // Boutons explicites "Explorer" (mode vide + mode photo chargee)
+    document.getElementById("browse-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+    document.getElementById("browse-btn-replace").addEventListener("click", (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      const f = e.target.files?.[0];
+      if (f && f.type.startsWith("image/")) loadBlob(f);
+    });
+
+    // Drag-drop
+    pasteZone.addEventListener("dragover", (e) => { e.preventDefault(); pasteZone.classList.add("focus"); });
+    pasteZone.addEventListener("dragleave", () => pasteZone.classList.remove("focus"));
+    pasteZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      pasteZone.classList.remove("focus");
+      const f = e.dataTransfer.files?.[0];
+      if (f && f.type.startsWith("image/")) loadBlob(f);
+    });
+
+    // Paste global (seulement quand la zone a le focus OU body)
+    document.addEventListener("paste", (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (blob) {
+            loadBlob(blob);
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+    });
+
+    // ─── Slugify + helpers ───
+    function slugify(s) {
+      return s.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .substring(0, 60);
+    }
+
+    async function uploadImage(blob) {
+      const ext = blob.type.split("/")[1] || "jpg";
+      const path = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const { data, error } = await supabase.storage.from("admin-events").upload(path, blob, {
+        contentType: blob.type,
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("admin-events").getPublicUrl(data.path);
+      return urlData.publicUrl;
+    }
+
+    // ─── Categories : liste hardcodee alignee avec les filtres du feed ───
+    // Source : pulz_app/lib/features/home/presentation/feed_screen.dart (_subFilters)
+    // Le select est genere statiquement dans le HTML (avec optgroup).
+    // On garde une lookup table pour le mode edition (detecter les valeurs absentes).
+    const categorySelect = document.getElementById("category-select");
+    const knownCategoriesLower = new Set([
+      "concerts", "spectacle", "théâtre", "one-man-show", "danse",
+      "comédie musicale", "opéra", "humour",
+      "cinéma", "salon/expo", "soirée", "famille", "food", "sport",
+      "bar", "club & disco",
+    ]);
+
+    // ─── Auto-completion : noms de lieux (substring search, custom dropdown) ───
+    let allVenues = [];          // cache full liste, filtree par rubrique au render
+    let filteredVenues = [];     // sous-ensemble par mode (selon rubrique)
+    let activeIndex = -1;        // index resultat surligne via fleches clavier
+    const venueDropdown = document.getElementById("venue-dropdown");
+    const venueHelper = document.getElementById("venue-helper");
+    const rubriqueSelect = document.querySelector('select[name="rubrique"]');
+    const MAX_RESULTS = 30;
+
+    // Mapping rubrique -> modes de venues a afficher
+    const rubriqueToVenueModes = {
+      day:     ["culture", "night", "sport", "family"],
+      culture: ["culture"],
+      night:   ["night"],
+      food:    ["food"],
+      family:  ["family"],
+    };
+
+    // Inverse : depuis (rubrique, categorie) -> mode pour INSERT venue
+    function deriveVenueMode(rubrique, categorie) {
+      const cat = (categorie || "").toLowerCase();
+      if (cat.includes("bar") || cat.includes("club") || cat.includes("disco") || cat.includes("soirée") || cat.includes("soiree")) return "night";
+      if (cat === "food" || cat.includes("restaurant")) return "food";
+      if (cat === "sport") return "sport";
+      if (cat === "famille" || cat === "cinéma" || cat === "cinema") return "family";
+      if (rubrique === "night") return "night";
+      if (rubrique === "food") return "food";
+      if (rubrique === "family") return "family";
+      if (rubrique === "culture") return "culture";
+      return "culture";
+    }
+
+    function refreshFilteredVenues() {
+      const rubrique = rubriqueSelect.value || "day";
+      const allowedModes = new Set(rubriqueToVenueModes[rubrique] || []);
+      filteredVenues = allVenues.filter(v => v.name && allowedModes.has(v.mode));
+      const counts = {};
+      filteredVenues.forEach(v => { counts[v.mode] = (counts[v.mode] || 0) + 1; });
+      const summary = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([m, c]) => `${m}:${c}`).join(" · ");
+      venueHelper.textContent = filteredVenues.length
+        ? `${filteredVenues.length} lieux (${summary}) — tape n'importe quel mot du nom.`
+        : `Aucun lieu pour la rubrique « ${rubrique} ».`;
+    }
+
+    function searchVenues(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) return [];
+      // Substring match dans le nom OU la ville. Bonus de score si le nom
+      // commence par la query (priorite au prefix exact).
+      const scored = [];
+      for (const v of filteredVenues) {
+        const nameLower = v.name.toLowerCase();
+        const villeLower = (v.ville || "").toLowerCase();
+        const inName = nameLower.indexOf(q);
+        const inVille = villeLower.indexOf(q);
+        if (inName === -1 && inVille === -1) continue;
+        // Score: match au debut du nom = top, ailleurs dans nom = milieu, ville = bas
+        let score = 999;
+        if (inName === 0) score = 0;
+        else if (inName > 0) score = 100 + inName;
+        else score = 500 + inVille;
+        scored.push({ v, score });
+      }
+      scored.sort((a, b) => a.score - b.score);
+      return scored.slice(0, MAX_RESULTS).map(s => s.v);
+    }
+
+    function renderDropdown(results) {
+      activeIndex = -1;
+      if (!results || results.length === 0) {
+        venueDropdown.innerHTML = '<div class="venue-result-empty">Aucun lieu trouvé — tape un autre mot ou laisse vide pour saisir manuellement.</div>';
+        venueDropdown.classList.remove("hidden");
+        return;
+      }
+      venueDropdown.innerHTML = results.map((v, i) => {
+        const meta = [v.category, v.ville].filter(Boolean).join(" · ");
+        return `<div class="venue-result" data-idx="${i}">
+          <div class="venue-result-name">${escapeHtml(v.name)}</div>
+          <div class="venue-result-meta">${escapeHtml(meta)}</div>
+        </div>`;
+      }).join("");
+      venueDropdown.classList.remove("hidden");
+      // Stocker les resultats sur le DOM pour le click handler
+      venueDropdown._results = results;
+    }
+
+    function hideDropdown() { venueDropdown.classList.add("hidden"); activeIndex = -1; }
+
+    function pickVenue(v) {
+      lieuNomInput.value = v.name;
+      lieuAdresseInput.value = v.adresse || "";
+      villeInput.value = v.ville || "";
+      communeInput.value = v.ville || "";
+      const cpMatch = (v.adresse || "").match(/\b(\d{5})\b/);
+      codePostalInput.value = cpMatch ? cpMatch[1] : "";
+      hideDropdown();
+      // Refresh la carte (passera en mode "✅ déjà en base")
+      updateVenueUnknownState();
+
+      venueHelper.innerHTML = `✅ <strong>${escapeHtml(v.name)}</strong> — adresse, ville et CP auto-remplis.`;
+      venueHelper.style.color = "var(--ok)";
+      setTimeout(() => {
+        venueHelper.style.color = "";
+        refreshFilteredVenues();   // remet le helper standard
+      }, 2500);
+    }
+
+    async function loadVenues() {
+      // Supabase limite a 1000 lignes par requete par defaut. La table venues
+      // a ~16k lignes, donc on pagine via .range() jusqu'a tout charger.
+      venueHelper.textContent = "Chargement des lieux…";
+      const PAGE = 1000;
+      let from = 0;
+      const all = [];
+      while (true) {
+        const { data, error } = await supabase
+          .from("venues")
+          .select("name, adresse, ville, mode, category")
+          .eq("is_active", true)
+          .order("id", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.warn("[venues]", error);
+          venueHelper.textContent = "Erreur de chargement des lieux.";
+          return;
+        }
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      allVenues = all;
+      refreshFilteredVenues();
+    }
+
+    rubriqueSelect.addEventListener("change", () => {
+      refreshFilteredVenues();
+      // Si l'input a deja une valeur, refaire la search avec le nouveau filtre
+      if (lieuNomInput.value.trim()) renderDropdown(searchVenues(lieuNomInput.value));
+    });
+
+    // Auto-fill au choix d'un lieu
+    const lieuNomInput = document.querySelector('input[name="lieu_nom"]');
+    const lieuAdresseInput = document.querySelector('input[name="lieu_adresse_2"]');
+    const codePostalInput = document.querySelector('input[name="code_postal"]');
+    const communeInput = document.querySelector('input[name="commune"]');
+    const villeInput = document.querySelector('input[name="ville"]');
+
+    // ─── Detection venue inconnu : affiche la checkbox "Ajouter" ───
+    const addVenueCard = document.getElementById("venue-unknown-card");
+    const addVenueChk = document.getElementById("add-venue-chk");
+    const addVenueName = document.getElementById("add-venue-name");
+
+    function updateVenueUnknownState() {
+      const typed = lieuNomInput.value.trim();
+      if (!typed) {
+        addVenueCard.classList.add("hidden");
+        addVenueChk.checked = false;
+        return;
+      }
+      const isKnown = allVenues.some(v => v.name && v.name.toLowerCase() === typed.toLowerCase());
+      addVenueCard.classList.remove("hidden");   // toujours visible apres saisie
+
+      const labelSpan = addVenueCard.querySelector("label.checkbox span");
+      const helperEl = addVenueCard.querySelector(".helper");
+
+      if (isKnown) {
+        // Lieu deja connu : on grise la checkbox + message confirmant
+        addVenueChk.checked = false;
+        addVenueChk.disabled = true;
+        addVenueCard.style.borderStyle = "solid";
+        addVenueCard.style.borderColor = "var(--ok)";
+        addVenueCard.style.background = "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03))";
+        labelSpan.innerHTML = `✅ <strong>« ${escapeHtml(typed) }»</strong> est déjà dans la base`;
+        helperEl.textContent = "Aucune action nécessaire — le lieu sera réutilisé tel quel.";
+      } else {
+        // Lieu inconnu : checkbox active
+        addVenueChk.disabled = false;
+        addVenueCard.style.borderStyle = "dashed";
+        addVenueCard.style.borderColor = "var(--magenta)";
+        addVenueCard.style.background = "linear-gradient(135deg, rgba(142, 36, 170, 0.12), rgba(233, 30, 99, 0.08))";
+        labelSpan.innerHTML = `➕ Ajouter <strong>« ${escapeHtml(typed) }»</strong> à la base des lieux`;
+        helperEl.textContent = "Cet établissement n'est pas dans la base. Coche pour l'enregistrer (nom + adresse + ville + type) — il apparaîtra dans l'auto-complétion ensuite.";
+      }
+    }
+
+    lieuNomInput.addEventListener("input", () => {
+      renderDropdown(searchVenues(lieuNomInput.value));
+      updateVenueUnknownState();
+    });
+    lieuNomInput.addEventListener("focus", () => {
+      if (lieuNomInput.value.trim()) renderDropdown(searchVenues(lieuNomInput.value));
+    });
+    lieuNomInput.addEventListener("blur", () => {
+      // Delai pour laisser le click sur un resultat se produire
+      setTimeout(hideDropdown, 180);
+    });
+
+    // Click sur un resultat
+    venueDropdown.addEventListener("mousedown", (e) => {
+      const item = e.target.closest(".venue-result");
+      if (!item) return;
+      e.preventDefault();   // empeche le blur de l'input avant le click
+      const idx = parseInt(item.dataset.idx, 10);
+      const v = venueDropdown._results?.[idx];
+      if (v) pickVenue(v);
+    });
+
+    // Navigation clavier
+    lieuNomInput.addEventListener("keydown", (e) => {
+      if (venueDropdown.classList.contains("hidden")) return;
+      const items = venueDropdown.querySelectorAll(".venue-result");
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        activeIndex = Math.min(activeIndex + 1, items.length - 1);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        activeIndex = Math.max(activeIndex - 1, -1);
+      } else if (e.key === "Enter" && activeIndex >= 0) {
+        e.preventDefault();
+        const v = venueDropdown._results?.[activeIndex];
+        if (v) pickVenue(v);
+        return;
+      } else if (e.key === "Escape") {
+        hideDropdown();
+        return;
+      } else {
+        return;
+      }
+      items.forEach((it, i) => it.classList.toggle("active", i === activeIndex));
+      if (activeIndex >= 0 && items[activeIndex]) {
+        items[activeIndex].scrollIntoView({ block: "nearest" });
+      }
+    });
+
+    // ─── Navigation entre vues : Form (creation) / Events (grille) ───
+    const formView = document.getElementById("form-view");
+    const eventsView = document.getElementById("events-view");
+    const gotoFormBtn = document.getElementById("goto-form-btn");
+    const gotoEventsBtn = document.getElementById("goto-events-btn");
+    const eventsCountBadge = document.getElementById("events-count-badge");
+
+    function showFormView() {
+      formView.classList.remove("hidden");
+      eventsView.classList.add("hidden");
+      gotoFormBtn.style.display = "none";
+      gotoEventsBtn.style.display = "inline-flex";
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    function showEventsView() {
+      eventsView.classList.remove("hidden");
+      formView.classList.add("hidden");
+      gotoFormBtn.style.display = "inline-flex";
+      gotoEventsBtn.style.display = "none";
+      loadHistory();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoEventsBtn.addEventListener("click", showEventsView);
+    gotoFormBtn.addEventListener("click", showFormView);
+
+    // ─── Historique : mes events en grille + edit / delete ───
+    const historyList = document.getElementById("history-list");
+    const historyEmpty = document.getElementById("history-empty");
+    const historyCount = document.getElementById("history-count");
+    const editBanner = document.getElementById("edit-banner");
+    const editBannerTitle = document.getElementById("edit-banner-title");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const eventForm = document.getElementById("event-form");
+
+    function formatFrenchDate(iso) {
+      // "2026-05-08" -> "8 mai 2026"
+      if (!iso) return "";
+      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return iso;
+      const months = ["", "janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+      return `${parseInt(m[3], 10)} ${months[parseInt(m[2], 10)]} ${m[1]}`;
+    }
+
+    function formatFrenchDateLong(iso) {
+      // "2026-05-08" -> "Vendredi 8 mai 2026"
+      if (!iso) return "Sans date";
+      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return iso;
+      const months = ["", "janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+      const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+      const d = new Date(`${iso}T12:00:00`);
+      const dayName = days[d.getDay()];
+      return `${dayName} ${parseInt(m[3], 10)} ${months[parseInt(m[2], 10)]} ${m[1]}`;
+    }
+
+    function renderTile(ev) {
+      const dateLabel = formatFrenchDate(ev.date_debut);
+      const dateFinLabel = ev.date_fin && ev.date_fin !== ev.date_debut
+        ? ` → ${formatFrenchDate(ev.date_fin)}` : "";
+      const lieu = ev.lieu_nom || ev.commune || ev.ville || "";
+      const isEditing = editingEvent && editingEvent.id === ev.id;
+      return `
+        <div class="event-tile ${isEditing ? "editing" : ""}" data-id="${ev.id}">
+          ${ev.photo_url
+            ? `<img src="${escapeHtml(ev.photo_url)}" class="event-tile-img" alt="" loading="lazy" />`
+            : `<div class="event-tile-img-empty">📅</div>`}
+          <div class="event-tile-body">
+            <div class="event-tile-title">${escapeHtml(ev.nom_de_la_manifestation)}</div>
+            ${ev.horaires ? `<div class="event-tile-meta">🕒 ${escapeHtml(ev.horaires)}${escapeHtml(dateFinLabel)}</div>` : (dateFinLabel ? `<div class="event-tile-meta">📅${escapeHtml(dateFinLabel)}</div>` : "")}
+            ${lieu ? `<div class="event-tile-meta">📍 ${escapeHtml(lieu)}</div>` : ""}
+            <div class="event-tile-actions">
+              <button type="button" class="event-tile-btn" data-action="edit" data-id="${ev.id}">✏️ Modifier</button>
+              <button type="button" class="event-tile-btn delete" data-action="delete" data-id="${ev.id}">🗑️</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function loadHistory() {
+      if (!currentUserEmail) return;
+      historyList.innerHTML = '<div class="helper" style="text-align:center; padding: 20px;">Chargement…</div>';
+      historyEmpty.classList.add("hidden");
+
+      const { data, error } = await supabase
+        .from("scraped_events")
+        .select("*")
+        .eq("source", "manual_admin")
+        .eq("created_by_email", currentUserEmail)
+        .order("date_debut", { ascending: true })
+        .limit(100);
+
+      if (error) {
+        historyList.innerHTML = `<div class="helper" style="color:var(--err); text-align:center; padding: 20px;">Erreur : ${escapeHtml(error.message)}</div>`;
+        historyCount.textContent = "";
+        eventsCountBadge.textContent = "";
+        return;
+      }
+
+      historyMap = {};
+      (data || []).forEach(ev => { historyMap[ev.id] = ev; });
+      const count = data ? data.length : 0;
+      historyCount.textContent = count ? `(${count})` : "";
+      eventsCountBadge.textContent = count ? `(${count})` : "";
+
+      if (!data || data.length === 0) {
+        historyList.innerHTML = "";
+        historyEmpty.classList.remove("hidden");
+        return;
+      }
+
+      // Groupement : date_debut -> categorie -> [events]
+      const byDate = new Map();
+      data.forEach(ev => {
+        const date = ev.date_debut || "";
+        const cat = (ev.categorie_de_la_manifestation || "").trim() || "Sans catégorie";
+        if (!byDate.has(date)) byDate.set(date, new Map());
+        const byCat = byDate.get(date);
+        if (!byCat.has(cat)) byCat.set(cat, []);
+        byCat.get(cat).push(ev);
+      });
+
+      // Tri : dates ascendantes, categories alphabetiques
+      const sortedDates = [...byDate.keys()].sort();
+
+      const html = sortedDates.map(date => {
+        const byCat = byDate.get(date);
+        const sortedCats = [...byCat.keys()].sort((a, b) => a.localeCompare(b, "fr"));
+        const totalForDate = sortedCats.reduce((acc, c) => acc + byCat.get(c).length, 0);
+
+        const themeBlocks = sortedCats.map(cat => {
+          const evs = byCat.get(cat);
+          const tiles = evs.map(renderTile).join("");
+          return `
+            <div class="events-theme-section">
+              <div class="events-theme-header">${escapeHtml(cat)} <span class="count">(${evs.length})</span></div>
+              <div class="events-grid">${tiles}</div>
+            </div>`;
+        }).join("");
+
+        return `
+          <div class="events-date-section">
+            <h3 class="events-date-header">📅 ${escapeHtml(formatFrenchDateLong(date))} <span class="count">${totalForDate} event${totalForDate > 1 ? "s" : ""} ajouté${totalForDate > 1 ? "s" : ""}</span></h3>
+            ${themeBlocks}
+          </div>`;
+      }).join("");
+
+      historyList.innerHTML = html;
+    }
+
+    historyList.addEventListener("click", async (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const id = parseInt(btn.dataset.id, 10);
+      const ev = historyMap[id];
+      if (!ev) return;
+
+      if (btn.dataset.action === "edit") {
+        enterEditMode(ev);
+      } else if (btn.dataset.action === "delete") {
+        if (!confirm(`Supprimer définitivement « ${ev.nom_de_la_manifestation} » ?`)) return;
+        const { error } = await supabase.from("scraped_events").delete().eq("id", id);
+        if (error) return toast("Erreur suppression : " + error.message, false);
+        // Si on etait en train d'editer cet event, on sort du mode edition
+        if (editingEvent && editingEvent.id === id) exitEditMode();
+        toast("Event supprimé");
+        loadHistory();
+      }
+    });
+
+    function enterEditMode(ev) {
+      // Bascule vers la vue formulaire si on etait dans la grille
+      showFormView();
+      editingEvent = ev;
+      existingPhotoUrl = ev.photo_url || null;
+
+      // Pre-fill form
+      const setVal = (name, val) => {
+        const el = eventForm.elements[name];
+        if (el) el.value = val ?? "";
+      };
+      setVal("nom_de_la_manifestation", ev.nom_de_la_manifestation);
+      setVal("descriptif_court", ev.descriptif_court);
+      setVal("descriptif_long", ev.descriptif_long);
+      setVal("date_debut", ev.date_debut);
+      setVal("date_fin", ev.date_fin && ev.date_fin !== ev.date_debut ? ev.date_fin : "");
+      setVal("horaires", ev.horaires);
+      setVal("lieu_nom", ev.lieu_nom);
+      setVal("lieu_adresse_2", ev.lieu_adresse_2);
+      setVal("code_postal", ev.code_postal || "");
+      setVal("commune", ev.commune);
+      setVal("ville", ev.ville);
+      setVal("rubrique", ev.rubrique);
+      // Si la categorie de l'event n'est pas dans la liste canonique (ancien
+      // event d'un scraper, valeur exotique...), on l'ajoute dynamiquement
+      // pour que l'edition n'efface pas la valeur.
+      const cat = (ev.categorie_de_la_manifestation || "").trim();
+      if (cat && !knownCategoriesLower.has(cat.toLowerCase())) {
+        // On purge un eventuel optgroup "ancien" pre-existant
+        let legacyGroup = categorySelect.querySelector('optgroup[label="⚠️ Ancien (à corriger)"]');
+        if (!legacyGroup) {
+          legacyGroup = document.createElement("optgroup");
+          legacyGroup.label = "⚠️ Ancien (à corriger)";
+          categorySelect.appendChild(legacyGroup);
+        } else {
+          legacyGroup.innerHTML = "";
+        }
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat;
+        legacyGroup.appendChild(opt);
+      }
+      setVal("categorie_de_la_manifestation", cat);
+      setVal("type_de_manifestation", ev.type_de_manifestation);
+      setVal("theme_de_la_manifestation", ev.theme_de_la_manifestation);
+      // Si l'event a un type ou un theme rempli, on ouvre auto le bloc avance
+      if ((ev.type_de_manifestation || ev.theme_de_la_manifestation || "").trim()) {
+        advancedFields.classList.remove("hidden");
+        toggleAdvancedBtn.textContent = "▾ Masquer les options avancées";
+      }
+      setVal("tarif_normal", ev.tarif_normal);
+      setVal("reservation_site_internet", ev.reservation_site_internet);
+
+      // Gratuit ?
+      gratuitChk.checked = ev.manifestation_gratuite === "oui";
+      tarifWrap.classList.toggle("hidden", gratuitChk.checked);
+
+      // Photo existante en preview (sans la "coller" comme un nouveau blob)
+      pastedBlob = null;
+      if (ev.photo_url) {
+        pastePreview.src = ev.photo_url;
+        pasteEmpty.classList.add("hidden");
+        pasteFilled.classList.remove("hidden");
+        pasteZone.classList.add("has-image");
+      } else {
+        clearPastedImage();
+      }
+
+      // UI mode edition
+      editBanner.classList.remove("hidden");
+      editBannerTitle.textContent = ev.nom_de_la_manifestation;
+      submitBtn.textContent = "💾 Mettre à jour l'event";
+
+      // Re-render history pour highlight la ligne en cours d'edition
+      loadHistory();
+
+      // Scroll au form
+      window.scrollTo({ top: editBanner.offsetTop - 20, behavior: "smooth" });
+    }
+
+    function exitEditMode() {
+      editingEvent = null;
+      existingPhotoUrl = null;
+      editBanner.classList.add("hidden");
+      submitBtn.textContent = "✨ Créer l'event";
+      eventForm.reset();
+      clearPastedImage();
+      tarifWrap.classList.remove("hidden");
+      boostTypeWrap.classList.add("hidden");
+      // Re-cache le bloc avance
+      advancedFields.classList.add("hidden");
+      toggleAdvancedBtn.textContent = "▸ Afficher les options avancées (Type + Thème)";
+    }
+
+    cancelEditBtn.addEventListener("click", () => {
+      exitEditMode();
+      loadHistory();
+    });
+
+    // Override : si l'admin retire l'image en mode edition, on coupe aussi la
+    // photo existante (sinon le prochain submit la garderait).
+    pasteRemove.addEventListener("click", () => {
+      existingPhotoUrl = null;
+    });
+
+    // ─── Submit ───
+    document.getElementById("event-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("submit-btn");
+      btn.disabled = true;
+      btn.textContent = "Envoi en cours...";
+      errorCard.classList.add("hidden");
+
+      const f = new FormData(e.target);
+      const titre = f.get("nom_de_la_manifestation").trim();
+      const dateDebut = f.get("date_debut");
+      const dateFin = f.get("date_fin") || dateDebut;
+      const horaires = f.get("horaires") || "";
+      const ville = f.get("ville").trim();
+      const lieuNom = f.get("lieu_nom").trim();
+      const lieuAdresse = f.get("lieu_adresse_2") || "";
+      const rubriqueVal = f.get("rubrique");
+      const categorieVal = f.get("categorie_de_la_manifestation") || "";
+
+      // Étape 0 : si "Ajouter ce lieu" est coche, INSERT dans `venues` AVANT
+      // de creer l'event. Comme ca le venue sera trouve par l'auto-completion
+      // a la prochaine session.
+      if (addVenueChk.checked && lieuNom) {
+        try {
+          const venueMode = deriveVenueMode(rubriqueVal, categorieVal);
+          const venueRow = {
+            slug: slugify(`${lieuNom}-${ville}`) || slugify(lieuNom),
+            name: lieuNom,
+            adresse: lieuAdresse,
+            ville: ville || "Toulouse",
+            mode: venueMode,
+            category: categorieVal || "Autre",
+            is_active: true,
+          };
+          const { error: vErr } = await supabase.from("venues").insert(venueRow);
+          // Code 23505 = unique violation (slug+ville deja pris) -> on tolere
+          if (vErr && vErr.code !== "23505") throw vErr;
+          // Ajout dans le cache local pour que la search le trouve immediatement
+          allVenues.push({ name: lieuNom, adresse: lieuAdresse, ville, mode: venueMode, category: categorieVal || "Autre" });
+          refreshFilteredVenues();
+        } catch (err) {
+          console.error("[insert venue]", err);
+          showError("Ajout du lieu en base", err);
+          btn.disabled = false;
+          btn.textContent = editingEvent ? "💾 Mettre à jour l'event" : "✨ Créer l'event";
+          return;
+        }
+      }
+
+      // Étape 1 : upload image (si présente)
+      let photoUrl = "";
+      if (pastedBlob) {
+        try {
+          photoUrl = await uploadImage(pastedBlob);
+        } catch (err) {
+          console.error("[upload]", err);
+          showError("Upload de la photo", err);
+          btn.disabled = false;
+          btn.textContent = editingEvent ? "💾 Mettre à jour l'event" : "✨ Créer l'event";
+          return;
+        }
+      }
+
+      // En mode edition : on garde l'identifiant d'origine pour ne pas creer
+      // un doublon. En mode creation : on en genere un nouveau.
+      const identifiant = editingEvent
+        ? editingEvent.identifiant
+        : `manual_${slugify(titre)}_${dateDebut}`;
+      // Photo : nouvelle upload > photo existante > vide (l'admin l'a retiree)
+      const finalPhotoUrl = pastedBlob
+        ? photoUrl
+        : (existingPhotoUrl || "");
+      const gratuit = gratuitChk.checked;
+      const row = {
+        identifiant,
+        source: "manual_admin",
+        created_by_email: currentUserEmail,
+        rubrique: f.get("rubrique"),
+        nom_de_la_manifestation: titre,
+        descriptif_court: f.get("descriptif_court") || "",
+        descriptif_long: f.get("descriptif_long") || "",
+        date_debut: dateDebut,
+        date_fin: dateFin,
+        horaires,
+        dates_affichage_horaires: horaires ? `${dateDebut} ${horaires}` : dateDebut,
+        lieu_nom: f.get("lieu_nom") || "",
+        lieu_adresse_2: f.get("lieu_adresse_2") || "",
+        code_postal: parseInt(f.get("code_postal") || "0") || 0,
+        commune: f.get("commune") || "",
+        ville,
+        type_de_manifestation: f.get("type_de_manifestation") || "",
+        categorie_de_la_manifestation: f.get("categorie_de_la_manifestation") || "",
+        theme_de_la_manifestation: f.get("theme_de_la_manifestation") || "",
+        manifestation_gratuite: gratuit ? "oui" : "non",
+        tarif_normal: gratuit ? "" : (f.get("tarif_normal") || ""),
+        reservation_site_internet: f.get("reservation_site_internet") || "",
+        photo_url: finalPhotoUrl,
+      };
+
+      // Étape 2 : upsert event
+      try {
+        const { error: evErr } = await supabase
+          .from("scraped_events")
+          .upsert(row, { onConflict: "identifiant" });
+        if (evErr) throw evErr;
+      } catch (err) {
+        console.error("[upsert event]", err);
+        showError("Création de l'event", err);
+        btn.disabled = false;
+        btn.textContent = "✨ Créer l'event";
+        return;
+      }
+
+      // Étape 3 : boost / pin admin (optionnel)
+      if (boostChk.checked) {
+        try {
+          const pinType = document.getElementById("boost-type").value;
+          const { error: pinErr } = await supabase.from("admin_pins").upsert({
+            event_source: "scraped_events",
+            event_identifiant: identifiant,
+            pin_type: pinType,
+            pinned_until: `${dateFin}T23:59:59+02:00`,
+            admin_email: (await supabase.auth.getUser()).data.user.email,
+          }, { onConflict: "event_source,event_identifiant,pin_type" });
+          if (pinErr) throw pinErr;
+        } catch (err) {
+          console.error("[pin]", err);
+          // L'event est créé, seul le boost a échoué — on affiche l'erreur mais
+          // on propose à l'admin de retenter le boost.
+          showError(
+            "Boost / pin admin (l'event EST créé, seul le boost a échoué)",
+            err,
+          );
+          btn.disabled = false;
+          btn.textContent = editingEvent ? "💾 Mettre à jour l'event" : "✨ Créer l'event";
+          return;
+        }
+      }
+
+      // Succès complet
+      const wasEditing = !!editingEvent;
+      showSuccess({
+        titre,
+        ville,
+        dateDebut,
+        dateFin,
+        horaires,
+        lieuNom: f.get("lieu_nom") || "",
+        boosted: boostChk.checked ? document.getElementById("boost-type").value : null,
+        photoUrl: finalPhotoUrl,
+        billetterie: f.get("reservation_site_internet") || "",
+        wasEditing,
+      });
+      exitEditMode();              // remet le form a zero + UI
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      btn.disabled = false;
+      btn.textContent = "✨ Créer l'event";
+      loadHistory();               // rafraichit la liste avec le nouveau / mis a jour
+    });
+  </script>
+</body>
+</html>
