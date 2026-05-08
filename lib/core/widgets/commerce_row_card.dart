@@ -191,39 +191,49 @@ class CommerceRowCard extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Pochette image a gauche ──
+            // ── Pochette image + note dessous a gauche ──
             Padding(
               padding: const EdgeInsets.only(left: 10),
-              child: Stack(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 65,
-                    height: 65,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: modeTheme.primaryColor.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(9),
-                      child: _buildImage(image, modeTheme),
-                    ),
-                  ),
-                  if (commerce.isVerified)
-                    Positioned(
-                      bottom: -2,
-                      right: -2,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
+                  Stack(
+                    children: [
+                      Container(
+                        width: 65,
+                        height: 65,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: modeTheme.primaryColor.withValues(alpha: 0.4),
+                            width: 1.5,
+                          ),
                         ),
-                        child: const Icon(Icons.workspace_premium, size: 14, color: Color(0xFFFFD700)),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: _buildImage(image, modeTheme),
+                        ),
                       ),
-                    ),
+                      if (commerce.isVerified)
+                        Positioned(
+                          bottom: -2,
+                          right: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.workspace_premium, size: 14, color: Color(0xFFFFD700)),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (summary != null && summary.reviewCount > 0) ...[
+                    const SizedBox(height: 4),
+                    _RatingPill(summary: summary),
+                  ],
                 ],
               ),
             ),
@@ -250,10 +260,6 @@ class CommerceRowCard extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (summary != null && summary.reviewCount > 0) ...[
-                          const SizedBox(width: 4),
-                          _RatingPill(summary: summary),
-                        ],
                         const SizedBox(width: 4),
                         if (commerce.isVerified)
                           const VerifiedBadge.small()
