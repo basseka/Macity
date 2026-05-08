@@ -9,7 +9,11 @@ import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
 import 'package:pulz_app/features/admin/presentation/widgets/admin_pin_gesture.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
+import 'package:pulz_app/features/engagement/domain/event_source_detector.dart';
+import 'package:pulz_app/features/engagement/presentation/widgets/engagement_stats_row.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
+
+String _eventSourceFor(UserEvent e) => detectEventSource(e.id);
 
 /// Carrousel horizontal des events boostés P1 — visibilité maximale.
 class BoostedEventsCarousel extends ConsumerWidget {
@@ -223,6 +227,16 @@ class _BoostedCard extends StatelessWidget {
                       ],
                     ),
                   ],
+                  const SizedBox(height: 6),
+                  EngagementStatsRow(
+                    eventSource: _eventSourceFor(event),
+                    eventIdentifiant: event.id,
+                    eventTitle: event.titre,
+                    iconColor: Colors.white,
+                    textColor: Colors.white,
+                    iconSize: 11,
+                    fontSize: 10,
+                  ),
                 ],
               ),
             ),
@@ -269,7 +283,7 @@ class BoostedP2Carousel extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 100,
+              height: 120,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -423,6 +437,18 @@ class _P2Card extends StatelessWidget {
                       ],
                     ),
                   ],
+                  const SizedBox(height: 4),
+                  EngagementStatsRow(
+                    eventSource: _eventSourceFor(event),
+                    eventIdentifiant: event.id,
+                    eventTitle: event.titre,
+                    iconColor: AppColors.textDim,
+                    textColor: AppColors.textDim,
+                    iconSize: 10,
+                    fontSize: 9.5,
+                    compact: true,
+                    showComments: false,
+                  ),
                 ],
               ),
             ),

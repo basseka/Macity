@@ -11,7 +11,6 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_clubs_fullscreen_map.dart';
@@ -382,33 +381,23 @@ class NightScreen extends ConsumerWidget {
               ? _buildUserEventsList(context, ref)
               : venuesAsync.when(
                   data: (venues) {
-                    // Filter matching user events for this subcategory.
-                    // Utilise matchesNightCategoryTag pour inclure les
-                    // sous-categories synonymes (DJ set, Showcase, Soiree
-                    // -> Club Discotheque, etc.).
-                    final matchingEvents = ref.watch(nightUserEventsProvider)
-                        .where((e) => matchesNightCategoryTag(e.categorie, category))
-                        .toList();
-
-                    if (venues.isEmpty && matchingEvents.isEmpty) {
+                    // Les soirees / events de cette categorie sont visibles
+                    // uniquement dans l'onglet "A venir" — ici on liste juste
+                    // les etablissements (clubs, bars, etc.).
+                    if (venues.isEmpty) {
                       return const EmptyStateWidget(
                         message: 'Aucun commerce trouve pour cette categorie',
                         icon: Icons.nightlife,
                       );
                     }
-                    final items = <Widget>[
-                      ...matchingEvents.map((e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: EventRowCard(event: e),
-                      )),
-                      ...venues.map((v) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: CommerceRowCard(commerce: v),
-                      )),
-                    ];
                     return ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: items,
+                      children: venues
+                          .map((v) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: CommerceRowCard(commerce: v),
+                              ))
+                          .toList(),
                     );
                   },
                   loading: () =>

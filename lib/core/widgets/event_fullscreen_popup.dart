@@ -5,16 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
-import 'package:pulz_app/core/services/activity_service.dart';
-import 'package:pulz_app/features/day/presentation/share_event_sheet.dart';
-import 'package:pulz_app/features/day/presentation/boost_event_sheet.dart';
-import 'package:pulz_app/features/likes/data/likes_repository.dart';
-import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/engagement/domain/event_source_detector.dart';
+import 'package:pulz_app/features/engagement/presentation/widgets/engagement_stats_row.dart';
 
 /// Popup plein ecran affichant la pochette en fond avec les infos overlayees.
 class EventFullscreenPopup extends ConsumerWidget {
@@ -77,8 +73,6 @@ class EventFullscreenPopup extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final likes = ref.watch(likesProvider);
-    final isLiked = likes.contains(event.identifiant);
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Align(
@@ -303,45 +297,27 @@ class EventFullscreenPopup extends ConsumerWidget {
                     ),
                   ),
 
-                  // ── Boutons actions fixes ──
+                  // ── Stats engagement (likes / comments / shares) ──
                   Padding(
                     padding: EdgeInsets.fromLTRB(
                       20,
-                      8,
+                      12,
                       20,
                       event.reservationUrl.isNotEmpty
-                          ? 8
+                          ? 12
                           : 16 + MediaQuery.of(context).padding.bottom,
                     ),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _iconButton(
-                          icon: isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: isLiked ? AppColors.magenta : AppColors.text,
-                          onTap: () => ref.read(likesProvider.notifier).toggle(
-                            event.identifiant,
-                            meta: LikeMetadata(
-                              title: event.titre,
-                              imageUrl: event.photoPath,
-                              category: event.categorie,
-                            ),
-                          ),
-                        ),
-                        _actionButton(
-                          icon: Icons.share_outlined,
-                          label: 'Partager',
-                          color: AppColors.text,
-                          onTap: () => _shareEvent(),
-                        ),
-                        _actionButton(
-                          icon: Icons.people_alt_outlined,
-                          label: 'Envoyer',
-                          color: AppColors.violet,
-                          onTap: () => _shareInApp(context),
-                        ),
-                      ],
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: EngagementStatsRow(
+                        eventSource: detectEventSource(event.identifiant),
+                        eventIdentifiant: event.identifiant,
+                        eventTitle: event.titre,
+                        iconColor: AppColors.text,
+                        textColor: AppColors.text,
+                        iconSize: 22,
+                        fontSize: 15,
+                      ),
                     ),
                   ),
 
@@ -470,60 +446,6 @@ class EventFullscreenPopup extends ConsumerWidget {
     );
   }
 
-  Widget _iconButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(9),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceHi,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.line),
-        ),
-        child: Icon(icon, size: 18, color: color),
-      ),
-    );
-  }
-
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceHi,
-          borderRadius: BorderRadius.circular(AppRadius.chip),
-          border: Border.all(color: AppColors.line),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 15, color: color),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: GoogleFonts.geist(
-                fontSize: 11,
-                color: color,
-                fontWeight: FontWeight.w500,
-                letterSpacing: -0.1,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Construit la pochette plein ecran (image ou video).
   Widget _buildFullPochette() {
     // Si video, afficher le player
@@ -581,47 +503,6 @@ class EventFullscreenPopup extends ConsumerWidget {
             Image.asset(_defaultPochette, fit: BoxFit.cover),
       ),
     );
-  }
-
-  /// Un event utilisateur a un identifiant UUID (pas de préfixe scraper).
-  bool _isUserEvent(Event e) {
-    final id = e.identifiant;
-    // Les scraped events ont des préfixes comme "3t_", "toulouse_", "billetreduc_", etc.
-    // Les user events ont un UUID (36 chars avec tirets)
-    return id.length == 36 && id.contains('-') && !id.startsWith('3t_');
-  }
-
-  void _boostEvent(BuildContext context) {
-    Navigator.of(context).pop();
-    BoostEventSheet.show(
-      context,
-      eventId: event.identifiant,
-      eventTitle: event.titre,
-      eventDate: event.dateDebut,
-      currentPriority: 'P4',
-    );
-  }
-
-  void _shareInApp(BuildContext context) {
-    Navigator.of(context).pop(); // fermer le popup
-    ShareEventSheet.show(
-      context,
-      eventId: event.identifiant,
-      eventTitle: event.titre,
-    );
-  }
-
-  void _shareEvent() {
-    final buffer = StringBuffer();
-    buffer.writeln(event.titre);
-    if (event.dateDebut.isNotEmpty) buffer.writeln('Date: ${event.dateDebut}');
-    if (event.lieuNom.isNotEmpty) buffer.writeln('Lieu: ${event.lieuNom}');
-    if (event.isFree) buffer.writeln('Gratuit !');
-    buffer.writeln('\nDecouvre sur MaCity :');
-    final link = 'https://macity.app/event/${Uri.encodeComponent(event.identifiant)}';
-    buffer.writeln(link);
-    Share.share(buffer.toString());
-    ActivityService.instance.eventSharedExternal(eventId: event.identifiant);
   }
 
   Future<void> _openUrl(String url) async {
