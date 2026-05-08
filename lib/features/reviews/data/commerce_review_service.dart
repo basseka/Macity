@@ -20,14 +20,15 @@ class CommerceReviewService {
     return dio;
   }
 
-  /// Liste des avis pour une cible, du plus recent au plus ancien.
-  Future<List<CommerceReview>> listForTarget({
+  /// Liste des avis pour une cible (real + fake mélangés via la vue
+  /// `commerce_reviews_unified`), du plus récent au plus ancien.
+  Future<List<UnifiedCommerceReview>> listForTarget({
     required String targetKind,
     required int targetId,
   }) async {
     try {
       final response = await _dio.get(
-        'commerce_reviews',
+        'commerce_reviews_unified',
         queryParameters: {
           'select': '*',
           'target_kind': 'eq.$targetKind',
@@ -37,7 +38,7 @@ class CommerceReviewService {
       );
       final data = response.data as List;
       return data
-          .map((e) => CommerceReview.fromJson(e as Map<String, dynamic>))
+          .map((e) => UnifiedCommerceReview.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
       debugPrint('[CommerceReview] listForTarget failed: $e');

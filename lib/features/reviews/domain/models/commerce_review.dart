@@ -23,6 +23,52 @@ class CommerceReview with _$CommerceReview {
       _$CommerceReviewFromJson(json);
 }
 
+/// Avis unifié (real + fake) pour affichage en lecture seule, vient de la
+/// vue `commerce_reviews_unified`. Pour les real reviews, [displayName] et
+/// [gender] sont vides et [avatarUrl] null. Pour les fakes, [deviceUuid] est null.
+class UnifiedCommerceReview {
+  final String id;
+  final String targetKind;
+  final int targetId;
+  final String displayName;
+  final String gender;
+  final String? avatarUrl;
+  final int rating;
+  final String comment;
+  final DateTime createdAt;
+  final bool isReal;
+  final String? deviceUuid;
+
+  const UnifiedCommerceReview({
+    required this.id,
+    required this.targetKind,
+    required this.targetId,
+    required this.displayName,
+    required this.gender,
+    this.avatarUrl,
+    required this.rating,
+    required this.comment,
+    required this.createdAt,
+    required this.isReal,
+    this.deviceUuid,
+  });
+
+  factory UnifiedCommerceReview.fromJson(Map<String, dynamic> json) =>
+      UnifiedCommerceReview(
+        id: json['id'] as String,
+        targetKind: json['target_kind'] as String,
+        targetId: (json['target_id'] as num).toInt(),
+        displayName: (json['display_name'] as String?) ?? '',
+        gender: (json['gender'] as String?) ?? '',
+        avatarUrl: json['avatar_url'] as String?,
+        rating: (json['rating'] as num).toInt(),
+        comment: (json['comment'] as String?) ?? '',
+        createdAt: DateTime.parse(json['created_at'] as String),
+        isReal: (json['is_real'] as bool?) ?? true,
+        deviceUuid: json['device_uuid'] as String?,
+      );
+}
+
 /// Aggregat (count + moyenne) pour une cible. Vient de la VIEW
 /// `commerce_review_summary`.
 @freezed

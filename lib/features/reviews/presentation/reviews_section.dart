@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/widgets/star_rating.dart';
+import 'package:pulz_app/features/engagement/presentation/widgets/engagement_avatar.dart';
 import 'package:pulz_app/features/reviews/data/commerce_review_service.dart';
 import 'package:pulz_app/features/reviews/domain/models/commerce_review.dart';
 import 'package:pulz_app/features/reviews/presentation/review_compose_sheet.dart';
@@ -24,7 +25,7 @@ class ReviewsTarget {
 }
 
 class _ReviewsState {
-  final List<CommerceReview> reviews;
+  final List<UnifiedCommerceReview> reviews;
   final CommerceReview? mine;
   final CommerceReviewSummary? summary;
 
@@ -51,7 +52,7 @@ final _reviewsLoaderProvider = FutureProvider.autoDispose
     svc.getMyReview(targetKind: kind, targetId: id, deviceUuid: deviceUuid),
   ]);
   return _ReviewsState(
-    reviews: results[0] as List<CommerceReview>,
+    reviews: results[0] as List<UnifiedCommerceReview>,
     summary: results[1] as CommerceReviewSummary?,
     mine: results[2] as CommerceReview?,
   );
@@ -265,7 +266,7 @@ class _SummaryPill extends StatelessWidget {
 }
 
 class _ReviewTile extends StatelessWidget {
-  final CommerceReview review;
+  final UnifiedCommerceReview review;
   final bool isMine;
 
   const _ReviewTile({required this.review, required this.isMine});
@@ -273,6 +274,7 @@ class _ReviewTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatted = DateFormat('d MMM yyyy', 'fr_FR').format(review.createdAt);
+    final hasAuthor = review.displayName.isNotEmpty;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
@@ -288,6 +290,24 @@ class _ReviewTile extends StatelessWidget {
         children: [
           Row(
             children: [
+              if (hasAuthor) ...[
+                EngagementAvatar(
+                  displayName: review.displayName,
+                  gender: review.gender.isEmpty ? 'F' : review.gender,
+                  avatarUrl: review.avatarUrl,
+                  size: 22,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  review.displayName,
+                  style: GoogleFonts.geist(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               StarRating(value: review.rating.toDouble(), size: 12),
               const SizedBox(width: 8),
               Text(
