@@ -596,32 +596,206 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
                 child: Icon(Icons.play_arrow, color: Colors.white, size: 48),
               ),
             ),
-          // Mute button
+          // Boutons mute + fullscreen en bas a droite
           Positioned(
             bottom: 8,
             right: 8,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _muted = !_muted;
-                  _controller.setVolume(_muted ? 0 : 1);
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(20),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _muted = !_muted;
+                      _controller.setVolume(_muted ? 0 : 1);
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      _muted ? Icons.volume_off : Icons.volume_up,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
                 ),
-                child: Icon(
-                  _muted ? Icons.volume_off : Icons.volume_up,
-                  color: Colors.white,
-                  size: 18,
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: () => _openFullscreen(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.fullscreen,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Pousse un viewer plein ecran (route dediee) qui reutilise le meme
+  /// VideoPlayerController — pas de rechargement reseau, position et son
+  /// preserves au retour.
+  Future<void> _openFullscreen(BuildContext context) async {
+    // Pause le player inline pendant la fullscreen pour eviter double-audio
+    final wasPlaying = _controller.value.isPlaying;
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _FullscreenVideoView(controller: _controller),
+      ),
+    );
+    if (!mounted) return;
+    // Force un rebuild pour re-sync l'icon play/pause
+    setState(() {
+      if (wasPlaying && !_controller.value.isPlaying) _controller.play();
+    });
+  }
+}
+
+/// Vue plein ecran d'une video : noir, video centree, tap = play/pause,
+/// bouton close (X) en haut. Reutilise le controller passe en parametre
+/// (pas de dispose ici — le proprietaire reste l'appelant).
+class _FullscreenVideoView extends StatefulWidget {
+  final VideoPlayerController controller;
+  const _FullscreenVideoView({required this.controller});
+
+  @override
+  State<_FullscreenVideoView> createState() => _FullscreenVideoViewState();
+}
+
+class _FullscreenVideoViewState extends State<_FullscreenVideoView> {
+  bool _muted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _muted = widget.controller.value.volume == 0;
+    widget.controller.addListener(_onTick);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onTick);
+    super.dispose();
+  }
+
+  void _onTick() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = widget.controller.value.size;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Video centree avec aspect ratio reel
+            Center(
+              child: AspectRatio(
+                aspectRatio: size.width > 0 && size.height > 0
+                    ? size.width / size.height
+                    : 16 / 9,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    if (widget.controller.value.isPlaying) {
+                      widget.controller.pause();
+                    } else {
+                      widget.controller.play();
+                    }
+                  },
+                  child: Stack(
+                    children: [
+                      VideoPlayer(widget.controller),
+                      if (!widget.controller.value.isPlaying)
+                        Container(
+                          color: Colors.black26,
+                          child: const Center(
+                            child: Icon(
+                              Icons.play_arrow,
+                              color: Colors.white,
+                              size: 64,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Close button top-right
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
+            ),
+            // Mute + position en bas
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _muted = !_muted;
+                        widget.controller.setVolume(_muted ? 0 : 1);
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Icon(
+                        _muted ? Icons.volume_off : Icons.volume_up,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Barre de progression
+                  Expanded(
+                    child: VideoProgressIndicator(
+                      widget.controller,
+                      allowScrubbing: true,
+                      colors: const VideoProgressColors(
+                        playedColor: Color(0xFFE91E8C),
+                        bufferedColor: Colors.white24,
+                        backgroundColor: Colors.white12,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

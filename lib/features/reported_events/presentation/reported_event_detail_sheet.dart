@@ -229,7 +229,18 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeOutCubic,
                             child: GestureDetector(
-                              onTap: () => _showFullPhoto(context, event.photos, index),
+                              onTap: () {
+                                // Si l'event a une video, on prefere la
+                                // lecture video sur tap sur la photo
+                                // (cas typique : story Map Live ou la
+                                // photo est juste un thumbnail de video).
+                                if (event.videos.isNotEmpty) {
+                                  _showFullVideo(context, event.videos, 0);
+                                } else {
+                                  _showFullPhoto(
+                                      context, event.photos, index);
+                                }
+                              },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: _AnimatedBorderPhoto(
