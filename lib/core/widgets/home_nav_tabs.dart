@@ -39,7 +39,7 @@ class HomeNavTabs extends ConsumerWidget {
         builder: (context, constraints) {
           const slots = 5;
           final slotWidth = constraints.maxWidth / slots;
-          final circle = (slotWidth * 0.78).clamp(54.0, 68.0);
+          final circle = (slotWidth * 0.62).clamp(48.0, 58.0);
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

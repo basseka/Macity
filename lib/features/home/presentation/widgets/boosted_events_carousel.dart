@@ -34,6 +34,11 @@ class BoostedEventsCarousel extends ConsumerWidget {
   }
 
   Widget _buildCarousel(BuildContext context, List<UserEvent> events) {
+    // Full width hero : chaque card occupe la largeur ecran (- 32px de
+    // padding L/R) et le user swipe horizontalement pour passer a la
+    // suivante. Hauteur calculee pour conserver le ratio originel 1.44:1.
+    final cardWidth = MediaQuery.of(context).size.width - 32;
+    final cardHeight = cardWidth / 1.4375;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -46,13 +51,18 @@ class BoostedEventsCarousel extends ConsumerWidget {
           ),
         ),
         SizedBox(
-          height: 160,
+          height: cardHeight,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: events.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) => _BoostedCard(event: events[index], allEvents: events, index: index),
+            itemBuilder: (context, index) => _BoostedCard(
+              event: events[index],
+              allEvents: events,
+              index: index,
+              width: cardWidth,
+            ),
           ),
         ),
       ],
@@ -64,7 +74,13 @@ class _BoostedCard extends StatelessWidget {
   final UserEvent event;
   final List<UserEvent> allEvents;
   final int index;
-  const _BoostedCard({required this.event, required this.allEvents, required this.index});
+  final double width;
+  const _BoostedCard({
+    required this.event,
+    required this.allEvents,
+    required this.index,
+    required this.width,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +105,7 @@ class _BoostedCard extends StatelessWidget {
         badge: 'A la une',
       ),
       child: Container(
-        width: 230,
+        width: width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(color: AppColors.line),
@@ -271,6 +287,10 @@ class BoostedP2Carousel extends ConsumerWidget {
     return eventsAsync.when(
       data: (events) {
         if (events.isEmpty) return const SizedBox.shrink();
+        // Full width banner : meme principe que "A la une", ratio 1.83:1
+        // (banner plus fin pour differencier visuellement de la une).
+        final cardWidth = MediaQuery.of(context).size.width - 32;
+        final cardHeight = cardWidth / 1.8333;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -283,13 +303,18 @@ class BoostedP2Carousel extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 120,
+              height: cardHeight,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: events.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) => _P2Card(event: events[index], allEvents: events, index: index),
+                itemBuilder: (context, index) => _P2Card(
+                  event: events[index],
+                  allEvents: events,
+                  index: index,
+                  width: cardWidth,
+                ),
               ),
             ),
           ],
@@ -305,7 +330,13 @@ class _P2Card extends StatelessWidget {
   final UserEvent event;
   final List<UserEvent> allEvents;
   final int index;
-  const _P2Card({required this.event, required this.allEvents, required this.index});
+  final double width;
+  const _P2Card({
+    required this.event,
+    required this.allEvents,
+    required this.index,
+    required this.width,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -332,7 +363,7 @@ class _P2Card extends StatelessWidget {
         badge: 'Au top',
       ),
       child: Container(
-        width: 220,
+        width: width,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: AppColors.surface,

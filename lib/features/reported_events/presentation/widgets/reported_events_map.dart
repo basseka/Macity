@@ -86,27 +86,67 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     );
   }
 
-  /// Affiche un pin "Ma position" si la GPS est dispo, sans recentrer.
+  /// Affiche un pin "Ma position". Tente d'abord lastKnownPosition (rapide),
+  /// puis getCurrentPosition (fix GPS frais) en fallback. Centre la map sur
+  /// l'utilisateur quand on est sur la page dynamique (MapLive).
   Future<void> _autoLocateUserPin() async {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        debugPrint('[Map] location service disabled');
+        return;
+      }
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
+        debugPrint('[Map] location permission denied: $permission');
         return;
       }
 
-      final last = await Geolocator.getLastKnownPosition();
-      if (last != null && _pageReady) {
-        await _controller.runJavaScript(
-          'showUserPin(${last.latitude}, ${last.longitude})',
+      // Fix GPS frais uniquement (high accuracy ~10m). On évite
+      // getLastKnownPosition qui retourne souvent un cache stale (km off).
+      Position? pos;
+      try {
+        pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 12),
         );
+      } catch (e) {
+        debugPrint('[Map] getCurrentPosition failed: $e');
+        // Fallback last-known SEULEMENT s'il est récent (<5 min)
+        final last = await Geolocator.getLastKnownPosition();
+        if (last != null) {
+          final age = DateTime.now().difference(last.timestamp);
+          if (age.inMinutes < 5) {
+            pos = last;
+            debugPrint('[Map] using last known (age=${age.inSeconds}s)');
+          } else {
+            debugPrint('[Map] last known too old (age=${age.inMinutes}min)');
+          }
+        }
       }
-    } catch (_) {}
+
+      if (pos != null && _pageReady) {
+        debugPrint('[Map] user pos: ${pos.latitude}, ${pos.longitude}');
+        await _controller.runJavaScript(
+          'showUserPin(${pos.latitude}, ${pos.longitude})',
+        );
+        // Sur la page MapLive (mode dynamique), recentre sur le user à
+        // zoom rapproché. Sur la home (presentation), garde le centre ville.
+        if (!widget.usePresentationMarkers) {
+          await _controller.runJavaScript(
+            'map.setView([${pos.latitude}, ${pos.longitude}], 14)',
+          );
+        }
+      } else {
+        debugPrint('[Map] no GPS position available');
+      }
+    } catch (e) {
+      debugPrint('[Map] _autoLocateUserPin error: $e');
+    }
   }
 
   /// Injecte 14 markers fictifs autour du centre de la ville courante.
@@ -185,15 +225,10 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   void _handleMarkerTap(String id) {
     final idx = _lastEvents.indexWhere((e) => e.id == id);
     if (idx < 0) return;
-    showModalBottomSheet(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ReportedEventsPagedSheet(
-        events: _lastEvents,
-        initialIndex: idx,
-      ),
+    ReportedEventsPagedSheet.open(
+      context,
+      events: _lastEvents,
+      initialIndex: idx,
     );
   }
 

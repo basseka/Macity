@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,8 +44,9 @@ class ReportFormState {
     this.error,
   });
 
-  bool get canSubmit =>
-      category.isNotEmpty && !isSubmitting;
+  // Plus besoin de titre ni de catégorie pour publier une story Map Live :
+  // il suffit d'avoir un media et de ne pas être déjà en cours d'envoi.
+  bool get canSubmit => !isSubmitting;
 
   bool get canAddMorePhotos => localPhotoPaths.length < kMaxReportPhotos;
 
@@ -85,14 +88,13 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
 
   /// Recupere la position GPS courante (auto-locate au open de la modal).
   ///
-  /// Strategie : on prend ABSOLUMENT la position HAUTE precision avant de
-  /// debloquer le bouton Signaler. C'est crucial pour un signalement Waze :
-  /// si on accepte une position approximative (lastKnown du cache OS ou
-  /// medium accuracy), le marqueur sur la carte sera a 100m-1km de la
-  /// realite et l'experience est cassee.
-  ///
-  /// On utilise lastKnown UNIQUEMENT en fallback si la high precision
-  /// echoue completement (ex: indoor sans signal).
+  /// Strategie en 3 temps pour eviter "rue de Dakar au lieu de Beaupuy" :
+  /// 1) On ECARTE d'emblee tout lastKnown vieux de plus de 2 minutes
+  ///    (cache OS qui peut dater de plusieurs heures et pointer une autre ville).
+  /// 2) On ouvre un STREAM positionne sur best accuracy : on prend la
+  ///    premiere fix sous 50m de precision (premier vrai fix satellite).
+  /// 3) Si rien sous 50m en 15s, on garde la meilleure fix recue
+  ///    (toujours mieux que le cache OS).
   Future<void> initLocation() async {
     state = state.copyWith(isLocating: true, clearError: true);
     try {
@@ -124,17 +126,108 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         return;
       }
 
-      // PRIORITE 1 : high accuracy FRAIS (5-10m, timeout 8s).
-      // lastKnown peut etre un cache OS de plusieurs minutes/km : on l'evite
-      // pour le signalement Live Notif qui doit etre precis a chaque appui.
+      // Strategie : on utilise le Fused Provider Android (rapide) mais on
+      // FILTRE les fixes par precision pour eliminer la triangulation
+      // wifi/cellulaire qui peut placer l'user a la derniere position wifi
+      // connue de Google (ex: "rue de Dakar Toulouse" alors que l'user est
+      // a Beaupuy). Une vraie fix GPS satellite est < 50m ; une fix
+      // wifi/cell typique est 200-2000m.
+      const settings = LocationSettings(
+        accuracy: LocationAccuracy.best,
+        distanceFilter: 0,
+      );
+
+      // PRIORITE 1 : seed UI avec lastKnown s'il a moins de 5 min.
+      // On accepte meme une fix imprecise (wifi/cell ~500m) car la
+      // localisation grossiere est mieux que rien : le user peut
+      // ajuster avec le pin draggable, et le stream/refine continuent
+      // d'affiner en background. Refus uniquement si TROP vieux (>5min)
+      // ou totalement aberrant (>10km de precision).
+      Position? seed;
+      try {
+        final lk = await Geolocator.getLastKnownPosition();
+        if (lk != null) {
+          final ageSec = DateTime.now()
+              .difference(lk.timestamp.toLocal())
+              .inSeconds;
+          if (ageSec < 300 && lk.accuracy < 10000) {
+            seed = lk;
+            debugPrint('[ReportForm] seed lastKnown: ${lk.latitude},${lk.longitude} (age=${ageSec}s, acc=${lk.accuracy}m)');
+            // On affiche immediatement la position seed pour que l'UI
+            // ne reste pas bloquee sur "Localisation en cours..." pendant
+            // que le stream cherche un fix plus precis.
+            state = state.copyWith(
+              lat: lk.latitude,
+              lng: lk.longitude,
+              isLocating: false,
+            );
+            _reverseGeocode(lk.latitude, lk.longitude);
+          } else {
+            debugPrint('[ReportForm] lastKnown rejete (age=${ageSec}s, acc=${lk.accuracy}m)');
+          }
+        }
+      } catch (e) {
+        debugPrint('[ReportForm] lastKnown failed: $e');
+      }
+
+      // PRIORITE 2 : stream, premiere fix < 50m gagne (vraie fix GPS).
+      // On garde toutes les fixes < 200m comme fallback (Fused mixed wifi+GPS).
+      Position? bestFix = seed;
+      final completer = Completer<Position>();
+      late StreamSubscription<Position> sub;
+      sub = Geolocator.getPositionStream(locationSettings: settings).listen((pos) {
+        debugPrint('[ReportForm] stream fix: ${pos.latitude},${pos.longitude} (acc=${pos.accuracy}m)');
+        if (bestFix == null || pos.accuracy < bestFix!.accuracy) {
+          bestFix = pos;
+        }
+        if (pos.accuracy < 50 && !completer.isCompleted) {
+          completer.complete(pos);
+        }
+      }, onError: (e) {
+        debugPrint('[ReportForm] stream error: $e');
+      });
+
+      try {
+        final fix = await completer.future
+            .timeout(const Duration(seconds: 20));
+        await sub.cancel();
+        debugPrint('[ReportForm] fix accepte: ${fix.latitude},${fix.longitude} (acc=${fix.accuracy}m)');
+        state = state.copyWith(
+          lat: fix.latitude,
+          lng: fix.longitude,
+          isLocating: false,
+        );
+        _reverseGeocode(fix.latitude, fix.longitude);
+        return;
+      } on TimeoutException {
+        await sub.cancel();
+        // Pas de fix < 50m en 20s. On garde la meilleure recue MEME si
+        // imprecise (mieux que "GPS indisponible"). User peut bouger le
+        // pin manuellement dans le draggable map.
+        if (bestFix != null) {
+          debugPrint('[ReportForm] timeout, best fix gardee: acc=${bestFix!.accuracy}m');
+          state = state.copyWith(
+            lat: bestFix!.latitude,
+            lng: bestFix!.longitude,
+            isLocating: false,
+          );
+          _reverseGeocode(bestFix!.latitude, bestFix!.longitude);
+          _refinePosition();
+          return;
+        }
+      }
+
+      // PRIORITE 3 (ultime fallback) : getCurrentPosition direct.
+      // Si meme le stream n'a rien delivre, on tente un dernier appel
+      // synchrone avec accuracy reduite. Mieux que "GPS indisponible".
       try {
         final pos = await Geolocator.getCurrentPosition(
           locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.best,
-            timeLimit: Duration(seconds: 8),
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 10),
           ),
         );
-        debugPrint('[ReportForm] fresh high: ${pos.latitude}, ${pos.longitude} (acc=${pos.accuracy}m)');
+        debugPrint('[ReportForm] fallback getCurrent: ${pos.latitude},${pos.longitude} (acc=${pos.accuracy}m)');
         state = state.copyWith(
           lat: pos.latitude,
           lng: pos.longitude,
@@ -143,27 +236,7 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         _reverseGeocode(pos.latitude, pos.longitude);
         return;
       } catch (e) {
-        debugPrint('[ReportForm] high accuracy failed: $e');
-      }
-
-      // PRIORITE 2 (fallback) : lastKnown si la high accuracy a timeout
-      // (ex: indoor sans signal). Affichera quand meme un avertissement implicite
-      // car on continue d'affiner en background.
-      try {
-        final lastKnown = await Geolocator.getLastKnownPosition();
-        if (lastKnown != null) {
-          debugPrint('[ReportForm] fallback lastKnown: ${lastKnown.latitude}, ${lastKnown.longitude}');
-          state = state.copyWith(
-            lat: lastKnown.latitude,
-            lng: lastKnown.longitude,
-            isLocating: false,
-          );
-          _reverseGeocode(lastKnown.latitude, lastKnown.longitude);
-          _refinePosition();
-          return;
-        }
-      } catch (e) {
-        debugPrint('[ReportForm] lastKnown failed: $e');
+        debugPrint('[ReportForm] fallback getCurrent failed: $e');
       }
 
       state = state.copyWith(

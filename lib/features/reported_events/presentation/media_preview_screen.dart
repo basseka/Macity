@@ -299,80 +299,7 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
             ),
           ),
 
-          // ── Categories chips (animated) ──
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 60,
-            left: 0,
-            right: 0,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(-1, 0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: _chipsAnimCtrl,
-                curve: Curves.easeOutCubic,
-              )),
-              child: FadeTransition(
-                opacity: _chipsAnimCtrl,
-                child: SizedBox(
-                  height: 38,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: _categories.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 6),
-                    itemBuilder: (_, i) {
-                      final cat = _categories[i];
-                      final isSelected = state.category == cat.id;
-                      return GestureDetector(
-                        onTap: () => ref
-                            .read(reportFormProvider.notifier)
-                            .setCategory(cat.id),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? cat.color
-                                : Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isSelected
-                                  ? cat.color
-                                  : Colors.white.withValues(alpha: 0.3),
-                              width: 1.2,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(cat.icon, size: 14, color: Colors.white),
-                              const SizedBox(width: 5),
-                              Text(
-                                cat.label,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // ── Bottom : location + title + publish ──
+          // ── Bottom : location + publish ──
           Positioned(
             bottom: MediaQuery.of(context).padding.bottom + 12,
             left: 14,
@@ -399,27 +326,12 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
                           color: Colors.grey.shade800,
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          _InlineField(
-                            controller: _locationCtrl,
-                            label: 'Lieu',
-                            hint: 'Bar, rue, place...',
-                            icon: Icons.place,
-                            maxLength: 80,
-                          ),
-                          Divider(
-                            height: 1,
-                            color: Colors.white.withValues(alpha: 0.15),
-                          ),
-                          _InlineField(
-                            controller: _titleCtrl,
-                            label: 'Titre',
-                            hint: 'En quelques mots...',
-                            icon: Icons.edit,
-                            maxLength: 50,
-                          ),
-                        ],
+                      child: _InlineField(
+                        controller: _locationCtrl,
+                        label: 'Lieu',
+                        hint: 'Bar, rue, place...',
+                        icon: Icons.place,
+                        maxLength: 80,
                       ),
                     ),
                     const SizedBox(height: 12),

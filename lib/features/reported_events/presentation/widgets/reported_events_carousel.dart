@@ -103,15 +103,10 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                   width: bubbleSize,
                   height: bubbleSize,
                   circular: true,
-                  onTap: () => showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => ReportedEventsPagedSheet(
-                      events: sorted,
-                      initialIndex: index,
-                    ),
+                  onTap: () => ReportedEventsPagedSheet.open(
+                    context,
+                    events: sorted,
+                    initialIndex: index,
                   ),
                 ),
               );

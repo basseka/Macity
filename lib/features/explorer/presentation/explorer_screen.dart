@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_city_header.dart';
-import 'package:pulz_app/core/widgets/editorial/editorial_section_header.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_subcategory_card.dart';
+import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 
@@ -25,10 +25,55 @@ class ExplorerScreen extends ConsumerWidget {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: EditorialCityHeader()),
-            const SliverToBoxAdapter(
-              child: EditorialSectionHeader(
-                prefix: 'Toutes les',
-                italicWord: 'rubriques',
+            // Header "Toutes les offres" avec bouton cadeau qui ouvre le
+            // carrousel d'offres / banners.
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  EditorialSpacing.screen,
+                  EditorialSpacing.lg,
+                  EditorialSpacing.screen,
+                  EditorialSpacing.md,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '✦',
+                      style: TextStyle(
+                        color: EditorialColors.magenta,
+                        fontSize: 18,
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(width: EditorialSpacing.md),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Toutes les ',
+                              style: EditorialText.displayTitle()
+                                  .copyWith(fontSize: 24),
+                            ),
+                            TextSpan(
+                              text: 'offres',
+                              style: EditorialText.sectionItalic(
+                                color: EditorialColors.gold,
+                              ).copyWith(fontSize: 24),
+                            ),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _GiftButton(
+                      onTap: () => BannerCarouselDialog.show(context),
+                    ),
+                  ],
+                ),
               ),
             ),
             SliverPadding(
@@ -148,4 +193,42 @@ class _ModeMeta {
     required this.imageTag,
     required this.accent,
   });
+}
+
+/// Bouton cadeau circulaire avec gradient magenta→gold + glow.
+/// Ouvre le carrousel des offres au tap.
+class _GiftButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _GiftButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [EditorialColors.magenta, EditorialColors.gold],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: EditorialColors.magenta.withValues(alpha: 0.45),
+              blurRadius: 10,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.card_giftcard,
+          size: 22,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
 }

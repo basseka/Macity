@@ -14,8 +14,10 @@ import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.d
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
+import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_pending_sheet.dart';
+import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
 import 'package:pulz_app/features/home/presentation/today_events_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
@@ -98,15 +100,15 @@ class AppBottomNavBar extends ConsumerWidget {
                   _showSheet(const MairieNotificationsSheet());
                 },
               ),
-              // 3 - Offres
+              // 3 - + (publier event ou story Map Live)
               _NavBarItem(
-                icon: Icons.card_giftcard,
-                label: 'Offres',
+                icon: Icons.add_circle,
+                label: 'Publier',
                 isActive: _selectedIndex == 2,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 2;
                   _dismissOpenSheet();
-                  BannerCarouselDialog.show(_navContext);
+                  _showPublishMenu(context, ref);
                 },
               ),
               // 4 - Explorer
@@ -146,6 +148,90 @@ class AppBottomNavBar extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => sheet,
+    );
+  }
+
+  /// Bottom sheet "Publier" : 2 options — event classique OU story Map Live.
+  void _showPublishMenu(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: _navContext,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+            border: Border(top: BorderSide(color: AppColors.line)),
+          ),
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom: 16 + MediaQuery.of(sheetCtx).padding.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Que veux-tu publier ?',
+                style: GoogleFonts.geist(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                ),
+              ),
+              const SizedBox(height: 14),
+              _PublishOptionTile(
+                icon: Icons.event_outlined,
+                title: 'Publier un event',
+                subtitle: 'Concert, soirée, expo, atelier…',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF3D8B), Color(0xFFA855F7)],
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  // Delegue au gating pro : approved → choice sheet,
+                  // pendingApproval → ProPendingSheet, notConnected →
+                  // ProLoginSheet (qui propose pro ou soiree privee).
+                  showAddEvent(_navContext, ref);
+                },
+              ),
+              const SizedBox(height: 10),
+              _PublishOptionTile(
+                icon: Icons.camera_alt_outlined,
+                title: 'Story Map Live',
+                subtitle: 'Photo / vidéo d\'un évent en cours autour de toi',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF472B6), Color(0xFFFBBF24)],
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  Navigator.of(_navContext).push(
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => const SnapCameraScreen(),
+                      transitionsBuilder: (_, anim, __, child) =>
+                          FadeTransition(opacity: anim, child: child),
+                      transitionDuration:
+                          const Duration(milliseconds: 200),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -198,7 +284,11 @@ class AppBottomNavBar extends ConsumerWidget {
 
     switch (status) {
       case ProAuthStatus.approved:
-        _showProActionChoice(context, ref);
+        // Pro connecte et approuve → push direct la page de creation
+        // d'event public.
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const CreateEventPage()),
+        );
       case ProAuthStatus.pendingApproval:
         showModalBottomSheet(
           context: context,
@@ -208,16 +298,92 @@ class AppBottomNavBar extends ConsumerWidget {
           builder: (_) => const ProPendingSheet(),
         );
       case ProAuthStatus.notConnected:
-        showModalBottomSheet(
-          context: context,
-          useRootNavigator: true,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => const ProLoginSheet(),
-        );
+        // Pas connecte pro → 2 choix : soiree privee (sans auth) ou
+        // acces pro (login/register).
+        _showPrivateOrProChoice(context);
       case ProAuthStatus.loading:
         break;
     }
+  }
+
+  /// Sheet "Soirée privée OU Accès pro" affiche au tap "Publier un event"
+  /// quand l'utilisateur n'est pas connecte en pro.
+  void _showPrivateOrProChoice(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+            border: Border(top: BorderSide(color: AppColors.line)),
+          ),
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom: 16 + MediaQuery.of(sheetCtx).padding.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Quel type d\'event ?',
+                style: GoogleFonts.geist(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                ),
+              ),
+              const SizedBox(height: 14),
+              _PublishOptionTile(
+                icon: Icons.lock_outline,
+                title: 'Soirée privée',
+                subtitle: 'Entre amis, code d\'accès, pas dans le feed public',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  CreatePrivateEventSheet.show(_navContext);
+                },
+              ),
+              const SizedBox(height: 10),
+              _PublishOptionTile(
+                icon: Icons.verified_user_outlined,
+                title: 'Accès pro',
+                subtitle: 'Publier un event public (lieu, organisateur)',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF3D8B), Color(0xFFFBBF24)],
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  showModalBottomSheet(
+                    context: _navContext,
+                    useRootNavigator: true,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const ProLoginSheet(),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showProActionChoice(BuildContext context, WidgetRef ref) {
@@ -472,6 +638,87 @@ class _PulsingNavBarItemState extends State<_PulsingNavBarItem>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+
+/// Tile colorée pour le menu "Publier" (event ou story Map Live).
+class _PublishOptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final LinearGradient gradient;
+  final VoidCallback onTap;
+
+  const _PublishOptionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.gradient,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceHi,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: gradient,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: gradient.colors.first.withValues(alpha: 0.4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.geist(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.geist(
+                      fontSize: 11,
+                      color: AppColors.textDim,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textFaint, size: 20),
+          ],
+        ),
       ),
     );
   }
