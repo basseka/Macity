@@ -30,17 +30,18 @@ class HomeNavTabs extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Padding 16 horizontal pour aligner le 1er bouton (Home) sur l'icône
+    // MaCity du brand row (lui aussi à 16px du bord). spaceBetween → pas de
+    // gap aux extrémités, gros gaps entre boutons.
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // 5 boutons : largeur dispo / 5, capé à 56. Bonne respiration entre.
           const slots = 5;
-          const padding = 6.0;
           final slotWidth = constraints.maxWidth / slots;
-          final circle = (slotWidth - padding * 2).clamp(42.0, 56.0);
+          final circle = (slotWidth * 0.78).clamp(54.0, 68.0);
           return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _btn(context, ref, HomeNavTab.feed, Icons.home_rounded, 'Home', circle),
               _btn(context, ref, HomeNavTab.feed2, Icons.dynamic_feed_rounded, 'Feed', circle),
