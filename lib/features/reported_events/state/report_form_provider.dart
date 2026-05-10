@@ -375,13 +375,26 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
       return null;
     }
     state = state.copyWith(isSubmitting: true, clearError: true);
+    // Defaults : l'UI Story Map Live n'expose plus titre ni categorie, mais
+    // l'edge function `generate-event-poster` les attend non vides
+    // (sinon elle rejette → status='rejected' → disparait du feed).
+    // On force des valeurs minimales et l'IA enrichira a posteriori.
+    final category = state.category.trim().isNotEmpty
+        ? state.category.trim()
+        : 'live';
+    final rawTitle = state.rawTitle.trim().isNotEmpty
+        ? state.rawTitle.trim()
+        : (state.locationName.trim().isNotEmpty
+            ? state.locationName.trim()
+            : 'Story Map Live');
     debugPrint('[ReportForm] submit start lat=${state.lat} lng=${state.lng} '
-        'category="${state.category}" photos=${state.localPhotoPaths.length} '
+        'category="$category" title="$rawTitle" '
+        'photos=${state.localPhotoPaths.length} '
         'video=${state.localVideoPath != null}');
     try {
       final result = await _svc.reportEvent(
-        category: state.category,
-        rawTitle: state.rawTitle.trim(),
+        category: category,
+        rawTitle: rawTitle,
         lat: state.lat!,
         lng: state.lng!,
         localPhotoPaths: state.localPhotoPaths,
