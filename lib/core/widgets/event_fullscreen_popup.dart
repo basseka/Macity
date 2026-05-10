@@ -645,19 +645,37 @@ class _PagedEventPopup extends StatefulWidget {
   State<_PagedEventPopup> createState() => _PagedEventPopupState();
 }
 
-class _PagedEventPopupState extends State<_PagedEventPopup> {
+class _PagedEventPopupState extends State<_PagedEventPopup>
+    with SingleTickerProviderStateMixin {
   late final PageController _pageController;
   late int _currentIndex;
+  late final AnimationController _bounceCtrl;
+  late final Animation<double> _bounceAnim;
+  bool _hintsVisible = true;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
+    // Animation de rebond pour faire pulser les chevrons (up/down) et
+    // suggerer fortement le swipe vertical.
+    _bounceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat(reverse: true);
+    _bounceAnim = Tween<double>(begin: 0, end: 6).animate(
+      CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut),
+    );
+    // Cache les hints apres 4s — on a montre l'affordance, place au contenu.
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _hintsVisible = false);
+    });
   }
 
   @override
   void dispose() {
+    _bounceCtrl.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -711,17 +729,104 @@ class _PagedEventPopupState extends State<_PagedEventPopup> {
               ),
             ),
           ),
-        // Fleche swipe up hint
-        if (_currentIndex < widget.events.length - 1)
-          Positioned(
-            bottom: 30,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Icon(Icons.keyboard_arrow_up, size: 28, color: Colors.white.withValues(alpha: 0.3)),
+        // Hints "Swiper" en haut et bas — chevrons animes qui rebondent
+        // pour montrer clairement qu'on peut swiper verticalement.
+        // Visibles 4 secondes au moment de l'ouverture puis fade out.
+        if (widget.events.length > 1) ...[
+          // Top : "Story precedente" (visible si on n'est PAS sur la 1ere)
+          if (_currentIndex > 0)
+            Positioned(
+              top: 18,
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                opacity: _hintsVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 600),
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _bounceAnim,
+                    builder: (_, __) => Transform.translate(
+                      offset: Offset(0, -_bounceAnim.value),
+                      child: _SwipeHint(
+                        icon: Icons.keyboard_arrow_up_rounded,
+                        label: 'Story précédente',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          // Bottom : "Swipe pour la suivante" (visible si on n'est PAS sur
+          // la derniere — c'est l'affordance principale).
+          if (_currentIndex < widget.events.length - 1)
+            Positioned(
+              bottom: 28,
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                opacity: _hintsVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 600),
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _bounceAnim,
+                    builder: (_, __) => Transform.translate(
+                      offset: Offset(0, _bounceAnim.value),
+                      child: _SwipeHint(
+                        icon: Icons.keyboard_arrow_down_rounded,
+                        label: 'Swipe pour la suivante',
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Pill compacte "icon + label" affichee comme hint de swipe vertical.
+/// Fond noir semi-transparent + texte blanc + glow violet leger.
+class _SwipeHint extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _SwipeHint({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.18),
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFA855F7).withValues(alpha: 0.32),
+            blurRadius: 12,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              letterSpacing: -0.1,
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 }
