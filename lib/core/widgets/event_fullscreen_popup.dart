@@ -623,19 +623,23 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
             ),
           ),
 
-          // Fullscreen en HAUT a GAUCHE — zone moins encombree par les
-          // badges et boutons du popup, plus facile a viser.
+          // Fullscreen en HAUT a DROITE, sous la croix de fermeture du
+          // popup. La croix est a top=42 si badge AU TOP/A LA UNE present,
+          // sinon top=12. Hauteur croix ~36 + gap 8 → zoom a top=86 pour
+          // etre TOUJOURS en dessous, peu importe le badge.
           Positioned(
-            top: 8,
-            left: 8,
+            top: 86,
+            right: 12,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => _openFullscreen(context),
               child: Container(
-                padding: const EdgeInsets.all(10),
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.black54,
-                  borderRadius: BorderRadius.circular(22),
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.fullscreen,
