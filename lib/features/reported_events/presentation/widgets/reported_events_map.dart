@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +22,15 @@ import 'package:pulz_app/features/reported_events/state/reported_events_realtime
 class ReportedEventsMap extends ConsumerStatefulWidget {
   final double height;
 
-  const ReportedEventsMap({super.key, this.height = 180});
+  /// Si true, n'écoute pas le provider real-time et injecte des markers
+  /// fictifs autour du centre ville pour la presentation home.
+  final bool usePresentationMarkers;
+
+  const ReportedEventsMap({
+    super.key,
+    this.height = 180,
+    this.usePresentationMarkers = false,
+  });
 
   @override
   ConsumerState<ReportedEventsMap> createState() => _ReportedEventsMapState();
@@ -53,7 +64,11 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
             // Affiche le pin user en parallele si GPS dispo
             _autoLocateUserPin();
             // Re-injecter les markers maintenant que la page est prete
-            if (_lastEvents.isNotEmpty) _injectMarkers(_lastEvents);
+            if (widget.usePresentationMarkers) {
+              _injectPresentationMarkersForCurrentCity();
+            } else if (_lastEvents.isNotEmpty) {
+              _injectMarkers(_lastEvents);
+            }
           },
         ),
       );
@@ -92,6 +107,79 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         );
       }
     } catch (_) {}
+  }
+
+  /// Injecte 14 markers fictifs autour du centre de la ville courante.
+  /// Utilise pour la presentation home (la map dynamique reelle est sur
+  /// la page MapLive avec usePresentationMarkers=false).
+  Future<void> _injectPresentationMarkersForCurrentCity() async {
+    if (!_pageReady) {
+      debugPrint('[PresentationMap] not ready yet');
+      return;
+    }
+    final city = _lastCity ?? ref.read(selectedCityProvider);
+    if (city == null) {
+      debugPrint('[PresentationMap] no city');
+      return;
+    }
+    final center = CityCenters.center(city);
+    if (center == null) {
+      debugPrint('[PresentationMap] no center for $city — fallback Toulouse');
+    }
+    final fallback = (lat: 43.6047, lng: 1.4442);
+    final cc = center ?? fallback;
+    // Mix : fakes (presentation) + reals (signalements actifs si disponibles)
+    final realEvents = ref.read(reportedEventsFeedProvider).valueOrNull ?? const [];
+    const categories = ['nightlife', 'food', 'culture', 'sport', 'general'];
+    const titles = [
+      'Bar à cocktails',
+      'Resto branché',
+      "Galerie d'art",
+      'Cours de fitness',
+      'Concert acoustique',
+      'Food truck',
+      'Expo photo',
+      'Yoga matinal',
+      'DJ set',
+      'Marché bio',
+      'Atelier peinture',
+      'Match local',
+      'Soirée latino',
+      'Brunch dominical',
+    ];
+    final rand = Random(cc.lat.hashCode ^ cc.lng.hashCode);
+    final fakes = <Map<String, dynamic>>[];
+    for (var i = 0; i < 14; i++) {
+      final dLat = (rand.nextDouble() - 0.5) * 0.05;
+      final dLng = (rand.nextDouble() - 0.5) * 0.05;
+      fakes.add({
+        'id': 'fake_$i',
+        'lat': cc.lat + dLat,
+        'lng': cc.lng + dLng,
+        'title': titles[i % titles.length],
+        'category': categories[i % categories.length],
+      });
+    }
+    // Ajoute les vrais signalements pour qu'ils apparaissent en + des fakes.
+    // is_real=true pour les distinguer côté CSS si besoin futur.
+    final all = <Map<String, dynamic>>[
+      ...fakes,
+      for (final e in realEvents)
+        {
+          'id': e.id,
+          'lat': e.lat,
+          'lng': e.lng,
+          'title': e.rawTitle,
+          'category': e.category,
+          'is_real': true,
+        },
+    ];
+    final json = jsonEncode(all);
+    // Petit delai pour s'assurer que la couche L.layerGroup est prête côté JS.
+    await Future.delayed(const Duration(milliseconds: 250));
+    debugPrint(
+        '[PresentationMap] injecting ${fakes.length} fake + ${realEvents.length} real markers around $city');
+    await _controller.runJavaScript('setPresentationReports($json)');
   }
 
   void _handleMarkerTap(String id) {
@@ -136,49 +224,81 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; background: #F8F0FA; }
-    #map { width: 100vw; height: 100vh; }
-    .leaflet-control-attribution { font-size: 8px; }
+    html, body { height: 100%; overflow: hidden; background: #04020A; }
+    #map { width: 100vw; height: 100vh; background: #04020A; }
+    .leaflet-control-attribution {
+      font-size: 8px;
+      background: rgba(10, 4, 20, 0.5) !important;
+      color: rgba(245, 240, 255, 0.4) !important;
+    }
+    .leaflet-control-attribution a { color: rgba(168, 85, 247, 0.6) !important; }
 
-    /* Pins par famille. Meme base visuelle (18px, bordure blanche, pulse 1.6s).
-       Une couleur par famille, 5 familles max pour rester lisible. */
-    .fam-pulse {
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      border: 2.5px solid white;
+    /* Tint violet sur les tuiles dark CartoDB pour matcher la spec neon */
+    .leaflet-tile-pane {
+      filter: hue-rotate(245deg) saturate(1.4) brightness(0.85);
+    }
+
+    /* Pins style "goutte SVG" 24x26 + halo radial pulsant 40px (spec neon) */
+    .neon-pin {
+      position: relative;
+      width: 24px; height: 26px;
       cursor: pointer;
-      animation: fampulse 1.6s ease-out infinite;
     }
-    @keyframes fampulse {
-      0%   { box-shadow: 0 0 0 0 var(--pulse-color), 0 2px 6px rgba(0,0,0,0.3); }
-      70%  { box-shadow: 0 0 0 14px transparent, 0 2px 6px rgba(0,0,0,0.3); }
-      100% { box-shadow: 0 0 0 0 transparent, 0 2px 6px rgba(0,0,0,0.3); }
+    .neon-pin .halo {
+      position: absolute;
+      left: -8px; top: -7px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(
+        circle,
+        var(--pin-color, rgba(168,85,247,0.75)) 0%,
+        transparent 70%
+      );
+      animation: halopulse 2.4s ease-out infinite;
     }
-    /* Violet - Vie nocturne (concert, soiree, festival) */
-    .fam-nightlife { background: #A855F7; --pulse-color: rgba(168,85,247,0.7); }
-    /* Orange - Food (food, marche) */
-    .fam-food      { background: #FB923C; --pulse-color: rgba(251,146,60,0.7); }
-    /* Cyan - Culture (salon, exposition) */
-    .fam-culture   { background: #22D3EE; --pulse-color: rgba(34,211,238,0.7); }
-    /* Vert - Sport */
-    .fam-sport     { background: #22C55E; --pulse-color: rgba(34,197,94,0.7); }
-    /* Rouge - General (fete + fallback) */
-    .fam-general   { background: #EF4444; --pulse-color: rgba(239,68,68,0.7); }
+    @keyframes halopulse {
+      0%   { transform: scale(0.8); opacity: 0.75; }
+      70%  { transform: scale(1.15); opacity: 0; }
+      100% { transform: scale(0.8); opacity: 0.75; }
+    }
+    .neon-pin svg {
+      position: relative;
+      display: block;
+      z-index: 1;
+      filter: drop-shadow(0 0 6px rgba(168,85,247,0.6));
+    }
+    /* Pin "réel" (signalement actif) : ring blanc + halo plus intense pour le distinguer */
+    .neon-pin.real svg {
+      filter:
+        drop-shadow(0 0 0 1.5px #fff)
+        drop-shadow(0 0 12px rgba(199,125,255,0.95));
+    }
+    .neon-pin.real .halo {
+      animation-duration: 1.6s;
+      opacity: 1;
+    }
 
     .user-dot {
       width: 14px; height: 14px;
-      background: #22D3EE;
-      border: 3px solid white;
+      background: #C77DFF;
+      border: 3px solid #F5F0FF;
       border-radius: 50%;
-      box-shadow: 0 0 0 2px rgba(34,211,238,0.35), 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow:
+        0 0 0 2px rgba(168,85,247,0.4),
+        0 0 12px rgba(199,125,255,0.8);
     }
 
-    /* Clusters : magenta pour petit, violet pour grand (theme brand) */
+    /* Clusters : neon halo rose */
     .marker-cluster-small {
-      background-color: rgba(255, 61, 139, 0.22);
+      background-color: rgba(244, 114, 182, 0.22);
     }
     .marker-cluster-small div {
-      background-color: #FF3D8B;
+      background-color: #F472B6;
+      color: #0A0414;
+      font-weight: 700;
+      border: 2px solid #F5F0FF;
+      box-shadow: 0 0 12px rgba(244,114,182,0.7);
     }
     .marker-cluster-medium,
     .marker-cluster-large {
@@ -187,11 +307,11 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     .marker-cluster-medium div,
     .marker-cluster-large div {
       background-color: #A855F7;
-      color: white;
+      color: #F5F0FF;
       font-weight: 700;
       font-size: 11px;
-      border: 2px solid white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border: 2px solid #F5F0FF;
+      box-shadow: 0 0 14px rgba(168,85,247,0.85);
     }
   </style>
 </head>
@@ -204,9 +324,12 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       attributionControl: true,
     }).setView([46.6, 2.4], 6);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Tile layer dark (CartoDB DarkMatter NoLabels) — couplé au filter CSS
+    // hue-rotate pour donner la teinte violet/neon de la spec.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-      attribution: '&copy; OSM',
+      attribution: '&copy; CartoDB &copy; OSM',
+      subdomains: 'abcd',
       referrerPolicy: 'origin',
     }).addTo(map);
 
@@ -234,19 +357,69 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       fete: 'general',
     };
 
-    function setReports(reports) {
-      clusterGroup.clearLayers();
+    // Layer dédié aux markers fictifs de la home (pas de clustering).
+    let presentationLayer = L.layerGroup().addTo(map);
+
+    function setPresentationReports(reports) {
+      console.log('[map] setPresentationReports', reports.length);
+      presentationLayer.clearLayers();
       reports.forEach(r => {
         const family = FAMILY_BY_CATEGORY[r.category] || 'general';
-        const cls = 'fam-pulse fam-' + family;
-        const size = 18;
-        const anchor = size / 2;
+        const fill = FAMILY_COLOR_PRES[family] || '#A855F7';
+        const realCls = r.is_real ? ' real' : '';
+        const html = '<div class="neon-pin' + realCls + '" title="' + r.title + '" style="--pin-color:' + fill + '99">'
+          + '<div class="halo"></div>'
+          + '<svg width="24" height="26" viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg">'
+          + '<path d="M12 0 C18.6 0 24 5.4 24 12 C24 18.6 12 26 12 26 C12 26 0 18.6 0 12 C0 5.4 5.4 0 12 0 Z" fill="' + fill + '"/>'
+          + '<circle cx="12" cy="10" r="3" fill="#0A0414"/>'
+          + '</svg>'
+          + '</div>';
         const marker = L.marker([r.lat, r.lng], {
           icon: L.divIcon({
             className: '',
-            html: '<div class="' + cls + '" title="' + r.title + '"></div>',
-            iconSize: [size, size],
-            iconAnchor: [anchor, anchor],
+            html: html,
+            iconSize: [24, 26],
+            iconAnchor: [12, 26],
+          }),
+        });
+        marker.addTo(presentationLayer);
+      });
+    }
+
+    const FAMILY_COLOR_PRES = {
+      nightlife: '#F472B6',
+      food:      '#FBBF24',
+      culture:   '#C77DFF',
+      sport:     '#22D3EE',
+      general:   '#A855F7',
+    };
+
+    function setReports(reports) {
+      clusterGroup.clearLayers();
+      const FAMILY_COLOR = {
+        nightlife: '#F472B6',
+        food:      '#FBBF24',
+        culture:   '#C77DFF',
+        sport:     '#22D3EE',
+        general:   '#A855F7',
+      };
+      reports.forEach(r => {
+        const family = FAMILY_BY_CATEGORY[r.category] || 'general';
+        const fill = FAMILY_COLOR[family] || '#A855F7';
+        // Goutte SVG 24x26 + cœur sombre + halo radial pulsant.
+        const html = '<div class="neon-pin" title="' + r.title + '" style="--pin-color:' + fill + '99">'
+          + '<div class="halo"></div>'
+          + '<svg width="24" height="26" viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg">'
+          + '<path d="M12 0 C18.6 0 24 5.4 24 12 C24 18.6 12 26 12 26 C12 26 0 18.6 0 12 C0 5.4 5.4 0 12 0 Z" fill="' + fill + '"/>'
+          + '<circle cx="12" cy="10" r="3" fill="#0A0414"/>'
+          + '</svg>'
+          + '</div>';
+        const marker = L.marker([r.lat, r.lng], {
+          icon: L.divIcon({
+            className: '',
+            html: html,
+            iconSize: [24, 26],
+            iconAnchor: [12, 26],
           }),
         });
         marker.on('click', function() {
@@ -297,38 +470,56 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
 
   @override
   Widget build(BuildContext context) {
-    // Active l'abonnement Realtime tant que la carte est montee.
-    // Chaque INSERT/UPDATE invalide automatiquement le feed provider.
-    ref.watch(reportedEventsRealtimeProvider);
-
-    final eventsAsync = ref.watch(reportedEventsFeedProvider);
     final city = ref.watch(selectedCityProvider);
 
     // Recentre la map a chaque changement de ville
     if (_lastCity != city) {
       _lastCity = city;
-      if (_pageReady) _centerOnCity(city);
+      if (_pageReady) {
+        _centerOnCity(city);
+        if (widget.usePresentationMarkers) {
+          _injectPresentationMarkersForCurrentCity();
+        }
+      }
     }
 
-    // Re-injecter les markers quand les donnees changent
+    // Abonnement realtime : actif aussi en mode présentation pour que les
+    // vrais signalements apparaissent dynamiquement par-dessus les fakes.
+    ref.watch(reportedEventsRealtimeProvider);
+    final eventsAsync = ref.watch(reportedEventsFeedProvider);
     eventsAsync.whenData((events) {
       if (!listEquals(
         _lastEvents.map((e) => e.id).toList(),
         events.map((e) => e.id).toList(),
       )) {
         _lastEvents = events;
-        _injectMarkers(events);
+        if (widget.usePresentationMarkers) {
+          _injectPresentationMarkersForCurrentCity();
+        } else {
+          _injectMarkers(events);
+        }
       }
     });
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.hero),
-      child: Container(
-        height: widget.height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.hero),
-          border: Border.all(color: AppColors.line),
+    return Container(
+      height: widget.height,
+      decoration: BoxDecoration(
+        color: const Color(0xFF04020A),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0x33A855F7),
+          width: 1,
         ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33A855F7),
+            blurRadius: 18,
+            spreadRadius: -4,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
         child: Stack(
           children: [
             WebViewWidget(
@@ -339,6 +530,22 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
                 ),
               },
             ),
+            // Vignette radiale (assombrit les bords pour cohérence neon)
+            const IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    radius: 1.1,
+                    colors: [
+                      Colors.transparent,
+                      Color(0xCC04020A),
+                    ],
+                    stops: [0.65, 1.0],
+                  ),
+                ),
+                child: SizedBox.expand(),
+              ),
+            ),
             if (_isLoading)
               const Center(
                 child: SizedBox(
@@ -346,7 +553,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.magenta,
+                    color: Color(0xFFC77DFF),
                   ),
                 ),
               ),

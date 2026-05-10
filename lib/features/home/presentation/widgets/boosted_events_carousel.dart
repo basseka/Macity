@@ -38,7 +38,7 @@ class BoostedEventsCarousel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
-          padding: EdgeInsets.fromLTRB(16, 10, 16, 8),
+          padding: EdgeInsets.fromLTRB(16, 2, 16, 8),
           child: _SectionTitle(
             prefix: 'A la',
             accent: 'une',
@@ -483,7 +483,7 @@ class _SectionTitle extends StatelessWidget {
         Text(
           prefix,
           style: GoogleFonts.geist(
-            fontSize: 19,
+            fontSize: 17,
             fontWeight: FontWeight.w500,
             letterSpacing: -0.4,
             color: AppColors.text,
@@ -493,7 +493,7 @@ class _SectionTitle extends StatelessWidget {
         Text(
           accent,
           style: GoogleFonts.instrumentSerif(
-            fontSize: 22,
+            fontSize: 20,
             fontStyle: FontStyle.italic,
             fontWeight: FontWeight.w400,
             letterSpacing: -0.3,

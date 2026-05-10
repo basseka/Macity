@@ -50,6 +50,10 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
+import 'package:pulz_app/core/widgets/home_nav_tabs.dart';
+import 'package:pulz_app/features/home/state/feed_filter_intent_provider.dart';
+import 'package:pulz_app/features/home/state/feed_mode_provider.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
@@ -276,6 +280,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Reagit aux demandes de filtre venant de la HomeNavTabs (En Scene / Event
+    // / Clubbing). On aligne _activeTab avec la valeur demandee.
+    ref.listen<String?>(feedFilterIntentProvider, (prev, next) {
+      if (next != _activeTab) {
+        _switchTab(next);
+      }
+    });
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -315,8 +326,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildHeader() {
+    // Search bar + hamburger : caches sur Home (mode classic, aucun filtre).
+    // Visibles sur Feed (feed2), En scene, Event, Clubbing.
+    final isHomeMode =
+        _activeTab == null && ref.watch(feedModeProvider) == FeedMode.classic;
+    final showSearchRow = !isHomeMode || _isSearching;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+      padding: EdgeInsets.fromLTRB(16, 6, 16, isHomeMode ? 0 : 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -325,11 +341,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           if (!_isSearching) ...[
             const SizedBox(height: 14),
             _buildGreetingBlock(),
-            const SizedBox(height: 14),
+            if (showSearchRow) const SizedBox(height: 14),
           ] else
             const SizedBox(height: 10),
           // Row 2 : menu + search (ou TextField actif)
-          _buildSearchRow(),
+          if (showSearchRow) _buildSearchRow(),
         ],
       ),
     );
@@ -423,65 +439,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildGreetingBlock() {
-    final todayAsync = ref.watch(todayTomorrowEventsProvider);
-    final count = todayAsync.valueOrNull == null
-        ? 0
-        : todayAsync.value!.events.length + todayAsync.value!.matches.length;
+    return HomeNavTabs(active: _resolveActiveNavTab());
+  }
 
-    final italicText = count > 0
-        ? '$count sorties autour de toi.'
-        : 'Explore ta ville.';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const _LiveDot(),
-            const SizedBox(width: 6),
-            Text(
-              'ÇA BOUGE MAINTENANT',
-              style: GoogleFonts.geistMono(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 2.0,
-                color: AppColors.magenta,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Text(
-                italicText,
-                style: GoogleFonts.instrumentSerif(
-                  fontSize: 14,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w400,
-                  height: 1.25,
-                  letterSpacing: -0.2,
-                  foreground: Paint()
-                    ..shader = AppGradients.editorial.createShader(
-                      const Rect.fromLTWH(0, 0, 260, 28),
-                    ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            _MapLivePill(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const MapLivePage(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+  /// Resoud quel onglet de la nav bar est en surbrillance selon l'etat courant
+  /// du feed (filtre tab actif > mode feed/feed2).
+  HomeNavTab _resolveActiveNavTab() {
+    if (_activeTab == 'En Scène') return HomeNavTab.scene;
+    if (_activeTab == 'Event') return HomeNavTab.event;
+    if (_activeTab == 'Clubbing') return HomeNavTab.clubbing;
+    return ref.watch(feedModeProvider) == FeedMode.feed2
+        ? HomeNavTab.feed2
+        : HomeNavTab.feed;
   }
 
   Widget _buildSearchRow() {
@@ -724,52 +693,25 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildFilterBar() {
-    return Column(
-      children: [
-        // ── Row 1 : onglets principaux ───────────────────────
-        // Hauteur augmentee a 40 pour donner une zone de tap confortable
-        // (Material Design recommande 48, 40 est un bon compromis visuel).
-        SizedBox(
-          height: 40,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            children: [
-              _buildChip(
-                label: 'Tout',
-                selected: _activeTab == null,
-                onTap: () => _switchTab(null),
-              ),
-              for (final tab in _tabs)
-                _buildChip(
-                  label: tab,
-                  selected: _activeTab == tab,
-                  onTap: () => _switchTab(_activeTab == tab ? null : tab),
-                ),
-            ],
-          ),
-        ),
-        // ── Row 2 : sous-filtres (visible uniquement si tab actif) ──
-        if (_activeTab != null) ...[
-          const SizedBox(height: 4),
-          SizedBox(
-            height: 36,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: [
-                for (final sub in _subFilters[_activeTab]!)
-                  _buildChip(
-                    label: sub,
-                    selected: _activeSub == sub,
-                    isSubFilter: true,
-                    onTap: () => _switchSubFilter(_activeSub == sub ? null : sub),
-                  ),
-              ],
+    // Les onglets principaux (Tout / En Scene / Event / Clubbing) ont ete
+    // remplaces par la HomeNavTabs en haut. Ici on garde uniquement la rangee
+    // de sous-filtres, visible quand un tab est actif via la nav bar.
+    if (_activeTab == null) return const SizedBox.shrink();
+    return SizedBox(
+      height: 36,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        children: [
+          for (final sub in _subFilters[_activeTab]!)
+            _buildChip(
+              label: sub,
+              selected: _activeSub == sub,
+              isSubFilter: true,
+              onTap: () => _switchSubFilter(_activeSub == sub ? null : sub),
             ),
-          ),
         ],
-      ],
+      ),
     );
   }
 
@@ -1182,6 +1124,77 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildFeed() {
+    // Mode Home : aucun filtre + classic mode → afficher uniquement les
+    // carrousels boostes (A la une / Au top) + une map des signalements.
+    final isHomeMode =
+        _activeTab == null && ref.watch(feedModeProvider) == FeedMode.classic;
+    if (isHomeMode) {
+      return ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const BoostedEventsCarousel(),
+          const BoostedP2Carousel(),
+          const SizedBox(height: 16),
+          // Header "Map Live" — même style que "À la une" / "Au top"
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Icons.map, size: 13, color: AppColors.magenta),
+                const SizedBox(width: 6),
+                Text(
+                  'Map',
+                  style: GoogleFonts.geist(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.4,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  'Live',
+                  style: GoogleFonts.instrumentSerif(
+                    fontSize: 18,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: -0.3,
+                    foreground: Paint()
+                      ..shader = AppGradients.editorial.createShader(
+                        const Rect.fromLTWH(0, 0, 80, 24),
+                      ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'Voir tout',
+                  style: GoogleFonts.geist(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFFC77DFF),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MapLivePage()),
+              ),
+              child: const AbsorbPointer(
+                child: ReportedEventsMap(usePresentationMarkers: true),
+              ),
+            ),
+          ),
+          const SizedBox(height: 80),
+        ],
+      );
+    }
+
     // Invalider le feed quand la ville change
     ref.listen(selectedCityProvider, (prev, next) {
       if (prev != next) {
@@ -1415,12 +1428,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       });
     }
 
+    final showBoosted = ref.watch(feedModeProvider) == FeedMode.classic;
+
     if (dayGroups.isEmpty && !_isLandscape && _activeTab == null) {
       // Meme quand il n'y a pas d'events, afficher les boosted + bouton map live
       return CustomScrollView(
         slivers: [
-          const SliverToBoxAdapter(child: BoostedEventsCarousel()),
-          const SliverToBoxAdapter(child: BoostedP2Carousel()),
+          if (showBoosted) ...[
+            const SliverToBoxAdapter(child: BoostedEventsCarousel()),
+            const SliverToBoxAdapter(child: BoostedP2Carousel()),
+          ],
           SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
@@ -1472,7 +1489,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         controller: scrollController,
         slivers: [
           // Discovery + signalements commu + Boosted inseres en haut du feed scroll
-          if (!_isLandscape && _activeTab == null) ...[
+          if (!_isLandscape && _activeTab == null && showBoosted) ...[
             // Boosted events (A la une + Au top) - maintenant en premier
             const SliverToBoxAdapter(child: BoostedEventsCarousel()),
             const SliverToBoxAdapter(child: BoostedP2Carousel()),
