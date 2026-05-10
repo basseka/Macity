@@ -35,8 +35,8 @@ class BoostedEventsCarousel extends ConsumerWidget {
 
   Widget _buildCarousel(BuildContext context, List<UserEvent> events) {
     // Full width hero : chaque card occupe la largeur ecran (- 32px de
-    // padding L/R) et le user swipe horizontalement pour passer a la
-    // suivante. Hauteur calculee pour conserver le ratio originel 1.44:1.
+    // padding L/R). PageView avec snap pour toujours centrer la card
+    // visible quand l'utilisateur swipe.
     final cardWidth = MediaQuery.of(context).size.width - 32;
     final cardHeight = cardWidth / 1.4375;
     return Column(
@@ -52,16 +52,17 @@ class BoostedEventsCarousel extends ConsumerWidget {
         ),
         SizedBox(
           height: cardHeight,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: PageView.builder(
             itemCount: events.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) => _BoostedCard(
-              event: events[index],
-              allEvents: events,
-              index: index,
-              width: cardWidth,
+            physics: const BouncingScrollPhysics(),
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _BoostedCard(
+                event: events[index],
+                allEvents: events,
+                index: index,
+                width: cardWidth,
+              ),
             ),
           ),
         ),
@@ -287,10 +288,10 @@ class BoostedP2Carousel extends ConsumerWidget {
     return eventsAsync.when(
       data: (events) {
         if (events.isEmpty) return const SizedBox.shrink();
-        // Full width banner : meme principe que "A la une", ratio 1.83:1
-        // (banner plus fin pour differencier visuellement de la une).
+        // Meme dimensions que "A la une" (ratio 1.4375) pour un swap visuel
+        // cohérent quand l'utilisateur toggle entre les deux pills.
         final cardWidth = MediaQuery.of(context).size.width - 32;
-        final cardHeight = cardWidth / 1.8333;
+        final cardHeight = cardWidth / 1.4375;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -304,16 +305,17 @@ class BoostedP2Carousel extends ConsumerWidget {
             ),
             SizedBox(
               height: cardHeight,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: PageView.builder(
                 itemCount: events.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) => _P2Card(
-                  event: events[index],
-                  allEvents: events,
-                  index: index,
-                  width: cardWidth,
+                physics: const BouncingScrollPhysics(),
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _P2Card(
+                    event: events[index],
+                    allEvents: events,
+                    index: index,
+                    width: cardWidth,
+                  ),
                 ),
               ),
             ),
@@ -364,101 +366,139 @@ class _P2Card extends StatelessWidget {
       ),
       child: Container(
         width: width,
-        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(color: AppColors.line),
+          boxShadow: AppShadows.card,
         ),
-        child: Row(
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            // Photo (avec badge pin si admin)
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: hasPhoto
-                        ? CachedNetworkImage(
-                            imageUrl: event.resolvedPhoto!,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: AppColors.surfaceHi),
-                            errorWidget: (_, __, ___) => Container(color: AppColors.surfaceHi),
-                          )
-                        : Container(
-                            color: AppColors.surfaceHi,
-                            child: const Icon(Icons.event, color: AppColors.textFaint, size: 28),
-                          ),
+            // Image full-bleed
+            if (hasPhoto)
+              CachedNetworkImage(
+                imageUrl: event.resolvedPhoto!,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => _gradientBgP2(),
+                errorWidget: (_, __, ___) => _gradientBgP2(),
+              )
+            else
+              _gradientBgP2(),
+
+            // Shade bas pour lisibilite du texte overlay
+            Container(
+              decoration: const BoxDecoration(gradient: AppGradients.cardShade),
+            ),
+
+            // Badge AU TOP / EPINGLE
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: event.priority == 'ADMIN'
+                      ? AppGradients.editorial
+                      : AppGradients.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.chip),
+                  boxShadow: AppShadows.neon(
+                    event.priority == 'ADMIN'
+                        ? const Color(0xFFFBBF24)
+                        : AppColors.magenta,
+                    blur: 10,
+                    y: 4,
                   ),
                 ),
-                if (event.priority == 'ADMIN')
-                  Positioned(
-                    top: 4,
-                    left: 4,
-                    child: Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        gradient: AppGradients.editorial,
-                        borderRadius: BorderRadius.circular(6),
-                        boxShadow: AppShadows.neon(
-                          const Color(0xFFFBBF24),
-                          blur: 8,
-                          y: 2,
-                        ),
-                      ),
-                      child: const Icon(Icons.push_pin, size: 10, color: Colors.white),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      event.priority == 'ADMIN'
+                          ? Icons.push_pin
+                          : Icons.trending_up,
+                      size: 10,
+                      color: Colors.white,
                     ),
-                  ),
-              ],
+                    const SizedBox(width: 4),
+                    Text(
+                      event.priority == 'ADMIN' ? 'EPINGLE' : 'AU TOP',
+                      style: GoogleFonts.geistMono(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(width: 10),
-            // Infos
-            Expanded(
+
+            // Texte overlay en bas (titre + date/heure + lieu + engagement)
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 10,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     event.titre,
                     style: GoogleFonts.geist(
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.text,
+                      color: Colors.white,
                       height: 1.2,
-                      letterSpacing: -0.15,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 9, color: AppColors.textFaint),
-                      const SizedBox(width: 3),
+                      const Icon(Icons.calendar_today,
+                          size: 9, color: AppColors.textDim),
+                      const SizedBox(width: 4),
                       Text(
                         dateLabel.toUpperCase(),
                         style: GoogleFonts.geistMono(
-                          fontSize: 8.5,
+                          fontSize: 9,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 1.2,
-                          color: AppColors.textFaint,
+                          color: AppColors.textDim,
                         ),
                       ),
+                      if (event.heure.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.access_time,
+                            size: 9, color: AppColors.textDim),
+                        const SizedBox(width: 4),
+                        Text(
+                          event.heure,
+                          style: GoogleFonts.geistMono(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1.2,
+                            color: AppColors.textDim,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   if (event.lieuNom.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 9, color: AppColors.textFaint),
-                        const SizedBox(width: 3),
+                        const Icon(Icons.location_on,
+                            size: 9, color: AppColors.textFaint),
+                        const SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             event.lieuNom,
                             style: GoogleFonts.geist(
-                              fontSize: 9.5,
+                              fontSize: 10,
                               color: AppColors.textFaint,
                             ),
                             maxLines: 1,
@@ -468,17 +508,15 @@ class _P2Card extends StatelessWidget {
                       ],
                     ),
                   ],
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   EngagementStatsRow(
                     eventSource: _eventSourceFor(event),
                     eventIdentifiant: event.id,
                     eventTitle: event.titre,
-                    iconColor: AppColors.textDim,
-                    textColor: AppColors.textDim,
-                    iconSize: 10,
-                    fontSize: 9.5,
-                    compact: true,
-                    showComments: false,
+                    iconColor: Colors.white,
+                    textColor: Colors.white,
+                    iconSize: 11,
+                    fontSize: 10,
                   ),
                 ],
               ),
@@ -487,6 +525,18 @@ class _P2Card extends StatelessWidget {
         ),
       ),
     ),
+    );
+  }
+
+  Widget _gradientBgP2() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF7C3AED), Color(0xFFFF1A6E)],
+        ),
+      ),
     );
   }
 }

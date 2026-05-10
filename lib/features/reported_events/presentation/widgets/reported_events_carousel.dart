@@ -9,6 +9,7 @@ import 'package:pulz_app/features/reported_events/domain/models/reported_event.d
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
+import 'package:pulz_app/features/reported_events/data/permanent_fake_stories.dart';
 
 /// Tier de popularite d'un signalement.
 enum _HeatTier { hot, warm, normal }
@@ -70,14 +71,17 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                 e.lng >= bbox.minLng && e.lng <= bbox.maxLng).toList()
             : allEvents;
 
-        if (events.isEmpty) return const _EmptyHint();
+        // Stories user reelles d'abord — tri chronologique inverse (les
+        // plus recentes en tete, donc une nouvelle publication apparait
+        // en position 0). Puis les fakes permanentes en queue.
+        final realSorted = [...events]
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        final sorted = [
+          ...realSorted,
+          ...permanentFakeStories(),
+        ];
 
-        // Trier par score decroissant (photos + reports)
-        final sorted = [...events]..sort((a, b) {
-            final scoreA = a.photos.length + a.reportCount;
-            final scoreB = b.photos.length + b.reportCount;
-            return scoreB.compareTo(scoreA);
-          });
+        if (sorted.isEmpty) return const _EmptyHint();
 
         final maxScore = sorted.first.photos.length + sorted.first.reportCount;
 

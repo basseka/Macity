@@ -368,6 +368,39 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       referrerPolicy: 'origin',
     }).addTo(map);
 
+    // Trace du peripherique de Toulouse (A620/A621). Polyligne en jaune
+    // neon double-couche avec halo pour ressortir au-dessus des tiles dark.
+    // Pane dedie pour garantir qu'on rend AU-DESSUS du tile-pane (qui a
+    // un hue-rotate, mais ce pane custom n'en herite pas).
+    map.createPane('peripherique');
+    map.getPane('peripherique').style.zIndex = 425;
+    map.getPane('peripherique').style.pointerEvents = 'none';
+    const TOULOUSE_PERIPH = [
+      [43.6420, 1.4400], [43.6450, 1.4550], [43.6300, 1.4730],
+      [43.6100, 1.4800], [43.5850, 1.4820], [43.5650, 1.4600],
+      [43.5570, 1.4400], [43.5650, 1.4180], [43.5800, 1.4040],
+      [43.6020, 1.3950], [43.6200, 1.3960], [43.6320, 1.4070],
+      [43.6400, 1.4220], [43.6420, 1.4400]
+    ];
+    // Halo doux pour suggerer le contour, sans agressivite.
+    L.polyline(TOULOUSE_PERIPH, {
+      pane: 'peripherique',
+      color: '#EAB308',
+      weight: 9,
+      opacity: 0.14,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(map);
+    // Ligne fine ambree par-dessus.
+    L.polyline(TOULOUSE_PERIPH, {
+      pane: 'peripherique',
+      color: '#EAB308',
+      weight: 2.2,
+      opacity: 0.7,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(map);
+
     // Cluster group : groupe les pins proches en cercles avec compteur.
     // maxClusterRadius=40 = pins a < 40px sont groupes.
     // spiderfyOnMaxZoom=true = au max zoom, eclate les pins en spirale.

@@ -51,8 +51,10 @@ import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dar
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/core/widgets/home_nav_tabs.dart';
+import 'package:pulz_app/core/widgets/home_quick_pills.dart';
 import 'package:pulz_app/features/home/state/feed_filter_intent_provider.dart';
 import 'package:pulz_app/features/home/state/feed_mode_provider.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_live_stripe.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
@@ -439,7 +441,31 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildGreetingBlock() {
-    return HomeNavTabs(active: _resolveActiveNavTab());
+    // Quick pills + carrousel boost (P1/P2) visibles UNIQUEMENT sur le
+    // tab Home. Sur Feed/Scène/Event/Club, on laisse toute la place a
+    // la grid de feed pour eviter le bruit visuel.
+    // En plus : quand pill "Top" est actif, on cache les nav tabs pour
+    // donner toute la priorite visuelle au carrousel P2.
+    final activeTab = _resolveActiveNavTab();
+    final isHomeTab = activeTab == HomeNavTab.feed;
+    final boostedTab = ref.watch(boostedCarouselTabProvider);
+    final boostedCarousel = boostedTab == BoostedCarouselTab.top
+        ? const BoostedP2Carousel()
+        : const BoostedEventsCarousel();
+    final showNavTabs =
+        !isHomeTab || boostedTab != BoostedCarouselTab.top;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isHomeTab) ...[
+          const HomeQuickPills(),
+          const SizedBox(height: 4),
+          boostedCarousel,
+          const SizedBox(height: 4),
+        ],
+        if (showNavTabs) HomeNavTabs(active: activeTab),
+      ],
+    );
   }
 
   /// Resoud quel onglet de la nav bar est en surbrillance selon l'etat courant
@@ -1129,68 +1155,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final isHomeMode =
         _activeTab == null && ref.watch(feedModeProvider) == FeedMode.classic;
     if (isHomeMode) {
+      // Les carrousels boostes (A la une / Au top) sont desormais dans le
+      // greeting block (toggle via QuickPills). Sous les nav tabs, on
+      // affiche le stripe "En direct autour de vous" : les stories Map
+      // Live sous forme de cards (photo + nom + temps relatif).
       return ListView(
         padding: EdgeInsets.zero,
-        children: [
-          const BoostedEventsCarousel(),
-          const BoostedP2Carousel(),
-          const SizedBox(height: 16),
-          // Header "Map Live" — même style que "À la une" / "Au top"
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(Icons.map, size: 13, color: AppColors.magenta),
-                const SizedBox(width: 6),
-                Text(
-                  'Map',
-                  style: GoogleFonts.geist(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.4,
-                    color: AppColors.text,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  'Live',
-                  style: GoogleFonts.instrumentSerif(
-                    fontSize: 18,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: -0.3,
-                    foreground: Paint()
-                      ..shader = AppGradients.editorial.createShader(
-                        const Rect.fromLTWH(0, 0, 80, 24),
-                      ),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  'Voir tout',
-                  style: GoogleFonts.geist(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFFC77DFF),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MapLivePage()),
-              ),
-              child: const AbsorbPointer(
-                child: ReportedEventsMap(usePresentationMarkers: true),
-              ),
-            ),
-          ),
-          const SizedBox(height: 80),
+        children: const [
+          ReportedEventsLiveStripe(),
+          SizedBox(height: 80),
         ],
       );
     }

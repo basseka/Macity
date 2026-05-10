@@ -208,7 +208,9 @@ Future<List<UserEvent>> _fetchAdminPinnedEvents(String pinType, String city) asy
 /// Les pins s'ajoutent EN TETE de la liste (admin au-dessus des P1).
 final boostedEventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  final max = await _getConfigInt('boosted_p1_max', 5);
+  // Limites hardcodees (etaient en DB via app_config) — economise un
+  // round-trip HTTP a chaque ouverture du home (~300ms).
+  const max = 5;
   final results = await Future.wait([
     _fetchByPriority(city, 'P1', max),
     _fetchAdminPinnedEvents('featured', city),
@@ -224,7 +226,7 @@ final boostedEventsProvider = FutureProvider<List<UserEvent>>((ref) async {
 /// Events boostés P2 "Au top" + pins admin (top).
 final boostedP2EventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  final max = await _getConfigInt('boosted_p2_max', 6);
+  const max = 6;
   final results = await Future.wait([
     _fetchByPriority(city, 'P2', max),
     _fetchAdminPinnedEvents('top', city),

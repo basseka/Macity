@@ -28,26 +28,14 @@ class ReportedEventsPagedSheet extends StatefulWidget {
     required List<ReportedEvent> events,
     required int initialIndex,
   }) {
+    debugPrint('[StoryViewer] open count=${events.length} initial=$initialIndex');
     return Navigator.of(context, rootNavigator: true).push(
-      PageRouteBuilder(
-        opaque: false,
-        barrierColor: Colors.black,
-        transitionDuration: const Duration(milliseconds: 220),
-        pageBuilder: (_, __, ___) => ReportedEventsPagedSheet(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ReportedEventsPagedSheet(
           events: events,
           initialIndex: initialIndex,
         ),
-        transitionsBuilder: (_, anim, __, child) {
-          return FadeTransition(
-            opacity: anim,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.96, end: 1.0).animate(
-                CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
-              ),
-              child: child,
-            ),
-          );
-        },
       ),
     );
   }

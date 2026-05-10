@@ -375,6 +375,9 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
       return null;
     }
     state = state.copyWith(isSubmitting: true, clearError: true);
+    debugPrint('[ReportForm] submit start lat=${state.lat} lng=${state.lng} '
+        'category="${state.category}" photos=${state.localPhotoPaths.length} '
+        'video=${state.localVideoPath != null}');
     try {
       final result = await _svc.reportEvent(
         category: state.category,
@@ -386,6 +389,8 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         locationName: state.locationName.trim(),
         osmId: state.osmId,
       );
+      debugPrint('[ReportForm] submit success id=${result.id} '
+          'photoFailures=${result.photoFailures}');
       // On reset apres succes
       state = const ReportFormState();
       return result;
