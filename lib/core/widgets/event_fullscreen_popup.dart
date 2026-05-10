@@ -596,50 +596,53 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
                 child: Icon(Icons.play_arrow, color: Colors.white, size: 48),
               ),
             ),
-          // Boutons mute + fullscreen en bas a droite
+          // Mute en bas a droite
           Positioned(
             bottom: 8,
             right: 8,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _muted = !_muted;
-                      _controller.setVolume(_muted ? 0 : 1);
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Icon(
-                      _muted ? Icons.volume_off : Icons.volume_up,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                setState(() {
+                  _muted = !_muted;
+                  _controller.setVolume(_muted ? 0 : 1);
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(22),
                 ),
-                const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: () => _openFullscreen(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(
-                      Icons.fullscreen,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
+                child: Icon(
+                  _muted ? Icons.volume_off : Icons.volume_up,
+                  color: Colors.white,
+                  size: 18,
                 ),
-              ],
+              ),
+            ),
+          ),
+
+          // Fullscreen en HAUT a GAUCHE — zone moins encombree par les
+          // badges et boutons du popup, plus facile a viser.
+          Positioned(
+            top: 8,
+            left: 8,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _openFullscreen(context),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Icon(
+                  Icons.fullscreen,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
             ),
           ),
         ],
