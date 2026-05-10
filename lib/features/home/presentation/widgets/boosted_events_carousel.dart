@@ -37,7 +37,7 @@ class BoostedEventsCarousel extends ConsumerWidget {
     // Full width hero : chaque card occupe la largeur ecran (- 32px de
     // padding L/R). PageView avec snap pour toujours centrer la card
     // visible quand l'utilisateur swipe.
-    final cardWidth = MediaQuery.of(context).size.width - 16;
+    final cardWidth = MediaQuery.of(context).size.width;
     final cardHeight = cardWidth / 1.4375;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +56,7 @@ class BoostedEventsCarousel extends ConsumerWidget {
             itemCount: events.length,
             physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.zero,
               child: _BoostedCard(
                 event: events[index],
                 allEvents: events,
@@ -290,7 +290,7 @@ class BoostedP2Carousel extends ConsumerWidget {
         if (events.isEmpty) return const SizedBox.shrink();
         // Meme dimensions que "A la une" (ratio 1.4375) pour un swap visuel
         // cohérent quand l'utilisateur toggle entre les deux pills.
-        final cardWidth = MediaQuery.of(context).size.width - 16;
+        final cardWidth = MediaQuery.of(context).size.width;
         final cardHeight = cardWidth / 1.4375;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +309,7 @@ class BoostedP2Carousel extends ConsumerWidget {
                 itemCount: events.length,
                 physics: const BouncingScrollPhysics(),
                 itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: EdgeInsets.zero,
                   child: _P2Card(
                     event: events[index],
                     allEvents: events,
