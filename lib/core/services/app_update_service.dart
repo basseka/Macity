@@ -50,7 +50,14 @@ class AppUpdateService {
       final cmpLatest = _compareSemver(local, latest);
 
       AppUpdateStatus status;
-      if (cmpMin < 0 || force) {
+      // Force update si :
+      // - version locale < min_version (toujours, indep du flag)
+      // - OU `force_update=true` ET version locale < latest_version (flag
+      //   d'urgence qui upgrade un "update available" en "force update"
+      //   sans avoir a bumper min_version).
+      // Si local >= latest, on ne force JAMAIS (eviter de bloquer un user
+      // qui vient juste d'installer la derniere version).
+      if (cmpMin < 0 || (force && cmpLatest < 0)) {
         status = AppUpdateStatus.forceUpdate(
           localVersion: local,
           latestVersion: latest,
