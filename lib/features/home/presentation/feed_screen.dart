@@ -1460,17 +1460,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               )
             else
-              // Grille 3 col edge-to-edge avec quadrillage blanc 1px : pas
-              // de spacing entre les tuiles, chaque _FeedTile porte une
-              // bordure right+bottom blanche. Bordure top+left exterieure
-              // dessinee par ce SliverPadding/DecoratedBox.
+              // Grille 3 col style Instagram explore : aspect portrait 0.62,
+              // chaque _FeedTile porte sa propre frame blanche (padding 3px),
+              // tiles adjacentes => 6px de gap blanc visible.
               SliverGrid(
                 key: ValueKey('grid_$day'),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   mainAxisSpacing: 0,
                   crossAxisSpacing: 0,
-                  childAspectRatio: 0.75,
+                  childAspectRatio: 0.62,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => _FeedTile(item: dayGroups[day]![index]),
@@ -1579,14 +1578,13 @@ class _FeedTile extends StatelessWidget {
   Widget _buildTap(BuildContext context) {
     return GestureDetector(
       onTap: item.onTap,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(
-            right: BorderSide(color: Colors.white, width: 4),
-            bottom: BorderSide(color: Colors.white, width: 4),
-          ),
-        ),
-        child: ClipRect(
+      child: Container(
+        // Frame blanche : 3px de padding tout autour de la tile -> tiles
+        // adjacentes => 6px de gap blanc (style Instagram explore).
+        color: Colors.white,
+        padding: const EdgeInsets.all(3),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
           child: Stack(
           fit: StackFit.expand,
           children: [
