@@ -474,7 +474,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     Text(
                       ref.watch(selectedCityProvider),
                       style: GoogleFonts.geist(
-                        fontSize: 15,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
                         color: AppColors.text,
@@ -483,7 +483,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     const SizedBox(width: 2),
                     const Icon(
                       Icons.keyboard_arrow_down,
-                      size: 18,
+                      size: 14,
                       color: AppColors.textDim,
                     ),
                   ],
