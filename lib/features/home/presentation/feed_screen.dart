@@ -439,7 +439,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => AccountMenu.show(context, ref),
-          child: AccountMenu.buildButton(ref: ref),
+          child: AccountMenu.buildButton(ref: ref, size: 40),
         ),
         const SizedBox(width: 10),
         // Bloc "prenom + ville" cliquable -> ouvre le city picker
