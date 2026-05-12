@@ -23,7 +23,7 @@ import 'package:pulz_app/features/notifications/presentation/mairie_notification
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 
 /// Index global du bouton nav selectionne.
-/// 0=Feed, 1=MaVille, 2=Offres, 3=Explorer, 4=Favoris
+/// 0=Home, 1=Feed, 2=Publier, 3=Explorer, 4=Ma Ville (favoris -> pill HomeQuickPills)
 final navBarIndexProvider = StateProvider<int>((ref) => 0);
 
 /// Pop toute route pushee au dessus de la racine (sheet / dialog / etc.)
@@ -74,12 +74,12 @@ class AppBottomNavBar extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // 1 - Feed (accueil = liste des events / signalements)
+              // 0 - Home (accueil = greeting + carrousels + grille feed)
               // Toujours dispo : depuis n'importe quelle page on retombe sur
               // /home (FeedScreen) ; on pop d'abord les sheets/modales ouvertes.
               _NavBarItem(
-                icon: Icons.dynamic_feed_rounded,
-                label: 'Feed',
+                icon: Icons.home_rounded,
+                label: 'Home',
                 isActive: _selectedIndex == 0,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 0;
@@ -92,17 +92,24 @@ class AppBottomNavBar extends ConsumerWidget {
                   appRouter.go('/home');
                 },
               ),
-              // 2 - Ma Ville
+              // 1 - Feed (raccourci vers /home — les favoris sont desormais
+              // accessibles via la pill "Mes favoris" dans HomeQuickPills).
               _NavBarItem(
-                icon: Icons.account_balance,
-                label: 'Ma Ville',
+                icon: Icons.dynamic_feed_rounded,
+                label: 'Feed',
                 isActive: _selectedIndex == 1,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 1;
-                  _showSheet(const MairieNotificationsSheet());
+                  final nav = rootNavigatorKey.currentState;
+                  if (nav != null) {
+                    while (nav.canPop()) {
+                      nav.pop();
+                    }
+                  }
+                  appRouter.go('/home');
                 },
               ),
-              // 3 - + (publier event ou story Map Live)
+              // 2 - + (publier event ou story Map Live)
               _NavBarItem(
                 icon: Icons.add_circle,
                 label: 'Publier',
@@ -113,7 +120,7 @@ class AppBottomNavBar extends ConsumerWidget {
                   _showPublishMenu(context, ref);
                 },
               ),
-              // 4 - Explorer
+              // 3 - Explorer
               _NavBarItem(
                 icon: Icons.search,
                 label: 'Explorer',
@@ -124,14 +131,14 @@ class AppBottomNavBar extends ConsumerWidget {
                   _navContext.go('/explorer');
                 },
               ),
-              // 5 - Favoris
+              // 4 - Ma Ville (mairie notifications sheet)
               _NavBarItem(
-                icon: Icons.favorite,
-                label: 'Favoris',
+                icon: Icons.account_balance,
+                label: 'Ma Ville',
                 isActive: _selectedIndex == 4,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 4;
-                  _showSheet(const LikedPlacesBottomSheet());
+                  _showSheet(const MairieNotificationsSheet());
                 },
               ),
             ],

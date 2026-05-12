@@ -34,7 +34,6 @@ import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -54,6 +53,7 @@ import 'package:pulz_app/core/widgets/home_nav_tabs.dart';
 import 'package:pulz_app/core/widgets/home_quick_pills.dart';
 import 'package:pulz_app/features/home/state/feed_filter_intent_provider.dart';
 import 'package:pulz_app/features/home/state/feed_mode_provider.dart';
+import 'package:pulz_app/features/home/state/search_intent_provider.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_live_stripe.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
@@ -289,6 +289,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         _switchTab(next);
       }
     });
+    // Demande d'ouverture du mode recherche venant de l'Explorer.
+    // On consomme + reset le flag pour qu'un autre push le redeclenche.
+    ref.listen<bool>(searchIntentProvider, (prev, next) {
+      if (next && !_isSearching) {
+        setState(() => _isSearching = true);
+        Future.microtask(
+          () => ref.read(searchIntentProvider.notifier).state = false,
+        );
+      }
+    });
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -327,12 +337,21 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 
+  /// True quand l'utilisateur a cliqué sur le bouton "Feed" (slot 1) de la
+  /// nav bar du bas : on affiche UNIQUEMENT la grille d'events, sans
+  /// greeting block (pills, carrousels, nav tabs) ni live stripe.
+  bool get _isFeedOnlyView => ref.watch(navBarIndexProvider) == 1;
+
   Widget _buildHeader() {
     // Search bar + hamburger : caches sur Home (mode classic, aucun filtre).
     // Visibles sur Feed (feed2), En scene, Event, Clubbing.
     final isHomeMode =
         _activeTab == null && ref.watch(feedModeProvider) == FeedMode.classic;
-    final showSearchRow = !isHomeMode || _isSearching;
+    final showGreetingBlock = !_isFeedOnlyView;
+    // La barre de recherche est masquee sur la vue "Feed" (slot 1) — elle
+    // est desormais sur la page Explorer (sous le bloc Offres).
+    final showSearchRow =
+        !_isFeedOnlyView && (!isHomeMode || _isSearching);
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 6, 16, isHomeMode ? 0 : 8),
       child: Column(
@@ -342,7 +361,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           _buildBrandRow(),
           if (!_isSearching) ...[
             const SizedBox(height: 14),
-            _buildGreetingBlock(),
+            if (showGreetingBlock) _buildGreetingBlock(),
             if (showSearchRow) const SizedBox(height: 14),
           ] else
             const SizedBox(height: 10),
@@ -625,22 +644,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ),
               ListTile(
                 dense: true,
-                leading: const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
-                title: const Text('Mes favoris', style: TextStyle(color: Colors.white, fontSize: 10)),
-                onTap: () {
-                  ref.read(navBarIndexProvider.notifier).state = 4;
-                  Navigator.pop(ctx);
-                  showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const LikedPlacesBottomSheet(),
-                  );
-                },
-              ),
-              ListTile(
-                dense: true,
                 leading: const Icon(Icons.card_giftcard, color: Colors.amber, size: 18),
                 title: const Text('Offres', style: TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
@@ -654,7 +657,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 leading: const Icon(Icons.account_balance, color: Colors.blueAccent, size: 18),
                 title: const Text('Mairies', style: TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
-                  ref.read(navBarIndexProvider.notifier).state = 1;
+                  ref.read(navBarIndexProvider.notifier).state = 4;
                   Navigator.pop(ctx);
                   MairieNotificationsSheet.show(context);
                 },
@@ -1359,7 +1362,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // Sur /home sans filtre, on ajoute le stripe "En direct autour de vous"
     // (stories Map Live) en haut du feed. Les boosted carousels (A la une /
     // Au top) sont deja dans le greeting block — on ne les replique pas ici.
-    final showLiveStripe = !_isLandscape && _activeTab == null;
+    // En mode "Feed" (slot 1 de la nav bar), on cache aussi le stripe pour
+    // afficher uniquement la grille d'events.
+    final showLiveStripe =
+        !_isLandscape && _activeTab == null && !_isFeedOnlyView;
 
     if (dayGroups.isEmpty && !_isLandscape && _activeTab == null) {
       return CustomScrollView(
@@ -1454,20 +1460,21 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               )
             else
-              SliverPadding(
+              // Grille 3 col edge-to-edge avec quadrillage blanc 1px : pas
+              // de spacing entre les tuiles, chaque _FeedTile porte une
+              // bordure right+bottom blanche. Bordure top+left exterieure
+              // dessinee par ce SliverPadding/DecoratedBox.
+              SliverGrid(
                 key: ValueKey('grid_$day'),
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 2,
-                    crossAxisSpacing: 2,
-                    childAspectRatio: 0.75,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _FeedTile(item: dayGroups[day]![index]),
-                    childCount: dayGroups[day]!.length,
-                  ),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 0,
+                  crossAxisSpacing: 0,
+                  childAspectRatio: 0.75,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _FeedTile(item: dayGroups[day]![index]),
+                  childCount: dayGroups[day]!.length,
                 ),
               ),
           ],
@@ -1572,9 +1579,15 @@ class _FeedTile extends StatelessWidget {
   Widget _buildTap(BuildContext context) {
     return GestureDetector(
       onTap: item.onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border(
+            right: BorderSide(color: Colors.white, width: 1),
+            bottom: BorderSide(color: Colors.white, width: 1),
+          ),
+        ),
+        child: ClipRect(
+          child: Stack(
           fit: StackFit.expand,
           children: [
             // Background : video ou image
@@ -1667,6 +1680,7 @@ class _FeedTile extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

@@ -14,7 +14,6 @@ import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/widgets/mode_video_banner.dart';
 import 'package:pulz_app/features/search/presentation/search_events_bottom_sheet.dart';
-import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:pulz_app/features/notifications/presentation/mairie_notifications_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
@@ -250,22 +249,6 @@ class ModeShell extends ConsumerWidget {
               ),
               ListTile(
                 dense: true,
-                leading: const Icon(Icons.favorite, color: Colors.redAccent, size: 18),
-                title: const Text('Mes favoris', style: TextStyle(color: Colors.white, fontSize: 10)),
-                onTap: () {
-                  ref.read(navBarIndexProvider.notifier).state = 4;
-                  Navigator.pop(ctx);
-                  showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const LikedPlacesBottomSheet(),
-                  );
-                },
-              ),
-              ListTile(
-                dense: true,
                 leading: const Icon(Icons.card_giftcard, color: Colors.amber, size: 18),
                 title: const Text('Offres', style: TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
@@ -279,7 +262,7 @@ class ModeShell extends ConsumerWidget {
                 leading: const Icon(Icons.account_balance, color: Colors.blueAccent, size: 18),
                 title: const Text('Mairies', style: TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
-                  ref.read(navBarIndexProvider.notifier).state = 1;
+                  ref.read(navBarIndexProvider.notifier).state = 4;
                   Navigator.pop(ctx);
                   MairieNotificationsSheet.show(context);
                 },
