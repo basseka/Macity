@@ -65,28 +65,13 @@ class RestaurantDetailSheet {
           if (venue.telephone.isNotEmpty)
             DetailInfoItem(Icons.phone_outlined, venue.telephone),
         ],
-        // Badge des reservations actives au-dessus des infos.
-        extraContent: venueIdInt > 0
-            ? _ReservationBadges(venueId: venueIdInt)
-            : null,
-        // "Reserver" ouvre la sheet form au lieu de naviguer hors de l'app.
-        primaryAction: venueIdInt > 0
-            ? DetailAction(
-                icon: Icons.event_available,
-                label: 'Réserver',
-                onTap: () => ReservationFormSheet.show(
-                  context,
-                  venueId: venueIdInt,
-                  venueName: venue.name,
-                ),
-              )
-            : (venue.websiteUrl.isNotEmpty
-                ? DetailAction(
-                    icon: Icons.language,
-                    label: 'Site web',
-                    url: venue.websiteUrl,
-                  )
-                : null),
+        // Bloc "Reserver" + badges reservations en haut de la fiche (avant les
+        // infos) pour qu'on ne puisse pas le rater. extraContent est rendu
+        // juste apres le titre, gros CTA gradient avec icone calendrier.
+        extraContent: _ReservationBlock(
+          venueId: venueIdInt,
+          venueName: venue.name,
+        ),
         secondaryActions: [
           if (venue.lienMaps.isNotEmpty)
             DetailAction(
@@ -114,29 +99,80 @@ class RestaurantDetailSheet {
   }
 }
 
-/// Bloc affiche en haut de la fiche resto si l'user a des reservations
-/// actives (pending ou accepted, < 2h apres l'heure de reservation).
-class _ReservationBadges extends ConsumerWidget {
+/// Bloc affiche en haut de la fiche resto : gros CTA "Reserver" + badges
+/// des reservations actives (pending / accepted) si l'user en a.
+class _ReservationBlock extends ConsumerWidget {
   final int venueId;
-  const _ReservationBadges({required this.venueId});
+  final String venueName;
+  const _ReservationBlock({required this.venueId, required this.venueName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(activeReservationsProvider(venueId));
+    final async = venueId > 0
+        ? ref.watch(activeReservationsProvider(venueId))
+        : const AsyncValue<List<RestaurantReservation>>.data([]);
     return async.when(
-      data: (list) {
-        if (list.isEmpty) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children:
-                list.map((r) => _ReservationBadge(reservation: r)).toList(),
+      data: (list) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Badges si reservations actives
+          ...list.map((r) => _ReservationBadge(reservation: r)),
+          if (list.isNotEmpty) const SizedBox(height: 4),
+          // CTA Reserver
+          _ReserverCta(venueId: venueId, venueName: venueName),
+          const SizedBox(height: 4),
+        ],
+      ),
+      loading: () => _ReserverCta(venueId: venueId, venueName: venueName),
+      error: (_, __) => _ReserverCta(venueId: venueId, venueName: venueName),
+    );
+  }
+}
+
+class _ReserverCta extends StatelessWidget {
+  final int venueId;
+  final String venueName;
+  const _ReserverCta({required this.venueId, required this.venueName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 4),
+      child: SizedBox(
+        width: double.infinity,
+        height: 54,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            if (venueId <= 0) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Réservation indisponible pour ce restaurant.'),
+                ),
+              );
+              return;
+            }
+            ReservationFormSheet.show(
+              context,
+              venueId: venueId,
+              venueName: venueName,
+            );
+          },
+          icon: const Icon(Icons.event_available, size: 20),
+          label: const Text(
+            'Réserver une table',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
           ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF7B2D8E),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            shadowColor: const Color(0xFF7B2D8E).withValues(alpha: 0.4),
+          ),
+        ),
+      ),
     );
   }
 }
