@@ -10,6 +10,7 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_chat.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/story_video_cache.dart';
 import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
 
 /// Vue story plein-écran (palette Neon) : photo en fond, header overlay,
@@ -197,24 +198,30 @@ class _StoryMediaState extends ConsumerState<_StoryMedia> {
     super.initState();
     final url = widget.videoUrl;
     if (url != null && url.isNotEmpty) {
-      final ctrl = VideoPlayerController.networkUrl(Uri.parse(url));
-      _ctrl = ctrl;
-      ctrl.initialize().then((_) {
+      // On passe par le cache partage : si le paged_sheet a preload, le
+      // controller est deja init -> play instantane sans round-trip reseau.
+      StoryVideoCache.take(url).then((ctrl) {
         if (!mounted) return;
-        ctrl.setLooping(true);
-        ctrl.setVolume(0);
-        // Si la sheet/chat est deja focus au mount, on ne joue pas.
+        _ctrl = ctrl;
+        ctrl.seekTo(Duration.zero);
         if (!ref.read(chatInputFocusedProvider)) ctrl.play();
         setState(() => _initialized = true);
       }).catchError((e) {
-        debugPrint('[StoryMedia] video init error: $e');
+        debugPrint('[StoryMedia] video take failed: $e');
       });
     }
   }
 
   @override
   void dispose() {
-    _ctrl?.dispose();
+    // Le controller est partage via StoryVideoCache : on ne dispose PAS ici,
+    // sinon on tue la lecture pour un retour swipe arriere. On pause juste.
+    final c = _ctrl;
+    if (c != null && c.value.isInitialized) {
+      try {
+        c.pause();
+      } catch (_) {}
+    }
     super.dispose();
   }
 

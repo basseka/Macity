@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/story_video_cache.dart';
 import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
-import 'package:video_player/video_player.dart';
 
 /// Viewer plein ecran style Snapchat / Instagram stories.
 ///
@@ -90,11 +90,15 @@ class _ReportedEventsPagedSheetState
     _pageCtrl.dispose();
     _progress.removeStatusListener(_onProgressStatus);
     _progress.dispose();
+    // Libere tous les VideoPlayerController du cache : on quitte le viewer.
+    StoryVideoCache.disposeAll();
     super.dispose();
   }
 
   /// Demarre la story a [index] : reset progress avec duree par defaut puis
-  /// resout la vraie duree video en background si applicable.
+  /// resout la vraie duree video en background si applicable. Pre-charge
+  /// aussi la video suivante (et eventuellement la precedente) pour que le
+  /// swipe ne montre pas de placeholder.
   void _startStory(int index) {
     final event = widget.events[index];
     _progress
@@ -105,22 +109,39 @@ class _ReportedEventsPagedSheetState
     if (event.videos.isNotEmpty) {
       _resolveVideoDuration(event.videos.first, index);
     }
+    _warmCacheAround(index);
   }
 
-  /// Initialise un VideoPlayerController juste pour lire les metadonnees
-  /// (durée), puis ajuste la progress bar courante. Cap a [_maxVideoDuration].
+  /// Garde une fenetre de 3 controllers (prev/curr/next) en cache, et
+  /// declenche l'init en background des voisins. La premiere lecture
+  /// d'une video se fait pendant que l'utilisateur regarde encore la
+  /// precedente -> swipe instantane.
+  void _warmCacheAround(int index) {
+    final keep = <String>{};
+    for (final offset in [-1, 0, 1]) {
+      final i = index + offset;
+      if (i < 0 || i >= widget.events.length) continue;
+      final videos = widget.events[i].videos;
+      if (videos.isEmpty) continue;
+      final url = videos.first;
+      keep.add(url);
+      StoryVideoCache.preload(url);
+    }
+    StoryVideoCache.keepOnly(keep);
+  }
+
+  /// Lit la duree de la video via le cache partage (l'init y est deja fait
+  /// ou en cours), puis ajuste la progress bar. Cap a [_maxVideoDuration].
   Future<void> _resolveVideoDuration(String url, int forIndex) async {
     final token = ++_resolveToken;
 
-    // Cache hit → applique directement
     if (_videoDurations.containsKey(url)) {
       _applyDuration(_videoDurations[url]!, token, forIndex);
       return;
     }
 
-    final ctrl = VideoPlayerController.networkUrl(Uri.parse(url));
     try {
-      await ctrl.initialize();
+      final ctrl = await StoryVideoCache.take(url);
       var d = ctrl.value.duration;
       if (d <= Duration.zero) d = _photoDuration;
       if (d > _maxVideoDuration) d = _maxVideoDuration;
@@ -128,8 +149,6 @@ class _ReportedEventsPagedSheetState
       _applyDuration(d, token, forIndex);
     } catch (e) {
       debugPrint('[StoryViewer] resolve duration failed: $e');
-    } finally {
-      await ctrl.dispose();
     }
   }
 
