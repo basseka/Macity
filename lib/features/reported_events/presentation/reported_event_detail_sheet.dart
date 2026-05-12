@@ -77,23 +77,6 @@ class _ReportedEventDetailSheetState
     }
   }
 
-  void _showFullVideo() {
-    if (event.videos.isEmpty) return;
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: false,
-        pageBuilder: (_, __, ___) => _FullVideoViewer(
-          videos: event.videos,
-          initialIndex: 0,
-          liveLabel: event.generated?.timeLabel ?? 'LIVE',
-        ),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
-  }
-
   String _relativeAge() {
     final diff = DateTime.now().difference(event.createdAt);
     if (diff.inMinutes < 1) return "a l'instant";
@@ -116,17 +99,13 @@ class _ReportedEventDetailSheetState
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Photo full-bleed en background
-          if (hasPhoto)
-            CachedNetworkImage(
-              imageUrl: event.firstPhoto!,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(color: AppColors.bgSecondary),
-              errorWidget: (_, __, ___) =>
-                  Container(color: AppColors.bgSecondary),
-            )
-          else
-            Container(color: AppColors.bgSecondary),
+          // 1. Media full-bleed : video autoplay/loop muted si presente,
+          //    sinon photo. Pause sync avec chatInputFocusedProvider (sheet
+          //    ouverte / chat focus / long-press).
+          _StoryMedia(
+            videoUrl: hasVideo ? event.videos.first : null,
+            photoUrl: hasPhoto ? event.firstPhoto : null,
+          ),
 
           // 2. Gradient overlay bas pour lisibilité du texte
           Positioned.fill(
@@ -171,7 +150,7 @@ class _ReportedEventDetailSheetState
               chatCount: 0,
               viewsLabel: event.displayViewsFormatted,
               onChatTap: _openDiscussionSheet,
-              onVideoTap: hasVideo ? _showFullVideo : null,
+              onVideoTap: null,
             ),
           ),
 
@@ -192,6 +171,93 @@ class _ReportedEventDetailSheetState
         ],
       ),
     );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Media background : video autoplay/loop muted, fallback photo
+// ──────────────────────────────────────────────────────────────────────────
+
+class _StoryMedia extends ConsumerStatefulWidget {
+  final String? videoUrl;
+  final String? photoUrl;
+  const _StoryMedia({this.videoUrl, this.photoUrl});
+
+  @override
+  ConsumerState<_StoryMedia> createState() => _StoryMediaState();
+}
+
+class _StoryMediaState extends ConsumerState<_StoryMedia> {
+  VideoPlayerController? _ctrl;
+  bool _initialized = false;
+  bool _wasPlayingBeforePause = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final url = widget.videoUrl;
+    if (url != null && url.isNotEmpty) {
+      final ctrl = VideoPlayerController.networkUrl(Uri.parse(url));
+      _ctrl = ctrl;
+      ctrl.initialize().then((_) {
+        if (!mounted) return;
+        ctrl.setLooping(true);
+        ctrl.setVolume(0);
+        // Si la sheet/chat est deja focus au mount, on ne joue pas.
+        if (!ref.read(chatInputFocusedProvider)) ctrl.play();
+        setState(() => _initialized = true);
+      }).catchError((e) {
+        debugPrint('[StoryMedia] video init error: $e');
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Pause/resume video sur chat focus (composer focus ou sheet ouverte).
+    ref.listen<bool>(chatInputFocusedProvider, (prev, next) {
+      final ctrl = _ctrl;
+      if (ctrl == null || !ctrl.value.isInitialized) return;
+      if (next) {
+        _wasPlayingBeforePause = ctrl.value.isPlaying;
+        if (ctrl.value.isPlaying) ctrl.pause();
+      } else if (_wasPlayingBeforePause) {
+        ctrl.play();
+        _wasPlayingBeforePause = false;
+      }
+    });
+
+    final ctrl = _ctrl;
+    if (ctrl != null && _initialized) {
+      // FittedBox(cover) garantit le full-bleed quelle que soit l'AR de la
+      // video (portrait, paysage, square).
+      return FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: SizedBox(
+          width: ctrl.value.size.width,
+          height: ctrl.value.size.height,
+          child: VideoPlayer(ctrl),
+        ),
+      );
+    }
+    // Pas de video (ou pas encore prete) -> photo en attendant
+    final photo = widget.photoUrl;
+    if (photo != null && photo.isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: photo,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => Container(color: AppColors.bgSecondary),
+        errorWidget: (_, __, ___) => Container(color: AppColors.bgSecondary),
+      );
+    }
+    return Container(color: AppColors.bgSecondary);
   }
 }
 
@@ -996,223 +1062,3 @@ class _SignaledByCard extends StatelessWidget {
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────
-// Full-screen video viewer (conservé pour le bouton "video" du rail)
-// ──────────────────────────────────────────────────────────────────────────
-
-class _FullVideoViewer extends ConsumerStatefulWidget {
-  final List<String> videos;
-  final int initialIndex;
-  final String liveLabel;
-  const _FullVideoViewer({
-    required this.videos,
-    required this.initialIndex,
-    this.liveLabel = 'LIVE',
-  });
-
-  @override
-  ConsumerState<_FullVideoViewer> createState() => _FullVideoViewerState();
-}
-
-class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
-  late PageController _pageCtrl;
-  late int _current;
-  final Map<int, VideoPlayerController> _controllers = {};
-  bool _wasPlayingBeforeChat = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _current = widget.initialIndex;
-    _pageCtrl = PageController(initialPage: widget.initialIndex);
-    _initController(widget.initialIndex);
-  }
-
-  void _initController(int index) {
-    if (_controllers.containsKey(index)) return;
-    final ctrl =
-        VideoPlayerController.networkUrl(Uri.parse(widget.videos[index]));
-    _controllers[index] = ctrl;
-    ctrl.initialize().then((_) {
-      if (mounted) {
-        setState(() {});
-        ctrl.play();
-      }
-    });
-  }
-
-  void _onPageChanged(int index) {
-    _controllers[_current]?.pause();
-    setState(() => _current = index);
-    _initController(index);
-    _controllers[index]?.play();
-  }
-
-  @override
-  void dispose() {
-    _pageCtrl.dispose();
-    for (final ctrl in _controllers.values) {
-      ctrl.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ref.listen<bool>(chatInputFocusedProvider, (prev, next) {
-      final ctrl = _controllers[_current];
-      if (ctrl == null) return;
-      if (next) {
-        _wasPlayingBeforeChat = ctrl.value.isPlaying;
-        if (ctrl.value.isPlaying) ctrl.pause();
-      } else if (_wasPlayingBeforeChat) {
-        ctrl.play();
-        _wasPlayingBeforeChat = false;
-      }
-    });
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageCtrl,
-            itemCount: widget.videos.length,
-            onPageChanged: _onPageChanged,
-            itemBuilder: (_, index) {
-              final ctrl = _controllers[index];
-              final initialized = ctrl?.value.isInitialized ?? false;
-              return GestureDetector(
-                onTap: () {
-                  if (ctrl == null) return;
-                  setState(() {
-                    ctrl.value.isPlaying ? ctrl.pause() : ctrl.play();
-                  });
-                },
-                child: Center(
-                  child: initialized
-                      ? AspectRatio(
-                          aspectRatio: ctrl!.value.aspectRatio,
-                          child: VideoPlayer(ctrl),
-                        )
-                      : const CircularProgressIndicator(color: Colors.white),
-                ),
-              );
-            },
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 14,
-            left: 0,
-            right: 0,
-            child: Center(child: _LiveBadgeOverlay(label: widget.liveLabel)),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
-            left: 12,
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 20),
-              ),
-            ),
-          ),
-          if (widget.videos.length > 1)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${_current + 1} / ${widget.videos.length}',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LiveBadgeOverlay extends StatefulWidget {
-  final String label;
-  const _LiveBadgeOverlay({required this.label});
-
-  @override
-  State<_LiveBadgeOverlay> createState() => _LiveBadgeOverlayState();
-}
-
-class _LiveBadgeOverlayState extends State<_LiveBadgeOverlay>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedBuilder(
-            animation: _ctrl,
-            builder: (_, __) => Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: Color.lerp(
-                  const Color(0xFFDC2626),
-                  const Color(0xFFDC2626).withValues(alpha: 0.2),
-                  _ctrl.value,
-                ),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            widget.label.toUpperCase(),
-            style: GoogleFonts.inter(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
