@@ -233,20 +233,54 @@ final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(nightCategoryProvider);
 
+  List<CommerceModel> venues;
   if (_curatedTags.contains(category)) {
     try {
-      final venues = await VenuesSupabaseService().fetchVenues(
+      venues = await VenuesSupabaseService().fetchVenues(
         mode: 'night', ville: city, category: category,
       );
-      if (venues.isNotEmpty) return venues;
-    } catch (_) {}
-    // Fallback statique — filtrer aussi par ville
-    return NightBarsData.toulouseBars
-        .where((b) => b.categorie == category && b.ville.toLowerCase() == city.toLowerCase())
-        .toList();
+      if (venues.isEmpty) {
+        venues = NightBarsData.toulouseBars
+            .where((b) => b.categorie == category && b.ville.toLowerCase() == city.toLowerCase())
+            .toList();
+      }
+    } catch (_) {
+      venues = NightBarsData.toulouseBars
+          .where((b) => b.categorie == category && b.ville.toLowerCase() == city.toLowerCase())
+          .toList();
+    }
+  } else {
+    final db = AppDatabase();
+    final repository = CommerceRepository(db: db);
+    venues = await repository.searchByVille(ville: city, query: category);
   }
 
-  final db = AppDatabase();
-  final repository = CommerceRepository(db: db);
-  return repository.searchByVille(ville: city, query: category);
+  return _applyPinnedSort(venues, category ?? '', city);
 });
+
+/// Pousse certains etablissements partenaires en tete de liste pour leur
+/// categorie/ville. Match par nom insensible casse. A etendre quand on aura
+/// d'autres deals partenaires.
+List<CommerceModel> _applyPinnedSort(
+  List<CommerceModel> list,
+  String category,
+  String city,
+) {
+  if (list.isEmpty) return list;
+  String? pinnedName;
+  if (category == 'Club Discotheque' && city.toLowerCase() == 'toulouse') {
+    pinnedName = "l'etoile club";
+  }
+  if (pinnedName == null) return list;
+
+  final pinned = <CommerceModel>[];
+  final others = <CommerceModel>[];
+  for (final v in list) {
+    if (v.nom.toLowerCase().trim() == pinnedName) {
+      pinned.add(v);
+    } else {
+      others.add(v);
+    }
+  }
+  return [...pinned, ...others];
+}
