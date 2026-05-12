@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
+import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
 import 'package:video_player/video_player.dart';
 
 /// Viewer plein ecran style Snapchat / Instagram stories.
@@ -12,7 +14,7 @@ import 'package:video_player/video_player.dart';
 ///  - tap zone droite (2/3) → bulle suivante
 ///  - long-press n'importe ou → pause progression + video
 ///  - swipe horizontal libre via PageView (override fluide de l'auto-advance)
-class ReportedEventsPagedSheet extends StatefulWidget {
+class ReportedEventsPagedSheet extends ConsumerStatefulWidget {
   final List<ReportedEvent> events;
   final int initialIndex;
 
@@ -41,11 +43,12 @@ class ReportedEventsPagedSheet extends StatefulWidget {
   }
 
   @override
-  State<ReportedEventsPagedSheet> createState() =>
+  ConsumerState<ReportedEventsPagedSheet> createState() =>
       _ReportedEventsPagedSheetState();
 }
 
-class _ReportedEventsPagedSheetState extends State<ReportedEventsPagedSheet>
+class _ReportedEventsPagedSheetState
+    extends ConsumerState<ReportedEventsPagedSheet>
     with SingleTickerProviderStateMixin {
   /// Duree par defaut pour une photo (et pendant la resolution video).
   static const _photoDuration = Duration(seconds: 5);
@@ -200,6 +203,15 @@ class _ReportedEventsPagedSheetState extends State<ReportedEventsPagedSheet>
 
   @override
   Widget build(BuildContext context) {
+    // Quand l'user focus le TextField de chat -> pause auto-advance + video.
+    // Au blur -> reprend automatiquement.
+    ref.listen<bool>(chatInputFocusedProvider, (prev, next) {
+      if (next) {
+        _pause();
+      } else {
+        _resume();
+      }
+    });
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(

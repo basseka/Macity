@@ -1,11 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_chat.dart';
+import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
 
@@ -860,7 +862,7 @@ class _FullPhotoViewerState extends State<_FullPhotoViewer> {
 // Viewer video plein ecran (swipe entre videos)
 // ───────────────────────────────────────────
 
-class _FullVideoViewer extends StatefulWidget {
+class _FullVideoViewer extends ConsumerStatefulWidget {
   final List<String> videos;
   final int initialIndex;
   final String liveLabel;
@@ -871,13 +873,17 @@ class _FullVideoViewer extends StatefulWidget {
   });
 
   @override
-  State<_FullVideoViewer> createState() => _FullVideoViewerState();
+  ConsumerState<_FullVideoViewer> createState() => _FullVideoViewerState();
 }
 
-class _FullVideoViewerState extends State<_FullVideoViewer> {
+class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
   late PageController _pageCtrl;
   late int _current;
   final Map<int, VideoPlayerController> _controllers = {};
+  // Cache l'etat "etait en lecture avant la pause" pour reprendre proprement
+  // au blur du champ chat (si l'user avait deja mis en pause manuellement,
+  // on ne relance pas tout seul).
+  bool _wasPlayingBeforeChat = false;
 
   @override
   void initState() {
@@ -919,6 +925,18 @@ class _FullVideoViewerState extends State<_FullVideoViewer> {
 
   @override
   Widget build(BuildContext context) {
+    // Pause / resume video quand l'user ecrit dans le chat
+    ref.listen<bool>(chatInputFocusedProvider, (prev, next) {
+      final ctrl = _controllers[_current];
+      if (ctrl == null) return;
+      if (next) {
+        _wasPlayingBeforeChat = ctrl.value.isPlaying;
+        if (ctrl.value.isPlaying) ctrl.pause();
+      } else if (_wasPlayingBeforeChat) {
+        ctrl.play();
+        _wasPlayingBeforeChat = false;
+      }
+    });
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(

@@ -33,6 +33,12 @@ class ChatActivityNotifier extends StateNotifier<bool> {
 final chatActivityProvider = StateNotifierProvider.family<
     ChatActivityNotifier, bool, String>((ref, _) => ChatActivityNotifier());
 
+/// True quand le user a son TextField de chat focus (en train d'ecrire un
+/// message). Le viewer de stories (ReportedEventsPagedSheet) ecoute ce
+/// provider pour mettre en pause l'auto-advance et la lecture video tant
+/// que l'utilisateur ecrit.
+final chatInputFocusedProvider = StateProvider<bool>((_) => false);
+
 /// Stream de messages pour un signalement.
 /// - 1er fetch : 200 derniers messages
 /// - Tours suivants : DELTA seulement (created_at > last) → ~5 KB/req au lieu

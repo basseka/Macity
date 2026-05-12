@@ -24,6 +24,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
 
   final _controller = TextEditingController();
   final _scrollCtrl = ScrollController();
+  final _inputFocus = FocusNode();
   bool _sending = false;
   String? _userId;
   int _lastCount = 0;
@@ -36,14 +37,34 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
     });
     _controller.addListener(_touchActivity);
     _scrollCtrl.addListener(_touchActivity);
+    _inputFocus.addListener(_onFocusChanged);
   }
 
   void _touchActivity() {
     ref.read(chatActivityProvider(widget.eventId).notifier).touch();
   }
 
+  /// Notifie le viewer de stories que l'user ecrit (pour pause auto-advance
+  /// + video). Reset a false quand le focus est perdu.
+  void _onFocusChanged() {
+    final focused = _inputFocus.hasFocus;
+    final notifier = ref.read(chatInputFocusedProvider.notifier);
+    if (notifier.state != focused) {
+      notifier.state = focused;
+    }
+  }
+
   @override
   void dispose() {
+    _inputFocus.removeListener(_onFocusChanged);
+    // Safety : si on detruit le widget en plein focus, on remet a false
+    // pour ne pas laisser le viewer en pause indefinie.
+    if (ref.read(chatInputFocusedProvider)) {
+      Future.microtask(
+        () => ref.read(chatInputFocusedProvider.notifier).state = false,
+      );
+    }
+    _inputFocus.dispose();
     _controller.dispose();
     _scrollCtrl.dispose();
     super.dispose();
@@ -265,6 +286,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
+                      focusNode: _inputFocus,
                       maxLength: 500,
                       maxLines: 3,
                       minLines: 1,
