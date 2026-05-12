@@ -14,6 +14,7 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/features/food/presentation/restaurant_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
 import 'package:pulz_app/features/food/presentation/food_hub_grid.dart';
@@ -634,56 +635,8 @@ class _RestaurantGridTile extends StatelessWidget {
   ];
 
   void _openDetail(BuildContext context) {
-    final photos = <String>[];
-    if (venue.photo.isNotEmpty && venue.photo.startsWith('http')) {
-      photos.add(venue.photo);
-    }
-    for (final p in _defaultRestaurantPhotos) {
-      if (photos.length >= 6) break;
-      if (!photos.contains(p)) photos.add(p);
-    }
-
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: venue.name,
-        emoji: '',
-        imageAsset: venue.photo.isNotEmpty && !venue.photo.startsWith('http') ? venue.photo : 'assets/images/pochette_restaurant.jpg',
-        imageUrl: venue.photo.isNotEmpty && venue.photo.startsWith('http') ? venue.photo : null,
-        photoGallery: photos,
-        infos: [
-          if (venue.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, venue.description),
-          if (venue.theme.isNotEmpty)
-            DetailInfoItem(Icons.restaurant_menu, 'Theme: ${venue.theme}'),
-          if (venue.style.isNotEmpty)
-            DetailInfoItem(Icons.style, 'Style: ${venue.style}'),
-          if (venue.quartier.isNotEmpty)
-            DetailInfoItem(Icons.location_city, 'Quartier: ${venue.quartier}'),
-          if (venue.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, venue.horaires),
-          if (venue.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, venue.adresse),
-          if (venue.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, venue.telephone),
-        ],
-        primaryAction: venue.websiteUrl.isNotEmpty
-            ? DetailAction(
-                icon: Icons.language, label: 'Site web', url: venue.websiteUrl)
-            : null,
-        secondaryActions: [
-          if (venue.lienMaps.isNotEmpty)
-            DetailAction(
-                icon: Icons.map_outlined, label: 'Maps', url: venue.lienMaps),
-          if (venue.telephone.isNotEmpty)
-            DetailAction(
-                icon: Icons.phone_outlined,
-                label: 'Appeler',
-                url: 'tel:${venue.telephone.replaceAll(' ', '')}'),
-        ],
-        shareText:
-            '${venue.name}\n${venue.adresse}\n${venue.telephone.isNotEmpty ? '${venue.telephone}\n' : ''}${venue.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
-    );
+    // Delegate au helper centralise pour avoir le bouton "Reserver" + badge
+    // de reservations actives sur tous les points d'entree de la fiche.
+    RestaurantDetailSheet.show(context, venue);
   }
 }
