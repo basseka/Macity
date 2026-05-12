@@ -1,26 +1,26 @@
+import 'dart:ui' as ui;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_chat.dart';
-import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
-import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_poster_card.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
+import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
 
-/// Bottom sheet de detail d'un signalement.
-///
-/// Affiche l'affiche en grand + description longue + tags + bouton "Y aller"
-/// (ouvre Google Maps en navigation depuis la position courante).
+/// Vue story plein-écran (palette Neon) : photo en fond, header overlay,
+/// rail d'actions à droite, bloc info en bas avec CTA "Y aller". Le tap sur
+/// le bouton chat (rail ou CTA secondaire) ouvre une bottom-sheet discussion
+/// par-dessus. La pause auto-advance + vidéo est conservée via
+/// [chatInputFocusedProvider] (set à true quand la sheet est ouverte).
 class ReportedEventDetailSheet extends ConsumerStatefulWidget {
   final ReportedEvent event;
 
-  /// Si true, scrolle automatiquement vers la section chat des l'ouverture
-  /// (utilise quand le sheet est ouvert depuis un tap sur une notif
-  /// `chat_message` : l'user veut repondre, pas voir l'affiche).
+  /// Auto-ouvre la sheet discussion au mount (tap sur notif `chat_message`).
   final bool initialScrollToChat;
 
   const ReportedEventDetailSheet({
@@ -36,50 +36,18 @@ class ReportedEventDetailSheet extends ConsumerStatefulWidget {
 
 class _ReportedEventDetailSheetState
     extends ConsumerState<ReportedEventDetailSheet> {
-  late final PageController _pageCtrl;
-  int _currentPage = 0;
-
-  /// Cle sur le widget chat — utilisee pour scroller vers le chat depuis la
-  /// pill "Discuter" sur le poster.
-  final GlobalKey _chatKey = GlobalKey();
-
   ReportedEvent get event => widget.event;
 
   @override
   void initState() {
     super.initState();
-    _pageCtrl = PageController(viewportFraction: 0.85);
-    // Auto-scroll vers le chat si demande (notif chat_message)
     if (widget.initialScrollToChat) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Delay : le sheet finit sa transition d'ouverture (~250ms) +
-        // le chat doit etre attache au tree pour que _chatKey ait un ctx.
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (mounted) _scrollToChat();
+        Future.delayed(const Duration(milliseconds: 350), () {
+          if (mounted) _openDiscussionSheet();
         });
       });
     }
-  }
-
-  void _scrollToChat() {
-    // Met en pause des le tap sur "Discuter" (pas seulement quand le user
-    // focus le TextField) : le viewer story + la video se mettent en pause
-    // pendant que le user scrolle vers le chat et lit les messages.
-    ref.read(chatInputFocusedProvider.notifier).state = true;
-    final ctx = _chatKey.currentContext;
-    if (ctx == null) return;
-    Scrollable.ensureVisible(
-      ctx,
-      duration: const Duration(milliseconds: 380),
-      curve: Curves.easeOutCubic,
-      alignment: 0.0, // amene le chat en haut du viewport
-    );
-  }
-
-  @override
-  void dispose() {
-    _pageCtrl.dispose();
-    super.dispose();
   }
 
   Future<void> _openItinerary() async {
@@ -91,80 +59,44 @@ class _ReportedEventDetailSheetState
     }
   }
 
-  void _showFullPhoto(BuildContext context, List<String> photos, int initial) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: false,
-        pageBuilder: (_, __, ___) => _FullPhotoViewer(
-          photos: photos,
-          initialIndex: initial,
-          liveLabel: event.generated?.timeLabel ?? 'LIVE',
-        ),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 200),
-      ),
+  /// Ouvre la bottom-sheet discussion. Met le viewer story en pause tant
+  /// qu'elle est ouverte (progress bars + video) en flippant le provider de
+  /// focus chat — le PagedSheet écoute déjà ce flag.
+  Future<void> _openDiscussionSheet() async {
+    ref.read(chatInputFocusedProvider.notifier).state = true;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      useRootNavigator: true,
+      builder: (_) => _DiscussionSheet(event: event, onYAller: _openItinerary),
     );
+    if (mounted) {
+      ref.read(chatInputFocusedProvider.notifier).state = false;
+    }
   }
 
-  void _showFullVideo(BuildContext context, List<String> videos, int initial) {
+  void _showFullVideo() {
+    if (event.videos.isEmpty) return;
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         pageBuilder: (_, __, ___) => _FullVideoViewer(
-          videos: videos,
-          initialIndex: initial,
+          videos: event.videos,
+          initialIndex: 0,
           liveLabel: event.generated?.timeLabel ?? 'LIVE',
         ),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
-  }
-
-  Widget _buildReporterFooter() {
-    final prenom = event.reporterPrenom;
-    final contributors = event.contributors;
-    final extra = contributors.length - 3;
-    final stackList = contributors.take(3).toList();
-
-    final label = (prenom != null && prenom.isNotEmpty)
-        ? 'Signale par $prenom${contributors.length > 1 ? " et ${contributors.length - 1} autre${contributors.length - 1 > 1 ? "s" : ""}" : ""}  \u00b7  ${_relativeAge()}'
-        : 'Signale par la commu  \u00b7  ${_relativeAge()}';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHi,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.lineStrong),
-      ),
-      child: Row(
-        children: [
-          if (stackList.isNotEmpty)
-            _AvatarStack(contributors: stackList, extraCount: extra > 0 ? extra : 0)
-          else
-            _SingleAvatar(url: event.reporterAvatarUrl),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: AppColors.textDim,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
     );
   }
 
   String _relativeAge() {
     final diff = DateTime.now().difference(event.createdAt);
-    if (diff.inMinutes < 1) return 'a l\'instant';
+    if (diff.inMinutes < 1) return "a l'instant";
     if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
     if (diff.inHours < 24) return 'il y a ${diff.inHours}h';
     return 'il y a ${diff.inDays}j';
@@ -173,471 +105,889 @@ class _ReportedEventDetailSheetState
   @override
   Widget build(BuildContext context) {
     final g = event.generated;
-    final mediaQuery = MediaQuery.of(context);
-    final keyboard = mediaQuery.viewInsets.bottom;
+    final media = MediaQuery.of(context);
+    final hasPhoto = event.firstPhoto != null;
+    final hasVideo = event.videos.isNotEmpty;
+    final prenom = event.reporterPrenom ?? '';
+    final contributorsExtra = event.contributors.length - 1;
 
-    final maxH = keyboard > 0
-        ? (mediaQuery.size.height - keyboard - mediaQuery.padding.top - 20)
-        : mediaQuery.size.height * 0.78;
+    return ReportedEventViewTracker(
+      eventId: event.id,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 1. Photo full-bleed en background
+          if (hasPhoto)
+            CachedNetworkImage(
+              imageUrl: event.firstPhoto!,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(color: AppColors.bgSecondary),
+              errorWidget: (_, __, ___) =>
+                  Container(color: AppColors.bgSecondary),
+            )
+          else
+            Container(color: AppColors.bgSecondary),
+
+          // 2. Gradient overlay bas pour lisibilité du texte
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.25),
+                      Colors.black.withValues(alpha: 0.85),
+                    ],
+                    stops: const [0.3, 0.55, 1.0],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Header (avatar + nom + LIVE + multiplicateur + sous-ligne)
+          Positioned(
+            top: 8,
+            left: 14,
+            right: 14,
+            child: _StoryHeader(
+              prenom: prenom,
+              avatarUrl: event.reporterAvatarUrl,
+              isLive: event.expiresAt.isAfter(DateTime.now()),
+              multiplier:
+                  contributorsExtra > 0 ? (contributorsExtra + 1) : null,
+              subline: '${_relativeAge()}  ·  ${event.ville ?? ''}'.trim(),
+            ),
+          ),
+
+          // 4. Rail d'actions à droite (scope visuel : Discuter + Vues)
+          Positioned(
+            right: 10,
+            top: media.size.height * 0.36,
+            child: _ActionRail(
+              chatCount: 0,
+              viewsLabel: event.displayViewsFormatted,
+              onChatTap: _openDiscussionSheet,
+              onVideoTap: hasVideo ? _showFullVideo : null,
+            ),
+          ),
+
+          // 5. Bloc info bas : tags + titre + description + CTA "Y aller"
+          Positioned(
+            bottom: 14 + media.padding.bottom,
+            left: 0,
+            right: 0,
+            child: _StoryBottomBlock(
+              ville: event.ville,
+              tags: g?.tags ?? const <String>[],
+              title: g?.title ?? event.rawTitle,
+              description: g?.description ?? '',
+              onYAller: _openItinerary,
+              onChatTap: _openDiscussionSheet,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Header story
+// ──────────────────────────────────────────────────────────────────────────
+
+class _StoryHeader extends StatelessWidget {
+  final String prenom;
+  final String? avatarUrl;
+  final bool isLive;
+  final int? multiplier;
+  final String subline;
+
+  const _StoryHeader({
+    required this.prenom,
+    required this.avatarUrl,
+    required this.isLive,
+    required this.multiplier,
+    required this.subline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : 'L';
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Avatar gradient avec initiale
+              _AvatarBubble(initial: initial, url: avatarUrl),
+              const SizedBox(width: 10),
+              // Nom + badges
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            prenom.isNotEmpty ? prenom : 'La commu',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (isLive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF2244),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(
+                              'LIVE',
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.7,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        if (multiplier != null) ...[
+                          const SizedBox(width: 6),
+                          _GlassChip(child: Text(
+                            '×$multiplier',
+                            style: GoogleFonts.inter(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          )),
+                        ],
+                      ],
+                    ),
+                    if (subline.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subline,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AvatarBubble extends StatelessWidget {
+  final String initial;
+  final String? url;
+  const _AvatarBubble({required this.initial, this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasUrl = url != null && url!.isNotEmpty;
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: hasUrl
+            ? null
+            : const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.magenta, AppColors.violet],
+              ),
+        image: hasUrl
+            ? DecorationImage(image: NetworkImage(url!), fit: BoxFit.cover)
+            : null,
+        border: Border.all(
+            color: Colors.white.withValues(alpha: 0.25), width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: hasUrl
+          ? null
+          : Text(
+              initial,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+    );
+  }
+}
+
+class _GlassChip extends StatelessWidget {
+  final Widget child;
+  const _GlassChip({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Rail d'actions (right side)
+// ──────────────────────────────────────────────────────────────────────────
+
+class _ActionRail extends StatelessWidget {
+  final int chatCount;
+  final String viewsLabel;
+  final VoidCallback onChatTap;
+  final VoidCallback? onVideoTap;
+
+  const _ActionRail({
+    required this.chatCount,
+    required this.viewsLabel,
+    required this.onChatTap,
+    this.onVideoTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _RailButton(
+          icon: Icons.chat_bubble_outline,
+          label: chatCount > 0 ? '$chatCount' : 'discu',
+          onTap: onChatTap,
+        ),
+        const SizedBox(height: 16),
+        _RailButton(
+          icon: Icons.visibility_outlined,
+          label: viewsLabel,
+          onTap: null,
+        ),
+        if (onVideoTap != null) ...[
+          const SizedBox(height: 16),
+          _RailButton(
+            icon: Icons.play_circle_outline,
+            label: 'video',
+            onTap: onVideoTap,
+            highlight: true,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _RailButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool highlight;
+
+  const _RailButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.highlight = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final child = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ClipOval(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: highlight
+                    ? const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.magenta, AppColors.violet],
+                      )
+                    : null,
+                color: highlight
+                    ? null
+                    : Colors.black.withValues(alpha: 0.45),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  width: 1,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                icon,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withValues(alpha: 0.85),
+            shadows: const [
+              Shadow(color: Colors.black54, blurRadius: 4),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (onTap == null) return child;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: child,
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Bottom block : tags + titre + description + CTA "Y aller" + chat secondaire
+// ──────────────────────────────────────────────────────────────────────────
+
+class _StoryBottomBlock extends StatelessWidget {
+  final String? ville;
+  final List<String> tags;
+  final String title;
+  final String description;
+  final VoidCallback onYAller;
+  final VoidCallback onChatTap;
+
+  const _StoryBottomBlock({
+    required this.ville,
+    required this.tags,
+    required this.title,
+    required this.description,
+    required this.onYAller,
+    required this.onChatTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final allTags = <Widget>[
+      if (ville != null && ville!.isNotEmpty)
+        _Tag(label: ville!, icon: Icons.place, active: false),
+      ...tags.take(3).toList().asMap().entries.map(
+            (e) => _Tag(label: '#${e.value}', active: e.key == 0),
+          ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (allTags.isNotEmpty) ...[
+            Wrap(spacing: 6, runSpacing: 6, children: allTags),
+            const SizedBox(height: 10),
+          ],
+          // Titre H1 — spec : 28/900 line-height 1
+          Text(
+            title,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+              letterSpacing: -0.8,
+              color: Colors.white,
+              shadows: const [
+                Shadow(color: Colors.black87, blurRadius: 16),
+              ],
+            ),
+          ),
+          if (description.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              description,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                height: 1.35,
+                color: Colors.white.withValues(alpha: 0.92),
+                shadows: const [
+                  Shadow(color: Colors.black87, blurRadius: 8),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _PrimaryCta(label: 'Y aller', onTap: onYAller),
+              ),
+              const SizedBox(width: 10),
+              _SecondaryRoundButton(
+                icon: Icons.chat_bubble_outline,
+                onTap: onChatTap,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Tag extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool active;
+  const _Tag({required this.label, this.icon, this.active = false});
+
+  @override
+  Widget build(BuildContext context) {
+    if (active) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.magenta,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 11, color: Colors.white),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PrimaryCta extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _PrimaryCta({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.magenta, AppColors.violet],
+          ),
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.magenta.withValues(alpha: 0.35),
+              blurRadius: 22,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.place, size: 16, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.arrow_forward, size: 16, color: Colors.white),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SecondaryRoundButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _SecondaryRoundButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.55),
+              shape: BoxShape.circle,
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.18), width: 1),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Bottom sheet discussion (slide up depuis le bas)
+// ──────────────────────────────────────────────────────────────────────────
+
+class _DiscussionSheet extends ConsumerWidget {
+  final ReportedEvent event;
+  final VoidCallback onYAller;
+
+  const _DiscussionSheet({required this.event, required this.onYAller});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final g = event.generated;
+    final media = MediaQuery.of(context);
+    final keyboard = media.viewInsets.bottom;
+    // 90px du haut comme la spec ; on cale via padding top sur le scaffold sheet.
+    const topInset = 90.0;
+    final maxHeight = media.size.height - topInset;
 
     return AnimatedPadding(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
       padding: EdgeInsets.only(bottom: keyboard),
       child: Container(
-      constraints: BoxConstraints(
-        maxHeight: maxH,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 10, bottom: 8),
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.lineStrong,
-              borderRadius: BorderRadius.circular(2),
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        decoration: const BoxDecoration(
+          color: Color(0xFF120823),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black54,
+              blurRadius: 60,
+              offset: Offset(0, -20),
             ),
-          ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 8, bottom: 4),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
 
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
-              child: Column(
+            // Titre + close
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 6, 12, 8),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Affiche poster (toujours visible)
-                  Center(
-                    child: ReportedEventViewTracker(
-                      eventId: event.id,
-                      child: ReportedEventPosterCard(
-                        event: event,
-                        width: mediaQuery.size.width - 32,
-                        height: 220,
-                        onDiscussTap: _scrollToChat,
+                  Expanded(
+                    child: Text(
+                      g?.description.isNotEmpty == true
+                          ? g!.description
+                          : (g?.title ?? event.rawTitle),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.4,
+                        height: 1.15,
+                        color: Colors.white,
                       ),
                     ),
                   ),
-
-                  // Galerie photos si plusieurs
-                  if (event.photos.length > 1) ...[
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.photo_library_outlined, size: 14, color: AppColors.magenta),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${event.photos.length} photos de la commu',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.text,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    SizedBox(
-                      height: 160,
-                      child: PageView.builder(
-                        controller: _pageCtrl,
-                        itemCount: event.photos.length,
-                        onPageChanged: (i) =>
-                            setState(() => _currentPage = i),
-                        itemBuilder: (_, index) {
-                          final isActive = index == _currentPage;
-                          return AnimatedScale(
-                            scale: isActive ? 1.0 : 0.88,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOutCubic,
-                            child: GestureDetector(
-                              onTap: () {
-                                // Si l'event a une video, on prefere la
-                                // lecture video sur tap sur la photo
-                                // (cas typique : story Map Live ou la
-                                // photo est juste un thumbnail de video).
-                                if (event.videos.isNotEmpty) {
-                                  _showFullVideo(context, event.videos, 0);
-                                } else {
-                                  _showFullPhoto(
-                                      context, event.photos, index);
-                                }
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: _AnimatedBorderPhoto(
-                                  isActive: isActive,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                  child: CachedNetworkImage(
-                                    imageUrl: event.photos[index],
-                                    width: double.infinity,
-                                    height: 160,
-                                    fit: BoxFit.cover,
-                                    placeholder: (_, __) => Container(
-                                      color: AppColors.line,
-                                      child: const Center(
-                                        child: SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    errorWidget: (_, __, ___) => Container(
-                                      color: AppColors.line,
-                                      child: const Icon(
-                                        Icons.broken_image,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              ),
-                            ),
-                          );
-                        },
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).maybePop(),
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
                       ),
+                      child: const Icon(Icons.close,
+                          color: Colors.white, size: 16),
                     ),
-                    const SizedBox(height: 6),
-                    // Miniatures synchronisees
-                    SizedBox(
-                      height: 56,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: event.photos.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(width: 8),
-                        itemBuilder: (_, index) {
-                          final isActive = index == _currentPage;
-                          return GestureDetector(
-                            onTap: () => _pageCtrl.animateToPage(
-                              index,
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeOut,
-                            ),
-                            child: AnimatedContainer(
-                              duration:
-                                  const Duration(milliseconds: 200),
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isActive
-                                      ? AppColors.magenta
-                                      : AppColors.lineStrong,
-                                  width: isActive ? 2.5 : 1,
-                                ),
-                                boxShadow: isActive
-                                    ? [
-                                        BoxShadow(
-                                          color: AppColors.magenta
-                                              .withValues(alpha: 0.3),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: ClipRRect(
-                                borderRadius:
-                                    BorderRadius.circular(8),
-                                child: CachedNetworkImage(
-                                  imageUrl: event.photos[index],
-                                  width: 56,
-                                  height: 56,
-                                  fit: BoxFit.cover,
-                                  placeholder: (_, __) => Container(
-                                    color: AppColors.line,
-                                  ),
-                                  errorWidget: (_, __, ___) =>
-                                      Container(
-                                    color: AppColors.line,
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      size: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-
-                  // Videos
-                  if (event.videos.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        const Icon(Icons.videocam, size: 14, color: AppColors.magenta),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${event.videos.length} video${event.videos.length > 1 ? 's' : ''} de la commu',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.text,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 130,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: event.videos.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (_, i) => GestureDetector(
-                          onTap: () => _showFullVideo(context, event.videos, i),
-                          child: SizedBox(
-                            width: (mediaQuery.size.width - 32) / 3,
-                            child: _VideoThumbnailCard(url: event.videos[i]),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 18),
-
-                  // Description longue
-                  if (g != null && g.description.isNotEmpty) ...[
-                    Text(
-                      g.description,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.text,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                  ],
-
-                  // Lieu
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: AppColors.magenta,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          event.ville ?? 'Position GPS',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.text,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Mood
-                  if (g != null && g.mood.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.auto_awesome,
-                          size: 14,
-                          color: AppColors.magenta,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          g.mood,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            color: AppColors.textDim,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-
-                  // Tags
-                  if (g != null && g.tags.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: g.tags
-                          .map(
-                            (t) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.magenta
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                t,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.text,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-
-                  const SizedBox(height: 18),
-
-                  // Footer "Signale par {prenom}" + avatar
-                  _buildReporterFooter(),
-
-                  const SizedBox(height: 14),
-
-                  // Chat communautaire (auto-detruit a l'expiration de l'event)
-                  KeyedSubtree(
-                    key: _chatKey,
-                    child: ReportedEventChat(eventId: event.id),
                   ),
                 ],
               ),
             ),
-          ),
 
-          // CTA "Y aller" — masque quand le clavier est ouvert pour eviter
-          // le chevauchement avec l'input du chat.
-          if (keyboard == 0)
-            SafeArea(
-              top: false,
+            // Tags
+            if (g != null && g.tags.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (event.ville != null && event.ville!.isNotEmpty)
+                      _SheetTag(
+                        label: event.ville!,
+                        icon: Icons.place,
+                        accent: true,
+                      ),
+                    ...g.tags.take(4).map((t) => _SheetTag(label: t)),
+                  ],
+                ),
+              ),
+
+            // Card "Signalé par"
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+              child: _SignaledByCard(event: event),
+            ),
+
+            // Chat (auto-scroll list + composer interne — pause via focus)
+            Flexible(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 36),
-                child: Container(
-                  width: double.infinity,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [AppColors.purpleDeep, AppColors.magenta],
+                padding: const EdgeInsets.fromLTRB(18, 4, 18, 0),
+                child: ReportedEventChat(eventId: event.id),
+              ),
+            ),
+
+            // CTA "Y aller" (caché clavier ouvert pour éviter overlap composer)
+            if (keyboard == 0)
+              SafeArea(
+                top: false,
+                minimum: const EdgeInsets.only(bottom: 12),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+                  child: GestureDetector(
+                    onTap: onYAller,
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.magenta, AppColors.violet],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.magenta.withValues(alpha: 0.35),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.place,
+                              size: 16, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Y aller',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.magenta.withValues(alpha: 0.35),
-                        blurRadius: 18,
-                        offset: const Offset(0, 6),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetTag extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  final bool accent;
+  const _SheetTag({required this.label, this.icon, this.accent = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = accent
+        ? AppColors.magenta.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.08);
+    final color = accent ? AppColors.magenta : Colors.white;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SignaledByCard extends StatelessWidget {
+  final ReportedEvent event;
+  const _SignaledByCard({required this.event});
+
+  String _age(DateTime created) {
+    final diff = DateTime.now().difference(created);
+    if (diff.inMinutes < 1) return "à l'instant";
+    if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
+    if (diff.inHours < 24) return 'il y a ${diff.inHours}h';
+    return 'il y a ${diff.inDays}j';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final prenom = event.reporterPrenom ?? 'Anonyme';
+    final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : '?';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        children: [
+          _AvatarBubble(initial: initial, url: event.reporterAvatarUrl),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                    children: [
+                      const TextSpan(text: 'Signalé par '),
+                      TextSpan(
+                        text: prenom,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.magenta,
+                        ),
                       ),
                     ],
                   ),
-                  child: ElevatedButton.icon(
-                    onPressed: _openItinerary,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    icon: const Icon(Icons.directions, size: 18),
-                    label: Text(
-                      'Y aller',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _age(event.createdAt),
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: Colors.white.withValues(alpha: 0.5),
                   ),
                 ),
-              ),
-            ),
-        ],
-      ),
-    ),
-    );
-  }
-}
-
-// ───────────────────────────────────────────
-// Miniature video cliquable (pas de player, pas de conflit gesture)
-// ───────────────────────────────────────────
-
-class _VideoThumbnailCard extends StatefulWidget {
-  final String url;
-  const _VideoThumbnailCard({required this.url});
-
-  @override
-  State<_VideoThumbnailCard> createState() => _VideoThumbnailCardState();
-}
-
-class _VideoThumbnailCardState extends State<_VideoThumbnailCard> {
-  VideoPlayerController? _ctrl;
-  bool _ready = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        if (mounted) setState(() => _ready = true);
-      }).catchError((_) {});
-  }
-
-  @override
-  void dispose() {
-    _ctrl?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Premiere frame de la video comme fond
-          if (_ready && _ctrl != null)
-            FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: _ctrl!.value.size.width,
-                height: _ctrl!.value.size.height,
-                child: VideoPlayer(_ctrl!),
-              ),
-            )
-          else
-            Container(color: Colors.grey.shade900),
-
-          // Overlay sombre + bouton play
-          Container(
-            color: Colors.black.withValues(alpha: 0.3),
-          ),
-          const Center(
-            child: Icon(
-              Icons.play_circle_filled,
-              size: 36,
-              color: Colors.white,
+              ],
             ),
           ),
         ],
@@ -646,246 +996,9 @@ class _VideoThumbnailCardState extends State<_VideoThumbnailCard> {
   }
 }
 
-// ───────────────────────────────────────────
-// Video player inline
-// ───────────────────────────────────────────
-
-class _VideoPlayerWidget extends StatefulWidget {
-  final String url;
-  const _VideoPlayerWidget({required this.url});
-
-  @override
-  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
-}
-
-class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> {
-  late VideoPlayerController _ctrl;
-  bool _initialized = false;
-  bool _hasError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        if (mounted) setState(() => _initialized = true);
-      }).catchError((e) {
-        debugPrint('[VideoPlayer] init error: $e');
-        if (mounted) setState(() => _hasError = true);
-      });
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: _hasError
-              ? Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.videocam_off,
-                            size: 28, color: AppColors.textFaint),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Video indisponible',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: AppColors.textFaint,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : _initialized
-                  ? AspectRatio(
-                      aspectRatio: _ctrl.value.aspectRatio.clamp(0.5, 2.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _ctrl.value.isPlaying
-                                ? _ctrl.pause()
-                                : _ctrl.play();
-                          });
-                        },
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            VideoPlayer(_ctrl),
-                            AnimatedOpacity(
-                              opacity: _ctrl.value.isPlaying ? 0.0 : 1.0,
-                              duration: const Duration(milliseconds: 200),
-                              child: Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: AppColors.magenta
-                                      .withValues(alpha: 0.8),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.play_arrow_rounded,
-                                  color: Colors.white,
-                                  size: 34,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : Container(
-                      height: 180,
-                      color: AppColors.line,
-                      child: const Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    ),
-        );
-  }
-}
-
-// ───────────────────────────────────────────
-// Viewer photo plein ecran (pinch to zoom + swipe)
-// ───────────────────────────────────────────
-
-class _FullPhotoViewer extends StatefulWidget {
-  final List<String> photos;
-  final int initialIndex;
-  final String liveLabel;
-  const _FullPhotoViewer({
-    required this.photos,
-    required this.initialIndex,
-    this.liveLabel = 'LIVE',
-  });
-
-  @override
-  State<_FullPhotoViewer> createState() => _FullPhotoViewerState();
-}
-
-class _FullPhotoViewerState extends State<_FullPhotoViewer> {
-  late PageController _ctrl;
-  late int _current;
-
-  @override
-  void initState() {
-    super.initState();
-    _current = widget.initialIndex;
-    _ctrl = PageController(initialPage: widget.initialIndex);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Photos swipables en plein ecran
-          PageView.builder(
-            controller: _ctrl,
-            itemCount: widget.photos.length,
-            onPageChanged: (i) => setState(() => _current = i),
-            itemBuilder: (_, index) => InteractiveViewer(
-              minScale: 1.0,
-              maxScale: 4.0,
-              child: Center(
-                child: CachedNetworkImage(
-                  imageUrl: widget.photos[index],
-                  fit: BoxFit.contain,
-                  placeholder: (_, __) => const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
-                  errorWidget: (_, __, ___) => const Icon(
-                    Icons.broken_image,
-                    color: Colors.white24,
-                    size: 48,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Badge LIVE
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 14,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _LiveBadgeOverlay(label: widget.liveLabel),
-            ),
-          ),
-
-          // Bouton fermer
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 12,
-            left: 12,
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 20),
-              ),
-            ),
-          ),
-
-          // Compteur
-          if (widget.photos.length > 1)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${_current + 1} / ${widget.photos.length}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ───────────────────────────────────────────
-// Viewer video plein ecran (swipe entre videos)
-// ───────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────
+// Full-screen video viewer (conservé pour le bouton "video" du rail)
+// ──────────────────────────────────────────────────────────────────────────
 
 class _FullVideoViewer extends ConsumerStatefulWidget {
   final List<String> videos;
@@ -905,9 +1018,6 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
   late PageController _pageCtrl;
   late int _current;
   final Map<int, VideoPlayerController> _controllers = {};
-  // Cache l'etat "etait en lecture avant la pause" pour reprendre proprement
-  // au blur du champ chat (si l'user avait deja mis en pause manuellement,
-  // on ne relance pas tout seul).
   bool _wasPlayingBeforeChat = false;
 
   @override
@@ -920,7 +1030,8 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
 
   void _initController(int index) {
     if (_controllers.containsKey(index)) return;
-    final ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.videos[index]));
+    final ctrl =
+        VideoPlayerController.networkUrl(Uri.parse(widget.videos[index]));
     _controllers[index] = ctrl;
     ctrl.initialize().then((_) {
       if (mounted) {
@@ -931,10 +1042,8 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
   }
 
   void _onPageChanged(int index) {
-    // Pause l'ancienne video
     _controllers[_current]?.pause();
     setState(() => _current = index);
-    // Init et play la nouvelle
     _initController(index);
     _controllers[index]?.play();
   }
@@ -950,7 +1059,6 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
 
   @override
   Widget build(BuildContext context) {
-    // Pause / resume video quand l'user ecrit dans le chat
     ref.listen<bool>(chatInputFocusedProvider, (prev, next) {
       final ctrl = _controllers[_current];
       if (ctrl == null) return;
@@ -973,7 +1081,6 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
             itemBuilder: (_, index) {
               final ctrl = _controllers[index];
               final initialized = ctrl?.value.isInitialized ?? false;
-
               return GestureDetector(
                 onTap: () {
                   if (ctrl == null) return;
@@ -992,18 +1099,12 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
               );
             },
           ),
-
-          // Badge LIVE
           Positioned(
             top: MediaQuery.of(context).padding.top + 14,
             left: 0,
             right: 0,
-            child: Center(
-              child: _LiveBadgeOverlay(label: widget.liveLabel),
-            ),
+            child: Center(child: _LiveBadgeOverlay(label: widget.liveLabel)),
           ),
-
-          // Bouton fermer
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             left: 12,
@@ -1020,21 +1121,20 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
               ),
             ),
           ),
-
-          // Compteur
           if (widget.videos.length > 1)
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${_current + 1} / ${widget.videos.length}',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -1047,11 +1147,6 @@ class _FullVideoViewerState extends ConsumerState<_FullVideoViewer> {
     );
   }
 }
-
-
-// ───────────────────────────────────────────
-// Badge LIVE pour les viewers plein ecran
-// ───────────────────────────────────────────
 
 class _LiveBadgeOverlay extends StatefulWidget {
   final String label;
@@ -1109,7 +1204,7 @@ class _LiveBadgeOverlayState extends State<_LiveBadgeOverlay>
           const SizedBox(width: 6),
           Text(
             widget.label.toUpperCase(),
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
@@ -1118,190 +1213,6 @@ class _LiveBadgeOverlayState extends State<_LiveBadgeOverlay>
           ),
         ],
       ),
-    );
-  }
-}
-
-class _AnimatedBorderPhoto extends StatefulWidget {
-  final bool isActive;
-  final Widget child;
-  const _AnimatedBorderPhoto({required this.isActive, required this.child});
-
-  @override
-  State<_AnimatedBorderPhoto> createState() => _AnimatedBorderPhotoState();
-}
-
-class _AnimatedBorderPhotoState extends State<_AnimatedBorderPhoto>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!widget.isActive) {
-      return Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.lineStrong, width: 1),
-        ),
-        child: widget.child,
-      );
-    }
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Color.lerp(
-                AppColors.magenta.withValues(alpha: 0.6),
-                AppColors.magenta,
-                _ctrl.value,
-              )!,
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.magenta.withValues(alpha: 0.3 * _ctrl.value),
-                blurRadius: 8,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: child,
-        );
-      },
-      child: widget.child,
-    );
-  }
-}
-
-
-class _SingleAvatar extends StatelessWidget {
-  final String? url;
-  const _SingleAvatar({this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasUrl = url != null && url!.isNotEmpty;
-    if (hasUrl) {
-      return Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-              color: AppColors.magenta.withValues(alpha: 0.6), width: 1.5),
-          image: DecorationImage(image: NetworkImage(url!), fit: BoxFit.cover),
-        ),
-      );
-    }
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.text, Color(0xFFE91E8C)],
-        ),
-      ),
-      child: const Icon(Icons.person, color: Colors.white, size: 16),
-    );
-  }
-}
-
-class _AvatarStack extends StatelessWidget {
-  final List<ReportedEventContributor> contributors;
-  final int extraCount;
-  const _AvatarStack({required this.contributors, this.extraCount = 0});
-
-  static const double _size = 26;
-  static const double _overlap = 9;
-
-  @override
-  Widget build(BuildContext context) {
-    final total = contributors.length + (extraCount > 0 ? 1 : 0);
-    final width = _size + (total - 1) * (_size - _overlap);
-    return SizedBox(
-      width: width,
-      height: _size,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          for (var i = 0; i < contributors.length; i++)
-            Positioned(
-              left: i * (_size - _overlap),
-              child: _circle(child: _innerAvatar(contributors[i].avatarUrl)),
-            ),
-          if (extraCount > 0)
-            Positioned(
-              left: contributors.length * (_size - _overlap),
-              child: _circle(
-                child: Container(
-                  color: AppColors.text,
-                  alignment: Alignment.center,
-                  child: Text(
-                    "+$extraCount",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _circle({required Widget child}) {
-    return Container(
-      width: _size,
-      height: _size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: ClipOval(child: child),
-    );
-  }
-
-  Widget _innerAvatar(String? url) {
-    if (url != null && url.isNotEmpty) {
-      return Image.network(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _fallback());
-    }
-    return _fallback();
-  }
-
-  Widget _fallback() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.text, Color(0xFFE91E8C)],
-        ),
-      ),
-      child: const Icon(Icons.person, color: Colors.white, size: 14),
     );
   }
 }

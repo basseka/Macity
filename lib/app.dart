@@ -22,7 +22,7 @@ import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/notifications/data/mairie_notifications_service.dart';
 import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
-import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 
 class PulzApp extends ConsumerStatefulWidget {
   const PulzApp({super.key});
@@ -192,15 +192,11 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       // Petit delai pour laisser le go('/home') s'achever avant d'ouvrir la sheet.
       await Future<void>.delayed(const Duration(milliseconds: 250));
       if (!ctx.mounted) return;
-      showModalBottomSheet(
-        context: ctx,
-        useRootNavigator: true,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => ReportedEventDetailSheet(
-          event: event,
-          initialScrollToChat: true,
-        ),
+      ReportedEventsPagedSheet.open(
+        ctx,
+        events: [event],
+        initialIndex: 0,
+        initialScrollToChat: true,
       );
     } catch (e) {
       debugPrint('[App] open reported event sheet failed: $e');

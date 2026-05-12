@@ -17,11 +17,13 @@ import 'package:video_player/video_player.dart';
 class ReportedEventsPagedSheet extends ConsumerStatefulWidget {
   final List<ReportedEvent> events;
   final int initialIndex;
+  final bool initialScrollToChat;
 
   const ReportedEventsPagedSheet({
     super.key,
     required this.events,
     required this.initialIndex,
+    this.initialScrollToChat = false,
   });
 
   /// Helper static : push en plein écran (style Insta stories).
@@ -29,6 +31,7 @@ class ReportedEventsPagedSheet extends ConsumerStatefulWidget {
     BuildContext context, {
     required List<ReportedEvent> events,
     required int initialIndex,
+    bool initialScrollToChat = false,
   }) {
     debugPrint('[StoryViewer] open count=${events.length} initial=$initialIndex');
     return Navigator.of(context, rootNavigator: true).push(
@@ -37,6 +40,7 @@ class ReportedEventsPagedSheet extends ConsumerStatefulWidget {
         builder: (_) => ReportedEventsPagedSheet(
           events: events,
           initialIndex: initialIndex,
+          initialScrollToChat: initialScrollToChat,
         ),
       ),
     );
@@ -217,71 +221,89 @@ class _ReportedEventsPagedSheetState
         _resume();
       }
     });
+    final topInset = MediaQuery.of(context).padding.top;
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // PageView plein ecran swipable. La GestureDetector wrap permet
-            // les tap zones et le long-press pour pause sans casser le swipe
-            // horizontal natif du PageView.
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return GestureDetector(
-                  // deferToChild : les boutons inner du detail (like, share)
-                  // gardent leur tap. Si rien d'inner ne consomme, on prend.
-                  behavior: HitTestBehavior.deferToChild,
-                  onTapUp: (d) => _handleTap(d, constraints.maxWidth),
-                  onLongPressStart: (_) => _pause(),
-                  onLongPressEnd: (_) => _resume(),
-                  onLongPressCancel: _resume,
-                  child: PageView.builder(
-                    controller: _pageCtrl,
-                    itemCount: widget.events.length,
-                    onPageChanged: _onPageChanged,
-                    itemBuilder: (_, index) => ReportedEventDetailSheet(
-                      event: widget.events[index],
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // PageView plein ecran swipable. La GestureDetector wrap permet
+          // les tap zones et le long-press pour pause sans casser le swipe
+          // horizontal natif du PageView.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return GestureDetector(
+                // deferToChild : les boutons inner du detail (like, share)
+                // gardent leur tap. Si rien d'inner ne consomme, on prend.
+                behavior: HitTestBehavior.deferToChild,
+                onTapUp: (d) => _handleTap(d, constraints.maxWidth),
+                onLongPressStart: (_) => _pause(),
+                onLongPressEnd: (_) => _resume(),
+                onLongPressCancel: _resume,
+                child: PageView.builder(
+                  controller: _pageCtrl,
+                  itemCount: widget.events.length,
+                  onPageChanged: _onPageChanged,
+                  itemBuilder: (_, index) => ReportedEventDetailSheet(
+                    event: widget.events[index],
+                    initialScrollToChat: index == widget.initialIndex &&
+                        widget.initialScrollToChat,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Progress bars segmentees en haut, fade out quand long-press
+          // (style Snap : on cache l'UI pour profiter du media).
+          Positioned(
+            top: topInset + 6,
+            left: 14,
+            right: 14,
+            child: AnimatedOpacity(
+              opacity: _isPaused ? 0 : 1,
+              duration: const Duration(milliseconds: 180),
+              child: AnimatedBuilder(
+                animation: _progress,
+                builder: (_, __) => _ProgressBars(
+                  count: widget.events.length,
+                  currentIndex: _current,
+                  currentValue: _progress.value,
+                ),
+              ),
+            ),
+          ),
+
+          // Bouton close style glass (spec Neon : 30x30 rond, bg noir + blur)
+          Positioned(
+            top: topInset + 14,
+            right: 12,
+            child: AnimatedOpacity(
+              opacity: _isPaused ? 0 : 1,
+              duration: const Duration(milliseconds: 180),
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).maybePop(),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      width: 1,
                     ),
                   ),
-                );
-              },
-            ),
-
-            // Progress bars segmentees en haut, fade out quand long-press
-            // (style Snap : on cache l'UI pour profiter du media).
-            Positioned(
-              top: 8,
-              left: 8,
-              right: 8,
-              child: AnimatedOpacity(
-                opacity: _isPaused ? 0 : 1,
-                duration: const Duration(milliseconds: 180),
-                child: AnimatedBuilder(
-                  animation: _progress,
-                  builder: (_, __) => _ProgressBars(
-                    count: widget.events.length,
-                    currentIndex: _current,
-                    currentValue: _progress.value,
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 16,
                   ),
                 ),
               ),
             ),
-
-            // Bouton close (toujours visible)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: AnimatedOpacity(
-                opacity: _isPaused ? 0 : 1,
-                duration: const Duration(milliseconds: 180),
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 26),
-                  onPressed: () => Navigator.of(context).maybePop(),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
