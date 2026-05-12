@@ -352,8 +352,9 @@ class ItemDetailSheet extends ConsumerWidget {
                               width: double.infinity,
                               height: 44,
                               child: ElevatedButton.icon(
-                                onPressed: () =>
-                                    _openUrl(primaryAction!.url),
+                                onPressed: () => primaryAction!.onTap != null
+                                    ? primaryAction!.onTap!()
+                                    : _openUrl(primaryAction!.url),
                                 icon: Icon(primaryAction!.icon, size: 18),
                                 label: Text(
                                   primaryAction!.label,
@@ -414,7 +415,9 @@ class ItemDetailSheet extends ConsumerWidget {
                                   icon: action.icon,
                                   label: action.label,
                                   color: Colors.white,
-                                  onTap: () => _openUrl(action.url),
+                                  onTap: () => action.onTap != null
+                                      ? action.onTap!()
+                                      : _openUrl(action.url),
                                 ),
                               ),
                             ],
@@ -628,11 +631,16 @@ class DetailInfoItem {
 class DetailAction {
   final IconData icon;
   final String label;
+  /// URL a lancer via url_launcher. Ignore si [onTap] est fourni.
   final String url;
+  /// Callback custom (prend le pas sur [url]). Utile pour ouvrir une sheet
+  /// interne au lieu de naviguer hors de l'app.
+  final VoidCallback? onTap;
   const DetailAction({
     required this.icon,
     required this.label,
-    required this.url,
+    this.url = '',
+    this.onTap,
   });
 }
 
