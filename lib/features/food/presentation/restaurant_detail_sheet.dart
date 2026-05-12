@@ -58,13 +58,22 @@ class RestaurantDetailSheet {
           if (venue.telephone.isNotEmpty)
             DetailInfoItem(Icons.phone_outlined, venue.telephone),
         ],
+        // "Réserver" : preference website (la plupart des restos ont un
+        // widget de booking dessus). Fallback : appel telephonique direct.
+        // Le bouton "Site web" passe en secondaire si on a deja un tel.
         primaryAction: venue.websiteUrl.isNotEmpty
             ? DetailAction(
-                icon: Icons.language,
-                label: 'Site web',
+                icon: Icons.event_available,
+                label: 'Réserver',
                 url: venue.websiteUrl,
               )
-            : null,
+            : (venue.telephone.isNotEmpty
+                ? DetailAction(
+                    icon: Icons.event_available,
+                    label: 'Réserver',
+                    url: 'tel:${venue.telephone.replaceAll(' ', '')}',
+                  )
+                : null),
         secondaryActions: [
           if (venue.lienMaps.isNotEmpty)
             DetailAction(
@@ -72,11 +81,17 @@ class RestaurantDetailSheet {
               label: 'Maps',
               url: venue.lienMaps,
             ),
-          if (venue.telephone.isNotEmpty)
+          if (venue.telephone.isNotEmpty && venue.websiteUrl.isNotEmpty)
             DetailAction(
               icon: Icons.phone_outlined,
               label: 'Appeler',
               url: 'tel:${venue.telephone.replaceAll(' ', '')}',
+            ),
+          if (venue.websiteUrl.isNotEmpty && venue.telephone.isNotEmpty)
+            DetailAction(
+              icon: Icons.language,
+              label: 'Site web',
+              url: venue.websiteUrl,
             ),
         ],
         shareText:
