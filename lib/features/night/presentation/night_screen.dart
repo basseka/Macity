@@ -12,6 +12,7 @@ import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/night/presentation/clubs_pager_view.dart';
 import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_clubs_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_hub_grid.dart';
@@ -390,14 +391,27 @@ class NightScreen extends ConsumerWidget {
                         icon: Icons.nightlife,
                       );
                     }
-                    return ListView(
+                    // Pour la categorie Club Discotheque : tap ouvre le pager
+                    // qui permet de swiper de droite vers la gauche pour
+                    // voir le club suivant. Autres categories (bars, pubs...)
+                    // gardent le sheet detail isole.
+                    final isClub = category == 'Club Discotheque';
+                    return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: venues
-                          .map((v) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: CommerceRowCard(commerce: v),
-                              ))
-                          .toList(),
+                      itemCount: venues.length,
+                      itemBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CommerceRowCard(
+                          commerce: venues[index],
+                          onTap: isClub
+                              ? () => ClubsPagerView.open(
+                                    context,
+                                    clubs: venues,
+                                    initialIndex: index,
+                                  )
+                              : null,
+                        ),
+                      ),
                     );
                   },
                   loading: () =>

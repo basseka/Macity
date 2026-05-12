@@ -323,18 +323,16 @@ class CommerceRowCard extends ConsumerWidget {
   void _openDetail(BuildContext context) =>
       showDetailSheet(context, commerce, imageAsset: imageAsset);
 
-  /// Ouvre le bottom sheet detail pour ce commerce. Appelable depuis n'importe
-  /// quel point (tap liste, marqueur carte, etc.).
-  static void showDetailSheet(
-    BuildContext context,
+  /// Construit le widget ItemDetailSheet pour ce commerce. Reutilise par
+  /// showDetailSheet (popup classique) et par les pagers swipables qui
+  /// rendent plusieurs commerces a la suite (ex: ClubsPagerView).
+  static ItemDetailSheet buildDetailSheet(
     CommerceModel commerce, {
     String? imageAsset,
   }) {
     final image = _resolveImageFor(commerce, imageAsset);
     final isNetwork = image != null && image.startsWith('http');
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
+    return ItemDetailSheet(
         title: commerce.nom,
         emoji: '',
         imageAsset: isNetwork ? null : image,
@@ -384,7 +382,19 @@ class CommerceRowCard extends ConsumerWidget {
                 name: commerce.nom,
               )
             : null,
-      ),
+      );
+  }
+
+  /// Ouvre le sheet detail pour un commerce isole. Pour swiper entre
+  /// plusieurs commerces, utiliser un pager (ex: ClubsPagerView).
+  static void showDetailSheet(
+    BuildContext context,
+    CommerceModel commerce, {
+    String? imageAsset,
+  }) {
+    ItemDetailSheet.show(
+      context,
+      buildDetailSheet(commerce, imageAsset: imageAsset),
     );
   }
 
