@@ -37,6 +37,17 @@ class ReportedEventsMap extends ConsumerStatefulWidget {
   ConsumerState<ReportedEventsMap> createState() => _ReportedEventsMapState();
 }
 
+/// Cache global du WebView de la map. La premiere instance cree + charge le
+/// controller ; les suivantes (re-mount apres push/pop) reutilisent le meme
+/// controller deja "page ready" -> plus de spinner pendant le re-chargement
+/// Leaflet/tiles.
+class _MapWebViewCache {
+  static WebViewController? controller;
+  static bool pageReady = false;
+  // Notifier qui re-route les taps marker vers l'instance actuelle.
+  static void Function(String id)? onMarkerTap;
+}
+
 class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   late final WebViewController _controller;
   bool _isLoading = true;
@@ -47,24 +58,50 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   @override
   void initState() {
     super.initState();
+    // Bind le callback de tap marker a CETTE instance (re-route via cache).
+    _MapWebViewCache.onMarkerTap = _handleMarkerTap;
+
+    if (_MapWebViewCache.controller != null) {
+      // Reuse : on a deja un controller charge en memoire.
+      _controller = _MapWebViewCache.controller!;
+      _pageReady = _MapWebViewCache.pageReady;
+      _isLoading = !_pageReady;
+      // Re-injecter les markers/centre avec les donnees fraiches.
+      if (_pageReady) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (_lastCity != null) _centerOnCity(_lastCity!);
+          _autoLocateUserPin();
+          if (widget.usePresentationMarkers) {
+            _injectPresentationMarkersForCurrentCity();
+          } else if (_lastEvents.isNotEmpty) {
+            _injectMarkers(_lastEvents);
+          }
+        });
+      }
+      return;
+    }
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(AppColors.bg)
       ..setUserAgent('PulzApp/1.0 (https://pulzapp.fr)')
       ..addJavaScriptChannel(
         'FlutterReportTap',
-        onMessageReceived: (msg) => _handleMarkerTap(msg.message),
+        // Channel statique : route vers l'instance courante via le cache.
+        // Empeche le callback de capturer un `this` mort apres pop/push.
+        onMessageReceived: (msg) {
+          _MapWebViewCache.onMarkerTap?.call(msg.message);
+        },
       )
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (_) {
+            _MapWebViewCache.pageReady = true;
             if (mounted) setState(() => _isLoading = false);
             _pageReady = true;
-            // Centre sur la ville selectionnee (priorite #1)
             if (_lastCity != null) _centerOnCity(_lastCity!);
-            // Affiche le pin user en parallele si GPS dispo
             _autoLocateUserPin();
-            // Re-injecter les markers maintenant que la page est prete
             if (widget.usePresentationMarkers) {
               _injectPresentationMarkersForCurrentCity();
             } else if (_lastEvents.isNotEmpty) {
@@ -73,7 +110,18 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
           },
         ),
       );
+    _MapWebViewCache.controller = _controller;
     _loadHtml();
+  }
+
+  @override
+  void dispose() {
+    // Important : on ne dispose PAS le controller, il reste vivant dans le
+    // cache pour le prochain mount. On detache juste le callback de tap.
+    if (_MapWebViewCache.onMarkerTap == _handleMarkerTap) {
+      _MapWebViewCache.onMarkerTap = null;
+    }
+    super.dispose();
   }
 
   /// Recentre la map sur le centre de la ville donnee.
