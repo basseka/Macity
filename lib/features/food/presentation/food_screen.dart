@@ -349,6 +349,12 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                   child: CommerceRowCard(
                     commerce: _restaurantToCommerce(allVenues[index], category),
                     imageAsset: allVenues[index].photo.isEmpty ? placeholderAsset : null,
+                    // Restaurant : route vers la fiche dediee avec CTA Reserver,
+                    // au lieu du sheet generique ItemDetailSheet.
+                    onTap: () => RestaurantDetailSheet.show(
+                      context,
+                      allVenues[index],
+                    ),
                   ),
                 ),
                 childCount: allVenues.length,

@@ -24,11 +24,16 @@ import 'package:pulz_app/features/reviews/state/commerce_summaries_provider.dart
 class CommerceRowCard extends ConsumerWidget {
   final CommerceModel commerce;
   final String? imageAsset;
+  /// Si fourni, override le handler de tap par defaut (qui ouvre le sheet
+  /// generique ItemDetailSheet). Utilise par la rubrique Food pour router
+  /// vers RestaurantDetailSheet (avec CTA Reserver + badges).
+  final VoidCallback? onTap;
 
   const CommerceRowCard({
     super.key,
     required this.commerce,
     this.imageAsset,
+    this.onTap,
   });
 
   /// Retourne la photo DB, l'asset explicite, ou la pochette par defaut.
@@ -177,7 +182,7 @@ class CommerceRowCard extends ConsumerWidget {
         : null;
 
     return GestureDetector(
-      onTap: () => _openDetail(context),
+      onTap: onTap ?? () => _openDetail(context),
       child: Card(
       elevation: 0,
       color: AppColors.surface,
