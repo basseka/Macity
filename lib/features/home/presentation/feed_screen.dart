@@ -1582,8 +1582,8 @@ class _FeedTile extends StatelessWidget {
       child: DecoratedBox(
         decoration: const BoxDecoration(
           border: Border(
-            right: BorderSide(color: Colors.white, width: 1),
-            bottom: BorderSide(color: Colors.white, width: 1),
+            right: BorderSide(color: Colors.white, width: 4),
+            bottom: BorderSide(color: Colors.white, width: 4),
           ),
         ),
         child: ClipRect(
