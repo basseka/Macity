@@ -144,6 +144,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   String? _activeTab; // null = Tout
   String? _activeSub; // null = pas de sous-filtre
 
+  /// Filtre de categorie pour la vue "Feed" (slot 1). Liste curatee
+  /// affichee sous forme de chips subtils sous le header. null = Tout.
+  String? _categoryFilter;
+
+  static const List<String> _feedCategories = [
+    'Tout', 'Concerts', 'Soirée', 'Spectacle', 'Cinéma', 'Food', 'Sport', 'Famille',
+  ];
+
   // Flag anti-spam : évite d'empiler plusieurs post-frame loadNextPage
   // quand l'utilisateur tap rapidement entre plusieurs onglets.
   bool _loadMoreScheduled = false;
@@ -329,11 +337,62 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       children: [
         _buildHeader(),
         if (!_isSearching) _buildFilterBar(),
+        // Chips de categorie : visibles uniquement dans la vue Feed (slot 1)
+        // hors recherche. Style subtil, scroll horizontal sous le header.
+        if (!_isSearching && _isFeedOnlyView) _buildFeedCategoryBar(),
         if (!_isSearching) const SizedBox(height: 10),
         Expanded(
           child: _isSearching ? _buildSearchResults() : _buildFeed(),
         ),
       ],
+    );
+  }
+
+  /// Chips subtils de filtre par categorie. Etat local `_categoryFilter`.
+  Widget _buildFeedCategoryBar() {
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: _feedCategories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (context, i) {
+          final cat = _feedCategories[i];
+          final isAll = cat == 'Tout';
+          final isActive =
+              (isAll && _categoryFilter == null) || _categoryFilter == cat;
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(
+              () => _categoryFilter = isAll ? null : cat,
+            ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? AppColors.magenta.withValues(alpha: 0.10)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isActive ? AppColors.magenta : AppColors.line,
+                  width: isActive ? 1.4 : 1,
+                ),
+              ),
+              child: Text(
+                cat,
+                style: GoogleFonts.geist(
+                  fontSize: 11,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  letterSpacing: 0.1,
+                  color: isActive ? AppColors.text : AppColors.textDim,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -769,7 +828,42 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   /// (event cree par form/scan flyer avec une valeur de `kSubcategories`)
   /// via `kSubcategoryToFilter`. Si l'event n'a pas de sous-cat reconnue
   /// (events scraped legacy), on retombe sur le matching keyword historique.
+  /// Match flexible pour les chips de categorie du Feed (slot 1).
+  /// Verifie categorie + type + rubrique + titre avec quelques alias.
+  bool _matchesCategoryFilter(Event e) {
+    final f = _categoryFilter;
+    if (f == null) return true;
+    final cat = e.categorie.toLowerCase();
+    final type = e.type.toLowerCase();
+    final title = e.titre.toLowerCase();
+    final rub = e.rubrique.toLowerCase();
+    bool any(List<String> kws) => kws.any(
+          (k) => cat.contains(k) || type.contains(k) || title.contains(k),
+        );
+    switch (f) {
+      case 'Concerts':
+        return any(['concert', 'musique', 'festival', 'live', 'showcase']);
+      case 'Soirée':
+        return rub == 'night' || any(['soir', 'club', 'disco', 'dj', 'party', 'bar', 'after']);
+      case 'Spectacle':
+        return any(['spectacle', 'theatre', 'théâtre', 'humour', 'stand', 'one-man', 'danse', 'opera', 'comédie', 'comedie']);
+      case 'Cinéma':
+        return any(['cinema', 'cinéma', 'film', 'projection']);
+      case 'Food':
+        return rub == 'food' || any(['food', 'gastr', 'brunch', 'degustation', 'restaurant']);
+      case 'Sport':
+        return any(['sport', 'match', 'fitness', 'running', 'course', 'tournoi']);
+      case 'Famille':
+        return rub == 'family' || any(['famille', 'enfant', 'kids', 'jeunesse']);
+      default:
+        return cat.contains(f.toLowerCase()) || type.contains(f.toLowerCase());
+    }
+  }
+
   bool _matchesFilter(Event e) {
+    // Filtre categorie de la vue Feed (slot 1) — prioritaire si actif.
+    if (_categoryFilter != null && !_matchesCategoryFilter(e)) return false;
+
     if (_activeTab == null) return true;
 
     // 1. Match exact par sous-categorie canonique (form / scan flyer)
@@ -1132,6 +1226,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         ref.invalidate(paginatedFeedProvider);
       }
     });
+
+    // Vue Home (slot 0) sans filtre : on n'affiche QUE le live stripe.
+    // La grille d'events n'apparait que dans la vue "Feed" (slot 1).
+    if (!_isFeedOnlyView && _activeTab == null) {
+      return ListView(
+        padding: EdgeInsets.zero,
+        children: const [
+          ReportedEventsLiveStripe(),
+          SizedBox(height: 80),
+        ],
+      );
+    }
 
     // Filtre actif → community feed (grille 3 colonnes groupee par jour)
     if (_activeTab != null) {
