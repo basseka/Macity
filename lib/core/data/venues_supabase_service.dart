@@ -35,7 +35,7 @@ class VenuesSupabaseService {
       'is_active': 'eq.true',
       'mode': 'eq.$mode',
       'ville': 'ilike.$ville*',
-      'order': 'name.asc',
+      'order': 'display_priority.desc,name.asc',
     };
     if (category != null) params['category'] = 'ilike.*$category*';
     if (groupe != null) params['groupe'] = 'eq.$groupe';
@@ -100,7 +100,7 @@ class VenuesSupabaseService {
       'mode': 'eq.culture',
       'category': 'eq.Theatre',
       'ville': 'ilike.$ville*',
-      'order': 'name.asc',
+      'order': 'display_priority.desc,name.asc',
     };
 
     final response = await _dio.get('venues', queryParameters: params);
@@ -136,7 +136,7 @@ class VenuesSupabaseService {
       'mode': 'eq.culture',
       'category': 'eq.Musee',
       'ville': 'ilike.$ville*',
-      'order': 'name.asc',
+      'order': 'display_priority.desc,name.asc',
     };
 
     final response = await _dio.get('venues', queryParameters: params);
@@ -171,7 +171,7 @@ class VenuesSupabaseService {
       'mode': 'eq.culture',
       'category': 'eq.Monument historique',
       'ville': 'ilike.$ville*',
-      'order': 'groupe.asc,name.asc',
+      'order': 'display_priority.desc,groupe.asc,name.asc',
     };
 
     final response = await _dio.get('venues', queryParameters: params);
@@ -205,7 +205,7 @@ class VenuesSupabaseService {
       'mode': 'eq.culture',
       'category': 'eq.Bibliotheque',
       'ville': 'ilike.$ville*',
-      'order': 'groupe.asc,name.asc',
+      'order': 'display_priority.desc,groupe.asc,name.asc',
     };
 
     final response = await _dio.get('venues', queryParameters: params);
@@ -259,7 +259,7 @@ class VenuesSupabaseService {
       'select': '*',
       'is_active': 'eq.true',
       'ville': 'ilike.$ville*',
-      'order': 'name.asc',
+      'order': 'display_priority.desc,name.asc',
     };
     if (category != null) params['category'] = 'ilike.*$category*';
 

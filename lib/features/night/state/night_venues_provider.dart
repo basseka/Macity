@@ -255,32 +255,5 @@ final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
     venues = await repository.searchByVille(ville: city, query: category);
   }
 
-  return _applyPinnedSort(venues, category ?? '', city);
+  return venues;
 });
-
-/// Pousse certains etablissements partenaires en tete de liste pour leur
-/// categorie/ville. Match par nom insensible casse. A etendre quand on aura
-/// d'autres deals partenaires.
-List<CommerceModel> _applyPinnedSort(
-  List<CommerceModel> list,
-  String category,
-  String city,
-) {
-  if (list.isEmpty) return list;
-  String? pinnedName;
-  if (category == 'Club Discotheque' && city.toLowerCase() == 'toulouse') {
-    pinnedName = "l'etoile club";
-  }
-  if (pinnedName == null) return list;
-
-  final pinned = <CommerceModel>[];
-  final others = <CommerceModel>[];
-  for (final v in list) {
-    if (v.nom.toLowerCase().trim() == pinnedName) {
-      pinned.add(v);
-    } else {
-      others.add(v);
-    }
-  }
-  return [...pinned, ...others];
-}

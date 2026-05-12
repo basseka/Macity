@@ -24,7 +24,7 @@ class RestaurantSupabaseService {
         'is_active': 'eq.true',
         'rubrique': 'eq.food',
         'ville': 'ilike.$ville',
-        'order': 'nom.asc',
+        'order': 'display_priority.desc,nom.asc',
       },
     );
     final data = response.data as List;
