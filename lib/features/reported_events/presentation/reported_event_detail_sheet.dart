@@ -843,10 +843,10 @@ class _DiscussionSheet extends ConsumerWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.4,
-                        height: 1.15,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                        height: 1.2,
                         color: Colors.white,
                       ),
                     ),
@@ -893,10 +893,12 @@ class _DiscussionSheet extends ConsumerWidget {
               child: _SignaledByCard(event: event),
             ),
 
-            // Chat (auto-scroll list + composer interne — pause via focus)
+            // Chat (auto-scroll list + composer interne — pause via focus).
+            // Flexible(loose) + chat en mainAxisSize.min : la chat se sizes
+            // a son contenu intrinseque, plus de overflow sous le CTA.
             Flexible(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 4, 18, 0),
+                padding: const EdgeInsets.fromLTRB(18, 4, 18, 8),
                 child: ReportedEventChat(eventId: event.id),
               ),
             ),

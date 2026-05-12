@@ -166,6 +166,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
