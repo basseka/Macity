@@ -269,12 +269,20 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     }
     .leaflet-control-attribution a { color: rgba(168, 85, 247, 0.6) !important; }
 
-    /* Tint violet sur les tuiles dark CartoDB pour matcher la spec neon */
-    .leaflet-tile-pane {
-      filter: hue-rotate(245deg) saturate(1.4) brightness(0.85);
-    }
+    /* Optim (2026-05-12) : retrait du filter hue-rotate/saturate/brightness
+       sur .leaflet-tile-pane. Le filter CSS forcait un repaint pixel-par-pixel
+       de TOUTES les tuiles a chaque pan/zoom -> drain CPU/GPU enorme sur
+       Android et surtout iOS (WKWebView gere mal hue-rotate). On garde la
+       tuile dark CartoDB telle quelle (gris fonce neutre) au lieu du tint
+       violet — tradeoff perf >>> esthetique. */
 
-    /* Pins style "goutte SVG" 24x26 + halo radial pulsant 40px (spec neon) */
+    /* Pins style "goutte SVG" 24x26 + halo radial pulsant 40px (spec neon).
+       Optim 2026-05-12 :
+        - halo "pulse" actif UNIQUEMENT sur les pins .real (signalements
+          actifs). Sur les fakes le halo reste statique = pas de repaint
+          continu de N gradients radiaux.
+        - drop-shadow CSS retire (couteux non-GPU). On garde un box-shadow
+          discret sur le halo lui-meme = GPU compose. */
     .neon-pin {
       position: relative;
       width: 24px; height: 26px;
@@ -291,7 +299,8 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         var(--pin-color, rgba(168,85,247,0.75)) 0%,
         transparent 70%
       );
-      animation: halopulse 2.4s ease-out infinite;
+      opacity: 0.55;
+      will-change: transform, opacity;
     }
     @keyframes halopulse {
       0%   { transform: scale(0.8); opacity: 0.75; }
@@ -302,16 +311,13 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       position: relative;
       display: block;
       z-index: 1;
-      filter: drop-shadow(0 0 6px rgba(168,85,247,0.6));
     }
-    /* Pin "réel" (signalement actif) : ring blanc + halo plus intense pour le distinguer */
+    /* Pin "réel" (signalement actif) : seul lui pulse + ring blanc statique */
     .neon-pin.real svg {
-      filter:
-        drop-shadow(0 0 0 1.5px #fff)
-        drop-shadow(0 0 12px rgba(199,125,255,0.95));
+      filter: drop-shadow(0 0 1px #fff);
     }
     .neon-pin.real .halo {
-      animation-duration: 1.6s;
+      animation: halopulse 1.6s ease-out infinite;
       opacity: 1;
     }
 
@@ -370,13 +376,18 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     }).addTo(map);
 
     // Trace REEL du Peripherique Exterieur de Toulouse (A 620) — geometrie
-    // extraite d'OpenStreetMap via Overpass API, 72 ways / ~420 points.
-    // Pane dedie zIndex 425 pour rendre AU-DESSUS du tile-pane (qui a un
-    // hue-rotate, mais ce pane custom n'en herite pas).
+    // extraite d'OpenStreetMap via Overpass API, 205 ways / ~1450 points.
+    // Pane dedie zIndex 425 pour rendre AU-DESSUS du tile-pane.
+    //
+    // Optim 2026-05-12 : on regroupe les polylines dans un LayerGroup et
+    // on les affiche UNIQUEMENT a zoom >= 12 (echelle metropole). En
+    // dezoom Europe/France, c'est invisible donc inutile de payer le cout
+    // de rasterisation des ~2900 segments.
     map.createPane('peripherique');
     map.getPane('peripherique').style.zIndex = 425;
     map.getPane('peripherique').style.pointerEvents = 'none';
     const TOULOUSE_PERIPH_WAYS = $kToulousePeripheriqueWaysJson;
+    const periphLayer = L.layerGroup();
     TOULOUSE_PERIPH_WAYS.forEach(way => {
       // Halo tres discret
       L.polyline(way, {
@@ -386,7 +397,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         opacity: 0.08,
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(map);
+      }).addTo(periphLayer);
       // Ligne fine ambree sombre par-dessus
       L.polyline(way, {
         pane: 'peripherique',
@@ -395,8 +406,23 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         opacity: 0.5,
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(map);
+      }).addTo(periphLayer);
     });
+
+    const PERIPH_MIN_ZOOM = 12;
+    let periphVisible = false;
+    function updatePeriphVisibility() {
+      const shouldShow = map.getZoom() >= PERIPH_MIN_ZOOM;
+      if (shouldShow && !periphVisible) {
+        periphLayer.addTo(map);
+        periphVisible = true;
+      } else if (!shouldShow && periphVisible) {
+        map.removeLayer(periphLayer);
+        periphVisible = false;
+      }
+    }
+    map.on('zoomend', updatePeriphVisibility);
+    updatePeriphVisibility();
 
     // Cluster group : groupe les pins proches en cercles avec compteur.
     // maxClusterRadius=40 = pins a < 40px sont groupes.
