@@ -135,8 +135,7 @@ class EditorialMasthead extends StatelessWidget {
                           text: title,
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 28,
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.w600,
                             height: 1.05,
                             letterSpacing: -0.6,
                             color: accent,
@@ -164,16 +163,8 @@ class EditorialMasthead extends StatelessWidget {
               ],
             ),
           ),
-          if (blurb != null && blurb!.isNotEmpty) ...[
-            const SizedBox(height: EditorialSpacing.md),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 320),
-                child: Text(blurb!, style: EditorialText.blurbItalic()),
-              ),
-            ),
-          ],
+          // Blurb desactive (decision produit 2026-05-12) : on garde le
+          // parametre pour compat retro mais on ne le rend plus.
         ],
       ),
     );

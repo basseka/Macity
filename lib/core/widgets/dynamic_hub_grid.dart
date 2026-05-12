@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/domain/models/app_category.dart';
 import 'package:pulz_app/core/state/categories_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
-import 'package:pulz_app/core/widgets/editorial/editorial_avenir_banner.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_kicker.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_subcategory_card.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
@@ -38,18 +37,12 @@ class DynamicHubGrid extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           children: [
             for (final group in groups) ...[
-              if (_isAvenirGroup(group))
-                EditorialAvenirBanner(
-                  mode: mode,
-                  accent: accent,
-                  subtitle: avenirSubtitle,
-                  countProvider: countProvider != null
-                      ? countProvider!('A venir')
-                      : null,
-                )
-              else
+              // La carte "A venir" est masquee (decision produit 2026-05-12).
+              // On skip le groupe entier au lieu de le rendre.
+              if (!_isAvenirGroup(group)) ...[
                 _buildSection(group, accent, ref),
-              const SizedBox(height: 22),
+                const SizedBox(height: 22),
+              ],
             ],
           ],
         );
