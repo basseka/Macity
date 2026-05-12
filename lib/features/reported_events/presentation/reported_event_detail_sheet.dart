@@ -15,16 +15,27 @@ import 'package:pulz_app/features/reported_events/presentation/widgets/reported_
 ///
 /// Affiche l'affiche en grand + description longue + tags + bouton "Y aller"
 /// (ouvre Google Maps en navigation depuis la position courante).
-class ReportedEventDetailSheet extends StatefulWidget {
+class ReportedEventDetailSheet extends ConsumerStatefulWidget {
   final ReportedEvent event;
-  const ReportedEventDetailSheet({super.key, required this.event});
+
+  /// Si true, scrolle automatiquement vers la section chat des l'ouverture
+  /// (utilise quand le sheet est ouvert depuis un tap sur une notif
+  /// `chat_message` : l'user veut repondre, pas voir l'affiche).
+  final bool initialScrollToChat;
+
+  const ReportedEventDetailSheet({
+    super.key,
+    required this.event,
+    this.initialScrollToChat = false,
+  });
 
   @override
-  State<ReportedEventDetailSheet> createState() =>
+  ConsumerState<ReportedEventDetailSheet> createState() =>
       _ReportedEventDetailSheetState();
 }
 
-class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
+class _ReportedEventDetailSheetState
+    extends ConsumerState<ReportedEventDetailSheet> {
   late final PageController _pageCtrl;
   int _currentPage = 0;
 
@@ -38,9 +49,23 @@ class _ReportedEventDetailSheetState extends State<ReportedEventDetailSheet> {
   void initState() {
     super.initState();
     _pageCtrl = PageController(viewportFraction: 0.85);
+    // Auto-scroll vers le chat si demande (notif chat_message)
+    if (widget.initialScrollToChat) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Delay : le sheet finit sa transition d'ouverture (~250ms) +
+        // le chat doit etre attache au tree pour que _chatKey ait un ctx.
+        Future.delayed(const Duration(milliseconds: 400), () {
+          if (mounted) _scrollToChat();
+        });
+      });
+    }
   }
 
   void _scrollToChat() {
+    // Met en pause des le tap sur "Discuter" (pas seulement quand le user
+    // focus le TextField) : le viewer story + la video se mettent en pause
+    // pendant que le user scrolle vers le chat et lit les messages.
+    ref.read(chatInputFocusedProvider.notifier).state = true;
     final ctx = _chatKey.currentContext;
     if (ctx == null) return;
     Scrollable.ensureVisible(

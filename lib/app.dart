@@ -197,7 +197,10 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         useRootNavigator: true,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => ReportedEventDetailSheet(event: event),
+        builder: (_) => ReportedEventDetailSheet(
+          event: event,
+          initialScrollToChat: true,
+        ),
       );
     } catch (e) {
       debugPrint('[App] open reported event sheet failed: $e');

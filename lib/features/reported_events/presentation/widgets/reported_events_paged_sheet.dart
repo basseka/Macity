@@ -177,6 +177,11 @@ class _ReportedEventsPagedSheetState
   void _onPageChanged(int i) {
     setState(() => _current = i);
     _isPaused = false;
+    // Reset le flag chat pause au changement de story : la pill "Discuter"
+    // ou le focus TextField precedent ne doit pas bloquer la nouvelle bulle.
+    if (ref.read(chatInputFocusedProvider)) {
+      ref.read(chatInputFocusedProvider.notifier).state = false;
+    }
     _startStory(i);
   }
 

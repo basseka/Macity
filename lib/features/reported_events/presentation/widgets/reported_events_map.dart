@@ -269,12 +269,10 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     }
     .leaflet-control-attribution a { color: rgba(168, 85, 247, 0.6) !important; }
 
-    /* Optim (2026-05-12) : retrait du filter hue-rotate/saturate/brightness
-       sur .leaflet-tile-pane. Le filter CSS forcait un repaint pixel-par-pixel
-       de TOUTES les tuiles a chaque pan/zoom -> drain CPU/GPU enorme sur
-       Android et surtout iOS (WKWebView gere mal hue-rotate). On garde la
-       tuile dark CartoDB telle quelle (gris fonce neutre) au lieu du tint
-       violet — tradeoff perf >>> esthetique. */
+    /* Tint violet sur les tuiles dark CartoDB pour matcher la spec neon */
+    .leaflet-tile-pane {
+      filter: hue-rotate(245deg) saturate(1.4) brightness(0.85);
+    }
 
     /* Pins style "goutte SVG" 24x26 + halo radial pulsant 40px (spec neon).
        Optim 2026-05-12 :
@@ -378,16 +376,10 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     // Trace REEL du Peripherique Exterieur de Toulouse (A 620) — geometrie
     // extraite d'OpenStreetMap via Overpass API, 205 ways / ~1450 points.
     // Pane dedie zIndex 425 pour rendre AU-DESSUS du tile-pane.
-    //
-    // Optim 2026-05-12 : on regroupe les polylines dans un LayerGroup et
-    // on les affiche UNIQUEMENT a zoom >= 12 (echelle metropole). En
-    // dezoom Europe/France, c'est invisible donc inutile de payer le cout
-    // de rasterisation des ~2900 segments.
     map.createPane('peripherique');
     map.getPane('peripherique').style.zIndex = 425;
     map.getPane('peripherique').style.pointerEvents = 'none';
     const TOULOUSE_PERIPH_WAYS = $kToulousePeripheriqueWaysJson;
-    const periphLayer = L.layerGroup();
     TOULOUSE_PERIPH_WAYS.forEach(way => {
       // Halo tres discret
       L.polyline(way, {
@@ -397,7 +389,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         opacity: 0.08,
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(periphLayer);
+      }).addTo(map);
       // Ligne fine ambree sombre par-dessus
       L.polyline(way, {
         pane: 'peripherique',
@@ -406,23 +398,8 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         opacity: 0.5,
         lineCap: 'round',
         lineJoin: 'round',
-      }).addTo(periphLayer);
+      }).addTo(map);
     });
-
-    const PERIPH_MIN_ZOOM = 12;
-    let periphVisible = false;
-    function updatePeriphVisibility() {
-      const shouldShow = map.getZoom() >= PERIPH_MIN_ZOOM;
-      if (shouldShow && !periphVisible) {
-        periphLayer.addTo(map);
-        periphVisible = true;
-      } else if (!shouldShow && periphVisible) {
-        map.removeLayer(periphLayer);
-        periphVisible = false;
-      }
-    }
-    map.on('zoomend', updatePeriphVisibility);
-    updatePeriphVisibility();
 
     // Cluster group : groupe les pins proches en cercles avec compteur.
     // maxClusterRadius=40 = pins a < 40px sont groupes.

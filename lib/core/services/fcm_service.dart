@@ -87,16 +87,26 @@ class FcmService {
     );
 
     // Tap sur notification quand l'app etait killed.
-    // Choix produit : on NE deep-link PAS en cold-start — le splash laisse
-    // l'utilisateur arriver naturellement sur /home, sans saut intempestif
-    // vers un mode/event qu'il n'a pas demande consciemment. Le deep-link
-    // reste actif quand l'app est en background (onMessageOpenedApp).
+    // Choix produit : par defaut on ignore le deep-link et le splash laisse
+    // arriver naturellement sur /home. EXCEPTION : type=chat_message — on
+    // ouvre directement la discussion de la story concernee (UX critique
+    // pour repondre a un commentaire).
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
-      debugPrint(
-        '[FCM] cold-start tap ignored (going to /home via splash): '
-        '${initialMessage.data}',
-      );
+      final type = initialMessage.data['type'] as String?;
+      if (type == 'chat_message') {
+        // Delay un peu plus long que les autres handlers : le cold start
+        // a besoin que le splash finisse + que le root navigator soit pret
+        // avant qu'on puisse showModalBottomSheet.
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          _handleNotificationTap(initialMessage);
+        });
+      } else {
+        debugPrint(
+          '[FCM] cold-start tap ignored (going to /home via splash): '
+          '${initialMessage.data}',
+        );
+      }
     }
 
     // Annuler l'ancienne notification locale 18h (remplacée par daily digest server-side)
