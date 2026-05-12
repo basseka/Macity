@@ -86,13 +86,17 @@ class FcmService {
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap),
     );
 
-    // Tap sur notification quand l'app était killed
+    // Tap sur notification quand l'app etait killed.
+    // Choix produit : on NE deep-link PAS en cold-start — le splash laisse
+    // l'utilisateur arriver naturellement sur /home, sans saut intempestif
+    // vers un mode/event qu'il n'a pas demande consciemment. Le deep-link
+    // reste actif quand l'app est en background (onMessageOpenedApp).
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
-      // Attendre que l'UI soit prête avant de naviguer
-      Future.delayed(const Duration(milliseconds: 800), () {
-        _handleNotificationTap(initialMessage);
-      });
+      debugPrint(
+        '[FCM] cold-start tap ignored (going to /home via splash): '
+        '${initialMessage.data}',
+      );
     }
 
     // Annuler l'ancienne notification locale 18h (remplacée par daily digest server-side)

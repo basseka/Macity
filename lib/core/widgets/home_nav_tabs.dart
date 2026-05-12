@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pulz_app/features/home/state/feed_filter_intent_provider.dart';
-import 'package:pulz_app/features/home/state/feed_mode_provider.dart';
-import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
+import 'package:pulz_app/features/mode/state/mode_provider.dart';
 
 /// Onglet actif courant dans la nav secondaire.
-enum HomeNavTab { feed, feed2, scene, event, clubbing, mapLive }
+///
+/// Chaque tab pointe vers une des pages "mode" (routes /mode/xxx) qui sont
+/// egalement accessibles depuis l'Explorer.
+enum HomeNavTab { food, famille, sport, culture, night }
 
 // Palette neon (spec design)
 const _bgInk      = Color(0xFF0A0414);
@@ -43,11 +44,11 @@ class HomeNavTabs extends ConsumerWidget {
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _btn(context, ref, HomeNavTab.feed, Icons.home_rounded, 'Home', circle),
-              _btn(context, ref, HomeNavTab.feed2, Icons.dynamic_feed_rounded, 'Feed', circle),
-              _btn(context, ref, HomeNavTab.scene, Icons.theater_comedy_rounded, 'Scène', circle),
-              _btn(context, ref, HomeNavTab.event, Icons.event_rounded, 'Event', circle),
-              _btn(context, ref, HomeNavTab.clubbing, Icons.nightlife_rounded, 'Club', circle),
+              _btn(context, ref, HomeNavTab.food, Icons.restaurant_rounded, 'Food', circle),
+              _btn(context, ref, HomeNavTab.famille, Icons.family_restroom_rounded, 'Famille', circle),
+              _btn(context, ref, HomeNavTab.sport, Icons.sports_soccer_rounded, 'Sport', circle),
+              _btn(context, ref, HomeNavTab.culture, Icons.theater_comedy_rounded, 'Culture', circle),
+              _btn(context, ref, HomeNavTab.night, Icons.nightlife_rounded, 'Night', circle),
             ],
           );
         },
@@ -150,37 +151,16 @@ class HomeNavTabs extends ConsumerWidget {
   }
 
   void _navigate(BuildContext context, WidgetRef ref, HomeNavTab tab) {
-    switch (tab) {
-      case HomeNavTab.feed:
-        ref.read(feedModeProvider.notifier).state = FeedMode.classic;
-        ref.read(feedFilterIntentProvider.notifier).state = null;
-        context.go('/home');
-        break;
-      case HomeNavTab.feed2:
-        ref.read(feedModeProvider.notifier).state = FeedMode.feed2;
-        ref.read(feedFilterIntentProvider.notifier).state = null;
-        context.go('/home');
-        break;
-      case HomeNavTab.scene:
-        ref.read(feedModeProvider.notifier).state = FeedMode.classic;
-        ref.read(feedFilterIntentProvider.notifier).state = 'En Scène';
-        context.go('/home');
-        break;
-      case HomeNavTab.event:
-        ref.read(feedModeProvider.notifier).state = FeedMode.classic;
-        ref.read(feedFilterIntentProvider.notifier).state = 'Event';
-        context.go('/home');
-        break;
-      case HomeNavTab.clubbing:
-        ref.read(feedModeProvider.notifier).state = FeedMode.classic;
-        ref.read(feedFilterIntentProvider.notifier).state = 'Clubbing';
-        context.go('/home');
-        break;
-      case HomeNavTab.mapLive:
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const MapLivePage()),
-        );
-        break;
-    }
+    // On synchronise aussi le currentMode (utilise par AppShell, back button,
+    // etc.) pour que la nav bar du bas et le pop route sachent ou on est.
+    final mode = switch (tab) {
+      HomeNavTab.food    => 'food',
+      HomeNavTab.famille => 'family',
+      HomeNavTab.sport   => 'sport',
+      HomeNavTab.culture => 'culture',
+      HomeNavTab.night   => 'night',
+    };
+    ref.read(currentModeProvider.notifier).setMode(mode);
+    context.go('/mode/$mode');
   }
 }

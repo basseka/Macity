@@ -23,6 +23,11 @@ class AppUpdateService {
   /// Lit la version locale + la row `app_versions` correspondant a la plateforme
   /// courante. Renvoie un statut consolide. En cas d'erreur reseau ou table
   /// vide, renvoie [AppUpdateStatus.uptoDate] pour ne jamais bloquer le user.
+  ///
+  /// Skip total si l'app n'est PAS installee depuis le Play Store (Android) ou
+  /// l'App Store (iOS) — i.e. en `flutter run`, sideload APK ou TestFlight :
+  /// inutile (et bloquant) de proposer une MAJ vers une version Play Store
+  /// que le user n'a pas installee.
   Future<AppUpdateStatus> check() async {
     try {
       final platform = _platformKey();
@@ -33,6 +38,17 @@ class AppUpdateService {
 
       final pkg = await PackageInfo.fromPlatform();
       final local = pkg.version; // ex: "1.0.71"
+
+      // Bypass si l'install ne vient pas du store officiel — evite la popup
+      // sur tous les builds de dev / sideload / preview.
+      if (!_isFromOfficialStore(pkg.installerStore)) {
+        debugPrint(
+          '[AppUpdate] skip check : installerStore="${pkg.installerStore}" '
+          '(local=$local) — pas du Play Store/App Store',
+        );
+        _lastStatus = AppUpdateStatus.uptoDate(localVersion: local);
+        return _lastStatus!;
+      }
 
       final row = await _fetchRow(platform);
       if (row == null) {
@@ -112,6 +128,20 @@ class AppUpdateService {
     if (Platform.isAndroid) return 'android';
     if (Platform.isIOS) return 'ios';
     return null;
+  }
+
+  /// True si l'app a ete installee depuis le Play Store (Android) ou
+  /// l'App Store (iOS). Sinon : dev build, sideload, TestFlight, etc.
+  ///
+  /// `installerStore` est null en debug/flutter run et contient :
+  /// - `com.android.vending` : Play Store
+  /// - `com.apple.AppStore`  : App Store iOS (peut aussi etre null en
+  ///   TestFlight selon la version d'iOS)
+  bool _isFromOfficialStore(String? installerStore) {
+    if (installerStore == null || installerStore.isEmpty) return false;
+    if (Platform.isAndroid) return installerStore == 'com.android.vending';
+    if (Platform.isIOS) return installerStore == 'com.apple.AppStore';
+    return false;
   }
 
   Future<Map<String, dynamic>?> _fetchRow(String platform) async {

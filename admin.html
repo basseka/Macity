@@ -705,6 +705,31 @@
           </div>
           <input type="file" id="file-input" accept="image/*" class="hidden" />
           <div class="helper">Si aucune photo : l'event n'apparaîtra pas dans le feed (le service filtre `photo_url` vide).</div>
+
+          <!-- ═══ Bloc IA : analyse du flyer ═══ -->
+          <div id="ai-scan-block" class="hidden" style="margin-top: 14px;">
+            <button type="button" id="ai-scan-btn" class="paste-browse" style="
+              width: 100%;
+              padding: 12px 18px;
+              font-size: 14px;
+              justify-content: center;
+              background: linear-gradient(135deg, rgba(142, 36, 170, 0.35), rgba(233, 30, 99, 0.28));
+              border-color: var(--magenta);
+              box-shadow: 0 6px 18px rgba(233, 30, 99, 0.20);
+            ">
+              <span id="ai-scan-btn-label">🪄 Analyser le flyer avec l'IA</span>
+            </button>
+            <div id="ai-scan-status" class="hidden" style="
+              margin-top: 10px;
+              padding: 10px 12px;
+              background: var(--surface-hi);
+              border: 1px solid var(--line);
+              border-radius: 10px;
+              font-size: 12px;
+              color: var(--text-dim);
+              line-height: 1.5;
+            "></div>
+          </div>
         </div>
 
         <!-- Booster -->
@@ -917,6 +942,10 @@
     const pasteFilled = document.getElementById("paste-filled");
     const pasteRemove = document.getElementById("paste-remove");
     const fileInput = document.getElementById("file-input");
+    const aiScanBlock = document.getElementById("ai-scan-block");
+    const aiScanStatus = document.getElementById("ai-scan-status");
+    const aiScanBtn = document.getElementById("ai-scan-btn");
+    const aiScanBtnLabel = document.getElementById("ai-scan-btn-label");
     let pastedBlob = null;
 
     function loadBlob(blob) {
@@ -926,6 +955,12 @@
       pasteEmpty.classList.add("hidden");
       pasteFilled.classList.remove("hidden");
       pasteZone.classList.add("has-image");
+      // Image fraichement deposee : reset le bloc IA pour permettre un nouveau scan
+      aiScanBlock.classList.remove("hidden");
+      aiScanStatus.classList.add("hidden");
+      aiScanStatus.innerHTML = "";
+      aiScanBtn.disabled = false;
+      aiScanBtnLabel.textContent = "🪄 Analyser le flyer avec l'IA";
     }
 
     function clearPastedImage() {
@@ -935,6 +970,9 @@
       pasteFilled.classList.add("hidden");
       pasteZone.classList.remove("has-image");
       fileInput.value = "";
+      aiScanBlock.classList.add("hidden");
+      aiScanStatus.classList.add("hidden");
+      aiScanStatus.innerHTML = "";
     }
 
     pasteRemove.addEventListener("click", (e) => {
@@ -987,6 +1025,256 @@
             return;
           }
         }
+      }
+    });
+
+    // ─── Analyse IA du flyer (scan-event-flyer edge function) ───
+    //
+    // Flow :
+    //  1. Upload du blob vers `admin-events` -> publicUrl
+    //  2. Appel scan-event-flyer { photo_url } -> JSON extrait (titre, dates, lieu...)
+    //  3. Pre-fill du formulaire avec les valeurs trouvees
+    //  4. existingPhotoUrl = publicUrl (pour que le submit ne re-upload pas)
+    //
+    // L'auth se fait via le JWT Supabase (admin email = bypass pro_profile).
+
+    function _norm(s) {
+      return (s || "").toString().toLowerCase()
+        .normalize("NFD").replace(/[̀-ͯ]/g, "");
+    }
+
+    // Mappe la categorie large IA -> rubrique du form (day | culture | night | food | family)
+    function inferRubriqueFromIA(categorieLarge) {
+      const c = _norm(categorieLarge);
+      if (c.includes("nuit") || c.includes("soir")) return "night";
+      if (c.includes("gastr") || c.includes("food")) return "food";
+      if (c.includes("famille") || c.includes("enfant")) return "family";
+      if (c.includes("cult") || c.includes("art") || c.includes("format") || c.includes("atelier") || c.includes("business")) return "culture";
+      return "day"; // musique, concert, danse, sport, fete, bien-etre, gaming
+    }
+
+    // Mappe la sous-categorie IA vers une valeur du <select> categorie_de_la_manifestation
+    function inferCategorieSelectFromIA(sousCat, catLarge) {
+      const SELECT_VALUES = [
+        "Concerts", "Spectacle", "Théâtre", "One-man-show", "Danse", "Comédie musicale", "Opéra", "Humour",
+        "Cinéma", "Salon/expo", "Soirée", "Famille", "Food", "Sport",
+        "Bar", "Club & Disco",
+      ];
+      const target = _norm(sousCat);
+      // Match exact (insensible aux accents)
+      for (const v of SELECT_VALUES) {
+        if (_norm(v) === target) return v;
+      }
+      // Fuzzy sur sous-categorie
+      if (target) {
+        if (target.includes("concert")) return "Concerts";
+        if (target.includes("festival")) return "Concerts";
+        if (target.includes("dj") || target.includes("clubbing")) return "Club & Disco";
+        if (target.includes("club") || target.includes("disco")) return "Club & Disco";
+        if (target.includes("soir") || target.includes("party") || target.includes("after")) return "Soirée";
+        if (target.includes("opera")) return "Opéra";
+        if (target.includes("bar") || target.includes("pub") || target.includes("rooftop")) return "Bar";
+        if (target.includes("theatre") || target.includes("piece")) return "Théâtre";
+        if (target.includes("humour") || target.includes("stand") || target.includes("one")) return "Humour";
+        if (target.includes("dans") || target.includes("ballet")) return "Danse";
+        if (target.includes("comed") && target.includes("music")) return "Comédie musicale";
+        if (target.includes("cinema") || target.includes("film")) return "Cinéma";
+        if (target.includes("expo") || target.includes("salon")) return "Salon/expo";
+        if (target.includes("sport") || target.includes("match")) return "Sport";
+        if (target.includes("famille") || target.includes("enfant")) return "Famille";
+        if (target.includes("food") || target.includes("gastr") || target.includes("brunch") || target.includes("degustation")) return "Food";
+        if (target.includes("spectacle") || target.includes("show")) return "Spectacle";
+      }
+      // Fallback sur la categorie large
+      const cn = _norm(catLarge);
+      if (cn.includes("musique") || cn.includes("concert")) return "Concerts";
+      if (cn.includes("nuit") || cn.includes("soir")) return "Soirée";
+      if (cn.includes("gastr") || cn.includes("food")) return "Food";
+      if (cn.includes("famille")) return "Famille";
+      if (cn.includes("sport")) return "Sport";
+      if (cn.includes("dans")) return "Danse";
+      if (cn.includes("culture") || cn.includes("art")) return "Spectacle";
+      return "";
+    }
+
+    // "20:30" -> "20h30" ; "20:30" + "23:00" -> "20h30 - 23h00" ; sinon brut.
+    function formatHoraires(heureDebut, heureFin) {
+      const fmt = (h) => {
+        if (!h) return "";
+        const m = String(h).match(/^(\d{1,2})[:hH](\d{2})$/);
+        if (!m) return String(h);
+        return `${parseInt(m[1], 10)}h${m[2]}`;
+      };
+      const a = fmt(heureDebut);
+      const b = fmt(heureFin);
+      if (a && b && a !== b) return `${a} - ${b}`;
+      return a || b;
+    }
+
+    // Applique les valeurs IA au formulaire. Retourne la liste des champs filles.
+    function applyExtractedToForm(d) {
+      const filled = [];
+      const setVal = (name, val, label) => {
+        if (val === null || val === undefined || val === "") return;
+        const el = eventForm.elements[name];
+        if (!el) return;
+        // On ne reecrase pas un champ deja saisi par l'admin (sauf si vide)
+        if (el.value && el.value.trim() !== "") return;
+        el.value = val;
+        filled.push(label || name);
+      };
+
+      setVal("nom_de_la_manifestation", d.titre, "titre");
+      setVal("descriptif_court", d.description_courte, "description courte");
+      setVal("descriptif_long", d.description_longue, "description longue");
+      setVal("date_debut", d.date_debut, "date début");
+      if (d.date_fin && d.date_fin !== d.date_debut) setVal("date_fin", d.date_fin, "date fin");
+      const hor = formatHoraires(d.heure_debut, d.heure_fin);
+      if (hor) setVal("horaires", hor, "horaires");
+
+      // Rubrique : seulement si pas encore selectionnee differemment (par defaut "day")
+      const rubriqueEl = eventForm.elements["rubrique"];
+      const inferredRubrique = inferRubriqueFromIA(d.categorie);
+      if (rubriqueEl && rubriqueEl.value === "day" && inferredRubrique !== "day") {
+        rubriqueEl.value = inferredRubrique;
+        rubriqueEl.dispatchEvent(new Event("change")); // refresh venue filter
+        filled.push("rubrique");
+      }
+
+      const inferredCat = inferCategorieSelectFromIA(d.sous_categorie, d.categorie);
+      if (inferredCat) setVal("categorie_de_la_manifestation", inferredCat, "catégorie");
+
+      setVal("type_de_manifestation", d.format, "type");
+      if (Array.isArray(d.tags) && d.tags.length) {
+        setVal("theme_de_la_manifestation", d.tags.slice(0, 5).join(", "), "tags/thème");
+      }
+
+      setVal("lieu_nom", d.lieu_nom, "lieu");
+      setVal("lieu_adresse_2", d.lieu_adresse, "adresse");
+      setVal("code_postal", d.code_postal, "code postal");
+      setVal("commune", d.ville, "commune");
+      setVal("ville", d.ville, "ville");
+
+      // Tarif / gratuit
+      if (d.est_gratuit === true) {
+        if (!gratuitChk.checked) {
+          gratuitChk.checked = true;
+          tarifWrap.classList.add("hidden");
+          filled.push("gratuit");
+        }
+      } else if (d.prix) {
+        const tarifEl = eventForm.elements["tarif_normal"];
+        if (tarifEl && (!tarifEl.value || !tarifEl.value.trim())) {
+          tarifEl.value = String(d.prix).includes("€") ? String(d.prix) : `${d.prix} €`;
+          filled.push("tarif");
+        }
+      }
+
+      setVal("reservation_site_internet", d.lien_billetterie, "lien billetterie");
+
+      // Si type/theme remplis, ouvre auto le bloc avance pour visibilite
+      const advancedHasContent =
+        (eventForm.elements["type_de_manifestation"].value || "").trim() ||
+        (eventForm.elements["theme_de_la_manifestation"].value || "").trim();
+      if (advancedHasContent && advancedFields.classList.contains("hidden")) {
+        advancedFields.classList.remove("hidden");
+        toggleAdvancedBtn.textContent = "▾ Masquer les options avancées";
+      }
+
+      // Trigger l'auto-completion venue (cherche dans la base)
+      if (lieuNomInput.value) {
+        updateVenueUnknownState();
+      }
+
+      return filled;
+    }
+
+    function setAiStatus(html, ok = null) {
+      aiScanStatus.classList.remove("hidden");
+      aiScanStatus.innerHTML = html;
+      aiScanStatus.style.borderColor = ok === true ? "var(--ok)"
+        : ok === false ? "var(--err)"
+        : "var(--line)";
+      aiScanStatus.style.color = ok === true ? "var(--ok)"
+        : ok === false ? "var(--err)"
+        : "var(--text-dim)";
+    }
+
+    aiScanBtn.addEventListener("click", async () => {
+      if (!pastedBlob && !existingPhotoUrl) {
+        return setAiStatus("Aucune image chargée — ajoute un flyer d'abord.", false);
+      }
+      aiScanBtn.disabled = true;
+      aiScanBtnLabel.textContent = "⏳ Analyse en cours…";
+
+      try {
+        // 1. Upload si nouveau blob ; sinon on reutilise l'URL existante
+        let photoUrl = existingPhotoUrl;
+        if (pastedBlob) {
+          setAiStatus("📤 Upload du flyer vers Storage…");
+          photoUrl = await uploadImage(pastedBlob);
+        }
+
+        // 2. Appel edge function
+        setAiStatus("🧠 Claude Haiku analyse le flyer…");
+        const { data, error } = await supabase.functions.invoke("scan-event-flyer", {
+          body: { photo_url: photoUrl },
+        });
+
+        if (error) {
+          // L'erreur de invoke peut etre vide ; tenter de recuperer le payload de la reponse
+          let detail = error.message || String(error);
+          try {
+            // supabase-js expose `context.response` sur les erreurs HTTP non-2xx
+            const ctxResp = error.context?.response;
+            if (ctxResp) {
+              const text = await ctxResp.text();
+              detail += " — " + text.substring(0, 400);
+            }
+          } catch (_) { /* noop */ }
+          throw new Error(detail);
+        }
+        if (!data?.ok || !data.data) {
+          throw new Error(data?.error || data?.detail || "extraction failed (reponse vide)");
+        }
+
+        const extracted = data.data;
+        const conf = typeof extracted.confidence === "number"
+          ? extracted.confidence
+          : null;
+        const filled = applyExtractedToForm(extracted);
+
+        // 3. Marque la photo comme deja uploadee (le submit ne re-upload pas)
+        pastedBlob = null;
+        existingPhotoUrl = photoUrl;
+        pastePreview.src = photoUrl;
+
+        const confLabel = conf !== null
+          ? ` — confiance IA ${(conf * 100).toFixed(0)}%`
+          : "";
+        if (filled.length === 0) {
+          setAiStatus(
+            `⚠️ Aucune donnée extraite${confLabel}. Le flyer est peut-être illisible — saisis manuellement.`,
+            false,
+          );
+        } else {
+          setAiStatus(
+            `✅ ${filled.length} champ${filled.length > 1 ? "s" : ""} pré-rempli${filled.length > 1 ? "s" : ""}${confLabel}<br>`
+              + `<span style="color:var(--text-faint); font-size:11px;">${filled.map(escapeHtml).join(" · ")}</span><br>`
+              + `<span style="color:var(--text-faint); font-size:11px;">💡 Vérifie chaque champ — l'IA peut se tromper.</span>`,
+            true,
+          );
+        }
+        aiScanBtnLabel.textContent = "🔁 Re-analyser";
+        aiScanBtn.disabled = false;
+      } catch (err) {
+        console.error("[ai scan]", err);
+        setAiStatus(
+          `❌ Échec de l'analyse : ${escapeHtml(err.message || String(err))}`,
+          false,
+        );
+        aiScanBtnLabel.textContent = "🪄 Réessayer";
+        aiScanBtn.disabled = false;
       }
     });
 

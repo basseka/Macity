@@ -23,7 +23,7 @@ import 'package:pulz_app/features/notifications/presentation/mairie_notification
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 
 /// Index global du bouton nav selectionne.
-/// 0=Accueil, 1=MaVille, 2=Offres, 3=Explorer, 4=Favoris
+/// 0=Feed, 1=MaVille, 2=Offres, 3=Explorer, 4=Favoris
 final navBarIndexProvider = StateProvider<int>((ref) => 0);
 
 /// Pop toute route pushee au dessus de la racine (sheet / dialog / etc.)
@@ -74,10 +74,12 @@ class AppBottomNavBar extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              // 1 - Accueil
+              // 1 - Feed (accueil = liste des events / signalements)
+              // Toujours dispo : depuis n'importe quelle page on retombe sur
+              // /home (FeedScreen) ; on pop d'abord les sheets/modales ouvertes.
               _NavBarItem(
-                icon: Icons.home_rounded,
-                label: 'Accueil',
+                icon: Icons.dynamic_feed_rounded,
+                label: 'Feed',
                 isActive: _selectedIndex == 0,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 0;

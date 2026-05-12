@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
+import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/data/permanent_fake_stories.dart';
-import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 
 /// Onglet actif dans la rangee de carrousels boostes affiches dans le
@@ -16,8 +16,15 @@ enum BoostedCarouselTab { featured, top }
 final boostedCarouselTabProvider =
     StateProvider<BoostedCarouselTab>((_) => BoostedCarouselTab.featured);
 
-/// Rangee de 3 pilules raccourcis : "A la une" / "Top" / "Map Live".
+/// Rangee de 3 pilules raccourcis : "A la une" / "Top" / "Mes favoris".
 /// S'affiche au-dessus de [HomeNavTabs] dans le greeting block du home.
+///
+/// "A la une" et "Top" sont des toggles du carrousel boost (cf
+/// [boostedCarouselTabProvider]). "Mes favoris" est une action :
+/// ouvre la bottom sheet [LikedPlacesBottomSheet].
+///
+/// La pill "Map Live" a ete deplacee dans le BrandRow (a droite). Cf.
+/// [MapLivePill] (toujours dans ce fichier, expose publiquement).
 ///
 /// Style aligne sur la palette neon des nav tabs (purple #A855F7 + surface
 /// #1A0E2E) mais en pill compacte (hauteur ~30) plutot qu'en cercle.
@@ -62,9 +69,16 @@ class HomeQuickPills extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: _MapLivePill(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MapLivePage()),
+            child: _Pill(
+              icon: Icons.favorite_rounded,
+              label: 'Mes favoris',
+              isActive: false,
+              onTap: () => showModalBottomSheet(
+                context: context,
+                useRootNavigator: true,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const LikedPlacesBottomSheet(),
               ),
             ),
           ),
@@ -77,15 +91,15 @@ class HomeQuickPills extends ConsumerWidget {
 /// Pill "Map Live" speciale : compte le nombre de stories live disponibles
 /// (fakes permanents + reels filtres par ville), affiche le badge total et
 /// fait clignoter la pill en jaune quand il y a du contenu.
-class _MapLivePill extends ConsumerStatefulWidget {
+class MapLivePill extends ConsumerStatefulWidget {
   final VoidCallback onTap;
-  const _MapLivePill({required this.onTap});
+  const MapLivePill({super.key, required this.onTap});
 
   @override
-  ConsumerState<_MapLivePill> createState() => _MapLivePillState();
+  ConsumerState<MapLivePill> createState() => MapLivePillState();
 }
 
-class _MapLivePillState extends ConsumerState<_MapLivePill>
+class MapLivePillState extends ConsumerState<MapLivePill>
     with SingleTickerProviderStateMixin {
   late final AnimationController _blinkCtrl;
   late final Animation<double> _blinkAnim;

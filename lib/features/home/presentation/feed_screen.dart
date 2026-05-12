@@ -357,20 +357,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
     return Row(
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.brand),
-          child: Image.asset(
-            'assets/icon/app_icon.png',
-            width: 32,
-            height: 32,
-            fit: BoxFit.cover,
-            cacheWidth: 300,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-          ),
+        // Avatar / bouton compte a gauche (a la place de l'icone app)
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => AccountMenu.show(context, ref),
+          child: AccountMenu.buildButton(ref: ref),
         ),
         const SizedBox(width: 10),
+        // Bloc "prenom + ville" cliquable -> ouvre le city picker
         Expanded(
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => showModalBottomSheet(
               context: context,
               useRootNavigator: true,
@@ -382,16 +379,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'TA VILLE',
-                  style: GoogleFonts.geistMono(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1.8,
-                    color: AppColors.textFaint,
+                if (prenom.isNotEmpty)
+                  Text(
+                    prenom,
+                    style: GoogleFonts.geistMono(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 1.8,
+                      color: AppColors.textFaint,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 1),
+                if (prenom.isNotEmpty) const SizedBox(height: 1),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -416,24 +414,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             ),
           ),
         ),
-        if (prenom.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: Text(
-              prenom,
-              style: GoogleFonts.geist(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textFaint,
-              ),
+        // Pill "Map Live" a droite (deplacee depuis HomeQuickPills)
+        const SizedBox(width: 8),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 130),
+          child: MapLivePill(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MapLivePage()),
             ),
-          ),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => AccountMenu.show(context, ref),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: AccountMenu.buildButton(ref: ref),
           ),
         ),
       ],
@@ -441,42 +429,27 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildGreetingBlock() {
-    // Quick pills + carrousel boost (P1/P2) visibles UNIQUEMENT sur le
-    // tab Home. Sur Feed/Scène/Event/Club, on laisse toute la place a
-    // la grid de feed pour eviter le bruit visuel.
-    // En plus : quand pill "Top" est actif, on cache les nav tabs pour
-    // donner toute la priorite visuelle au carrousel P2.
-    final activeTab = _resolveActiveNavTab();
-    final isHomeTab = activeTab == HomeNavTab.feed;
+    // Quick pills + carrousel boost (P1/P2) toujours visibles sur /home
+    // (FeedScreen est l'unique consumer de ce widget). Les nav tabs sont
+    // maintenant des raccourcis vers les pages /mode/xxx (Food, Famille,
+    // Sport, Culture, Night) — il n'y a donc plus de "tab actif" sur /home.
+    // Cache les nav tabs quand la pill "Top" est active pour donner toute
+    // la priorite visuelle au carrousel P2.
     final boostedTab = ref.watch(boostedCarouselTabProvider);
     final boostedCarousel = boostedTab == BoostedCarouselTab.top
         ? const BoostedP2Carousel()
         : const BoostedEventsCarousel();
-    final showNavTabs =
-        !isHomeTab || boostedTab != BoostedCarouselTab.top;
+    final showNavTabs = boostedTab != BoostedCarouselTab.top;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (isHomeTab) ...[
-          const HomeQuickPills(),
-          const SizedBox(height: 4),
-          boostedCarousel,
-          const SizedBox(height: 4),
-        ],
-        if (showNavTabs) HomeNavTabs(active: activeTab),
+        const HomeQuickPills(),
+        const SizedBox(height: 4),
+        boostedCarousel,
+        const SizedBox(height: 4),
+        if (showNavTabs) const HomeNavTabs(),
       ],
     );
-  }
-
-  /// Resoud quel onglet de la nav bar est en surbrillance selon l'etat courant
-  /// du feed (filtre tab actif > mode feed/feed2).
-  HomeNavTab _resolveActiveNavTab() {
-    if (_activeTab == 'En Scène') return HomeNavTab.scene;
-    if (_activeTab == 'Event') return HomeNavTab.event;
-    if (_activeTab == 'Clubbing') return HomeNavTab.clubbing;
-    return ref.watch(feedModeProvider) == FeedMode.feed2
-        ? HomeNavTab.feed2
-        : HomeNavTab.feed;
   }
 
   Widget _buildSearchRow() {
@@ -1150,24 +1123,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   Widget _buildFeed() {
-    // Mode Home : aucun filtre + classic mode → afficher uniquement les
-    // carrousels boostes (A la une / Au top) + une map des signalements.
-    final isHomeMode =
-        _activeTab == null && ref.watch(feedModeProvider) == FeedMode.classic;
-    if (isHomeMode) {
-      // Les carrousels boostes (A la une / Au top) sont desormais dans le
-      // greeting block (toggle via QuickPills). Sous les nav tabs, on
-      // affiche le stripe "En direct autour de vous" : les stories Map
-      // Live sous forme de cards (photo + nom + temps relatif).
-      return ListView(
-        padding: EdgeInsets.zero,
-        children: const [
-          ReportedEventsLiveStripe(),
-          SizedBox(height: 80),
-        ],
-      );
-    }
-
     // Invalider le feed quand la ville change
     ref.listen(selectedCityProvider, (prev, next) {
       if (prev != next) {
@@ -1401,16 +1356,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       });
     }
 
-    final showBoosted = ref.watch(feedModeProvider) == FeedMode.classic;
+    // Sur /home sans filtre, on ajoute le stripe "En direct autour de vous"
+    // (stories Map Live) en haut du feed. Les boosted carousels (A la une /
+    // Au top) sont deja dans le greeting block — on ne les replique pas ici.
+    final showLiveStripe = !_isLandscape && _activeTab == null;
 
     if (dayGroups.isEmpty && !_isLandscape && _activeTab == null) {
-      // Meme quand il n'y a pas d'events, afficher les boosted + bouton map live
       return CustomScrollView(
         slivers: [
-          if (showBoosted) ...[
-            const SliverToBoxAdapter(child: BoostedEventsCarousel()),
-            const SliverToBoxAdapter(child: BoostedP2Carousel()),
-          ],
+          if (showLiveStripe)
+            const SliverToBoxAdapter(child: ReportedEventsLiveStripe()),
           SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
@@ -1461,11 +1416,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       child: CustomScrollView(
         controller: scrollController,
         slivers: [
-          // Discovery + signalements commu + Boosted inseres en haut du feed scroll
-          if (!_isLandscape && _activeTab == null && showBoosted) ...[
-            // Boosted events (A la une + Au top) - maintenant en premier
-            const SliverToBoxAdapter(child: BoostedEventsCarousel()),
-            const SliverToBoxAdapter(child: BoostedP2Carousel()),
+          // Live stripe en haut du feed quand on est sur /home sans filtre
+          // (les boosted carousels sont deja dans le greeting block).
+          if (showLiveStripe) ...[
+            const SliverToBoxAdapter(child: ReportedEventsLiveStripe()),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
           ],
           for (final day in sortedDays) ...[
