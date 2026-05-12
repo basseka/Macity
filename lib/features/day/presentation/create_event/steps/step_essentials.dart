@@ -1,14 +1,20 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
+/// Etape 0 — Essentiel.
+/// Champs obligatoires pour publier : categorie (parmi les 7 du feed),
+/// titre, photo/video, date+heure, adresse, prix (toggle gratuit + montant).
 class StepEssentials extends ConsumerStatefulWidget {
   const StepEssentials({super.key});
 
@@ -21,20 +27,23 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
   static const _darkColor = Color(0xFF4A1259);
 
   late final TextEditingController _titreController;
-  late final TextEditingController _descCourteController;
+  late final TextEditingController _adresseController;
+  late final TextEditingController _prixController;
   bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
     _titreController = TextEditingController();
-    _descCourteController = TextEditingController();
+    _adresseController = TextEditingController();
+    _prixController = TextEditingController();
   }
 
   @override
   void dispose() {
     _titreController.dispose();
-    _descCourteController.dispose();
+    _adresseController.dispose();
+    _prixController.dispose();
     super.dispose();
   }
 
@@ -42,19 +51,25 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
   Widget build(BuildContext context) {
     final state = ref.watch(createEventProvider);
     final notifier = ref.read(createEventProvider.notifier);
+    final city = ref.watch(selectedCityProvider);
     final isPro =
         ref.watch(proAuthProvider).status == ProAuthStatus.approved;
 
     if (!_initialized) {
       _initialized = true;
       _titreController.text = state.titre;
-      _descCourteController.text = state.descriptionCourte;
+      _adresseController.text = state.lieuAdresse;
+      _prixController.text = state.prix;
+      if (state.ville.isEmpty) {
+        Future.microtask(() => notifier.updateVille(city));
+      }
     }
-    // Resync quand le wizard est pre-rempli (loadEvent / prefillFromScan).
+
     ref.listen<CreateEventState>(createEventProvider, (prev, next) {
       if (prev != null && prev.prefillRevision != next.prefillRevision) {
         _titreController.text = next.titre;
-        _descCourteController.text = next.descriptionCourte;
+        _adresseController.text = next.lieuAdresse;
+        _prixController.text = next.prix;
       }
     });
 
@@ -64,18 +79,17 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Essentiel',
+            'L\'essentiel',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _darkColor),
           ),
           const SizedBox(height: 2),
           Text(
-            'Decrivez votre evenement',
+            'Le minimum pour publier ton event.',
             style: TextStyle(fontSize: 12, color: AppColors.textFaint),
           ),
           const SizedBox(height: 14),
 
-          // Raccourci IA : scan d'un flyer pour pre-remplir le formulaire.
-          // Visible uniquement pour les pros approuves.
+          // Scan IA (pros uniquement).
           if (isPro && !state.isEditing) ...[
             InkWell(
               onTap: () => AddEventBottomSheet.triggerScanFlow(
@@ -85,10 +99,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
               ),
               borderRadius: BorderRadius.circular(14),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
@@ -104,11 +115,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.auto_awesome_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                    const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
                     const SizedBox(width: 10),
                     const Expanded(
                       child: Column(
@@ -116,27 +123,16 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
                         children: [
                           Text(
                             'Scanner un flyer (IA)',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                            ),
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                           ),
                           Text(
-                            'Remplit automatiquement toutes les etapes',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 10,
-                            ),
+                            'Remplit tout automatiquement',
+                            style: TextStyle(color: Colors.white70, fontSize: 10),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                    const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                   ],
                 ),
               ),
@@ -144,8 +140,8 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             const SizedBox(height: 14),
           ],
 
-          // Categorie
-          _sectionLabel('Categorie *'),
+          // 1. Categorie : 7 chips alignes sur le feed
+          _label('Catégorie *'),
           const SizedBox(height: 6),
           Wrap(
             spacing: 6,
@@ -153,7 +149,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             children: kEventCategories.map((cat) {
               final selected = state.categorie == cat;
               return ChoiceChip(
-                label: Text(cat, style: const TextStyle(fontSize: 11, color: AppColors.text)),
+                label: Text(cat, style: const TextStyle(fontSize: 12, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -166,85 +162,17 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           ),
           const SizedBox(height: 14),
 
-          // Sous-categorie
-          if (state.categorie != null) ...[
-            _sectionLabel('Sous-categorie *'),
-            const SizedBox(height: 6),
-            DropdownButtonFormField<String>(
-              key: ValueKey(state.categorie),
-              isExpanded: true,
-              value: (kSubcategories[state.categorie] ?? []).contains(state.sousCategorie)
-                  ? state.sousCategorie
-                  : null,
-              decoration: _inputDecoration('Choisir'),
-              style: const TextStyle(fontSize: 13, color: AppColors.text),
-              dropdownColor: AppColors.surfaceHi,
-              iconEnabledColor: AppColors.textDim,
-              items: (kSubcategories[state.categorie] ?? [])
-                  .map((sc) => DropdownMenuItem(
-                        value: sc,
-                        child: Text(
-                          sc,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: AppColors.text),
-                        ),
-                      ))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) notifier.updateSousCategorie(v);
-              },
-            ),
-            const SizedBox(height: 14),
-          ],
-
-          // Format
-          _sectionLabel('Format'),
-          const SizedBox(height: 6),
-          SizedBox(
-            height: 34,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: kEventFormats.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 6),
-              itemBuilder: (context, i) {
-                final fmt = kEventFormats[i];
-                final selected = state.format == fmt;
-                return ChoiceChip(
-                  label: Text(fmt, style: const TextStyle(fontSize: 11, color: AppColors.text)),
-                  selected: selected,
-                  selectedColor: _primaryColor.withValues(alpha: 0.15),
-                  checkmarkColor: _primaryColor,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onSelected: (_) => notifier.updateFormat(fmt),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Titre
+          // 2. Titre
           TextFormField(
             controller: _titreController,
-            decoration: _inputDecoration('Titre de l\'evenement *'),
+            decoration: _input('Titre de l\'évènement *'),
             style: const TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateTitre,
           ),
-          const SizedBox(height: 10),
-
-          // Description courte
-          TextFormField(
-            controller: _descCourteController,
-            decoration: _inputDecoration('Description courte'),
-            style: const TextStyle(fontSize: 13, color: AppColors.text),
-            maxLines: 2,
-            onChanged: notifier.updateDescriptionCourte,
-          ),
           const SizedBox(height: 14),
 
-          // Photo + Video
-          _sectionLabel('Photo *'),
+          // 3. Photo + Video
+          _label('Photo *'),
           const SizedBox(height: 6),
           _PhotoPicker(
             photoPath: state.photoPath,
@@ -252,26 +180,110 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             onPicked: notifier.updatePhotoPath,
           ),
           const SizedBox(height: 10),
-          _sectionLabel('Video teaser (optionnel, 15s max)'),
+          _label('Vidéo teaser (optionnel, 15s max)'),
           const SizedBox(height: 6),
           _VideoPicker(
             videoPath: state.videoPath,
             onPicked: notifier.updateVideoPath,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+
+          // 4. Date + heure
+          Row(
+            children: [
+              Expanded(
+                child: _DatePickerField(
+                  label: 'Date *',
+                  value: state.dateDebut,
+                  onPicked: notifier.updateDateDebut,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _TimePickerField(
+                  label: 'Heure *',
+                  value: state.heureDebut,
+                  onPicked: notifier.updateHeureDebut,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // 5. Adresse + ville (ville auto)
+          TextFormField(
+            controller: _adresseController,
+            decoration: _input('Adresse *'),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            onChanged: notifier.updateLieuAdresse,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: _primaryColor.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.location_city, size: 14, color: _primaryColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      state.ville.isNotEmpty ? state.ville : city,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _darkColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // 6. Prix : toggle gratuit + montant
+          SwitchListTile(
+            value: state.estGratuit,
+            onChanged: notifier.updateEstGratuit,
+            title: const Text(
+              'Évènement gratuit',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            activeTrackColor: _primaryColor.withValues(alpha: 0.4),
+            thumbColor: const WidgetStatePropertyAll(_primaryColor),
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          ),
+          if (!state.estGratuit) ...[
+            const SizedBox(height: 6),
+            TextFormField(
+              controller: _prixController,
+              decoration: _input('Prix (€)'),
+              style: const TextStyle(fontSize: 13, color: AppColors.text),
+              keyboardType: TextInputType.number,
+              onChanged: notifier.updatePrix,
+            ),
+          ],
+          const SizedBox(height: 18),
         ],
       ),
     );
   }
 
-  static Widget _sectionLabel(String text) {
+  static Widget _label(String text) {
     return Text(
       text,
       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _darkColor),
     );
   }
 
-  static InputDecoration _inputDecoration(String label) {
+  static InputDecoration _input(String label) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
@@ -295,10 +307,12 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
   }
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// Pickers (photo / video / date / time)
+// ──────────────────────────────────────────────────────────────────────────
+
 class _PhotoPicker extends StatelessWidget {
   final String? photoPath;
-  /// URL reseau d'une photo deja uploadee (mode edition ou prefill par scan IA).
-  /// Affichee si [photoPath] local est absent.
   final String? existingPhotoUrl;
   final ValueChanged<String> onPicked;
 
@@ -344,18 +358,6 @@ class _PhotoPicker extends StatelessWidget {
                       existingPhotoUrl!,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      loadingBuilder: (_, child, progress) {
-                        if (progress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            value: progress.expectedTotalBytes != null
-                                ? progress.cumulativeBytesLoaded /
-                                    progress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
                       errorBuilder: (_, __, ___) => _placeholder(),
                     ),
                   )
@@ -371,7 +373,7 @@ class _PhotoPicker extends StatelessWidget {
         Icon(Icons.add_a_photo_outlined, size: 32, color: AppColors.lineStrong),
         const SizedBox(height: 6),
         Text(
-          'Appuyez pour ajouter une photo',
+          'Appuie pour ajouter une photo',
           style: TextStyle(fontSize: 11, color: AppColors.textFaint),
         ),
       ],
@@ -387,7 +389,7 @@ class _PhotoPicker extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt, size: 20),
-              title: const Text('Camera', style: TextStyle(fontSize: 13)),
+              title: const Text('Caméra', style: TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
@@ -400,7 +402,6 @@ class _PhotoPicker extends StatelessWidget {
       ),
     );
     if (source == null) return;
-
     final xFile = await ImagePicker().pickImage(source: source, maxWidth: 1024);
     if (xFile != null) onPicked(xFile.path);
   }
@@ -409,7 +410,6 @@ class _PhotoPicker extends StatelessWidget {
 class _VideoPicker extends StatelessWidget {
   final String? videoPath;
   final ValueChanged<String> onPicked;
-
   const _VideoPicker({required this.videoPath, required this.onPicked});
 
   @override
@@ -447,7 +447,7 @@ class _VideoPicker extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(
-                        'Video',
+                        'Vidéo',
                         style: TextStyle(color: Colors.white, fontSize: 10),
                       ),
                     ),
@@ -460,7 +460,7 @@ class _VideoPicker extends StatelessWidget {
                   Icon(Icons.videocam_outlined, size: 36, color: Colors.grey),
                   SizedBox(height: 6),
                   Text(
-                    'Ajouter une video\n(15 sec max)',
+                    'Ajouter\n(15 sec max)',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 10, color: Colors.grey),
                   ),
@@ -479,7 +479,7 @@ class _VideoPicker extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.videocam, size: 20),
-              title: const Text('Camera', style: TextStyle(fontSize: 13)),
+              title: const Text('Caméra', style: TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
@@ -492,11 +492,250 @@ class _VideoPicker extends StatelessWidget {
       ),
     );
     if (source == null) return;
-
     final xFile = await ImagePicker().pickVideo(
       source: source,
       maxDuration: const Duration(seconds: 15),
     );
     if (xFile != null) onPicked(xFile.path);
+  }
+}
+
+class _DatePickerField extends StatelessWidget {
+  final String label;
+  final DateTime? value;
+  final ValueChanged<DateTime> onPicked;
+
+  const _DatePickerField({
+    required this.label,
+    required this.value,
+    required this.onPicked,
+  });
+
+  static const _primaryColor = Color(0xFF7B2D8E);
+
+  void _showPicker(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    var selected = value ?? today;
+    if (selected.isBefore(today)) selected = today;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final bottomPadding = MediaQuery.of(ctx).viewPadding.bottom;
+        final screenHeight = MediaQuery.of(ctx).size.height;
+        final pickerHeight = screenHeight * 0.8 < 320 ? screenHeight * 0.8 : 320.0;
+        return Container(
+          height: pickerHeight + bottomPadding,
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(top: BorderSide(color: AppColors.line)),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                    ),
+                    const Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        onPicked(selected);
+                      },
+                      child: const Text('OK', style: TextStyle(color: AppColors.magenta, fontSize: 14, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: AppColors.line),
+              Expanded(
+                child: CupertinoTheme(
+                  data: const CupertinoThemeData(
+                    brightness: Brightness.dark,
+                    primaryColor: AppColors.magenta,
+                    textTheme: CupertinoTextThemeData(
+                      dateTimePickerTextStyle: TextStyle(fontSize: 20, color: AppColors.text),
+                    ),
+                  ),
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date,
+                    initialDateTime: selected,
+                    minimumDate: today,
+                    maximumDate: today.add(const Duration(days: 365)),
+                    onDateTimeChanged: (dt) => selected = dt,
+                  ),
+                ),
+              ),
+              SizedBox(height: bottomPadding),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = value != null;
+    return GestureDetector(
+      onTap: () => _showPicker(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: hasValue ? _primaryColor.withValues(alpha: 0.06) : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: hasValue ? _primaryColor.withValues(alpha: 0.3) : AppColors.line,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, size: 16, color: hasValue ? _primaryColor : AppColors.textFaint),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                hasValue ? DateFormat('d MMM yyyy', 'fr_FR').format(value!) : label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: hasValue ? _primaryColor : AppColors.textFaint,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TimePickerField extends StatelessWidget {
+  final String label;
+  final TimeOfDay? value;
+  final ValueChanged<TimeOfDay> onPicked;
+
+  const _TimePickerField({
+    required this.label,
+    required this.value,
+    required this.onPicked,
+  });
+
+  static const _primaryColor = Color(0xFF7B2D8E);
+
+  void _showPicker(BuildContext context) {
+    final now = DateTime.now();
+    final defaultMinute = (value?.minute ?? 0);
+    final roundedMinute = (defaultMinute / 5).round() * 5;
+    var selected = value != null
+        ? DateTime(now.year, now.month, now.day, value!.hour, roundedMinute.clamp(0, 55))
+        : DateTime(now.year, now.month, now.day, 20, 0);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final bottomPadding = MediaQuery.of(ctx).viewPadding.bottom;
+        final screenHeight = MediaQuery.of(ctx).size.height;
+        final pickerHeight = screenHeight * 0.8 < 320 ? screenHeight * 0.8 : 320.0;
+        return Container(
+          height: pickerHeight + bottomPadding,
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(top: BorderSide(color: AppColors.line)),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                    ),
+                    const Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        onPicked(TimeOfDay(hour: selected.hour, minute: selected.minute));
+                      },
+                      child: const Text('OK', style: TextStyle(color: AppColors.magenta, fontSize: 14, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: AppColors.line),
+              Expanded(
+                child: CupertinoTheme(
+                  data: const CupertinoThemeData(
+                    brightness: Brightness.dark,
+                    primaryColor: AppColors.magenta,
+                    textTheme: CupertinoTextThemeData(
+                      dateTimePickerTextStyle: TextStyle(fontSize: 22, color: AppColors.text),
+                    ),
+                  ),
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    initialDateTime: selected,
+                    use24hFormat: true,
+                    minuteInterval: 5,
+                    onDateTimeChanged: (dt) => selected = dt,
+                  ),
+                ),
+              ),
+              SizedBox(height: bottomPadding),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = value != null;
+    return GestureDetector(
+      onTap: () => _showPicker(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: hasValue ? _primaryColor.withValues(alpha: 0.06) : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: hasValue ? _primaryColor.withValues(alpha: 0.3) : AppColors.line,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.access_time, size: 16, color: hasValue ? _primaryColor : AppColors.textFaint),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                hasValue ? '${value!.hour.toString().padLeft(2, '0')}:${value!.minute.toString().padLeft(2, '0')}' : label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: hasValue ? _primaryColor : AppColors.textFaint,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -15,21 +15,55 @@ final createEventProvider =
   (ref) => CreateEventNotifier(ref),
 );
 
-
 class CreateEventNotifier extends StateNotifier<CreateEventState> {
   final Ref _ref;
 
   CreateEventNotifier(this._ref) : super(const CreateEventState()) {
-    // Pre-remplir le nom de l'organisateur si pro connecte
+    // Pre-remplit le nom de l'organisateur si pro connecte (utile pour l'etape
+    // optionnelle).
     final proState = _ref.read(proAuthProvider);
     if (proState.status == ProAuthStatus.approved && proState.profile != null) {
       state = state.copyWith(organisateurNom: proState.profile!.nom);
     }
   }
 
-  /// Charge un événement existant dans le state pour l'édition.
+  /// Mappe une categorie heritee (sous-cat libre ou ancienne taxonomie) vers
+  /// l'une des 7 categories du feed. Best-effort par mots-cles.
+  String? _mapLegacyToFeedCategory(String raw) {
+    final s = raw.toLowerCase();
+    if (s.contains('concert') || s.contains('musique') || s.contains('festival')) {
+      return 'Concerts';
+    }
+    if (s.contains('soir') || s.contains('club') || s.contains('dj') ||
+        s.contains('party') || s.contains('bar') || s.contains('after')) {
+      return 'Soirée';
+    }
+    if (s.contains('spectacle') || s.contains('theatre') || s.contains('théâtre') ||
+        s.contains('humour') || s.contains('danse') || s.contains('opera') ||
+        s.contains('comédie') || s.contains('comedie')) {
+      return 'Spectacle';
+    }
+    if (s.contains('cinema') || s.contains('cinéma') || s.contains('film') ||
+        s.contains('projection')) {
+      return 'Cinéma';
+    }
+    if (s.contains('food') || s.contains('gastr') || s.contains('brunch') ||
+        s.contains('restaurant') || s.contains('degustation') || s.contains('marche')) {
+      return 'Food';
+    }
+    if (s.contains('sport') || s.contains('fitness') || s.contains('match') ||
+        s.contains('running') || s.contains('course') || s.contains('tournoi')) {
+      return 'Sport';
+    }
+    if (s.contains('famille') || s.contains('enfant') || s.contains('kids') ||
+        s.contains('jeunesse')) {
+      return 'Famille';
+    }
+    return null;
+  }
+
+  /// Charge un evenement existant dans le state pour l'edition.
   void loadEvent(UserEvent e, {int initialStep = 0}) {
-    // Parser la date
     DateTime? dateDebut;
     TimeOfDay? heureDebut;
     DateTime? dateFin;
@@ -60,22 +94,20 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       }
     }
 
-    // Trouver la catégorie parente à partir de la sous-catégorie
+    // Categorie : on accepte la valeur stockee si elle est dans la nouvelle
+    // taxonomie ; sinon on mappe depuis la sous-cat legacy par mots-cles.
     String? categorie;
-    for (final entry in kSubcategories.entries) {
-      if (entry.value.contains(e.categorie)) {
-        categorie = entry.key;
-        break;
-      }
+    if (kEventCategories.contains(e.categorie)) {
+      categorie = e.categorie;
+    } else if (e.categorie.isNotEmpty) {
+      categorie = _mapLegacyToFeedCategory(e.categorie);
     }
 
-    // Extraire accessibilité
     Set<String> accessibilite = {};
     if (e.accessibilite != null && e.accessibilite!['options'] is List) {
       accessibilite = Set<String>.from(e.accessibilite!['options'] as List);
     }
 
-    // Extraire règles
     String ageMinimum = '';
     String materielRequis = '';
     String conditionsAnnulation = '';
@@ -91,8 +123,6 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       existingPhotoUrl: e.photoUrl,
       currentStep: initialStep,
       categorie: categorie,
-      sousCategorie: e.categorie,
-      format: e.format.isNotEmpty ? e.format : null,
       titre: e.titre,
       descriptionCourte: e.descriptionCourte,
       dateDebut: dateDebut,
@@ -141,16 +171,11 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
   }
 
   /// Pre-remplit le state a partir des donnees extraites par l'IA sur un
-  /// flyer scanne (edge function `scan-event-flyer`). L'user peut ensuite
-  /// reviser chaque champ dans le wizard existant.
-  ///
-  /// [photoUrl] est l'URL deja uploadee par [EventScanService] ; on la
-  /// mappe sur `existingPhotoUrl` pour que le submit ne re-uploade pas.
+  /// flyer scanne. L'user peut ensuite reviser chaque champ.
   void prefillFromScan({
     required Map<String, dynamic> data,
     required String photoUrl,
   }) {
-    // Helpers de parsing defensif (l'IA peut renvoyer des types inattendus).
     String? str(dynamic v) {
       if (v == null) return null;
       final s = v.toString().trim();
@@ -174,40 +199,27 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       return TimeOfDay(hour: h, minute: mn);
     }
 
-    // Validation des enums : on garde seulement les valeurs que le wizard
-    // reconnait. Sinon null -> l'user choisit.
-    String? cat = str(data['categorie']);
+    // L'IA peut renvoyer une categorie/sous-cat de l'ancienne taxonomie : on
+    // mappe les deux par mots-cles vers les 7 categories du feed.
+    String? cat;
+    final rawCat = str(data['categorie']);
+    final rawSub = str(data['sous_categorie']);
+    if (rawCat != null) cat = _mapLegacyToFeedCategory(rawCat);
+    if (cat == null && rawSub != null) cat = _mapLegacyToFeedCategory(rawSub);
     if (cat != null && !kEventCategories.contains(cat)) cat = null;
-
-    String? sub = str(data['sous_categorie']);
-    if (cat != null && sub != null) {
-      final subs = kSubcategories[cat];
-      if (subs == null || !subs.contains(sub)) sub = null;
-    } else if (cat == null) {
-      sub = null;
-    }
-
-    String? fmt = str(data['format']);
-    if (fmt != null && !kEventFormats.contains(fmt)) fmt = null;
 
     final tags = data['tags'];
     final List<String> tagList = tags is List
         ? tags.whereType<String>().take(10).toList()
         : const [];
 
-    // On merge avec le state courant (qui contient deja l'organisateurNom
-    // pre-rempli depuis le profil pro). prefillRevision++ force le rebuild
-    // des TextFormField qui sinon restent bloques sur leur initialValue.
-    // currentStep=2 : jump direct a l'etape Pricing/Boost ; le pro peut alors
-    // choisir le classement feed (Clubbing/Event/En scene) et le niveau de
-    // boost, puis publier directement sans passer par les etapes 4/5.
+    // Le scan IA jump direct a Optionnel (step 1) : l'essentiel est rempli,
+    // le pro peut publier ou affiner.
     state = state.copyWith(
-      currentStep: 2,
+      currentStep: 1,
       existingPhotoUrl: photoUrl,
       prefillRevision: state.prefillRevision + 1,
       categorie: cat,
-      sousCategorie: sub,
-      format: fmt,
       titre: str(data['titre']) ?? '',
       descriptionCourte: str(data['description_courte']) ?? '',
       descriptionLongue: str(data['description_longue']) ?? '',
@@ -217,8 +229,6 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       heureFin: parseTime(data['heure_fin']),
       lieuNom: str(data['lieu_nom']),
       lieuAdresse: str(data['lieu_adresse']) ?? '',
-      // Sauvegarde le HUB ville (Toulouse) plutot que la commune (Seysses)
-      // pour que l'event apparaisse dans le feed du hub. CP fourni par l'IA.
       ville: str(data['ville']) != null
           ? CityHubResolver.resolveHub(
               str(data['ville']),
@@ -234,19 +244,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
   }
 
   void updateCategorie(String value) {
-    state = state.copyWith(
-      categorie: value,
-      sousCategorie: null,
-      clearError: true,
-    );
-  }
-
-  void updateSousCategorie(String value) {
-    state = state.copyWith(sousCategorie: value, clearError: true);
-  }
-
-  void updateFormat(String value) {
-    state = state.copyWith(format: value, clearError: true);
+    state = state.copyWith(categorie: value, clearError: true);
   }
 
   void updateTitre(String value) {
@@ -450,8 +448,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     state = state.copyWith(conditionsAnnulation: value, clearError: true);
   }
 
-  /// Tente d'avancer a l'etape suivante.
-  /// Retourne true si la navigation a reussi.
+  /// Tente d'avancer a l'etape suivante. Retourne true si la nav a reussi.
   bool nextStep() {
     final error = state.validateCurrentStep();
     if (error != null) {
@@ -476,7 +473,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     }
   }
 
-  /// Skip l'etape courante (etapes 4-5 uniquement).
+  /// Skip l'etape Optionnel : passe direct au submit. La page gere l'appel.
   void skipStep() {
     if (state.isCurrentStepSkippable &&
         state.currentStep < CreateEventState.totalSteps - 1) {
@@ -487,7 +484,6 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     }
   }
 
-  /// Dismiss le banner d'erreur courant.
   void clearError() {
     state = state.copyWith(clearError: true);
   }
@@ -495,29 +491,30 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
   /// Soumet l'evenement.
   Future<bool> submit() async {
     debugPrint(
-      '[CreateEvent] submit() called. step=${state.currentStep} '
-      'isEditing=${state.isEditing} '
-      'titre="${state.titre}" '
-      'cat="${state.categorie}" sousCat="${state.sousCategorie}" '
-      'date=${state.dateDebut} heure=${state.heureDebut} '
-      'ville="${state.ville}" '
-      'photoPath=${state.photoPath} existingPhotoUrl=${state.existingPhotoUrl} '
-      'prefillRev=${state.prefillRevision}',
+      '[CreateEvent] submit() step=${state.currentStep} '
+      'isEditing=${state.isEditing} titre="${state.titre}" '
+      'cat="${state.categorie}" date=${state.dateDebut} '
+      'heure=${state.heureDebut} ville="${state.ville}"',
     );
-    // Valider l'etape courante d'abord
     final error = state.validateCurrentStep();
     if (error != null) {
-      debugPrint('[CreateEvent] submit blocked by validation: $error');
       state = state.copyWith(errorMessage: error);
       return false;
     }
 
-    // Validation globale des champs requis (utile quand on fast-publish
-    // avant l'etape When/Where, ex: scan IA qui n'a pas extrait la date).
+    // Cas du fast-publish depuis Optionnel : on revalide l'essentiel.
     if (state.dateDebut == null || state.heureDebut == null) {
-      const msg = 'Renseigne la date et l\'heure avant de publier.';
-      debugPrint('[CreateEvent] submit blocked: date/heure manquants');
-      state = state.copyWith(errorMessage: msg, currentStep: 1);
+      state = state.copyWith(
+        errorMessage: 'Renseigne la date et l\'heure avant de publier.',
+        currentStep: 0,
+      );
+      return false;
+    }
+    if (state.categorie == null) {
+      state = state.copyWith(
+        errorMessage: 'Choisis une catégorie',
+        currentStep: 0,
+      );
       return false;
     }
 
@@ -541,19 +538,16 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
 
       final rubrique = categoryToMode[s.categorie] ?? 'day';
 
-      // Upload video si present
       String? uploadedVideoUrl;
       final svc = UserEventSupabaseService();
       if (s.videoPath != null && s.videoPath!.isNotEmpty) {
         try {
           uploadedVideoUrl = await svc.uploadVideo(s.videoPath!);
-          debugPrint('[CreateEvent] video uploaded: $uploadedVideoUrl');
         } catch (e) {
           debugPrint('[CreateEvent] video upload failed: $e');
         }
       }
 
-      // Upload gallery photos if any
       List<String> galleryUrls = [];
       if (s.galleryPaths.isNotEmpty) {
         try {
@@ -563,12 +557,6 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         }
       }
 
-      // Preserve l'URL d'une photo deja uploadee :
-      //  - Mode edition sans nouvelle photo : on garde existingPhotoUrl
-      //  - Mode creation via scan IA : existingPhotoUrl = URL de l'upload
-      //    fait par EventScanService (la photo est deja dans Storage).
-      // Si on n'a pas de photoPath local mais un existingPhotoUrl, on utilise
-      // ce dernier pour eviter que l'event soit insere sans photo.
       final photoUrl = (s.photoPath == null || s.photoPath!.isEmpty)
           ? s.existingPhotoUrl
           : null;
@@ -577,7 +565,10 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         id: id,
         titre: s.titre.trim(),
         description: s.descriptionCourte.trim(),
-        categorie: s.sousCategorie ?? '',
+        // Categorie = celle choisie par l'user dans les 7 chips feed.
+        // Le filtre feed matche par contains() lowercase, donc 'Concerts'
+        // matche le keyword 'concert' du filtre.
+        categorie: s.categorie ?? '',
         rubrique: rubrique,
         date: dateStr,
         heure: timeStr,
@@ -589,7 +580,8 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         ville: s.ville,
         lienBilletterie: s.lienBilletterie.trim(),
         createdAt: DateTime.now(),
-        format: s.format ?? '',
+        // Format n'existe plus dans le wizard simplifie. On l'envoie vide.
+        format: '',
         descriptionCourte: s.descriptionCourte.trim(),
         dateFin: dateFinStr,
         heureFin: heureFinStr,
@@ -635,12 +627,8 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       );
 
       if (s.isEditing) {
-        // Mode édition : update
-        await _ref
-            .read(userEventsProvider.notifier)
-            .updateEvent(event);
+        await _ref.read(userEventsProvider.notifier).updateEvent(event);
       } else {
-        // Mode création
         String? establishmentId;
         final proState = _ref.read(proAuthProvider);
         if (proState.status == ProAuthStatus.approved &&
@@ -661,14 +649,9 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         );
       }
 
-      // Rafraichir le feed pour inclure le nouvel event
       _ref.invalidate(paginatedFeedProvider);
 
       lastCreatedEventId = event.id;
-      debugPrint(
-        '[CreateEvent] submit OK id=${event.id} rubrique=${event.rubrique} '
-        'categorie=${event.categorie} photoUrl=${event.photoUrl}',
-      );
       state = state.copyWith(isSubmitting: false);
       return true;
     } catch (e, st) {
@@ -681,40 +664,35 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     }
   }
 
-  /// Reduit une exception (souvent DioException) a un message court et lisible
-  /// pour l'UI. Le detail complet reste dans debugPrint pour les logs.
   String _friendlyError(Object e) {
     final s = e.toString();
     if (s.contains('DioException')) {
-      // Extraire status code si present (pattern "status code of NNN")
       final statusMatch = RegExp(r'status code of (\d{3})').firstMatch(s);
       if (statusMatch != null) {
         final code = statusMatch.group(1);
-        if (code == '400') return 'Donnees invalides (400). Verifie les champs.';
+        if (code == '400') return 'Données invalides (400). Vérifie les champs.';
         if (code == '401' || code == '403') {
           return 'Authentification requise ($code).';
         }
-        if (code == '409') return 'Conflit (409). Evenement deja existant ?';
+        if (code == '409') return 'Conflit (409). Évènement déjà existant ?';
         if (code == '413') return 'Fichier trop volumineux.';
         if (code!.startsWith('5')) {
-          return 'Erreur serveur ($code). Reessaie dans un instant.';
+          return 'Erreur serveur ($code). Réessaye dans un instant.';
         }
-        return 'Erreur reseau ($code).';
+        return 'Erreur réseau ($code).';
       }
       if (s.contains('timeout') || s.contains('Timeout')) {
-        return 'Connexion trop lente. Verifie ton reseau.';
+        return 'Connexion trop lente. Vérifie ton réseau.';
       }
-      return 'Erreur reseau. Verifie ta connexion.';
+      return 'Erreur réseau. Vérifie ta connexion.';
     }
     if (s.contains('SocketException')) {
       return 'Pas de connexion internet.';
     }
-    // Fallback : message brut, tronque
     final raw = s.replaceFirst('Exception: ', '');
     return raw.length > 120 ? '${raw.substring(0, 117)}...' : raw;
   }
 
-  /// ID du dernier event créé (pour le paiement Stripe).
   String? lastCreatedEventId;
 
   double? _parseDouble(String value) {

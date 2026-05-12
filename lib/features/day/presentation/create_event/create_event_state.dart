@@ -1,48 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// Categories principales disponibles pour un evenement.
+/// Categories alignees sur les chips de filtre du Feed (slot 1 de la nav bar).
+/// Garder cet ordre identique a `_feedCategories` dans `feed_screen.dart`.
 const kEventCategories = <String>[
-  'Musique / Concert',
-  'Culturel / Artistique',
-  'Danse',
-  'Sport / Fitness',
-  'Formation / Atelier',
-  'Business / Professionnel',
-  'Loisirs / Gaming',
-  'Gastronomie',
-  'Fete / Communautaire',
-  'Bien-etre / Sante',
-  'Nuit / Soiree',
-  'Famille / Enfants',
-];
-
-/// Sous-categories dynamiques par categorie.
-const kSubcategories = <String, List<String>>{
-  'Musique / Concert': ['Concert', 'Festival', 'DJ set', 'Showcase', 'Opera', 'Karaoke'],
-  'Culturel / Artistique': ['Expo', 'Vernissage', 'Theatre', 'Visite guidee', 'Musee', 'Cinema'],
-  'Danse': ['Cours de danse', 'Spectacle', 'Bal', 'Battle', 'Stage'],
-  'Sport / Fitness': ['Football', 'Rugby', 'Basketball', 'Handball', 'Tennis', 'Boxe', 'Natation', 'Courses a pied', 'Competition', 'Stage de danse', 'Course', 'Yoga', 'Fitness', 'Autre sport'],
-  'Formation / Atelier': ['Atelier creatif', 'Formation pro', 'Cours de cuisine', 'Hackathon', 'Workshop'],
-  'Business / Professionnel': ['Conference', 'Networking', 'Salon', 'Seminaire', 'Meetup'],
-  'Loisirs / Gaming': ['Tournoi e-sport', 'Convention', 'Bar a jeux', 'LAN party', 'Escape game'],
-  'Gastronomie': ['Restaurant', 'Degustation', 'Brunch', 'Marche', 'Food truck', 'Cours de cuisine'],
-  'Nuit / Soiree': ['Soiree', 'Club', 'Bar', 'DJ set', 'Karaoke', 'After work', 'Soiree privee'],
-  'Fete / Communautaire': ['Fete de quartier', 'Braderie', 'Vide-grenier', 'Carnaval', 'Feu d\'artifice'],
-  'Bien-etre / Sante': ['Yoga', 'Meditation', 'Spa', 'Randonnee', 'Retraite bien-etre'],
-  'Famille / Enfants': ['Spectacle enfant', 'Atelier enfant', 'Parc', 'Cinema', 'Bowling', 'Fete foraine'],
-};
-
-/// Formats d'evenement.
-const kEventFormats = <String>[
-  'Concert',
-  'Atelier',
-  'Stage',
-  'Conference',
+  'Concerts',
+  'Soirée',
   'Spectacle',
-  'Festival',
-  'Meetup',
-  'Formation',
-  'Soiree',
+  'Cinéma',
+  'Food',
+  'Sport',
+  'Famille',
 ];
 
 /// Types de lieu.
@@ -84,23 +51,19 @@ const kInscriptionTypes = <String>[
   'Liste d\'attente',
 ];
 
-/// Mapping categorie → mode/rubrique existant.
+/// Mapping categorie -> rubrique/hub. Determine dans quel hub l'event apparait
+/// (day, night, food, culture, sport, family).
 const categoryToMode = <String, String>{
-  'Musique / Concert': 'day',
-  'Culturel / Artistique': 'culture',
-  'Danse': 'culture',
-  'Sport / Fitness': 'sport',
-  'Formation / Atelier': 'day',
-  'Business / Professionnel': 'day',
-  'Loisirs / Gaming': 'gaming',
-  'Nuit / Soiree': 'night',
-  'Gastronomie': 'food',
-  'Fete / Communautaire': 'day',
-  'Bien-etre / Sante': 'food',
-  'Famille / Enfants': 'family',
+  'Concerts': 'day',
+  'Soirée': 'night',
+  'Spectacle': 'culture',
+  'Cinéma': 'culture',
+  'Food': 'food',
+  'Sport': 'sport',
+  'Famille': 'family',
 };
 
-/// State du wizard de creation d'evenement.
+/// State du wizard de creation d'evenement (2 etapes : Essentiel + Optionnel).
 class CreateEventState {
   // Mode edition
   final bool isEditing;
@@ -109,8 +72,7 @@ class CreateEventState {
 
   /// Compteur incremente a chaque bulk-update exterieur (loadEvent, prefillFromScan).
   /// Utilise comme Key sur les TextFormField pour forcer leur recreation avec
-  /// la nouvelle initialValue (sinon les champs restent bloques sur la valeur
-  /// initiale car ils sont controles par leur TextEditingController interne).
+  /// la nouvelle initialValue.
   final int prefillRevision;
 
   // Navigation
@@ -118,37 +80,31 @@ class CreateEventState {
   final bool isSubmitting;
   final String? errorMessage;
 
-  // Etape 1
+  // Essentiel
   final String? categorie;
-  final String? sousCategorie;
-  final String? format;
   final String titre;
-  final String descriptionCourte;
   final String? photoPath;
   final String? videoPath;
   final bool isVideo;
-
-  // Etape 2
   final DateTime? dateDebut;
   final TimeOfDay? heureDebut;
-  final DateTime? dateFin;
-  final TimeOfDay? heureFin;
-  final String? recurrenceType; // null, 'quotidien', 'hebdomadaire', 'mensuel'
-  final String? lieuType;
-  final String? lieuNom;
   final String lieuAdresse;
   final String ville;
   final String pays;
-
-  // Etape 3
   final bool estGratuit;
   final String prix;
+
+  // Optionnel
+  final String descriptionCourte;
+  final DateTime? dateFin;
+  final TimeOfDay? heureFin;
+  final String? recurrenceType;
+  final String? lieuType;
+  final String? lieuNom;
   final String prixReduit;
   final String prixGroupe;
   final String prixEarlyBird;
   final String lienBilletterie;
-
-  // Etape 4
   final String descriptionLongue;
   final String publicCible;
   final String niveau;
@@ -160,12 +116,8 @@ class CreateEventState {
   final String participantsMin;
   final String participantsMax;
   final String inscriptionType;
-
-  // Boost
-  final String priority; // P1, P2, P3, P4
-  final Set<DateTime> boostDates; // jours de boost sélectionnés
-
-  // Etape 5
+  final String priority;
+  final Set<DateTime> boostDates;
   final List<String> galleryPaths;
   final String videoUrl;
   final List<String> tags;
@@ -184,25 +136,23 @@ class CreateEventState {
     this.isSubmitting = false,
     this.errorMessage,
     this.categorie,
-    this.sousCategorie,
-    this.format,
     this.titre = '',
-    this.descriptionCourte = '',
     this.photoPath,
     this.videoPath,
     this.isVideo = false,
     this.dateDebut,
     this.heureDebut,
-    this.dateFin,
-    this.heureFin,
-    this.recurrenceType,
-    this.lieuType,
-    this.lieuNom,
     this.lieuAdresse = '',
     this.ville = '',
     this.pays = 'France',
     this.estGratuit = false,
     this.prix = '',
+    this.descriptionCourte = '',
+    this.dateFin,
+    this.heureFin,
+    this.recurrenceType,
+    this.lieuType,
+    this.lieuNom,
     this.prixReduit = '',
     this.prixGroupe = '',
     this.prixEarlyBird = '',
@@ -239,25 +189,23 @@ class CreateEventState {
     bool? isSubmitting,
     String? errorMessage,
     String? categorie,
-    String? sousCategorie,
-    String? format,
     String? titre,
-    String? descriptionCourte,
     String? photoPath,
     String? videoPath,
     bool? isVideo,
     DateTime? dateDebut,
     TimeOfDay? heureDebut,
-    DateTime? dateFin,
-    TimeOfDay? heureFin,
-    String? recurrenceType,
-    String? lieuType,
-    String? lieuNom,
     String? lieuAdresse,
     String? ville,
     String? pays,
     bool? estGratuit,
     String? prix,
+    String? descriptionCourte,
+    DateTime? dateFin,
+    TimeOfDay? heureFin,
+    String? recurrenceType,
+    String? lieuType,
+    String? lieuNom,
     String? prixReduit,
     String? prixGroupe,
     String? prixEarlyBird,
@@ -297,25 +245,23 @@ class CreateEventState {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       categorie: categorie ?? this.categorie,
-      sousCategorie: sousCategorie ?? this.sousCategorie,
-      format: format ?? this.format,
       titre: titre ?? this.titre,
-      descriptionCourte: descriptionCourte ?? this.descriptionCourte,
       photoPath: photoPath ?? this.photoPath,
       videoPath: videoPath ?? this.videoPath,
       isVideo: isVideo ?? this.isVideo,
       dateDebut: dateDebut ?? this.dateDebut,
       heureDebut: heureDebut ?? this.heureDebut,
-      dateFin: clearDateFin ? null : (dateFin ?? this.dateFin),
-      heureFin: clearHeureFin ? null : (heureFin ?? this.heureFin),
-      recurrenceType: clearRecurrence ? null : (recurrenceType ?? this.recurrenceType),
-      lieuType: lieuType ?? this.lieuType,
-      lieuNom: lieuNom ?? this.lieuNom,
       lieuAdresse: lieuAdresse ?? this.lieuAdresse,
       ville: ville ?? this.ville,
       pays: pays ?? this.pays,
       estGratuit: estGratuit ?? this.estGratuit,
       prix: prix ?? this.prix,
+      descriptionCourte: descriptionCourte ?? this.descriptionCourte,
+      dateFin: clearDateFin ? null : (dateFin ?? this.dateFin),
+      heureFin: clearHeureFin ? null : (heureFin ?? this.heureFin),
+      recurrenceType: clearRecurrence ? null : (recurrenceType ?? this.recurrenceType),
+      lieuType: lieuType ?? this.lieuType,
+      lieuNom: lieuNom ?? this.lieuNom,
       prixReduit: prixReduit ?? this.prixReduit,
       prixGroupe: prixGroupe ?? this.prixGroupe,
       prixEarlyBird: prixEarlyBird ?? this.prixEarlyBird,
@@ -345,19 +291,21 @@ class CreateEventState {
   }
 
   /// Valide l'etape courante. Retourne un message d'erreur ou null.
+  /// Step 0 = Essentiel (obligatoire), Step 1 = Optionnel (passable).
   String? validateCurrentStep() {
     switch (currentStep) {
       case 0:
-        if (categorie == null) return 'Choisissez une categorie';
-        if (sousCategorie == null) return 'Choisissez une sous-categorie';
+        if (categorie == null) return 'Choisis une catégorie';
         if (titre.trim().isEmpty) return 'Le titre est requis';
-        if (photoPath == null && videoPath == null && existingPhotoUrl == null) return 'Une photo ou video est requise';
+        if (photoPath == null && videoPath == null && existingPhotoUrl == null) {
+          return 'Une photo ou vidéo est requise';
+        }
+        if (dateDebut == null) return 'La date de début est requise';
+        if (heureDebut == null) return 'L\'heure de début est requise';
+        if (lieuAdresse.trim().isEmpty) return 'Adresse du lieu requise';
         return null;
       case 1:
-        if (dateDebut == null) return 'La date de debut est requise';
-        if (heureDebut == null) return 'L\'heure de debut est requise';
-        return null;
-      case 2:
+        // Optionnel : on valide seulement la coherence des URLs si remplies.
         final url = lienBilletterie.trim();
         if (url.isNotEmpty && !url.startsWith('http://') && !url.startsWith('https://')) {
           return 'Le lien doit commencer par http:// ou https://';
@@ -369,13 +317,13 @@ class CreateEventState {
   }
 
   /// Nombre total d'etapes.
-  static const int totalSteps = 5;
+  static const int totalSteps = 2;
 
-  /// Est-ce que l'etape courante est skippable ?
-  bool get isCurrentStepSkippable => currentStep >= 3;
+  /// L'etape 1 (Optionnel) est passable directement vers Publier.
+  bool get isCurrentStepSkippable => currentStep == 1;
 }
 
-/// Session de programme (etape 5).
+/// Session de programme (etape 2 - optionnel).
 class ProgrammeSession {
   final String heure;
   final String activite;
@@ -393,4 +341,3 @@ class ProgrammeSession {
         'intervenant': intervenant,
       };
 }
-

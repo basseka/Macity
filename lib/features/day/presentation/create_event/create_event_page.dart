@@ -6,9 +6,6 @@ import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
 import 'package:pulz_app/features/day/presentation/create_event/steps/step_details.dart';
 import 'package:pulz_app/features/day/presentation/create_event/steps/step_essentials.dart';
-import 'package:pulz_app/features/day/presentation/create_event/steps/step_extras.dart';
-import 'package:pulz_app/features/day/presentation/create_event/steps/step_pricing.dart';
-import 'package:pulz_app/features/day/presentation/create_event/steps/step_when_where.dart';
 import 'package:pulz_app/features/day/presentation/create_event/widgets/step_indicator.dart';
 import 'package:pulz_app/core/services/stripe_service.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
@@ -188,10 +185,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: const [
                   StepEssentials(),
-                  StepWhenWhere(),
-                  StepPricing(),
                   StepDetails(),
-                  StepExtras(),
                 ],
               ),
             ),
@@ -274,7 +268,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                             ),
                           )
                         : Text(
-                            (_isLastStep(state) || _isPrefillFastPublish(state))
+                            _isLastStep(state)
                                 ? (_isEditing ? 'Modifier' : 'Publier')
                                 : 'Suivant',
                             style: const TextStyle(
@@ -342,25 +336,15 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     return state.currentStep == CreateEventState.totalSteps - 1;
   }
 
-  /// Fast-publish depuis le scan IA : quand l'user arrive direct a l'etape
-  /// Pricing apres un scan, le bouton principal publie (on saute les etapes
-  /// 4 et 5 avec leurs valeurs par defaut — deja remplies par prefillFromScan).
-  bool _isPrefillFastPublish(CreateEventState state) {
-    return state.prefillRevision > 0 &&
-        state.currentStep == 2 &&
-        !_isEditing;
-  }
-
   Future<void> _onNextOrSubmit(
     CreateEventState state,
     CreateEventNotifier notifier,
   ) async {
-    final fastPublish = _isPrefillFastPublish(state);
     debugPrint(
       '[CreateEventPage] button tap step=${state.currentStep} '
-      'isLast=${_isLastStep(state)} fastPublish=$fastPublish',
+      'isLast=${_isLastStep(state)}',
     );
-    if (_isLastStep(state) || fastPublish) {
+    if (_isLastStep(state)) {
       final success = await notifier.submit();
       // Remonte toute erreur de submit via un SnackBar bien visible.
       if (!success && mounted) {

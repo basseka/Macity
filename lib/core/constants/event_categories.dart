@@ -10,7 +10,7 @@
 // keywords approximatif.
 
 export 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart'
-    show kEventCategories, kSubcategories, categoryToMode;
+    show kEventCategories, categoryToMode;
 
 /// Mapping sous-categorie (valeur ecrite en BDD) → (tab, subFilter) du feed.
 /// Une sous-cat peut apparaitre sous plusieurs filtres (ex: 'DJ set' →
