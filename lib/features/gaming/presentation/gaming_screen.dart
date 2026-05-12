@@ -42,7 +42,7 @@ class GamingScreen extends ConsumerWidget {
                   ? 'Arcade, VR, manga, e-sport — la culture geek et joueurs.'
                   : null,
               onBack: selectedCategory == null
-                  ? () => context.go('/explorer')
+                  ? () => context.go('/home')
                   : () {
                       ref
                           .read(modeSubcategoriesProvider.notifier)

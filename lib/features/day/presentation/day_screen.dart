@@ -336,7 +336,7 @@ class DayScreen extends ConsumerWidget {
                 accent: _accent,
                 blurb:
                     'Concerts, spectacles, festivals — la programmation du jour et a venir.',
-                onBack: () => context.go('/explorer'),
+                onBack: () => context.go('/home'),
               ),
             ),
             if (hasAvenir)

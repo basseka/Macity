@@ -72,7 +72,7 @@ class SportScreen extends ConsumerWidget {
                   ? 'Matchs, courses, entrainement — l\'agenda sportif de la ville.'
                   : null,
               onBack: sub == null
-                  ? () => context.go('/explorer')
+                  ? () => context.go('/home')
                   : () => ref
                       .read(modeSubcategoriesProvider.notifier)
                       .select('sport', null),

@@ -103,7 +103,7 @@ class NightScreen extends ConsumerWidget {
                   ? 'Clubs, bars, soirees — la nuit, la ville change de visage.'
                   : null,
               onBack: selectedCategory == null
-                  ? () => context.go('/explorer')
+                  ? () => context.go('/home')
                   : () => ref
                       .read(modeSubcategoriesProvider.notifier)
                       .select('night', null),

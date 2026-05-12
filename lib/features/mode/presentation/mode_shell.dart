@@ -101,7 +101,7 @@ class ModeShell extends ConsumerWidget {
         if (context.canPop()) {
           context.pop();
         } else {
-          context.go('/explorer');
+          context.go('/home');
         }
       },
       child: isFullscreen

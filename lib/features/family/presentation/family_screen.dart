@@ -40,7 +40,7 @@ class FamilyScreen extends ConsumerWidget {
                   ? 'Cinema, parcs, ateliers — sortir avec les enfants.'
                   : null,
               onBack: selectedCategory == null
-                  ? () => context.go('/explorer')
+                  ? () => context.go('/home')
                   : () {
                       ref
                           .read(modeSubcategoriesProvider.notifier)

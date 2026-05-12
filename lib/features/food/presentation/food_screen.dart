@@ -59,7 +59,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                   ? 'Restaurants, brunchs, marches — la carte gourmande de la ville.'
                   : null,
               onBack: selectedCategory == null
-                  ? () => context.go('/explorer')
+                  ? () => context.go('/home')
                   : () {
                       ref
                           .read(modeSubcategoriesProvider.notifier)

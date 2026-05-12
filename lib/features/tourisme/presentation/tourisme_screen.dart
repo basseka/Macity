@@ -77,7 +77,7 @@ class TourismeScreen extends ConsumerWidget {
                   ? 'Monuments, transports, top picks — la ville pour les visiteurs.'
                   : null,
               onBack: selectedCategory == null
-                  ? () => context.go('/explorer')
+                  ? () => context.go('/home')
                   : () {
                       ref
                           .read(modeSubcategoriesProvider.notifier)

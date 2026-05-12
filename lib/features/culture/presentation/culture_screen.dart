@@ -52,7 +52,7 @@ class CultureScreen extends ConsumerWidget {
                   ? 'Cinema, theatre, expositions, danse — l\'agenda culturel.'
                   : null,
               onBack: selectedCategory == null
-                  ? () => context.go('/explorer')
+                  ? () => context.go('/home')
                   : () {
                       ref
                           .read(modeSubcategoriesProvider.notifier)
