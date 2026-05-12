@@ -19,3 +19,11 @@ final activeReservationsProvider = StreamProvider.family
     yield await service.fetchActive(venueId);
   }
 });
+
+/// True si l'etablissement peut recevoir des reservations (proprietaire pro
+/// avec email enregistre). Utilise pour griser le bouton "Reserver".
+final canReserveProvider = FutureProvider.family
+    .autoDispose<bool, int>((ref, etablissementId) async {
+  if (etablissementId <= 0) return false;
+  return await RestaurantReservationService().canReserve(etablissementId);
+});

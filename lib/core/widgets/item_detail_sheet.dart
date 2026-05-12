@@ -23,6 +23,9 @@ class ItemDetailSheet extends ConsumerWidget {
   final String? videoUrl;
   final List<DetailInfoItem> infos;
   final DetailAction? primaryAction;
+  /// Second gros bouton rendu juste en dessous du primaryAction. Optionnel.
+  /// Style outlined pour ne pas concurrencer visuellement le primary.
+  final DetailAction? secondaryButton;
   final List<DetailAction> secondaryActions;
   final String shareText;
   final String? likeId;
@@ -49,6 +52,7 @@ class ItemDetailSheet extends ConsumerWidget {
     this.videoUrl,
     this.infos = const [],
     this.primaryAction,
+    this.secondaryButton,
     this.secondaryActions = const [],
     this.shareText = '',
     this.likeId,
@@ -352,9 +356,11 @@ class ItemDetailSheet extends ConsumerWidget {
                               width: double.infinity,
                               height: 44,
                               child: ElevatedButton.icon(
-                                onPressed: () => primaryAction!.onTap != null
-                                    ? primaryAction!.onTap!()
-                                    : _openUrl(primaryAction!.url),
+                                onPressed: primaryAction!.disabled
+                                    ? null
+                                    : () => primaryAction!.onTap != null
+                                        ? primaryAction!.onTap!()
+                                        : _openUrl(primaryAction!.url),
                                 icon: Icon(primaryAction!.icon, size: 18),
                                 label: Text(
                                   primaryAction!.label,
@@ -366,10 +372,48 @@ class ItemDetailSheet extends ConsumerWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: _primaryColor,
                                   foregroundColor: Colors.white,
+                                  disabledBackgroundColor:
+                                      Colors.white.withValues(alpha: 0.12),
+                                  disabledForegroundColor:
+                                      Colors.white.withValues(alpha: 0.4),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   elevation: 0,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+
+                          // Bouton secondaire en gros, style outlined.
+                          if (secondaryButton != null) ...[
+                            SizedBox(
+                              width: double.infinity,
+                              height: 44,
+                              child: OutlinedButton.icon(
+                                onPressed: secondaryButton!.disabled
+                                    ? null
+                                    : () => secondaryButton!.onTap != null
+                                        ? secondaryButton!.onTap!()
+                                        : _openUrl(secondaryButton!.url),
+                                icon: Icon(secondaryButton!.icon, size: 18),
+                                label: Text(
+                                  secondaryButton!.label,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  side: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
                                 ),
                               ),
                             ),
@@ -636,11 +680,15 @@ class DetailAction {
   /// Callback custom (prend le pas sur [url]). Utile pour ouvrir une sheet
   /// interne au lieu de naviguer hors de l'app.
   final VoidCallback? onTap;
+  /// Si true, le bouton est rendu grise et non-cliquable. Utile pour
+  /// les CTAs conditionnels (ex: "Reserver" si le resto n'a pas de claim).
+  final bool disabled;
   const DetailAction({
     required this.icon,
     required this.label,
     this.url = '',
     this.onTap,
+    this.disabled = false,
   });
 }
 

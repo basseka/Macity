@@ -120,6 +120,33 @@ class RestaurantReservationService {
     }
   }
 
+  /// True si l'etablissement a un proprietaire pro avec une email — donc
+  /// peut recevoir des reservations. False sinon. Utilise pour griser le
+  /// bouton "Reserver" en amont, sans laisser le user submit un form vain.
+  Future<bool> canReserve(int etablissementId) async {
+    try {
+      final res = await _dio.post(
+        '${SupabaseConfig.supabaseUrl}/rest/v1/rpc/can_reserve_etablissement',
+        data: {'etab_id': etablissementId},
+        options: Options(
+          headers: {
+            'apikey': SupabaseConfig.supabaseAnonKey,
+            'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (_) => true,
+        ),
+      );
+      if (res.statusCode == 200) {
+        return res.data == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('[ReservationService] canReserve error: $e');
+      return false;
+    }
+  }
+
   /// Recupere les reservations actives (pending ou accepted, non expirees) du
   /// user courant pour un venue. Liste vide si rien.
   Future<List<RestaurantReservation>> fetchActive(int venueId) async {
