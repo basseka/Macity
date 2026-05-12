@@ -1,36 +1,101 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
-import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_city_header.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
-import 'package:pulz_app/features/home/state/search_intent_provider.dart';
-import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
-import 'package:pulz_app/features/mode/state/mode_provider.dart';
+import 'package:pulz_app/features/search/data/unified_search_service.dart';
+import 'package:pulz_app/features/search/domain/search_result.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/match_row_card.dart';
 
-/// Ecran "Explorer" — handoff coherence v1.0 (Avril 2026).
+/// Ecran "Explorer" — handoff coherence v1.0.
 ///
 /// Layout :
 ///  1. CityHeader (logo + Ta ville + ville + avatar)
-///  2. SectionHeader "✦ Toutes les *rubriques*"
-///  3. Grille 2 col de 8 cards rubriques
-class ExplorerScreen extends ConsumerWidget {
+///  2. Header "Toutes les *offres*" + bouton cadeau (BannerCarouselDialog)
+///  3. Barre de recherche locale
+///  4. Si query >= 2 chars : liste de resultats (events + matchs + venues)
+class ExplorerScreen extends ConsumerStatefulWidget {
   const ExplorerScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ExplorerScreen> createState() => _ExplorerScreenState();
+}
+
+class _ExplorerScreenState extends ConsumerState<ExplorerScreen> {
+  final _controller = TextEditingController();
+  final _service = UnifiedSearchService();
+  Timer? _debounce;
+  List<SearchResult>? _results; // null = pas encore cherche, [] = aucun resultat
+  bool _loading = false;
+  String _lastQuery = '';
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onChanged(String raw) {
+    final query = raw.trim();
+    if (query.length < 2) {
+      _debounce?.cancel();
+      if (_results != null || _loading) {
+        setState(() {
+          _results = null;
+          _loading = false;
+        });
+      }
+      return;
+    }
+    setState(() => _loading = true);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () => _doSearch(query));
+  }
+
+  Future<void> _doSearch(String query) async {
+    _lastQuery = query;
+    try {
+      final ville = ref.read(selectedCityProvider);
+      final results = await _service.search(query, ville: ville);
+      if (!mounted || _lastQuery != query) return;
+      setState(() {
+        _results = results;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _results = [];
+        _loading = false;
+      });
+    }
+  }
+
+  void _clear() {
+    _controller.clear();
+    _debounce?.cancel();
+    setState(() {
+      _results = null;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: EditorialColors.bg,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: EditorialCityHeader()),
-            // Header "Toutes les offres" avec bouton cadeau qui ouvre le
-            // carrousel d'offres / banners.
+            // Header "Toutes les offres" + bouton cadeau
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -80,8 +145,7 @@ class ExplorerScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            // Barre de recherche : sur tap on bascule sur /home en mode
-            // recherche (FeedScreen consomme searchIntentProvider).
+            // Barre de recherche (TextField actif, debounce 400ms)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -90,43 +154,15 @@ class ExplorerScreen extends ConsumerWidget {
                   EditorialSpacing.screen,
                   EditorialSpacing.md,
                 ),
-                child: _ExplorerSearchBar(
-                  onTap: () {
-                    ref.read(searchIntentProvider.notifier).state = true;
-                    ref.read(navBarIndexProvider.notifier).state = 0;
-                    context.go('/home');
-                  },
+                child: _SearchField(
+                  controller: _controller,
+                  onChanged: _onChanged,
+                  onClear: _clear,
                 ),
               ),
             ),
-            // Grille edge-to-edge : affiches rectangulaires (pas de radius),
-            // separateur blanc 1px entre les affiches. Bordure exterieure
-            // blanche dessinee par la SliverToBoxAdapter wrappante.
-            SliverToBoxAdapter(
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.white, width: 1),
-                    left: BorderSide(color: Colors.white, width: 1),
-                    right: BorderSide(color: Colors.white, width: 1),
-                  ),
-                ),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 0,
-                    crossAxisSpacing: 0,
-                    childAspectRatio: 0.78,
-                  ),
-                  itemCount: AppMode.order.length,
-                  itemBuilder: (context, i) =>
-                      _buildModeCard(context, ref, AppMode.order[i]),
-                ),
-              ),
-            ),
+            // Resultats / etats vides
+            ..._buildResultsSlivers(),
             const SliverToBoxAdapter(
               child: SizedBox(height: EditorialSpacing.xxl),
             ),
@@ -136,281 +172,207 @@ class ExplorerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModeCard(BuildContext context, WidgetRef ref, AppMode mode) {
-    final meta = _modeMeta[mode]!;
-    return _ExplorerPosterCard(
-      label: meta.title,
-      kicker: meta.section,
-      imageTag: meta.imageTag,
-      imageUrl: _modeImage[mode],
-      accent: meta.accent,
-      onTap: () {
-        ref.read(currentModeProvider.notifier).setMode(mode.name);
-        context.push(mode.routePath);
-      },
-    );
-  }
+  List<Widget> _buildResultsSlivers() {
+    // Aucun query saisi : rien sous la search bar
+    if (_results == null && !_loading) return const [];
 
-  // ─── Metadata par mode ────────────────────────────────────────────
-  static const _modeMeta = <AppMode, _ModeMeta>{
-    AppMode.day: _ModeMeta(
-      section: 'Musique',
-      title: 'Scène',
-      imageTag: 'CONCERT',
-      accent: EditorialColors.gold,
-    ),
-    AppMode.night: _ModeMeta(
-      section: 'After',
-      title: 'Nuit',
-      imageTag: 'NIGHT CLUB',
-      accent: EditorialColors.cyan,
-    ),
-    AppMode.food: _ModeMeta(
-      section: 'Plaisirs',
-      title: 'Food',
-      imageTag: 'FOOD',
-      accent: EditorialColors.orange,
-    ),
-    AppMode.sport: _ModeMeta(
-      section: 'Active',
-      title: 'Sport',
-      imageTag: 'SPORT',
-      accent: EditorialColors.green,
-    ),
-    AppMode.culture: _ModeMeta(
-      section: 'Culture',
-      title: 'Culture',
-      imageTag: 'MUSEUM',
-      accent: EditorialColors.cyan,
-    ),
-    AppMode.family: _ModeMeta(
-      section: 'Famille',
-      title: 'Famille',
-      imageTag: 'FAMILY',
-      accent: EditorialColors.orange,
-    ),
-    AppMode.gaming: _ModeMeta(
-      section: 'Joueurs',
-      title: 'Gaming',
-      imageTag: 'GAMING',
-      accent: EditorialColors.green,
-    ),
-    AppMode.tourisme: _ModeMeta(
-      section: 'Visite',
-      title: 'Tourisme',
-      imageTag: 'TOURISME',
-      accent: EditorialColors.gold,
-    ),
-  };
-
-  static const _modeImage = <AppMode, String>{
-    AppMode.day: 'assets/images/pochette_concert.png',
-    AppMode.sport: 'assets/images/home_bg_sport.jpg',
-    AppMode.culture: 'assets/images/pochette_culture_art.png',
-    AppMode.food: 'assets/images/pochette_food.png',
-    AppMode.gaming: 'assets/images/pochette_gaming.jpg',
-    AppMode.family: 'assets/images/pochette_enfamille.jpg',
-    AppMode.night: 'assets/images/home_bg_night.jpg',
-    AppMode.tourisme: 'assets/images/pochette_tourime.png',
-  };
-}
-
-class _ModeMeta {
-  final String section;
-  final String title;
-  final String imageTag;
-  final Color accent;
-
-  const _ModeMeta({
-    required this.section,
-    required this.title,
-    required this.imageTag,
-    required this.accent,
-  });
-}
-
-/// Carte rubrique style affiche : image plein cadre rectangulaire (sans
-/// radius), overlay degrade sombre en bas + titre/kicker en sur-impression,
-/// tag mono en coin haut-gauche. Bordure droite + basse 1px blanche pour
-/// dessiner le quadrillage (le grid parent porte les bordures top + left +
-/// right exterieures).
-class _ExplorerPosterCard extends StatelessWidget {
-  final String label;
-  final String kicker;
-  final String? imageTag;
-  final String? imageUrl;
-  final Color accent;
-  final VoidCallback onTap;
-
-  const _ExplorerPosterCard({
-    required this.label,
-    required this.kicker,
-    this.imageTag,
-    this.imageUrl,
-    required this.accent,
-    required this.onTap,
-  });
-
-  Widget _buildImage() {
-    final url = imageUrl;
-    if (url == null || url.isEmpty) {
-      return Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              accent.withValues(alpha: 0.6),
-              accent.withValues(alpha: 0.3),
-            ],
+    if (_loading) {
+      return const [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.magenta),
+            ),
           ),
         ),
-      );
+      ];
     }
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.cover,
-        placeholder: (_, __) => Container(color: EditorialColors.surface),
-        errorWidget: (_, __, ___) => Container(color: EditorialColors.surface),
-      );
-    }
-    return Image.asset(
-      url,
-      fit: BoxFit.cover,
-      cacheWidth: 400,
-      errorBuilder: (_, __, ___) => Container(color: EditorialColors.surface),
-    );
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(
-            right: BorderSide(color: Colors.white, width: 1),
-            bottom: BorderSide(color: Colors.white, width: 1),
-          ),
-        ),
-        child: ClipRect(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _buildImage(),
-              // Degrade sombre du bas pour lisibilite du titre
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.center,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black87],
-                  ),
-                ),
-              ),
-              // Tag mono en coin haut-gauche (optionnel)
-              if (imageTag != null && imageTag!.isNotEmpty)
-                Positioned(
-                  top: 10,
-                  left: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    color: Colors.black.withValues(alpha: 0.55),
-                    child: Text(
-                      imageTag!.toUpperCase(),
-                      style: GoogleFonts.geistMono(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1.4,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              // Kicker + titre en bas
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      kicker.toUpperCase(),
-                      style: GoogleFonts.geistMono(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1.4,
-                        color: accent,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      label,
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        height: 1.1,
-                        letterSpacing: -0.4,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Barre de recherche style FeedScreen (look identique pour cohesion). Sur
-/// tap, declenche le mode recherche dans FeedScreen via searchIntentProvider
-/// puis navigue vers /home.
-class _ExplorerSearchBar extends StatelessWidget {
-  final VoidCallback onTap;
-  const _ExplorerSearchBar({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.input),
-          border: Border.all(color: AppColors.line),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 14),
-            const Icon(Icons.search, color: AppColors.magenta, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
+    if (_results!.isEmpty) {
+      return [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
               child: Text(
-                'Rechercher un evenement, un lieu...',
-                overflow: TextOverflow.ellipsis,
+                'Aucun resultat',
                 style: GoogleFonts.geist(
                   fontSize: 13,
                   color: AppColors.textFaint,
                 ),
               ),
             ),
-            const SizedBox(width: 14),
-          ],
+          ),
         ),
+      ];
+    }
+
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) {
+              final r = _results![i];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: switch (r) {
+                  EventResult(:final event) => EventRowCard(event: event),
+                  MatchResult(:final match) => MatchRowCard(match: match),
+                  VenueResult() => _VenueRow(venue: r),
+                },
+              );
+            },
+            childCount: _results!.length,
+          ),
+        ),
+      ),
+    ];
+  }
+}
+
+/// TextField de recherche avec icone + clear button (style FeedScreen).
+class _SearchField extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  const _SearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      style: GoogleFonts.geist(fontSize: 14, color: AppColors.text),
+      decoration: InputDecoration(
+        hintText: 'Rechercher un evenement, un lieu...',
+        hintStyle: GoogleFonts.geist(
+          fontSize: 13,
+          color: AppColors.textFaint,
+        ),
+        prefixIcon:
+            const Icon(Icons.search, color: AppColors.magenta, size: 18),
+        suffixIcon: controller.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.close,
+                    color: AppColors.textFaint, size: 18),
+                onPressed: onClear,
+              )
+            : null,
+        filled: true,
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.input),
+          borderSide: const BorderSide(color: AppColors.line),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.input),
+          borderSide: const BorderSide(color: AppColors.line),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.input),
+          borderSide:
+              const BorderSide(color: AppColors.magenta, width: 1.5),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        isDense: true,
+      ),
+    );
+  }
+}
+
+/// Carte resultat venue (basique : photo + nom + categorie + adresse).
+class _VenueRow extends StatelessWidget {
+  final VenueResult venue;
+  const _VenueRow({required this.venue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.line),
+      ),
+      padding: const EdgeInsets.all(10),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 56,
+              height: 56,
+              child: venue.photo != null && venue.photo!.isNotEmpty
+                  ? Image.network(
+                      venue.photo!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: AppColors.surface,
+                        child: const Icon(
+                          Icons.place,
+                          color: AppColors.textFaint,
+                          size: 22,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: AppColors.surface,
+                      child: const Icon(
+                        Icons.place,
+                        color: AppColors.textFaint,
+                        size: 22,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  venue.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.geist(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+                if (venue.categorie.isNotEmpty)
+                  Text(
+                    venue.categorie,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.geistMono(
+                      fontSize: 10,
+                      letterSpacing: 1.2,
+                      color: AppColors.magenta,
+                    ),
+                  ),
+                if (venue.adresse.isNotEmpty)
+                  Text(
+                    venue.adresse,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.geist(
+                      fontSize: 12,
+                      color: AppColors.textDim,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
