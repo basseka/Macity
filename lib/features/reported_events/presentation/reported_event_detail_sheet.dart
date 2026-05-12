@@ -795,8 +795,10 @@ class _DiscussionSheet extends ConsumerWidget {
     final media = MediaQuery.of(context);
     final keyboard = media.viewInsets.bottom;
     // 90px du haut comme la spec ; on cale via padding top sur le scaffold sheet.
+    // maxHeight retire le clavier : sinon le sheet deborde sous le clavier
+    // et masque le composer.
     const topInset = 90.0;
-    final maxHeight = media.size.height - topInset;
+    final maxHeight = media.size.height - topInset - keyboard;
 
     return AnimatedPadding(
       duration: const Duration(milliseconds: 200),
@@ -816,7 +818,7 @@ class _DiscussionSheet extends ConsumerWidget {
           ],
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
             // Handle
             Container(
@@ -893,10 +895,10 @@ class _DiscussionSheet extends ConsumerWidget {
               child: _SignaledByCard(event: event),
             ),
 
-            // Chat (auto-scroll list + composer interne — pause via focus).
-            // Flexible(loose) + chat en mainAxisSize.min : la chat se sizes
-            // a son contenu intrinseque, plus de overflow sous le CTA.
-            Flexible(
+            // Chat : Expanded force a remplir l'espace restant. La liste
+            // de messages scrolle, le composer reste colle au bas du chat
+            // -> jamais cache par le clavier ni par le CTA.
+            Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(18, 4, 18, 8),
                 child: ReportedEventChat(eventId: event.id),

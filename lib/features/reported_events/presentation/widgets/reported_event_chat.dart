@@ -166,7 +166,6 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
@@ -203,9 +202,9 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
           ),
           const Divider(height: 1),
 
-          // Liste
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 260, minHeight: 80),
+          // Liste — Expanded pour que le composer reste colle au bas du
+          // chat container, et que la liste scrolle quand le clavier monte.
+          Expanded(
             child: messagesAsync.when(
               loading: () => const Center(
                 child: Padding(
