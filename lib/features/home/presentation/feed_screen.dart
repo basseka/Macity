@@ -1580,12 +1580,17 @@ class _FeedTile extends StatelessWidget {
       onTap: item.onTap,
       child: Container(
         // Frame blanche : 3px de padding tout autour de la tile -> tiles
-        // adjacentes => 6px de gap blanc (style Instagram explore).
+        // adjacentes => 6px de gap blanc. Affiches carrees (pas de radius).
+        // Bordure noire 1px autour de l'affiche pour faire ressortir le
+        // quadrillage blanc.
         color: Colors.white,
         padding: const EdgeInsets.all(3),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Stack(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 1),
+          ),
+          child: ClipRect(
+            child: Stack(
           fit: StackFit.expand,
           children: [
             // Background : video ou image
@@ -1679,6 +1684,7 @@ class _FeedTile extends StatelessWidget {
             ),
           ],
           ),
+        ),
         ),
       ),
     );
