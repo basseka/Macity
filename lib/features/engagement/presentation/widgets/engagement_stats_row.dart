@@ -58,7 +58,9 @@ class _EngagementStatsRowState extends ConsumerState<EngagementStatsRow> {
     final totals = state.totals[key];
     final liked = state.userLiked[key] ?? false;
 
-    if (totals == null) return const SizedBox.shrink();
+    final likesCount = totals?.likesCount ?? 0;
+    final commentsCount = totals?.commentsCount ?? 0;
+    final sharesCount = totals?.sharesCount ?? 0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -69,21 +71,21 @@ class _EngagementStatsRowState extends ConsumerState<EngagementStatsRow> {
           _stat(
             icon: liked ? Icons.favorite : Icons.favorite_border,
             iconColor: liked ? AppColors.magenta : widget.iconColor,
-            count: totals.likesCount,
+            count: likesCount,
           ),
           if (widget.showComments) ...[
             SizedBox(width: widget.compact ? 8 : 12),
             _stat(
               icon: Icons.mode_comment_outlined,
               iconColor: widget.iconColor,
-              count: totals.commentsCount,
+              count: commentsCount,
             ),
           ],
           SizedBox(width: widget.compact ? 8 : 12),
           _stat(
             icon: Icons.send_outlined,
             iconColor: widget.iconColor,
-            count: totals.sharesCount,
+            count: sharesCount,
           ),
         ],
       ),

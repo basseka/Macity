@@ -120,14 +120,14 @@ class MatchRowCard extends ConsumerWidget {
     final equipe = match.equipe1.toLowerCase();
     final equipe2 = match.equipe2.toLowerCase();
     if (equipe.contains('stade toulousain') || equipe2.contains('stade toulousain')) {
-      return 'assets/images/pochette_rugby-st.png';
+      return 'assets/images/pochette_rugby-st.webp';
     }
     if ((equipe.contains('colomiers') || equipe2.contains('colomiers')) &&
         match.sport.toLowerCase().contains('rugby')) {
-      return 'assets/images/pochette_rugby-colomiers.png';
+      return 'assets/images/pochette_rugby-colomiers.webp';
     }
     if (equipe.contains('tmb') || equipe2.contains('tmb')) {
-      return 'assets/images/pochette_basketball-tmb.png';
+      return 'assets/images/pochette_basketball-tmb.webp';
     }
     if (equipe.contains('tbc') ||
         equipe.contains('toulouse bc') ||
@@ -135,19 +135,19 @@ class MatchRowCard extends ConsumerWidget {
         equipe2.contains('tbc') ||
         equipe2.contains('toulouse bc') ||
         equipe2.contains('toulouse basketball')) {
-      return 'assets/images/pochette_basketball-tbc.png';
+      return 'assets/images/pochette_basketball-tbc.webp';
     }
     if (equipe.contains('fenix') || equipe2.contains('fenix')) {
-      return 'assets/images/pochette_handball-fenix.png';
+      return 'assets/images/pochette_handball-fenix.webp';
     }
     if (equipe.contains('tfc') ||
         equipe.contains('toulouse fc') ||
         equipe2.contains('tfc') ||
         equipe2.contains('toulouse fc')) {
-      return 'assets/images/pochette_football-tfc.png';
+      return 'assets/images/pochette_football-tfc.webp';
     }
     if (match.billetterie.contains('uscnat.fr')) {
-      return 'assets/images/pochette_natation-usc.png';
+      return 'assets/images/pochette_natation-usc.webp';
     }
 
     final sport = match.sport.toLowerCase();

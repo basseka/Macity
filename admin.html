@@ -445,6 +445,107 @@
       color: var(--text-faint);
       font-size: 12px;
     }
+
+    /* ─── Onglet Etablissements ─── */
+    .city-filter-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .city-stats {
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      font-size: 12px;
+      color: var(--text-dim);
+      background: var(--surface-hi);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .venue-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface-hi);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: border-color 0.15s;
+    }
+    .venue-row:hover { border-color: var(--line-strong); }
+    .venue-row-info { flex: 1; min-width: 0; }
+    .venue-row-name {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .venue-row-meta {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .venue-row-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-right: 6px;
+    }
+    .venue-row-badge.venues { background: rgba(142, 36, 170, 0.25); color: #D9B2EB; }
+    .venue-row-badge.etablissements { background: rgba(233, 30, 99, 0.18); color: #F5A6C0; }
+    .venue-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .code-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      font-family: 'SF Mono', Menlo, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ok);
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .code-pill:hover { background: rgba(16, 185, 129, 0.2); }
+    .code-pill .copy-icon { font-size: 12px; opacity: 0.8; }
+    .gen-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .gen-btn:hover {
+      border-color: var(--magenta);
+      background: rgba(233, 30, 99, 0.1);
+    }
+    .gen-btn:disabled { opacity: 0.6; cursor: wait; }
+    .venues-empty {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-faint);
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -468,6 +569,7 @@
         <div style="display:flex; gap:8px;">
           <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
+          <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
         </div>
       </div>
 
@@ -766,6 +868,24 @@
           Aucun event créé pour l'instant — clique sur « + Nouveau » pour en ajouter un.
         </div>
       </div>
+
+      <!-- ═══ VUE "ETABLISSEMENTS PAR VILLE" ═══ -->
+      <div id="venues-view" class="hidden">
+        <h1>🏢 Établissements</h1>
+        <p class="subtitle">Tape une ville pour filtrer. Génère ou copie le code MaCity à envoyer au pro pour qu'il revendique sa fiche.</p>
+
+        <div class="city-filter-row">
+          <input type="text" id="venues-city-filter" placeholder="Filtrer par ville (ex: Toulouse)" list="cities-datalist" autocomplete="off" />
+          <div class="city-stats" id="venues-stats">—</div>
+        </div>
+        <datalist id="cities-datalist"></datalist>
+
+        <div id="venues-loading" class="venues-empty">Chargement des fiches…</div>
+        <div id="venues-list"></div>
+        <div id="venues-empty" class="venues-empty hidden">
+          Aucune fiche pour cette ville.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -872,6 +992,7 @@
       document.getElementById("user-email").textContent = `connecté en tant que ${currentUserEmail}`;
       loadHistory();
       loadVenues();
+      loadEtabs();
     }
     function showLogin() {
       loginArea.style.display = "block";
@@ -880,7 +1001,9 @@
       // Reset a la vue formulaire pour le prochain login
       const fv = document.getElementById("form-view");
       const ev = document.getElementById("events-view");
+      const vv = document.getElementById("venues-view");
       if (fv && ev) { fv.classList.remove("hidden"); ev.classList.add("hidden"); }
+      if (vv) vv.classList.add("hidden");
     }
 
     function escapeHtml(s) {
@@ -1428,7 +1551,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("venues")
-          .select("name, adresse, ville, mode, category")
+          .select("id, name, adresse, ville, mode, category, pro_claim_code")
           .eq("is_active", true)
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
@@ -1444,6 +1567,33 @@
       }
       allVenues = all;
       refreshFilteredVenues();
+      // L'onglet "Établissements" depend de allVenues + allEtabs.
+      if (typeof refreshVenuesView === "function") refreshVenuesView();
+    }
+
+    // ─── Charge tous les etablissements (pour l'onglet Etablissements) ───
+    let allEtabs = [];
+    async function loadEtabs() {
+      const PAGE = 1000;
+      let from = 0;
+      const all = [];
+      while (true) {
+        const { data, error } = await supabase
+          .from("etablissements")
+          .select("id, nom, adresse, ville, rubrique, pro_claim_code")
+          .order("id", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.warn("[etablissements]", error);
+          return;
+        }
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      allEtabs = all;
+      if (typeof refreshVenuesView === "function") refreshVenuesView();
     }
 
     rubriqueSelect.addEventListener("change", () => {
@@ -1546,30 +1696,216 @@
       }
     });
 
-    // ─── Navigation entre vues : Form (creation) / Events (grille) ───
+    // ─── Navigation entre vues : Form (creation) / Events (grille) / Etablissements ───
     const formView = document.getElementById("form-view");
     const eventsView = document.getElementById("events-view");
+    const venuesView = document.getElementById("venues-view");
     const gotoFormBtn = document.getElementById("goto-form-btn");
     const gotoEventsBtn = document.getElementById("goto-events-btn");
+    const gotoVenuesBtn = document.getElementById("goto-venues-btn");
     const eventsCountBadge = document.getElementById("events-count-badge");
 
     function showFormView() {
       formView.classList.remove("hidden");
       eventsView.classList.add("hidden");
+      venuesView.classList.add("hidden");
       gotoFormBtn.style.display = "none";
       gotoEventsBtn.style.display = "inline-flex";
+      gotoVenuesBtn.style.display = "inline-flex";
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showEventsView() {
       eventsView.classList.remove("hidden");
       formView.classList.add("hidden");
+      venuesView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "none";
+      gotoVenuesBtn.style.display = "inline-flex";
       loadHistory();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    function showVenuesView() {
+      venuesView.classList.remove("hidden");
+      formView.classList.add("hidden");
+      eventsView.classList.add("hidden");
+      gotoFormBtn.style.display = "inline-flex";
+      gotoEventsBtn.style.display = "inline-flex";
+      gotoVenuesBtn.style.display = "none";
+      refreshVenuesView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoEventsBtn.addEventListener("click", showEventsView);
     gotoFormBtn.addEventListener("click", showFormView);
+    gotoVenuesBtn.addEventListener("click", showVenuesView);
+
+    // ─── Onglet Etablissements : filtre par ville + actions code ───
+    const venuesCityFilter = document.getElementById("venues-city-filter");
+    const venuesList = document.getElementById("venues-list");
+    const venuesEmpty = document.getElementById("venues-empty");
+    const venuesLoading = document.getElementById("venues-loading");
+    const venuesStats = document.getElementById("venues-stats");
+    const citiesDatalist = document.getElementById("cities-datalist");
+
+    // Liste unifiee venues + etablissements pour l'affichage admin.
+    function unifiedFiches() {
+      const v = allVenues.map(r => ({
+        source: "venues",
+        id: r.id,
+        name: r.name || "",
+        ville: r.ville || "",
+        adresse: r.adresse || "",
+        type: r.category || r.mode || "",
+        code: r.pro_claim_code,
+      }));
+      const e = allEtabs.map(r => ({
+        source: "etablissements",
+        id: r.id,
+        name: r.nom || "",
+        ville: r.ville || "",
+        adresse: r.adresse || "",
+        type: r.rubrique || "",
+        code: r.pro_claim_code,
+      }));
+      return v.concat(e);
+    }
+
+    function normalizeCity(s) {
+      return (s || "").trim().toLowerCase()
+        .normalize("NFD").replace(/[̀-ͯ]/g, "");
+    }
+
+    function refreshCitiesDatalist() {
+      const set = new Set();
+      for (const f of unifiedFiches()) {
+        if (f.ville) set.add(f.ville.trim());
+      }
+      const sorted = [...set].sort((a, b) => a.localeCompare(b, "fr"));
+      citiesDatalist.innerHTML = sorted.map(c => `<option value="${escapeHtml(c)}"></option>`).join("");
+    }
+
+    function renderVenuesList(filterCity) {
+      const all = unifiedFiches();
+      const q = normalizeCity(filterCity);
+      const filtered = q
+        ? all.filter(f => normalizeCity(f.ville) === q)
+        : [];
+
+      // Stats : si pas de ville saisie, affiche le total dispo
+      if (!q) {
+        venuesStats.textContent = `${all.length} fiches au total`;
+        venuesList.innerHTML = "";
+        venuesEmpty.classList.add("hidden");
+        venuesLoading.classList.add("hidden");
+        venuesList.innerHTML = `<div class="venues-empty">Tape le nom d'une ville pour afficher les fiches.</div>`;
+        return;
+      }
+
+      const withCode = filtered.filter(f => f.code).length;
+      venuesStats.textContent = `${filtered.length} fiches · ${withCode} avec code`;
+
+      venuesLoading.classList.add("hidden");
+      if (filtered.length === 0) {
+        venuesList.innerHTML = "";
+        venuesEmpty.classList.remove("hidden");
+        return;
+      }
+      venuesEmpty.classList.add("hidden");
+
+      // Tri : ceux qui ont deja un code en premier, puis alpha
+      filtered.sort((a, b) => {
+        const ac = a.code ? 0 : 1;
+        const bc = b.code ? 0 : 1;
+        if (ac !== bc) return ac - bc;
+        return a.name.localeCompare(b.name, "fr");
+      });
+
+      venuesList.innerHTML = filtered.map(f => {
+        const badge = `<span class="venue-row-badge ${f.source}">${f.source === "venues" ? "venue" : "etab"}</span>`;
+        const meta = [f.type, f.adresse, f.ville].filter(Boolean).map(escapeHtml).join(" · ");
+        const action = f.code
+          ? `<button class="code-pill" data-action="copy" data-code="${escapeHtml(f.code)}" title="Cliquer pour copier"><span>${escapeHtml(f.code)}</span><span class="copy-icon">📋</span></button>`
+          : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
+        return `
+          <div class="venue-row" data-source="${f.source}" data-id="${f.id}">
+            <div class="venue-row-info">
+              <div class="venue-row-name">${badge}${escapeHtml(f.name)}</div>
+              <div class="venue-row-meta">${meta}</div>
+            </div>
+            <div class="venue-row-actions">${action}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function refreshVenuesView() {
+      refreshCitiesDatalist();
+      // Charge encore ? Affiche loading uniquement si allVenues vide
+      if (allVenues.length === 0 && allEtabs.length === 0) {
+        venuesLoading.classList.remove("hidden");
+        venuesList.innerHTML = "";
+        venuesEmpty.classList.add("hidden");
+        venuesStats.textContent = "—";
+        return;
+      }
+      renderVenuesList(venuesCityFilter.value);
+    }
+
+    venuesCityFilter.addEventListener("input", () => {
+      renderVenuesList(venuesCityFilter.value);
+    });
+
+    // Delegation click : copy code / generate code
+    venuesList.addEventListener("click", async (ev) => {
+      const target = ev.target.closest("[data-action]");
+      if (!target) return;
+      const action = target.dataset.action;
+
+      if (action === "copy") {
+        const code = target.dataset.code;
+        try {
+          await navigator.clipboard.writeText(code);
+          toast(`Code « ${code} » copié`, true);
+        } catch (e) {
+          toast("Impossible de copier — code : " + code, false);
+        }
+        return;
+      }
+
+      if (action === "generate") {
+        const source = target.dataset.source;
+        const id = parseInt(target.dataset.id, 10);
+        target.disabled = true;
+        target.textContent = "⏳ Génération…";
+        const { data, error } = await supabase.rpc("generate_pro_claim_code", {
+          p_source_table: source,
+          p_source_id: id,
+        });
+        if (error) {
+          console.warn("[generate_pro_claim_code]", error);
+          target.disabled = false;
+          target.textContent = "🔑 Générer";
+          toast("Erreur : " + (error.message || "génération échouée"), false);
+          return;
+        }
+        const newCode = Array.isArray(data) && data[0] ? data[0].out_code : null;
+        if (!newCode) {
+          target.disabled = false;
+          target.textContent = "🔑 Générer";
+          toast("Génération sans retour de code — vérifie côté Supabase", false);
+          return;
+        }
+        // Met a jour le cache local pour refleter immediatement le code
+        if (source === "venues") {
+          const row = allVenues.find(r => r.id === id);
+          if (row) row.pro_claim_code = newCode;
+        } else {
+          const row = allEtabs.find(r => r.id === id);
+          if (row) row.pro_claim_code = newCode;
+        }
+        renderVenuesList(venuesCityFilter.value);
+        toast(`Code généré : ${newCode}`, true);
+      }
+    });
 
     // ─── Historique : mes events en grille + edit / delete ───
     const historyList = document.getElementById("history-list");

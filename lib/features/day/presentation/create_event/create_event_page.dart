@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
-import 'package:pulz_app/features/day/presentation/create_event/steps/step_details.dart';
 import 'package:pulz_app/features/day/presentation/create_event/steps/step_essentials.dart';
-import 'package:pulz_app/features/day/presentation/create_event/widgets/step_indicator.dart';
 import 'package:pulz_app/core/services/stripe_service.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
@@ -116,14 +114,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Step indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: StepIndicator(
-                currentStep: state.currentStep,
-                totalSteps: CreateEventState.totalSteps,
-              ),
-            ),
+            // (Step indicator masque : form simplifie a une seule etape)
 
             // Error message
             if (state.errorMessage != null)
@@ -178,16 +169,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                 ),
               ),
 
-            // Steps
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: const [
-                  StepEssentials(),
-                  StepDetails(),
-                ],
-              ),
+            // Steps (un seul ecran : Essentiel)
+            const Expanded(
+              child: StepEssentials(),
             ),
 
             // Bottom navigation

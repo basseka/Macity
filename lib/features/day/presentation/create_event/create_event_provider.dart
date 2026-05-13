@@ -213,10 +213,10 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         ? tags.whereType<String>().take(10).toList()
         : const [];
 
-    // Le scan IA jump direct a Optionnel (step 1) : l'essentiel est rempli,
-    // le pro peut publier ou affiner.
+    // Form a 1 step : le scan IA pre-remplit et l'utilisateur peut publier
+    // directement.
     state = state.copyWith(
-      currentStep: 1,
+      currentStep: 0,
       existingPhotoUrl: photoUrl,
       prefillRevision: state.prefillRevision + 1,
       categorie: cat,

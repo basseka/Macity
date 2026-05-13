@@ -11,20 +11,31 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 /// Callback pour obtenir le count d'une catégorie (optionnel).
 typedef CategoryCountProvider = FutureProvider<int> Function(String searchTag);
 
+/// Callback fallback : path d'asset local utilise si `categories.image_url` est
+/// vide en BDD pour une categorie donnee. Retourne null si pas de fallback.
+typedef CategoryFallbackImage = String? Function(String searchTag);
+
 /// Hub grid dynamique editorial (handoff design 2026-04-25).
 /// Construit ses sections depuis la table `categories`.
 /// Utilise par 6 ecrans : night, food, sport, culture, family, tourisme.
 class DynamicHubGrid extends ConsumerWidget {
   final String mode;
   final CategoryCountProvider? countProvider;
+  final CategoryFallbackImage? fallbackImageProvider;
   final String? avenirSubtitle;
 
   const DynamicHubGrid({
     super.key,
     required this.mode,
     this.countProvider,
+    this.fallbackImageProvider,
     this.avenirSubtitle,
   });
+
+  String? _imageFor(AppCategory cat) {
+    if (cat.imageUrl.isNotEmpty) return cat.imageUrl;
+    return fallbackImageProvider?.call(cat.searchTag);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -84,7 +95,7 @@ class DynamicHubGrid extends ConsumerWidget {
     return EditorialSubcategoryCard(
       label: cat.label,
       kicker: cat.label,
-      imageUrl: cat.imageUrl.isNotEmpty ? cat.imageUrl : null,
+      imageUrl: _imageFor(cat),
       count: count,
       accent: accent,
       imageHeight: 120,
@@ -115,7 +126,7 @@ class DynamicHubGrid extends ConsumerWidget {
               return EditorialSubcategoryCard(
                 label: cat.label,
                 kicker: cat.label,
-                imageUrl: cat.imageUrl.isNotEmpty ? cat.imageUrl : null,
+                imageUrl: _imageFor(cat),
                 count: count,
                 accent: accent,
                 onTap: () => ref

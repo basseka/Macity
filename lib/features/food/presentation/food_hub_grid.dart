@@ -11,7 +11,29 @@ class FoodHubGrid extends StatelessWidget {
     return DynamicHubGrid(
       mode: 'food',
       countProvider: (tag) => foodCategoryCountProvider(tag),
+      fallbackImageProvider: _fallbackImageFor,
       avenirSubtitle: 'Selection editorialisee — restaurants, brunchs, bars.',
     );
+  }
+
+  /// Pochette locale si la categorie n'a pas d'image_url en BDD.
+  static String? _fallbackImageFor(String tag) {
+    switch (tag) {
+      case 'Guinguette':
+        return 'assets/images/pochette_guinguette.webp';
+      case 'Buffets':
+        return 'assets/images/pochette_buffet.webp';
+      case 'Spa hammam':
+      case 'Massage':
+        return 'assets/images/pochette_spa&hammam.webp';
+      case 'Salon de the':
+        return 'assets/images/pochette_salondethe.jpg';
+      case 'Brunch':
+        return 'assets/images/pochette_brunch.jpg';
+      case 'Yoga meditation':
+        return 'assets/images/pochette_yoga.jpg';
+      default:
+        return null;
+    }
   }
 }

@@ -242,9 +242,9 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       case 'Brunch':
         return 'assets/images/pochette_brunch.jpg';
       case 'Spa hammam':
-        return 'assets/images/pochette_spa&hammam.png';
+        return 'assets/images/pochette_spa&hammam.webp';
       case 'Massage':
-        return 'assets/images/pochette_spa&hammam.png';
+        return 'assets/images/pochette_spa&hammam.webp';
       case 'Yoga meditation':
         return 'assets/images/pochette_yoga.jpg';
       default:

@@ -113,23 +113,23 @@ class EngagementTotalsNotifier extends StateNotifier<EngagementTotalsState> {
     final wasLiked = state.userLiked[key] ?? false;
     final current = state.totals[key];
 
+    // Construit le prochain totals (synthetique si l'event n'a pas de row
+    // d'engagement — sinon le compteur ne ticquerait jamais cote UI).
+    final base = current ?? EventEngagementTotals.empty(source, identifiant);
+    final next = EventEngagementTotals(
+      eventSource: base.eventSource,
+      eventIdentifiant: base.eventIdentifiant,
+      likesCount: (base.likesCount + (wasLiked ? -1 : 1)).clamp(0, 1 << 30),
+      sharesCount: base.sharesCount,
+      commentsCount: base.commentsCount,
+      boostType: base.boostType,
+      seededAt: base.seededAt,
+    );
+
     // Optimistic update
     state = state.copyWith(
       userLiked: {...state.userLiked, key: !wasLiked},
-      totals: current == null
-          ? state.totals
-          : {
-              ...state.totals,
-              key: EventEngagementTotals(
-                eventSource: current.eventSource,
-                eventIdentifiant: current.eventIdentifiant,
-                likesCount: current.likesCount + (wasLiked ? -1 : 1),
-                sharesCount: current.sharesCount,
-                commentsCount: current.commentsCount,
-                boostType: current.boostType,
-                seededAt: current.seededAt,
-              ),
-            },
+      totals: {...state.totals, key: next},
     );
 
     try {
@@ -148,10 +148,17 @@ class EngagementTotalsNotifier extends StateNotifier<EngagementTotalsState> {
       }
     } catch (e) {
       debugPrint('[Engagement] toggleLike failed: $e — rolling back');
-      // Rollback
+      // Rollback : on remet l'etat tel qu'il etait. Si current etait null
+      // on retire la cle synthetique creee par l'update optimiste.
+      final rolledTotals = {...state.totals};
+      if (current == null) {
+        rolledTotals.remove(key);
+      } else {
+        rolledTotals[key] = current;
+      }
       state = state.copyWith(
         userLiked: {...state.userLiked, key: wasLiked},
-        totals: current == null ? state.totals : {...state.totals, key: current},
+        totals: rolledTotals,
       );
       rethrow;
     }
@@ -162,20 +169,21 @@ class EngagementTotalsNotifier extends StateNotifier<EngagementTotalsState> {
     final key = engagementKey(source, identifiant);
     final deviceUuid = await UserIdentityService.getUserId();
     final current = state.totals[key];
-    if (current != null) {
-      state = state.copyWith(totals: {
-        ...state.totals,
-        key: EventEngagementTotals(
-          eventSource: current.eventSource,
-          eventIdentifiant: current.eventIdentifiant,
-          likesCount: current.likesCount,
-          sharesCount: current.sharesCount + 1,
-          commentsCount: current.commentsCount,
-          boostType: current.boostType,
-          seededAt: current.seededAt,
-        ),
-      },);
-    }
+    // Construit un totals synthetique si l'event n'a pas encore de row,
+    // pour que le compteur de partages ticque cote UI.
+    final base = current ?? EventEngagementTotals.empty(source, identifiant);
+    state = state.copyWith(totals: {
+      ...state.totals,
+      key: EventEngagementTotals(
+        eventSource: base.eventSource,
+        eventIdentifiant: base.eventIdentifiant,
+        likesCount: base.likesCount,
+        sharesCount: base.sharesCount + 1,
+        commentsCount: base.commentsCount,
+        boostType: base.boostType,
+        seededAt: base.seededAt,
+      ),
+    },);
     try {
       await _service.recordShare(
         eventSource: source,

@@ -58,8 +58,8 @@ class FoodCategoryData {
       name: 'Bien-etre & lifestyle',
       emoji: '',
       subcategories: [
-        FoodSubcategory(label: 'Spa & hammam', searchTag: 'Spa hammam', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.png'),
-        FoodSubcategory(label: 'Massage', searchTag: 'Massage', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.png'),
+        FoodSubcategory(label: 'Spa & hammam', searchTag: 'Spa hammam', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.webp'),
+        FoodSubcategory(label: 'Massage', searchTag: 'Massage', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.webp'),
         FoodSubcategory(label: 'Yoga & meditation', searchTag: 'Yoga meditation', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_yoga.jpg'),
       ],
     ),

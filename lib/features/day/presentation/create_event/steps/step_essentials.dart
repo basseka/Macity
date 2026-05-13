@@ -171,20 +171,20 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           ),
           const SizedBox(height: 14),
 
-          // 3. Photo + Video
+          // 3. Vidéo + Photo (vidéo en premier pour inciter au teaser)
+          _label('Vidéo teaser (recommandée, 30s max)'),
+          const SizedBox(height: 6),
+          _VideoPicker(
+            videoPath: state.videoPath,
+            onPicked: notifier.updateVideoPath,
+          ),
+          const SizedBox(height: 10),
           _label('Photo *'),
           const SizedBox(height: 6),
           _PhotoPicker(
             photoPath: state.photoPath,
             existingPhotoUrl: state.existingPhotoUrl,
             onPicked: notifier.updatePhotoPath,
-          ),
-          const SizedBox(height: 10),
-          _label('Vidéo teaser (optionnel, 15s max)'),
-          const SizedBox(height: 6),
-          _VideoPicker(
-            videoPath: state.videoPath,
-            onPicked: notifier.updateVideoPath,
           ),
           const SizedBox(height: 14),
 
@@ -460,7 +460,7 @@ class _VideoPicker extends StatelessWidget {
                   Icon(Icons.videocam_outlined, size: 36, color: Colors.grey),
                   SizedBox(height: 6),
                   Text(
-                    'Ajouter\n(15 sec max)',
+                    'Ajouter\n(30 sec max)',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 10, color: Colors.grey),
                   ),
@@ -494,7 +494,7 @@ class _VideoPicker extends StatelessWidget {
     if (source == null) return;
     final xFile = await ImagePicker().pickVideo(
       source: source,
-      maxDuration: const Duration(seconds: 15),
+      maxDuration: const Duration(seconds: 30),
     );
     if (xFile != null) onPicked(xFile.path);
   }

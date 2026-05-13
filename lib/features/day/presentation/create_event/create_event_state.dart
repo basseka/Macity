@@ -291,36 +291,24 @@ class CreateEventState {
   }
 
   /// Valide l'etape courante. Retourne un message d'erreur ou null.
-  /// Step 0 = Essentiel (obligatoire), Step 1 = Optionnel (passable).
+  /// Un seul step (Essentiel) : tout est obligatoire ici.
   String? validateCurrentStep() {
-    switch (currentStep) {
-      case 0:
-        if (categorie == null) return 'Choisis une catégorie';
-        if (titre.trim().isEmpty) return 'Le titre est requis';
-        if (photoPath == null && videoPath == null && existingPhotoUrl == null) {
-          return 'Une photo ou vidéo est requise';
-        }
-        if (dateDebut == null) return 'La date de début est requise';
-        if (heureDebut == null) return 'L\'heure de début est requise';
-        if (lieuAdresse.trim().isEmpty) return 'Adresse du lieu requise';
-        return null;
-      case 1:
-        // Optionnel : on valide seulement la coherence des URLs si remplies.
-        final url = lienBilletterie.trim();
-        if (url.isNotEmpty && !url.startsWith('http://') && !url.startsWith('https://')) {
-          return 'Le lien doit commencer par http:// ou https://';
-        }
-        return null;
-      default:
-        return null;
+    if (categorie == null) return 'Choisis une catégorie';
+    if (titre.trim().isEmpty) return 'Le titre est requis';
+    if (photoPath == null && videoPath == null && existingPhotoUrl == null) {
+      return 'Une photo ou vidéo est requise';
     }
+    if (dateDebut == null) return 'La date de début est requise';
+    if (heureDebut == null) return 'L\'heure de début est requise';
+    if (lieuAdresse.trim().isEmpty) return 'Adresse du lieu requise';
+    return null;
   }
 
-  /// Nombre total d'etapes.
-  static const int totalSteps = 2;
+  /// Nombre total d'etapes (form simplifie a 1 etape).
+  static const int totalSteps = 1;
 
-  /// L'etape 1 (Optionnel) est passable directement vers Publier.
-  bool get isCurrentStepSkippable => currentStep == 1;
+  /// Plus de step optionnelle : rien n'est passable.
+  bool get isCurrentStepSkippable => false;
 }
 
 /// Session de programme (etape 2 - optionnel).
