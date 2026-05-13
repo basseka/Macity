@@ -48,7 +48,7 @@ class DanceVenueCard extends ConsumerWidget {
                 child: SizedBox(
                   width: 64,
                   height: 64,
-                  child: VenueImage(imageUrl: dance.image, defaultAsset: 'assets/images/pochette_theatre.png'),
+                  child: VenueImage(imageUrl: dance.image, defaultAsset: 'assets/images/pochette_theatre.webp'),
                 ),
               ),
             ),

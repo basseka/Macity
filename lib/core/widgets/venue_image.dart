@@ -12,7 +12,7 @@ class VenueImage extends StatelessWidget {
   const VenueImage({
     super.key,
     required this.imageUrl,
-    this.defaultAsset = 'assets/images/pochette_theatre.png',
+    this.defaultAsset = 'assets/images/pochette_theatre.webp',
     this.fit = BoxFit.cover,
   });
 

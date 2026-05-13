@@ -41,9 +41,9 @@ class FamilyCategoryData {
       name: 'Parcs & jeux',
       emoji: '\uD83C\uDFA0',
       subcategories: [
-        FamilySubcategory(label: 'Parc d\'attractions', searchTag: 'Parc d\'attractions', emoji: '\uD83C\uDFA2', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_attraction.png'),
+        FamilySubcategory(label: 'Parc d\'attractions', searchTag: 'Parc d\'attractions', emoji: '\uD83C\uDFA2', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_attraction.webp'),
         FamilySubcategory(label: 'Aire de jeux', searchTag: 'Aire de jeux', emoji: '\uD83E\uDDD2', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.jpg'),
-        FamilySubcategory(label: 'Parc animalier', searchTag: 'Parc animalier', emoji: '\uD83E\uDD81', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_animalier.png'),
+        FamilySubcategory(label: 'Parc animalier', searchTag: 'Parc animalier', emoji: '\uD83E\uDD81', group: 'Parcs & jeux', image: 'assets/images/pochette_parc_animalier.webp'),
         FamilySubcategory(label: 'Ferme pedagogique', searchTag: 'Ferme pedagogique', emoji: '\uD83D\uDC04', group: 'Parcs & jeux', image: 'assets/images/pochette_enfamille.jpg'),
       ],
     ),
@@ -51,7 +51,7 @@ class FamilyCategoryData {
       name: 'Loisirs',
       emoji: '\uD83C\uDFAC',
       subcategories: [
-        FamilySubcategory(label: 'Cinema', searchTag: 'Cinema', emoji: '\uD83C\uDFAC', group: 'Loisirs', image: 'assets/images/pochette_spectacle.png'),
+        FamilySubcategory(label: 'Cinema', searchTag: 'Cinema', emoji: '\uD83C\uDFAC', group: 'Loisirs', image: 'assets/images/pochette_spectacle.webp'),
         FamilySubcategory(label: 'Bowling', searchTag: 'Bowling', emoji: '\uD83C\uDFB3', group: 'Loisirs', image: 'assets/images/pochette_enfamille.jpg'),
         FamilySubcategory(label: 'Laser game', searchTag: 'Laser game', emoji: '\uD83D\uDD2B', group: 'Loisirs', image: 'assets/images/pochette_enfamille.jpg'),
         FamilySubcategory(label: 'Escape game', searchTag: 'Escape game', emoji: '\uD83D\uDD10', group: 'Loisirs', image: 'assets/images/pochette_gaming.jpg'),
@@ -62,7 +62,7 @@ class FamilyCategoryData {
       name: 'Culture',
       emoji: '\uD83C\uDFDB\uFE0F',
       subcategories: [
-        FamilySubcategory(label: 'Aquarium', searchTag: 'Aquarium', emoji: '\uD83D\uDC20', group: 'Culture', image: 'assets/images/pochette_parc_animalier.png'),
+        FamilySubcategory(label: 'Aquarium', searchTag: 'Aquarium', emoji: '\uD83D\uDC20', group: 'Culture', image: 'assets/images/pochette_parc_animalier.webp'),
       ],
     ),
     FamilyCategoryGroup(

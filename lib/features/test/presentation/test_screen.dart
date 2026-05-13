@@ -18,21 +18,21 @@ class TestScreen extends ConsumerWidget {
   const TestScreen({super.key});
 
   static const _categoryImages = <String, String>{
-    'concert': 'assets/images/pochette_concert.png',
-    'festival': 'assets/images/pochette_festival.png',
-    'opera': 'assets/images/pochette_spectacle.png',
-    'theatre': 'assets/images/pochette_theatre.png',
-    'expo': 'assets/images/pochette_culture_art.png',
-    'vernissage': 'assets/images/pochette_culture_art.png',
-    'musee': 'assets/images/pochette_visite.png',
-    'football': 'assets/images/pochette_football.png',
-    'rugby': 'assets/images/pochette_rugby.png',
-    'basketball': 'assets/images/pochette_basketball.png',
-    'soiree': 'assets/images/pochette_discotheque.png',
-    'club': 'assets/images/pochette_discotheque.png',
-    'bar': 'assets/images/pochette_pub.png',
-    'restaurant': 'assets/images/pochette_food.png',
-    'cinema': 'assets/images/pochette_spectacle.png',
+    'concert': 'assets/images/pochette_concert.webp',
+    'festival': 'assets/images/pochette_festival.webp',
+    'opera': 'assets/images/pochette_spectacle.webp',
+    'theatre': 'assets/images/pochette_theatre.webp',
+    'expo': 'assets/images/pochette_culture_art.webp',
+    'vernissage': 'assets/images/pochette_culture_art.webp',
+    'musee': 'assets/images/pochette_visite.webp',
+    'football': 'assets/images/pochette_football.webp',
+    'rugby': 'assets/images/pochette_rugby.webp',
+    'basketball': 'assets/images/pochette_basketball.webp',
+    'soiree': 'assets/images/pochette_discotheque.webp',
+    'club': 'assets/images/pochette_discotheque.webp',
+    'bar': 'assets/images/pochette_pub.webp',
+    'restaurant': 'assets/images/pochette_food.webp',
+    'cinema': 'assets/images/pochette_spectacle.webp',
   };
 
   static String _resolvePochette(Event e) {
@@ -43,16 +43,16 @@ class TestScreen extends ConsumerWidget {
         return entry.value;
       }
     }
-    return 'assets/images/pochette_concert.png';
+    return 'assets/images/pochette_concert.webp';
   }
 
   static String _resolveMatchPochette(SupabaseMatch m) {
     final sport = m.sport.toLowerCase();
-    if (sport.contains('rugby')) return 'assets/images/pochette_rugby.png';
-    if (sport.contains('foot')) return 'assets/images/pochette_football.png';
-    if (sport.contains('basket')) return 'assets/images/pochette_basketball.png';
-    if (sport.contains('hand')) return 'assets/images/pochette_handball.png';
-    return 'assets/images/pochette_course.png';
+    if (sport.contains('rugby')) return 'assets/images/pochette_rugby.webp';
+    if (sport.contains('foot')) return 'assets/images/pochette_football.webp';
+    if (sport.contains('basket')) return 'assets/images/pochette_basketball.webp';
+    if (sport.contains('hand')) return 'assets/images/pochette_handball.webp';
+    return 'assets/images/pochette_course.webp';
   }
 
   static final _displayDate = DateFormat('dd/MM', 'fr_FR');
@@ -504,7 +504,7 @@ class _UserGrid extends StatelessWidget {
             title: ue.titre,
             subtitle: '$dateShort - ${ue.heure}',
             networkImage: hasPhoto ? ue.resolvedPhoto : null,
-            assetImage: 'assets/images/pochette_concert.png',
+            assetImage: 'assets/images/pochette_concert.webp',
             badge: 'COMMUNAUTE',
             badgeColor: const Color(0xFF7C4DFF),
             lieu: ue.lieuNom,

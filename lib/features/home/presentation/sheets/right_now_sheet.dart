@@ -314,7 +314,7 @@ class _EventCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
-        EventFullscreenPopup.show(context, event, 'assets/images/pochette_concert.png');
+        EventFullscreenPopup.show(context, event, 'assets/images/pochette_concert.webp');
       },
       child: Container(
         width: 130,

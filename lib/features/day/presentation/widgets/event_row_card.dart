@@ -28,22 +28,22 @@ class EventRowCard extends ConsumerWidget {
   }
 
   static const _categoryImages = <String, String>{
-    'concert': 'assets/images/pochette_concert.png',
-    'festival': 'assets/images/pochette_festival.png',
-    'spectacle': 'assets/images/pochette_spectacle.png',
-    'opera': 'assets/images/pochette_spectacle.png',
-    'theatre': 'assets/images/pochette_theatre.png',
-    'expo': 'assets/images/pochette_culture_art.png',
-    'exposition': 'assets/images/pochette_culture_art.png',
-    'vernissage': 'assets/images/pochette_culture_art.png',
-    'visite': 'assets/images/pochette_visite.png',
-    'visite guidee': 'assets/images/pochette_visite.png',
-    'visites guidees': 'assets/images/pochette_visite.png',
-    'atelier': 'assets/images/pochette_culture_art.png',
-    'animation': 'assets/images/pochette_animation.png',
-    'animations culturelles': 'assets/images/pochette_animation.png',
-    'musee': 'assets/images/pochette_visite.png',
-    'concert live': 'assets/images/pochette_concert.png',
+    'concert': 'assets/images/pochette_concert.webp',
+    'festival': 'assets/images/pochette_festival.webp',
+    'spectacle': 'assets/images/pochette_spectacle.webp',
+    'opera': 'assets/images/pochette_spectacle.webp',
+    'theatre': 'assets/images/pochette_theatre.webp',
+    'expo': 'assets/images/pochette_culture_art.webp',
+    'exposition': 'assets/images/pochette_culture_art.webp',
+    'vernissage': 'assets/images/pochette_culture_art.webp',
+    'visite': 'assets/images/pochette_visite.webp',
+    'visite guidee': 'assets/images/pochette_visite.webp',
+    'visites guidees': 'assets/images/pochette_visite.webp',
+    'atelier': 'assets/images/pochette_culture_art.webp',
+    'animation': 'assets/images/pochette_animation.webp',
+    'animations culturelles': 'assets/images/pochette_animation.webp',
+    'musee': 'assets/images/pochette_visite.webp',
+    'concert live': 'assets/images/pochette_concert.webp',
   };
 
   /// Pochettes specifiques par lieu (musees + salles de concert).
@@ -114,10 +114,10 @@ class EventRowCard extends ConsumerWidget {
     }
 
     if (cat.contains('musique') || cat.contains('concert')) {
-      return 'assets/images/pochette_concert.png';
+      return 'assets/images/pochette_concert.webp';
     }
 
-    return 'assets/images/pochette_concert.png';
+    return 'assets/images/pochette_concert.webp';
   }
 
   @override
@@ -308,7 +308,7 @@ class EventRowCard extends ConsumerWidget {
     EventFullscreenPopup.show(context, event, image);
   }
 
-  static const _defaultPochette = 'assets/images/pochette_concert.png';
+  static const _defaultPochette = 'assets/images/pochette_concert.webp';
 
   /// Construit la pochette : URL réseau > fichier local > asset par défaut.
   Widget _buildPochette(String fallbackAsset) {

@@ -48,14 +48,14 @@ class TourismeCategoryData {
       name: 'Activites',
       emoji: '\uD83C\uDFA8',
       subcategories: [
-        TourismeSubcategory(label: 'Activites', searchTag: 'Activites', emoji: '\uD83C\uDFA8', group: 'Activites', image: 'assets/images/pochette_tourisme_toulouse.png'),
+        TourismeSubcategory(label: 'Activites', searchTag: 'Activites', emoji: '\uD83C\uDFA8', group: 'Activites', image: 'assets/images/pochette_tourisme_toulouse.webp'),
       ],
     ),
     TourismeCategoryGroup(
       name: 'Visiter',
       emoji: '\uD83C\uDFF0',
       subcategories: [
-        TourismeSubcategory(label: 'Visiter', searchTag: 'Visiter', emoji: '\uD83C\uDFF0', group: 'Visiter', image: 'assets/images/pochette_tourisme_toulouse.png'),
+        TourismeSubcategory(label: 'Visiter', searchTag: 'Visiter', emoji: '\uD83C\uDFF0', group: 'Visiter', image: 'assets/images/pochette_tourisme_toulouse.webp'),
       ],
     ),
   ];

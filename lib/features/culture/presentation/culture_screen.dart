@@ -760,7 +760,7 @@ class CultureScreen extends ConsumerWidget {
                 context,
                 event,
                 RubricColors.culture,
-                fallbackImage: 'assets/images/pochette_culture_art.png',
+                fallbackImage: 'assets/images/pochette_culture_art.webp',
               ),
           ],
         ],
@@ -930,7 +930,7 @@ class _MuseumGridCard extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  VenueImage(imageUrl: museum.image, defaultAsset: 'assets/images/pochette_musee.png'),
+                  VenueImage(imageUrl: museum.image, defaultAsset: 'assets/images/pochette_musee.webp'),
                   if (museum.hasOnlineTicket)
                     Positioned(
                       top: 4,
@@ -1002,7 +1002,7 @@ class _GalleryCard extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final image = gallery.photo.isNotEmpty
         ? gallery.photo
-        : 'assets/images/pochette_culture_art.png';
+        : 'assets/images/pochette_culture_art.webp';
 
     return GestureDetector(
       onTap: () => _openDetail(context),
@@ -1091,7 +1091,7 @@ class _GalleryCard extends ConsumerWidget {
   void _openDetail(BuildContext context) {
     final image = gallery.photo.isNotEmpty
         ? gallery.photo
-        : 'assets/images/pochette_culture_art.png';
+        : 'assets/images/pochette_culture_art.webp';
     ItemDetailSheet.show(
       context,
       ItemDetailSheet(

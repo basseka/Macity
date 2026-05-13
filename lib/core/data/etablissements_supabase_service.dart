@@ -73,10 +73,10 @@ class EtablissementsSupabaseService {
   }
 
   static String _defaultPhoto(String rubrique) => switch (rubrique) {
-        'nuit' => 'assets/images/pochette_discotheque.png',
+        'nuit' => 'assets/images/pochette_discotheque.webp',
         'famille' => 'assets/images/pochette_enfamille.jpg',
-        'culture' => 'assets/images/pochette_culture_art.png',
-        'food' => 'assets/images/pochette_food.png',
+        'culture' => 'assets/images/pochette_culture_art.webp',
+        'food' => 'assets/images/pochette_food.webp',
         _ => 'assets/images/pochette_autre.jpg',
       };
 }

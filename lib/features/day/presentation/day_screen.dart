@@ -660,7 +660,7 @@ class DayScreen extends ConsumerWidget {
       imageUrl: event.photoPath,
       accent: _accent,
       onTap: () => EventFullscreenPopup.show(
-        context, event, 'assets/images/pochette_concert.png',
+        context, event, 'assets/images/pochette_concert.webp',
       ),
     );
   }

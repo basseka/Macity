@@ -16,15 +16,15 @@ class FamilyVenueRowCard extends ConsumerWidget {
   const FamilyVenueRowCard({super.key, required this.venue});
 
   static const _categoryImages = <String, String>{
-    "Parc d'attractions": 'assets/images/pochette_parc_attraction.png',
-    'Aire de jeux': 'assets/images/pochette_aire_de_jeu.png',
+    "Parc d'attractions": 'assets/images/pochette_parc_attraction.webp',
+    'Aire de jeux': 'assets/images/pochette_aire_de_jeu.webp',
     'Parc animalier': 'assets/images/sc_parc_animalier.jpg',
-    'Ferme pedagogique': 'assets/images/pochette_ferme.png',
-    'Cinema': 'assets/images/pochette_spectacle.png',
-    'Bowling': 'assets/images/pochette_bowling.png',
-    'Laser game': 'assets/images/pochette_laser_game.png',
+    'Ferme pedagogique': 'assets/images/pochette_ferme.webp',
+    'Cinema': 'assets/images/pochette_spectacle.webp',
+    'Bowling': 'assets/images/pochette_bowling.webp',
+    'Laser game': 'assets/images/pochette_laser_game.webp',
     'Escape game': 'assets/images/pochette_escapegame.jpg',
-    'Patinoire': 'assets/images/pochette_patinoire.png',
+    'Patinoire': 'assets/images/pochette_patinoire.webp',
     'Restaurant familial': 'assets/images/pochette_restaurant.jpg',
     'Aquarium': 'assets/images/pochette_enfamille.jpg',
   };

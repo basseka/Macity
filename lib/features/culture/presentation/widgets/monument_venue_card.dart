@@ -50,7 +50,7 @@ class MonumentVenueCard extends ConsumerWidget {
                 child: SizedBox(
                   width: 64,
                   height: 64,
-                  child: VenueImage(imageUrl: monument.image, defaultAsset: 'assets/images/pochette_theatre.png'),
+                  child: VenueImage(imageUrl: monument.image, defaultAsset: 'assets/images/pochette_theatre.webp'),
                 ),
               ),
             ),

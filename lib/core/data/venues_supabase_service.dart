@@ -123,7 +123,7 @@ class VenuesSupabaseService {
           ? json['website_url'] as String
           : null,
       hasOnlineTicket: json['has_online_ticket'] as bool? ?? false,
-      image: photo.isNotEmpty ? photo : 'assets/images/pochette_theatre.png',
+      image: photo.isNotEmpty ? photo : 'assets/images/pochette_theatre.webp',
       isVerified: json['is_verified'] as bool? ?? false,
     );
   }
@@ -158,7 +158,7 @@ class VenuesSupabaseService {
           : null,
       websiteUrl: json['website_url'] as String? ?? '',
       hasOnlineTicket: json['has_online_ticket'] as bool? ?? false,
-      image: photo.isNotEmpty ? photo : 'assets/images/pochette_musee.png',
+      image: photo.isNotEmpty ? photo : 'assets/images/pochette_musee.webp',
       isVerified: json['is_verified'] as bool? ?? false,
     );
   }
@@ -192,7 +192,7 @@ class VenuesSupabaseService {
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       websiteUrl: json['website_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
-      image: photo.isNotEmpty ? photo : 'assets/images/pochette_visite.png',
+      image: photo.isNotEmpty ? photo : 'assets/images/pochette_visite.webp',
       isVerified: json['is_verified'] as bool? ?? false,
     );
   }
@@ -228,7 +228,7 @@ class VenuesSupabaseService {
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       websiteUrl: json['website_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
-      image: photo.isNotEmpty ? photo : 'assets/images/pochette_culture_art.png',
+      image: photo.isNotEmpty ? photo : 'assets/images/pochette_culture_art.webp',
       isVerified: json['is_verified'] as bool? ?? false,
     );
   }

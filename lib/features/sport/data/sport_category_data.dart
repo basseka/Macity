@@ -69,7 +69,7 @@ class SportCategoryData {
       name: 'Boxe',
       emoji: '\uD83E\uDD4A',
       subcategories: [
-        SportSubcategory(label: 'Boxe', searchTag: 'Boxe', emoji: '\uD83E\uDD4A', group: 'Boxe', image: 'assets/images/pochette_boxe.png'),
+        SportSubcategory(label: 'Boxe', searchTag: 'Boxe', emoji: '\uD83E\uDD4A', group: 'Boxe', image: 'assets/images/pochette_boxe.webp'),
       ],
     ),
     SportCategoryGroup(
@@ -83,7 +83,7 @@ class SportCategoryData {
       name: 'Course a pied',
       emoji: '\uD83C\uDFC3',
       subcategories: [
-        SportSubcategory(label: 'Course a pied', searchTag: 'Courses a pied', emoji: '\uD83C\uDFC3', group: 'Course a pied', image: 'assets/images/pochette_course.png'),
+        SportSubcategory(label: 'Course a pied', searchTag: 'Courses a pied', emoji: '\uD83C\uDFC3', group: 'Course a pied', image: 'assets/images/pochette_course.webp'),
       ],
     ),
     SportCategoryGroup(
@@ -104,7 +104,7 @@ class SportCategoryData {
       name: 'Stage de danse',
       emoji: '\uD83D\uDC83',
       subcategories: [
-        SportSubcategory(label: 'Stage de danse', searchTag: 'Stage de danse', emoji: '\uD83D\uDC83', group: 'Stage de danse', image: 'assets/images/pochette_stagedanse.png'),
+        SportSubcategory(label: 'Stage de danse', searchTag: 'Stage de danse', emoji: '\uD83D\uDC83', group: 'Stage de danse', image: 'assets/images/pochette_stagedanse.webp'),
       ],
     ),
     SportCategoryGroup(
@@ -140,8 +140,8 @@ class SportCategoryData {
   /// Sous-catégories affichées dans le hub Complexe sportif.
   static const complexeSportifSubcategories = [
     SportSubcategory(label: 'Salle de Fitness', searchTag: 'Salle de fitness', emoji: '\uD83D\uDCAA', group: 'Salle de Fitness', image: 'assets/images/shell_sport_fitness.png'),
-    SportSubcategory(label: 'Salle de danse', searchTag: 'Danse', emoji: '\uD83D\uDC83', group: 'Danse', image: 'assets/images/pochette_animation.png'),
-    SportSubcategory(label: 'Salles de boxe', searchTag: 'Salles de boxe', emoji: '\uD83E\uDD4A', group: 'Boxe', image: 'assets/images/pochette_boxe.png'),
+    SportSubcategory(label: 'Salle de danse', searchTag: 'Danse', emoji: '\uD83D\uDC83', group: 'Danse', image: 'assets/images/pochette_animation.webp'),
+    SportSubcategory(label: 'Salles de boxe', searchTag: 'Salles de boxe', emoji: '\uD83E\uDD4A', group: 'Boxe', image: 'assets/images/pochette_boxe.webp'),
     SportSubcategory(label: 'Terrain de football', searchTag: 'Terrain de football', emoji: '\u26BD', group: 'Football', image: 'assets/images/shell_sport_football.png'),
     SportSubcategory(label: 'Terrain de basketball', searchTag: 'Terrain de basketball', emoji: '\uD83C\uDFC0', group: 'Basketball', image: 'assets/images/shell_sport_basketball.png'),
     SportSubcategory(label: 'Piscine', searchTag: 'Piscine', emoji: '\uD83C\uDFCA', group: 'Natation', image: 'assets/images/pochette_natation.jpg'),

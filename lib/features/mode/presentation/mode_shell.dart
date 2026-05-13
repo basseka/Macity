@@ -332,14 +332,14 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
   static const _bubbleSize = 62.0;
 
   static const _modeImages = {
-    AppMode.day: 'assets/images/pochette_concert.png',
+    AppMode.day: 'assets/images/pochette_concert.webp',
     AppMode.sport: 'assets/images/home_bg_sport.jpg',
-    AppMode.culture: 'assets/images/pochette_culture_art.png',
+    AppMode.culture: 'assets/images/pochette_culture_art.webp',
     AppMode.family: 'assets/images/pochette_enfamille.jpg',
-    AppMode.food: 'assets/images/pochette_food.png',
+    AppMode.food: 'assets/images/pochette_food.webp',
     AppMode.gaming: 'assets/images/pochette_gaming.jpg',
     AppMode.night: 'assets/images/home_bg_night.jpg',
-    AppMode.tourisme: 'assets/images/pochette_tourime.png',
+    AppMode.tourisme: 'assets/images/pochette_tourime.webp',
   };
 
   // Short labels now come from AppMode.shortLabel

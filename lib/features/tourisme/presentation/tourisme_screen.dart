@@ -313,12 +313,12 @@ class TourismeScreen extends ConsumerWidget {
   /// Images par categorie touristique
   static const _categoryImages = <String, String>{
     'Monument': 'assets/images/pochette_monument.jpg',
-    'Musee': 'assets/images/pochette_musee.png',
-    'Attraction': 'assets/images/pochette_visite.png',
-    'Site naturel': 'assets/images/pochette_tourisme_toulouse.png',
-    'Place': 'assets/images/pochette_tourisme_toulouse.png',
-    'Lieu culturel': 'assets/images/pochette_culture_art.png',
-    'Office de tourisme': 'assets/images/pochette_tourime.png',
+    'Musee': 'assets/images/pochette_musee.webp',
+    'Attraction': 'assets/images/pochette_visite.webp',
+    'Site naturel': 'assets/images/pochette_tourisme_toulouse.webp',
+    'Place': 'assets/images/pochette_tourisme_toulouse.webp',
+    'Lieu culturel': 'assets/images/pochette_culture_art.webp',
+    'Office de tourisme': 'assets/images/pochette_tourime.webp',
   };
 
   Widget _buildVisiterHub(BuildContext context, WidgetRef ref) {
@@ -386,7 +386,7 @@ class TourismeScreen extends ConsumerWidget {
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final cat = categories[index];
-                  final image = _categoryImages[cat.key] ?? 'assets/images/pochette_visite.png';
+                  final image = _categoryImages[cat.key] ?? 'assets/images/pochette_visite.webp';
                   return DaySubcategoryCard(
                     emoji: '',
                     label: '${cat.key} (${cat.value})',

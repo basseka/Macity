@@ -278,7 +278,7 @@ class _PublicationCard extends StatelessWidget {
       onTap: () => EventFullscreenPopup.show(
         context,
         event.toEvent(),
-        'assets/images/pochette_concert.png',
+        'assets/images/pochette_concert.webp',
       ),
       child: Container(
         padding: const EdgeInsets.all(12),

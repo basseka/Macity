@@ -75,15 +75,15 @@ class MatchRowCard extends ConsumerWidget {
   }
 
   static const _sportImages = <String, String>{
-    'football': 'assets/images/pochette_football.png',
-    'foot': 'assets/images/pochette_football.png',
-    'rugby': 'assets/images/pochette_rugby.png',
-    'basket': 'assets/images/pochette_basketball.png',
-    'handball': 'assets/images/pochette_handball.png',
-    'boxe': 'assets/images/pochette_boxe.png',
+    'football': 'assets/images/pochette_football.webp',
+    'foot': 'assets/images/pochette_football.webp',
+    'rugby': 'assets/images/pochette_rugby.webp',
+    'basket': 'assets/images/pochette_basketball.webp',
+    'handball': 'assets/images/pochette_handball.webp',
+    'boxe': 'assets/images/pochette_boxe.webp',
     'natation': 'assets/images/pochette_natation.jpg',
-    'course': 'assets/images/pochette_courseapied.png',
-    'golf': 'assets/images/pochette_course.png',
+    'course': 'assets/images/pochette_courseapied.webp',
+    'golf': 'assets/images/pochette_course.webp',
     'fitness': 'assets/images/sc_autres_sport.jpg',
   };
 

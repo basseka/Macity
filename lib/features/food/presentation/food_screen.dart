@@ -234,9 +234,9 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
   static String _placeholderForCategory(String category) {
     switch (category) {
       case 'Guinguette':
-        return 'assets/images/pochette_guinguette.png';
+        return 'assets/images/pochette_guinguette.webp';
       case 'Buffets':
-        return 'assets/images/pochette_buffet.png';
+        return 'assets/images/pochette_buffet.webp';
       case 'Salon de the':
         return 'assets/images/pochette_salondethe.jpg';
       case 'Brunch':
@@ -508,14 +508,14 @@ class _RestaurantGridTile extends StatelessWidget {
               fit: BoxFit.cover,
               placeholder: (_, __) => Container(color: Colors.grey.shade800),
               errorWidget: (_, __, ___) => Image.asset(
-                'assets/images/pochette_food.png',
+                'assets/images/pochette_food.webp',
                 fit: BoxFit.cover,
                 cacheWidth: 300,
               ),
             )
           else
             Image.asset(
-              'assets/images/pochette_food.png',
+              'assets/images/pochette_food.webp',
               fit: BoxFit.cover,
               cacheWidth: 300,
               errorBuilder: (_, __, ___) =>

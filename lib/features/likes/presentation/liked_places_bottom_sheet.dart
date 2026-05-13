@@ -244,21 +244,21 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
 
   // Same pochette map as test_screen for resolving event images by category
   static const _eventCategoryImages = <String, String>{
-    'concert': 'assets/images/pochette_concert.png',
-    'festival': 'assets/images/pochette_festival.png',
-    'opera': 'assets/images/pochette_spectacle.png',
-    'theatre': 'assets/images/pochette_theatre.png',
-    'expo': 'assets/images/pochette_culture_art.png',
-    'vernissage': 'assets/images/pochette_culture_art.png',
-    'musee': 'assets/images/pochette_visite.png',
-    'football': 'assets/images/pochette_football.png',
-    'rugby': 'assets/images/pochette_rugby.png',
-    'basketball': 'assets/images/pochette_basketball.png',
-    'soiree': 'assets/images/pochette_discotheque.png',
-    'club': 'assets/images/pochette_discotheque.png',
-    'bar': 'assets/images/pochette_pub.png',
-    'restaurant': 'assets/images/pochette_food.png',
-    'cinema': 'assets/images/pochette_spectacle.png',
+    'concert': 'assets/images/pochette_concert.webp',
+    'festival': 'assets/images/pochette_festival.webp',
+    'opera': 'assets/images/pochette_spectacle.webp',
+    'theatre': 'assets/images/pochette_theatre.webp',
+    'expo': 'assets/images/pochette_culture_art.webp',
+    'vernissage': 'assets/images/pochette_culture_art.webp',
+    'musee': 'assets/images/pochette_visite.webp',
+    'football': 'assets/images/pochette_football.webp',
+    'rugby': 'assets/images/pochette_rugby.webp',
+    'basketball': 'assets/images/pochette_basketball.webp',
+    'soiree': 'assets/images/pochette_discotheque.webp',
+    'club': 'assets/images/pochette_discotheque.webp',
+    'bar': 'assets/images/pochette_pub.webp',
+    'restaurant': 'assets/images/pochette_food.webp',
+    'cinema': 'assets/images/pochette_spectacle.webp',
   };
 
   static const _commerceImages = <String, String>{
@@ -266,19 +266,19 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
     'pub': 'assets/images/sc_pub.jpg',
     'club': 'assets/images/sc_discotheque.png',
     'discotheque': 'assets/images/sc_discotheque.png',
-    'restaurant': 'assets/images/pochette_food.png',
+    'restaurant': 'assets/images/pochette_food.webp',
     'chicha': 'assets/images/sc_chicha.jpg',
     'tabac': 'assets/images/sc_tabac_nuit.png',
   };
 
   static const _categoryFallback = <String, String>{
     'Nuit': 'assets/images/sc_pub.jpg',
-    'Culture': 'assets/images/pochette_culture_art.png',
+    'Culture': 'assets/images/pochette_culture_art.webp',
     'En Famille': 'assets/images/pochette_enfamille.jpg',
-    'Food': 'assets/images/pochette_food.png',
+    'Food': 'assets/images/pochette_food.webp',
     'Sport': 'assets/images/home_bg_sport.jpg',
     'Gaming': 'assets/images/pochette_gaming.jpg',
-    'Evenement': 'assets/images/pochette_concert.png',
+    'Evenement': 'assets/images/pochette_concert.webp',
   };
 
   String _resolveImage(String id, _ParsedLike parsed, LikeMetadata? meta) {
@@ -326,18 +326,18 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
     }
     if (nameLower.contains('concert') || nameLower.contains('festival') ||
         nameLower.contains('live') || nameLower.contains('dj')) {
-      return 'assets/images/pochette_concert.png';
+      return 'assets/images/pochette_concert.webp';
     }
-    if (nameLower.contains('rugby')) return 'assets/images/pochette_rugby.png';
-    if (nameLower.contains('foot')) return 'assets/images/pochette_football.png';
-    if (nameLower.contains('basket')) return 'assets/images/pochette_basketball.png';
+    if (nameLower.contains('rugby')) return 'assets/images/pochette_rugby.webp';
+    if (nameLower.contains('foot')) return 'assets/images/pochette_football.webp';
+    if (nameLower.contains('basket')) return 'assets/images/pochette_basketball.webp';
     if (nameLower.contains('theatre') || nameLower.contains('opera')) {
-      return 'assets/images/pochette_theatre.png';
+      return 'assets/images/pochette_theatre.webp';
     }
     if (nameLower.contains('expo') || nameLower.contains('musee')) {
-      return 'assets/images/pochette_culture_art.png';
+      return 'assets/images/pochette_culture_art.webp';
     }
-    return _categoryFallback[parsed.category] ?? 'assets/images/pochette_concert.png';
+    return _categoryFallback[parsed.category] ?? 'assets/images/pochette_concert.webp';
   }
 
   _ParsedLike _parseLikeId(String id, LikeMetadata? meta) {
@@ -587,7 +587,7 @@ class _FavCard extends StatelessWidget {
 
   Widget _buildAssetImage() {
     return Image.asset(
-      image.startsWith('http') ? 'assets/images/pochette_concert.png' : image,
+      image.startsWith('http') ? 'assets/images/pochette_concert.webp' : image,
       fit: BoxFit.cover,
       cacheWidth: 300,
       errorBuilder: (_, __, ___) => Container(

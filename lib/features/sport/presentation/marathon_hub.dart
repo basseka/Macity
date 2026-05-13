@@ -47,7 +47,7 @@ class MarathonHub extends ConsumerWidget {
                   DaySubcategoryCard(
                     emoji: '',
                     label: label,
-                    image: 'assets/images/pochette_course.png',
+                    image: 'assets/images/pochette_course.webp',
                     gradient: gradient,
                     onTap: () => ref.read(modeSubcategoriesProvider.notifier).select('sport', tag),
                   ),

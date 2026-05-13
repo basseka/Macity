@@ -48,7 +48,7 @@ class TheatreVenueCard extends ConsumerWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: VenueImage(imageUrl: theatre.image, defaultAsset: 'assets/images/pochette_theatre.png'),
+                      child: VenueImage(imageUrl: theatre.image, defaultAsset: 'assets/images/pochette_theatre.webp'),
                     ),
                     if (theatre.hasOnlineTicket)
                       Positioned(
@@ -182,7 +182,7 @@ class TheatreVenueCard extends ConsumerWidget {
       context,
       ItemDetailSheet(
         title: theatre.name,
-        imageAsset: theatre.image.isNotEmpty ? theatre.image : 'assets/images/pochette_theatre.png',
+        imageAsset: theatre.image.isNotEmpty ? theatre.image : 'assets/images/pochette_theatre.webp',
         infos: [
           if (theatre.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, theatre.description),

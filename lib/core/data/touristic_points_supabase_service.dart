@@ -48,7 +48,7 @@ class TouristicPointsSupabaseService {
       ville: json['ville'] as String? ?? 'Toulouse',
       siteWeb: json['site_web'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
-      photo: photo.isNotEmpty ? photo : 'assets/images/pochette_visite.png',
+      photo: photo.isNotEmpty ? photo : 'assets/images/pochette_visite.webp',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
     );

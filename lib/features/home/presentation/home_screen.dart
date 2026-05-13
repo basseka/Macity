@@ -32,14 +32,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   static const _explorerModes = [AppMode.food, AppMode.family, AppMode.gaming, AppMode.tourisme];
 
   static const _modeBackgroundImages = <String, String>{
-    'day': 'assets/images/pochette_concert.png',
+    'day': 'assets/images/pochette_concert.webp',
     'sport': 'assets/images/home_bg_sport.jpg',
-    'culture': 'assets/images/pochette_culture_art.png',
-    'food': 'assets/images/pochette_food.png',
+    'culture': 'assets/images/pochette_culture_art.webp',
+    'food': 'assets/images/pochette_food.webp',
     'gaming': 'assets/images/pochette_gaming.jpg',
     'family': 'assets/images/pochette_enfamille.jpg',
     'night': 'assets/images/home_bg_night.jpg',
-    'tourisme': 'assets/images/pochette_tourime.png',
+    'tourisme': 'assets/images/pochette_tourime.webp',
   };
 
   @override
@@ -386,14 +386,14 @@ class HomeScreenSheet extends ConsumerWidget {
   static const _explorerModes = [AppMode.food, AppMode.family, AppMode.gaming, AppMode.tourisme];
 
   static const _modeBackgroundImages = <String, String>{
-    'day': 'assets/images/pochette_concert.png',
+    'day': 'assets/images/pochette_concert.webp',
     'sport': 'assets/images/home_bg_sport.jpg',
-    'culture': 'assets/images/pochette_culture_art.png',
-    'food': 'assets/images/pochette_food.png',
+    'culture': 'assets/images/pochette_culture_art.webp',
+    'food': 'assets/images/pochette_food.webp',
     'gaming': 'assets/images/pochette_gaming.jpg',
     'family': 'assets/images/pochette_enfamille.jpg',
     'night': 'assets/images/home_bg_night.jpg',
-    'tourisme': 'assets/images/pochette_tourime.png',
+    'tourisme': 'assets/images/pochette_tourime.webp',
   };
 
   @override

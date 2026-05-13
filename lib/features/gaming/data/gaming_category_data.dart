@@ -41,16 +41,16 @@ class GamingCategoryData {
       name: 'Jeux video',
       emoji: '\uD83C\uDFAE',
       subcategories: [
-        GamingSubcategory(label: 'Salle d\'arcade', searchTag: 'Salle arcade', emoji: '\uD83D\uDD79\uFE0F', group: 'Jeux video', image: 'assets/images/pochette_sallearcade.png'),
+        GamingSubcategory(label: 'Salle d\'arcade', searchTag: 'Salle arcade', emoji: '\uD83D\uDD79\uFE0F', group: 'Jeux video', image: 'assets/images/pochette_sallearcade.webp'),
         GamingSubcategory(label: 'Gaming cafe', searchTag: 'Gaming cafe', emoji: '\uD83C\uDFAE', group: 'Jeux video', image: 'assets/images/pochette_gamingcafe.jpg'),
-        GamingSubcategory(label: 'VR & realite virtuelle', searchTag: 'Realite virtuelle VR', emoji: '\uD83E\uDD7D', group: 'Jeux video', image: 'assets/images/pochette_VR.png'),
+        GamingSubcategory(label: 'VR & realite virtuelle', searchTag: 'Realite virtuelle VR', emoji: '\uD83E\uDD7D', group: 'Jeux video', image: 'assets/images/pochette_VR.webp'),
       ],
     ),
     GamingCategoryGroup(
       name: 'Jeux de societe & cartes',
       emoji: '\uD83C\uDFB2',
       subcategories: [
-        GamingSubcategory(label: 'Bar a jeux', searchTag: 'Bar a jeux', emoji: '\uD83C\uDFB2', group: 'Jeux de societe & cartes', image: 'assets/images/pochette_barajeux.png'),
+        GamingSubcategory(label: 'Bar a jeux', searchTag: 'Bar a jeux', emoji: '\uD83C\uDFB2', group: 'Jeux de societe & cartes', image: 'assets/images/pochette_barajeux.webp'),
         GamingSubcategory(label: 'Boutique jeux', searchTag: 'Boutique jeux', emoji: '\uD83C\uDCCF', group: 'Jeux de societe & cartes', image: 'assets/images/pochette_gaming.jpg'),
         GamingSubcategory(label: 'Escape game', searchTag: 'Escape game', emoji: '\uD83D\uDD10', group: 'Jeux de societe & cartes', image: 'assets/images/pochette_escapegame.jpg'),
       ],

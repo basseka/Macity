@@ -41,22 +41,22 @@ class CultureCategoryData {
       name: 'Cinema',
       emoji: '🎬',
       subcategories: [
-        CultureSubcategory(label: 'Cinema', searchTag: 'Cinema', emoji: '🎬', group: 'Cinema', image: 'assets/images/pochette_cinema.png'),
+        CultureSubcategory(label: 'Cinema', searchTag: 'Cinema', emoji: '🎬', group: 'Cinema', image: 'assets/images/pochette_cinema.webp'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Arts vivants',
       emoji: '🎭',
       subcategories: [
-        CultureSubcategory(label: 'Theatre', searchTag: 'Theatre', emoji: '🎭', group: 'Arts vivants', image: 'assets/images/pochette_theatre.png'),
+        CultureSubcategory(label: 'Theatre', searchTag: 'Theatre', emoji: '🎭', group: 'Arts vivants', image: 'assets/images/pochette_theatre.webp'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Musees & expositions',
       emoji: '🏛️',
       subcategories: [
-        CultureSubcategory(label: 'Musee', searchTag: 'Musee', emoji: '🏛️', group: 'Musees & expositions', image: 'assets/images/pochette_musee.png'),
-        CultureSubcategory(label: 'Exposition', searchTag: 'Exposition', emoji: '🖼️', group: 'Musees & expositions', image: 'assets/images/pochette_exposition.png'),
+        CultureSubcategory(label: 'Musee', searchTag: 'Musee', emoji: '🏛️', group: 'Musees & expositions', image: 'assets/images/pochette_musee.webp'),
+        CultureSubcategory(label: 'Exposition', searchTag: 'Exposition', emoji: '🖼️', group: 'Musees & expositions', image: 'assets/images/pochette_exposition.webp'),
       ],
     ),
     CultureCategoryGroup(
@@ -71,14 +71,14 @@ class CultureCategoryData {
       name: 'Visites & animations',
       emoji: '🎪',
       subcategories: [
-        CultureSubcategory(label: 'Visites guidees', searchTag: 'Visites guidees', emoji: '🏛️', group: 'Visites & animations', image: 'assets/images/pochette_visite.png'),
+        CultureSubcategory(label: 'Visites guidees', searchTag: 'Visites guidees', emoji: '🏛️', group: 'Visites & animations', image: 'assets/images/pochette_visite.webp'),
       ],
     ),
     CultureCategoryGroup(
       name: 'Art',
       emoji: '🎨',
       subcategories: [
-        CultureSubcategory(label: 'Galerie d\'art', searchTag: 'Galerie d\'art', emoji: '🎨', group: 'Art', image: 'assets/images/pochette_culture_art.png'),
+        CultureSubcategory(label: 'Galerie d\'art', searchTag: 'Galerie d\'art', emoji: '🎨', group: 'Art', image: 'assets/images/pochette_culture_art.webp'),
       ],
     ),
   ];

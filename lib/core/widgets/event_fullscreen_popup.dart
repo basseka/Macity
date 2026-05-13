@@ -63,7 +63,7 @@ class EventFullscreenPopup extends ConsumerWidget {
   }
 
   static final _displayDateFormat = DateFormat('dd/MM/yyyy');
-  static const _defaultPochette = 'assets/images/pochette_concert.png';
+  static const _defaultPochette = 'assets/images/pochette_concert.webp';
 
   static String _formatDate(String raw) {
     final parsed = DateTime.tryParse(raw);

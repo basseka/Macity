@@ -59,7 +59,7 @@ class MuseumVenueCard extends ConsumerWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: VenueImage(imageUrl: museum.image, defaultAsset: 'assets/images/pochette_musee.png'),
+                      child: VenueImage(imageUrl: museum.image, defaultAsset: 'assets/images/pochette_musee.webp'),
                     ),
                     if (museum.hasOnlineTicket)
                       Positioned(

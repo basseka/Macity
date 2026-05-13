@@ -26,30 +26,30 @@ class EventCard extends ConsumerWidget {
   }
 
   static const _categoryImages = <String, String>{
-    'concert': 'assets/images/pochette_concert.png',
-    'festival': 'assets/images/pochette_festival.png',
-    'opera': 'assets/images/pochette_spectacle.png',
-    'theatre': 'assets/images/pochette_theatre.png',
-    'expo': 'assets/images/pochette_culture_art.png',
-    'vernissage': 'assets/images/pochette_culture_art.png',
-    'visites guidees': 'assets/images/pochette_visite.png',
-    'animations culturelles': 'assets/images/pochette_animation.png',
-    'musee': 'assets/images/pochette_visite.png',
-    'football': 'assets/images/pochette_football.png',
-    'rugby': 'assets/images/pochette_rugby.png',
-    'basketball': 'assets/images/pochette_basketball.png',
-    'course': 'assets/images/pochette_course.png',
-    'parc': 'assets/images/pochette_parc_attraction.png',
-    'cinema': 'assets/images/pochette_spectacle.png',
+    'concert': 'assets/images/pochette_concert.webp',
+    'festival': 'assets/images/pochette_festival.webp',
+    'opera': 'assets/images/pochette_spectacle.webp',
+    'theatre': 'assets/images/pochette_theatre.webp',
+    'expo': 'assets/images/pochette_culture_art.webp',
+    'vernissage': 'assets/images/pochette_culture_art.webp',
+    'visites guidees': 'assets/images/pochette_visite.webp',
+    'animations culturelles': 'assets/images/pochette_animation.webp',
+    'musee': 'assets/images/pochette_visite.webp',
+    'football': 'assets/images/pochette_football.webp',
+    'rugby': 'assets/images/pochette_rugby.webp',
+    'basketball': 'assets/images/pochette_basketball.webp',
+    'course': 'assets/images/pochette_course.webp',
+    'parc': 'assets/images/pochette_parc_attraction.webp',
+    'cinema': 'assets/images/pochette_spectacle.webp',
     'bowling': 'assets/images/pochette_enfamille.jpg',
     'spectacle enfant': 'assets/images/pochette_enfamille.jpg',
-    'restaurant': 'assets/images/pochette_food.png',
-    'cafe': 'assets/images/pochette_food.png',
-    'brunch': 'assets/images/pochette_food.png',
-    'bar': 'assets/images/pochette_pub.png',
-    'club': 'assets/images/pochette_discotheque.png',
-    'soiree': 'assets/images/pochette_discotheque.png',
-    'concert live': 'assets/images/pochette_concert.png',
+    'restaurant': 'assets/images/pochette_food.webp',
+    'cafe': 'assets/images/pochette_food.webp',
+    'brunch': 'assets/images/pochette_food.webp',
+    'bar': 'assets/images/pochette_pub.webp',
+    'club': 'assets/images/pochette_discotheque.webp',
+    'soiree': 'assets/images/pochette_discotheque.webp',
+    'concert live': 'assets/images/pochette_concert.webp',
   };
 
   String? _resolveImage() {
@@ -70,11 +70,11 @@ class EventCard extends ConsumerWidget {
 
     // Fallback by keyword
     if (cat.contains('musique') || cat.contains('concert')) {
-      return 'assets/images/pochette_concert.png';
+      return 'assets/images/pochette_concert.webp';
     }
-    if (cat.contains('sport')) return 'assets/images/pochette_course.png';
+    if (cat.contains('sport')) return 'assets/images/pochette_course.webp';
     if (cat.contains('culture') || cat.contains('art')) {
-      return 'assets/images/pochette_culture_art.png';
+      return 'assets/images/pochette_culture_art.webp';
     }
     if (cat.contains('enfant') || cat.contains('famille')) {
       return 'assets/images/pochette_enfamille.jpg';
@@ -97,7 +97,7 @@ class EventCard extends ConsumerWidget {
       onTap: () => EventFullscreenPopup.show(
         context,
         event,
-        pochette ?? 'assets/images/pochette_concert.png',
+        pochette ?? 'assets/images/pochette_concert.webp',
       ),
       child: Card(
       elevation: 4,

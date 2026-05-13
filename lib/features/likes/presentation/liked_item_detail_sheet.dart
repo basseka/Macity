@@ -27,19 +27,19 @@ class LikedItemDetailSheet extends ConsumerWidget {
   // ── Image maps (memes que EventRowCard / CommerceRowCard) ──
 
   static const _categoryImages = <String, String>{
-    'concert': 'assets/images/pochette_concert.png',
-    'festival': 'assets/images/pochette_festival.png',
-    'spectacle': 'assets/images/pochette_spectacle.png',
-    'opera': 'assets/images/pochette_spectacle.png',
-    'theatre': 'assets/images/pochette_theatre.png',
-    'expo': 'assets/images/pochette_culture_art.png',
-    'exposition': 'assets/images/pochette_culture_art.png',
-    'vernissage': 'assets/images/pochette_culture_art.png',
-    'visite': 'assets/images/pochette_visite.png',
-    'atelier': 'assets/images/pochette_culture_art.png',
-    'animation': 'assets/images/pochette_animation.png',
-    'musee': 'assets/images/pochette_visite.png',
-    'concert live': 'assets/images/pochette_concert.png',
+    'concert': 'assets/images/pochette_concert.webp',
+    'festival': 'assets/images/pochette_festival.webp',
+    'spectacle': 'assets/images/pochette_spectacle.webp',
+    'opera': 'assets/images/pochette_spectacle.webp',
+    'theatre': 'assets/images/pochette_theatre.webp',
+    'expo': 'assets/images/pochette_culture_art.webp',
+    'exposition': 'assets/images/pochette_culture_art.webp',
+    'vernissage': 'assets/images/pochette_culture_art.webp',
+    'visite': 'assets/images/pochette_visite.webp',
+    'atelier': 'assets/images/pochette_culture_art.webp',
+    'animation': 'assets/images/pochette_animation.webp',
+    'musee': 'assets/images/pochette_visite.webp',
+    'concert live': 'assets/images/pochette_concert.webp',
   };
 
   static const _venueImages = <String, String>{
@@ -91,7 +91,7 @@ class LikedItemDetailSheet extends ConsumerWidget {
     'pub': 'assets/images/sc_pub.jpg',
     'club': 'assets/images/sc_discotheque.png',
     'discotheque': 'assets/images/sc_discotheque.png',
-    'restaurant': 'assets/images/pochette_food.png',
+    'restaurant': 'assets/images/pochette_food.webp',
     'hotel': 'assets/images/sc_hotel.jpg',
     'chicha': 'assets/images/sc_chicha.jpg',
     'tabac': 'assets/images/sc_tabac_nuit.png',
@@ -112,7 +112,7 @@ class LikedItemDetailSheet extends ConsumerWidget {
         return entry.value;
       }
     }
-    return 'assets/images/pochette_concert.png';
+    return 'assets/images/pochette_concert.webp';
   }
 
   String _resolveCommerceImage(CommerceModel commerce) {

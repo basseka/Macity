@@ -87,7 +87,7 @@ class BoxeEventsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return const SportEventsGrid(
       title: 'Boxe',
-      fallbackImage: 'assets/images/pochette_boxe.png',
+      fallbackImage: 'assets/images/pochette_boxe.webp',
       emptyIcon: Icons.sports_mma,
     );
   }
