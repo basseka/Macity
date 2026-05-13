@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/night/presentation/clubs_pager_view.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/venues_map_view.dart';
 
@@ -33,7 +33,11 @@ class NightClubsFullscreenMap extends ConsumerWidget {
             categoryColors: const {'Club Discotheque': '#7C3AED'},
             showLabels: true,
             showClosestPanel: false,
-            onVenueTap: (v) => CommerceRowCard.showDetailSheet(context, v),
+            onVenueTap: (v) => ClubsPagerView.open(
+              context,
+              clubs: venues,
+              initialIndex: venues.indexOf(v).clamp(0, venues.length - 1),
+            ),
           ),
           _buildListButton(ref, modeTheme),
         ],

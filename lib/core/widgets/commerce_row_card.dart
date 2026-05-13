@@ -272,7 +272,11 @@ class CommerceRowCard extends ConsumerWidget {
                         if (commerce.isVerified)
                           const VerifiedBadge.small()
                         else
-                          _ClaimButton.small(commerceName: commerce.nom),
+                          _ClaimButton.small(
+                            commerceName: commerce.nom,
+                            sourceTable: _claimSourceTableFromSingular(commerce.sourceTable),
+                            sourceId: commerce.sourceId,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -326,6 +330,21 @@ class CommerceRowCard extends ConsumerWidget {
   void _openDetail(BuildContext context) =>
       showDetailSheet(context, commerce, imageAsset: imageAsset);
 
+  /// Convertit le `sourceTable` singulier (convention reviews :
+  /// 'venue', 'etablissement') vers le pluriel attendu par les RPC
+  /// pro (`claim_with_macity_code`, `is_pro_owner_of_*`, etc.).
+  static String? _claimSourceTableFromSingular(String? singular) {
+    if (singular == null) return null;
+    switch (singular) {
+      case 'venue':
+        return 'venues';
+      case 'etablissement':
+        return 'etablissements';
+      default:
+        return singular;
+    }
+  }
+
   /// Construit le widget ItemDetailSheet pour ce commerce. Reutilise par
   /// showDetailSheet (popup classique) et par les pagers swipables qui
   /// rendent plusieurs commerces a la suite (ex: ClubsPagerView).
@@ -345,6 +364,8 @@ class CommerceRowCard extends ConsumerWidget {
             : _defaultVideoUrlFor(commerce),
         likeId: 'night_${commerce.nom}',
         isVerified: commerce.isVerified,
+        claimSourceTable: _claimSourceTableFromSingular(commerce.sourceTable),
+        claimSourceId: commerce.sourceId,
         photoGallery: _buildPhotoGalleryFor(commerce),
         infos: [
           if (commerce.categorie.isNotEmpty)
@@ -584,15 +605,30 @@ class _RatingPill extends StatelessWidget {
 /// Petit bouton "Revendiquer" qui ouvre le sheet de revendication.
 class _ClaimButton extends StatelessWidget {
   final String commerceName;
+  final String? sourceTable;
+  final int? sourceId;
   final bool small;
 
-  const _ClaimButton.small({required this.commerceName}) : small = true;
-  const _ClaimButton({required this.commerceName}) : small = false;
+  const _ClaimButton.small({
+    required this.commerceName,
+    this.sourceTable,
+    this.sourceId,
+  }) : small = true;
+  const _ClaimButton({
+    required this.commerceName,
+    this.sourceTable,
+    this.sourceId,
+  }) : small = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => ClaimVenueSheet.show(context, commerceName),
+      onTap: () => ClaimVenueSheet.show(
+        context,
+        commerceName,
+        sourceTable: sourceTable,
+        sourceId: sourceId,
+      ),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: small ? 6 : 10,
