@@ -28,24 +28,20 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
   static const _slotCount = 6;
 
   final _service = ProVenueService();
-  final _videoCtrl = TextEditingController();
 
   ProVenueRecord? _record;
   bool _loading = true;
-  bool _saving = false;
   String? _error;
   final Set<int> _uploadingSlots = {};
+  bool _uploadingVideo = false;
+  String _videoStatus = '';
+  double _videoProgress = 0.0;
+  bool _uploadingCover = false;
 
   @override
   void initState() {
     super.initState();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _videoCtrl.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -58,7 +54,6 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       if (!mounted) return;
       setState(() {
         _record = rec;
-        _videoCtrl.text = rec?.videoUrl ?? '';
         _loading = false;
         if (rec == null) {
           _error = 'Aucune fiche associee a votre compte pro.\n'
@@ -141,7 +136,8 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
     }
   }
 
-  Future<ImageSource?> _pickSource() async {
+  Future<ImageSource?> _pickSource({String label = 'photo'}) async {
+    final isVideo = label == 'video';
     return showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -150,15 +146,24 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera, color: _primaryColor),
-              title: const Text('Prendre une photo',
-                  style: TextStyle(color: AppColors.text)),
+              leading: Icon(
+                isVideo ? Icons.videocam : Icons.photo_camera,
+                color: _primaryColor,
+              ),
+              title: Text(
+                isVideo ? 'Filmer maintenant' : 'Prendre une photo',
+                style: const TextStyle(color: AppColors.text),
+              ),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: _primaryColor),
-              title: const Text('Choisir dans la galerie',
-                  style: TextStyle(color: AppColors.text)),
+              title: Text(
+                isVideo
+                    ? 'Choisir une video dans la galerie'
+                    : 'Choisir dans la galerie',
+                style: const TextStyle(color: AppColors.text),
+              ),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -167,30 +172,168 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
     );
   }
 
-  Future<void> _saveVideo() async {
+  Future<void> _pickAndUploadCover() async {
     final rec = _record;
     if (rec == null) return;
-    setState(() => _saving = true);
+    final source = await _pickSource();
+    if (source == null) return;
+
+    setState(() => _uploadingCover = true);
     try {
-      final v = _videoCtrl.text.trim();
+      final picker = ImagePicker();
+      final xFile = await picker.pickImage(source: source, maxWidth: 2000);
+      if (xFile == null) {
+        if (mounted) setState(() => _uploadingCover = false);
+        return;
+      }
+      final url = await _service.uploadCover(
+        tableName: rec.tableName,
+        rowId: rec.rowId,
+        localPath: xFile.path,
+      );
       await _service.updateMyVenue(
         tableName: rec.tableName,
         rowId: rec.rowId,
-        videoUrl: v,
+        coverPhoto: url,
       );
       if (!mounted) return;
       setState(() {
-        _record = rec.copyWith(videoUrl: v);
-        _saving = false;
+        _record = rec.copyWith(mainPhoto: url);
+        _uploadingCover = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Video mise a jour')),
+        const SnackBar(
+          content: Text('Pochette mise a jour'),
+          backgroundColor: Color(0xFF4CAF50),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() => _saving = false);
+      setState(() => _uploadingCover = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Echec sauvegarde : $e')),
+        SnackBar(content: Text('Echec upload pochette : $e')),
+      );
+    }
+  }
+
+  Future<void> _pickAndUploadVideo() async {
+    final rec = _record;
+    if (rec == null) return;
+    final source = await _pickSource(label: 'video');
+    if (source == null) return;
+
+    setState(() {
+      _uploadingVideo = true;
+      _videoStatus = 'Compression...';
+      _videoProgress = 0.0;
+    });
+    try {
+      final picker = ImagePicker();
+      final xFile = await picker.pickVideo(
+        source: source,
+        maxDuration: const Duration(seconds: 30),
+      );
+      if (xFile == null) {
+        if (mounted) setState(() => _uploadingVideo = false);
+        return;
+      }
+      final url = await _service.uploadVideo(
+        tableName: rec.tableName,
+        rowId: rec.rowId,
+        localPath: xFile.path,
+        onCompressed: (kb) {
+          if (!mounted) return;
+          setState(() {
+            _videoStatus = 'Compressee : ${(kb / 1024).toStringAsFixed(1)} MB';
+          });
+        },
+        onProgress: (pct) {
+          if (!mounted) return;
+          setState(() {
+            _videoStatus = 'Upload ${(pct * 100).round()} %';
+            _videoProgress = pct;
+          });
+        },
+      );
+      await _service.updateMyVenue(
+        tableName: rec.tableName,
+        rowId: rec.rowId,
+        videoUrl: url,
+      );
+      if (!mounted) return;
+      setState(() {
+        _record = rec.copyWith(videoUrl: url);
+        _uploadingVideo = false;
+        _videoStatus = '';
+        _videoProgress = 0.0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Video uploadee avec succes'),
+          backgroundColor: Color(0xFF4CAF50),
+        ),
+      );
+    } on ProVenueUploadError catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _uploadingVideo = false;
+        _videoStatus = '';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _uploadingVideo = false;
+        _videoStatus = '';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Echec upload : $e')),
+      );
+    }
+  }
+
+  Future<void> _deleteVideo() async {
+    final rec = _record;
+    if (rec == null || rec.videoUrl == null || rec.videoUrl!.isEmpty) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Supprimer la video ?',
+            style: TextStyle(color: AppColors.text, fontSize: 15)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Annuler',
+                style: TextStyle(color: AppColors.textFaint)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Supprimer',
+                style: TextStyle(color: Color(0xFFE91E8C))),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await _service.updateMyVenue(
+        tableName: rec.tableName,
+        rowId: rec.rowId,
+        videoUrl: '',
+      );
+      if (!mounted) return;
+      setState(() => _record = rec.copyWith(videoUrl: ''));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Echec suppression : $e')),
       );
     }
   }
@@ -237,8 +380,42 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
           _grabber(),
           const SizedBox(height: 12),
           _header(rec),
-          const SizedBox(height: 18),
-          _sectionTitle('Photos de la fiche'),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4CAF50).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.cloud_done_outlined,
+                    size: 14, color: Color(0xFF4CAF50)),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Vos modifications sont enregistrees automatiquement.',
+                    style: TextStyle(color: Color(0xFF4CAF50), fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          _sectionTitle('Pochette (visible dans la liste)'),
+          const SizedBox(height: 4),
+          const Text(
+            'Image principale affichee sur la carte de votre etablissement '
+            'dans les listes.',
+            style: TextStyle(color: AppColors.textFaint, fontSize: 11),
+          ),
+          const SizedBox(height: 10),
+          _coverTile(rec),
+          const SizedBox(height: 22),
+          _sectionTitle('Photos de la fiche detail'),
           const SizedBox(height: 4),
           const Text(
             'Jusqu\'a 6 photos. Apparaissent dans l\'ordre sur la fiche detail.',
@@ -250,37 +427,22 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
           _sectionTitle('Video teaser'),
           const SizedBox(height: 4),
           const Text(
-            'Colle une URL MP4 publique (Cloudinary, Vimeo direct link, etc.).',
+            'Filmez avec le telephone ou choisissez dans la galerie. '
+            'Max 30 sec — 50 MB apres compression auto.',
             style: TextStyle(color: AppColors.textFaint, fontSize: 11),
           ),
           const SizedBox(height: 10),
-          TextField(
-            controller: _videoCtrl,
-            style: const TextStyle(color: AppColors.text, fontSize: 13),
-            decoration: InputDecoration(
-              hintText: 'https://...',
-              hintStyle: const TextStyle(color: AppColors.textFaint),
-              filled: true,
-              fillColor: AppColors.surfaceHi,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: AppColors.lineStrong),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: AppColors.lineStrong),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: _primaryColor, width: 2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
+          _videoTile(rec),
+          const SizedBox(height: 22),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _saving ? null : _saveVideo,
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: const Text(
+                'Termine',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryColor,
                 foregroundColor: Colors.white,
@@ -289,17 +451,6 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: _saving
-                  ? const SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Text(
-                      'Enregistrer la video',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
             ),
           ),
         ],
@@ -369,6 +520,169 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
           fontWeight: FontWeight.w700,
         ),
       );
+
+  Widget _coverTile(ProVenueRecord rec) {
+    final cover = rec.mainPhoto ?? '';
+    final hasCover = cover.isNotEmpty && cover.startsWith('http');
+    return GestureDetector(
+      onTap: _uploadingCover ? null : _pickAndUploadCover,
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 140),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHi,
+              border: Border.all(color: AppColors.lineStrong),
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (hasCover)
+                  Image.network(cover, fit: BoxFit.cover)
+                else
+                  const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.image_outlined,
+                            color: AppColors.textFaint, size: 32),
+                        SizedBox(height: 4),
+                        Text(
+                          'Pochette',
+                          style: TextStyle(
+                              color: AppColors.textFaint, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.edit, color: Colors.white, size: 14),
+                  ),
+                ),
+                if (_uploadingCover)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _videoTile(ProVenueRecord rec) {
+    final hasVideo = rec.videoUrl != null && rec.videoUrl!.isNotEmpty;
+    return GestureDetector(
+      onTap: _uploadingVideo ? null : _pickAndUploadVideo,
+      onLongPress: hasVideo ? _deleteVideo : null,
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHi,
+              border: Border.all(color: AppColors.lineStrong),
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (hasVideo) ...[
+                  Container(
+                    color: Colors.black,
+                    child: const Center(
+                      child: Icon(Icons.movie_outlined,
+                          color: Colors.white24, size: 56),
+                    ),
+                  ),
+                  const Center(
+                    child: Icon(Icons.play_circle_outline,
+                        color: Colors.white, size: 56),
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'Appui long pour supprimer · Tap pour remplacer',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 10),
+                      ),
+                    ),
+                  ),
+                ] else
+                  const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.video_call_outlined,
+                            color: AppColors.textFaint, size: 40),
+                        SizedBox(height: 6),
+                        Text(
+                          'Ajouter une video',
+                          style: TextStyle(
+                              color: AppColors.textFaint, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_uploadingVideo)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.white,
+                              value: _videoProgress > 0 ? _videoProgress : null,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            _videoStatus.isEmpty
+                                ? 'Preparation...'
+                                : _videoStatus,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _photoGrid(ProVenueRecord rec) {
     return GridView.builder(

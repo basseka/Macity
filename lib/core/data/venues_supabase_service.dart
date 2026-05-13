@@ -294,6 +294,13 @@ class VenuesSupabaseService {
 
   static CommerceModel _mapToCommerce(Map<String, dynamic> json) {
     final photo = (json['photo'] as String?) ?? '';
+    final rawPhotos = json['photos'];
+    final photos = (rawPhotos is List)
+        ? rawPhotos
+            .map((e) => e.toString())
+            .where((s) => s.isNotEmpty)
+            .toList()
+        : <String>[];
     return CommerceModel(
       nom: json['name'] as String? ?? '',
       categorie: json['category'] as String? ?? '',
@@ -304,6 +311,7 @@ class VenuesSupabaseService {
       siteWeb: json['website_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: photo,
+      photos: photos,
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       displayCount: (json['display_count'] as num?)?.toInt() ?? 0,

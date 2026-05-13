@@ -442,7 +442,16 @@ class CommerceRowCard extends ConsumerWidget {
   ];
 
   /// Construit la galerie photo pour le detail.
+  /// Priorite : photos[] uploadees par le pro > photo principale > defaults
+  /// generiques (uniquement si la fiche n'a pas ete revendiquee).
   static List<String> _buildPhotoGalleryFor(CommerceModel commerce) {
+    // 1. Si le pro a uploade des photos, on utilise CELLES-LA en priorite.
+    if (commerce.photos.isNotEmpty) {
+      return commerce.photos.take(6).toList();
+    }
+
+    // 2. Sinon photo principale + fallback defaults pour les fiches non
+    //    revendiquees (donne du visuel meme quand le pro n'a rien charge).
     final photos = <String>[];
     if (commerce.photo.isNotEmpty && commerce.photo.startsWith('http')) {
       photos.add(commerce.photo);
