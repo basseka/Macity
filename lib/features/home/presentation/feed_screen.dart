@@ -1449,7 +1449,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // Auto-load pages suivantes quand un filtre est actif.
     // Protection anti-spam : on ne planifie qu'UN seul loadNextPage à la fois
     // (évite le crash quand l'user tap rapidement entre Event/Clubbing).
-    if (_activeTab != null &&
+    final hasActiveFilter = _activeTab != null || _categoryFilter != null;
+    if (hasActiveFilter &&
         hasMore &&
         onLoadMore != null &&
         !isLoadingMore &&
@@ -1460,7 +1461,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         if (!mounted) return;
         // Si le filtre a changé entre-temps, on annule : le nouveau build
         // replanifiera lui-même si besoin.
-        if (_activeTab == null) return;
+        if (_activeTab == null && _categoryFilter == null) return;
         onLoadMore();
       });
     }
@@ -1547,7 +1548,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               ),
             ),
-            if (_activeTab != null)
+            if (_activeTab != null || _categoryFilter != null)
               SliverPadding(
                 key: ValueKey('grid2_$day'),
                 padding: const EdgeInsets.symmetric(horizontal: 12),

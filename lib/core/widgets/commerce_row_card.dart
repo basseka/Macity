@@ -16,6 +16,9 @@ import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/pro_auth/data/pro_venue_service.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/reviews/domain/models/commerce_review.dart';
 import 'package:pulz_app/features/reviews/presentation/reviews_section.dart';
 import 'package:pulz_app/features/reviews/state/commerce_summaries_provider.dart';
@@ -629,7 +632,7 @@ class _ClaimButton extends StatelessWidget {
 }
 
 /// Bottom sheet de revendication d'un etablissement.
-class ClaimVenueSheet extends StatefulWidget {
+class ClaimVenueSheet extends ConsumerStatefulWidget {
   final String commerceName;
   final String? sourceTable;
   final int? sourceId;
@@ -661,17 +664,21 @@ class ClaimVenueSheet extends StatefulWidget {
   }
 
   @override
-  State<ClaimVenueSheet> createState() => _ClaimVenueSheetState();
+  ConsumerState<ClaimVenueSheet> createState() => _ClaimVenueSheetState();
 }
 
-class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
+class _ClaimVenueSheetState extends ConsumerState<ClaimVenueSheet> {
   final _siretController = TextEditingController();
   final _urlController = TextEditingController();
   final _messageController = TextEditingController();
   final _emailController = TextEditingController();
   final _telephoneController = TextEditingController();
+  final _codeController = TextEditingController();
   bool _loading = false;
   bool _submitted = false;
+  bool _codeMode = false;
+  bool _codeSubmitting = false;
+  String? _codeError;
 
   @override
   void dispose() {
@@ -680,7 +687,49 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
     _messageController.dispose();
     _emailController.dispose();
     _telephoneController.dispose();
+    _codeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitCode() async {
+    final code = _codeController.text.trim();
+    if (code.isEmpty) {
+      setState(() => _codeError = 'Entrez le code recu par MaCity.');
+      return;
+    }
+    if (widget.sourceTable == null || widget.sourceId == null) {
+      setState(() => _codeError =
+          'Fiche non identifiee. Reouvrez la depuis la liste pour revendiquer.');
+      return;
+    }
+    setState(() {
+      _codeSubmitting = true;
+      _codeError = null;
+    });
+    try {
+      await ProVenueService().claimWithMacityCode(
+        sourceTable: widget.sourceTable!,
+        sourceId: widget.sourceId!,
+        code: code,
+      );
+      if (!mounted) return;
+      setState(() {
+        _codeSubmitting = false;
+        _submitted = true;
+      });
+    } on ProClaimCodeError catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _codeSubmitting = false;
+        _codeError = e.message;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _codeSubmitting = false;
+        _codeError = 'Erreur reseau, reessaie.';
+      });
+    }
   }
 
   /// Appelle l'edge function validate-siret pour verifier le SIRET contre
@@ -791,12 +840,148 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        child: _submitted ? _buildSuccess() : _buildForm(),
+        child: _submitted
+            ? _buildSuccess()
+            : (_codeMode ? _buildCodeForm() : _buildForm()),
       ),
     );
   }
 
+  Widget _buildCodeForm() {
+    final proStatus = ref.watch(proAuthProvider).status;
+    final isProSignedIn = proStatus == ProAuthStatus.approved ||
+        proStatus == ProAuthStatus.pendingApproval;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Color(0xFF7B2D8E)),
+              onPressed: () => setState(() {
+                _codeMode = false;
+                _codeError = null;
+              }),
+            ),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'J\'ai un code MaCity',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Entrez le code unique envoye par MaCity pour ${widget.commerceName}. '
+          'Apres validation, vous pourrez modifier la fiche (photos + video) depuis votre espace pro.',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+        const SizedBox(height: 18),
+        if (!isProSignedIn) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFFB74D)),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.info_outline, color: Color(0xFFEF6C00), size: 18),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Connectez-vous a votre compte pro avant d\'utiliser le code.',
+                    style: TextStyle(fontSize: 12, color: Color(0xFFEF6C00)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                showModalBottomSheet(
+                  context: context,
+                  useRootNavigator: true,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => const ProLoginSheet(),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7B2D8E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Se connecter pro',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ] else ...[
+          _buildField('Code MaCity', _codeController, 'Ex: ABC-12345',
+              TextInputType.text),
+          if (_codeError != null) ...[
+            const SizedBox(height: 8),
+            Text(_codeError!,
+                style: TextStyle(
+                    fontSize: 12, color: Colors.red.shade700)),
+          ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: _codeSubmitting ? null : _submitCode,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7B2D8E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _codeSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Valider le code',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildSuccess() {
+    final viaCode = _codeMode;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -804,10 +989,15 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
         const SizedBox(height: 24),
         const Icon(Icons.check_circle, size: 56, color: Color(0xFF4CAF50)),
         const SizedBox(height: 16),
-        const Text('Demande envoyee !', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          viaCode ? 'Fiche verifiee !' : 'Demande envoyee !',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 8),
         Text(
-          'Votre demande de revendication pour "${widget.commerceName}" a ete soumise. Vous serez notifie une fois approuvee.',
+          viaCode
+              ? 'Votre compte pro est associe a "${widget.commerceName}". Vous pouvez maintenant modifier la fiche depuis "Mon compte" → "Modifier ma fiche".'
+              : 'Votre demande de revendication pour "${widget.commerceName}" a ete soumise. Vous serez notifie une fois approuvee.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
         ),
@@ -854,7 +1044,54 @@ class _ClaimVenueSheetState extends State<ClaimVenueSheet> {
           'Vous etes le proprietaire ? Remplissez ce formulaire pour verifier votre etablissement et obtenir le badge verifie.',
           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+        // Raccourci : si MaCity a fourni un code apres verification hors-app,
+        // le pro peut le saisir directement pour skip le check SIRET.
+        InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => setState(() {
+            _codeMode = true;
+            _codeError = null;
+          }),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF7B2D8E), Color(0xFF9B4DCA)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.vpn_key_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'J\'ai un code MaCity',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 12),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: Divider(color: Colors.grey.shade300, height: 1)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text('ou', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+            ),
+            Expanded(child: Divider(color: Colors.grey.shade300, height: 1)),
+          ],
+        ),
+        const SizedBox(height: 12),
         _buildField('SIRET ou numero RNA', _siretController, 'SIRET (14 chiffres) ou W + 9 chiffres (asso)', TextInputType.text),
         const SizedBox(height: 12),
         _buildField('Site web ou reseau social', _urlController, 'https://...', TextInputType.url),

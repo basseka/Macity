@@ -391,11 +391,9 @@ class NightScreen extends ConsumerWidget {
                         icon: Icons.nightlife,
                       );
                     }
-                    // Pour la categorie Club Discotheque : tap ouvre le pager
-                    // qui permet de swiper de droite vers la gauche pour
-                    // voir le club suivant. Autres categories (bars, pubs...)
-                    // gardent le sheet detail isole.
-                    final isClub = category == 'Club Discotheque';
+                    // Tap ouvre le pager qui permet de swiper de droite vers la
+                    // gauche pour voir le venue suivant — pour toutes les
+                    // categories Night (clubs, bars, pubs, chicha, etc.).
                     return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: venues.length,
@@ -403,13 +401,11 @@ class NightScreen extends ConsumerWidget {
                         padding: const EdgeInsets.only(bottom: 10),
                         child: CommerceRowCard(
                           commerce: venues[index],
-                          onTap: isClub
-                              ? () => ClubsPagerView.open(
-                                    context,
-                                    clubs: venues,
-                                    initialIndex: index,
-                                  )
-                              : null,
+                          onTap: () => ClubsPagerView.open(
+                            context,
+                            clubs: venues,
+                            initialIndex: index,
+                          ),
                         ),
                       ),
                     );

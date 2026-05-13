@@ -14,6 +14,7 @@ import 'package:pulz_app/features/private_events/presentation/my_invitations_scr
 import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/open_secret_box_screen.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
+import 'package:pulz_app/features/pro_auth/presentation/pro_venue_edit_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 class AccountMenu {
@@ -243,9 +244,16 @@ class AccountMenu {
         ctx: ctx,
         icon: Icons.store_rounded,
         label: proName,
-        subtitle: statusLabel,
+        subtitle: proState.status == ProAuthStatus.approved
+            ? 'Modifier ma fiche (photos, video)'
+            : statusLabel,
         gradientColors: const [Color(0xFF7B2D8E), Color(0xFF9B4DCA)],
-        onTap: () {},
+        onTap: proState.status == ProAuthStatus.approved
+            ? () {
+                Navigator.pop(ctx);
+                ProVenueEditSheet.show(rootContext);
+              }
+            : () {},
       ),
       if (proState.status == ProAuthStatus.approved) ...[
         const SizedBox(height: 5),
