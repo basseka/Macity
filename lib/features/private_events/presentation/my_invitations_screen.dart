@@ -125,7 +125,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Quand tu cliqueras "Je viens" sur un coffre, la soiree apparaitra ici.',
+              'Quand tu cliqueras "Je viens" sur un coffre, l\'event apparaitra ici.',
               textAlign: TextAlign.center,
               style: GoogleFonts.geist(
                 fontSize: 13,

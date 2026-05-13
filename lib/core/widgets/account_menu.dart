@@ -153,7 +153,7 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.lock_outline,
-                  label: 'Mes soirees privees',
+                  label: 'Mes events privés',
                   subtitle: 'Coffres secrets sur invitation',
                   gradientColors: const [Color(0xFFE91E8C), Color(0xFF7B2D8E)],
                   onTap: () {

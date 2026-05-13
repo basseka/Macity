@@ -1,16 +1,22 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/engagement/domain/event_source_detector.dart';
-import 'package:pulz_app/features/engagement/presentation/widgets/engagement_stats_row.dart';
+import 'package:pulz_app/features/engagement/presentation/event_engagement_sheet.dart';
+import 'package:pulz_app/features/engagement/state/event_engagement_provider.dart';
 
 /// Popup plein ecran affichant la pochette en fond avec les infos overlayees.
 class EventFullscreenPopup extends ConsumerWidget {
@@ -87,7 +93,10 @@ class EventFullscreenPopup extends ConsumerWidget {
         child: Material(
           color: Colors.transparent,
           child: Container(
-            constraints: BoxConstraints(maxHeight: screenHeight),
+            // Fix : remplit toute la hauteur disponible jusqu'a la nav bar
+            // inferieure du systeme. Avant : Column mainAxisSize.min faisait
+            // shrinker le popup a la taille du contenu.
+            height: screenHeight - MediaQuery.of(context).padding.top - 8,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
@@ -102,11 +111,11 @@ class EventFullscreenPopup extends ConsumerWidget {
             child: Container(
               color: AppColors.surface,
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  // ── Photo en haut (hauteur fixe) ──
+                  // ── Photo en haut (mode affiche plein ecran) ──
                   SizedBox(
-                    height: screenHeight * 0.40,
+                    height: screenHeight * 0.55,
                     width: double.infinity,
                     child: Stack(
                       fit: StackFit.expand,
@@ -125,46 +134,53 @@ class EventFullscreenPopup extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Badge "A la une" / "Au top"
+                        // Petit badge discret "A la une" / "Au top" en haut-gauche
                         if (badge != null)
                           Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
+                            top: 12,
+                            left: 12,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                gradient: AppGradients.primary,
-                                boxShadow: AppShadows.neon(
-                                  AppColors.magenta,
-                                  blur: 14,
-                                  y: 4,
+                                color: AppColors.bg.withValues(alpha: 0.6),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.chip),
+                                border: Border.all(
+                                  color: AppColors.magenta.withValues(alpha: 0.6),
+                                  width: 0.8,
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    badge == 'A la une' ? Icons.star : Icons.trending_up,
-                                    size: 14, color: Colors.white,
+                                    badge == 'A la une'
+                                        ? Icons.star
+                                        : Icons.trending_up,
+                                    size: 11,
+                                    color: AppColors.magenta,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 4),
                                   Text(
                                     badge!.toUpperCase(),
                                     style: GoogleFonts.geistMono(
-                                      fontSize: 11,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white,
-                                      letterSpacing: 2.0,
+                                      letterSpacing: 1.2,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                        // Bouton fermer (decale si badge)
+
+                        // Bouton fermer
                         Positioned(
-                          top: badge != null ? 42 : 12,
+                          top: 12,
                           right: 12,
                           child: GestureDetector(
                             onTap: () => Navigator.of(context).pop(),
@@ -180,7 +196,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        // Badge gratuit (decale si badge)
+                        // Badge gratuit (decale sous le badge "A la une" si present)
                         if (event.isFree)
                           Positioned(
                             top: badge != null ? 42 : 12,
@@ -228,8 +244,8 @@ class EventFullscreenPopup extends ConsumerWidget {
                     ),
                   ),
 
-                  // ── Infos en dessous (scrollable) ──
-                  Flexible(
+                  // ── Infos en dessous (scrollable, prend la hauteur restante) ──
+                  Expanded(
                     child: SingleChildScrollView(
                       physics: const ClampingScrollPhysics(),
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -244,9 +260,74 @@ class EventFullscreenPopup extends ConsumerWidget {
                                   ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
                                   : _formatDate(event.dateDebut),
                             ),
-                          // Lieu
+                          // Lieu + bouton info (ouvre une fiche detaillee
+                          // par-dessus, sans fermer le popup courant)
                           if (event.lieuNom.isNotEmpty)
-                            _infoRow(Icons.location_on_outlined, event.lieuNom),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 7),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on_outlined,
+                                    size: 14,
+                                    color: AppColors.magenta,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      event.lieuNom,
+                                      style: GoogleFonts.geist(
+                                        fontSize: 13,
+                                        color: AppColors.text,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () =>
+                                        _openInfoSheet(context),
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.magenta
+                                            .withValues(alpha: 0.12),
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: AppColors.magenta
+                                              .withValues(alpha: 0.5),
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.info_outline,
+                                            size: 13,
+                                            color: AppColors.magenta,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Plus d\'infos',
+                                            style: GoogleFonts.geist(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.magenta,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           // Horaires : pills si multi-séances (cinéma),
                           // sinon ligne classique.
                           if (event.horaires.isNotEmpty)
@@ -280,44 +361,32 @@ class EventFullscreenPopup extends ConsumerWidget {
                               ),
                             ),
 
-                          // Description
+                          // Description (tronquee + "plus" pour deplier)
                           if (_description.isNotEmpty) ...[
                             const SizedBox(height: 10),
-                            Text(
-                              _description,
-                              style: GoogleFonts.geist(
-                                fontSize: 13,
-                                color: AppColors.textDim,
-                                height: 1.5,
-                              ),
-                            ),
+                            _ExpandableDescription(text: _description),
                           ],
                         ],
                       ),
                     ),
                   ),
 
-                  // ── Stats engagement (likes / comments / shares) ──
+                  // ── Actions like / comment / partage (espacees, tap separe) ──
                   Padding(
                     padding: EdgeInsets.fromLTRB(
                       20,
-                      12,
+                      4,
                       20,
                       event.reservationUrl.isNotEmpty
-                          ? 12
-                          : 16 + MediaQuery.of(context).padding.bottom,
+                          ? 4
+                          : 8 + MediaQuery.of(context).padding.bottom,
                     ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: EngagementStatsRow(
-                        eventSource: detectEventSource(event.identifiant),
-                        eventIdentifiant: event.identifiant,
-                        eventTitle: event.titre,
-                        iconColor: AppColors.text,
-                        textColor: AppColors.text,
-                        iconSize: 22,
-                        fontSize: 15,
-                      ),
+                    child: _EngagementActionsBar(
+                      eventSource: detectEventSource(event.identifiant),
+                      eventIdentifiant: event.identifiant,
+                      eventTitle: event.titre,
+                      photoUrl: event.photoPath,
+                      fallbackAsset: fallbackAsset,
                     ),
                   ),
 
@@ -373,6 +442,19 @@ class EventFullscreenPopup extends ConsumerWidget {
     if (event.descriptifLong.isNotEmpty) return event.descriptifLong;
     if (event.descriptifCourt.isNotEmpty) return event.descriptifCourt;
     return '';
+  }
+
+  /// Ouvre une fiche detaillee par-dessus le popup (sans le fermer). Affiche
+  /// tous les champs de l'event dans une vue scrollable pour une lecture
+  /// confortable de la description complete.
+  void _openInfoSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+      builder: (sheetCtx) => _EventInfoSheet(event: event),
+    );
   }
 
   Widget _infoRow(IconData icon, String text) {
@@ -1004,6 +1086,454 @@ class _SwipeHint extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w500,
               letterSpacing: -0.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Description tronquee avec lien "plus" pour deplier in-place.
+// =============================================================================
+class _ExpandableDescription extends StatefulWidget {
+  final String text;
+
+  const _ExpandableDescription({required this.text});
+
+  @override
+  State<_ExpandableDescription> createState() => _ExpandableDescriptionState();
+}
+
+class _ExpandableDescriptionState extends State<_ExpandableDescription> {
+  static const _collapsedMaxChars = 140;
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = widget.text.trim();
+    final shouldTruncate = text.length > _collapsedMaxChars;
+    final baseStyle = GoogleFonts.geist(
+      fontSize: 13,
+      color: AppColors.textDim,
+      height: 1.5,
+    );
+
+    if (!shouldTruncate || _expanded) {
+      return Text(text, style: baseStyle);
+    }
+
+    final preview = text.substring(0, _collapsedMaxChars).trimRight();
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(text: '$preview… ', style: baseStyle),
+          TextSpan(
+            text: 'plus',
+            style: GoogleFonts.geist(
+              fontSize: 13,
+              color: AppColors.magenta,
+              fontWeight: FontWeight.w700,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => setState(() => _expanded = true),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Barre d'actions Like / Comment / Share avec 3 zones de tap separees.
+// =============================================================================
+class _EngagementActionsBar extends ConsumerStatefulWidget {
+  final String eventSource;
+  final String eventIdentifiant;
+  final String eventTitle;
+  final String? photoUrl;
+  final String fallbackAsset;
+
+  const _EngagementActionsBar({
+    required this.eventSource,
+    required this.eventIdentifiant,
+    required this.eventTitle,
+    required this.photoUrl,
+    required this.fallbackAsset,
+  });
+
+  @override
+  ConsumerState<_EngagementActionsBar> createState() =>
+      _EngagementActionsBarState();
+}
+
+class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
+  // Photo prete a etre partagee, resolue en arriere-plan a l'ouverture du
+  // popup. Permet un tap instantane sur le bouton "partage" (sinon le premier
+  // tap doit attendre le download + le copy temp, et le user re-tape plusieurs
+  // fois avant que la share-sheet Android n'apparaisse).
+  XFile? _sharePhoto;
+  bool _sharing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(engagementTotalsProvider.notifier);
+      notifier.request(widget.eventSource, widget.eventIdentifiant);
+      notifier.loadUserLiked(widget.eventSource, widget.eventIdentifiant);
+      // Lance le pre-fetch de la photo de partage sans bloquer le build.
+      _prefetchSharePhoto();
+    });
+  }
+
+  Future<void> _prefetchSharePhoto() async {
+    try {
+      final file =
+          await _resolvePhotoFile(widget.photoUrl, widget.fallbackAsset);
+      if (!mounted) return;
+      setState(() => _sharePhoto = file);
+    } catch (e) {
+      debugPrint('[share] prefetch failed: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(engagementTotalsProvider);
+    final key = engagementKey(widget.eventSource, widget.eventIdentifiant);
+    final totals = state.totals[key];
+    final liked = state.userLiked[key] ?? false;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _actionTile(
+          icon: liked ? Icons.favorite : Icons.favorite_border,
+          iconColor: liked ? AppColors.magenta : AppColors.text,
+          count: totals?.likesCount ?? 0,
+          onTap: () => ref
+              .read(engagementTotalsProvider.notifier)
+              .toggleLike(widget.eventSource, widget.eventIdentifiant),
+        ),
+        _actionTile(
+          icon: Icons.mode_comment_outlined,
+          iconColor: AppColors.text,
+          count: totals?.commentsCount ?? 0,
+          onTap: () => EventEngagementSheet.show(
+            context,
+            eventSource: widget.eventSource,
+            eventIdentifiant: widget.eventIdentifiant,
+            eventTitle: widget.eventTitle,
+          ),
+        ),
+        _actionTile(
+          icon: Icons.send_outlined,
+          iconColor: AppColors.text,
+          count: totals?.sharesCount ?? 0,
+          loading: _sharing,
+          onTap: _onShareTap,
+        ),
+      ],
+    );
+  }
+
+  Widget _actionTile({
+    required IconData icon,
+    required Color iconColor,
+    required int count,
+    required VoidCallback onTap,
+    bool loading = false,
+  }) {
+    return InkWell(
+      onTap: loading ? null : onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (loading)
+              const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.magenta,
+                ),
+              )
+            else
+              Icon(icon, size: 22, color: iconColor),
+            const SizedBox(width: 6),
+            Text(
+              _formatCount(count),
+              style: GoogleFonts.geistMono(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _formatCount(int n) {
+    if (n < 1000) return n.toString();
+    if (n < 10000) return '${(n / 1000).toStringAsFixed(1)}k';
+    return '${(n / 1000).round()}k';
+  }
+
+  Future<void> _onShareTap() async {
+    if (_sharing) return;
+    setState(() => _sharing = true);
+    try {
+      const playStore =
+          'https://play.google.com/store/apps/details?id=com.macity.app';
+      final caption =
+          '${widget.eventTitle}\n\nDécouvre cet évènement sur MaCity, l\'app qui rassemble tout ce qui se passe dans ta ville.\n👉 $playStore';
+
+      // Utilise la photo pre-resolue si dispo (cas usuel). Sinon resout
+      // maintenant avec un timeout court pour ne pas bloquer l'utilisateur.
+      var photo = _sharePhoto;
+      if (photo == null) {
+        try {
+          photo = await _resolvePhotoFile(widget.photoUrl, widget.fallbackAsset)
+              .timeout(const Duration(seconds: 3));
+        } catch (e) {
+          debugPrint('[share] photo resolve failed/timeout: $e');
+          photo = null;
+        }
+      }
+
+      if (photo != null) {
+        await Share.shareXFiles(
+          [photo],
+          text: caption,
+          subject: widget.eventTitle,
+        );
+      } else {
+        await Share.share(caption, subject: widget.eventTitle);
+      }
+      if (!mounted) return;
+      ref
+          .read(engagementTotalsProvider.notifier)
+          .recordShare(widget.eventSource, widget.eventIdentifiant);
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+  }
+
+  /// Resout une image (URL reseau ou asset local) vers un XFile partageable.
+  /// Priorise l'URL reseau (image specifique a l'event). Tombe sur l'asset
+  /// fallback si pas de URL ou si le download echoue.
+  Future<XFile?> _resolvePhotoFile(String? url, String assetPath) async {
+    if (url != null && url.startsWith('http')) {
+      try {
+        final file = await DefaultCacheManager().getSingleFile(url);
+        if (await file.exists() && await file.length() > 0) {
+          return XFile(file.path);
+        }
+      } catch (e) {
+        debugPrint('[share] network photo download failed: $e');
+      }
+    }
+    return _copyAssetToTemp(assetPath);
+  }
+
+  Future<XFile?> _copyAssetToTemp(String assetPath) async {
+    try {
+      final bytes = await rootBundle.load(assetPath);
+      final dir = await getTemporaryDirectory();
+      final ext = assetPath.split('.').last;
+      final out = File('${dir.path}/macity_share.$ext');
+      await out.writeAsBytes(bytes.buffer.asUint8List());
+      return XFile(out.path);
+    } catch (e) {
+      debugPrint('[share] asset copy failed: $e');
+      return null;
+    }
+  }
+}
+
+// =============================================================================
+// Fiche detaillee (bottom sheet ouvert PAR-DESSUS le popup, sans le fermer).
+// Affiche tous les champs avec la description complete scrollable, pour une
+// lecture confortable du texte sans ouvrir une autre page.
+// =============================================================================
+class _EventInfoSheet extends StatelessWidget {
+  final Event event;
+
+  const _EventInfoSheet({required this.event});
+
+  static final _displayDateFormat = DateFormat('dd/MM/yyyy');
+
+  String _formatDate(String raw) {
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) return raw;
+    return _displayDateFormat.format(parsed);
+  }
+
+  String get _description {
+    if (event.descriptifLong.isNotEmpty) return event.descriptifLong;
+    if (event.descriptifCourt.isNotEmpty) return event.descriptifCourt;
+    return '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.85,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (ctx, scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.bg,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Grabber
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Titre + close
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 12, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        event.titre,
+                        style: GoogleFonts.geist(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.text,
+                          height: 1.25,
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      icon: const Icon(
+                        Icons.close,
+                        size: 22,
+                        color: AppColors.textDim,
+                      ),
+                      splashRadius: 20,
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: AppColors.line),
+              // Contenu scrollable
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    16,
+                    20,
+                    20 + MediaQuery.of(context).padding.bottom,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Meta : date / lieu / horaires / organisateur / prix
+                      if (event.dateDebut.isNotEmpty)
+                        _metaRow(
+                          Icons.calendar_today,
+                          event.dateFin.isNotEmpty &&
+                                  event.dateFin != event.dateDebut
+                              ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
+                              : _formatDate(event.dateDebut),
+                        ),
+                      if (event.lieuNom.isNotEmpty)
+                        _metaRow(Icons.location_on_outlined, event.lieuNom),
+                      if (event.horaires.isNotEmpty)
+                        _metaRow(Icons.access_time, event.horaires),
+                      if (event.organisateurNom.isNotEmpty)
+                        _metaRow(
+                          Icons.verified,
+                          'Par ${event.organisateurNom}',
+                          color: const Color(0xFFFBBF24),
+                        ),
+                      if (event.isFree)
+                        _metaRow(Icons.local_offer_outlined, 'Gratuit'),
+                      const SizedBox(height: 18),
+                      // Description complete (pas de troncature ici)
+                      if (_description.isNotEmpty) ...[
+                        Text(
+                          'À propos',
+                          style: GoogleFonts.geist(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textDim,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        SelectableText(
+                          _description,
+                          style: GoogleFonts.geist(
+                            fontSize: 14,
+                            color: AppColors.text,
+                            height: 1.55,
+                          ),
+                        ),
+                      ] else
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            'Aucune description fournie pour cet évènement.',
+                            style: GoogleFonts.geist(
+                              fontSize: 13,
+                              color: AppColors.textFaint,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _metaRow(IconData icon, String text, {Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: color ?? AppColors.magenta),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.geist(
+                fontSize: 14,
+                color: AppColors.text,
+              ),
             ),
           ),
         ],

@@ -29,6 +29,8 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
   late final TextEditingController _titreController;
   late final TextEditingController _adresseController;
   late final TextEditingController _prixController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _billetterieController;
   bool _initialized = false;
 
   @override
@@ -37,6 +39,8 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
     _titreController = TextEditingController();
     _adresseController = TextEditingController();
     _prixController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _billetterieController = TextEditingController();
   }
 
   @override
@@ -44,6 +48,8 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
     _titreController.dispose();
     _adresseController.dispose();
     _prixController.dispose();
+    _descriptionController.dispose();
+    _billetterieController.dispose();
     super.dispose();
   }
 
@@ -60,6 +66,8 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
       _titreController.text = state.titre;
       _adresseController.text = state.lieuAdresse;
       _prixController.text = state.prix;
+      _descriptionController.text = state.descriptionCourte;
+      _billetterieController.text = state.lienBilletterie;
       if (state.ville.isEmpty) {
         Future.microtask(() => notifier.updateVille(city));
       }
@@ -70,6 +78,8 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
         _titreController.text = next.titre;
         _adresseController.text = next.lieuAdresse;
         _prixController.text = next.prix;
+        _descriptionController.text = next.descriptionCourte;
+        _billetterieController.text = next.lienBilletterie;
       }
     });
 
@@ -168,6 +178,28 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             decoration: _input('Titre de l\'évènement *'),
             style: const TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateTitre,
+          ),
+          const SizedBox(height: 14),
+
+          // 2bis. Description courte
+          TextFormField(
+            controller: _descriptionController,
+            decoration: _input('Description (optionnel)'),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            maxLines: 3,
+            minLines: 2,
+            maxLength: 300,
+            onChanged: notifier.updateDescriptionCourte,
+          ),
+          const SizedBox(height: 6),
+
+          // 2ter. Lien billetterie / site web
+          TextFormField(
+            controller: _billetterieController,
+            decoration: _input('Lien billetterie ou site web (optionnel)'),
+            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            keyboardType: TextInputType.url,
+            onChanged: notifier.updateLienBilletterie,
           ),
           const SizedBox(height: 14),
 

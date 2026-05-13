@@ -29,11 +29,16 @@ final modeBannerVideoProvider = FutureProvider<ModeBannerData?>((ref) async {
     final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
     dio.interceptors.add(SupabaseInterceptor());
 
+    // Cherche d'abord la ligne specifique a la ville (ville ILIKE ...),
+    // sinon retombe sur la ligne par defaut (ville = '*').
+    // ORDER BY ville DESC = ville-specifique en premier (lettres > '*' en ASCII),
+    // '*' apres. LIMIT 1 retourne la prio attendue.
     final response = await dio.get('mode_banners', queryParameters: {
-      'select': 'video_url,link_url',
+      'select': 'video_url,link_url,ville',
       'mode': 'eq.$mode',
-      'ville': 'ilike.$ville',
+      'or': '(ville.ilike.$ville,ville.eq.*)',
       'is_active': 'eq.true',
+      'order': 'ville.desc',
       'limit': '1',
     });
 

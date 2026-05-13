@@ -104,7 +104,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
         backgroundColor: AppColors.bg,
         elevation: 0,
         title: Text(
-          'Mes soirees privees',
+          'Mes events privés',
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -151,7 +151,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.lock_outline),
         label: Text(
-          'Nouvelle soiree',
+          'Nouvel event',
           style: GoogleFonts.geist(fontWeight: FontWeight.w600),
         ),
       ),
@@ -180,7 +180,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
             ),
             const SizedBox(height: 18),
             Text(
-              'Aucune soiree privee',
+              'Aucun event privé',
               style: GoogleFonts.geist(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

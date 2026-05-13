@@ -101,7 +101,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
 
   Future<void> _submit() async {
     if (_titleCtrl.text.trim().isEmpty) {
-      setState(() => _error = 'Donne un titre a ta soiree');
+      setState(() => _error = 'Donne un titre a ton event');
       return;
     }
     if (_date == null) {
@@ -200,7 +200,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Creer une soiree privee',
+                'Creer un event privé',
                 style: GoogleFonts.geist(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
@@ -399,7 +399,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                       ),
                     )
                   : Text(
-                      'Creer ma soiree',
+                      'Creer mon event',
                       style: GoogleFonts.geist(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -533,7 +533,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
 /// reutilisation depuis la liste "Mes soirees privees".
 String buildPrivateEventShareText(PrivateEvent event) {
   final buf = StringBuffer();
-  buf.writeln('Tu es invite(e) a ma soiree privee 🎉');
+  buf.writeln('Tu es invite(e) a mon event privé 🎉');
   buf.writeln(event.title);
   if (event.lieu.isNotEmpty) buf.writeln('📍 ${event.lieu}');
   if (event.adresse.isNotEmpty) buf.writeln('   ${event.adresse}');

@@ -301,6 +301,10 @@ class CreateEventState {
     if (dateDebut == null) return 'La date de début est requise';
     if (heureDebut == null) return 'L\'heure de début est requise';
     if (lieuAdresse.trim().isEmpty) return 'Adresse du lieu requise';
+    final url = lienBilletterie.trim();
+    if (url.isNotEmpty && !url.startsWith('http://') && !url.startsWith('https://')) {
+      return 'Le lien doit commencer par http:// ou https://';
+    }
     return null;
   }
 

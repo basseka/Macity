@@ -114,7 +114,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
       case PrivateEventError.wrongPasscode:
         return 'Code incorrect';
       case PrivateEventError.expired:
-        return 'Cette soiree est passee';
+        return 'Cet event est passé';
       case PrivateEventError.quotaExceeded:
         return 'Ce coffre a atteint sa limite d\'ouvertures';
       case PrivateEventError.invalidInput:

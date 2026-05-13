@@ -359,7 +359,7 @@ class AppBottomNavBar extends ConsumerWidget {
               const SizedBox(height: 14),
               _PublishOptionTile(
                 icon: Icons.lock_outline,
-                title: 'Soirée privée',
+                title: 'Event privé',
                 subtitle: 'Entre amis, code d\'accès, pas dans le feed public',
                 gradient: const LinearGradient(
                   colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
