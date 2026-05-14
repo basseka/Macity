@@ -546,6 +546,133 @@
       color: var(--text-faint);
       font-size: 14px;
     }
+
+    /* ─── Onglet Bannières ─── */
+    .banner-card {
+      background: var(--surface-hi);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .banner-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .banner-mode-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      background: rgba(142, 36, 170, 0.18);
+      color: #D9B2EB;
+      border: 1px solid rgba(142, 36, 170, 0.45);
+    }
+    .banner-status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+    .banner-status-dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+    .banner-status-dot.off { background: var(--text-faint); }
+    .banner-field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .banner-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      margin-bottom: 8px;
+    }
+    .banner-input:focus { outline: none; border-color: var(--magenta); }
+    .banner-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .banner-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 11px;
+      user-select: none;
+    }
+    .banner-toggle input { width: 14px; height: 14px; accent-color: var(--magenta); }
+    .banner-link-btn {
+      padding: 6px 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text-dim);
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .banner-link-btn:hover {
+      border-color: var(--magenta);
+      color: var(--text);
+    }
+    .banner-save-btn {
+      margin-left: auto;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.15s;
+    }
+    .banner-save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(233, 30, 99, 0.35); }
+    .banner-save-btn:disabled { opacity: 0.5; cursor: wait; }
+    .banner-delete-btn {
+      padding: 6px 10px;
+      background: transparent;
+      color: var(--err);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 8px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .banner-delete-btn:hover { background: rgba(239, 68, 68, 0.1); }
+    .banner-meta {
+      font-size: 10px;
+      color: var(--text-faint);
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -570,6 +697,7 @@
           <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
+          <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
         </div>
       </div>
 
@@ -886,6 +1014,20 @@
           Aucune fiche pour cette ville.
         </div>
       </div>
+
+      <!-- ═══ VUE "BANNIÈRES VIDÉO PAR VILLE" ═══ -->
+      <div id="banners-view" class="hidden">
+        <h1>🎬 Bannières vidéo</h1>
+        <p class="subtitle">Vidéo affichée en haut de chaque mode (Food, Night, etc.). Choisis une ville pour éditer ses bannières — ou tape <code>*</code> pour gérer la vidéo par défaut (toutes villes).</p>
+
+        <div class="city-filter-row">
+          <input type="text" id="banners-city-filter" placeholder="Choisir une ville (ex: Toulouse) ou * pour les défauts" list="banners-cities-datalist" autocomplete="off" />
+          <div class="city-stats" id="banners-stats">—</div>
+        </div>
+        <datalist id="banners-cities-datalist"></datalist>
+
+        <div id="banners-list"></div>
+      </div>
     </div>
   </div>
 
@@ -1002,8 +1144,10 @@
       const fv = document.getElementById("form-view");
       const ev = document.getElementById("events-view");
       const vv = document.getElementById("venues-view");
+      const bv = document.getElementById("banners-view");
       if (fv && ev) { fv.classList.remove("hidden"); ev.classList.add("hidden"); }
       if (vv) vv.classList.add("hidden");
+      if (bv) bv.classList.add("hidden");
     }
 
     function escapeHtml(s) {
@@ -1704,39 +1848,50 @@
     const gotoEventsBtn = document.getElementById("goto-events-btn");
     const gotoVenuesBtn = document.getElementById("goto-venues-btn");
     const eventsCountBadge = document.getElementById("events-count-badge");
+    const bannersView = document.getElementById("banners-view");
+    const gotoBannersBtn = document.getElementById("goto-banners-btn");
 
-    function showFormView() {
-      formView.classList.remove("hidden");
+    function _hideAllViews() {
+      formView.classList.add("hidden");
       eventsView.classList.add("hidden");
       venuesView.classList.add("hidden");
-      gotoFormBtn.style.display = "none";
+      bannersView.classList.add("hidden");
+      gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
+      gotoBannersBtn.style.display = "inline-flex";
+    }
+    function showFormView() {
+      _hideAllViews();
+      formView.classList.remove("hidden");
+      gotoFormBtn.style.display = "none";
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showEventsView() {
+      _hideAllViews();
       eventsView.classList.remove("hidden");
-      formView.classList.add("hidden");
-      venuesView.classList.add("hidden");
-      gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "none";
-      gotoVenuesBtn.style.display = "inline-flex";
       loadHistory();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showVenuesView() {
+      _hideAllViews();
       venuesView.classList.remove("hidden");
-      formView.classList.add("hidden");
-      eventsView.classList.add("hidden");
-      gotoFormBtn.style.display = "inline-flex";
-      gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "none";
       refreshVenuesView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    function showBannersView() {
+      _hideAllViews();
+      bannersView.classList.remove("hidden");
+      gotoBannersBtn.style.display = "none";
+      refreshBannersView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoEventsBtn.addEventListener("click", showEventsView);
     gotoFormBtn.addEventListener("click", showFormView);
     gotoVenuesBtn.addEventListener("click", showVenuesView);
+    gotoBannersBtn.addEventListener("click", showBannersView);
 
     // ─── Onglet Etablissements : filtre par ville + actions code ───
     const venuesCityFilter = document.getElementById("venues-city-filter");
@@ -1904,6 +2059,210 @@
         }
         renderVenuesList(venuesCityFilter.value);
         toast(`Code généré : ${newCode}`, true);
+      }
+    });
+
+    // ─── Onglet Bannières : edition video_url + link_url + is_active par ville ───
+    const BANNER_MODES = ['day','sport','culture','family','food','gaming','night','tourisme'];
+    const BANNER_MODE_LABELS = {
+      day: 'Day', sport: 'Sport', culture: 'Culture', family: 'Family',
+      food: 'Food', gaming: 'Gaming', night: 'Night', tourisme: 'Tourisme',
+    };
+    const bannersCityFilter = document.getElementById("banners-city-filter");
+    const bannersList = document.getElementById("banners-list");
+    const bannersStats = document.getElementById("banners-stats");
+    const bannersCitiesDatalist = document.getElementById("banners-cities-datalist");
+    let allBanners = [];
+
+    async function loadBanners() {
+      const { data, error } = await supabase
+        .from("mode_banners")
+        .select("*")
+        .order("ville", { ascending: true })
+        .order("mode", { ascending: true });
+      if (error) {
+        console.warn("[banners]", error);
+        toast("Erreur de chargement des bannières", false);
+        return;
+      }
+      allBanners = data || [];
+      // Datalist des villes existantes + '*'
+      const villes = new Set(allBanners.map(b => b.ville));
+      villes.add("*");
+      const sorted = [...villes].sort((a, b) =>
+        a === "*" ? -1 : b === "*" ? 1 : a.localeCompare(b, "fr"),
+      );
+      bannersCitiesDatalist.innerHTML = sorted
+        .map(v => `<option value="${escapeHtml(v)}"></option>`)
+        .join("");
+    }
+
+    function renderBannersList(ville) {
+      const v = (ville || "").trim();
+      if (!v) {
+        bannersStats.textContent = `${allBanners.length} bannières au total`;
+        bannersList.innerHTML = `<div class="venues-empty">Choisis une ville (ou <code>*</code>) pour voir et éditer ses bannières.</div>`;
+        return;
+      }
+
+      const rowsForCity = allBanners.filter(b =>
+        b.ville.toLowerCase() === v.toLowerCase(),
+      );
+      const byMode = Object.fromEntries(rowsForCity.map(r => [r.mode, r]));
+      const activeCount = rowsForCity.filter(r => r.is_active).length;
+      bannersStats.textContent = `${rowsForCity.length}/${BANNER_MODES.length} modes · ${activeCount} actifs`;
+
+      bannersList.innerHTML = BANNER_MODES.map(mode => {
+        const row = byMode[mode];
+        const exists = row != null;
+        const videoUrl = row?.video_url ?? "";
+        const linkUrl = row?.link_url ?? "";
+        const isActive = row?.is_active ?? true;
+        const updated = row?.created_at ?? null;
+        const updatedTxt = updated ? new Date(updated).toLocaleDateString("fr-FR") : "—";
+
+        return `
+          <div class="banner-card" data-mode="${mode}" data-ville="${escapeHtml(v)}" data-existing="${exists ? "1" : "0"}" data-id="${row?.id ?? ""}">
+            <div class="banner-card-head">
+              <span class="banner-mode-pill">${BANNER_MODE_LABELS[mode]}</span>
+              <span style="font-size:11px; color:var(--text-faint);">
+                <span class="banner-status-dot ${isActive ? 'on' : 'off'}"></span>
+                ${exists ? (isActive ? 'Actif' : 'Inactif') : 'Aucune entrée — sera créée au save'}
+              </span>
+            </div>
+
+            <label class="banner-field-label">URL de la vidéo (mp4)</label>
+            <input type="url" class="banner-input" data-field="video_url"
+              value="${escapeHtml(videoUrl)}"
+              placeholder="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners/...mp4" />
+
+            <label class="banner-field-label">Lien quand on tape la bannière (optionnel)</label>
+            <input type="url" class="banner-input" data-field="link_url"
+              value="${escapeHtml(linkUrl)}"
+              placeholder="https://exemple.com/promo" />
+
+            <div class="banner-actions-row">
+              <label class="banner-toggle">
+                <input type="checkbox" data-field="is_active" ${isActive ? 'checked' : ''} />
+                <span>Actif</span>
+              </label>
+              ${videoUrl ? `<a class="banner-link-btn" href="${escapeHtml(videoUrl)}" target="_blank" rel="noopener">👁 Voir vidéo</a>` : ''}
+              ${linkUrl ? `<a class="banner-link-btn" href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener">🔗 Tester lien</a>` : ''}
+              ${exists ? `<button class="banner-delete-btn" data-action="delete">Supprimer</button>` : ''}
+              <button class="banner-save-btn" data-action="save">${exists ? 'Enregistrer' : 'Créer'}</button>
+            </div>
+            ${exists ? `<div class="banner-meta">id=${row.id} · créée le ${updatedTxt}</div>` : ''}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function refreshBannersView() {
+      if (allBanners.length === 0) {
+        loadBanners().then(() => renderBannersList(bannersCityFilter.value));
+      } else {
+        renderBannersList(bannersCityFilter.value);
+      }
+    }
+
+    bannersCityFilter.addEventListener("input", () => {
+      renderBannersList(bannersCityFilter.value);
+    });
+
+    // Delegation click sur Save / Delete
+    bannersList.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-action]");
+      if (!btn) return;
+      const card = btn.closest(".banner-card");
+      if (!card) return;
+
+      const mode = card.dataset.mode;
+      const ville = card.dataset.ville;
+      const existing = card.dataset.existing === "1";
+      const id = card.dataset.id ? Number(card.dataset.id) : null;
+      const action = btn.dataset.action;
+
+      if (action === "delete") {
+        if (!confirm(`Supprimer la bannière ${mode} pour "${ville}" ?`)) return;
+        btn.disabled = true;
+        const { error } = await supabase
+          .from("mode_banners")
+          .delete()
+          .eq("id", id);
+        if (error) {
+          btn.disabled = false;
+          console.warn("[banners delete]", error);
+          toast("Erreur suppression : " + error.message, false);
+          return;
+        }
+        // Retire localement + rerender
+        allBanners = allBanners.filter(b => b.id !== id);
+        renderBannersList(ville);
+        toast(`Bannière ${mode}/${ville} supprimée`, true);
+        return;
+      }
+
+      if (action === "save") {
+        const videoUrl = card.querySelector('[data-field="video_url"]').value.trim();
+        const linkUrl = card.querySelector('[data-field="link_url"]').value.trim();
+        const isActive = card.querySelector('[data-field="is_active"]').checked;
+
+        if (!videoUrl) {
+          toast("URL de la vidéo requise", false);
+          return;
+        }
+        if (!videoUrl.startsWith("http://") && !videoUrl.startsWith("https://")) {
+          toast("L'URL doit commencer par http:// ou https://", false);
+          return;
+        }
+        if (linkUrl && !linkUrl.startsWith("http://") && !linkUrl.startsWith("https://")) {
+          toast("Le lien doit commencer par http:// ou https://", false);
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "…";
+
+        const payload = {
+          mode,
+          ville,
+          video_url: videoUrl,
+          link_url: linkUrl || null,
+          is_active: isActive,
+        };
+
+        let resp;
+        if (existing) {
+          resp = await supabase
+            .from("mode_banners")
+            .update(payload)
+            .eq("id", id)
+            .select()
+            .single();
+        } else {
+          resp = await supabase
+            .from("mode_banners")
+            .insert(payload)
+            .select()
+            .single();
+        }
+
+        if (resp.error) {
+          btn.disabled = false;
+          btn.textContent = existing ? "Enregistrer" : "Créer";
+          console.warn("[banners save]", resp.error);
+          toast("Erreur : " + resp.error.message, false);
+          return;
+        }
+
+        // Met à jour le cache local
+        const saved = resp.data;
+        const idx = allBanners.findIndex(b => b.id === saved.id);
+        if (idx >= 0) allBanners[idx] = saved;
+        else allBanners.push(saved);
+
+        renderBannersList(ville);
+        toast(`Bannière ${mode}/${ville} ${existing ? 'mise à jour' : 'créée'}`, true);
       }
     });
 
