@@ -414,7 +414,7 @@ class _AdminAddEtablissementSheetState
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-      style: const TextStyle(fontSize: 14, color: AppColors.text),
+      style: TextStyle(fontSize: 14, color: AppColors.text),
     );
   }
 

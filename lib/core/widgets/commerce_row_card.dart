@@ -191,7 +191,7 @@ class CommerceRowCard extends ConsumerWidget {
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.card),
-        side: const BorderSide(color: AppColors.line),
+        side: BorderSide(color: AppColors.line),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(

@@ -42,7 +42,7 @@ class _CityPickerBottomSheetState
 
     return Container(
       height: screenHeight * 0.7,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(top: BorderSide(color: AppColors.line)),
@@ -121,7 +121,7 @@ class _CityPickerBottomSheetState
                           _searchController.clear();
                           ref.read(citySearchQueryProvider.notifier).state = '';
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.clear,
                           size: 20,
                           color: AppColors.textFaint,
@@ -132,11 +132,11 @@ class _CityPickerBottomSheetState
                 fillColor: AppColors.surfaceHi,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.input),
-                  borderSide: const BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.input),
-                  borderSide: const BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.input),
@@ -172,7 +172,7 @@ class _CityPickerBottomSheetState
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   itemCount: cities.length,
                   separatorBuilder: (_, __) =>
-                      const Divider(height: 1, color: AppColors.line),
+                      Divider(height: 1, color: AppColors.line),
                   itemBuilder: (context, index) {
                     final ville = cities[index];
                     return CityListTile(

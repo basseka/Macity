@@ -115,7 +115,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(top: BorderSide(color: AppColors.line)),
@@ -143,7 +143,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
               ),
               const SizedBox(height: 10),
 
-              const Text(
+              Text(
                 'Espace Professionnel',
                 style: TextStyle(
                   fontSize: 15,
@@ -186,7 +186,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 // ── Mode connexion ──
                 TextFormField(
                   controller: _emailController,
-                  style: const TextStyle(fontSize: 13, color: AppColors.text),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Email',
                     icon: Icons.email_outlined,
@@ -199,7 +199,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
-                  style: const TextStyle(fontSize: 13, color: AppColors.text),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Mot de passe',
                     icon: Icons.lock_outline,
@@ -242,7 +242,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 // ── Mode inscription ──
                 TextFormField(
                   controller: _nomController,
-                  style: const TextStyle(fontSize: 13, color: AppColors.text),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Nom de la structure',
                     icon: Icons.business_outlined,
@@ -255,7 +255,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 DropdownButtonFormField<String>(
                   initialValue: _selectedType,
                   isExpanded: true,
-                  style: const TextStyle(fontSize: 13, color: AppColors.text),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Type de structure',
                     icon: Icons.category_outlined,
@@ -265,7 +265,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                         (e) => DropdownMenuItem(
                           value: e.key,
                           child:
-                              Text(e.value, style: const TextStyle(fontSize: 13, color: AppColors.text), overflow: TextOverflow.ellipsis),
+                              Text(e.value, style: TextStyle(fontSize: 13, color: AppColors.text), overflow: TextOverflow.ellipsis),
                         ),
                       )
                       .toList(),
@@ -276,7 +276,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _emailController,
-                  style: const TextStyle(fontSize: 13, color: AppColors.text),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Email',
                     icon: Icons.email_outlined,
@@ -289,7 +289,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
-                  style: const TextStyle(fontSize: 13, color: AppColors.text),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Mot de passe',
                     icon: Icons.lock_outline,
@@ -314,7 +314,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _telephoneController,
-                  style: const TextStyle(fontSize: 13, color: AppColors.text),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
                     label: 'Telephone',
                     icon: Icons.phone_outlined,
@@ -498,7 +498,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
   }) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(fontSize: 12, color: AppColors.textFaint),
+      labelStyle: TextStyle(fontSize: 12, color: AppColors.textFaint),
       floatingLabelStyle: const TextStyle(fontSize: 12, color: AppColors.magenta),
       prefixIcon: Icon(icon, color: AppColors.magenta, size: 16),
       prefixIconConstraints: const BoxConstraints(minWidth: 36),
@@ -507,7 +507,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       isDense: true,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.line),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -515,7 +515,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.line),
+        borderSide: BorderSide(color: AppColors.line),
       ),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

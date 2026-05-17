@@ -111,7 +111,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
             color: AppColors.text,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.text),
+        iconTheme: IconThemeData(color: AppColors.text),
       ),
       body: FutureBuilder<List<PrivateEvent>>(
         future: _future,
@@ -277,7 +277,7 @@ class _EventTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.calendar_today,
                             size: 11,
                             color: AppColors.textFaint,
@@ -299,7 +299,7 @@ class _EventTile extends StatelessWidget {
                         const SizedBox(height: 2),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.location_on_outlined,
                               size: 11,
                               color: AppColors.textFaint,
@@ -406,7 +406,7 @@ class _EventTile extends StatelessWidget {
 
   Widget _photoPlaceholder() => Container(
         color: AppColors.surfaceHi,
-        child: const Icon(
+        child: Icon(
           Icons.celebration,
           color: AppColors.textFaint,
           size: 22,
@@ -474,7 +474,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.7,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(top: BorderSide(color: AppColors.line)),
@@ -586,7 +586,7 @@ class _GuestRow extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.surface,
             ),

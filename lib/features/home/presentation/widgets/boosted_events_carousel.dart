@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
 import 'package:pulz_app/features/admin/presentation/widgets/admin_pin_gesture.dart';
@@ -26,14 +27,22 @@ class BoostedEventsCarousel extends ConsumerWidget {
     return eventsAsync.when(
       data: (events) {
         if (events.isEmpty) return const SizedBox.shrink();
-        return _buildCarousel(context, events);
+        return _buildCarousel(
+          context,
+          events,
+          () => ref.read(navBarIndexProvider.notifier).state = 1,
+        );
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
 
-  Widget _buildCarousel(BuildContext context, List<UserEvent> events) {
+  Widget _buildCarousel(
+    BuildContext context,
+    List<UserEvent> events,
+    VoidCallback onSeeAll,
+  ) {
     // Full width hero : chaque card occupe la largeur ecran (- 32px de
     // padding L/R). PageView avec snap pour toujours centrer la card
     // visible quand l'utilisateur swipe.
@@ -42,12 +51,13 @@ class BoostedEventsCarousel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 2, 16, 8),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
           child: _SectionTitle(
-            prefix: 'A la',
+            prefix: 'À la',
             accent: 'une',
             icon: Icons.star,
+            onSeeAll: onSeeAll,
           ),
         ),
         SizedBox(
@@ -109,8 +119,13 @@ class _BoostedCard extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(color: AppColors.line),
-          boxShadow: AppShadows.card,
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1F000000),
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -132,38 +147,43 @@ class _BoostedCard extends StatelessWidget {
               decoration: const BoxDecoration(gradient: AppGradients.cardShade),
             ),
 
-            // Badge EPINGLE (admin) / A LA UNE
+            // Badge categorie / EPINGLE (admin) — pill arrondi
             Positioned(
-              top: 10,
-              left: 10,
+              top: 12,
+              left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: event.priority == 'ADMIN'
                       ? AppGradients.editorial
-                      : AppGradients.primary,
-                  borderRadius: BorderRadius.circular(AppRadius.chip),
-                  boxShadow: AppShadows.neon(
-                    event.priority == 'ADMIN'
-                        ? const Color(0xFFFBBF24)
-                        : AppColors.magenta,
-                    blur: 10,
-                    y: 4,
-                  ),
+                      : const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [Color(0xFFFF3D8B), Color(0xFFFB923C)],
+                        ),
+                  borderRadius: BorderRadius.circular(999),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      event.priority == 'ADMIN' ? Icons.push_pin : Icons.star,
-                      size: 10,
+                      event.priority == 'ADMIN'
+                          ? Icons.push_pin
+                          : Icons.local_fire_department,
+                      size: 12,
                       color: Colors.white,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 5),
                     Text(
-                      event.priority == 'ADMIN' ? 'EPINGLE' : 'A LA UNE',
+                      (event.priority == 'ADMIN'
+                              ? 'ÉPINGLÉ'
+                              : (event.categorie.isNotEmpty
+                                  ? event.categorie
+                                  : 'À LA UNE'))
+                          .toUpperCase(),
                       style: GoogleFonts.geistMono(
-                        fontSize: 8,
+                        fontSize: 9,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                         letterSpacing: 1.2,
@@ -174,68 +194,75 @@ class _BoostedCard extends StatelessWidget {
               ),
             ),
 
+            // Coeur outline haut-droite
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.28),
+                ),
+                child: const Icon(
+                  Icons.favorite_border,
+                  size: 18,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
             // Content
             Positioned(
-              left: 12,
-              right: 12,
-              bottom: 10,
+              left: 16,
+              right: 16,
+              bottom: 16,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     event.titre,
                     style: GoogleFonts.geist(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
-                      height: 1.2,
-                      letterSpacing: -0.2,
+                      height: 1.15,
+                      letterSpacing: -0.5,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 9, color: AppColors.textDim),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.calendar_today,
+                          size: 12, color: Colors.white),
+                      const SizedBox(width: 6),
                       Text(
-                        dateLabel.toUpperCase(),
-                        style: GoogleFonts.geistMono(
-                          fontSize: 9,
+                        '$dateLabel${event.heure.isNotEmpty ? ' · ${event.heure}' : ''}',
+                        style: GoogleFonts.geist(
+                          fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          letterSpacing: 1.2,
-                          color: AppColors.textDim,
+                          color: Colors.white,
                         ),
                       ),
-                      if (event.heure.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        const Icon(Icons.access_time, size: 9, color: AppColors.textDim),
-                        const SizedBox(width: 4),
-                        Text(
-                          event.heure,
-                          style: GoogleFonts.geistMono(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1.2,
-                            color: AppColors.textDim,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                   if (event.lieuNom.isNotEmpty) ...[
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 9, color: AppColors.textFaint),
-                        const SizedBox(width: 4),
+                        const Icon(Icons.location_on,
+                            size: 12, color: Colors.white),
+                        const SizedBox(width: 6),
                         Flexible(
                           child: Text(
                             event.lieuNom,
                             style: GoogleFonts.geist(
-                              fontSize: 10,
-                              color: AppColors.textFaint,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -244,15 +271,52 @@ class _BoostedCard extends StatelessWidget {
                       ],
                     ),
                   ],
-                  const SizedBox(height: 6),
-                  EngagementStatsRow(
-                    eventSource: _eventSourceFor(event),
-                    eventIdentifiant: event.id,
-                    eventTitle: event.titre,
-                    iconColor: Colors.white,
-                    textColor: Colors.white,
-                    iconSize: 11,
-                    fontSize: 10,
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: EngagementStatsRow(
+                          eventSource: _eventSourceFor(event),
+                          eventIdentifiant: event.id,
+                          eventTitle: event.titre,
+                          iconColor: Colors.white,
+                          textColor: Colors.white,
+                          iconSize: 14,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.55),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'En savoir plus',
+                              style: GoogleFonts.geist(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                letterSpacing: -0.1,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            const Icon(Icons.arrow_forward,
+                                size: 14, color: Colors.white),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -266,7 +330,7 @@ class _BoostedCard extends StatelessWidget {
 
   Widget _gradientBg() {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -368,8 +432,13 @@ class _P2Card extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(color: AppColors.line),
-          boxShadow: AppShadows.card,
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1F000000),
+              blurRadius: 18,
+              offset: Offset(0, 8),
+            ),
+          ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -458,7 +527,7 @@ class _P2Card extends StatelessWidget {
                   const SizedBox(height: 5),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today,
+                      Icon(Icons.calendar_today,
                           size: 9, color: AppColors.textDim),
                       const SizedBox(width: 4),
                       Text(
@@ -472,7 +541,7 @@ class _P2Card extends StatelessWidget {
                       ),
                       if (event.heure.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        const Icon(Icons.access_time,
+                        Icon(Icons.access_time,
                             size: 9, color: AppColors.textDim),
                         const SizedBox(width: 4),
                         Text(
@@ -491,7 +560,7 @@ class _P2Card extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        const Icon(Icons.location_on,
+                        Icon(Icons.location_on,
                             size: 9, color: AppColors.textFaint),
                         const SizedBox(width: 4),
                         Flexible(
@@ -547,25 +616,26 @@ class _SectionTitle extends StatelessWidget {
   final String prefix;
   final String accent;
   final IconData icon;
+  final VoidCallback? onSeeAll;
   const _SectionTitle({
     required this.prefix,
     required this.accent,
     required this.icon,
+    this.onSeeAll,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: AppColors.magenta),
+        Icon(icon, size: 16, color: AppColors.magenta),
         const SizedBox(width: 7),
         Text(
           prefix,
           style: GoogleFonts.geist(
-            fontSize: 17,
-            fontWeight: FontWeight.w500,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
             letterSpacing: -0.4,
             color: AppColors.text,
           ),
@@ -574,16 +644,39 @@ class _SectionTitle extends StatelessWidget {
         Text(
           accent,
           style: GoogleFonts.instrumentSerif(
-            fontSize: 20,
+            fontSize: 22,
             fontStyle: FontStyle.italic,
             fontWeight: FontWeight.w400,
             letterSpacing: -0.3,
             foreground: Paint()
               ..shader = AppGradients.editorial.createShader(
-                const Rect.fromLTWH(0, 0, 100, 28),
+                const Rect.fromLTWH(0, 0, 110, 30),
               ),
           ),
         ),
+        const Spacer(),
+        if (onSeeAll != null)
+          GestureDetector(
+            onTap: onSeeAll,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Voir tout',
+                  style: GoogleFonts.geist(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    color: AppColors.magenta,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(Icons.chevron_right,
+                    size: 15, color: AppColors.magenta),
+              ],
+            ),
+          ),
       ],
     );
   }

@@ -102,19 +102,23 @@ class SupabaseApiService {
 
   /// Search matches by team name, sport, competition, or venue.
   Future<List<SupabaseMatch>> searchMatches(String query,
-      {int limit = 15}) async {
+      {int limit = 15, String? ville}) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     try {
+      final params = <String, String>{
+        'select': '*',
+        'or':
+            '(equipe_dom.ilike.*$query*,equipe_ext.ilike.*$query*,sport.ilike.*$query*,competition.ilike.*$query*,lieu.ilike.*$query*)',
+        'date': 'gte.$today',
+        'order': 'date.asc',
+        'limit': '$limit',
+      };
+      if (ville != null && ville.isNotEmpty) {
+        params['ville'] = 'ilike.$ville*';
+      }
       final response = await _dio.get(
         'matchs',
-        queryParameters: <String, String>{
-          'select': '*',
-          'or':
-              '(equipe_dom.ilike.*$query*,equipe_ext.ilike.*$query*,sport.ilike.*$query*,competition.ilike.*$query*,lieu.ilike.*$query*)',
-          'date': 'gte.$today',
-          'order': 'date.asc',
-          'limit': '$limit',
-        },
+        queryParameters: params,
       );
       final data = response.data as List;
       return data

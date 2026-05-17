@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 
 /// Tokens design — handoff "MaCity Coherence" v1.0 (Avril 2026).
 ///
@@ -12,37 +13,60 @@ import 'package:google_fonts/google_fonts.dart';
 /// ne servent que d'accent (eyebrow + soulignement card) ; le cadre reste
 /// magenta/or partout.
 class EditorialColors {
-  // Surfaces — palette handoff
-  static const bg            = Color(0xFF14081F); // bg.canvas
-  static const bgSoft        = Color(0xFF1B0D2E); // bg.screen
-  static const surface       = Color(0xFF251339); // surface.1
-  static const surfaceHi     = Color(0xFF2E1A47); // surface.2
-  static const stroke        = Color(0x12FFFFFF); // border.subtle (~7% white)
+  // POC mode clair : suit le flag global AppColors.isLightTheme defini dans
+  // design_tokens.dart. Night = dark (palette violette d'origine), tous les
+  // autres modes = clair. Les accents (magenta, gold, orange, etc.) ne
+  // changent pas.
 
-  // Texte
-  static const text          = Color(0xFFF5E9FF); // text.primary
-  static const textDim       = Color(0xFFB9A6CF); // text.secondary
-  static const textMute      = Color(0xFF7C6A92); // text.tertiary
+  // ─── Surfaces ─────────────────────────────────────────────────────────
+  static Color get bg => AppColors.isLightTheme
+      ? const Color(0xFFFAFAF7)
+      : const Color(0xFF14081F);
+  static Color get bgSoft => AppColors.isLightTheme
+      ? const Color(0xFFF1EEE9)
+      : const Color(0xFF1B0D2E);
+  static Color get surface => AppColors.isLightTheme
+      ? const Color(0xFFD8D8D8)
+      : const Color(0xFF251339);
+  static Color get surfaceHi => AppColors.isLightTheme
+      ? const Color(0xFFC8C8C8)
+      : const Color(0xFF2E1A47);
+  static Color get stroke => AppColors.isLightTheme
+      ? const Color(0x401A0F2E)
+      : const Color(0x12FFFFFF);
 
-  // Accents signatures
-  static const magenta       = Color(0xFFEC3E8D); // accent.primary
-  static const magentaDeep   = Color(0xFFC026D3); // accent.gradStart
-  static const pink          = Color(0xFFFF5FA8); // accent.gradEnd
-  static const gold          = Color(0xFFF4C84A); // accent.italic
+  // ─── Texte ────────────────────────────────────────────────────────────
+  static Color get text => AppColors.isLightTheme
+      ? const Color(0xFF1A0F2E)
+      : const Color(0xFFF5E9FF);
+  static Color get textDim => AppColors.isLightTheme
+      ? const Color(0xFF4A4063)
+      : const Color(0xFFB9A6CF);
+  static Color get textMute => AppColors.isLightTheme
+      ? const Color(0xFF8A819F)
+      : const Color(0xFF7C6A92);
 
-  // Accents thematiques (utilises par les eyebrows de cards rubriques)
-  static const orange        = Color(0xFFFB923C); // tag.plaisirs
-  static const green         = Color(0xFF4ADE80); // tag.active
-  static const cyan          = Color(0xFF67E8F9); // tag.famille
+  // ─── Accents signatures (inchanges en mode clair) ─────────────────────
+  static const magenta       = Color(0xFFEC3E8D);
+  static const magentaDeep   = Color(0xFFC026D3);
+  static const pink          = Color(0xFFFF5FA8);
+  static const gold          = Color(0xFFF4C84A);
 
-  static const free          = Color(0xFF4ADE80); // prix Gratuit (= green)
+  // Accents thematiques
+  static const orange        = Color(0xFFFB923C);
+  static const green         = Color(0xFF4ADE80);
+  static const cyan          = Color(0xFF67E8F9);
 
-  // Aliases retro-compatibles (a virer apres migration complete)
-  static const ink           = bg;
-  static const paper         = text;
-  static const paperMuted    = textDim;
-  static const dividerSoft   = surface;
-  static const dividerStrong = Color(0x24FFFFFF);
+  static const free          = Color(0xFF4ADE80);
+
+  // ─── Aliases retro-compatibles ────────────────────────────────────────
+  static Color get ink => bg;
+  static Color get paper => text;
+  static Color get paperMuted => textDim;
+  static Color get dividerSoft => surface;
+  static Color get dividerStrong => AppColors.isLightTheme
+      ? const Color(0x661A0F2E)
+      : const Color(0x24FFFFFF);
 }
 
 /// Couleur d'accent par rubrique. Conservee du design d'origine — chaque
@@ -106,42 +130,42 @@ class EditorialRadius {
 class EditorialText {
   // ─── Inter (sans) ──────────────────────────────────────────────
   /// Titre display 36px (section header, hero...).
-  static TextStyle displayTitle({Color color = EditorialColors.text}) =>
+  static TextStyle displayTitle({Color? color}) =>
       GoogleFonts.inter(
         fontSize: 36,
         fontWeight: FontWeight.w700,
         height: 1.05,
         letterSpacing: -0.6,
-        color: color,
+        color: color ?? EditorialColors.text,
       );
 
   /// Titre header de ville ("Toulouse").
-  static TextStyle cityHeader({Color color = EditorialColors.text}) =>
+  static TextStyle cityHeader({Color? color}) =>
       GoogleFonts.inter(
         fontSize: 22,
         fontWeight: FontWeight.w700,
         height: 1.1,
         letterSpacing: -0.4,
-        color: color,
+        color: color ?? EditorialColors.text,
       );
 
   /// Titre de carte (eyebrow + ce titre).
-  static TextStyle cardTitle({Color color = EditorialColors.text}) =>
+  static TextStyle cardTitle({Color? color}) =>
       GoogleFonts.inter(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         height: 1.2,
         letterSpacing: -0.3,
-        color: color,
+        color: color ?? EditorialColors.text,
       );
 
   /// Corps de texte par defaut.
-  static TextStyle body({Color color = EditorialColors.text}) =>
+  static TextStyle body({Color? color}) =>
       GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.45,
-        color: color,
+        color: color ?? EditorialColors.text,
       );
 
   /// Labels de filtres / chips.
@@ -153,25 +177,25 @@ class EditorialText {
 
   // ─── PlayfairDisplay italic (or, accent) ───────────────────────
   /// Phrase italique signature ("Toutes les rubriques."). Mot dore.
-  static TextStyle heroLine({Color color = EditorialColors.gold}) =>
+  static TextStyle heroLine({Color? color}) =>
       GoogleFonts.playfairDisplay(
         fontSize: 28,
         fontWeight: FontWeight.w500,
         fontStyle: FontStyle.italic,
         height: 1.15,
         letterSpacing: -0.4,
-        color: color,
+        color: color ?? EditorialColors.gold,
       );
 
   /// Variante taille 22 pour SectionHeader (1 mot italique apres prefixe).
-  static TextStyle sectionItalic({Color color = EditorialColors.gold}) =>
+  static TextStyle sectionItalic({Color? color}) =>
       GoogleFonts.playfairDisplay(
         fontSize: 22,
         fontWeight: FontWeight.w500,
         fontStyle: FontStyle.italic,
         height: 1.15,
         letterSpacing: -0.3,
-        color: color,
+        color: color ?? EditorialColors.gold,
       );
 
   // ─── JetBrainsMono uppercase (eyebrows / meta) ─────────────────
@@ -189,12 +213,12 @@ class EditorialText {
       );
 
   /// Meta (date, heure, identifiant). Plus petit, moins espace.
-  static TextStyle meta({Color color = EditorialColors.textDim}) =>
+  static TextStyle meta({Color? color}) =>
       GoogleFonts.jetBrainsMono(
         fontSize: 10,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.8,
-        color: color,
+        color: color ?? EditorialColors.textDim,
       );
 
   // ─── Compat / specifiques (reutilises par les rows event) ──────
@@ -275,14 +299,14 @@ class EditorialText {
 
   /// Alias deprecie : utiliser `eyebrow`.
   static TextStyle kicker({
-    Color color = EditorialColors.textDim,
+    Color? color,
     double size = 10,
   }) =>
       GoogleFonts.jetBrainsMono(
         fontSize: size,
         fontWeight: FontWeight.w600,
         letterSpacing: size * 0.16,
-        color: color,
+        color: color ?? EditorialColors.textDim,
       );
 
   /// Alias deprecie : utiliser `chip`.

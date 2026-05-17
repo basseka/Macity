@@ -67,7 +67,7 @@ class ReportedEventsLiveStripe extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 146,
+              height: 132,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // Padding horizontal centre quand le contenu rentre dans
@@ -113,29 +113,30 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'En direct ',
+            'En direct',
             style: GoogleFonts.geist(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.3,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.4,
               color: AppColors.text,
             ),
           ),
+          const SizedBox(width: 6),
           Text(
             'autour de vous',
             style: GoogleFonts.instrumentSerif(
-              fontSize: 14,
+              fontSize: 22,
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w400,
-              letterSpacing: -0.2,
+              letterSpacing: -0.3,
               foreground: Paint()
                 ..shader = AppGradients.editorial.createShader(
-                  const Rect.fromLTWH(0, 0, 140, 20),
+                  const Rect.fromLTWH(0, 0, 160, 30),
                 ),
             ),
           ),
@@ -143,13 +144,22 @@ class _SectionHeader extends StatelessWidget {
           GestureDetector(
             onTap: onSeeAll,
             behavior: HitTestBehavior.opaque,
-            child: Text(
-              'Voir tout',
-              style: GoogleFonts.geist(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFFC77DFF),
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Voir tout',
+                  style: GoogleFonts.geist(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    color: AppColors.magenta,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                const Icon(Icons.chevron_right,
+                    size: 15, color: AppColors.magenta),
+              ],
             ),
           ),
         ],
@@ -169,8 +179,8 @@ class _LiveCard extends StatelessWidget {
     required this.index,
   });
 
-  static const _cardWidth = 100.0;
-  static const _photoSize = 100.0;
+  static const _cardWidth = 88.0;
+  static const _photoSize = 88.0;
 
   @override
   Widget build(BuildContext context) {

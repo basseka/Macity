@@ -47,7 +47,7 @@ class MacityTheme {
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.bg,
       primaryColor: AppColors.magenta,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: ColorScheme.dark(
         primary: AppColors.magenta,
         secondary: AppColors.violet,
         tertiary: AppColors.cyan,
@@ -61,14 +61,14 @@ class MacityTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          side: const BorderSide(color: AppColors.line, width: 1),
+          side: BorderSide(color: AppColors.line, width: 1),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surface,
         selectedColor: AppColors.magenta,
         labelStyle: textTheme.labelLarge!,
-        side: const BorderSide(color: AppColors.line),
+        side: BorderSide(color: AppColors.line),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.chip),
         ),
@@ -89,11 +89,11 @@ class MacityTheme {
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: AppColors.line),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: AppColors.line),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
@@ -101,7 +101,7 @@ class MacityTheme {
         ),
         hintStyle: textTheme.bodyMedium!.copyWith(color: AppColors.textFaint),
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.line, thickness: 1),
+      dividerTheme: DividerThemeData(color: AppColors.line, thickness: 1),
     );
   }
 }

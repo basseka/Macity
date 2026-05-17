@@ -187,7 +187,7 @@ class MatchRowCard extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 2),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [AppColors.surface, AppColors.surfaceHi],
@@ -365,7 +365,7 @@ class MatchRowCard extends ConsumerWidget {
               child: Row(
                 children: [
                   if (match.date.isNotEmpty) ...[
-                    const Icon(Icons.calendar_today, size: 10, color: AppColors.textFaint),
+                    Icon(Icons.calendar_today, size: 10, color: AppColors.textFaint),
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(match.date).toUpperCase(),
@@ -379,7 +379,7 @@ class MatchRowCard extends ConsumerWidget {
                   ],
                   if (match.lieu.isNotEmpty) ...[
                     const SizedBox(width: 10),
-                    const Icon(Icons.location_on, size: 10, color: AppColors.textFaint),
+                    Icon(Icons.location_on, size: 10, color: AppColors.textFaint),
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(

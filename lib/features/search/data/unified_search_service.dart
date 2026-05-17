@@ -51,10 +51,12 @@ class UnifiedSearchService {
     final normalized = _removeAccents(query.toLowerCase());
     final queryLower = normalized;
 
-    // Chercher avec et sans accents pour couvrir les deux cas
-    final futureScraped = _scrapedService.searchEvents(normalized, limit: 30);
-    final futureMatches = _matchService.searchMatches(normalized, limit: 15);
-    final futureUserEvents = _userEventService.searchEvents(normalized, limit: 15);
+    // Chercher avec et sans accents pour couvrir les deux cas — toutes les
+    // sources sont filtrees par la ville selectionnee pour eviter de retourner
+    // des resultats d'autres villes (ex: Strasbourg quand on est sur Toulouse).
+    final futureScraped = _scrapedService.searchEvents(normalized, limit: 30, ville: ville);
+    final futureMatches = _matchService.searchMatches(normalized, limit: 15, ville: ville);
+    final futureUserEvents = _userEventService.searchEvents(normalized, limit: 15, ville: ville);
     final futureVenues = _searchVenues(normalized, ville: ville, limit: 20);
 
     final results = await Future.wait([

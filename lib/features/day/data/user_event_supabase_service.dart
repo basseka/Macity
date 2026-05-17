@@ -319,18 +319,22 @@ class UserEventSupabaseService {
   }
 
   /// Search user events by title, description, lieu, category, or city.
-  Future<List<UserEvent>> searchEvents(String query, {int limit = 15}) async {
+  Future<List<UserEvent>> searchEvents(String query, {int limit = 15, String? ville}) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
+    final params = <String, String>{
+      'select': '*',
+      'or':
+          '(titre.ilike.*$query*,description.ilike.*$query*,lieu_nom.ilike.*$query*,categorie.ilike.*$query*)',
+      'date': 'gte.$today',
+      'order': 'date.asc',
+      'limit': '$limit',
+    };
+    if (ville != null && ville.isNotEmpty) {
+      params['ville'] = 'ilike.$ville*';
+    }
     final response = await _restDio.get(
       'user_events',
-      queryParameters: <String, String>{
-        'select': '*',
-        'or':
-            '(titre.ilike.*$query*,description.ilike.*$query*,lieu_nom.ilike.*$query*,categorie.ilike.*$query*,ville.ilike.*$query*)',
-        'date': 'gte.$today',
-        'order': 'date.asc',
-        'limit': '$limit',
-      },
+      queryParameters: params,
     );
     final data = response.data as List;
     return data

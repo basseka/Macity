@@ -152,7 +152,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
               ),
               title: Text(
                 isVideo ? 'Filmer maintenant' : 'Prendre une photo',
-                style: const TextStyle(color: AppColors.text),
+                style: TextStyle(color: AppColors.text),
               ),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
@@ -162,7 +162,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                 isVideo
                     ? 'Choisir une video dans la galerie'
                     : 'Choisir dans la galerie',
-                style: const TextStyle(color: AppColors.text),
+                style: TextStyle(color: AppColors.text),
               ),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
@@ -305,12 +305,12 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Supprimer la video ?',
+        title: Text('Supprimer la video ?',
             style: TextStyle(color: AppColors.text, fontSize: 15)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler',
+            child: Text('Annuler',
                 style: TextStyle(color: AppColors.textFaint)),
           ),
           TextButton(
@@ -344,7 +344,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.92,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(top: BorderSide(color: AppColors.line)),
@@ -407,7 +407,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
           const SizedBox(height: 14),
           _sectionTitle('Pochette (visible dans la liste)'),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Image principale affichee sur la carte de votre etablissement '
             'dans les listes.',
             style: TextStyle(color: AppColors.textFaint, fontSize: 11),
@@ -417,7 +417,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
           const SizedBox(height: 22),
           _sectionTitle('Photos de la fiche detail'),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Jusqu\'a 6 photos. Apparaissent dans l\'ordre sur la fiche detail.',
             style: TextStyle(color: AppColors.textFaint, fontSize: 11),
           ),
@@ -426,7 +426,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
           const SizedBox(height: 22),
           _sectionTitle('Video teaser'),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Filmez avec le telephone ou choisissez dans la galerie. '
             'Max 30 sec — 50 MB apres compression auto.',
             style: TextStyle(color: AppColors.textFaint, fontSize: 11),
@@ -514,7 +514,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
 
   Widget _sectionTitle(String text) => Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.text,
           fontSize: 13,
           fontWeight: FontWeight.w700,
@@ -542,7 +542,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                 if (hasCover)
                   Image.network(cover, fit: BoxFit.cover)
                 else
-                  const Center(
+                  Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -633,7 +633,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                     ),
                   ),
                 ] else
-                  const Center(
+                  Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -714,7 +714,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                   if (hasPhoto)
                     Image.network(rec.photos[i], fit: BoxFit.cover)
                   else
-                    const Center(
+                    Center(
                       child: Icon(Icons.add_a_photo_outlined,
                           color: AppColors.textFaint),
                     ),
@@ -740,12 +740,12 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Supprimer cette photo ?',
+        title: Text('Supprimer cette photo ?',
             style: TextStyle(color: AppColors.text, fontSize: 15)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler',
+            child: Text('Annuler',
                 style: TextStyle(color: AppColors.textFaint)),
           ),
           TextButton(
@@ -767,12 +767,12 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
         children: [
           _grabber(),
           const SizedBox(height: 20),
-          const Icon(Icons.info_outline, color: AppColors.textFaint, size: 32),
+          Icon(Icons.info_outline, color: AppColors.textFaint, size: 32),
           const SizedBox(height: 12),
           Text(
             msg,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textDim, fontSize: 13),
+            style: TextStyle(color: AppColors.textDim, fontSize: 13),
           ),
           const SizedBox(height: 20),
           SizedBox(

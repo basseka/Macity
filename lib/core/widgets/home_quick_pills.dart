@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
@@ -30,12 +31,6 @@ final boostedCarouselTabProvider =
 /// #1A0E2E) mais en pill compacte (hauteur ~30) plutot qu'en cercle.
 class HomeQuickPills extends ConsumerWidget {
   const HomeQuickPills({super.key});
-
-  static const _surface  = Color(0xFF1A0E2E);
-  static const _accent   = Color(0xFFA855F7);
-  static const _accentLo = Color(0x33A855F7);
-  static const _accentHi = Color(0xFFC77DFF);
-  static const _textHi   = Color(0xFFF5F0FF);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -106,7 +101,6 @@ class MapLivePillState extends ConsumerState<MapLivePill>
 
   static const _yellow   = Color(0xFFFBBF24);
   static const _yellowHi = Color(0xFFFDE68A);
-  static const _yellowLo = Color(0x33FBBF24);
 
   @override
   void initState() {
@@ -151,76 +145,78 @@ class MapLivePillState extends ConsumerState<MapLivePill>
           // Interpole l'opacite du glow jaune pour faire pulser quand il
           // y a du contenu. Sinon : pill statique avec accent violet.
           final t = hasContent ? _blinkAnim.value : 0.0;
-          final borderColor = hasContent
-              ? Color.lerp(_yellowLo, _yellow, t)!
-              : HomeQuickPills._accentLo;
-          final glow = hasContent ? 0.18 + 0.45 * t : 0.13;
           return Container(
             height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.fromLTRB(10, 0, 7, 0),
             decoration: BoxDecoration(
-              color: HomeQuickPills._surface,
-              borderRadius: BorderRadius.circular(16),
+              color: const Color(0xFFFFFFFF),
+              borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: borderColor,
-                width: hasContent ? 1.4 : 1,
+                color: const Color(0x141A0F2E),
+                width: 1,
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: (hasContent ? _yellow : HomeQuickPills._accent)
-                      .withValues(alpha: glow),
-                  blurRadius: hasContent ? 14 : 8,
-                  offset: const Offset(0, 2),
+                  color: Color(0x14000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.fiber_manual_record,
-                  size: 12,
-                  color: hasContent
-                      ? Color.lerp(_yellow, _yellowHi, t)
-                      : const Color(0xFFF472B6),
+                // Point jaune pulsant
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: hasContent
+                        ? Color.lerp(_yellow, _yellowHi, t)
+                        : const Color(0xFFD6D2C8),
+                    boxShadow: hasContent
+                        ? [
+                            BoxShadow(
+                              color: _yellow.withValues(alpha: 0.5 + 0.3 * t),
+                              blurRadius: 6,
+                            ),
+                          ]
+                        : null,
+                  ),
                 ),
-                const SizedBox(width: 6),
-                Flexible(
+                const SizedBox(width: 7),
+                Text(
+                  'Map Live',
+                  maxLines: 1,
+                  style: GoogleFonts.inter(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    color: const Color(0xFF1A0F2E),
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Container(
+                  constraints: const BoxConstraints(minWidth: 19),
+                  height: 19,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.magenta,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
                   child: Text(
-                    'Map Live',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    '$total',
                     style: GoogleFonts.inter(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: -0.05,
-                      color: HomeQuickPills._textHi,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      height: 1.0,
+                      letterSpacing: -0.1,
                     ),
                   ),
                 ),
-                if (hasContent) ...[
-                  const SizedBox(width: 5),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _yellow,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$total',
-                      style: GoogleFonts.inter(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                        height: 1.0,
-                        letterSpacing: -0.1,
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           );
@@ -253,25 +249,32 @@ class _Pill extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
-        height: 32,
+        height: 42,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: HomeQuickPills._surface,
+          color: isActive ? null : const Color(0xFFFFFFFF),
+          gradient: isActive
+              ? const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [Color(0xFFFF3D8B), Color(0xFFFF6FB0)],
+                )
+              : null,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isActive
-                ? HomeQuickPills._accent
-                : HomeQuickPills._accentLo,
-            width: isActive ? 1.5 : 1,
-          ),
+          border: isActive
+              ? null
+              : Border.all(color: const Color(0x141A0F2E), width: 1),
           boxShadow: isActive
-              ? const [
-                  BoxShadow(color: Color(0x66A855F7), blurRadius: 14),
-                  BoxShadow(color: Color(0x33A855F7), blurRadius: 26),
+              ? [
+                  BoxShadow(
+                    color: AppColors.magenta.withValues(alpha: 0.30),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
                 ]
               : const [
                   BoxShadow(
-                    color: Color(0x22A855F7),
+                    color: Color(0x12000000),
                     blurRadius: 8,
                     offset: Offset(0, 2),
                   ),
@@ -282,8 +285,10 @@ class _Pill extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 12,
-              color: iconColor ?? HomeQuickPills._accentHi,
+              size: 15,
+              color: isActive
+                  ? Colors.white
+                  : (iconColor ?? AppColors.magenta),
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -292,10 +297,12 @@ class _Pill extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: -0.05,
-                  color: HomeQuickPills._textHi,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.2,
+                  color: isActive
+                      ? Colors.white
+                      : const Color(0xFF1A0F2E),
                 ),
               ),
             ),

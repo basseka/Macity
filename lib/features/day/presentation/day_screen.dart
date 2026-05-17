@@ -194,7 +194,7 @@ class DayScreen extends ConsumerWidget {
           maxChildSize: 0.85,
           expand: false,
           builder: (_, scrollCtrl) => Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: EditorialColors.surface,
               borderRadius:
                   BorderRadius.vertical(top: Radius.circular(20)),
@@ -255,7 +255,7 @@ class DayScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const Divider(
+                Divider(
                   height: 1,
                   color: EditorialColors.dividerSoft,
                 ),
@@ -264,7 +264,7 @@ class DayScreen extends ConsumerWidget {
                     controller: scrollCtrl,
                     padding: EdgeInsets.zero,
                     itemCount: venues.length + 1,
-                    separatorBuilder: (_, __) => const Divider(
+                    separatorBuilder: (_, __) => Divider(
                       height: 1,
                       color: EditorialColors.dividerSoft,
                       indent: 20,

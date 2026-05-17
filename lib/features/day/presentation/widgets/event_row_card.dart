@@ -141,7 +141,7 @@ class EventRowCard extends ConsumerWidget {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
-          side: const BorderSide(color: AppColors.line),
+          side: BorderSide(color: AppColors.line),
         ),
         clipBehavior: Clip.antiAlias,
         child: IntrinsicHeight(
@@ -284,7 +284,7 @@ class EventRowCard extends ConsumerWidget {
                           const SizedBox(width: 8),
                           GestureDetector(
                             onTap: () => _shareEvent(),
-                            child: const Icon(
+                            child: Icon(
                               Icons.share_outlined,
                               color: AppColors.textFaint,
                               size: 14,

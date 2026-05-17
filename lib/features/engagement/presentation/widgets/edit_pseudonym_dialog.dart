@@ -94,11 +94,11 @@ class _EditPseudonymDialogState extends ConsumerState<EditPseudonymDialog> {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

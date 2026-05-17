@@ -290,6 +290,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Home = light theme (Night est le seul mode dark).
+    AppColors.isLightTheme = true;
+
     // Reagit aux demandes de filtre venant de la HomeNavTabs (En Scene / Event
     // / Clubbing). On aligne _activeTab avec la valeur demandee.
     ref.listen<String?>(feedFilterIntentProvider, (prev, next) {
@@ -322,9 +325,23 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
-        body: SafeArea(
-          bottom: false,
-          child: _buildBody(context),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFFCEFE6), // pêche très clair (haut)
+                Color(0xFFFAF4EC), // crème (milieu)
+                Color(0xFFF7F1E9), // crème légèrement plus dense (bas)
+              ],
+              stops: [0.0, 0.32, 1.0],
+            ),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: _buildBody(context),
+          ),
         ),
       ),
     );
@@ -333,6 +350,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool get _isLandscape => MediaQuery.of(context).orientation == Orientation.landscape;
 
   Widget _buildBody(BuildContext context) {
+    // Vue home pure (slot 0, classic, sans filtre, hors recherche/landscape)
+    // → layout mockup, tout scrolle ensemble.
+    final isHomeView = !_isSearching &&
+        !_isFeedOnlyView &&
+        _activeTab == null &&
+        ref.watch(feedModeProvider) == FeedMode.classic &&
+        !_isLandscape;
+    if (isHomeView) return _buildHomeView();
+
     return Column(
       children: [
         _buildHeader(),
@@ -439,9 +465,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => AccountMenu.show(context, ref),
-          child: AccountMenu.buildButton(ref: ref, size: 40),
+          child: AccountMenu.buildButton(ref: ref, size: 34),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 9),
         // Bloc "prenom + ville" cliquable -> ouvre le city picker
         Expanded(
           child: GestureDetector(
@@ -481,7 +507,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       ),
                     ),
                     const SizedBox(width: 2),
-                    const Icon(
+                    Icon(
                       Icons.keyboard_arrow_down,
                       size: 14,
                       color: AppColors.textDim,
@@ -524,8 +550,110 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         const HomeQuickPills(),
         const SizedBox(height: 4),
         boostedCarousel,
-        const SizedBox(height: 4),
+        const SizedBox(height: 16),
         if (showNavTabs) const HomeNavTabs(),
+      ],
+    );
+  }
+
+  /// Vue home (slot 0, classic, sans filtre) : tout scrolle ensemble dans
+  /// l'ordre exact du design — brand, recherche, pills, carte À la une,
+  /// tuiles catégories, "En direct" + cards.
+  Widget _buildHomeView() {
+    final boostedTab = ref.watch(boostedCarouselTabProvider);
+    final boostedCarousel = boostedTab == BoostedCarouselTab.top
+        ? const BoostedP2Carousel()
+        : const BoostedEventsCarousel();
+    final showNavTabs = boostedTab != BoostedCarouselTab.top;
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          child: _buildBrandRow(),
+        ),
+        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _buildHomeSearchRow(),
+        ),
+        const SizedBox(height: 12),
+        const HomeQuickPills(),
+        const SizedBox(height: 4),
+        boostedCarousel,
+        const SizedBox(height: 12),
+        if (showNavTabs) const HomeNavTabs(),
+        const SizedBox(height: 14),
+        const ReportedEventsLiveStripe(),
+        const SizedBox(height: 90),
+      ],
+    );
+  }
+
+  /// Barre de recherche home + bouton filtre séparé (mockup).
+  Widget _buildHomeSearchRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _isSearching = true),
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFFFF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0x141A0F2E)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x12000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 13),
+                  const Icon(Icons.search,
+                      color: Color(0xFF8A819F), size: 17),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Rechercher un lieu, un event...',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.geist(
+                        fontSize: 12.5,
+                        color: const Color(0xFF8A819F),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => _showCategoryMenu(context),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFFFF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x141A0F2E)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x12000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.tune,
+                color: AppColors.magenta, size: 17),
+          ),
+        ),
       ],
     );
   }
@@ -542,7 +670,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           hintStyle: GoogleFonts.geist(fontSize: 13, color: AppColors.textFaint),
           prefixIcon: const Icon(Icons.search, color: AppColors.magenta, size: 18),
           suffixIcon: IconButton(
-            icon: const Icon(Icons.close, color: AppColors.textFaint, size: 18),
+            icon: Icon(Icons.close, color: AppColors.textFaint, size: 18),
             onPressed: () {
               setState(() {
                 _isSearching = false;
@@ -555,11 +683,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           fillColor: AppColors.surface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.input),
-            borderSide: const BorderSide(color: AppColors.line),
+            borderSide: BorderSide(color: AppColors.line),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.input),
-            borderSide: const BorderSide(color: AppColors.line),
+            borderSide: BorderSide(color: AppColors.line),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.input),
@@ -582,7 +710,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               borderRadius: BorderRadius.circular(AppRadius.iconBtn),
               border: Border.all(color: AppColors.line),
             ),
-            child: const Icon(Icons.menu, color: AppColors.textDim, size: 18),
+            child: Icon(Icons.menu, color: AppColors.textDim, size: 18),
           ),
         ),
         const SizedBox(width: 8),
@@ -1039,7 +1167,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.search, size: 48, color: AppColors.textFaint),
+            Icon(Icons.search, size: 48, color: AppColors.textFaint),
             const SizedBox(height: 10),
             Text(
               'Tape au moins 2 lettres',
@@ -1147,7 +1275,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   color: AppColors.surfaceHi,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.event, color: AppColors.textFaint, size: 20),
+                child: Icon(Icons.event, color: AppColors.textFaint, size: 20),
               ),
             const SizedBox(width: 10),
             Expanded(
@@ -1485,7 +1613,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.event_busy, size: 48, color: AppColors.textFaint),
+                  Icon(Icons.event_busy, size: 48, color: AppColors.textFaint),
                   const SizedBox(height: 12),
                   Text(
                     'Aucun evenement a venir',

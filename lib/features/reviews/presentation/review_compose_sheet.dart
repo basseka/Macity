@@ -135,7 +135,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: viewInsets),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           border: Border(top: BorderSide(color: AppColors.line)),
@@ -210,11 +210,11 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
                     fillColor: AppColors.surfaceHi,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.card),
-                      borderSide: const BorderSide(color: AppColors.line),
+                      borderSide: BorderSide(color: AppColors.line),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.card),
-                      borderSide: const BorderSide(color: AppColors.line),
+                      borderSide: BorderSide(color: AppColors.line),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.card),

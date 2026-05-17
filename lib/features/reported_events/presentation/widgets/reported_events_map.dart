@@ -9,7 +9,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
-import 'package:pulz_app/features/reported_events/data/toulouse_peripherique.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
@@ -308,19 +307,14 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; background: #04020A; }
-    #map { width: 100vw; height: 100vh; background: #04020A; }
+    html, body { height: 100%; overflow: hidden; background: #F1EEE9; }
+    #map { width: 100vw; height: 100vh; background: #F1EEE9; }
     .leaflet-control-attribution {
       font-size: 8px;
-      background: rgba(10, 4, 20, 0.5) !important;
-      color: rgba(245, 240, 255, 0.4) !important;
+      background: rgba(255, 255, 255, 0.6) !important;
+      color: rgba(26, 15, 46, 0.55) !important;
     }
-    .leaflet-control-attribution a { color: rgba(168, 85, 247, 0.6) !important; }
-
-    /* Tint violet sur les tuiles dark CartoDB pour matcher la spec neon */
-    .leaflet-tile-pane {
-      filter: hue-rotate(245deg) saturate(1.4) brightness(0.85);
-    }
+    .leaflet-control-attribution a { color: rgba(168, 85, 247, 0.85) !important; }
 
     /* Pins style "goutte SVG" 24x26 + halo radial pulsant 40px (spec neon).
        Optim 2026-05-12 :
@@ -412,42 +406,15 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       attributionControl: true,
     }).setView([46.6, 2.4], 6);
 
-    // Tile layer dark (CartoDB DarkMatter NoLabels) — couplé au filter CSS
-    // hue-rotate pour donner la teinte violet/neon de la spec.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    // Tile layer claire (CartoDB Positron NoLabels) — pas de filter CSS,
+    // pas de hue-rotate : tuiles natives gris/beige clair pour s'aligner
+    // avec le light theme de l'app.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
       attribution: '&copy; CartoDB &copy; OSM',
       subdomains: 'abcd',
       referrerPolicy: 'origin',
     }).addTo(map);
-
-    // Trace REEL du Peripherique Exterieur de Toulouse (A 620) — geometrie
-    // extraite d'OpenStreetMap via Overpass API, 205 ways / ~1450 points.
-    // Pane dedie zIndex 425 pour rendre AU-DESSUS du tile-pane.
-    map.createPane('peripherique');
-    map.getPane('peripherique').style.zIndex = 425;
-    map.getPane('peripherique').style.pointerEvents = 'none';
-    const TOULOUSE_PERIPH_WAYS = $kToulousePeripheriqueWaysJson;
-    TOULOUSE_PERIPH_WAYS.forEach(way => {
-      // Halo tres discret
-      L.polyline(way, {
-        pane: 'peripherique',
-        color: '#CA8A04',
-        weight: 7,
-        opacity: 0.08,
-        lineCap: 'round',
-        lineJoin: 'round',
-      }).addTo(map);
-      // Ligne fine ambree sombre par-dessus
-      L.polyline(way, {
-        pane: 'peripherique',
-        color: '#CA8A04',
-        weight: 1.6,
-        opacity: 0.5,
-        lineCap: 'round',
-        lineJoin: 'round',
-      }).addTo(map);
-    });
 
     // Cluster group : groupe les pins proches en cercles avec compteur.
     // maxClusterRadius=40 = pins a < 40px sont groupes.
@@ -620,7 +587,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     return Container(
       height: widget.height,
       decoration: BoxDecoration(
-        color: const Color(0xFF04020A),
+        color: const Color(0xFFF1EEE9),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: const Color(0x33A855F7),
@@ -628,8 +595,8 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x33A855F7),
-            blurRadius: 18,
+            color: Color(0x22A855F7),
+            blurRadius: 12,
             spreadRadius: -4,
           ),
         ],
@@ -645,22 +612,6 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
                   () => EagerGestureRecognizer(),
                 ),
               },
-            ),
-            // Vignette radiale (assombrit les bords pour cohérence neon)
-            const IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    radius: 1.1,
-                    colors: [
-                      Colors.transparent,
-                      Color(0xCC04020A),
-                    ],
-                    stops: [0.65, 1.0],
-                  ),
-                ),
-                child: SizedBox.expand(),
-              ),
             ),
             if (_isLoading)
               const Center(

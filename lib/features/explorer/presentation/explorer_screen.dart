@@ -260,7 +260,7 @@ class _SearchField extends StatelessWidget {
             const Icon(Icons.search, color: AppColors.magenta, size: 18),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
-                icon: const Icon(Icons.close,
+                icon: Icon(Icons.close,
                     color: AppColors.textFaint, size: 18),
                 onPressed: onClear,
               )
@@ -269,11 +269,11 @@ class _SearchField extends StatelessWidget {
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: AppColors.line),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderSide: BorderSide(color: AppColors.line),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
@@ -315,7 +315,7 @@ class _VenueRow extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         color: AppColors.surface,
-                        child: const Icon(
+                        child: Icon(
                           Icons.place,
                           color: AppColors.textFaint,
                           size: 22,
@@ -324,7 +324,7 @@ class _VenueRow extends StatelessWidget {
                     )
                   : Container(
                       color: AppColors.surface,
-                      child: const Icon(
+                      child: Icon(
                         Icons.place,
                         color: AppColors.textFaint,
                         size: 22,

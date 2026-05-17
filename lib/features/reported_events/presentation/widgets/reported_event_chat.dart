@@ -19,8 +19,8 @@ class ReportedEventChat extends ConsumerStatefulWidget {
 class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
   // Accents : magenta pour les éléments actifs, surface élevée pour les bulles.
   static const _accent = AppColors.magenta;
-  // Texte principal (crème) — la sheet est en dark theme.
-  static const _dark = AppColors.text;
+  // Texte principal — passe en getter pour suivre le theme clair/sombre.
+  static Color get _dark => AppColors.text;
 
   final _controller = TextEditingController();
   final _scrollCtrl = ScrollController();
@@ -171,7 +171,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
             child: Row(
               children: [
-                const Icon(Icons.forum_rounded, size: 16, color: _dark),
+                Icon(Icons.forum_rounded, size: 16, color: _dark),
                 const SizedBox(width: 8),
                 Text(
                   'Discussion',
@@ -372,7 +372,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
             Container(
               width: 28,
               height: 28,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,

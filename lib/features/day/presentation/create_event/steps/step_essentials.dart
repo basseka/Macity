@@ -159,7 +159,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             children: kEventCategories.map((cat) {
               final selected = state.categorie == cat;
               return ChoiceChip(
-                label: Text(cat, style: const TextStyle(fontSize: 12, color: AppColors.text)),
+                label: Text(cat, style: TextStyle(fontSize: 12, color: AppColors.text)),
                 selected: selected,
                 selectedColor: _primaryColor.withValues(alpha: 0.15),
                 checkmarkColor: _primaryColor,
@@ -176,7 +176,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           TextFormField(
             controller: _titreController,
             decoration: _input('Titre de l\'évènement *'),
-            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            style: TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateTitre,
           ),
           const SizedBox(height: 14),
@@ -185,7 +185,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           TextFormField(
             controller: _descriptionController,
             decoration: _input('Description (optionnel)'),
-            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            style: TextStyle(fontSize: 13, color: AppColors.text),
             maxLines: 3,
             minLines: 2,
             maxLength: 300,
@@ -197,7 +197,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           TextFormField(
             controller: _billetterieController,
             decoration: _input('Lien billetterie ou site web (optionnel)'),
-            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            style: TextStyle(fontSize: 13, color: AppColors.text),
             keyboardType: TextInputType.url,
             onChanged: notifier.updateLienBilletterie,
           ),
@@ -246,7 +246,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           TextFormField(
             controller: _adresseController,
             decoration: _input('Adresse *'),
-            style: const TextStyle(fontSize: 13, color: AppColors.text),
+            style: TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateLieuAdresse,
           ),
           const SizedBox(height: 8),
@@ -297,7 +297,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             TextFormField(
               controller: _prixController,
               decoration: _input('Prix (€)'),
-              style: const TextStyle(fontSize: 13, color: AppColors.text),
+              style: TextStyle(fontSize: 13, color: AppColors.text),
               keyboardType: TextInputType.number,
               onChanged: notifier.updatePrix,
             ),
@@ -561,7 +561,7 @@ class _DatePickerField extends StatelessWidget {
         final pickerHeight = screenHeight * 0.8 < 320 ? screenHeight * 0.8 : 320.0;
         return Container(
           height: pickerHeight + bottomPadding,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             border: Border(top: BorderSide(color: AppColors.line)),
@@ -575,9 +575,9 @@ class _DatePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
-                    const Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -588,10 +588,10 @@ class _DatePickerField extends StatelessWidget {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               Expanded(
                 child: CupertinoTheme(
-                  data: const CupertinoThemeData(
+                  data: CupertinoThemeData(
                     brightness: Brightness.dark,
                     primaryColor: AppColors.magenta,
                     textTheme: CupertinoTextThemeData(
@@ -682,7 +682,7 @@ class _TimePickerField extends StatelessWidget {
         final pickerHeight = screenHeight * 0.8 < 320 ? screenHeight * 0.8 : 320.0;
         return Container(
           height: pickerHeight + bottomPadding,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             border: Border(top: BorderSide(color: AppColors.line)),
@@ -696,9 +696,9 @@ class _TimePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
-                    const Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -709,10 +709,10 @@ class _TimePickerField extends StatelessWidget {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               Expanded(
                 child: CupertinoTheme(
-                  data: const CupertinoThemeData(
+                  data: CupertinoThemeData(
                     brightness: Brightness.dark,
                     primaryColor: AppColors.magenta,
                     textTheme: CupertinoTextThemeData(

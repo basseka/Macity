@@ -19,7 +19,7 @@ class EditorialHeroLine extends StatelessWidget {
   final Color italicColor;
 
   /// Couleur du prefixe + suffixe.
-  final Color textColor;
+  final Color? textColor;
 
   /// Chip mono optionnelle a droite (ex "NO. 04").
   final String? chipLabel;
@@ -34,7 +34,7 @@ class EditorialHeroLine extends StatelessWidget {
     required this.italicWord,
     this.suffix = '.',
     this.italicColor = EditorialColors.gold,
-    this.textColor = EditorialColors.text,
+    this.textColor,
     this.chipLabel,
     this.eyebrow,
     this.eyebrowColor = EditorialColors.magenta,
@@ -47,7 +47,7 @@ class EditorialHeroLine extends StatelessWidget {
       fontWeight: FontWeight.w700,
       height: 1.1,
       letterSpacing: -0.5,
-      color: textColor,
+      color: textColor ?? EditorialColors.text,
     );
     final italicStyle = GoogleFonts.playfairDisplay(
       fontSize: 30,

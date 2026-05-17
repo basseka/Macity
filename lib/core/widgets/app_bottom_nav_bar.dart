@@ -52,18 +52,23 @@ class AppBottomNavBar extends ConsumerWidget {
     final _selectedIndex = ref.watch(navBarIndexProvider);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
+    final navBg = AppColors.isLightTheme
+        ? const Color(0xFFFFFFFF)
+        : AppColors.surface;
     return Material(
-      color: AppColors.surface,
+      color: navBg,
       elevation: 0,
       child: Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: navBg,
         border: Border(top: BorderSide(color: AppColors.line)),
         boxShadow: [
           BoxShadow(
-            color: Color(0x66000000),
+            color: AppColors.isLightTheme
+                ? const Color(0x14000000)
+                : const Color(0x66000000),
             blurRadius: 16,
-            offset: Offset(0, -4),
+            offset: const Offset(0, -4),
           ),
         ],
       ),
@@ -109,16 +114,54 @@ class AppBottomNavBar extends ConsumerWidget {
                   appRouter.go('/home');
                 },
               ),
-              // 2 - + (publier event ou story Map Live)
-              _NavBarItem(
-                icon: Icons.add_circle,
-                label: 'Publier',
-                isActive: _selectedIndex == 2,
+              // 2 - + (publier event ou story Map Live) — bouton central
+              // proéminent : cercle plein magenta + "Publier" dessous.
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 2;
                   _dismissOpenSheet();
                   _showPublishMenu(context, ref);
                 },
+                child: SizedBox(
+                  width: 64,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFFFF3D8B), Color(0xFFFF6FB0)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.magenta.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.add,
+                            color: Colors.white, size: 22),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Publier',
+                        style: GoogleFonts.geist(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: -0.05,
+                          color: AppColors.textFaint,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               // 3 - Explorer
               _NavBarItem(
@@ -169,7 +212,7 @@ class AppBottomNavBar extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
             border: Border(top: BorderSide(color: AppColors.line)),
@@ -325,7 +368,7 @@ class AppBottomNavBar extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
             border: Border(top: BorderSide(color: AppColors.line)),
@@ -405,7 +448,7 @@ class AppBottomNavBar extends ConsumerWidget {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(ctx).size.height * 0.9,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           border: Border(top: BorderSide(color: AppColors.line)),
@@ -526,7 +569,7 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppColors.text : AppColors.textFaint;
+    final color = isActive ? AppColors.magenta : AppColors.textFaint;
 
     return GestureDetector(
       onTap: onTap,
@@ -725,7 +768,7 @@ class _PublishOptionTile extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textFaint, size: 20),
+            Icon(Icons.chevron_right, color: AppColors.textFaint, size: 20),
           ],
         ),
       ),

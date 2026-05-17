@@ -85,7 +85,7 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
       expand: false,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.bg,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
@@ -93,7 +93,7 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
             children: [
               _grabber(),
               _header(totals, liked),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               Expanded(
                 child: commentsAsync.when(
                   data: (comments) => _commentsList(comments, scrollController),
@@ -106,7 +106,7 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
                   ),
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               _inputBar(pseudoAsync.valueOrNull),
             ],
           ),
@@ -159,12 +159,12 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.send_outlined, color: AppColors.text),
+            icon: Icon(Icons.send_outlined, color: AppColors.text),
             tooltip: '$shares',
             onPressed: _onShare,
           ),
           IconButton(
-            icon: const Icon(Icons.mode_comment_outlined, color: AppColors.text),
+            icon: Icon(Icons.mode_comment_outlined, color: AppColors.text),
             tooltip: '$comments',
             onPressed: null,
           ),
@@ -279,7 +279,7 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
                           shape: BoxShape.circle,
                           border: Border.all(color: AppColors.line, width: 1),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.edit,
                           size: 8,
                           color: AppColors.text,
@@ -321,11 +321,11 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
                   counterText: '',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: AppColors.line),
+                    borderSide: BorderSide(color: AppColors.line),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
-                    borderSide: const BorderSide(color: AppColors.line),
+                    borderSide: BorderSide(color: AppColors.line),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),

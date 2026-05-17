@@ -159,19 +159,23 @@ class ScrapedEventsSupabaseService {
   }
 
   /// Search events by name, description, lieu, or category across all rubriques.
-  Future<List<Event>> searchEvents(String query, {int limit = 30}) async {
+  Future<List<Event>> searchEvents(String query, {int limit = 30, String? ville}) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
+    final params = <String, String>{
+      'select': '*',
+      'or':
+          '(nom_de_la_manifestation.ilike.*$query*,descriptif_court.ilike.*$query*,lieu_nom.ilike.*$query*,type_de_manifestation.ilike.*$query*,categorie_de_la_manifestation.ilike.*$query*)',
+      'date_debut': 'gte.$today',
+      'photo_url': 'not.is.null',
+      'order': 'date_debut.asc',
+      'limit': '$limit',
+    };
+    if (ville != null && ville.isNotEmpty) {
+      params['ville'] = 'ilike.$ville*';
+    }
     final response = await _dio.get(
       'scraped_events',
-      queryParameters: <String, String>{
-        'select': '*',
-        'or':
-            '(nom_de_la_manifestation.ilike.*$query*,descriptif_court.ilike.*$query*,lieu_nom.ilike.*$query*,type_de_manifestation.ilike.*$query*,categorie_de_la_manifestation.ilike.*$query*)',
-        'date_debut': 'gte.$today',
-        'photo_url': 'not.is.null',
-        'order': 'date_debut.asc',
-        'limit': '$limit',
-      },
+      queryParameters: params,
     );
     final data = response.data as List;
     return compute(_parseAndFilter, data);

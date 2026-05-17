@@ -142,7 +142,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                       child: SingleChildScrollView(
                         child: Text(
                           state.errorMessage!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             color: AppColors.text,
                             height: 1.35,
@@ -156,7 +156,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                           .read(createEventProvider.notifier)
                           .clearError(),
                       behavior: HitTestBehavior.opaque,
-                      child: const Padding(
+                      child: Padding(
                         padding: EdgeInsets.all(4),
                         child: Icon(
                           Icons.close,

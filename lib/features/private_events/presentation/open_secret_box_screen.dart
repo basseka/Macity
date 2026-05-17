@@ -139,7 +139,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
             color: AppColors.text,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.text),
+        iconTheme: IconThemeData(color: AppColors.text),
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
@@ -244,11 +244,11 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
                 contentPadding: const EdgeInsets.fromLTRB(12, 12, 50, 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.card),
-                  borderSide: const BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.card),
-                  borderSide: const BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: AppColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.card),
@@ -310,11 +310,11 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
             fillColor: AppColors.surfaceHi,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
-              borderSide: const BorderSide(color: AppColors.line),
+              borderSide: BorderSide(color: AppColors.line),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
-              borderSide: const BorderSide(color: AppColors.line),
+              borderSide: BorderSide(color: AppColors.line),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
@@ -569,7 +569,7 @@ class _RevealViewState extends State<_RevealView> {
                           ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.text,
-                            side: const BorderSide(color: AppColors.line),
+                            side: BorderSide(color: AppColors.line),
                             shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(AppRadius.chip),

@@ -26,7 +26,7 @@ class CityListTile extends StatelessWidget {
           border: Border.all(color: AppColors.line),
         ),
         alignment: Alignment.center,
-        child: const Icon(
+        child: Icon(
           Icons.location_city,
           color: AppColors.textDim,
           size: 18,

@@ -30,6 +30,12 @@ class ModeShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
 
+    // POC theme clair : Night reste sombre, tous les autres modes basculent en
+    // clair. On flip le flag avant le build pour que les widgets enfants
+    // recuperent la bonne palette des le premier render.
+    final currentMode = ref.watch(currentModeProvider);
+    AppColors.isLightTheme = currentMode != 'night';
+
     // Navigate to the correct route when mode changes
     ref.listen<String>(currentModeProvider, (previous, next) {
       // Remettre la grille de rubriques a chaque changement de shell
@@ -128,13 +134,13 @@ class ModeShell extends ConsumerWidget {
                     child: Container(
                       width: 34,
                       height: 34,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: EditorialColors.dividerSoft,
                         shape: BoxShape.circle,
                         border: Border.fromBorderSide(BorderSide(
                             color: EditorialColors.dividerStrong, width: 1)),
                       ),
-                      child: const Icon(Icons.menu,
+                      child: Icon(Icons.menu,
                           color: EditorialColors.paperMuted, size: 18),
                     ),
                   ),
@@ -161,7 +167,7 @@ class ModeShell extends ConsumerWidget {
                         child: Row(
                           children: [
                             const SizedBox(width: 12),
-                            const Icon(Icons.search,
+                            Icon(Icons.search,
                                 color: EditorialColors.paperMuted, size: 16),
                             const SizedBox(width: 6),
                             Text(

@@ -64,7 +64,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
             color: AppColors.text,
           ),
         ),
-        iconTheme: const IconThemeData(color: AppColors.text),
+        iconTheme: IconThemeData(color: AppColors.text),
       ),
       body: FutureBuilder<List<PrivateEventReveal>>(
         future: _future,
@@ -202,7 +202,7 @@ class _InvitationTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.calendar_today,
                           size: 11,
                           color: AppColors.textFaint,
@@ -224,7 +224,7 @@ class _InvitationTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on_outlined,
                             size: 11,
                             color: AppColors.textFaint,
@@ -293,7 +293,7 @@ class _InvitationTile extends StatelessWidget {
 
   Widget _photoPlaceholder() => Container(
         color: AppColors.surfaceHi,
-        child: const Icon(
+        child: Icon(
           Icons.celebration,
           color: AppColors.textFaint,
           size: 22,
@@ -387,7 +387,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         border: Border(top: BorderSide(color: AppColors.line)),
@@ -431,7 +431,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                               fit: BoxFit.cover,
                               errorWidget: (_, __, ___) => Container(
                                 color: AppColors.surfaceHi,
-                                child: const Icon(
+                                child: Icon(
                                   Icons.celebration,
                                   color: AppColors.textFaint,
                                   size: 32,
@@ -615,7 +615,7 @@ class _GuestRow extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.surface,
             ),

@@ -67,7 +67,7 @@ class AccountMenu {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(ctx).size.height * 0.9,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           border: Border(top: BorderSide(color: AppColors.line)),
@@ -104,7 +104,7 @@ class AccountMenu {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.location_on, size: 11, color: AppColors.textFaint),
+                      Icon(Icons.location_on, size: 11, color: AppColors.textFaint),
                       const SizedBox(width: 3),
                       Text(
                         ville,
@@ -379,11 +379,11 @@ class AccountMenu {
       barrierDismissible: false,
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text(
+        title: Text(
           'Supprimer votre compte ?',
           style: TextStyle(color: AppColors.text, fontSize: 16),
         ),
-        content: const Text(
+        content: Text(
           'Cette action est definitive. Vos donnees pro seront supprimees '
           'et vous ne pourrez plus vous connecter avec cet email. '
           'Vous pourrez creer un nouveau compte plus tard si besoin.',
@@ -392,7 +392,7 @@ class AccountMenu {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: const Text(
+            child: Text(
               'Annuler',
               style: TextStyle(color: AppColors.textFaint),
             ),
@@ -498,7 +498,7 @@ class AccountMenu {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right_rounded,
                 color: AppColors.textFaint,
                 size: 18,

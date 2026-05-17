@@ -44,6 +44,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Home = light theme (Night est le seul mode dark).
+    AppColors.isLightTheme = true;
+
     // Lazy: ne precharger les banners que quand on les affiche
     ref.watch(activeBannersProvider);
 
@@ -274,7 +277,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.card),
-        side: const BorderSide(color: AppColors.line),
+        side: BorderSide(color: AppColors.line),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.card),
@@ -398,9 +401,10 @@ class HomeScreenSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    AppColors.isLightTheme = true;
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(top: BorderSide(color: AppColors.line)),
@@ -502,7 +506,7 @@ class HomeScreenSheet extends ConsumerWidget {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.card),
-        side: const BorderSide(color: AppColors.line),
+        side: BorderSide(color: AppColors.line),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.card),

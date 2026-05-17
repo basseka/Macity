@@ -73,7 +73,7 @@ class EditorialAvenirBanner extends ConsumerWidget {
               ),
               const SizedBox(width: 6),
             ],
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 16,
               color: EditorialColors.paperMuted,

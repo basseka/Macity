@@ -156,7 +156,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.92,
         ),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           border: Border(top: BorderSide(color: AppColors.line)),
@@ -252,7 +252,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.add_photo_alternate_outlined,
                             color: AppColors.textFaint,
                             size: 28,
@@ -453,11 +453,11 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
-              borderSide: const BorderSide(color: AppColors.line),
+              borderSide: BorderSide(color: AppColors.line),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
-              borderSide: const BorderSide(color: AppColors.line),
+              borderSide: BorderSide(color: AppColors.line),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
@@ -502,7 +502,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
             alignment: Alignment.centerLeft,
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.calendar_today,
                   size: 14,
                   color: AppColors.textFaint,
@@ -735,7 +735,7 @@ class _CredsBox extends StatelessWidget {
                 ),
               );
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.copy,
               size: 18,
               color: AppColors.textFaint,

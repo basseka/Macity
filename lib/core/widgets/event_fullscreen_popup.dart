@@ -280,18 +280,19 @@ class EventFullscreenPopup extends ConsumerWidget {
                                         fontSize: 13,
                                         color: AppColors.text,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  const SizedBox(width: 6),
                                   InkWell(
                                     onTap: () =>
                                         _openInfoSheet(context),
                                     borderRadius: BorderRadius.circular(20),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
+                                        horizontal: 8,
+                                        vertical: 3,
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.magenta
@@ -309,14 +310,14 @@ class EventFullscreenPopup extends ConsumerWidget {
                                         children: [
                                           const Icon(
                                             Icons.info_outline,
-                                            size: 13,
+                                            size: 12,
                                             color: AppColors.magenta,
                                           ),
-                                          const SizedBox(width: 4),
+                                          const SizedBox(width: 3),
                                           Text(
-                                            'Plus d\'infos',
+                                            'Infos',
                                             style: GoogleFonts.geist(
-                                              fontSize: 11,
+                                              fontSize: 10,
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.magenta,
                                             ),
@@ -402,17 +403,15 @@ class EventFullscreenPopup extends ConsumerWidget {
                       ),
                       child: SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 38,
                         child: ElevatedButton.icon(
                           onPressed: () => _openUrl(event.reservationUrl),
-                          icon: const Icon(Icons.confirmation_number_outlined, size: 18),
-                          label: const Text(
-                            'Billetterie',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                          ),
+                          icon: const Icon(Icons.confirmation_number_outlined, size: 14),
+                          label: const Text('Billetterie'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.magenta,
                             foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppRadius.iconBtn),
                             ),
@@ -420,7 +419,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                           ).copyWith(
                             textStyle: WidgetStatePropertyAll(
                               GoogleFonts.geist(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: -0.2,
                               ),
@@ -1393,7 +1392,7 @@ class _EventInfoSheet extends StatelessWidget {
       expand: false,
       builder: (ctx, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.bg,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
@@ -1430,7 +1429,7 @@ class _EventInfoSheet extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(ctx).pop(),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close,
                         size: 22,
                         color: AppColors.textDim,
@@ -1440,7 +1439,7 @@ class _EventInfoSheet extends StatelessWidget {
                   ],
                 ),
               ),
-              const Divider(height: 1, color: AppColors.line),
+              Divider(height: 1, color: AppColors.line),
               // Contenu scrollable
               Expanded(
                 child: SingleChildScrollView(

@@ -74,7 +74,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
       builder: (ctx) {
         return Container(
           height: 320,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
@@ -87,9 +87,9 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
+                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
                     ),
-                    const Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -102,7 +102,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
               ),
               Expanded(
                 child: CupertinoTheme(
-                  data: const CupertinoThemeData(
+                  data: CupertinoThemeData(
                     brightness: Brightness.dark,
                     textTheme: CupertinoTextThemeData(
                       dateTimePickerTextStyle: TextStyle(fontSize: 20, color: AppColors.text),
@@ -136,7 +136,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
       builder: (ctx) {
         return Container(
           height: 320,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
@@ -149,9 +149,9 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
+                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
                     ),
-                    const Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -164,7 +164,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
               ),
               Expanded(
                 child: CupertinoTheme(
-                  data: const CupertinoThemeData(
+                  data: CupertinoThemeData(
                     brightness: Brightness.dark,
                     textTheme: CupertinoTextThemeData(
                       dateTimePickerTextStyle: TextStyle(fontSize: 22, color: AppColors.text),

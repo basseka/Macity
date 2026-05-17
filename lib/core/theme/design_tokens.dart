@@ -5,18 +5,47 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Surfaces
-  static const bg          = Color(0xFF0A0514);
-  static const bgSecondary = Color(0xFF120823);
-  static const surface     = Color(0xFF1A0F2E);
-  static const surfaceHi   = Color(0xFF241640);
+  // ─── Mode clair / sombre (POC theme) ────────────────────────────────────
+  // Bascule globale. ModeShell met a jour ce flag selon le mode courant :
+  // Night = false (dark), tous les autres modes = true (light).
+  // Les getters bg/surface/text/line dependent de ce flag. Les couleurs
+  // brand (magenta/violet/etc.) restent les memes dans les 2 themes.
+  static bool isLightTheme = false;
 
-  // Text
-  static const text      = Color(0xFFF5F0FF);
-  static const textDim   = Color(0xFFB5A8D0);
-  static const textFaint = Color(0xFF7A6E95);
+  // ─── Surfaces ──────────────────────────────────────────────────────────
+  static Color get bg => isLightTheme
+      ? const Color(0xFFFAFAF7)
+      : const Color(0xFF0A0514);
+  static Color get bgSecondary => isLightTheme
+      ? const Color(0xFFF1EEE9)
+      : const Color(0xFF120823);
+  static Color get surface => isLightTheme
+      ? const Color(0xFFD8D8D8)
+      : const Color(0xFF1A0F2E);
+  static Color get surfaceHi => isLightTheme
+      ? const Color(0xFFC8C8C8)
+      : const Color(0xFF241640);
 
-  // Brand
+  // ─── Texte ─────────────────────────────────────────────────────────────
+  static Color get text => isLightTheme
+      ? const Color(0xFF1A0F2E)
+      : const Color(0xFFF5F0FF);
+  static Color get textDim => isLightTheme
+      ? const Color(0xFF4A4063)
+      : const Color(0xFFB5A8D0);
+  static Color get textFaint => isLightTheme
+      ? const Color(0xFF8A819F)
+      : const Color(0xFF7A6E95);
+
+  // ─── Lines (inversees en clair : noir transparent au lieu de blanc) ──
+  static Color get line => isLightTheme
+      ? const Color(0x401A0F2E)
+      : const Color(0x12FFFFFF);
+  static Color get lineStrong => isLightTheme
+      ? const Color(0x661A0F2E)
+      : const Color(0x24FFFFFF);
+
+  // ─── Brand (inchange dans les 2 themes) ──────────────────────────────
   static const magenta    = Color(0xFFFF3D8B);
   static const violet     = Color(0xFFA855F7);
   static const purpleDeep = Color(0xFF6B1FB3);
@@ -28,10 +57,6 @@ class AppColors {
   static const catCult   = Color(0xFF22D3EE);
   static const catSport  = Color(0xFF22C55E);
   static const catFiesta = Color(0xFFEF4444);
-
-  // Lines
-  static const line       = Color(0x12FFFFFF); // ~7% white
-  static const lineStrong = Color(0x24FFFFFF); // ~14% white
 }
 
 class AppRadius {

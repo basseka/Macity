@@ -69,7 +69,7 @@ class EditorialCityHeader extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 2),
-                      const Icon(
+                      Icon(
                         Icons.keyboard_arrow_down,
                         size: 18,
                         color: AppColors.textDim,

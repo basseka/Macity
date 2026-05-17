@@ -87,7 +87,7 @@ class EditorialEventRowCard extends StatelessWidget {
       splashColor: accent.withValues(alpha: 0.18),
       highlightColor: accent.withValues(alpha: 0.06),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: EditorialColors.dividerSoft, width: 1),
           ),
@@ -174,7 +174,7 @@ class EditorialEventRowCard extends StatelessWidget {
                     Row(
                       children: [
                         if (venue != null && venue!.isNotEmpty) ...[
-                          const Icon(
+                          Icon(
                             Icons.place_outlined,
                             size: 11,
                             color: EditorialColors.paperMuted,
@@ -191,7 +191,7 @@ class EditorialEventRowCard extends StatelessWidget {
                         ],
                         if (interested != null) ...[
                           const SizedBox(width: 10),
-                          const Icon(
+                          Icon(
                             Icons.people_outline,
                             size: 11,
                             color: EditorialColors.paperMuted,
