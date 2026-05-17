@@ -67,7 +67,7 @@ class ReportedEventsLiveStripe extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 132,
+              height: 170,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // Padding horizontal centre quand le contenu rentre dans
@@ -120,23 +120,23 @@ class _SectionHeader extends StatelessWidget {
           Text(
             'En direct',
             style: GoogleFonts.geist(
-              fontSize: 18,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
-              letterSpacing: -0.4,
+              letterSpacing: -0.3,
               color: AppColors.text,
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
           Text(
             'autour de vous',
             style: GoogleFonts.instrumentSerif(
-              fontSize: 22,
+              fontSize: 15,
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w400,
-              letterSpacing: -0.3,
+              letterSpacing: -0.2,
               foreground: Paint()
                 ..shader = AppGradients.editorial.createShader(
-                  const Rect.fromLTWH(0, 0, 160, 30),
+                  const Rect.fromLTWH(0, 0, 110, 20),
                 ),
             ),
           ),
@@ -179,8 +179,8 @@ class _LiveCard extends StatelessWidget {
     required this.index,
   });
 
-  static const _cardWidth = 88.0;
-  static const _photoSize = 88.0;
+  static const _cardWidth = 112.0;
+  static const _photoSize = 112.0;
 
   @override
   Widget build(BuildContext context) {

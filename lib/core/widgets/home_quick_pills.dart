@@ -190,7 +190,7 @@ class MapLivePillState extends ConsumerState<MapLivePill>
                   'Map Live',
                   maxLines: 1,
                   style: GoogleFonts.inter(
-                    fontSize: 11.5,
+                    fontSize: 10,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.2,
                     color: const Color(0xFF1A0F2E),
@@ -249,8 +249,8 @@ class _Pill extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
-        height: 42,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 9),
         decoration: BoxDecoration(
           color: isActive ? null : const Color(0xFFFFFFFF),
           gradient: isActive
@@ -285,19 +285,19 @@ class _Pill extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 15,
+              size: 13,
               color: isActive
                   ? Colors.white
                   : (iconColor ?? AppColors.magenta),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Flexible(
               child: Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(
-                  fontSize: 12,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.2,
                   color: isActive

@@ -43,10 +43,9 @@ class BoostedEventsCarousel extends ConsumerWidget {
     List<UserEvent> events,
     VoidCallback onSeeAll,
   ) {
-    // Full width hero : chaque card occupe la largeur ecran (- 32px de
-    // padding L/R). PageView avec snap pour toujours centrer la card
-    // visible quand l'utilisateur swipe.
-    final cardWidth = MediaQuery.of(context).size.width;
+    // Hero : chaque card occupe la largeur ecran - 32px de marge L/R.
+    // PageView avec snap pour toujours centrer la card visible.
+    final cardWidth = MediaQuery.of(context).size.width - 32;
     final cardHeight = cardWidth / 1.4375;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,7 +65,7 @@ class BoostedEventsCarousel extends ConsumerWidget {
             itemCount: events.length,
             physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) => Padding(
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: _BoostedCard(
                 event: events[index],
                 allEvents: events,
@@ -354,7 +353,7 @@ class BoostedP2Carousel extends ConsumerWidget {
         if (events.isEmpty) return const SizedBox.shrink();
         // Meme dimensions que "A la une" (ratio 1.4375) pour un swap visuel
         // cohérent quand l'utilisateur toggle entre les deux pills.
-        final cardWidth = MediaQuery.of(context).size.width;
+        final cardWidth = MediaQuery.of(context).size.width - 32;
         final cardHeight = cardWidth / 1.4375;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,7 +372,7 @@ class BoostedP2Carousel extends ConsumerWidget {
                 itemCount: events.length,
                 physics: const BouncingScrollPhysics(),
                 itemBuilder: (context, index) => Padding(
-                  padding: EdgeInsets.zero,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _P2Card(
                     event: events[index],
                     allEvents: events,
@@ -629,28 +628,28 @@ class _SectionTitle extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 16, color: AppColors.magenta),
-        const SizedBox(width: 7),
+        Icon(icon, size: 14, color: AppColors.magenta),
+        const SizedBox(width: 6),
         Text(
           prefix,
           style: GoogleFonts.geist(
-            fontSize: 18,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
-            letterSpacing: -0.4,
+            letterSpacing: -0.3,
             color: AppColors.text,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 5),
         Text(
           accent,
           style: GoogleFonts.instrumentSerif(
-            fontSize: 22,
+            fontSize: 18,
             fontStyle: FontStyle.italic,
             fontWeight: FontWeight.w400,
-            letterSpacing: -0.3,
+            letterSpacing: -0.2,
             foreground: Paint()
               ..shader = AppGradients.editorial.createShader(
-                const Rect.fromLTWH(0, 0, 110, 30),
+                const Rect.fromLTWH(0, 0, 95, 24),
               ),
           ),
         ),
