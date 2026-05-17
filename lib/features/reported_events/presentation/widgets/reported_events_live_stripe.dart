@@ -67,7 +67,7 @@ class ReportedEventsLiveStripe extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 170,
+              height: 116,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // Padding horizontal centre quand le contenu rentre dans
@@ -120,9 +120,9 @@ class _SectionHeader extends StatelessWidget {
           Text(
             'En direct',
             style: GoogleFonts.geist(
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
-              letterSpacing: -0.3,
+              letterSpacing: -0.2,
               color: AppColors.text,
             ),
           ),
@@ -130,13 +130,13 @@ class _SectionHeader extends StatelessWidget {
           Text(
             'autour de vous',
             style: GoogleFonts.instrumentSerif(
-              fontSize: 15,
+              fontSize: 13,
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w400,
               letterSpacing: -0.2,
               foreground: Paint()
                 ..shader = AppGradients.editorial.createShader(
-                  const Rect.fromLTWH(0, 0, 110, 20),
+                  const Rect.fromLTWH(0, 0, 95, 18),
                 ),
             ),
           ),
@@ -202,107 +202,129 @@ class _LiveCard extends StatelessWidget {
         );
       },
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: _cardWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Photo carree avec coins arrondis, badge "LIVE" en haut a gauche
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: _photoSize,
-                    height: _photoSize,
-                    child: hasPhoto
-                        ? CachedNetworkImage(
-                            imageUrl: event.firstPhoto!,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) =>
-                                Container(color: AppColors.surfaceHi),
-                            errorWidget: (_, __, ___) =>
-                                Container(color: AppColors.surfaceHi),
-                          )
-                        : Container(
-                            color: AppColors.surfaceHi,
-                            alignment: Alignment.center,
-                            child: Text(
-                              event.generated?.emoji ?? '📍',
-                              style: const TextStyle(fontSize: 32),
-                            ),
-                          ),
-                  ),
-                ),
-                Positioned(
-                  top: 6,
-                  left: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444),
-                      borderRadius: BorderRadius.circular(4),
-                      boxShadow: AppShadows.neon(
-                        const Color(0xFFEF4444),
-                        blur: 6,
-                        y: 2,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: _cardWidth,
+          height: _photoSize,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Photo de fond
+              hasPhoto
+                  ? CachedNetworkImage(
+                      imageUrl: event.firstPhoto!,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) =>
+                          Container(color: AppColors.surfaceHi),
+                      errorWidget: (_, __, ___) =>
+                          Container(color: AppColors.surfaceHi),
+                    )
+                  : Container(
+                      color: AppColors.surfaceHi,
+                      alignment: Alignment.center,
+                      child: Text(
+                        event.generated?.emoji ?? '📍',
+                        style: const TextStyle(fontSize: 32),
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 5,
-                          height: 5,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          'LIVE',
-                          style: GoogleFonts.geistMono(
-                            fontSize: 7.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ],
-                    ),
+
+              // Dégradé sombre bas pour lisibilité du titre blanc
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Color(0xCC000000)],
+                    stops: [0.45, 1.0],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.geist(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.text,
-                height: 1.1,
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              _relativeTime(event.createdAt),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.geist(
-                fontSize: 10,
-                fontWeight: FontWeight.w400,
-                color: AppColors.textFaint,
-                height: 1.1,
+
+              // Badge LIVE haut-gauche
+              Positioned(
+                top: 6,
+                left: 6,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444),
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: AppShadows.neon(
+                      const Color(0xFFEF4444),
+                      blur: 6,
+                      y: 2,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        'LIVE',
+                        style: GoogleFonts.geistMono(
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+
+              // Titre + temps en blanc, en bas sur l'affiche
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.geist(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.1,
+                        shadows: const [
+                          Shadow(blurRadius: 4, color: Colors.black54),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _relativeTime(event.createdAt),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.geist(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
