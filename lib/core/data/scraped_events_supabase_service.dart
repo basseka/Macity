@@ -180,6 +180,50 @@ class ScrapedEventsSupabaseService {
     final data = response.data as List;
     return compute(_parseAndFilter, data);
   }
+
+  /// Events dont la periode chevauche [startIso, endIso] (format YYYY-MM-DD),
+  /// scopes par ville. Utilise par la recherche par dates de l'Explorer.
+  /// Couvre les events qui demarrent dans la fenetre + les multi-jours en
+  /// cours qui la traversent.
+  Future<List<Event>> fetchEventsByDateRange({
+    required String startIso,
+    required String endIso,
+    String? ville,
+    int limit = 300,
+  }) async {
+    final common = <String, String>{
+      'select': '*',
+      'order': 'date_debut.asc,horaires.asc',
+      'photo_url': 'neq.',
+      'limit': '$limit',
+    };
+    if (ville != null && ville.isNotEmpty) common['ville'] = 'ilike.$ville';
+
+    // A. Events qui demarrent dans la fenetre
+    final inRange = Map<String, String>.from(common)
+      ..['and'] = '(date_debut.gte.$startIso,date_debut.lte.$endIso)';
+
+    // B. Multi-jours en cours qui traversent le debut de la fenetre
+    final ongoing = Map<String, String>.from(common)
+      ..['and'] = '(date_debut.lt.$startIso,date_fin.gte.$startIso)';
+
+    final results = await Future.wait([
+      _dio.get('scraped_events', queryParameters: inRange),
+      _dio.get('scraped_events', queryParameters: ongoing),
+    ]);
+
+    final inRangeEvents =
+        await compute(_parseAndFilter, results[0].data as List);
+    final ongoingEvents =
+        await compute(_parseAndFilter, results[1].data as List);
+
+    final seen = inRangeEvents.map((e) => e.identifiant).toSet();
+    final merged = [
+      ...inRangeEvents,
+      ...ongoingEvents.where((e) => !seen.contains(e.identifiant)),
+    ]..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+    return merged;
+  }
 }
 
 /// Top-level function (required for compute/isolate).

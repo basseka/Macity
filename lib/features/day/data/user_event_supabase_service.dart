@@ -276,6 +276,29 @@ class UserEventSupabaseService {
         .toList();
   }
 
+  /// Evenements user d'une ville dont la date est dans [startIso, endIso]
+  /// (format YYYY-MM-DD). Utilise par la recherche par dates de l'Explorer.
+  Future<List<UserEvent>> fetchEventsByDateRange({
+    required String startIso,
+    required String endIso,
+    String? ville,
+  }) async {
+    final params = <String, String>{
+      'select': '*',
+      'and': '(date.gte.$startIso,date.lte.$endIso)',
+      'order': 'date.asc',
+    };
+    if (ville != null && ville.isNotEmpty) params['ville'] = 'eq.$ville';
+    final response = await _restDio.get(
+      'user_events',
+      queryParameters: params,
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => UserEvent.fromSupabaseJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Récupère les événements d'une ville (futurs uniquement).
   Future<List<UserEvent>> fetchEventsByCity(String ville) async {
     final now = DateTime.now();

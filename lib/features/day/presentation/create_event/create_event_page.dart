@@ -80,6 +80,10 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Fond blanc fixe : forcer le thème clair pour que tous les AppColors.*
+    // (texte des chips Catégorie, labels, etc.) restent lisibles même si on
+    // arrive depuis une page sombre (Night) où isLightTheme était false.
+    AppColors.isLightTheme = true;
     final state = ref.watch(createEventProvider);
     final notifier = ref.read(createEventProvider.notifier);
 

@@ -20,6 +20,11 @@ class MainActivity : FlutterActivity() {
                     } else {
                         result.error("INVALID_URL", "URL is null", null)
                     }
+                } else if (call.method == "moveToBackground") {
+                    // Bouton retour sur le Feed : passer l'app en arriere-plan
+                    // (comme le bouton Home) au lieu de fermer l'activite.
+                    moveTaskToBack(true)
+                    result.success(true)
                 } else {
                     result.notImplemented()
                 }

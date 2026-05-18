@@ -262,7 +262,7 @@ class _Pill extends StatelessWidget {
               : null,
           borderRadius: BorderRadius.circular(16),
           border: isActive
-              ? null
+              ? Border.all(color: const Color(0xFF060B2D), width: 1.5)
               : Border.all(color: const Color(0x141A0F2E), width: 1),
           boxShadow: isActive
               ? [

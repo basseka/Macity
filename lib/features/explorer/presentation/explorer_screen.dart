@@ -5,13 +5,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
+import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_city_header.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
+import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:pulz_app/features/search/data/unified_search_service.dart';
 import 'package:pulz_app/features/search/domain/search_result.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/match_row_card.dart';
+
+/// Intent inter-écrans : quand la home demande une recherche par dates, elle
+/// pose la plage ici puis navigue vers l'Explorer, qui consomme l'intent au
+/// montage (lance la recherche puis remet à null).
+final explorerDateRangeIntentProvider =
+    StateProvider<DateTimeRange?>((ref) => null);
 
 /// Ecran "Explorer" — handoff coherence v1.0.
 ///
@@ -34,6 +44,96 @@ class _ExplorerScreenState extends ConsumerState<ExplorerScreen> {
   List<SearchResult>? _results; // null = pas encore cherche, [] = aucun resultat
   bool _loading = false;
   String _lastQuery = '';
+
+  // Recherche par plage de dates (independante de la recherche texte).
+  final _scraped = ScrapedEventsSupabaseService();
+  final _userEvents = UserEventSupabaseService();
+  DateTimeRange? _dateRange;
+  List<Event>? _dateResults; // null = pas de recherche date en cours
+  bool _dateLoading = false;
+
+  static String _iso(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  static String _fr(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+
+  Future<void> _pickDateRange() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      initialDateRange: _dateRange,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 365)),
+      locale: const Locale('fr', 'FR'),
+      helpText: 'Choisir une période',
+      saveText: 'Valider',
+    );
+    if (picked == null) return;
+    setState(() {
+      _dateRange = picked;
+      _dateLoading = true;
+      _dateResults = null;
+    });
+    await _runDateSearch(picked);
+  }
+
+  Future<void> _runDateSearch(DateTimeRange range) async {
+    try {
+      final ville = ref.read(selectedCityProvider);
+      final start = _iso(range.start);
+      final end = _iso(range.end);
+      final res = await Future.wait([
+        _scraped.fetchEventsByDateRange(
+            startIso: start, endIso: end, ville: ville),
+        _userEvents.fetchEventsByDateRange(
+            startIso: start, endIso: end, ville: ville),
+      ]);
+      if (!mounted || _dateRange != range) return;
+      final scraped = res[0] as List<Event>;
+      final userEv = res[1] as List<UserEvent>;
+      final merged = <Event>[
+        ...scraped,
+        ...userEv.map((e) => e.toEvent()),
+      ]..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+      setState(() {
+        _dateResults = merged;
+        _dateLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _dateResults = [];
+        _dateLoading = false;
+      });
+    }
+  }
+
+  void _clearDateSearch() {
+    setState(() {
+      _dateRange = null;
+      _dateResults = null;
+      _dateLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Consomme l'intent pose par la home (bouton calendrier) : lance la
+    // recherche par dates avec la plage demandee puis remet l'intent a null.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final intent = ref.read(explorerDateRangeIntentProvider);
+      if (intent != null && mounted) {
+        ref.read(explorerDateRangeIntentProvider.notifier).state = null;
+        setState(() {
+          _dateRange = intent;
+          _dateLoading = true;
+          _dateResults = null;
+        });
+        _runDateSearch(intent);
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -89,6 +189,9 @@ class _ExplorerScreenState extends ConsumerState<ExplorerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Explorer = écran clair. On force le thème clair pour ne pas hériter
+    // du flag global laissé à false par Night (mode_shell).
+    AppColors.isLightTheme = true;
     return Scaffold(
       backgroundColor: EditorialColors.bg,
       body: SafeArea(
@@ -145,6 +248,27 @@ class _ExplorerScreenState extends ConsumerState<ExplorerScreen> {
                 ),
               ),
             ),
+            // Recherche par plage de dates (separee de la recherche texte)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  EditorialSpacing.screen,
+                  0,
+                  EditorialSpacing.screen,
+                  EditorialSpacing.md,
+                ),
+                child: _DateRangeBar(
+                  range: _dateRange,
+                  label: _dateRange == null
+                      ? null
+                      : 'Du ${_fr(_dateRange!.start)} au ${_fr(_dateRange!.end)}',
+                  onTap: _pickDateRange,
+                  onClear: _clearDateSearch,
+                ),
+              ),
+            ),
+            // Resultats de la recherche par dates
+            ..._buildDateResultsSlivers(),
             // Barre de recherche (TextField actif, debounce 400ms)
             SliverToBoxAdapter(
               child: Padding(
@@ -161,7 +285,7 @@ class _ExplorerScreenState extends ConsumerState<ExplorerScreen> {
                 ),
               ),
             ),
-            // Resultats / etats vides
+            // Resultats / etats vides (recherche texte)
             ..._buildResultsSlivers(),
             const SliverToBoxAdapter(
               child: SizedBox(height: EditorialSpacing.xxl),
@@ -170,6 +294,66 @@ class _ExplorerScreenState extends ConsumerState<ExplorerScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildDateResultsSlivers() {
+    if (_dateLoading) {
+      return const [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.magenta),
+            ),
+          ),
+        ),
+      ];
+    }
+    if (_dateResults == null) return const [];
+    if (_dateResults!.isEmpty) {
+      return [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                'Aucun évènement sur cette période',
+                style: GoogleFonts.geist(
+                    fontSize: 13, color: AppColors.textFaint),
+              ),
+            ),
+          ),
+        ),
+      ];
+    }
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+              EditorialSpacing.screen, 0, EditorialSpacing.screen, 8),
+          child: Text(
+            '${_dateResults!.length} évènement${_dateResults!.length > 1 ? 's' : ''} sur la période',
+            style: GoogleFonts.geist(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDim,
+            ),
+          ),
+        ),
+      ),
+      SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: EventRowCard(event: _dateResults![i]),
+            ),
+            childCount: _dateResults!.length,
+          ),
+        ),
+      ),
+    ];
   }
 
   List<Widget> _buildResultsSlivers() {
@@ -283,6 +467,72 @@ class _SearchField extends StatelessWidget {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         isDense: true,
+      ),
+    );
+  }
+}
+
+/// Barre dediee a la recherche par plage de dates — visuellement distincte
+/// de la barre de recherche texte (fond magenta doux + icone calendrier).
+class _DateRangeBar extends StatelessWidget {
+  final DateTimeRange? range;
+  final String? label;
+  final VoidCallback onTap;
+  final VoidCallback onClear;
+
+  const _DateRangeBar({
+    required this.range,
+    required this.label,
+    required this.onTap,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final active = range != null;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: AppColors.magenta.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppRadius.input),
+          border: Border.all(
+            color: AppColors.magenta.withValues(alpha: active ? 0.55 : 0.30),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_month_rounded,
+                color: AppColors.magenta, size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label ?? 'Rechercher des évènements par dates',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.geist(
+                  fontSize: 13,
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  color: active ? AppColors.text : AppColors.textDim,
+                ),
+              ),
+            ),
+            if (active)
+              GestureDetector(
+                onTap: onClear,
+                behavior: HitTestBehavior.opaque,
+                child: Icon(Icons.close,
+                    color: AppColors.textFaint, size: 18),
+              )
+            else
+              Icon(Icons.chevron_right,
+                  color: AppColors.magenta.withValues(alpha: 0.6), size: 18),
+          ],
+        ),
       ),
     );
   }

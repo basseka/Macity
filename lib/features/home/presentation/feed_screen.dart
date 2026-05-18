@@ -34,6 +34,7 @@ import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pulz_app/features/explorer/presentation/explorer_screen.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -320,7 +321,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             _searchResults = null;
           });
         } else if (!didPop) {
-          SystemNavigator.pop();
+          // Sur le Feed, le bouton retour ne ferme pas l'app : on la passe
+          // en arriere-plan (comme le bouton Home Android).
+          const MethodChannel('com.macity.app/browser')
+              .invokeMethod('moveToBackground');
         }
       },
       child: Scaffold(
@@ -634,7 +638,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         ),
         const SizedBox(width: 8),
         GestureDetector(
-          onTap: () => _showCategoryMenu(context),
+          onTap: _pickDatesAndOpenExplorer,
           child: Container(
             width: 40,
             height: 40,
@@ -650,7 +654,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               ],
             ),
-            child: const Icon(Icons.tune,
+            child: const Icon(Icons.calendar_month_rounded,
                 color: AppColors.magenta, size: 17),
           ),
         ),
@@ -776,6 +780,25 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         transitionDuration: const Duration(milliseconds: 200),
       ),
     );
+  }
+
+  /// Bouton calendrier de la home : ouvre le sélecteur de plage de dates,
+  /// pose l'intent et bascule sur l'Explorer qui affiche les résultats
+  /// (même recherche par dates que la page Explorer).
+  Future<void> _pickDatesAndOpenExplorer() async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 365)),
+      locale: const Locale('fr', 'FR'),
+      helpText: 'Choisir une période',
+      saveText: 'Valider',
+    );
+    if (picked == null || !mounted) return;
+    ref.read(explorerDateRangeIntentProvider.notifier).state = picked;
+    ref.read(navBarIndexProvider.notifier).state = 3;
+    if (mounted) context.go('/explorer');
   }
 
   void _showCategoryMenu(BuildContext context) {

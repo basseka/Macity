@@ -510,35 +510,6 @@ class _Hero extends StatelessWidget {
                 ),
               ),
 
-              // Tag VIDÉO
-              Positioned(
-                top: topPad + 58,
-                right: 18,
-                child: _glassCapsule(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: FoodTokens.red,
-                          boxShadow: [
-                            BoxShadow(
-                                color: FoodTokens.red.withValues(alpha: 0.7),
-                                blurRadius: 6),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Text('VIDÉO',
-                          style: FoodTokens.tinyTag(spacing: 0.8)),
-                    ],
-                  ),
-                ),
-              ),
-
               // Bloc bas : eyebrow + titre + sous-titre + "En savoir plus"
               Positioned(
                 left: 20,
@@ -663,26 +634,6 @@ class _Hero extends StatelessWidget {
     );
   }
 
-  Widget _glassCapsule({required Widget child}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(FoodTokens.rPill),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          height: 24,
-          padding: const EdgeInsets.symmetric(horizontal: 9),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0x8C142019),
-            borderRadius: BorderRadius.circular(FoodTokens.rPill),
-            border: Border.all(
-                color: Colors.white.withValues(alpha: 0.14), width: 1),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
 
   Widget _mapLivePill(VoidCallback onTap) {
     return GestureDetector(
