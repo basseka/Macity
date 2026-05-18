@@ -17,12 +17,6 @@ import 'package:pulz_app/features/search/data/unified_search_service.dart';
 import 'package:pulz_app/features/search/domain/search_result.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/match_row_card.dart';
 
-/// Intent inter-écrans : quand la home demande une recherche par dates, elle
-/// pose la plage ici puis navigue vers l'Explorer, qui consomme l'intent au
-/// montage (lance la recherche puis remet à null).
-final explorerDateRangeIntentProvider =
-    StateProvider<DateTimeRange?>((ref) => null);
-
 /// Ecran "Explorer" — handoff coherence v1.0.
 ///
 /// Layout :
@@ -113,25 +107,6 @@ class _ExplorerScreenState extends ConsumerState<ExplorerScreen> {
       _dateRange = null;
       _dateResults = null;
       _dateLoading = false;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Consomme l'intent pose par la home (bouton calendrier) : lance la
-    // recherche par dates avec la plage demandee puis remet l'intent a null.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final intent = ref.read(explorerDateRangeIntentProvider);
-      if (intent != null && mounted) {
-        ref.read(explorerDateRangeIntentProvider.notifier).state = null;
-        setState(() {
-          _dateRange = intent;
-          _dateLoading = true;
-          _dateResults = null;
-        });
-        _runDateSearch(intent);
-      }
     });
   }
 

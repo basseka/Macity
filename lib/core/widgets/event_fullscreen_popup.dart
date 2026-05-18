@@ -740,17 +740,25 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
   /// preserves au retour.
   Future<void> _openFullscreen(BuildContext context) async {
     // Pause le player inline pendant la fullscreen pour eviter double-audio
+    // ET liberer la texture (sinon la vue plein ecran reste noire sur Android
+    // tant que le VideoPlayer inline est monte sur le meme controller).
     final wasPlaying = _controller.value.isPlaying;
+    final startAt = _controller.value.position;
+    _controller.pause();
     await Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => _FullscreenVideoView(controller: _controller),
+        builder: (_) => _FullscreenVideoView(
+          videoUrl: widget.videoUrl,
+          startAt: startAt,
+          muted: _muted,
+        ),
       ),
     );
     if (!mounted) return;
-    // Force un rebuild pour re-sync l'icon play/pause
+    // Reprend la lecture inline au retour si elle tournait avant.
     setState(() {
-      if (wasPlaying && !_controller.value.isPlaying) _controller.play();
+      if (wasPlaying) _controller.play();
     });
   }
 }
@@ -759,26 +767,44 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
 /// bouton close (X) en haut. Reutilise le controller passe en parametre
 /// (pas de dispose ici — le proprietaire reste l'appelant).
 class _FullscreenVideoView extends StatefulWidget {
-  final VideoPlayerController controller;
-  const _FullscreenVideoView({required this.controller});
+  final String videoUrl;
+  final Duration startAt;
+  final bool muted;
+  const _FullscreenVideoView({
+    required this.videoUrl,
+    required this.startAt,
+    required this.muted,
+  });
 
   @override
   State<_FullscreenVideoView> createState() => _FullscreenVideoViewState();
 }
 
 class _FullscreenVideoViewState extends State<_FullscreenVideoView> {
+  late VideoPlayerController _ctrl;
   bool _muted = false;
+  bool _ready = false;
 
   @override
   void initState() {
     super.initState();
-    _muted = widget.controller.value.volume == 0;
-    widget.controller.addListener(_onTick);
+    _muted = widget.muted;
+    _ctrl = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..setLooping(true)
+      ..addListener(_onTick)
+      ..initialize().then((_) async {
+        if (!mounted) return;
+        await _ctrl.seekTo(widget.startAt);
+        await _ctrl.setVolume(_muted ? 0 : 1);
+        await _ctrl.play();
+        if (mounted) setState(() => _ready = true);
+      });
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onTick);
+    _ctrl.removeListener(_onTick);
+    _ctrl.dispose();
     super.dispose();
   }
 
@@ -788,7 +814,7 @@ class _FullscreenVideoViewState extends State<_FullscreenVideoView> {
 
   @override
   Widget build(BuildContext context) {
-    final size = widget.controller.value.size;
+    final size = _ctrl.value.size;
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -797,23 +823,25 @@ class _FullscreenVideoViewState extends State<_FullscreenVideoView> {
           children: [
             // Video centree avec aspect ratio reel
             Center(
-              child: AspectRatio(
+              child: !_ready
+                  ? const CircularProgressIndicator(color: Color(0xFFE91E8C))
+                  : AspectRatio(
                 aspectRatio: size.width > 0 && size.height > 0
                     ? size.width / size.height
                     : 16 / 9,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    if (widget.controller.value.isPlaying) {
-                      widget.controller.pause();
+                    if (_ctrl.value.isPlaying) {
+                      _ctrl.pause();
                     } else {
-                      widget.controller.play();
+                      _ctrl.play();
                     }
                   },
                   child: Stack(
                     children: [
-                      VideoPlayer(widget.controller),
-                      if (!widget.controller.value.isPlaying)
+                      VideoPlayer(_ctrl),
+                      if (!_ctrl.value.isPlaying)
                         Container(
                           color: Colors.black26,
                           child: const Center(
@@ -849,7 +877,7 @@ class _FullscreenVideoViewState extends State<_FullscreenVideoView> {
                     onTap: () {
                       setState(() {
                         _muted = !_muted;
-                        widget.controller.setVolume(_muted ? 0 : 1);
+                        _ctrl.setVolume(_muted ? 0 : 1);
                       });
                     },
                     child: Container(
@@ -869,7 +897,7 @@ class _FullscreenVideoViewState extends State<_FullscreenVideoView> {
                   // Barre de progression
                   Expanded(
                     child: VideoProgressIndicator(
-                      widget.controller,
+                      _ctrl,
                       allowScrubbing: true,
                       colors: const VideoProgressColors(
                         playedColor: Color(0xFFE91E8C),

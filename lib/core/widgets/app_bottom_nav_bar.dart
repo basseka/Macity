@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -164,15 +163,14 @@ class AppBottomNavBar extends ConsumerWidget {
                   ),
                 ),
               ),
-              // 3 - Explorer
+              // 3 - Favoris (lieux likes)
               _NavBarItem(
-                icon: Icons.search,
-                label: 'Explorer',
+                icon: Icons.favorite_rounded,
+                label: 'Favoris',
                 isActive: _selectedIndex == 3,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 3;
-                  _dismissOpenSheet();
-                  _navContext.go('/explorer');
+                  _showSheet(const LikedPlacesBottomSheet());
                 },
               ),
               // 4 - Ma Ville (mairie notifications sheet)

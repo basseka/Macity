@@ -34,7 +34,8 @@ import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pulz_app/features/explorer/presentation/explorer_screen.dart';
+import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
+import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/home/presentation/widgets/banner_carousel.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -166,6 +167,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   List<SearchResult>? _searchResults;
   String? _aiMessage;
   List<Map<String, dynamic>>? _aiResults;
+
+  // Recherche par plage de dates (bouton calendrier home, resultats inline)
+  final _dateScraped = ScrapedEventsSupabaseService();
+  final _dateUserEvents = UserEventSupabaseService();
+  DateTimeRange? _dateRange;
+  List<Event>? _dateResults; // null = pas de recherche date en cours
+  bool _dateLoading = false;
+
+  static String _isoDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  static String _frDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
 
   @override
   void initState() {
@@ -314,7 +327,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (_isSearching) {
+        if (_dateResults != null || _dateLoading) {
+          _clearDateSearch();
+        } else if (_isSearching) {
           setState(() {
             _isSearching = false;
             _searchController.clear();
@@ -354,6 +369,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool get _isLandscape => MediaQuery.of(context).orientation == Orientation.landscape;
 
   Widget _buildBody(BuildContext context) {
+    // Recherche par dates active → vue résultats inline (prioritaire).
+    if (_dateResults != null || _dateLoading) {
+      return _buildDateResultsView();
+    }
     // Vue home pure (slot 0, classic, sans filtre, hors recherche/landscape)
     // → layout mockup, tout scrolle ensemble.
     final isHomeView = !_isSearching &&
@@ -373,6 +392,88 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         if (!_isSearching) const SizedBox(height: 10),
         Expanded(
           child: _isSearching ? _buildSearchResults() : _buildFeed(),
+        ),
+      ],
+    );
+  }
+
+  /// Vue résultats de la recherche par dates, affichée DANS la home.
+  Widget _buildDateResultsView() {
+    final r = _dateRange;
+    final title = r == null
+        ? 'Évènements'
+        : 'Du ${_frDate(r.start)} au ${_frDate(r.end)}';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 6, 16, 6),
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back_rounded,
+                    color: AppColors.text, size: 22),
+                onPressed: _clearDateSearch,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.geist(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text,
+                      ),
+                    ),
+                    if (_dateResults != null)
+                      Text(
+                        '${_dateResults!.length} évènement${_dateResults!.length > 1 ? 's' : ''} sur la période',
+                        style: GoogleFonts.geist(
+                          fontSize: 11,
+                          color: AppColors.textDim,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: _pickDatesAndSearch,
+                child: Text(
+                  'Modifier',
+                  style: GoogleFonts.geist(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.magenta,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _dateLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.magenta),
+                )
+              : (_dateResults == null || _dateResults!.isEmpty)
+                  ? Center(
+                      child: Text(
+                        'Aucun évènement sur cette période',
+                        style: GoogleFonts.geist(
+                            fontSize: 13, color: AppColors.textFaint),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 90),
+                      itemCount: _dateResults!.length,
+                      itemBuilder: (context, i) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: EventRowCard(event: _dateResults![i]),
+                      ),
+                    ),
         ),
       ],
     );
@@ -638,7 +739,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         ),
         const SizedBox(width: 8),
         GestureDetector(
-          onTap: _pickDatesAndOpenExplorer,
+          onTap: _pickDatesAndSearch,
           child: Container(
             width: 40,
             height: 40,
@@ -782,13 +883,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 
-  /// Bouton calendrier de la home : ouvre le sélecteur de plage de dates,
-  /// pose l'intent et bascule sur l'Explorer qui affiche les résultats
-  /// (même recherche par dates que la page Explorer).
-  Future<void> _pickDatesAndOpenExplorer() async {
+  /// Bouton calendrier de la home : ouvre le sélecteur de plage de dates et
+  /// affiche les résultats DANS la home (vue inline, pas de navigation).
+  Future<void> _pickDatesAndSearch() async {
     final now = DateTime.now();
     final picked = await showDateRangePicker(
       context: context,
+      initialDateRange: _dateRange,
       firstDate: DateTime(now.year, now.month, now.day),
       lastDate: now.add(const Duration(days: 365)),
       locale: const Locale('fr', 'FR'),
@@ -796,9 +897,47 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       saveText: 'Valider',
     );
     if (picked == null || !mounted) return;
-    ref.read(explorerDateRangeIntentProvider.notifier).state = picked;
-    ref.read(navBarIndexProvider.notifier).state = 3;
-    if (mounted) context.go('/explorer');
+    setState(() {
+      _dateRange = picked;
+      _dateLoading = true;
+      _dateResults = null;
+    });
+    try {
+      final ville = ref.read(selectedCityProvider);
+      final start = _isoDate(picked.start);
+      final end = _isoDate(picked.end);
+      final res = await Future.wait([
+        _dateScraped.fetchEventsByDateRange(
+            startIso: start, endIso: end, ville: ville),
+        _dateUserEvents.fetchEventsByDateRange(
+            startIso: start, endIso: end, ville: ville),
+      ]);
+      if (!mounted || _dateRange != picked) return;
+      final scraped = res[0] as List<Event>;
+      final userEv = res[1] as List<UserEvent>;
+      final merged = <Event>[
+        ...scraped,
+        ...userEv.map((e) => e.toEvent()),
+      ]..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+      setState(() {
+        _dateResults = merged;
+        _dateLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _dateResults = [];
+        _dateLoading = false;
+      });
+    }
+  }
+
+  void _clearDateSearch() {
+    setState(() {
+      _dateRange = null;
+      _dateResults = null;
+      _dateLoading = false;
+    });
   }
 
   void _showCategoryMenu(BuildContext context) {

@@ -158,11 +158,29 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             runSpacing: 6,
             children: kEventCategories.map((cat) {
               final selected = state.categorie == cat;
+              // Couleurs forcees explicitement : la page force
+              // AppColors.isLightTheme=true mais le ChipThemeData herite
+              // reste sombre → sans ces couleurs on a du texte sombre sur
+              // une puce sombre (illisible).
               return ChoiceChip(
-                label: Text(cat, style: TextStyle(fontSize: 12, color: AppColors.text)),
+                label: Text(
+                  cat,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? _darkColor : const Color(0xFF4A4458),
+                  ),
+                ),
                 selected: selected,
-                selectedColor: _primaryColor.withValues(alpha: 0.15),
+                backgroundColor: const Color(0xFFF3EFF7),
+                selectedColor: _primaryColor.withValues(alpha: 0.18),
                 checkmarkColor: _primaryColor,
+                side: BorderSide(
+                  color: _primaryColor.withValues(
+                    alpha: selected ? 0.6 : 0.22,
+                  ),
+                  width: selected ? 1.2 : 0.8,
+                ),
                 labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                 visualDensity: VisualDensity.compact,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

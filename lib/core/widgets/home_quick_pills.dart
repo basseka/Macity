@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
-import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/data/permanent_fake_stories.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
@@ -17,12 +17,12 @@ enum BoostedCarouselTab { featured, top }
 final boostedCarouselTabProvider =
     StateProvider<BoostedCarouselTab>((_) => BoostedCarouselTab.featured);
 
-/// Rangee de 3 pilules raccourcis : "A la une" / "Top" / "Mes favoris".
+/// Rangee de 3 pilules raccourcis : "A la une" / "Top" / "Toutes les offres".
 /// S'affiche au-dessus de [HomeNavTabs] dans le greeting block du home.
 ///
 /// "A la une" et "Top" sont des toggles du carrousel boost (cf
-/// [boostedCarouselTabProvider]). "Mes favoris" est une action :
-/// ouvre la bottom sheet [LikedPlacesBottomSheet].
+/// [boostedCarouselTabProvider]). "Toutes les offres" navigue vers la page
+/// Explorer (/explorer).
 ///
 /// La pill "Map Live" a ete deplacee dans le BrandRow (a droite). Cf.
 /// [MapLivePill] (toujours dans ce fichier, expose publiquement).
@@ -65,16 +65,10 @@ class HomeQuickPills extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: _Pill(
-              icon: Icons.favorite_rounded,
-              label: 'Mes favoris',
+              icon: Icons.local_offer_rounded,
+              label: 'Toutes les offres',
               isActive: false,
-              onTap: () => showModalBottomSheet(
-                context: context,
-                useRootNavigator: true,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const LikedPlacesBottomSheet(),
-              ),
+              onTap: () => context.go('/explorer'),
             ),
           ),
         ],
