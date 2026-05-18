@@ -11,6 +11,8 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/presentation/clubs_pager_view.dart';
 import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
@@ -75,6 +77,92 @@ class NightScreen extends ConsumerWidget {
     }
   }
 
+  static const _night = RubriqueTheme(
+    accent: Color(0xFFD6336C), // RubricColors.night — rose
+    accent2: Color(0xFFE85A8A),
+  );
+
+  RubriqueConfig _config(BuildContext context, WidgetRef ref) {
+    return RubriqueConfig(
+      theme: _night,
+      eyebrowLeft: 'RUBRIQUE',
+      eyebrowRight: 'AFTER',
+      title: 'Nuit.',
+      subtitle: 'Clubs, bars, soirées — la ville change de visage.',
+      sectionTitle: 'Où sortir',
+      chips: const [
+        RubriqueChip('Discothèque', Icons.celebration_rounded,
+            'Club Discotheque'),
+        RubriqueChip('Bar de nuit', Icons.nightlife_rounded, 'Bar de nuit'),
+        RubriqueChip('Cocktails', Icons.local_bar_rounded, 'Bar a cocktails'),
+        RubriqueChip('Chicha', Icons.air_rounded, 'Bar a chicha'),
+        RubriqueChip('Pub', Icons.sports_bar_rounded, 'Pub'),
+        RubriqueChip('Spicy', Icons.local_fire_department_rounded, 'Spicy'),
+      ],
+      inspirations: const [
+        RubriqueInspiration('Soirée clubbing', 'Tendance', null),
+        RubriqueInspiration('Verre entre amis', 'Cosy', null),
+        RubriqueInspiration('Ambiance lounge', 'Chill', null),
+        RubriqueInspiration('Jusqu\'au bout', 'After', null),
+      ],
+      bannerTitle: 'La nuit t\'appartient.',
+      bannerSubtitle: 'Les meilleurs spots nocturnes vous attendent.',
+      bannerCta: 'Découvrir',
+      onBack: () => context.go('/home'),
+      itemsBuilder: (ref, chipKey) {
+        return ref.watch(nightVenuesByTagProvider(chipKey)).whenData(
+              (list) => list
+                  .map((c) => RubriqueItem(
+                        title: c.nom,
+                        subtitle: [
+                          if (c.categorie.isNotEmpty) c.categorie,
+                          if (c.ville.isNotEmpty) c.ville,
+                        ].join(' · '),
+                        photoUrl: c.photo,
+                        isVerified: c.isVerified,
+                        onTap: (ctx) => ItemDetailSheet.show(
+                          ctx,
+                          ItemDetailSheet(
+                            title: c.nom,
+                            imageUrl:
+                                c.photo.startsWith('http') ? c.photo : null,
+                            description: c.description,
+                            isVerified: c.isVerified,
+                            infos: [
+                              if (c.adresse.isNotEmpty)
+                                DetailInfoItem(
+                                    Icons.location_on_outlined, c.adresse),
+                              if (c.horaires.isNotEmpty)
+                                DetailInfoItem(
+                                    Icons.access_time_rounded, c.horaires),
+                            ],
+                            primaryAction: c.siteWeb.isNotEmpty
+                                ? DetailAction(
+                                    icon: Icons.public_rounded,
+                                    label: 'Site web',
+                                    url: c.siteWeb)
+                                : null,
+                            secondaryActions: [
+                              if (c.lienMaps.isNotEmpty)
+                                DetailAction(
+                                    icon: Icons.map_rounded,
+                                    label: 'Itinéraire',
+                                    url: c.lienMaps),
+                              if (c.telephone.isNotEmpty)
+                                DetailAction(
+                                    icon: Icons.phone_rounded,
+                                    label: 'Appeler',
+                                    url: 'tel:${c.telephone}'),
+                            ],
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(nightCategoryProvider);
@@ -87,27 +175,23 @@ class NightScreen extends ConsumerWidget {
       return _resolveContent(context, ref, selectedCategory);
     }
 
+    // Landing uniforme style Food (remplace NightHubGrid).
+    if (selectedCategory == null) {
+      return RubriqueLandingView(config: _config(context, ref));
+    }
+
     return Container(
       color: EditorialColors.ink,
       child: NestedScrollView(
         headerSliverBuilder: (_, __) => [
           SliverToBoxAdapter(
             child: EditorialMasthead(
-              kicker: selectedCategory == null
-                  ? 'Rubrique · After'
-                  : 'Night · ${_displayLabel(selectedCategory)}',
-              title: selectedCategory == null
-                  ? 'Nuit'
-                  : _displayLabel(selectedCategory),
+              kicker: 'Night · ${_displayLabel(selectedCategory)}',
+              title: _displayLabel(selectedCategory),
               accent: RubricColors.night,
-              blurb: selectedCategory == null
-                  ? 'Clubs, bars, soirees — la nuit, la ville change de visage.'
-                  : null,
-              onBack: selectedCategory == null
-                  ? () => context.go('/home')
-                  : () => ref
-                      .read(modeSubcategoriesProvider.notifier)
-                      .select('night', null),
+              onBack: () => ref
+                  .read(modeSubcategoriesProvider.notifier)
+                  .select('night', null),
             ),
           ),
         ],

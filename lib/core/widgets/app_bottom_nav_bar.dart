@@ -136,12 +136,12 @@ class AppBottomNavBar extends ConsumerWidget {
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFFFF6B2C), Color(0xFFFF8A4D)],
+                            colors: [Color(0xFFFF1E6E), Color(0xFFFF5A93)],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFF6B2C)
-                                  .withValues(alpha: 0.35),
+                              color: const Color(0xFFFF1E6E)
+                                  .withValues(alpha: 0.45),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -570,7 +570,7 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? const Color(0xFFFF6B2C) : AppColors.textFaint;
+    final color = isActive ? const Color(0xFFFF1E6E) : AppColors.textFaint;
 
     return GestureDetector(
       onTap: onTap,

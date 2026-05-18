@@ -229,6 +229,42 @@ List<CommerceModel> _dedupeByNameAndPosition(List<CommerceModel> venues) {
   return out;
 }
 
+/// Variante parametree par tag (landing Night style Food). Meme logique que
+/// [nightVenuesProvider] mais la categorie vient du chip au lieu de l'etat
+/// [nightCategoryProvider].
+final nightVenuesByTagProvider =
+    FutureProvider.family<List<CommerceModel>, String>((ref, category) async {
+  final city = ref.watch(selectedCityProvider);
+
+  List<CommerceModel> venues;
+  if (_curatedTags.contains(category)) {
+    try {
+      venues = await VenuesSupabaseService().fetchVenues(
+        mode: 'night', ville: city, category: category,
+      );
+      if (venues.isEmpty) {
+        venues = NightBarsData.toulouseBars
+            .where((b) =>
+                b.categorie == category &&
+                b.ville.toLowerCase() == city.toLowerCase())
+            .toList();
+      }
+    } catch (_) {
+      venues = NightBarsData.toulouseBars
+          .where((b) =>
+              b.categorie == category &&
+              b.ville.toLowerCase() == city.toLowerCase())
+          .toList();
+    }
+  } else {
+    final db = AppDatabase();
+    final repository = CommerceRepository(db: db);
+    venues = await repository.searchByVille(ville: city, query: category);
+  }
+
+  return _dedupeByNameAndPosition(venues);
+});
+
 final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(nightCategoryProvider);

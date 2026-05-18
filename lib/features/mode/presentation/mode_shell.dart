@@ -70,7 +70,8 @@ class ModeShell extends ConsumerWidget {
         (mode == 'food' && subs['food'] == null) ||
             (mode == 'family' && subs['family'] == null) ||
             (mode == 'sport' && subs['sport'] == null) ||
-            (mode == 'culture' && subs['culture'] == null);
+            (mode == 'culture' && subs['culture'] == null) ||
+            (mode == 'night' && subs['night'] == null);
 
     final isFullscreen =
         isFeteMusique || isSportMap || isTourismeMap || isRubriqueLanding;

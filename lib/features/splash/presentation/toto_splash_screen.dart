@@ -170,7 +170,7 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
                             gradient: RadialGradient(
                               colors: [
                                 MacityColors.hotPink
-                                    .withValues(alpha: 0.09 + 0.05 * p),
+                                    .withValues(alpha: 0.04 + 0.03 * p),
                                 MacityColors.hotPink
                                     .withValues(alpha: 0.0),
                               ],
@@ -183,19 +183,19 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: MacityColors.pink
-                                .withValues(alpha: 0.04 + 0.04 * p),
+                                .withValues(alpha: 0.02 + 0.02 * p),
                             boxShadow: [
                               BoxShadow(
                                 color: MacityColors.pink
-                                    .withValues(alpha: 0.18 + 0.12 * p),
-                                blurRadius: 70 + 20 * p,
-                                spreadRadius: 2 + 6 * p,
+                                    .withValues(alpha: 0.09 + 0.06 * p),
+                                blurRadius: 60 + 16 * p,
+                                spreadRadius: 1 + 3 * p,
                               ),
                               BoxShadow(
                                 color: MacityColors.red
-                                    .withValues(alpha: 0.12 + 0.08 * p),
-                                blurRadius: 40,
-                                spreadRadius: 2,
+                                    .withValues(alpha: 0.06 + 0.04 * p),
+                                blurRadius: 34,
+                                spreadRadius: 1,
                               ),
                             ],
                           ),
@@ -210,7 +210,7 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
             // ── Ondes au sol (ellipses plates horizontales) ─────
             Center(
               child: Transform.translate(
-                offset: const Offset(0, 92),
+                offset: const Offset(0, 44),
                 child: SizedBox(
                   width: 240,
                   height: 56,
