@@ -35,8 +35,8 @@ class CultureScreen extends ConsumerWidget {
   const CultureScreen({super.key});
 
   static const _culture = RubriqueTheme(
-    accent: Color(0xFFA61E4D), // RubricColors.culture — bordeaux
-    accent2: Color(0xFFC83A6A),
+    accent: Color(0xFFFF2DAA), // rose
+    accent2: Color(0xFFFF5EC0),
   );
 
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {

@@ -54,8 +54,8 @@ class SportScreen extends ConsumerWidget {
   };
 
   static const _sport = RubriqueTheme(
-    accent: Color(0xFF2B8A3E), // RubricColors.sport — vert
-    accent2: Color(0xFF3FA855),
+    accent: Color(0xFFA020F0), // violet
+    accent2: Color(0xFFBE56F5),
   );
 
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {

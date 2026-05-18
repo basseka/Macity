@@ -326,7 +326,7 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'LA VILLE, EN DIRECT',
+                          'MA VILLE, EN DIRECT',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             letterSpacing: 4,

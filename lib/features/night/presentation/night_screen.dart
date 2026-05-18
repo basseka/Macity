@@ -77,8 +77,8 @@ class NightScreen extends ConsumerWidget {
   }
 
   static const _night = RubriqueTheme(
-    accent: Color(0xFFD6336C), // RubricColors.night — rose
-    accent2: Color(0xFFE85A8A),
+    accent: Color(0xFF060B2D), // bleu nuit (= tuile home Night)
+    accent2: Color(0xFF1B2456),
   );
 
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {

@@ -75,6 +75,14 @@
                     android:host="macity.app"
                     android:pathPrefix="/event" />
             </intent-filter>
+
+            <!-- FCM : resout click_action=FLUTTER_NOTIFICATION_CLICK vers
+                 MainActivity pour que getInitialMessage()/onMessageOpenedApp
+                 recoivent bien le message au tap (cold start + background). -->
+            <intent-filter>
+                <action android:name="FLUTTER_NOTIFICATION_CLICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <!-- FCM default notification icon and color -->

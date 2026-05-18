@@ -179,7 +179,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
               ),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: active ? FoodTokens.forest : FoodTokens.surface,
+                color: active ? FoodTokens.teal : FoodTokens.surface,
                 borderRadius: BorderRadius.circular(FoodTokens.rPill),
                 border: active
                     ? null
@@ -187,7 +187,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                 boxShadow: active
                     ? const [
                         BoxShadow(
-                          color: Color(0x800F3D2E),
+                          color: Color(0x802BAB9A),
                           blurRadius: 14,
                           spreadRadius: -6,
                           offset: Offset(0, 6),
@@ -548,27 +548,6 @@ class _Hero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Transform.rotate(
-                          angle: 0.785398,
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            color: FoodTokens.pink,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text('RUBRIQUE', style: FoodTokens.eyebrow()),
-                        const SizedBox(width: 8),
-                        Text('·',
-                            style: FoodTokens.eyebrow().copyWith(
-                                color: Colors.white.withValues(alpha: 0.5))),
-                        const SizedBox(width: 8),
-                        Text('PLAISIRS', style: FoodTokens.eyebrow()),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [

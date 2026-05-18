@@ -25,8 +25,8 @@ class FamilyScreen extends ConsumerWidget {
   const FamilyScreen({super.key});
 
   static const _famille = RubriqueTheme(
-    accent: Color(0xFFC2410C), // RubricColors.family — orange
-    accent2: Color(0xFFE15A1E),
+    accent: Color(0xFFF2A20C), // orange doré (= tuile home Famille)
+    accent2: Color(0xFFF7BE4A),
   );
 
   IconData _iconFor(String tag) {

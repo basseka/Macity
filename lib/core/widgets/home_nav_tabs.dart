@@ -19,11 +19,11 @@ class _TileColors {
 }
 
 const _tileColorsByTab = <HomeNavTab, _TileColors>{
-  HomeNavTab.food: _TileColors(Color(0xFFD8F2E3), Color(0xFF0F3D2E)),
+  HomeNavTab.food: _TileColors(Color(0xFFD8F2E9), Color(0xFF2BAB9A)),
   HomeNavTab.famille: _TileColors(Color(0xFFFCEFC7), Color(0xFFF2A20C)),
-  HomeNavTab.sport: _TileColors(Color(0xFFFCE3E3), Color(0xFFE5484D)),
-  HomeNavTab.culture: _TileColors(Color(0xFFEADDFB), Color(0xFF9333EA)),
-  HomeNavTab.night: _TileColors(Color(0xFFD7E8F8), Color(0xFF3B9FE0)),
+  HomeNavTab.sport: _TileColors(Color(0xFFF1E4FF), Color(0xFFA020F0)),
+  HomeNavTab.culture: _TileColors(Color(0xFFFFE1F1), Color(0xFFFF2DAA)),
+  HomeNavTab.night: _TileColors(Color(0xFFDCE0EC), Color(0xFF060B2B)),
 };
 
 /// Rangée de 5 tuiles catégories pastel (carré arrondi + label dessous).
@@ -49,10 +49,10 @@ class HomeNavTabs extends ConsumerWidget {
                   Icons.restaurant_rounded, 'Food', tile),
               _btn(context, ref, HomeNavTab.famille,
                   Icons.family_restroom_rounded, 'Famille', tile),
-              _btn(context, ref, HomeNavTab.sport,
-                  Icons.sports_soccer_rounded, 'Sport', tile),
               _btn(context, ref, HomeNavTab.culture,
                   Icons.theater_comedy_rounded, 'Culture', tile),
+              _btn(context, ref, HomeNavTab.sport,
+                  Icons.sports_soccer_rounded, 'Sport', tile),
               _btn(context, ref, HomeNavTab.night,
                   Icons.nightlife_rounded, 'Night', tile),
             ],

@@ -681,24 +681,6 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  children: [
-                    Transform.rotate(
-                      angle: 0.785398,
-                      child: Container(
-                          width: 6, height: 6, color: RubriqueTheme.pink),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(cfg.eyebrowLeft, style: RubriqueTheme.eyebrow()),
-                    const SizedBox(width: 8),
-                    Text('·',
-                        style: RubriqueTheme.eyebrow().copyWith(
-                            color: Colors.white.withValues(alpha: 0.5))),
-                    const SizedBox(width: 8),
-                    Text(cfg.eyebrowRight, style: RubriqueTheme.eyebrow()),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
