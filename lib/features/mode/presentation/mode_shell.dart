@@ -126,7 +126,7 @@ class ModeShell extends ConsumerWidget {
       child: isFullscreen
         ? Scaffold(
             backgroundColor: EditorialColors.ink,
-            body: SafeArea(child: child),
+            body: SafeArea(bottom: false, child: child),
           )
         : Scaffold(
       backgroundColor: EditorialColors.ink,

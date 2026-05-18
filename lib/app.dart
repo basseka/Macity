@@ -152,6 +152,13 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         return;
       }
 
+      // Notification "À la une" (digest featured 15h) → toujours ouvrir
+      // l'accueil, que l'app soit ouverte, en arriere-plan ou fermee.
+      if (type == 'featured_digest') {
+        appRouter.go('/home');
+        return;
+      }
+
       if (universe.isNotEmpty && validUniverses.contains(universe)) {
         // Naviguer vers le mode correspondant
         ref.read(modeSubcategoriesProvider.notifier).select(universe, null);

@@ -94,10 +94,12 @@ class FcmService {
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       final type = initialMessage.data['type'] as String?;
-      if (type == 'chat_message') {
+      if (type == 'chat_message' || type == 'featured_digest') {
         // Delay un peu plus long que les autres handlers : le cold start
         // a besoin que le splash finisse + que le root navigator soit pret
-        // avant qu'on puisse showModalBottomSheet.
+        // avant de router. chat_message ouvre la discussion ; featured_digest
+        // force l'accueil de maniere deterministe (ne pas dependre du
+        // comportement de restauration d'activite de l'OEM).
         Future.delayed(const Duration(milliseconds: 1500), () {
           _handleNotificationTap(initialMessage);
         });
