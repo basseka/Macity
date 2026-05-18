@@ -664,18 +664,6 @@ class _SectionTitle extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.2,
                     color: const Color(0xFFA855F7),
-                    shadows: [
-                      Shadow(
-                        color: const Color(0xFFA855F7)
-                            .withValues(alpha: 0.85),
-                        blurRadius: 10,
-                      ),
-                      Shadow(
-                        color: const Color(0xFFA855F7)
-                            .withValues(alpha: 0.5),
-                        blurRadius: 20,
-                      ),
-                    ],
                   ),
                 ),
                 const SizedBox(width: 2),
@@ -683,10 +671,6 @@ class _SectionTitle extends StatelessWidget {
                   Icons.chevron_right,
                   size: 15,
                   color: Color(0xFFA855F7),
-                  shadows: [
-                    Shadow(color: Color(0xCCA855F7), blurRadius: 10),
-                    Shadow(color: Color(0x80A855F7), blurRadius: 20),
-                  ],
                 ),
               ],
             ),
