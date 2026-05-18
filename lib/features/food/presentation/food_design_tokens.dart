@@ -25,7 +25,7 @@ class FoodTokens {
 
   // ─── Typo (Poppins) ────────────────────────────────────────────────────
   static TextStyle heroTitle() => GoogleFonts.poppins(
-        fontSize: 30,
+        fontSize: 24,
         fontWeight: FontWeight.w500,
         letterSpacing: -1,
         height: 0.95,

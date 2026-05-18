@@ -152,7 +152,9 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
 
             // ── Halo rose central — glow doux qui respire ───────
             Center(
-              child: AnimatedBuilder(
+              child: Transform.translate(
+                offset: const Offset(0, -30),
+                child: AnimatedBuilder(
                 animation: _loop,
                 builder: (_, __) {
                   final p = Curves.easeInOut.transform(_loop.value);
@@ -205,12 +207,13 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
                   );
                 },
               ),
+              ),
             ),
 
             // ── Ondes au sol (ellipses plates horizontales) ─────
             Center(
               child: Transform.translate(
-                offset: const Offset(0, 44),
+                offset: const Offset(0, 14),
                 child: SizedBox(
                   width: 240,
                   height: 56,
