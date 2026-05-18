@@ -207,13 +207,13 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
               ),
             ),
 
-            // ── Ondes au sol, émanant de la base du pin ─────────
+            // ── Ondes au sol (ellipses plates horizontales) ─────
             Center(
               child: Transform.translate(
-                offset: const Offset(0, 95),
+                offset: const Offset(0, 92),
                 child: SizedBox(
-                  width: 220,
-                  height: 60,
+                  width: 240,
+                  height: 56,
                   child: Stack(
                     alignment: Alignment.center,
                     clipBehavior: Clip.none,
@@ -222,21 +222,23 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
                         animation: _ripple,
                         builder: (_, __) {
                           final phase = ((_ripple.value + i / 3) % 1.0);
-                          final scale = 0.4 + phase * 2.2;
+                          final scale = 0.35 + phase * 2.0;
                           final opacity =
-                              ((1.0 - phase) * 0.7).clamp(0.0, 1.0);
+                              ((1.0 - phase) * 0.45).clamp(0.0, 1.0);
                           return Transform.scale(
                             scale: scale,
                             child: Opacity(
                               opacity: opacity,
                               child: Container(
-                                width: 90,
-                                height: 16,
+                                width: 130,
+                                height: 24,
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(40),
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.elliptical(65, 12),
+                                  ),
                                   border: Border.all(
                                     color: MacityColors.hotPink,
-                                    width: 1.5,
+                                    width: 1.4,
                                   ),
                                 ),
                               ),
