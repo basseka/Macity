@@ -11,7 +11,6 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/night/presentation/clubs_pager_view.dart';
@@ -112,49 +111,23 @@ class NightScreen extends ConsumerWidget {
       itemsBuilder: (ref, chipKey) {
         return ref.watch(nightVenuesByTagProvider(chipKey)).whenData(
               (list) => list
-                  .map((c) => RubriqueItem(
-                        title: c.nom,
+                  .asMap()
+                  .entries
+                  .map((e) => RubriqueItem(
+                        title: e.value.nom,
                         subtitle: [
-                          if (c.categorie.isNotEmpty) c.categorie,
-                          if (c.ville.isNotEmpty) c.ville,
+                          if (e.value.categorie.isNotEmpty) e.value.categorie,
+                          if (e.value.ville.isNotEmpty) e.value.ville,
                         ].join(' · '),
-                        photoUrl: c.photo,
-                        isVerified: c.isVerified,
-                        onTap: (ctx) => ItemDetailSheet.show(
+                        photoUrl: e.value.photo,
+                        isVerified: e.value.isVerified,
+                        // Ouvre le pager swipable avec la fiche detail riche
+                        // (teaser, 6 photos, avis, likes, commentaires) —
+                        // meme detail que l'ancienne liste Night.
+                        onTap: (ctx) => ClubsPagerView.open(
                           ctx,
-                          ItemDetailSheet(
-                            title: c.nom,
-                            imageUrl:
-                                c.photo.startsWith('http') ? c.photo : null,
-                            description: c.description,
-                            isVerified: c.isVerified,
-                            infos: [
-                              if (c.adresse.isNotEmpty)
-                                DetailInfoItem(
-                                    Icons.location_on_outlined, c.adresse),
-                              if (c.horaires.isNotEmpty)
-                                DetailInfoItem(
-                                    Icons.access_time_rounded, c.horaires),
-                            ],
-                            primaryAction: c.siteWeb.isNotEmpty
-                                ? DetailAction(
-                                    icon: Icons.public_rounded,
-                                    label: 'Site web',
-                                    url: c.siteWeb)
-                                : null,
-                            secondaryActions: [
-                              if (c.lienMaps.isNotEmpty)
-                                DetailAction(
-                                    icon: Icons.map_rounded,
-                                    label: 'Itinéraire',
-                                    url: c.lienMaps),
-                              if (c.telephone.isNotEmpty)
-                                DetailAction(
-                                    icon: Icons.phone_rounded,
-                                    label: 'Appeler',
-                                    url: 'tel:${c.telephone}'),
-                            ],
-                          ),
+                          clubs: list,
+                          initialIndex: e.key,
                         ),
                       ))
                   .toList(),
