@@ -632,8 +632,8 @@ class _SectionTitle extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           prefix,
-          style: GoogleFonts.geist(
-            fontSize: 15,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.3,
             color: AppColors.text,
@@ -642,15 +642,11 @@ class _SectionTitle extends StatelessWidget {
         const SizedBox(width: 5),
         Text(
           accent,
-          style: GoogleFonts.instrumentSerif(
+          style: GoogleFonts.poppins(
             fontSize: 18,
-            fontStyle: FontStyle.italic,
-            fontWeight: FontWeight.w400,
-            letterSpacing: -0.2,
-            foreground: Paint()
-              ..shader = AppGradients.editorial.createShader(
-                const Rect.fromLTWH(0, 0, 95, 24),
-              ),
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.3,
+            color: const Color(0xFFFB923C),
           ),
         ),
         const Spacer(),
@@ -667,12 +663,12 @@ class _SectionTitle extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.2,
-                    color: AppColors.magenta,
+                    color: const Color(0xFFFF6B2C),
                   ),
                 ),
                 const SizedBox(width: 2),
-                Icon(Icons.chevron_right,
-                    size: 15, color: AppColors.magenta),
+                const Icon(Icons.chevron_right,
+                    size: 15, color: Color(0xFFFF6B2C)),
               ],
             ),
           ),

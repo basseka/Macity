@@ -23,15 +23,10 @@ class FoodHubGrid extends StatelessWidget {
         return 'assets/images/pochette_guinguette.webp';
       case 'Buffets':
         return 'assets/images/pochette_buffet.webp';
-      case 'Spa hammam':
-      case 'Massage':
-        return 'assets/images/pochette_spa&hammam.webp';
       case 'Salon de the':
         return 'assets/images/pochette_salondethe.jpg';
       case 'Brunch':
         return 'assets/images/pochette_brunch.jpg';
-      case 'Yoga meditation':
-        return 'assets/images/pochette_yoga.jpg';
       default:
         return null;
     }

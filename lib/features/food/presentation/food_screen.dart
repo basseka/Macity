@@ -18,6 +18,7 @@ import 'package:pulz_app/features/food/presentation/restaurant_detail_sheet.dart
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/food/data/food_category_data.dart';
 import 'package:pulz_app/features/food/presentation/food_hub_grid.dart';
+import 'package:pulz_app/features/food/presentation/food_rubrique_view.dart';
 import 'package:pulz_app/features/food/presentation/food_restaurants_fullscreen_map.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
@@ -43,6 +44,11 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     if (selectedCategory != null &&
         FoodRestaurantsFullscreenMap.isMapTag(selectedCategory)) {
       return const FoodRestaurantsFullscreenMap();
+    }
+
+    // Landing rubrique Food (refonte hi-fi) quand aucune sous-categorie.
+    if (selectedCategory == null) {
+      return const FoodRubriqueView();
     }
 
     return Container(
@@ -187,7 +193,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         Expanded(
           child: category == 'A venir'
               ? _buildGroupedVenues(ref, modeTheme)
-              : (category == 'Restaurant' || category == 'Guinguette' || category == 'Buffets' || category == 'Salon de the' || category == 'Brunch' || category == 'Spa hammam' || category == 'Massage' || category == 'Yoga meditation')
+              : (category == 'Restaurant' || category == 'Guinguette' || category == 'Buffets' || category == 'Salon de the' || category == 'Brunch')
                   ? _buildRestaurantsList(ref, category: category, presetTheme: _presetThemeForCategory(category), placeholderAsset: _placeholderForCategory(category))
                   : venuesAsync.when(
                   data: (venues) {
@@ -224,9 +230,6 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       case 'Buffets': return 'Buffet';
       case 'Salon de the': return 'Salon de the';
       case 'Brunch': return 'Brunch';
-      case 'Spa hammam': return 'Spa hammam';
-      case 'Massage': return 'Massage';
-      case 'Yoga meditation': return 'Yoga meditation';
       default: return null;
     }
   }
@@ -241,12 +244,6 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
         return 'assets/images/pochette_salondethe.jpg';
       case 'Brunch':
         return 'assets/images/pochette_brunch.jpg';
-      case 'Spa hammam':
-        return 'assets/images/pochette_spa&hammam.webp';
-      case 'Massage':
-        return 'assets/images/pochette_spa&hammam.webp';
-      case 'Yoga meditation':
-        return 'assets/images/pochette_yoga.jpg';
       default:
         return 'assets/images/pochette_restaurant.jpg';
     }

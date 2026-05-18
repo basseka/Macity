@@ -62,7 +62,7 @@ final foodCategoryCountProvider =
     } catch (_) {}
     return uc;
   }
-  if (searchTag == 'Guinguette' || searchTag == 'Buffets' || searchTag == 'Salon de the' || searchTag == 'Brunch' || searchTag == 'Spa hammam' || searchTag == 'Massage' || searchTag == 'Yoga meditation') {
+  if (searchTag == 'Guinguette' || searchTag == 'Buffets' || searchTag == 'Salon de the' || searchTag == 'Brunch') {
     final theme = searchTag == 'Buffets' ? 'Buffet' : searchTag;
     final restaurants = await RestaurantSupabaseService().fetchRestaurants(ville: city);
     return restaurants.where((r) => r.theme.toLowerCase() == theme.toLowerCase()).length;

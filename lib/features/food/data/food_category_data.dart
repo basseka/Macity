@@ -54,15 +54,6 @@ class FoodCategoryData {
         FoodSubcategory(label: 'Brunch', searchTag: 'Brunch', emoji: '', group: 'Cafes & brunchs', image: 'assets/images/pochette_brunch.jpg'),
       ],
     ),
-    FoodCategoryGroup(
-      name: 'Bien-etre & lifestyle',
-      emoji: '',
-      subcategories: [
-        FoodSubcategory(label: 'Spa & hammam', searchTag: 'Spa hammam', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.webp'),
-        FoodSubcategory(label: 'Massage', searchTag: 'Massage', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_spa&hammam.webp'),
-        FoodSubcategory(label: 'Yoga & meditation', searchTag: 'Yoga meditation', emoji: '', group: 'Bien-etre & lifestyle', image: 'assets/images/pochette_yoga.jpg'),
-      ],
-    ),
   ];
 
   static List<FoodSubcategory> get allSubcategories =>

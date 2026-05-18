@@ -61,7 +61,19 @@ class ModeShell extends ConsumerWidget {
     final isTourismeMap = ref.watch(currentModeProvider) == 'tourisme' &&
         (tourismeSub == 'Plan touristique' || tourismeSub == 'Se deplacer');
 
-    final isFullscreen = isFeteMusique || isSportMap || isTourismeMap;
+    // Landings rubriques refondues (hi-fi) → plein écran, chrome géré
+    // par l'écran lui-même (hero, back button). Food / Famille / Sport /
+    // Culture quand aucune sous-catégorie n'est sélectionnée.
+    final mode = ref.watch(currentModeProvider);
+    final subs = ref.watch(modeSubcategoriesProvider);
+    final isRubriqueLanding =
+        (mode == 'food' && subs['food'] == null) ||
+            (mode == 'family' && subs['family'] == null) ||
+            (mode == 'sport' && subs['sport'] == null) ||
+            (mode == 'culture' && subs['culture'] == null);
+
+    final isFullscreen =
+        isFeteMusique || isSportMap || isTourismeMap || isRubriqueLanding;
 
     return PopScope(
       canPop: false,

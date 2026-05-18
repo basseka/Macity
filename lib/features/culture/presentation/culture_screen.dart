@@ -15,6 +15,7 @@ import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
+import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/culture/presentation/culture_hub_grid.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart' show MuseumVenue;
 import 'package:pulz_app/features/culture/presentation/widgets/dance_venue_card.dart';
@@ -33,9 +34,223 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 class CultureScreen extends ConsumerWidget {
   const CultureScreen({super.key});
 
+  static const _culture = RubriqueTheme(
+    accent: Color(0xFFA61E4D), // RubricColors.culture — bordeaux
+    accent2: Color(0xFFC83A6A),
+  );
+
+  RubriqueConfig _config(BuildContext context, WidgetRef ref) {
+    return RubriqueConfig(
+      theme: _culture,
+      eyebrowLeft: 'RUBRIQUE',
+      eyebrowRight: 'CITÉ',
+      title: 'Culture.',
+      subtitle: 'Musées, monuments, expos — l\'agenda culturel.',
+      sectionTitle: 'À découvrir',
+      chips: const [
+        RubriqueChip('Musées', Icons.museum_rounded, 'Musee'),
+        RubriqueChip('Monuments', Icons.account_balance_rounded,
+            'Monument historique'),
+        RubriqueChip('Bibliothèques', Icons.local_library_rounded,
+            'Bibliotheque'),
+        RubriqueChip('Galeries', Icons.palette_rounded, 'Galerie'),
+      ],
+      inspirations: const [
+        RubriqueInspiration('Gratuit ce mois', 'À voir', null),
+        RubriqueInspiration('Expos temporaires', 'En cours', null),
+        RubriqueInspiration('Patrimoine caché', 'À explorer', null),
+        RubriqueInspiration('En famille', 'Pour tous', null),
+      ],
+      bannerTitle: 'La ville se raconte.',
+      bannerSubtitle: 'Musées, expos et patrimoine vous attendent.',
+      bannerCta: 'Découvrir',
+      onBack: () => context.go('/home'),
+      itemsBuilder: (ref, chipKey) {
+        switch (chipKey) {
+          case 'Musee':
+            return ref.watch(museumVenuesSupabaseProvider).whenData(
+                  (list) => list
+                      .map((m) => RubriqueItem(
+                            title: m.name,
+                            subtitle: [
+                              if (m.category.isNotEmpty) m.category,
+                              if (m.city.isNotEmpty) m.city,
+                            ].join(' · '),
+                            photoUrl: m.image,
+                            isVerified: m.isVerified,
+                            onTap: (ctx) => ItemDetailSheet.show(
+                              ctx,
+                              ItemDetailSheet(
+                                title: m.name,
+                                imageUrl: m.image.startsWith('http')
+                                    ? m.image
+                                    : null,
+                                description: m.description,
+                                isVerified: m.isVerified,
+                                infos: [
+                                  if (m.horaires.isNotEmpty)
+                                    DetailInfoItem(
+                                        Icons.access_time_rounded,
+                                        m.horaires),
+                                ],
+                                primaryAction: m.websiteUrl.isNotEmpty
+                                    ? DetailAction(
+                                        icon: Icons.public_rounded,
+                                        label: 'Site web',
+                                        url: m.websiteUrl)
+                                    : null,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                );
+          case 'Monument historique':
+            return ref.watch(monumentVenuesSupabaseProvider).whenData(
+                  (list) => list
+                      .map((m) => RubriqueItem(
+                            title: m.name,
+                            subtitle: m.type,
+                            photoUrl: m.image,
+                            isVerified: m.isVerified,
+                            onTap: (ctx) => ItemDetailSheet.show(
+                              ctx,
+                              ItemDetailSheet(
+                                title: m.name,
+                                imageUrl: m.image.startsWith('http')
+                                    ? m.image
+                                    : null,
+                                description: m.description,
+                                isVerified: m.isVerified,
+                                infos: [
+                                  if (m.adresse.isNotEmpty)
+                                    DetailInfoItem(
+                                        Icons.location_on_outlined,
+                                        m.adresse),
+                                ],
+                                primaryAction: m.websiteUrl.isNotEmpty
+                                    ? DetailAction(
+                                        icon: Icons.public_rounded,
+                                        label: 'Site web',
+                                        url: m.websiteUrl)
+                                    : null,
+                                secondaryActions: [
+                                  if (m.lienMaps.isNotEmpty)
+                                    DetailAction(
+                                        icon: Icons.map_rounded,
+                                        label: 'Itinéraire',
+                                        url: m.lienMaps),
+                                ],
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                );
+          case 'Bibliotheque':
+            return ref.watch(libraryVenuesSupabaseProvider).whenData(
+                  (list) => list
+                      .map((m) => RubriqueItem(
+                            title: m.name,
+                            subtitle: m.group,
+                            photoUrl: m.image,
+                            isVerified: m.isVerified,
+                            onTap: (ctx) => ItemDetailSheet.show(
+                              ctx,
+                              ItemDetailSheet(
+                                title: m.name,
+                                imageUrl: m.image.startsWith('http')
+                                    ? m.image
+                                    : null,
+                                description: m.description,
+                                isVerified: m.isVerified,
+                                infos: [
+                                  if (m.adresse.isNotEmpty)
+                                    DetailInfoItem(
+                                        Icons.location_on_outlined,
+                                        m.adresse),
+                                  if (m.horaires.isNotEmpty)
+                                    DetailInfoItem(
+                                        Icons.access_time_rounded,
+                                        m.horaires),
+                                ],
+                                primaryAction: m.websiteUrl.isNotEmpty
+                                    ? DetailAction(
+                                        icon: Icons.public_rounded,
+                                        label: 'Site web',
+                                        url: m.websiteUrl)
+                                    : null,
+                                secondaryActions: [
+                                  if (m.telephone.isNotEmpty)
+                                    DetailAction(
+                                        icon: Icons.phone_rounded,
+                                        label: 'Appeler',
+                                        url: 'tel:${m.telephone}'),
+                                ],
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                );
+          case 'Galerie':
+          default:
+            return ref.watch(galleryVenuesSupabaseProvider).whenData(
+                  (list) => list
+                      .map((g) => RubriqueItem(
+                            title: g.nom,
+                            subtitle: [
+                              if (g.categorie.isNotEmpty) g.categorie,
+                              if (g.ville.isNotEmpty) g.ville,
+                            ].join(' · '),
+                            photoUrl: g.photo,
+                            isVerified: g.isVerified,
+                            onTap: (ctx) => ItemDetailSheet.show(
+                              ctx,
+                              ItemDetailSheet(
+                                title: g.nom,
+                                imageUrl: g.photo.startsWith('http')
+                                    ? g.photo
+                                    : null,
+                                description: g.description,
+                                isVerified: g.isVerified,
+                                infos: [
+                                  if (g.adresse.isNotEmpty)
+                                    DetailInfoItem(
+                                        Icons.location_on_outlined,
+                                        g.adresse),
+                                  if (g.horaires.isNotEmpty)
+                                    DetailInfoItem(
+                                        Icons.access_time_rounded,
+                                        g.horaires),
+                                ],
+                                primaryAction: g.siteWeb.isNotEmpty
+                                    ? DetailAction(
+                                        icon: Icons.public_rounded,
+                                        label: 'Site web',
+                                        url: g.siteWeb)
+                                    : null,
+                                secondaryActions: [
+                                  if (g.lienMaps.isNotEmpty)
+                                    DetailAction(
+                                        icon: Icons.map_rounded,
+                                        label: 'Itinéraire',
+                                        url: g.lienMaps),
+                                ],
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                );
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(cultureCategoryProvider);
+
+    if (selectedCategory == null) {
+      return RubriqueLandingView(config: _config(context, ref));
+    }
 
     return Container(
       color: EditorialColors.ink,

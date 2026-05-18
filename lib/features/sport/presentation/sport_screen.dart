@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 import 'package:pulz_app/features/sport/presentation/boxe_events_grid.dart';
 import 'package:pulz_app/features/sport/presentation/complexe_sportif_hub.dart';
 import 'package:pulz_app/features/sport/presentation/dance_venues_list.dart';
@@ -50,6 +53,93 @@ class SportScreen extends ConsumerWidget {
     'Marathon relais info', 'Course Enfants info',
   };
 
+  static const _sport = RubriqueTheme(
+    accent: Color(0xFF2B8A3E), // RubricColors.sport — vert
+    accent2: Color(0xFF3FA855),
+  );
+
+  RubriqueConfig _config(BuildContext context, WidgetRef ref) {
+    return RubriqueConfig(
+      theme: _sport,
+      eyebrowLeft: 'RUBRIQUE',
+      eyebrowRight: 'ACTIVE',
+      title: 'Sport.',
+      subtitle: 'Salles, terrains, piscines — bouger près de chez toi.',
+      sectionTitle: 'Où pratiquer',
+      chips: const [
+        RubriqueChip('Fitness', Icons.fitness_center_rounded, 'fitness'),
+        RubriqueChip('Boxe', Icons.sports_mma_rounded, 'boxe'),
+        RubriqueChip('Football', Icons.sports_soccer_rounded,
+            'terrain-football'),
+        RubriqueChip('Basket', Icons.sports_basketball_rounded,
+            'terrain-basketball'),
+        RubriqueChip('Piscine', Icons.pool_rounded, 'piscine'),
+        RubriqueChip('Golf', Icons.golf_course_rounded, 'golf'),
+      ],
+      inspirations: const [
+        RubriqueInspiration('Reprendre le sport', 'Débutants', null),
+        RubriqueInspiration('En extérieur', 'Plein air', null),
+        RubriqueInspiration('Avec les enfants', 'En famille', null),
+        RubriqueInspiration('Se dépenser', 'Cardio', null),
+      ],
+      bannerTitle: 'Passe à l\'action.',
+      bannerSubtitle: 'Les meilleurs spots sportifs vous attendent.',
+      bannerCta: 'Découvrir',
+      onBack: () => context.go('/home'),
+      itemsBuilder: (ref, chipKey) {
+        return ref.watch(sportVenuesProvider(chipKey)).whenData(
+              (list) => list
+                  .map((c) => RubriqueItem(
+                        title: c.nom,
+                        subtitle: [
+                          if (c.categorie.isNotEmpty) c.categorie,
+                          if (c.ville.isNotEmpty) c.ville,
+                        ].join(' · '),
+                        photoUrl: c.photo,
+                        isVerified: c.isVerified,
+                        onTap: (ctx) => ItemDetailSheet.show(
+                          ctx,
+                          ItemDetailSheet(
+                            title: c.nom,
+                            imageUrl:
+                                c.photo.startsWith('http') ? c.photo : null,
+                            description: c.description,
+                            isVerified: c.isVerified,
+                            infos: [
+                              if (c.adresse.isNotEmpty)
+                                DetailInfoItem(
+                                    Icons.location_on_outlined, c.adresse),
+                              if (c.horaires.isNotEmpty)
+                                DetailInfoItem(
+                                    Icons.access_time_rounded, c.horaires),
+                            ],
+                            primaryAction: c.siteWeb.isNotEmpty
+                                ? DetailAction(
+                                    icon: Icons.public_rounded,
+                                    label: 'Site web',
+                                    url: c.siteWeb)
+                                : null,
+                            secondaryActions: [
+                              if (c.lienMaps.isNotEmpty)
+                                DetailAction(
+                                    icon: Icons.map_rounded,
+                                    label: 'Itinéraire',
+                                    url: c.lienMaps),
+                              if (c.telephone.isNotEmpty)
+                                DetailAction(
+                                    icon: Icons.phone_rounded,
+                                    label: 'Appeler',
+                                    url: 'tel:${c.telephone}'),
+                            ],
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sub = ref.watch(sportSubcategoryProvider);
@@ -57,6 +147,10 @@ class SportScreen extends ConsumerWidget {
     // Cartes plein ecran (sans chrome editorial)
     if (SportFullscreenMap.isMapTag(sub)) {
       return SportFullscreenMap(mapTag: sub!);
+    }
+
+    if (sub == null) {
+      return RubriqueLandingView(config: _config(context, ref));
     }
 
     return Container(

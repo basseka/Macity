@@ -119,7 +119,7 @@ class _SectionHeader extends StatelessWidget {
         children: [
           Text(
             'En direct',
-            style: GoogleFonts.geist(
+            style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.2,
@@ -129,15 +129,11 @@ class _SectionHeader extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             'autour de vous',
-            style: GoogleFonts.instrumentSerif(
-              fontSize: 13,
-              fontStyle: FontStyle.italic,
-              fontWeight: FontWeight.w400,
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
               letterSpacing: -0.2,
-              foreground: Paint()
-                ..shader = AppGradients.editorial.createShader(
-                  const Rect.fromLTWH(0, 0, 95, 18),
-                ),
+              color: const Color(0xFFFF6B2C),
             ),
           ),
           const Spacer(),
@@ -153,12 +149,12 @@ class _SectionHeader extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.2,
-                    color: AppColors.magenta,
+                    color: const Color(0xFFFF6B2C),
                   ),
                 ),
                 const SizedBox(width: 2),
                 const Icon(Icons.chevron_right,
-                    size: 15, color: AppColors.magenta),
+                    size: 15, color: Color(0xFFFF6B2C)),
               ],
             ),
           ),

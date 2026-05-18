@@ -11,6 +11,9 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
+import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
+import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/family/presentation/family_hub_grid.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/family/presentation/widgets/family_venue_row_card.dart';
@@ -21,9 +24,126 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 class FamilyScreen extends ConsumerWidget {
   const FamilyScreen({super.key});
 
+  static const _famille = RubriqueTheme(
+    accent: Color(0xFFC2410C), // RubricColors.family — orange
+    accent2: Color(0xFFE15A1E),
+  );
+
+  IconData _iconFor(String tag) {
+    switch (tag) {
+      case 'Parc d\'attractions':
+        return Icons.attractions_rounded;
+      case 'Aire de jeux':
+        return Icons.child_friendly_rounded;
+      case 'Parc animalier':
+        return Icons.pets_rounded;
+      case 'Ferme pedagogique':
+        return Icons.agriculture_rounded;
+      case 'Cinema':
+        return Icons.movie_rounded;
+      case 'Bowling':
+        return Icons.sports_rounded;
+      case 'Laser game':
+        return Icons.sports_esports_rounded;
+      case 'Escape game':
+        return Icons.lock_rounded;
+      case 'Patinoire':
+        return Icons.ice_skating_rounded;
+      case 'Aquarium':
+        return Icons.water_rounded;
+      case 'Restaurant familial':
+        return Icons.restaurant_rounded;
+      default:
+        return Icons.family_restroom_rounded;
+    }
+  }
+
+  RubriqueConfig _config(BuildContext context, WidgetRef ref) {
+    final chips = FamilyCategoryData.allSubcategories
+        .where((s) => s.searchTag != 'A venir')
+        .map((s) =>
+            RubriqueChip(s.label, _iconFor(s.searchTag), s.searchTag))
+        .toList();
+    return RubriqueConfig(
+      theme: _famille,
+      eyebrowLeft: 'RUBRIQUE',
+      eyebrowRight: 'EN TRIBU',
+      title: 'Famille.',
+      subtitle: 'Cinéma, parcs, ateliers — sortir avec les enfants.',
+      sectionTitle: 'À faire en famille',
+      chips: chips,
+      inspirations: const [
+        RubriqueInspiration('Parcs en plein air', 'À explorer', null),
+        RubriqueInspiration('Jours de pluie', 'En intérieur', null),
+        RubriqueInspiration('Anniversaires', 'Idées', null),
+        RubriqueInspiration('Avec les tout-petits', '0-3 ans', null),
+      ],
+      bannerTitle: 'Des souvenirs à créer en tribu.',
+      bannerSubtitle: 'Les meilleures sorties enfants vous attendent.',
+      bannerCta: 'Découvrir',
+      onBack: () => context.go('/home'),
+      itemsBuilder: (ref, chipKey) {
+        final async = ref.watch(familySupabaseVenuesProvider(chipKey));
+        return async.whenData((venues) => venues
+            .map((v) => RubriqueItem(
+                  title: v.name,
+                  subtitle: [
+                    if (v.category.isNotEmpty) v.category,
+                    if (v.ville.isNotEmpty) v.ville,
+                  ].join(' · '),
+                  photoUrl: v.photo,
+                  isVerified: v.isVerified,
+                  onTap: (ctx) => ItemDetailSheet.show(
+                    ctx,
+                    ItemDetailSheet(
+                      title: v.name,
+                      imageUrl: v.photo.startsWith('http') ? v.photo : null,
+                      description: v.description,
+                      isVerified: v.isVerified,
+                      infos: [
+                        if (v.adresse.isNotEmpty)
+                          DetailInfoItem(
+                              Icons.location_on_outlined, v.adresse),
+                        if (v.horaires.isNotEmpty)
+                          DetailInfoItem(
+                              Icons.access_time_rounded, v.horaires),
+                        if (v.tarif.isNotEmpty)
+                          DetailInfoItem(
+                              Icons.euro_rounded, v.tarif),
+                      ],
+                      primaryAction: v.websiteUrl.isNotEmpty
+                          ? DetailAction(
+                              icon: Icons.public_rounded,
+                              label: 'Site web',
+                              url: v.websiteUrl)
+                          : null,
+                      secondaryActions: [
+                        if (v.lienMaps.isNotEmpty)
+                          DetailAction(
+                              icon: Icons.map_rounded,
+                              label: 'Itinéraire',
+                              url: v.lienMaps),
+                        if (v.telephone.isNotEmpty)
+                          DetailAction(
+                              icon: Icons.phone_rounded,
+                              label: 'Appeler',
+                              url: 'tel:${v.telephone}'),
+                      ],
+                    ),
+                  ),
+                ))
+            .toList());
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(familyCategoryProvider);
+
+    if (selectedCategory == null) {
+      return RubriqueLandingView(config: _config(context, ref));
+    }
 
     return Container(
       color: EditorialColors.ink,

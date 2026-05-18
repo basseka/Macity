@@ -19,9 +19,9 @@ class _TileColors {
 }
 
 const _tileColorsByTab = <HomeNavTab, _TileColors>{
-  HomeNavTab.food: _TileColors(Color(0xFFFCE3E3), Color(0xFFE5484D)),
+  HomeNavTab.food: _TileColors(Color(0xFFD8F2E3), Color(0xFF0F3D2E)),
   HomeNavTab.famille: _TileColors(Color(0xFFFCEFC7), Color(0xFFF2A20C)),
-  HomeNavTab.sport: _TileColors(Color(0xFFD8F2E3), Color(0xFF1A9E5C)),
+  HomeNavTab.sport: _TileColors(Color(0xFFFCE3E3), Color(0xFFE5484D)),
   HomeNavTab.culture: _TileColors(Color(0xFFEADDFB), Color(0xFF9333EA)),
   HomeNavTab.night: _TileColors(Color(0xFFD7E8F8), Color(0xFF3B9FE0)),
 };

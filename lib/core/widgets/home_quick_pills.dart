@@ -257,7 +257,7 @@ class _Pill extends StatelessWidget {
               ? const LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [Color(0xFFFF3D8B), Color(0xFFFF6FB0)],
+                  colors: [Color(0xFFFF6B2C), Color(0xFFFF8A4D)],
                 )
               : null,
           borderRadius: BorderRadius.circular(16),
@@ -267,7 +267,7 @@ class _Pill extends StatelessWidget {
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: AppColors.magenta.withValues(alpha: 0.30),
+                    color: const Color(0xFFFF6B2C).withValues(alpha: 0.30),
                     blurRadius: 14,
                     offset: const Offset(0, 4),
                   ),
