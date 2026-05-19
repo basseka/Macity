@@ -65,6 +65,16 @@
                     android:host="event" />
             </intent-filter>
 
+            <!-- Deep link for private event coffre (token pre-rempli) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="pulzapp"
+                    android:host="coffre" />
+            </intent-filter>
+
             <!-- Android App Links (verified domain) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

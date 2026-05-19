@@ -25,6 +25,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
   final _service = PrivateEventService();
   final _tokenCtrl = TextEditingController();
   final _passcodeCtrl = TextEditingController();
+  final _passcodeFocus = FocusNode();
   bool _busy = false;
   String? _error;
   PrivateEventReveal? _revealed;
@@ -41,6 +42,10 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
     super.initState();
     if (widget.prefilledToken != null) {
       _tokenCtrl.text = widget.prefilledToken!;
+      // Token deja rempli via le lien -> focus direct sur le code a taper.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _passcodeFocus.requestFocus();
+      });
     }
     _unlockCtrl = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -52,6 +57,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
   void dispose() {
     _tokenCtrl.dispose();
     _passcodeCtrl.dispose();
+    _passcodeFocus.dispose();
     _unlockCtrl.dispose();
     super.dispose();
   }
@@ -285,6 +291,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
         const SizedBox(height: 4),
         TextField(
           controller: _passcodeCtrl,
+          focusNode: _passcodeFocus,
           keyboardType: TextInputType.number,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,

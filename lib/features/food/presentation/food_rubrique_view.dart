@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:pulz_app/core/constants/video_constants.dart';
+import 'package:pulz_app/core/data/inspiration_service.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
 import 'package:pulz_app/features/food/presentation/food_design_tokens.dart';
 import 'package:pulz_app/features/food/presentation/food_restaurants_fullscreen_map.dart';
@@ -145,8 +146,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
               loading: () => _loadingCarousel(),
               error: (_, __) => _emptyCarousel(),
             ),
-            _sectionHeader('Inspirations du moment', onSeeAll: () {}),
-            _inspirationsRow(),
+            ..._inspirationsSection(),
             _reservationBanner(),
           ],
         ),
@@ -218,13 +218,17 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   }
 
   // ─── Section header ──────────────────────────────────────────────────
-  Widget _sectionHeader(String title, {required VoidCallback onSeeAll}) {
+  Widget _sectionHeader(String title,
+      {required VoidCallback onSeeAll, double? fontSize}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(title, style: FoodTokens.sectionHeader()),
+          Text(
+            title,
+            style: FoodTokens.sectionHeader(fontSize: fontSize ?? 14),
+          ),
           const Spacer(),
           GestureDetector(
             onTap: onSeeAll,
@@ -270,35 +274,56 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
       );
 
   // ─── Inspirations ────────────────────────────────────────────────────
-  Widget _inspirationsRow() {
-    const items = <_Inspiration>[
-      _Inspiration('Brunchs gourmands', '12 adresses', 'Brunch'),
-      _Inspiration('Terrasses ensoleillées', '18 adresses', null),
-      _Inspiration('Nouveautés à tester', '8 adresses', null),
-      _Inspiration('Cafés à travailler', '14 adresses', 'Salon de the'),
-    ];
-    return SizedBox(
-      height: 124,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) => _InspirationCard(
-          data: items[i],
-          onTap: () {
-            final theme = items[i].theme;
-            if (theme != null) {
-              setState(() => _activeChip = _chips
-                  .firstWhere((c) => c.theme == theme,
-                      orElse: () => _chips.first)
-                  .label);
-            }
-          },
+  /// Carrousel dynamique alimente par la table `inspirations` (rubrique='food')
+  /// (editee depuis /admin.html). Masque entierement la section — titre
+  /// inclus — tant qu'il n'y a aucune carte active pour la ville.
+  List<Widget> _inspirationsSection() {
+    final items =
+        ref.watch(inspirationsProvider('food')).valueOrNull ?? const [];
+    if (items.isEmpty) return const [];
+    return [
+      _sectionHeader('Inspirations du moment',
+          onSeeAll: () {}, fontSize: 11.5),
+      SizedBox(
+        height: 178,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, i) => _InspirationCard(
+            data: items[i],
+            onTap: () => _onInspirationTap(items[i]),
+            onOpenSite: () => _openSite(items[i].siteUrl),
+          ),
         ),
       ),
-    );
+    ];
+  }
+
+  /// Tap carte : si le thème correspond à un chip Food on bascule le
+  /// filtre dessus ; sinon, à défaut, on ouvre le site s'il y en a un.
+  void _onInspirationTap(Inspiration insp) {
+    final theme = insp.theme.trim();
+    if (theme.isNotEmpty) {
+      final match = _chips.where((c) =>
+          c.theme != null &&
+          c.theme!.toLowerCase() == theme.toLowerCase());
+      if (match.isNotEmpty) {
+        setState(() => _activeChip = match.first.label);
+        return;
+      }
+    }
+    _openSite(insp.siteUrl);
+  }
+
+  Future<void> _openSite(String url) async {
+    final u = url.trim();
+    if (u.isEmpty) return;
+    final uri = Uri.tryParse(u);
+    if (uri == null) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   // ─── Bannière réservation ────────────────────────────────────────────
@@ -378,12 +403,6 @@ class _Chip {
   const _Chip(this.label, this.icon, this.theme);
 }
 
-class _Inspiration {
-  final String title;
-  final String count;
-  final String? theme;
-  const _Inspiration(this.title, this.count, this.theme);
-}
 
 // ─── Hero ──────────────────────────────────────────────────────────────
 class _Hero extends StatelessWidget {
@@ -894,17 +913,29 @@ class _CardGradient extends StatelessWidget {
 
 // ─── Carte inspiration ─────────────────────────────────────────────────
 class _InspirationCard extends StatelessWidget {
-  final _Inspiration data;
+  final Inspiration data;
   final VoidCallback onTap;
-  const _InspirationCard({required this.data, required this.onTap});
+  final VoidCallback onOpenSite;
+  const _InspirationCard({
+    required this.data,
+    required this.onTap,
+    required this.onOpenSite,
+  });
+
+  static const _imgGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF3A1F14), Color(0xFF7A3B22)],
+  );
 
   @override
   Widget build(BuildContext context) {
+    final hasSite = data.siteUrl.trim().isNotEmpty;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: 104,
+        width: 124,
         decoration: BoxDecoration(
           color: FoodTokens.dark,
           borderRadius: BorderRadius.circular(FoodTokens.rInspiration),
@@ -914,21 +945,26 @@ class _InspirationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(
-              height: 66,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF3A1F14), Color(0xFF7A3B22)],
-                  ),
-                ),
-              ),
+            SizedBox(
+              height: 62,
+              child: data.photoUrl.trim().isEmpty
+                  ? const DecoratedBox(
+                      decoration: BoxDecoration(gradient: _imgGradient),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: data.photoUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const DecoratedBox(
+                        decoration: BoxDecoration(gradient: _imgGradient),
+                      ),
+                      errorWidget: (_, __, ___) => const DecoratedBox(
+                        decoration: BoxDecoration(gradient: _imgGradient),
+                      ),
+                    ),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -939,33 +975,37 @@ class _InspirationCard extends StatelessWidget {
                       style: FoodTokens.meta(
                           color: Colors.white, w: FontWeight.w600),
                     ),
-                    const Spacer(),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            data.count,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: FoodTokens.tinyTag(
-                              color: Colors.white.withValues(alpha: 0.55),
-                              size: 9.5,
-                              spacing: 0,
-                              w: FontWeight.w500,
-                            ),
-                          ),
+                    if (data.description.trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        data.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: FoodTokens.tinyTag(
+                          color: Colors.white.withValues(alpha: 0.62),
+                          size: 9.5,
+                          spacing: 0,
+                          w: FontWeight.w400,
                         ),
-                        Container(
-                          width: 22,
-                          height: 22,
+                      ),
+                    ],
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: hasSite ? onOpenSite : onTap,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          width: 18,
+                          height: 18,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                             color: FoodTokens.teal,
                           ),
                           child: const Icon(Icons.arrow_outward_rounded,
-                              size: 12, color: Color(0xFF08221C)),
+                              size: 11, color: Color(0xFF08221C)),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

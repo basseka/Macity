@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:video_player/video_player.dart';
 
@@ -17,7 +19,10 @@ class StoryVideoCache {
   static void preload(String url) {
     if (url.isEmpty) return;
     if (_entries.containsKey(url)) return;
-    _entries[url] = _CacheEntry._start(url);
+    final entry = _entries[url] = _CacheEntry._start(url);
+    // Observe la future pour eviter un "unhandled exception" si le preload
+    // echoue sans take() derriere. L'eviction est geree par _CacheEntry._start.
+    entry.future.ignore();
   }
 
   /// Recupere (ou attend) le controller initialise pour [url]. Lance l'init
@@ -55,17 +60,32 @@ class _CacheEntry {
 
   factory _CacheEntry._start(String url) {
     final ctrl = VideoPlayerController.networkUrl(Uri.parse(url));
-    final future = ctrl.initialize().then((_) {
+    late final _CacheEntry entry;
+    final future = ctrl
+        .initialize()
+        // Une init reseau peut rester pendante indefiniment (objet Storage
+        // pas encore propage sur le CDN juste apres un upload). On borne
+        // pour pouvoir retomber sur la photo puis retenter.
+        .timeout(const Duration(seconds: 12))
+        .then((_) {
       ctrl.setLooping(true);
       ctrl.setVolume(0);
       return ctrl;
-    }).catchError((e) {
+    }).catchError((Object e) {
       debugPrint('[StoryVideoCache] init failed for $url: $e');
-      // Re-throw pour que les awaiters puissent retomber sur le placeholder
-      // photo. Le controller reste reference pour dispose plus tard.
+      // Auto-eviction : une init echouee ne doit PAS empoisonner le cache.
+      // Sans ca, tous les take()/preload() suivants renvoient cette meme
+      // future deja rejetee -> la video ne se lance jamais (cas typique
+      // d'un signalement tout frais : le CDN ne sert pas encore la video).
+      // En retirant l'entree, le prochain take() relance une vraie tentative.
+      if (identical(StoryVideoCache._entries[url], entry)) {
+        StoryVideoCache._entries.remove(url);
+      }
+      ctrl.dispose();
+      // Re-throw pour que les awaiters retombent sur le placeholder photo.
       throw e;
     });
-    final entry = _CacheEntry._(future);
+    entry = _CacheEntry._(future);
     entry._ctrl = ctrl;
     return entry;
   }

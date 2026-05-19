@@ -35,8 +35,6 @@ class ShareEventSheet extends ConsumerStatefulWidget {
 
 class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
   static const _accent = Color(0xFF6C5CE7);
-  static const _playStoreLink =
-      'https://play.google.com/apps/internaltest/4700923192632434389';
 
   final List<PickedContact> _picked = [];
   bool _picking = false;
@@ -476,8 +474,10 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
   Future<void> _inviteBySms() async {
     final recipients = _nonPulzRecipients;
     if (recipients.isEmpty) return;
+    // Deep link direct vers l'event dans l'app (scheme custom, sans web).
+    final deepLink = 'pulzapp://event/${widget.eventId}';
     final message =
-        'Salut ! Rejoins-moi sur Pulz pour decouvrir "${widget.eventTitle}" et les events autour de toi :\n$_playStoreLink';
+        'Salut ! Rejoins-moi sur Pulz pour decouvrir "${widget.eventTitle}" :\n$deepLink';
     await Share.share(message, subject: 'Rejoins-moi sur Pulz');
     if (!mounted) return;
     setState(() {

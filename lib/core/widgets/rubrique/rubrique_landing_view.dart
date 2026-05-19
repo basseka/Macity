@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:pulz_app/core/constants/video_constants.dart';
+import 'package:pulz_app/core/data/inspiration_service.dart';
 
 /// Palette + typo paramétrables d'une rubrique (réutilise le design Food
 /// mais avec la couleur signature de chaque rubrique).
@@ -40,8 +41,9 @@ class RubriqueTheme {
         color: Colors.white,
       );
 
-  static TextStyle sectionHeader({Color color = ink}) => GoogleFonts.poppins(
-        fontSize: 14,
+  static TextStyle sectionHeader({Color color = ink, double fontSize = 14}) =>
+      GoogleFonts.poppins(
+        fontSize: fontSize,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.3,
         height: 1.1,
@@ -146,13 +148,6 @@ class RubriqueChip {
   const RubriqueChip(this.label, this.icon, this.key);
 }
 
-class RubriqueInspiration {
-  final String title;
-  final String count;
-  final String? chipKeyOnTap;
-  const RubriqueInspiration(this.title, this.count, this.chipKeyOnTap);
-}
-
 class RubriqueConfig {
   final RubriqueTheme theme;
   final String eyebrowLeft;
@@ -161,7 +156,11 @@ class RubriqueConfig {
   final String subtitle;
   final String sectionTitle;
   final List<RubriqueChip> chips;
-  final List<RubriqueInspiration> inspirations;
+
+  /// Clé rubrique persistée en base (food | family | sport | culture | night).
+  /// Sert à interroger `inspirationsProvider` pour le carrousel dynamique.
+  final String rubriqueKey;
+
   final String bannerTitle;
   final String bannerSubtitle;
   final String bannerCta;
@@ -181,7 +180,7 @@ class RubriqueConfig {
     required this.subtitle,
     required this.sectionTitle,
     required this.chips,
-    required this.inspirations,
+    required this.rubriqueKey,
     required this.bannerTitle,
     required this.bannerSubtitle,
     required this.bannerCta,
@@ -306,10 +305,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                     style: RubriqueTheme.body()),
               ),
             ),
-            if (cfg.inspirations.isNotEmpty) ...[
-              _sectionHeader('Inspirations du moment', t),
-              _inspirationsRow(cfg),
-            ],
+            ..._inspirationsSection(cfg, t),
             _banner(cfg),
           ],
         ),
@@ -376,13 +372,18 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     );
   }
 
-  Widget _sectionHeader(String title, RubriqueTheme t) {
+  Widget _sectionHeader(String title, RubriqueTheme t, {double? fontSize}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(title, style: RubriqueTheme.sectionHeader()),
+          Text(
+            title,
+            style: RubriqueTheme.sectionHeader(
+              fontSize: fontSize ?? 14,
+            ),
+          ),
           const Spacer(),
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -397,102 +398,51 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     );
   }
 
-  Widget _inspirationsRow(RubriqueConfig cfg) {
-    final t = cfg.theme;
-    return SizedBox(
-      height: 124,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
-        itemCount: cfg.inspirations.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final ins = cfg.inspirations[i];
-          return GestureDetector(
-            onTap: () {
-              if (ins.chipKeyOnTap != null) {
-                setState(() => _activeChip = ins.chipKeyOnTap!);
-              }
-            },
-            behavior: HitTestBehavior.opaque,
-            child: Container(
-              width: 104,
-              decoration: BoxDecoration(
-                color: RubriqueTheme.dark,
-                borderRadius:
-                    BorderRadius.circular(RubriqueTheme.rInspiration),
-                boxShadow: RubriqueTheme.mini,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    height: 66,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            t.accent.withValues(alpha: 0.55),
-                            RubriqueTheme.dark,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(ins.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: RubriqueTheme.meta(
-                                  color: Colors.white,
-                                  w: FontWeight.w600)),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(ins.count,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: RubriqueTheme.tinyTag(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.55),
-                                        size: 9.5,
-                                        spacing: 0,
-                                        w: FontWeight.w500)),
-                              ),
-                              Container(
-                                width: 22,
-                                height: 22,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: t.tealAccent),
-                                child: const Icon(
-                                    Icons.arrow_outward_rounded,
-                                    size: 12,
-                                    color: Color(0xFF08221C)),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+  /// Section "Inspirations du moment" — alimentée par la table `inspirations`
+  /// filtrée sur `cfg.rubriqueKey` et la ville sélectionnée. Section
+  /// entièrement masquée (titre inclus) quand il n'y a aucune carte.
+  List<Widget> _inspirationsSection(RubriqueConfig cfg, RubriqueTheme t) {
+    final items =
+        ref.watch(inspirationsProvider(cfg.rubriqueKey)).valueOrNull ??
+            const <Inspiration>[];
+    if (items.isEmpty) return const [];
+    return [
+      _sectionHeader('Inspirations du moment', t, fontSize: 11.5),
+      SizedBox(
+        height: 178,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, i) => _RubriqueInspirationCard(
+            data: items[i],
+            theme: t,
+            onTap: () => _onInspirationTap(cfg, items[i]),
+            onOpenSite: () => _openLink(items[i].siteUrl),
+          ),
+        ),
       ),
-    );
+    ];
+  }
+
+  /// Tap carte : bascule sur le chip dont la clé matche `insp.theme`
+  /// (insensible à la casse) si la rubrique en a un, sinon ouvre le site.
+  void _onInspirationTap(RubriqueConfig cfg, Inspiration insp) {
+    final theme = insp.theme.trim();
+    if (theme.isNotEmpty) {
+      final match = cfg.chips.where(
+        (c) => c.key.toLowerCase() == theme.toLowerCase(),
+      );
+      if (match.isNotEmpty) {
+        setState(() => _activeChip = match.first.key);
+        return;
+      }
+    }
+    if (insp.siteUrl.trim().isNotEmpty) {
+      _openLink(insp.siteUrl);
+    }
   }
 
   Widget _banner(RubriqueConfig cfg) {
@@ -648,25 +598,28 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             top: topPad + 8,
             left: 18,
             right: 18,
-            child: GestureDetector(
-              onTap: cfg.onBack,
-              behavior: HitTestBehavior.opaque,
-              child: ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.96),
-                      border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          width: 1),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: GestureDetector(
+                onTap: cfg.onBack,
+                behavior: HitTestBehavior.opaque,
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.96),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            width: 1),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.chevron_left,
+                          size: 17, color: RubriqueTheme.ink),
                     ),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.chevron_left,
-                        size: 17, color: RubriqueTheme.ink),
                   ),
                 ),
               ),
@@ -876,4 +829,113 @@ class _ItemCard extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// Carte du carrousel "Inspirations" (commune Famille/Sport/Culture/Night).
+/// Mêmes dimensions compactes que la carte Food, mais utilise la couleur
+/// signature de la rubrique pour le dégradé de fallback et la flèche.
+class _RubriqueInspirationCard extends StatelessWidget {
+  final Inspiration data;
+  final RubriqueTheme theme;
+  final VoidCallback onTap;
+  final VoidCallback onOpenSite;
+  const _RubriqueInspirationCard({
+    required this.data,
+    required this.theme,
+    required this.onTap,
+    required this.onOpenSite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSite = data.siteUrl.trim().isNotEmpty;
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        theme.accent.withValues(alpha: 0.55),
+        RubriqueTheme.dark,
+      ],
+    );
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 124,
+        decoration: BoxDecoration(
+          color: RubriqueTheme.dark,
+          borderRadius: BorderRadius.circular(RubriqueTheme.rInspiration),
+          boxShadow: RubriqueTheme.mini,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 62,
+              child: data.photoUrl.trim().isEmpty
+                  ? DecoratedBox(decoration: BoxDecoration(gradient: gradient))
+                  : CachedNetworkImage(
+                      imageUrl: data.photoUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => DecoratedBox(
+                          decoration: BoxDecoration(gradient: gradient)),
+                      errorWidget: (_, __, ___) => DecoratedBox(
+                          decoration: BoxDecoration(gradient: gradient)),
+                    ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: RubriqueTheme.meta(
+                          color: Colors.white, w: FontWeight.w600),
+                    ),
+                    if (data.description.trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        data.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: RubriqueTheme.tinyTag(
+                          color: Colors.white.withValues(alpha: 0.62),
+                          size: 9.5,
+                          spacing: 0,
+                          w: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: hasSite ? onOpenSite : onTap,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: theme.tealAccent,
+                          ),
+                          child: const Icon(Icons.arrow_outward_rounded,
+                              size: 11, color: Color(0xFF08221C)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

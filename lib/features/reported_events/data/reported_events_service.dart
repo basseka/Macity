@@ -12,6 +12,7 @@ import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
+import 'package:video_compress/video_compress.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 
@@ -147,11 +148,32 @@ class ReportedEventsService {
       final file = File(localPath);
       if (!await file.exists()) return null;
 
-      final bytes = await file.readAsBytes();
+      // Compression AVANT lecture des bytes : une video camera brute
+      // (ResolutionPreset.high, 10s) pese souvent 15-25 MB -> elle depassait
+      // le garde-fou 20 MB ou le timeout d'upload sur reseau mobile, et etait
+      // silencieusement abandonnee (videos vide en DB, seul le thumbnail
+      // restait visible). LowQuality ramene a ~1-3 MB.
+      Uint8List bytes;
+      try {
+        final info = await VideoCompress.compressVideo(
+          localPath,
+          quality: VideoQuality.LowQuality,
+          deleteOrigin: false,
+        );
+        if (info?.file != null) {
+          bytes = await info!.file!.readAsBytes();
+          debugPrint('[ReportedEvents] video compressed: ${bytes.length ~/ 1024} KB');
+        } else {
+          bytes = await file.readAsBytes();
+        }
+      } catch (e) {
+        debugPrint('[ReportedEvents] video compress failed, fallback raw: $e');
+        bytes = await file.readAsBytes();
+      }
       if (bytes.isEmpty) return null;
-      // Garde-fou : refuse > 20 MB
+      // Garde-fou : refuse > 20 MB (apres compression : ne devrait jamais arriver)
       if (bytes.length > 20 * 1024 * 1024) {
-        debugPrint('[ReportedEvents] video too large: ${bytes.length} bytes');
+        debugPrint('[ReportedEvents] video too large after compression: ${bytes.length} bytes');
         return null;
       }
 

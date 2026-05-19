@@ -72,12 +72,7 @@ class FamilyScreen extends ConsumerWidget {
       subtitle: 'Cinéma, parcs, ateliers — sortir avec les enfants.',
       sectionTitle: 'À faire en famille',
       chips: chips,
-      inspirations: const [
-        RubriqueInspiration('Parcs en plein air', 'À explorer', null),
-        RubriqueInspiration('Jours de pluie', 'En intérieur', null),
-        RubriqueInspiration('Anniversaires', 'Idées', null),
-        RubriqueInspiration('Avec les tout-petits', '0-3 ans', null),
-      ],
+      rubriqueKey: 'family',
       bannerTitle: 'Des souvenirs à créer en tribu.',
       bannerSubtitle: 'Les meilleures sorties enfants vous attendent.',
       bannerCta: 'Découvrir',

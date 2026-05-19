@@ -55,12 +55,7 @@ class CultureScreen extends ConsumerWidget {
             'Bibliotheque'),
         RubriqueChip('Galeries', Icons.palette_rounded, 'Galerie'),
       ],
-      inspirations: const [
-        RubriqueInspiration('Gratuit ce mois', 'À voir', null),
-        RubriqueInspiration('Expos temporaires', 'En cours', null),
-        RubriqueInspiration('Patrimoine caché', 'À explorer', null),
-        RubriqueInspiration('En famille', 'Pour tous', null),
-      ],
+      rubriqueKey: 'culture',
       bannerTitle: 'La ville se raconte.',
       bannerSubtitle: 'Musées, expos et patrimoine vous attendent.',
       bannerCta: 'Découvrir',

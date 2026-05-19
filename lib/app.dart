@@ -23,6 +23,7 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/notifications/data/mairie_notifications_service.dart';
 import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
+import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
 
 class PulzApp extends ConsumerStatefulWidget {
   const PulzApp({super.key});
@@ -75,6 +76,12 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
     // Ecouter les liens entrants (app déjà ouverte)
     _appLinks.uriLinkStream.listen((uri) {
       debugPrint('[DeepLink] stream: $uri');
+      // Coffre (soiree privee) : ouvre l'ecran avec le token pre-rempli.
+      final coffreToken = parseDeepLinkCoffreToken(uri);
+      if (coffreToken != null) {
+        appRouter.go('/coffre/$coffreToken');
+        return;
+      }
       final eventId = parseDeepLinkEventId(uri);
       if (eventId != null) {
         // App ouverte : charger l'event et naviguer
@@ -92,6 +99,14 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
     _appLinks.getInitialLink().then((uri) {
       if (uri != null) {
         debugPrint('[DeepLink] initial: $uri');
+        final coffreToken = parseDeepLinkCoffreToken(uri);
+        if (coffreToken != null) {
+          // Cold start : on attend que le router soit monte avant de naviguer.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            appRouter.go('/coffre/$coffreToken');
+          });
+          return;
+        }
         final eventId = parseDeepLinkEventId(uri);
         if (eventId != null) {
           deepLinkSetPendingId(eventId);
@@ -124,6 +139,26 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         final eventId = data['event_id'] as String? ?? '';
         if (eventId.isNotEmpty) {
           _openReportedEventSheet(eventId);
+        } else {
+          appRouter.go('/home');
+        }
+        return;
+      }
+
+      // Notification RSVP soiree privee (un invite a fait "Je viens") →
+      // ouvrir la liste "Mes soirees privees" de l'organisateur.
+      if (type == 'private_event_rsvp') {
+        _openMyPrivateEvents();
+        return;
+      }
+
+      // Notification "live" (signalement proche, edge fn
+      // notify-nearby-reported-event) → ouvrir directement l'affiche.
+      // Le payload utilise `reported_event_id` (≠ `event_id` du chat).
+      if (type == 'reported_event') {
+        final eventId = data['reported_event_id'] as String? ?? '';
+        if (eventId.isNotEmpty) {
+          _openReportedEventSheet(eventId, scrollToChat: false);
         } else {
           appRouter.go('/home');
         }
@@ -187,8 +222,13 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
     };
   }
 
-  /// Ouvre le bottom sheet d'un signalement apres tap sur une notif chat.
-  Future<void> _openReportedEventSheet(String eventId) async {
+  /// Ouvre le bottom sheet d'un signalement apres tap sur une notif chat
+  /// ou une notif "live". [scrollToChat] = true pour les notifs chat (on
+  /// veut voir le message), false pour une notif live (on montre l'affiche).
+  Future<void> _openReportedEventSheet(
+    String eventId, {
+    bool scrollToChat = true,
+  }) async {
     try {
       appRouter.go('/home');
       final event = await ReportedEventsService().fetchById(eventId);
@@ -203,10 +243,28 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         ctx,
         events: [event],
         initialIndex: 0,
-        initialScrollToChat: true,
+        initialScrollToChat: scrollToChat,
       );
     } catch (e) {
       debugPrint('[App] open reported event sheet failed: $e');
+    }
+  }
+
+  /// Ouvre l'ecran "Mes soirees privees" (cote organisateur) apres tap sur
+  /// une notif RSVP : le host voit la liste de ses events + les venues.
+  Future<void> _openMyPrivateEvents() async {
+    try {
+      appRouter.go('/home');
+      final rootNav = appRouter.routerDelegate.navigatorKey.currentState;
+      if (rootNav == null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      rootNav.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const MyPrivateEventsScreen(),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[App] open my private events failed: $e');
     }
   }
 

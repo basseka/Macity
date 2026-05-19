@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show HapticFeedback, rootBundle;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -121,16 +121,22 @@ class EventFullscreenPopup extends ConsumerWidget {
                       fit: StackFit.expand,
                       children: [
                         _buildFullPochette(),
-                        // Gradient overlay
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.black.withValues(alpha: 0.2),
-                                Colors.black.withValues(alpha: 0.6),
-                              ],
+                        // Gradient overlay : IgnorePointer pour ne pas
+                        // bloquer les taps sur les boutons en dessous (mute,
+                        // fullscreen). Sans ca, le Container avec decoration
+                        // gradient peut capturer le pointer event et empecher
+                        // le hit-test de descendre jusqu'au video player.
+                        const IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0x33000000),
+                                  Color(0x99000000),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -615,6 +621,7 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
   late VideoPlayerController _controller;
   bool _initialized = false;
   bool _muted = false;
+  int _fsTapCount = 0;
 
   @override
   void initState() {
@@ -647,20 +654,24 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
       );
     }
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (_controller.value.isPlaying) {
-            _controller.pause();
-          } else {
-            _controller.play();
-          }
-        });
-      },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          FittedBox(
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Video + tap play/pause : GestureDetector enveloppe SEULEMENT
+        // la video (pas toute la Stack), sinon il gagnait l'arene des
+        // gestures sur les boutons (mute/fullscreen) → tap ignore.
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            setState(() {
+              if (_controller.value.isPlaying) {
+                _controller.pause();
+              } else {
+                _controller.play();
+              }
+            });
+          },
+          child: FittedBox(
             fit: BoxFit.cover,
             clipBehavior: Clip.hardEdge,
             child: SizedBox(
@@ -669,69 +680,112 @@ class _EventVideoPlayerState extends State<_EventVideoPlayer> {
               child: VideoPlayer(_controller),
             ),
           ),
-          // Play/pause overlay
-          if (!_controller.value.isPlaying)
-            Container(
+        ),
+        // Play/pause overlay : IgnorePointer pour ne pas capter les taps
+        // (on veut que ce soit la video derriere qui les recoive).
+        if (!_controller.value.isPlaying)
+          const IgnorePointer(
+            child: ColoredBox(
               color: Colors.black26,
-              child: const Center(
+              child: Center(
                 child: Icon(Icons.play_arrow, color: Colors.white, size: 48),
               ),
             ),
-          // Mute en bas a droite
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                setState(() {
-                  _muted = !_muted;
-                  _controller.setVolume(_muted ? 0 : 1);
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Icon(
-                  _muted ? Icons.volume_off : Icons.volume_up,
-                  color: Colors.white,
-                  size: 18,
-                ),
+          ),
+        // Mute en bas a droite
+        Positioned(
+          bottom: 8,
+          right: 8,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              setState(() {
+                _muted = !_muted;
+                _controller.setVolume(_muted ? 0 : 1);
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Icon(
+                _muted ? Icons.volume_off : Icons.volume_up,
+                color: Colors.white,
+                size: 18,
               ),
             ),
           ),
+        ),
 
-          // Fullscreen en HAUT a DROITE, sous la croix de fermeture du
-          // popup. La croix est a top=42 si badge AU TOP/A LA UNE present,
-          // sinon top=12. Hauteur croix ~36 + gap 8 → zoom a top=86 pour
-          // etre TOUJOURS en dessous, peu importe le badge.
-          Positioned(
-            top: 86,
-            right: 12,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => _openFullscreen(context),
-              child: Container(
-                width: 36,
-                height: 36,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.fullscreen,
-                  color: Colors.white,
-                  size: 20,
+        // Fullscreen au CENTRE a DROITE de l'affiche. Material+InkWell
+        // au lieu de GestureDetector pour fiabilite tactile. Hit area
+        // 44x44 (recommandation Material).
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Material(
+                color: Colors.black54,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () {
+                    // DEBUG : incremente le compteur visible dans le bouton
+                    // pour prouver visuellement que le tap arrive bien.
+                    setState(() => _fsTapCount++);
+                    HapticFeedback.heavyImpact();
+                    debugPrint('[fullscreen] tap #$_fsTapCount fired');
+                    _openFullscreen(context);
+                  },
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Stack(
+                      children: [
+                        const Center(
+                          child: Icon(
+                            Icons.fullscreen,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                        // DEBUG : badge rouge avec compteur de taps.
+                        // Si tu vois ce nombre augmenter au tap, le tap fire
+                        // bien -> probleme = Navigator.push.
+                        // Sinon le tap est intercepte ailleurs.
+                        if (_fsTapCount > 0)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '$_fsTapCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1319,23 +1373,25 @@ class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
     if (_sharing) return;
     setState(() => _sharing = true);
     try {
-      const playStore =
-          'https://play.google.com/store/apps/details?id=com.macity.app';
+      // Deep link direct vers l'event dans l'app (scheme custom, sans web).
+      // Tap -> EventDeeplinkScreen fetch l'event et ouvre l'affiche.
+      // Si l'app n'est pas installee, le lien est inerte (choix assume).
+      final deepLink = 'pulzapp://event/${widget.eventIdentifiant}';
       final caption =
-          '${widget.eventTitle}\n\nDécouvre cet évènement sur MaCity, l\'app qui rassemble tout ce qui se passe dans ta ville.\n👉 $playStore';
+          '${widget.eventTitle}\n\nDécouvre cet évènement sur MaCity 👇\n$deepLink';
 
       // Utilise la photo pre-resolue si dispo (cas usuel). Sinon resout
       // maintenant avec un timeout court pour ne pas bloquer l'utilisateur.
-      var photo = _sharePhoto;
-      if (photo == null) {
-        try {
-          photo = await _resolvePhotoFile(widget.photoUrl, widget.fallbackAsset)
-              .timeout(const Duration(seconds: 3));
-        } catch (e) {
-          debugPrint('[share] photo resolve failed/timeout: $e');
-          photo = null;
-        }
-      }
+      // Prefetch pas encore fini : on laisse jusqu'a 9s au download de la
+      // vraie affiche, puis on retombe sur la pochette locale. Le timeout
+      // est INTERNE a _resolvePhotoFile et ne borne QUE le reseau -> le
+      // fallback image locale est toujours atteint, jamais de texte brut.
+      final photo = _sharePhoto ??
+          await _resolvePhotoFile(
+            widget.photoUrl,
+            widget.fallbackAsset,
+            networkTimeout: const Duration(seconds: 9),
+          );
 
       if (photo != null) {
         await Share.shareXFiles(
@@ -1358,15 +1414,27 @@ class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
   /// Resout une image (URL reseau ou asset local) vers un XFile partageable.
   /// Priorise l'URL reseau (image specifique a l'event). Tombe sur l'asset
   /// fallback si pas de URL ou si le download echoue.
-  Future<XFile?> _resolvePhotoFile(String? url, String assetPath) async {
+  /// [networkTimeout] borne UNIQUEMENT le download reseau. null = pas de
+  /// limite (cas du prefetch : il continue de chercher la vraie affiche en
+  /// tache de fond). Dans tous les cas, en cas d'echec/timeout reseau on
+  /// retombe sur l'image locale -> on ne renvoie jamais null a cause du
+  /// reseau, donc jamais de partage en texte brut.
+  Future<XFile?> _resolvePhotoFile(
+    String? url,
+    String assetPath, {
+    Duration? networkTimeout,
+  }) async {
     if (url != null && url.startsWith('http')) {
       try {
-        final file = await DefaultCacheManager().getSingleFile(url);
+        final download = DefaultCacheManager().getSingleFile(url);
+        final file = networkTimeout == null
+            ? await download
+            : await download.timeout(networkTimeout);
         if (await file.exists() && await file.length() > 0) {
           return XFile(file.path);
         }
       } catch (e) {
-        debugPrint('[share] network photo download failed: $e');
+        debugPrint('[share] network photo download failed/timeout: $e');
       }
     }
     return _copyAssetToTemp(assetPath);

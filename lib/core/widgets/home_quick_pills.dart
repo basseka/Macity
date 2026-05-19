@@ -17,11 +17,11 @@ enum BoostedCarouselTab { featured, top }
 final boostedCarouselTabProvider =
     StateProvider<BoostedCarouselTab>((_) => BoostedCarouselTab.featured);
 
-/// Rangee de 3 pilules raccourcis : "A la une" / "Top" / "Toutes les offres".
+/// Rangee de 3 pilules raccourcis : "A la une" / "Top" / "Offres".
 /// S'affiche au-dessus de [HomeNavTabs] dans le greeting block du home.
 ///
 /// "A la une" et "Top" sont des toggles du carrousel boost (cf
-/// [boostedCarouselTabProvider]). "Toutes les offres" navigue vers la page
+/// [boostedCarouselTabProvider]). "Offres" navigue vers la page
 /// Explorer (/explorer).
 ///
 /// La pill "Map Live" a ete deplacee dans le BrandRow (a droite). Cf.
@@ -65,8 +65,8 @@ class HomeQuickPills extends ConsumerWidget {
           const SizedBox(width: 8),
           Expanded(
             child: _Pill(
-              icon: Icons.local_offer_rounded,
-              label: 'Toutes les offres',
+              icon: Icons.card_giftcard_rounded,
+              label: 'Offres',
               isActive: false,
               onTap: () => context.go('/explorer'),
             ),

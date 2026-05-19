@@ -98,12 +98,7 @@ class NightScreen extends ConsumerWidget {
         RubriqueChip('Pub', Icons.sports_bar_rounded, 'Pub'),
         RubriqueChip('Spicy', Icons.local_fire_department_rounded, 'Spicy'),
       ],
-      inspirations: const [
-        RubriqueInspiration('Soirée clubbing', 'Tendance', null),
-        RubriqueInspiration('Verre entre amis', 'Cosy', null),
-        RubriqueInspiration('Ambiance lounge', 'Chill', null),
-        RubriqueInspiration('Jusqu\'au bout', 'After', null),
-      ],
+      rubriqueKey: 'night',
       bannerTitle: 'La nuit t\'appartient.',
       bannerSubtitle: 'Les meilleurs spots nocturnes vous attendent.',
       bannerCta: 'Découvrir',

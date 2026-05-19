@@ -198,18 +198,37 @@ class _StoryMediaState extends ConsumerState<_StoryMedia> {
     super.initState();
     final url = widget.videoUrl;
     if (url != null && url.isNotEmpty) {
-      // On passe par le cache partage : si le paged_sheet a preload, le
-      // controller est deja init -> play instantane sans round-trip reseau.
-      StoryVideoCache.take(url).then((ctrl) {
-        if (!mounted) return;
-        _ctrl = ctrl;
-        ctrl.seekTo(Duration.zero);
-        if (!ref.read(chatInputFocusedProvider)) ctrl.play();
-        setState(() => _initialized = true);
-      }).catchError((e) {
-        debugPrint('[StoryMedia] video take failed: $e');
-      });
+      _loadVideo(url, attempt: 0);
     }
+  }
+
+  /// Charge la video via le cache partage. Si le paged_sheet a preload, le
+  /// controller est deja init -> play instantane sans round-trip reseau.
+  ///
+  /// Retry avec backoff : un signalement tout juste cree pointe vers une
+  /// video qui n'est pas encore servie par le CDN Storage (404/403
+  /// transitoire) -> la 1ere init echoue, on retombe sur le thumbnail, puis
+  /// on retente quelques fois pour que la video finisse par se lancer sans
+  /// que l'utilisateur n'ait a rouvrir la story.
+  void _loadVideo(String url, {required int attempt}) {
+    StoryVideoCache.take(url).then((ctrl) {
+      if (!mounted) return;
+      _ctrl = ctrl;
+      ctrl.seekTo(Duration.zero);
+      if (!ref.read(chatInputFocusedProvider)) ctrl.play();
+      setState(() => _initialized = true);
+    }).catchError((e) {
+      debugPrint('[StoryMedia] video take failed (attempt $attempt): $e');
+      if (!mounted || _initialized || attempt >= 3) return;
+      Future<void>.delayed(
+        Duration(milliseconds: 1500 * (attempt + 1)),
+        () {
+          if (mounted && !_initialized) {
+            _loadVideo(url, attempt: attempt + 1);
+          }
+        },
+      );
+    });
   }
 
   @override

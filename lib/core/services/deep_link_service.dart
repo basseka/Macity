@@ -64,6 +64,20 @@ Future<void> deepLinkShowPending() async {
   _isShowing = false;
 }
 
+/// Parse un URI deep link de coffre (soiree privee) et retourne le token.
+/// Format : pulzapp://coffre/{token} (ou https://macity.app/coffre/{token}).
+/// Le token pre-remplit l'ecran "Ouvrir un coffre" ; l'invite n'a plus qu'a
+/// taper le code a 4 chiffres.
+String? parseDeepLinkCoffreToken(Uri uri) {
+  if (uri.scheme == 'pulzapp' && uri.host == 'coffre') {
+    return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+  }
+  if (uri.path.startsWith('/coffre/')) {
+    return uri.pathSegments.length > 1 ? uri.pathSegments[1] : null;
+  }
+  return null;
+}
+
 /// Parse un URI deep link et retourne l'event ID.
 String? parseDeepLinkEventId(Uri uri) {
   if (uri.scheme == 'pulzapp' && uri.host == 'event') {

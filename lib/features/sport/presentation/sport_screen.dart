@@ -76,12 +76,7 @@ class SportScreen extends ConsumerWidget {
         RubriqueChip('Piscine', Icons.pool_rounded, 'piscine'),
         RubriqueChip('Golf', Icons.golf_course_rounded, 'golf'),
       ],
-      inspirations: const [
-        RubriqueInspiration('Reprendre le sport', 'Débutants', null),
-        RubriqueInspiration('En extérieur', 'Plein air', null),
-        RubriqueInspiration('Avec les enfants', 'En famille', null),
-        RubriqueInspiration('Se dépenser', 'Cardio', null),
-      ],
+      rubriqueKey: 'sport',
       bannerTitle: 'Passe à l\'action.',
       bannerSubtitle: 'Les meilleurs spots sportifs vous attendent.',
       bannerCta: 'Découvrir',

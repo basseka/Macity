@@ -164,6 +164,15 @@
       border-color: var(--magenta);
       transform: translateY(-1px);
     }
+    /* Zone de collage compacte des cartes Inspirations Food */
+    .insp-paste-zone { padding: 16px 12px; margin-bottom: 4px; }
+    .insp-paste-zone.has-image { padding: 8px; }
+    .insp-paste-zone .paste-preview { max-height: 140px; }
+    .insp-paste-zone .paste-browse { margin-top: 10px; padding: 7px 14px; font-size: 12px; }
+    .insp-paste-zone .paste-hint { font-size: 12px; }
+    .insp-paste-zone .paste-icon { font-size: 28px; margin-bottom: 6px; }
+    .insp-url-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+    .insp-url-row .banner-input { margin: 0; }
     /* Submit */
     .btn {
       display: inline-flex;
@@ -698,6 +707,7 @@
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
+          <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
         </div>
       </div>
 
@@ -1028,6 +1038,79 @@
 
         <div id="banners-list"></div>
       </div>
+
+      <div id="inspirations-view" class="hidden">
+        <h1>🌟 Inspirations</h1>
+        <p class="subtitle">Cartes du carrousel « Inspirations du moment » de chaque rubrique (Food / Famille / Sport / Culture / Night). Choisis d'abord la <strong>rubrique</strong>, puis la <strong>ville</strong> (ou <strong>« ★ Toutes les villes »</strong>). Champs par carte : photo · titre · description · site · thème. Un tap sur une carte filtre la liste de la rubrique sur son thème s'il correspond à un onglet, sinon ouvre le site. Pas de limite au nombre de cartes.</p>
+
+        <div class="city-filter-row" style="gap:10px;">
+          <select id="insp-rubrique-filter">
+            <option value="" disabled selected>— Choisir une rubrique —</option>
+            <option value="food">🍽️ Food</option>
+            <option value="family">👨‍👩‍👧 Famille</option>
+            <option value="sport">🏃 Sport</option>
+            <option value="culture">🎭 Culture</option>
+            <option value="night">🌙 Night</option>
+          </select>
+          <select id="insp-city-filter" disabled>
+            <option value="" disabled selected>— Choisir une ville —</option>
+            <option value="*">★ Toutes les villes (*)</option>
+            <optgroup label="Métropole">
+              <option value="Aix-en-Provence">Aix-en-Provence</option>
+              <option value="Amiens">Amiens</option>
+              <option value="Angers">Angers</option>
+              <option value="Annecy">Annecy</option>
+              <option value="Avignon">Avignon</option>
+              <option value="Bayonne">Bayonne</option>
+              <option value="Besancon">Besançon</option>
+              <option value="Blois">Blois</option>
+              <option value="Bordeaux">Bordeaux</option>
+              <option value="Brest">Brest</option>
+              <option value="Carcassonne">Carcassonne</option>
+              <option value="Chartres">Chartres</option>
+              <option value="Clermont-Ferrand">Clermont-Ferrand</option>
+              <option value="Colmar">Colmar</option>
+              <option value="Dijon">Dijon</option>
+              <option value="Geneve">Genève</option>
+              <option value="Grenoble">Grenoble</option>
+              <option value="Le Havre">Le Havre</option>
+              <option value="Le Mans">Le Mans</option>
+              <option value="Lille">Lille</option>
+              <option value="Lyon">Lyon</option>
+              <option value="Marseille">Marseille</option>
+              <option value="Metz">Metz</option>
+              <option value="Montpellier">Montpellier</option>
+              <option value="Nancy">Nancy</option>
+              <option value="Nantes">Nantes</option>
+              <option value="Nice">Nice</option>
+              <option value="Nimes">Nîmes</option>
+              <option value="Paris">Paris</option>
+              <option value="Reims">Reims</option>
+              <option value="Rennes">Rennes</option>
+              <option value="Rouen">Rouen</option>
+              <option value="Saint-Etienne">Saint-Étienne</option>
+              <option value="Strasbourg">Strasbourg</option>
+              <option value="Toulon">Toulon</option>
+              <option value="Toulouse">Toulouse</option>
+            </optgroup>
+            <optgroup label="DOM-TOM">
+              <option value="Fort-de-France">Fort-de-France</option>
+              <option value="Pointe-a-Pitre">Pointe-à-Pitre</option>
+              <option value="Cayenne">Cayenne</option>
+              <option value="Saint-Denis">Saint-Denis (La Réunion)</option>
+              <option value="Mamoudzou">Mamoudzou</option>
+            </optgroup>
+          </select>
+          <div class="city-stats" id="insp-stats">—</div>
+        </div>
+        <!-- Peuplé dynamiquement par rubrique via INSP_THEME_HINTS -->
+        <datalist id="insp-themes-datalist"></datalist>
+
+        <div style="margin:14px 0;">
+          <button class="banner-save-btn" id="insp-add-btn">+ Ajouter une carte</button>
+        </div>
+        <div id="insp-list"></div>
+      </div>
     </div>
   </div>
 
@@ -1145,9 +1228,11 @@
       const ev = document.getElementById("events-view");
       const vv = document.getElementById("venues-view");
       const bv = document.getElementById("banners-view");
+      const iv = document.getElementById("inspirations-view");
       if (fv && ev) { fv.classList.remove("hidden"); ev.classList.add("hidden"); }
       if (vv) vv.classList.add("hidden");
       if (bv) bv.classList.add("hidden");
+      if (iv) iv.classList.add("hidden");
     }
 
     function escapeHtml(s) {
@@ -1281,6 +1366,10 @@
 
     // Paste global (seulement quand la zone a le focus OU body)
     document.addEventListener("paste", (e) => {
+      // L'onglet Inspirations Food gère son propre collage par carte :
+      // on ne laisse pas le formulaire event happer l'image.
+      const iv = document.getElementById("inspirations-view");
+      if (iv && !iv.classList.contains("hidden")) return;
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of items) {
@@ -1850,16 +1939,20 @@
     const eventsCountBadge = document.getElementById("events-count-badge");
     const bannersView = document.getElementById("banners-view");
     const gotoBannersBtn = document.getElementById("goto-banners-btn");
+    const inspirationsView = document.getElementById("inspirations-view");
+    const gotoInspirationsBtn = document.getElementById("goto-inspirations-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
       eventsView.classList.add("hidden");
       venuesView.classList.add("hidden");
       bannersView.classList.add("hidden");
+      inspirationsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
       gotoBannersBtn.style.display = "inline-flex";
+      gotoInspirationsBtn.style.display = "inline-flex";
     }
     function showFormView() {
       _hideAllViews();
@@ -1888,10 +1981,18 @@
       refreshBannersView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
+    function showInspirationsView() {
+      _hideAllViews();
+      inspirationsView.classList.remove("hidden");
+      gotoInspirationsBtn.style.display = "none";
+      refreshInspirationsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     gotoEventsBtn.addEventListener("click", showEventsView);
     gotoFormBtn.addEventListener("click", showFormView);
     gotoVenuesBtn.addEventListener("click", showVenuesView);
     gotoBannersBtn.addEventListener("click", showBannersView);
+    gotoInspirationsBtn.addEventListener("click", showInspirationsView);
 
     // ─── Onglet Etablissements : filtre par ville + actions code ───
     const venuesCityFilter = document.getElementById("venues-city-filter");
@@ -2263,6 +2364,438 @@
 
         renderBannersList(ville);
         toast(`Bannière ${mode}/${ville} ${existing ? 'mise à jour' : 'créée'}`, true);
+      }
+    });
+
+    // ─── Onglet Inspirations : table unifiée `inspirations` ───
+    // CRUD libre (pas de set fixe contrairement aux bannières). Réutilise
+    // les styles .banner-* pour rester cohérent visuellement.
+    // Une seule table couvre les 5 rubriques (food/family/sport/culture/night)
+    // via la colonne `rubrique`. L'utilisateur choisit la rubrique puis la
+    // ville. Les données sont rechargées à chaque changement de rubrique.
+    const INSP_RUBRIQUE_LABELS = {
+      food: "🍽️ Food",
+      family: "👨‍👩‍👧 Famille",
+      sport: "🏃 Sport",
+      culture: "🎭 Culture",
+      night: "🌙 Night",
+    };
+    // Suggestions de thèmes par rubrique. Doivent matcher EXACTEMENT les
+    // `RubriqueChip.key` des écrans Flutter pour que le tap filtre bien
+    // (sinon le tap ouvre seulement le site). Liste indicative — le champ
+    // reste libre côté DB.
+    const INSP_THEME_HINTS = {
+      food:    ['Brunch', 'Guinguette', 'Buffet', 'Salon de the'],
+      family:  [],
+      sport:   ['fitness', 'boxe', 'terrain-football', 'terrain-basketball', 'piscine', 'golf'],
+      culture: ['Musee', 'Monument historique', 'Bibliotheque', 'Galerie'],
+      night:   ['Club Discotheque', 'Bar de nuit', 'Bar a cocktails', 'Bar a chicha', 'Pub', 'Spicy'],
+    };
+    function populateInspThemesDatalist(rubrique) {
+      const dl = document.getElementById("insp-themes-datalist");
+      const hints = INSP_THEME_HINTS[rubrique] || [];
+      dl.innerHTML = hints
+        .map(h => `<option value="${escapeHtml(h)}"></option>`)
+        .join("");
+    }
+    let allInsps = [];
+    let currentInspRubrique = "";
+    const inspRubriqueFilter = document.getElementById("insp-rubrique-filter");
+    const inspCityFilter = document.getElementById("insp-city-filter");
+    const inspList = document.getElementById("insp-list");
+    const inspStats = document.getElementById("insp-stats");
+    const inspAddBtn = document.getElementById("insp-add-btn");
+
+    async function loadInspirations() {
+      if (!currentInspRubrique) {
+        allInsps = [];
+        return;
+      }
+      const { data, error } = await supabase
+        .from("inspirations")
+        .select("*")
+        .eq("rubrique", currentInspRubrique)
+        .order("ville", { ascending: true })
+        .order("sort_order", { ascending: true })
+        .order("id", { ascending: true });
+      if (error) {
+        console.warn("[inspirations]", error);
+        toast("Erreur de chargement des inspirations", false);
+        return;
+      }
+      allInsps = data || [];
+    }
+
+    function inspCardHtml(row, ville) {
+      const exists = row != null;
+      const photo = row?.photo_url ?? "";
+      const title = row?.title ?? "";
+      const desc = row?.description ?? "";
+      const site = row?.site_url ?? "";
+      const theme = row?.theme ?? "";
+      const sortOrder = row?.sort_order ?? 0;
+      const isActive = row?.is_active ?? true;
+      return `
+        <div class="banner-card" data-existing="${exists ? "1" : "0"}" data-id="${row?.id ?? ""}" data-ville="${escapeHtml(ville)}">
+          <div class="banner-card-head">
+            <span class="banner-mode-pill">${exists ? `Carte #${row.id}` : "Nouvelle carte"}</span>
+            <span style="font-size:11px; color:var(--text-faint);">
+              <span class="banner-status-dot ${isActive ? 'on' : 'off'}"></span>
+              ${exists ? (isActive ? 'Affichée' : 'Masquée') : 'Sera créée au save'}
+            </span>
+          </div>
+
+          <label class="banner-field-label">Photo</label>
+          <input type="hidden" data-field="photo_url" value="${escapeHtml(photo)}" />
+          <div class="paste-zone insp-paste-zone ${photo ? 'has-image' : ''}" tabindex="0" data-role="insp-paste-zone">
+            <div data-role="insp-empty" class="${photo ? 'hidden' : ''}">
+              <div class="paste-icon">🖼️</div>
+              <div class="paste-hint">Clique ici puis <strong>Ctrl+V</strong> pour coller une image, glisse-la, ou…</div>
+              <button type="button" class="paste-browse" data-role="insp-browse">📂 Explorer le PC</button>
+            </div>
+            <div data-role="insp-filled" class="${photo ? '' : 'hidden'}">
+              <img class="paste-preview" data-role="insp-preview" src="${photo ? escapeHtml(photo) : ''}" onerror="this.style.opacity=0.3" />
+              <div style="margin-top:8px;">
+                <button type="button" class="paste-browse" data-role="insp-browse">📂 Remplacer</button>
+                <button type="button" class="paste-remove" data-role="insp-photo-remove">× Retirer</button>
+              </div>
+            </div>
+          </div>
+          <input type="file" accept="image/*" class="hidden" data-role="insp-file" />
+          <div class="insp-url-row">
+            <input type="url" class="banner-input" data-role="insp-url"
+              value="${escapeHtml(photo)}"
+              placeholder="… ou colle directement une URL d'image" />
+          </div>
+
+          <label class="banner-field-label">Titre *</label>
+          <input type="text" class="banner-input" data-field="title"
+            value="${escapeHtml(title)}"
+            placeholder="Brunchs gourmands" />
+
+          <label class="banner-field-label">Description</label>
+          <input type="text" class="banner-input" data-field="description"
+            value="${escapeHtml(desc)}"
+            placeholder="Les meilleures adresses pour bruncher." />
+
+          <label class="banner-field-label">Site (URL ouverte au tap, optionnel)</label>
+          <input type="url" class="banner-input" data-field="site_url"
+            value="${escapeHtml(site)}"
+            placeholder="https://exemple.com" />
+
+          <label class="banner-field-label">Thème (filtre au tap — voir les suggestions de la rubrique)</label>
+          <input type="text" class="banner-input" data-field="theme"
+            list="insp-themes-datalist"
+            value="${escapeHtml(theme)}"
+            placeholder="Brunch" />
+
+          <label class="banner-field-label">Ordre d'affichage (petit = en premier)</label>
+          <input type="number" class="banner-input" data-field="sort_order"
+            value="${Number(sortOrder)}" step="10" />
+
+          <div class="banner-actions-row">
+            <label class="banner-toggle">
+              <input type="checkbox" data-field="is_active" ${isActive ? 'checked' : ''} />
+              <span>Affichée</span>
+            </label>
+            ${site ? `<a class="banner-link-btn" href="${escapeHtml(site)}" target="_blank" rel="noopener">🔗 Tester le site</a>` : ''}
+            ${exists ? `<button class="banner-delete-btn" data-action="delete">Supprimer</button>` : ''}
+            <button class="banner-save-btn" data-action="save">${exists ? 'Enregistrer' : 'Créer'}</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderInspirationsList(ville) {
+      if (!currentInspRubrique) {
+        inspStats.textContent = "—";
+        inspList.innerHTML = `<div class="venues-empty">Choisis d'abord une <strong>rubrique</strong> dans la liste ci-dessus.</div>`;
+        inspAddBtn.disabled = true;
+        return;
+      }
+      const v = (ville || "").trim();
+      if (!v) {
+        inspStats.textContent = `${allInsps.length} cartes ${INSP_RUBRIQUE_LABELS[currentInspRubrique] || currentInspRubrique}`;
+        inspList.innerHTML = `<div class="venues-empty">Choisis une <strong>ville</strong> (ou <code>*</code> pour toutes les villes) pour voir et éditer ses cartes.</div>`;
+        inspAddBtn.disabled = true;
+        return;
+      }
+      inspAddBtn.disabled = false;
+      const vv = v.toLowerCase();
+      const rows = allInsps.filter(r => {
+        const rv = (r.ville || "").toLowerCase();
+        if (vv === "*") return rv === "*";
+        return rv === vv || rv === "*";
+      });
+      const activeCount = rows.filter(r => r.is_active).length;
+      inspStats.textContent = `${INSP_RUBRIQUE_LABELS[currentInspRubrique] || currentInspRubrique} · ${rows.length} carte(s) · ${activeCount} affichée(s)`;
+      inspList.innerHTML = rows.length
+        ? rows.map(r => inspCardHtml(r, v)).join("")
+        : `<div class="venues-empty">Aucune carte ${INSP_RUBRIQUE_LABELS[currentInspRubrique] || currentInspRubrique} pour « ${escapeHtml(v)} ». Clique sur « + Ajouter une carte ».</div>`;
+    }
+
+    function refreshInspirationsView() {
+      if (allInsps.length === 0 && currentInspRubrique) {
+        loadInspirations().then(() => renderInspirationsList(inspCityFilter.value));
+      } else {
+        renderInspirationsList(inspCityFilter.value);
+      }
+    }
+
+    inspRubriqueFilter.addEventListener("change", async () => {
+      currentInspRubrique = inspRubriqueFilter.value || "";
+      // Réactive la liste villes une fois la rubrique choisie.
+      inspCityFilter.disabled = !currentInspRubrique;
+      populateInspThemesDatalist(currentInspRubrique);
+      allInsps = []; // reset cache
+      if (currentInspRubrique) await loadInspirations();
+      renderInspirationsList(inspCityFilter.value);
+    });
+
+    inspCityFilter.addEventListener("change", () => {
+      renderInspirationsList(inspCityFilter.value);
+    });
+
+    inspAddBtn.addEventListener("click", () => {
+      if (!currentInspRubrique) {
+        toast("Choisis d'abord une rubrique", false);
+        return;
+      }
+      const v = (inspCityFilter.value || "").trim();
+      if (!v) {
+        toast("Choisis d'abord une ville (ou *)", false);
+        return;
+      }
+      // Retire le placeholder "aucune carte" puis prepend une carte vierge
+      const empty = inspList.querySelector(".venues-empty");
+      if (empty) inspList.innerHTML = "";
+      inspList.insertAdjacentHTML("afterbegin", inspCardHtml(null, v));
+    });
+
+    inspList.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-action]");
+      if (!btn) return;
+      const card = btn.closest(".banner-card");
+      if (!card) return;
+
+      const ville = card.dataset.ville;
+      const existing = card.dataset.existing === "1";
+      const id = card.dataset.id ? Number(card.dataset.id) : null;
+      const action = btn.dataset.action;
+
+      if (action === "delete") {
+        if (!confirm("Supprimer définitivement cette carte d'inspiration ?")) return;
+        btn.disabled = true;
+        const { error } = await supabase
+          .from("inspirations")
+          .delete()
+          .eq("id", id);
+        if (error) {
+          btn.disabled = false;
+          console.warn("[insp delete]", error);
+          toast("Erreur suppression : " + error.message, false);
+          return;
+        }
+        allInsps = allInsps.filter(r => r.id !== id);
+        renderInspirationsList(ville);
+        toast("Carte supprimée", true);
+        return;
+      }
+
+      if (action === "save") {
+        const title = card.querySelector('[data-field="title"]').value.trim();
+        const photoUrl = card.querySelector('[data-field="photo_url"]').value.trim();
+        const desc = card.querySelector('[data-field="description"]').value.trim();
+        const siteUrl = card.querySelector('[data-field="site_url"]').value.trim();
+        const theme = card.querySelector('[data-field="theme"]').value.trim();
+        const sortOrder = Number(card.querySelector('[data-field="sort_order"]').value) || 0;
+        const isActive = card.querySelector('[data-field="is_active"]').checked;
+
+        if (!title) {
+          toast("Le titre est requis", false);
+          return;
+        }
+        for (const [label, url] of [["photo", photoUrl], ["site", siteUrl]]) {
+          if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+            toast(`L'URL ${label} doit commencer par http:// ou https://`, false);
+            return;
+          }
+        }
+
+        btn.disabled = true;
+        btn.textContent = "…";
+
+        const payload = {
+          rubrique: currentInspRubrique,
+          ville,
+          title,
+          description: desc || null,
+          photo_url: photoUrl || null,
+          site_url: siteUrl || null,
+          theme: theme || null,
+          sort_order: sortOrder,
+          is_active: isActive,
+        };
+
+        let resp;
+        if (existing) {
+          resp = await supabase
+            .from("inspirations")
+            .update(payload)
+            .eq("id", id)
+            .select()
+            .single();
+        } else {
+          resp = await supabase
+            .from("inspirations")
+            .insert(payload)
+            .select()
+            .single();
+        }
+
+        if (resp.error) {
+          btn.disabled = false;
+          btn.textContent = existing ? "Enregistrer" : "Créer";
+          console.warn("[insp save]", resp.error);
+          toast("Erreur : " + resp.error.message, false);
+          return;
+        }
+
+        const saved = resp.data;
+        const idx = allInsps.findIndex(r => r.id === saved.id);
+        if (idx >= 0) allInsps[idx] = saved;
+        else allInsps.push(saved);
+
+        renderInspirationsList(ville);
+        toast(`Carte ${existing ? 'mise à jour' : 'créée'}`, true);
+      }
+    });
+
+    // ─── Inspirations : photo par collage (Ctrl+V) / drag / fichier ───
+    // Réutilise uploadImage() (bucket admin-events) comme le formulaire event.
+    // photo_url reste un input hidden : source de vérité lue au save.
+    function setInspPhoto(card, url) {
+      const hidden = card.querySelector('[data-field="photo_url"]');
+      const zone = card.querySelector('[data-role="insp-paste-zone"]');
+      const empty = card.querySelector('[data-role="insp-empty"]');
+      const filled = card.querySelector('[data-role="insp-filled"]');
+      const prev = card.querySelector('[data-role="insp-preview"]');
+      const urlInput = card.querySelector('[data-role="insp-url"]');
+      const v = url || "";
+      hidden.value = v;
+      if (v) {
+        prev.src = v;
+        prev.style.opacity = 1;
+        empty.classList.add("hidden");
+        filled.classList.remove("hidden");
+        zone.classList.add("has-image");
+      } else {
+        prev.src = "";
+        empty.classList.remove("hidden");
+        filled.classList.add("hidden");
+        zone.classList.remove("has-image");
+      }
+      if (urlInput && urlInput.value !== v) urlInput.value = v;
+    }
+
+    async function uploadInspBlob(card, blob) {
+      if (!blob || !blob.type.startsWith("image/")) return;
+      const empty = card.querySelector('[data-role="insp-empty"]');
+      const prevHtml = empty ? empty.innerHTML : "";
+      if (empty) {
+        empty.classList.remove("hidden");
+        card.querySelector('[data-role="insp-filled"]').classList.add("hidden");
+        empty.innerHTML = '<div class="paste-icon">⏳</div><div class="paste-hint">Upload en cours…</div>';
+      }
+      try {
+        const url = await uploadImage(blob);
+        if (empty) empty.innerHTML = prevHtml;
+        setInspPhoto(card, url);
+        toast("Image uploadée", true);
+      } catch (err) {
+        if (empty) {
+          empty.innerHTML = prevHtml;
+          card.querySelector('[data-role="insp-paste-zone"]').classList.remove("has-image");
+        }
+        console.warn("[insp upload]", err);
+        toast("Erreur upload image : " + (err.message || err), false);
+      }
+    }
+
+    inspList.addEventListener("click", (ev) => {
+      const card = ev.target.closest(".banner-card");
+      if (!card) return;
+      if (ev.target.closest('[data-role="insp-browse"]')) {
+        ev.stopPropagation();
+        card.querySelector('[data-role="insp-file"]').click();
+      } else if (ev.target.closest('[data-role="insp-photo-remove"]')) {
+        ev.stopPropagation();
+        setInspPhoto(card, "");
+        card.querySelector('[data-role="insp-file"]').value = "";
+      }
+    });
+
+    inspList.addEventListener("change", (ev) => {
+      if (!ev.target.closest('input[data-role="insp-file"]')) return;
+      const card = ev.target.closest(".banner-card");
+      const f = ev.target.files?.[0];
+      if (card && f) uploadInspBlob(card, f);
+    });
+
+    inspList.addEventListener("input", (ev) => {
+      if (!ev.target.closest('input[data-role="insp-url"]')) return;
+      const card = ev.target.closest(".banner-card");
+      if (card) setInspPhoto(card, ev.target.value.trim());
+    });
+
+    inspList.addEventListener("focusin", (ev) => {
+      const z = ev.target.closest('[data-role="insp-paste-zone"]');
+      if (z) z.classList.add("focus");
+    });
+    inspList.addEventListener("focusout", (ev) => {
+      const z = ev.target.closest('[data-role="insp-paste-zone"]');
+      if (z) z.classList.remove("focus");
+    });
+    inspList.addEventListener("dragover", (ev) => {
+      const z = ev.target.closest('[data-role="insp-paste-zone"]');
+      if (!z) return;
+      ev.preventDefault();
+      z.classList.add("focus");
+    });
+    inspList.addEventListener("dragleave", (ev) => {
+      const z = ev.target.closest('[data-role="insp-paste-zone"]');
+      if (z) z.classList.remove("focus");
+    });
+    inspList.addEventListener("drop", (ev) => {
+      const z = ev.target.closest('[data-role="insp-paste-zone"]');
+      if (!z) return;
+      ev.preventDefault();
+      z.classList.remove("focus");
+      const f = ev.dataTransfer.files?.[0];
+      const card = z.closest(".banner-card");
+      if (card && f) uploadInspBlob(card, f);
+    });
+
+    // Collage image : uniquement quand la zone d'une carte a le focus
+    // (le champ URL garde le collage texte natif).
+    document.addEventListener("paste", (ev) => {
+      const iv = document.getElementById("inspirations-view");
+      if (!iv || iv.classList.contains("hidden")) return;
+      const ae = document.activeElement;
+      if (ae && ae.matches && ae.matches('input[data-role="insp-url"]')) return;
+      const zone = ae && ae.closest ? ae.closest('[data-role="insp-paste-zone"]') : null;
+      if (!zone) return;
+      const items = ev.clipboardData?.items;
+      if (!items) return;
+      for (const it of items) {
+        if (it.type.startsWith("image/")) {
+          const blob = it.getAsFile();
+          if (blob) {
+            ev.preventDefault();
+            uploadInspBlob(zone.closest(".banner-card"), blob);
+            return;
+          }
+        }
       }
     });
 

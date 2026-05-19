@@ -18,6 +18,7 @@ import 'package:pulz_app/features/onboarding/presentation/onboarding_screen.dart
 import 'package:pulz_app/features/test/presentation/test_screen.dart';
 import 'package:pulz_app/features/splash/presentation/toto_splash_screen.dart';
 import 'package:pulz_app/features/day/presentation/event_deeplink_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/open_secret_box_screen.dart';
 
 final rootNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -126,6 +127,12 @@ late final appRouter = GoRouter(
       path: '/event/:id',
       builder: (context, state) => EventDeeplinkScreen(
         eventId: state.pathParameters['id'] ?? '',
+      ),
+    ),
+    GoRoute(
+      path: '/coffre/:token',
+      builder: (context, state) => OpenSecretBoxScreen(
+        prefilledToken: state.pathParameters['token'],
       ),
     ),
     GoRoute(

@@ -32,8 +32,9 @@ class FoodTokens {
         color: Colors.white,
       );
 
-  static TextStyle sectionHeader({Color color = ink}) => GoogleFonts.poppins(
-        fontSize: 14,
+  static TextStyle sectionHeader({Color color = ink, double fontSize = 14}) =>
+      GoogleFonts.poppins(
+        fontSize: fontSize,
         fontWeight: FontWeight.w600,
         letterSpacing: -0.3,
         height: 1.1,
