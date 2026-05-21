@@ -2688,15 +2688,25 @@
         }
         target.disabled = true;
         target.textContent = "…";
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from(source)
           .update({ photo, photos, video_url: videoUrl })
-          .eq("id", id);
+          .eq("id", id)
+          .select("id");
         if (error) {
           target.disabled = false;
           target.textContent = "Enregistrer";
           console.warn("[venue media save]", error);
           toast("Erreur : " + (error.message || "échec de l'enregistrement"), false);
+          return;
+        }
+        // RLS : un UPDATE sans policy ne renvoie pas d'erreur mais ne touche
+        // aucune ligne. On vérifie qu'une ligne a bien été modifiée.
+        if (!data || data.length === 0) {
+          target.disabled = false;
+          target.textContent = "Enregistrer";
+          console.warn("[venue media save] 0 ligne modifiée — RLS ?", source, id);
+          toast(`⚠️ 0 ligne modifiée : la base a refusé l'écriture (RLS). Applique la migration « admin_update_${source} ».`, false);
           return;
         }
         // Met à jour le cache local de la table concernée
@@ -2938,14 +2948,20 @@
       const priority = parseInt(input.value, 10) || 0;
       input.value = priority;
       input.disabled = true;
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from(source)
         .update({ display_priority: priority })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id");
       input.disabled = false;
       if (error) {
         console.warn("[venue priority]", error);
         toast("Erreur priorité : " + (error.message || "échec"), false);
+        return;
+      }
+      if (!data || data.length === 0) {
+        console.warn("[venue priority] 0 ligne modifiée — RLS ?", source, id);
+        toast(`⚠️ 0 ligne modifiée (RLS) — applique la migration « admin_update_${source} ».`, false);
         return;
       }
       const cache = source === "etablissements" ? allEtabs : allSportVenues;

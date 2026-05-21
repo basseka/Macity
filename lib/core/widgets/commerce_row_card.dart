@@ -442,6 +442,20 @@ class CommerceRowCard extends ConsumerWidget {
     'assets/images/plat-06.png',
   ];
 
+  /// Photos generiques pour les salles de sport non revendiquees.
+  /// 6 images a uploader dans le bucket public `photos`, dossier
+  /// `sport_venues/`, nommees default_1.jpg ... default_6.jpg.
+  static const _sportPhotosBase =
+      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/sport_venues';
+  static const _defaultSportPhotos = [
+    '$_sportPhotosBase/default_1.jpg',
+    '$_sportPhotosBase/default_2.jpg',
+    '$_sportPhotosBase/default_3.jpg',
+    '$_sportPhotosBase/default_4.jpg',
+    '$_sportPhotosBase/default_5.jpg',
+    '$_sportPhotosBase/default_6.jpg',
+  ];
+
   /// Construit la galerie photo pour le detail.
   /// Priorite : photos[] uploadees par le pro > photo principale > defaults
   /// generiques (uniquement si la fiche n'a pas ete revendiquee).
@@ -465,6 +479,8 @@ class CommerceRowCard extends ConsumerWidget {
         defaults = _defaultClubPhotos;
       } else if (cat.contains('restaurant') || cat.contains('food') || cat.contains('brunch') || cat.contains('salon de the') || cat.contains('buffet') || cat.contains('guinguette')) {
         defaults = _defaultRestaurantPhotos;
+      } else if (commerce.sourceTable == 'sport_venues') {
+        defaults = _defaultSportPhotos;
       }
       if (defaults != null) {
         for (final p in defaults) {
@@ -481,11 +497,19 @@ class CommerceRowCard extends ConsumerWidget {
   static const _defaultClubVideo =
       'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/user-events/teaser_disco_1.mp4';
 
+  /// Video par defaut pour les salles de sport non revendiquees.
+  static const _defaultSportVideo =
+      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners/sport.mp4';
+
   static String? _defaultVideoUrlFor(CommerceModel commerce) {
     if (commerce.isVerified) return null;
     final cat = commerce.categorie.toLowerCase();
     if (cat.contains('club') || cat.contains('discotheque')) {
       return _defaultClubVideo;
+    }
+    // Salles de sport : video d'ambiance par defaut, comme les clubs.
+    if (commerce.sourceTable == 'sport_venues') {
+      return _defaultSportVideo;
     }
     return null;
   }
