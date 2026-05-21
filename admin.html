@@ -473,6 +473,23 @@
       border-radius: 10px;
       white-space: nowrap;
     }
+    .venues-name-search {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      padding: 12px 14px;
+      font-size: 15px;
+      background: var(--surface-hi);
+      border: 1.5px solid var(--magenta);
+      border-radius: 10px;
+      color: var(--text);
+    }
+    .venues-name-search::placeholder { color: var(--text-faint); }
+    .venues-name-search:focus {
+      outline: none;
+      border-color: var(--magenta);
+      box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+    }
     .venue-row {
       display: flex;
       align-items: center;
@@ -556,7 +573,149 @@
       font-size: 14px;
     }
 
+    /* ─── Edition photo pochette (onglet Etablissements) ─── */
+    .venue-item { margin-bottom: 8px; }
+    .venue-item > .venue-row { margin-bottom: 0; }
+    .venue-thumb {
+      width: 46px;
+      height: 46px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 20px;
+    }
+    .venue-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .venue-row-badge.sport_venues { background: rgba(6, 182, 212, 0.20); color: #7FD9E8; }
+    .photo-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .photo-btn:hover { border-color: var(--magenta); background: rgba(233, 30, 99, 0.1); }
+    .photo-btn.open { border-color: var(--magenta); background: rgba(233, 30, 99, 0.14); }
+    .venue-prio {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-dim);
+      background: var(--surface);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 4px 7px;
+    }
+    .venue-prio input {
+      width: 44px;
+      padding: 3px 4px;
+      font-size: 12px;
+      text-align: center;
+      background: var(--surface-hi);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--text);
+    }
+    .venue-prio input:focus { outline: none; border-color: var(--magenta); }
+    .venue-photo-editor {
+      background: var(--surface);
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 6px;
+    }
+    .venue-photo-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+    .vp-section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 16px 0 8px;
+    }
+    .vp-section-label:first-child { margin-top: 0; }
+    .vp-section-label span { font-weight: 400; color: var(--text-faint); }
+    .vp-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .vp-gallery-empty {
+      font-size: 12px;
+      color: var(--text-faint);
+      padding: 6px 0;
+    }
+    .vp-gallery-item {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+    }
+    .vp-gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+    .vp-gallery-ctrl {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 3px;
+    }
+    .vp-gallery-ctrl button {
+      border: none;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      font-size: 11px;
+      width: 22px;
+      height: 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0;
+    }
+    .vp-gallery-ctrl button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.32); }
+    .vp-gallery-ctrl button:disabled { opacity: 0.3; cursor: default; }
+
+    /* ─── Formulaire « Ajouter un établissement » ─── */
+    .etab-add-row { margin: 2px 0 14px; }
+    .etab-grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    #etab-form select.banner-input { cursor: pointer; }
+
     /* ─── Onglet Bannières ─── */
+    .banner-upload-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 2px 0 6px;
+      flex-wrap: wrap;
+    }
+    .banner-upload-status { font-size: 12px; line-height: 1.4; }
     .banner-card {
       background: var(--surface-hi);
       border: 1px solid var(--line);
@@ -1010,10 +1169,133 @@
       <!-- ═══ VUE "ETABLISSEMENTS PAR VILLE" ═══ -->
       <div id="venues-view" class="hidden">
         <h1>🏢 Établissements</h1>
-        <p class="subtitle">Tape une ville pour filtrer. Génère ou copie le code MaCity à envoyer au pro pour qu'il revendique sa fiche.</p>
+        <p class="subtitle">Tape une ville pour filtrer. Génère ou copie le code MaCity à envoyer au pro, ou clique sur <strong>📷 Photo</strong> pour mettre à jour la pochette d'une fiche (venue, établissement ou salle de sport).</p>
+
+        <div class="etab-add-row">
+          <button class="banner-save-btn" id="etab-add-toggle">➕ Ajouter un établissement</button>
+        </div>
+
+        <div id="etab-form" class="banner-card hidden">
+          <div class="banner-card-head">
+            <span class="banner-mode-pill">Nouvel établissement</span>
+            <span style="font-size:11px; color:var(--text-faint);">Restaurant · bar · lieu culture / famille</span>
+          </div>
+
+          <label class="banner-field-label">Rubrique *</label>
+          <select class="banner-input" id="etab-rubrique">
+            <option value="food">🍽️ Food — restaurant, brasserie, bar à manger…</option>
+            <option value="nuit">🌙 Nuit — bar, club, discothèque…</option>
+            <option value="culture">🎭 Culture — musée, galerie, monument…</option>
+            <option value="famille">👨‍👩‍👧 Famille — lieu pour enfants…</option>
+          </select>
+
+          <label class="banner-field-label">Nom *</label>
+          <input type="text" class="banner-input" id="etab-nom" placeholder="La Trattoria Bella" />
+
+          <label class="banner-field-label">Catégorie</label>
+          <input type="text" class="banner-input" id="etab-categorie"
+            placeholder="ex : Restaurant, Pizzeria, Bar de nuit, Musée…" />
+
+          <div class="etab-grid2">
+            <div>
+              <label class="banner-field-label">Ville</label>
+              <input type="text" class="banner-input" id="etab-ville" list="cities-datalist"
+                placeholder="Toulouse" autocomplete="off" />
+            </div>
+            <div>
+              <label class="banner-field-label">Priorité d'affichage (grand = en haut)</label>
+              <input type="number" class="banner-input" id="etab-priority" value="0" step="1" />
+            </div>
+          </div>
+
+          <label class="banner-field-label">Adresse</label>
+          <input type="text" class="banner-input" id="etab-adresse"
+            placeholder="12 Rue des Lois, 31000 Toulouse" />
+
+          <div class="etab-grid2">
+            <div>
+              <label class="banner-field-label">Téléphone</label>
+              <input type="text" class="banner-input" id="etab-telephone" placeholder="05 61 00 00 00" />
+            </div>
+            <div>
+              <label class="banner-field-label">Horaires</label>
+              <input type="text" class="banner-input" id="etab-horaires"
+                placeholder="Lun-Sam 12h-14h · 19h-22h30" />
+            </div>
+          </div>
+
+          <label class="banner-field-label">Site web</label>
+          <input type="url" class="banner-input" id="etab-siteweb" placeholder="https://exemple.fr" />
+
+          <label class="banner-field-label">Lien Google Maps</label>
+          <input type="url" class="banner-input" id="etab-lienmaps"
+            placeholder="https://maps.google.com/?q=…" />
+
+          <div class="etab-grid2">
+            <div>
+              <label class="banner-field-label">Latitude</label>
+              <input type="number" class="banner-input" id="etab-lat" value="0" step="any" />
+            </div>
+            <div>
+              <label class="banner-field-label">Longitude</label>
+              <input type="number" class="banner-input" id="etab-lon" value="0" step="any" />
+            </div>
+          </div>
+
+          <div id="etab-food-filters">
+            <div class="vp-section-label">🍴 Filtres restaurant <span>— utilisés par les filtres de la rubrique Food</span></div>
+            <div class="etab-grid2">
+              <div>
+                <label class="banner-field-label">Thème culinaire</label>
+                <select class="banner-input" id="etab-theme"></select>
+              </div>
+              <div>
+                <label class="banner-field-label">Quartier</label>
+                <select class="banner-input" id="etab-quartier"></select>
+              </div>
+            </div>
+            <label class="banner-field-label">Style / ambiance</label>
+            <select class="banner-input" id="etab-style"></select>
+          </div>
+
+          <div class="vp-section-label">📌 Photo pochette <span>— optionnelle, modifiable ensuite via 📷 Photo</span></div>
+          <input type="hidden" id="etab-photo" />
+          <div class="paste-zone insp-paste-zone" tabindex="0" id="etab-photo-zone">
+            <div id="etab-photo-empty">
+              <div class="paste-icon">🖼️</div>
+              <div class="paste-hint">Clique ici puis <strong>Ctrl+V</strong> pour coller, glisse une image, ou…</div>
+              <button type="button" class="paste-browse" id="etab-photo-browse">📂 Explorer le PC</button>
+            </div>
+            <div id="etab-photo-filled" class="hidden">
+              <img class="paste-preview" id="etab-photo-preview" onerror="this.style.opacity=0.3" />
+              <div style="margin-top:8px;">
+                <button type="button" class="paste-browse" id="etab-photo-browse2">📂 Remplacer</button>
+                <button type="button" class="paste-remove" id="etab-photo-remove">× Retirer</button>
+              </div>
+            </div>
+          </div>
+          <input type="file" accept="image/*" class="hidden" id="etab-photo-file" />
+          <div class="insp-url-row">
+            <input type="url" class="banner-input" id="etab-photo-url"
+              placeholder="… ou colle directement une URL d'image" />
+          </div>
+
+          <label class="banner-toggle" style="margin-top:14px;">
+            <input type="checkbox" id="etab-active" checked />
+            <span>Actif — visible dans l'app</span>
+          </label>
+
+          <div class="venue-photo-actions">
+            <button class="gen-btn" id="etab-cancel">Annuler</button>
+            <button class="banner-save-btn" id="etab-submit">Créer l'établissement</button>
+          </div>
+        </div>
+
+        <input type="search" id="venues-name-search" class="venues-name-search"
+          placeholder="🔎 Rechercher par nom — restaurant, bar, salle de sport…" autocomplete="off" />
 
         <div class="city-filter-row">
-          <input type="text" id="venues-city-filter" placeholder="Filtrer par ville (ex: Toulouse)" list="cities-datalist" autocomplete="off" />
+          <input type="text" id="venues-city-filter" placeholder="… ou filtrer par ville (ex: Toulouse)" list="cities-datalist" autocomplete="off" />
           <div class="city-stats" id="venues-stats">—</div>
         </div>
         <datalist id="cities-datalist"></datalist>
@@ -1218,6 +1500,7 @@
       loadHistory();
       loadVenues();
       loadEtabs();
+      loadSportVenues();
     }
     function showLogin() {
       loginArea.style.display = "block";
@@ -1643,11 +1926,47 @@
         .substring(0, 60);
     }
 
+    // Redimensionne + compresse une image avant upload : max 1600 px sur le
+    // grand côté, JPEG ~82 %. Une photo de téléphone passe ainsi de plusieurs
+    // Mo à ~200-400 Ko → affichage bien plus rapide dans l'app.
+    // Les GIF (animation) et les images déjà légères passent tels quels.
+    async function compressImage(blob) {
+      if (!blob.type || !blob.type.startsWith("image/")) return blob;
+      if (blob.type === "image/gif") return blob;
+      const MAX = 1600;
+      try {
+        const bitmap = await createImageBitmap(blob, { imageOrientation: "from-image" });
+        let w = bitmap.width;
+        let h = bitmap.height;
+        if (w <= MAX && h <= MAX && blob.size < 600 * 1024) {
+          bitmap.close();
+          return blob;
+        }
+        const scale = Math.min(1, MAX / Math.max(w, h));
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(bitmap, 0, 0, w, h);
+        bitmap.close();
+        const out = await new Promise(res => canvas.toBlob(res, "image/jpeg", 0.82));
+        return (out && out.size < blob.size) ? out : blob;
+      } catch (err) {
+        console.warn("[compressImage] échec, upload de l'original :", err);
+        return blob;
+      }
+    }
+
     async function uploadImage(blob) {
-      const ext = blob.type.split("/")[1] || "jpg";
+      const img = await compressImage(blob);
+      const ext = (img.type.split("/")[1] || "jpg").replace("jpeg", "jpg");
       const path = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-      const { data, error } = await supabase.storage.from("admin-events").upload(path, blob, {
-        contentType: blob.type,
+      const { data, error } = await supabase.storage.from("admin-events").upload(path, img, {
+        contentType: img.type,
         upsert: false,
       });
       if (error) throw error;
@@ -1784,7 +2103,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("venues")
-          .select("id, name, adresse, ville, mode, category, pro_claim_code")
+          .select("id, name, adresse, ville, mode, category, pro_claim_code, photo, photos, video_url")
           .eq("is_active", true)
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
@@ -1813,7 +2132,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("etablissements")
-          .select("id, nom, adresse, ville, rubrique, pro_claim_code")
+          .select("id, nom, adresse, ville, rubrique, pro_claim_code, photo, photos, display_priority, video_url")
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
         if (error) {
@@ -1826,6 +2145,31 @@
         from += PAGE;
       }
       allEtabs = all;
+      if (typeof refreshVenuesView === "function") refreshVenuesView();
+    }
+
+    // ─── Charge les salles de sport (table sport_venues) pour l'onglet Etablissements ───
+    let allSportVenues = [];
+    async function loadSportVenues() {
+      const PAGE = 1000;
+      let from = 0;
+      const all = [];
+      while (true) {
+        const { data, error } = await supabase
+          .from("sport_venues")
+          .select("id, nom, adresse, ville, sport_type, categorie, photo, photos, display_priority, video_url")
+          .order("id", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.warn("[sport_venues]", error);
+          return;
+        }
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      allSportVenues = all;
       if (typeof refreshVenuesView === "function") refreshVenuesView();
     }
 
@@ -1996,6 +2340,7 @@
 
     // ─── Onglet Etablissements : filtre par ville + actions code ───
     const venuesCityFilter = document.getElementById("venues-city-filter");
+    const venuesNameSearch = document.getElementById("venues-name-search");
     const venuesList = document.getElementById("venues-list");
     const venuesEmpty = document.getElementById("venues-empty");
     const venuesLoading = document.getElementById("venues-loading");
@@ -2012,6 +2357,10 @@
         adresse: r.adresse || "",
         type: r.category || r.mode || "",
         code: r.pro_claim_code,
+        photo: r.photo || "",
+        photos: Array.isArray(r.photos) ? r.photos : [],
+        priority: 0,
+        videoUrl: r.video_url || "",
       }));
       const e = allEtabs.map(r => ({
         source: "etablissements",
@@ -2021,8 +2370,25 @@
         adresse: r.adresse || "",
         type: r.rubrique || "",
         code: r.pro_claim_code,
+        photo: r.photo || "",
+        photos: Array.isArray(r.photos) ? r.photos : [],
+        priority: r.display_priority ?? 0,
+        videoUrl: r.video_url || "",
       }));
-      return v.concat(e);
+      const s = allSportVenues.map(r => ({
+        source: "sport_venues",
+        id: r.id,
+        name: r.nom || "",
+        ville: r.ville || "",
+        adresse: r.adresse || "",
+        type: r.categorie || r.sport_type || "",
+        code: null,            // sport_venues : pas de code de revendication
+        photo: r.photo || "",
+        photos: Array.isArray(r.photos) ? r.photos : [],
+        priority: r.display_priority ?? 0,
+        videoUrl: r.video_url || "",
+      }));
+      return v.concat(e).concat(s);
     }
 
     function normalizeCity(s) {
@@ -2039,82 +2405,309 @@
       citiesDatalist.innerHTML = sorted.map(c => `<option value="${escapeHtml(c)}"></option>`).join("");
     }
 
-    function renderVenuesList(filterCity) {
-      const all = unifiedFiches();
-      const q = normalizeCity(filterCity);
-      const filtered = q
-        ? all.filter(f => normalizeCity(f.ville) === q)
-        : [];
+    // Libellé du badge selon la table source
+    const VENUE_SOURCE_LABEL = {
+      venues: "venue", etablissements: "etab", sport_venues: "sport",
+    };
 
-      // Stats : si pas de ville saisie, affiche le total dispo
-      if (!q) {
+    // Vignettes de la galerie — reconstruites à chaque ajout / retrait / déplacement.
+    function venueGalleryThumbsHtml(arr) {
+      if (!arr.length) {
+        return '<div class="vp-gallery-empty">Aucune photo dans la galerie.</div>';
+      }
+      return arr.map((url, i) => `
+        <div class="vp-gallery-item" data-idx="${i}">
+          <img src="${escapeHtml(url)}" onerror="this.style.opacity=0.25" />
+          <div class="vp-gallery-ctrl">
+            <button type="button" data-action="gal-left" title="Reculer" ${i === 0 ? "disabled" : ""}>◀</button>
+            <button type="button" data-action="gal-right" title="Avancer" ${i === arr.length - 1 ? "disabled" : ""}>▶</button>
+            <button type="button" data-action="gal-remove" title="Retirer">✕</button>
+          </div>
+        </div>`).join("");
+    }
+
+    // Bloc éditeur (replié par défaut), un par fiche :
+    // pochette (vignette de la carte) + galerie (photos de la fiche détaillée).
+    function venuePhotoEditorHtml(f) {
+      const photo = f.photo || "";
+      const isHttp = photo.startsWith("http");
+      const gallery = Array.isArray(f.photos) ? f.photos : [];
+      const galleryJson = escapeHtml(JSON.stringify(gallery));
+      const video = f.videoUrl || "";
+      return `
+        <div class="venue-photo-editor hidden"
+             data-orig="${escapeHtml(photo)}"
+             data-orig-gallery="${galleryJson}">
+
+          <div class="vp-section-label">📌 Photo pochette <span>— la vignette affichée sur la carte</span></div>
+          <input type="hidden" data-field="photo" value="${escapeHtml(photo)}" />
+          <div class="paste-zone insp-paste-zone ${isHttp ? "has-image" : ""}" tabindex="0" data-role="vp-zone">
+            <div data-role="vp-empty" class="${isHttp ? "hidden" : ""}">
+              <div class="paste-icon">🖼️</div>
+              <div class="paste-hint">Clique ici puis <strong>Ctrl+V</strong> pour coller, glisse une image, ou…</div>
+              <button type="button" class="paste-browse" data-role="vp-browse">📂 Explorer le PC</button>
+            </div>
+            <div data-role="vp-filled" class="${isHttp ? "" : "hidden"}">
+              <img class="paste-preview" data-role="vp-preview" src="${isHttp ? escapeHtml(photo) : ""}" onerror="this.style.opacity=0.3" />
+              <div style="margin-top:8px;">
+                <button type="button" class="paste-browse" data-role="vp-browse">📂 Remplacer</button>
+                <button type="button" class="paste-remove" data-role="vp-remove">× Retirer</button>
+              </div>
+            </div>
+          </div>
+          <input type="file" accept="image/*" class="hidden" data-role="vp-file" />
+          <div class="insp-url-row">
+            <input type="url" class="banner-input" data-role="vp-url"
+              value="${isHttp ? escapeHtml(photo) : ""}"
+              placeholder="… ou colle directement une URL d'image" />
+          </div>
+
+          <div class="vp-section-label">🖼️ Galerie <span>— photos de la fiche détaillée (l'ordre = ordre d'affichage)</span></div>
+          <input type="hidden" data-field="photos" value="${galleryJson}" />
+          <div class="vp-gallery" data-role="vp-gallery">${venueGalleryThumbsHtml(gallery)}</div>
+          <div class="paste-zone insp-paste-zone" tabindex="0" data-role="vpg-zone">
+            <div class="paste-icon">➕</div>
+            <div class="paste-hint">Ajoute une photo à la galerie : <strong>Ctrl+V</strong>, glisse une image, ou…</div>
+            <button type="button" class="paste-browse" data-role="vpg-browse">📂 Explorer le PC</button>
+          </div>
+          <input type="file" accept="image/*" class="hidden" data-role="vpg-file" />
+          <div class="insp-url-row">
+            <input type="url" class="banner-input" data-role="vpg-url"
+              placeholder="… ou colle une URL d'image puis « Ajouter »" />
+            <button type="button" class="gen-btn" data-action="add-gallery-url">Ajouter</button>
+          </div>
+
+          <div class="vp-section-label">🎬 Vidéo <span>— teaser en haut de la fiche détail (optionnel)</span></div>
+          <div class="insp-url-row">
+            <input type="url" class="banner-input" data-field="video_url"
+              value="${escapeHtml(video)}"
+              placeholder="URL .mp4 — ou importe une vidéo ci-dessous" />
+          </div>
+          <div class="banner-upload-row">
+            <button type="button" class="paste-browse" data-role="vpv-browse">📂 Importer une vidéo depuis le PC</button>
+            ${video ? `<a class="banner-link-btn" href="${escapeHtml(video)}" target="_blank" rel="noopener">👁 Voir</a>` : ""}
+            <span class="banner-upload-status" data-role="vpv-status"></span>
+          </div>
+          <input type="file" accept="video/*" class="hidden" data-role="vpv-file" />
+
+          <div class="venue-photo-actions">
+            <button class="gen-btn" data-action="cancel-photo">Annuler</button>
+            <button class="banner-save-btn" data-action="save-photo">Enregistrer</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Une fiche = une ligne (badge + infos + actions) + son éditeur photo replié.
+    function venueItemHtml(f) {
+      const badge = `<span class="venue-row-badge ${f.source}">${VENUE_SOURCE_LABEL[f.source] || f.source}</span>`;
+      const meta = [f.type, f.adresse, f.ville].filter(Boolean).map(escapeHtml).join(" · ");
+      const isHttp = (f.photo || "").startsWith("http");
+      const thumb = isHttp
+        ? `<div class="venue-thumb"><img src="${escapeHtml(f.photo)}" onerror="this.parentElement.textContent='🏢'" /></div>`
+        : `<div class="venue-thumb">🏢</div>`;
+      // Code de revendication : seulement pour venues / etablissements.
+      let codeAction = "";
+      if (f.source !== "sport_venues") {
+        codeAction = f.code
+          ? `<button class="code-pill" data-action="copy" data-code="${escapeHtml(f.code)}" title="Cliquer pour copier"><span>${escapeHtml(f.code)}</span><span class="copy-icon">📋</span></button>`
+          : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
+      }
+      const photoBtn = `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
+      // Priorité d'affichage : éditable pour les établissements (liste Food)
+      // et les salles de sport (liste Sport) — colonne display_priority.
+      const prioCtrl = (f.source === "etablissements" || f.source === "sport_venues")
+        ? `<label class="venue-prio" title="Priorité d'affichage dans la rubrique — plus grand = plus haut dans la liste"><span>Prio</span><input type="number" data-role="prio-input" value="${Number(f.priority) || 0}" step="1" /></label>`
+        : "";
+      return `
+        <div class="venue-item" data-source="${f.source}" data-id="${f.id}">
+          <div class="venue-row">
+            ${thumb}
+            <div class="venue-row-info">
+              <div class="venue-row-name">${badge}${escapeHtml(f.name)}</div>
+              <div class="venue-row-meta">${meta}</div>
+            </div>
+            <div class="venue-row-actions">${prioCtrl}${codeAction}${photoBtn}</div>
+          </div>
+          ${venuePhotoEditorHtml(f)}
+        </div>
+      `;
+    }
+
+    // Plafond d'affichage : chaque ligne embarque un éditeur photo, donc on
+    // évite un DOM géant. Au-delà, on invite à affiner la recherche.
+    const VENUES_RENDER_CAP = 300;
+
+    // Filtre la liste par nom (recherche rapide) ET / OU par ville.
+    function renderVenuesList() {
+      const all = unifiedFiches();
+      const cityQ = normalizeCity(venuesCityFilter.value);
+      const nameQ = normalizeCity(venuesNameSearch.value);
+
+      // Rien de saisi : invite + total disponible
+      if (!cityQ && !nameQ) {
         venuesStats.textContent = `${all.length} fiches au total`;
-        venuesList.innerHTML = "";
         venuesEmpty.classList.add("hidden");
         venuesLoading.classList.add("hidden");
-        venuesList.innerHTML = `<div class="venues-empty">Tape le nom d'une ville pour afficher les fiches.</div>`;
+        venuesList.innerHTML = `<div class="venues-empty">Tape un <strong>nom</strong> dans la barre de recherche pour trouver une fiche, ou filtre par ville.</div>`;
         return;
       }
 
-      const withCode = filtered.filter(f => f.code).length;
-      venuesStats.textContent = `${filtered.length} fiches · ${withCode} avec code`;
+      let filtered = all;
+      if (cityQ) filtered = filtered.filter(f => normalizeCity(f.ville) === cityQ);
+      if (nameQ) filtered = filtered.filter(f => normalizeCity(f.name).includes(nameQ));
 
       venuesLoading.classList.add("hidden");
+
+      const withCode = filtered.filter(f => f.code).length;
+      venuesStats.textContent = `${filtered.length} fiche(s) · ${withCode} avec code`;
+
       if (filtered.length === 0) {
         venuesList.innerHTML = "";
+        venuesEmpty.textContent = nameQ
+          ? `Aucune fiche ne correspond à « ${venuesNameSearch.value.trim()} ».`
+          : "Aucune fiche pour cette ville.";
         venuesEmpty.classList.remove("hidden");
         return;
       }
       venuesEmpty.classList.add("hidden");
 
-      // Tri : ceux qui ont deja un code en premier, puis alpha
+      // Tri : priorité décroissante d'abord (reflète l'ordre de la rubrique
+      // Food), puis ceux qui ont déjà un code, puis alpha.
       filtered.sort((a, b) => {
+        const pa = a.priority || 0;
+        const pb = b.priority || 0;
+        if (pa !== pb) return pb - pa;
         const ac = a.code ? 0 : 1;
         const bc = b.code ? 0 : 1;
         if (ac !== bc) return ac - bc;
         return a.name.localeCompare(b.name, "fr");
       });
 
-      venuesList.innerHTML = filtered.map(f => {
-        const badge = `<span class="venue-row-badge ${f.source}">${f.source === "venues" ? "venue" : "etab"}</span>`;
-        const meta = [f.type, f.adresse, f.ville].filter(Boolean).map(escapeHtml).join(" · ");
-        const action = f.code
-          ? `<button class="code-pill" data-action="copy" data-code="${escapeHtml(f.code)}" title="Cliquer pour copier"><span>${escapeHtml(f.code)}</span><span class="copy-icon">📋</span></button>`
-          : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
-        return `
-          <div class="venue-row" data-source="${f.source}" data-id="${f.id}">
-            <div class="venue-row-info">
-              <div class="venue-row-name">${badge}${escapeHtml(f.name)}</div>
-              <div class="venue-row-meta">${meta}</div>
-            </div>
-            <div class="venue-row-actions">${action}</div>
-          </div>
-        `;
-      }).join("");
+      const shown = filtered.slice(0, VENUES_RENDER_CAP);
+      let html = shown.map(venueItemHtml).join("");
+      if (filtered.length > VENUES_RENDER_CAP) {
+        html += `<div class="venues-empty">… et ${filtered.length - VENUES_RENDER_CAP} autre(s) — affine avec le champ de recherche.</div>`;
+      }
+      venuesList.innerHTML = html;
     }
 
     function refreshVenuesView() {
       refreshCitiesDatalist();
       // Charge encore ? Affiche loading uniquement si allVenues vide
-      if (allVenues.length === 0 && allEtabs.length === 0) {
+      if (allVenues.length === 0 && allEtabs.length === 0 && allSportVenues.length === 0) {
         venuesLoading.classList.remove("hidden");
         venuesList.innerHTML = "";
         venuesEmpty.classList.add("hidden");
         venuesStats.textContent = "—";
         return;
       }
-      renderVenuesList(venuesCityFilter.value);
+      renderVenuesList();
     }
 
-    venuesCityFilter.addEventListener("input", () => {
-      renderVenuesList(venuesCityFilter.value);
-    });
+    // Re-render léger débounce — fluide pendant la frappe dans la recherche.
+    let _venuesRenderTimer = null;
+    function scheduleVenuesRender() {
+      clearTimeout(_venuesRenderTimer);
+      _venuesRenderTimer = setTimeout(renderVenuesList, 110);
+    }
+    venuesCityFilter.addEventListener("input", scheduleVenuesRender);
+    venuesNameSearch.addEventListener("input", scheduleVenuesRender);
 
     // Delegation click : copy code / generate code
     venuesList.addEventListener("click", async (ev) => {
       const target = ev.target.closest("[data-action]");
       if (!target) return;
       const action = target.dataset.action;
+
+      // ── Edition de la photo pochette ──
+      if (action === "toggle-photo") {
+        const item = target.closest(".venue-item");
+        const editor = item.querySelector(".venue-photo-editor");
+        const nowHidden = editor.classList.toggle("hidden");
+        target.classList.toggle("open", !nowHidden);
+        return;
+      }
+
+      if (action === "cancel-photo") {
+        const item = target.closest(".venue-item");
+        const editor = item.querySelector(".venue-photo-editor");
+        setVenuePhoto(item, editor.dataset.orig || "");
+        setVenueGallery(item, parseGallery(editor.dataset.origGallery));
+        editor.classList.add("hidden");
+        const tgl = item.querySelector('.photo-btn[data-action="toggle-photo"]');
+        if (tgl) tgl.classList.remove("open");
+        return;
+      }
+
+      if (action === "gal-remove" || action === "gal-left" || action === "gal-right") {
+        const item = target.closest(".venue-item");
+        const galItem = target.closest(".vp-gallery-item");
+        if (!item || !galItem) return;
+        const idx = Number(galItem.dataset.idx);
+        const arr = getVenueGallery(item);
+        if (action === "gal-remove") {
+          arr.splice(idx, 1);
+        } else if (action === "gal-left" && idx > 0) {
+          [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+        } else if (action === "gal-right" && idx < arr.length - 1) {
+          [arr[idx + 1], arr[idx]] = [arr[idx], arr[idx + 1]];
+        }
+        setVenueGallery(item, arr);
+        return;
+      }
+
+      if (action === "add-gallery-url") {
+        const item = target.closest(".venue-item");
+        const urlInput = item.querySelector('[data-role="vpg-url"]');
+        const url = urlInput.value.trim();
+        if (!url) return;
+        if (!/^https?:\/\//.test(url)) {
+          toast("L'URL doit commencer par http:// ou https://", false);
+          return;
+        }
+        appendVenueGallery(item, url);
+        urlInput.value = "";
+        return;
+      }
+
+      if (action === "save-photo") {
+        const item = target.closest(".venue-item");
+        const source = item.dataset.source;
+        const id = Number(item.dataset.id);
+        const photo = item.querySelector('[data-field="photo"]').value.trim();
+        const photos = getVenueGallery(item);
+        const videoUrl = item.querySelector('[data-field="video_url"]').value.trim();
+        if (photo && !/^https?:\/\//.test(photo)) {
+          toast("L'URL de la pochette doit commencer par http:// ou https://", false);
+          return;
+        }
+        if (videoUrl && !/^https?:\/\//.test(videoUrl)) {
+          toast("L'URL de la vidéo doit commencer par http:// ou https://", false);
+          return;
+        }
+        target.disabled = true;
+        target.textContent = "…";
+        const { error } = await supabase
+          .from(source)
+          .update({ photo, photos, video_url: videoUrl })
+          .eq("id", id);
+        if (error) {
+          target.disabled = false;
+          target.textContent = "Enregistrer";
+          console.warn("[venue media save]", error);
+          toast("Erreur : " + (error.message || "échec de l'enregistrement"), false);
+          return;
+        }
+        // Met à jour le cache local de la table concernée
+        const cache = source === "venues" ? allVenues
+          : source === "etablissements" ? allEtabs : allSportVenues;
+        const row = cache.find(r => r.id === id);
+        if (row) { row.photo = photo; row.photos = photos; row.video_url = videoUrl; }
+        renderVenuesList();
+        toast("Médias mis à jour", true);
+        return;
+      }
 
       if (action === "copy") {
         const code = target.dataset.code;
@@ -2158,9 +2751,479 @@
           const row = allEtabs.find(r => r.id === id);
           if (row) row.pro_claim_code = newCode;
         }
-        renderVenuesList(venuesCityFilter.value);
+        renderVenuesList();
         toast(`Code généré : ${newCode}`, true);
       }
+    });
+
+    // ─── Onglet Etablissements : photo pochette (collage / drag / fichier / URL) ───
+    // Réutilise uploadImage() (bucket admin-events), comme les onglets Event et
+    // Inspirations. La valeur vit dans l'input hidden data-field="photo", lu au save.
+    function setVenuePhoto(item, url) {
+      const hidden = item.querySelector('[data-field="photo"]');
+      const zone = item.querySelector('[data-role="vp-zone"]');
+      const empty = item.querySelector('[data-role="vp-empty"]');
+      const filled = item.querySelector('[data-role="vp-filled"]');
+      const prev = item.querySelector('[data-role="vp-preview"]');
+      const urlInput = item.querySelector('[data-role="vp-url"]');
+      const v = url || "";
+      const isHttp = v.startsWith("http");
+      hidden.value = v;
+      if (isHttp) {
+        prev.src = v;
+        prev.style.opacity = 1;
+        empty.classList.add("hidden");
+        filled.classList.remove("hidden");
+        zone.classList.add("has-image");
+      } else {
+        prev.src = "";
+        empty.classList.remove("hidden");
+        filled.classList.add("hidden");
+        zone.classList.remove("has-image");
+      }
+      const wanted = isHttp ? v : "";
+      if (urlInput && urlInput.value !== wanted) urlInput.value = wanted;
+    }
+
+    async function uploadVenuePhotoBlob(item, blob) {
+      if (!blob || !blob.type.startsWith("image/")) return;
+      const empty = item.querySelector('[data-role="vp-empty"]');
+      const filled = item.querySelector('[data-role="vp-filled"]');
+      const prevHtml = empty ? empty.innerHTML : "";
+      if (empty) {
+        empty.classList.remove("hidden");
+        if (filled) filled.classList.add("hidden");
+        empty.innerHTML = '<div class="paste-icon">⏳</div><div class="paste-hint">Upload en cours…</div>';
+      }
+      try {
+        const url = await uploadImage(blob);
+        if (empty) empty.innerHTML = prevHtml;
+        setVenuePhoto(item, url);
+        toast("Image uploadée", true);
+      } catch (err) {
+        if (empty) empty.innerHTML = prevHtml;
+        setVenuePhoto(item, item.querySelector('[data-field="photo"]').value);
+        console.warn("[venue photo upload]", err);
+        toast("Erreur upload image : " + (err.message || err), false);
+      }
+    }
+
+    // ─── Galerie : état dans l'input hidden data-field="photos" (JSON) ───
+    function parseGallery(s) {
+      try {
+        const a = JSON.parse(s || "[]");
+        return Array.isArray(a) ? a.filter(u => typeof u === "string" && u) : [];
+      } catch {
+        return [];
+      }
+    }
+    function getVenueGallery(item) {
+      return parseGallery(item.querySelector('[data-field="photos"]').value);
+    }
+    function setVenueGallery(item, arr) {
+      const clean = (arr || []).filter(u => typeof u === "string" && u);
+      item.querySelector('[data-field="photos"]').value = JSON.stringify(clean);
+      item.querySelector('[data-role="vp-gallery"]').innerHTML = venueGalleryThumbsHtml(clean);
+    }
+    function appendVenueGallery(item, url) {
+      if (!url) return;
+      const arr = getVenueGallery(item);
+      arr.push(url);
+      setVenueGallery(item, arr);
+    }
+
+    async function uploadVenueGalleryBlob(item, blob) {
+      if (!blob || !blob.type.startsWith("image/")) return;
+      const zone = item.querySelector('[data-role="vpg-zone"]');
+      const hint = zone ? zone.querySelector(".paste-hint") : null;
+      const saved = hint ? hint.innerHTML : "";
+      if (hint) hint.innerHTML = "⏳ Upload en cours…";
+      try {
+        const url = await uploadImage(blob);
+        appendVenueGallery(item, url);
+        toast("Photo ajoutée à la galerie", true);
+      } catch (err) {
+        console.warn("[venue gallery upload]", err);
+        toast("Erreur upload image : " + (err.message || err), false);
+      } finally {
+        if (hint) hint.innerHTML = saved;
+      }
+    }
+
+    // Upload d'une vidéo de fiche (vers le bucket videos/venues/).
+    async function handleVenueVideoUpload(item, file) {
+      if (!file || !file.type.startsWith("video/")) {
+        toast("Choisis un fichier vidéo (mp4 de préférence)", false);
+        return;
+      }
+      const sizeMo = file.size / 1048576;
+      if (sizeMo > 100) {
+        toast(`Vidéo trop lourde (${sizeMo.toFixed(0)} Mo) — maximum 100 Mo`, false);
+        return;
+      }
+      const status = item.querySelector('[data-role="vpv-status"]');
+      const btn = item.querySelector('[data-role="vpv-browse"]');
+      if (btn) btn.disabled = true;
+      if (status) {
+        status.style.color = "var(--text-dim)";
+        status.textContent = `⏳ Upload de la vidéo… (${sizeMo.toFixed(1)} Mo)`;
+      }
+      try {
+        const url = await uploadVideoToBucket(file, "venues");
+        item.querySelector('[data-field="video_url"]').value = url;
+        if (status) {
+          status.style.color = "var(--ok)";
+          status.textContent = "✓ Vidéo importée — clique « Enregistrer »";
+        }
+        toast("Vidéo uploadée ✓", true);
+      } catch (err) {
+        console.warn("[venue video upload]", err);
+        if (status) {
+          status.style.color = "var(--err)";
+          status.textContent = "✕ Échec : " + (err.message || err);
+        }
+        toast("Erreur upload vidéo : " + (err.message || err), false);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // Sélecteur commun aux deux zones de dépôt (pochette + galerie)
+    const VP_ZONES = '[data-role="vp-zone"],[data-role="vpg-zone"]';
+
+    // Browse (ouvre le sélecteur de fichier) / Retirer la pochette
+    venuesList.addEventListener("click", (ev) => {
+      const item = ev.target.closest(".venue-item");
+      if (!item) return;
+      if (ev.target.closest('[data-role="vp-browse"]')) {
+        ev.stopPropagation();
+        item.querySelector('[data-role="vp-file"]').click();
+      } else if (ev.target.closest('[data-role="vp-remove"]')) {
+        ev.stopPropagation();
+        setVenuePhoto(item, "");
+        item.querySelector('[data-role="vp-file"]').value = "";
+      } else if (ev.target.closest('[data-role="vpg-browse"]')) {
+        ev.stopPropagation();
+        item.querySelector('[data-role="vpg-file"]').click();
+      } else if (ev.target.closest('[data-role="vpv-browse"]')) {
+        ev.stopPropagation();
+        item.querySelector('[data-role="vpv-file"]').click();
+      }
+    });
+
+    venuesList.addEventListener("change", (ev) => {
+      const item = ev.target.closest(".venue-item");
+      const f = ev.target.files?.[0];
+      if (!item || !f) return;
+      if (ev.target.closest('input[data-role="vp-file"]')) {
+        uploadVenuePhotoBlob(item, f);
+      } else if (ev.target.closest('input[data-role="vpg-file"]')) {
+        uploadVenueGalleryBlob(item, f);
+      } else if (ev.target.closest('input[data-role="vpv-file"]')) {
+        handleVenueVideoUpload(item, f);
+      }
+      ev.target.value = "";
+    });
+
+    // Édition de la priorité d'affichage (établissements + salles de sport)
+    // — sauvegarde au blur.
+    venuesList.addEventListener("change", async (ev) => {
+      const input = ev.target.closest('input[data-role="prio-input"]');
+      if (!input) return;
+      const item = input.closest(".venue-item");
+      if (!item) return;
+      const source = item.dataset.source;
+      if (source !== "etablissements" && source !== "sport_venues") return;
+      const id = Number(item.dataset.id);
+      const priority = parseInt(input.value, 10) || 0;
+      input.value = priority;
+      input.disabled = true;
+      const { error } = await supabase
+        .from(source)
+        .update({ display_priority: priority })
+        .eq("id", id);
+      input.disabled = false;
+      if (error) {
+        console.warn("[venue priority]", error);
+        toast("Erreur priorité : " + (error.message || "échec"), false);
+        return;
+      }
+      const cache = source === "etablissements" ? allEtabs : allSportVenues;
+      const row = cache.find(r => r.id === id);
+      if (row) row.display_priority = priority;
+      toast(`Priorité enregistrée (${priority})`, true);
+      renderVenuesList();
+    });
+
+    venuesList.addEventListener("input", (ev) => {
+      if (!ev.target.closest('input[data-role="vp-url"]')) return;
+      const item = ev.target.closest(".venue-item");
+      if (item) setVenuePhoto(item, ev.target.value.trim());
+    });
+
+    venuesList.addEventListener("focusin", (ev) => {
+      const z = ev.target.closest(VP_ZONES);
+      if (z) z.classList.add("focus");
+    });
+    venuesList.addEventListener("focusout", (ev) => {
+      const z = ev.target.closest(VP_ZONES);
+      if (z) z.classList.remove("focus");
+    });
+    venuesList.addEventListener("dragover", (ev) => {
+      const z = ev.target.closest(VP_ZONES);
+      if (!z) return;
+      ev.preventDefault();
+      z.classList.add("focus");
+    });
+    venuesList.addEventListener("dragleave", (ev) => {
+      const z = ev.target.closest(VP_ZONES);
+      if (z) z.classList.remove("focus");
+    });
+    venuesList.addEventListener("drop", (ev) => {
+      const z = ev.target.closest(VP_ZONES);
+      if (!z) return;
+      ev.preventDefault();
+      z.classList.remove("focus");
+      const f = ev.dataTransfer.files?.[0];
+      const item = z.closest(".venue-item");
+      if (!item || !f) return;
+      if (z.dataset.role === "vpg-zone") uploadVenueGalleryBlob(item, f);
+      else uploadVenuePhotoBlob(item, f);
+    });
+
+    // Collage image (Ctrl+V) : zone pochette / galerie d'une fiche, ou photo
+    // du formulaire « Ajouter un établissement ».
+    document.addEventListener("paste", (ev) => {
+      const vv = document.getElementById("venues-view");
+      if (!vv || vv.classList.contains("hidden")) return;
+      const ae = document.activeElement;
+      if (ae && ae.matches &&
+          (ae.matches('input[data-role="vp-url"]') ||
+           ae.matches('input[data-role="vpg-url"]') ||
+           ae.matches('#etab-photo-url'))) return;
+      const zone = ae && ae.closest ? ae.closest(VP_ZONES + ',#etab-photo-zone') : null;
+      if (!zone) return;
+      const items = ev.clipboardData?.items;
+      if (!items) return;
+      for (const it of items) {
+        if (it.type.startsWith("image/")) {
+          const blob = it.getAsFile();
+          if (blob) {
+            ev.preventDefault();
+            if (zone.id === "etab-photo-zone") {
+              uploadEtabPhotoBlob(blob);
+            } else if (zone.dataset.role === "vpg-zone") {
+              uploadVenueGalleryBlob(zone.closest(".venue-item"), blob);
+            } else {
+              uploadVenuePhotoBlob(zone.closest(".venue-item"), blob);
+            }
+            return;
+          }
+        }
+      }
+    });
+
+    // ════════════════════════════════════════════════════════════════════
+    //  Formulaire « Ajouter un établissement » → INSERT dans `etablissements`
+    //  (restaurants, bars, lieux culture / famille). Listes alignées sur
+    //  AdminAddEtablissementSheet (côté app Flutter).
+    // ════════════════════════════════════════════════════════════════════
+    const ETAB_THEMES = ['', 'Francais', 'Asiatique', 'Japonais', 'Italien',
+      'Orientale', 'Mediterraneen', 'Mexicain', 'Africain', 'Indien',
+      'Fusion', 'Sud-Ouest', 'Fruits de mer', 'Vegetarien'];
+    const ETAB_QUARTIERS = ['', 'Capitole', 'Saint-Georges', 'Esquirol',
+      'Saint-Etienne', 'Carmes', 'Saint-Cyprien', 'Compans-Caffarelli',
+      'Francois-Verdier', 'Matabiau', 'Cote Pavee', 'Lardenne', 'Rangueil',
+      'Minimes', 'Empalot', 'Bagatelle', 'Mirail'];
+    const ETAB_STYLES = ['', 'Romantique', 'Chic', 'Gastronomique',
+      'Bistronomique', 'Convivial', 'Familial', 'Festif', 'Cosy',
+      'Decontracte', 'Traditionnel', 'Authentique', 'Moderne', 'Branche',
+      'Instagrammable', 'Rooftop', 'Street food', 'Lounge',
+      'Tapas / partage', 'Bar a vin', 'Gourmet', 'A theme'];
+
+    const $etab = (id) => document.getElementById(id);
+
+    (function fillEtabSelects() {
+      const fill = (sel, vals, emptyLabel) => {
+        sel.innerHTML = vals.map(v =>
+          `<option value="${escapeHtml(v)}">${v === "" ? emptyLabel : escapeHtml(v)}</option>`
+        ).join("");
+      };
+      fill($etab("etab-theme"), ETAB_THEMES, "— Aucun —");
+      fill($etab("etab-quartier"), ETAB_QUARTIERS, "— Non précisé —");
+      fill($etab("etab-style"), ETAB_STYLES, "— Aucun —");
+    })();
+
+    const etabForm = $etab("etab-form");
+    const etabAddToggle = $etab("etab-add-toggle");
+    const etabRubrique = $etab("etab-rubrique");
+    const etabFoodFilters = $etab("etab-food-filters");
+
+    function syncEtabFoodFilters() {
+      etabFoodFilters.classList.toggle("hidden", etabRubrique.value !== "food");
+    }
+    syncEtabFoodFilters();
+    etabRubrique.addEventListener("change", syncEtabFoodFilters);
+
+    function showEtabForm(show) {
+      etabForm.classList.toggle("hidden", !show);
+      etabAddToggle.textContent = show
+        ? "✕ Fermer le formulaire"
+        : "➕ Ajouter un établissement";
+      if (show) {
+        const cityInput = $etab("etab-ville");
+        if (!cityInput.value.trim()) {
+          cityInput.value = venuesCityFilter.value.trim() || "Toulouse";
+        }
+        etabForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+    etabAddToggle.addEventListener("click", () => {
+      showEtabForm(etabForm.classList.contains("hidden"));
+    });
+    $etab("etab-cancel").addEventListener("click", () => showEtabForm(false));
+
+    // ── Photo pochette du formulaire (collage / drag / fichier / URL) ──
+    function setEtabPhoto(url) {
+      const v = url || "";
+      const isHttp = v.startsWith("http");
+      $etab("etab-photo").value = v;
+      const empty = $etab("etab-photo-empty");
+      const filled = $etab("etab-photo-filled");
+      const prev = $etab("etab-photo-preview");
+      const urlInput = $etab("etab-photo-url");
+      if (isHttp) {
+        prev.src = v;
+        prev.style.opacity = 1;
+        empty.classList.add("hidden");
+        filled.classList.remove("hidden");
+      } else {
+        prev.src = "";
+        empty.classList.remove("hidden");
+        filled.classList.add("hidden");
+      }
+      if (urlInput.value !== (isHttp ? v : "")) urlInput.value = isHttp ? v : "";
+    }
+    async function uploadEtabPhotoBlob(blob) {
+      if (!blob || !blob.type.startsWith("image/")) return;
+      const empty = $etab("etab-photo-empty");
+      const saved = empty.innerHTML;
+      empty.classList.remove("hidden");
+      $etab("etab-photo-filled").classList.add("hidden");
+      empty.innerHTML = '<div class="paste-icon">⏳</div><div class="paste-hint">Upload en cours…</div>';
+      try {
+        const url = await uploadImage(blob);
+        empty.innerHTML = saved;
+        setEtabPhoto(url);
+        toast("Image uploadée", true);
+      } catch (err) {
+        empty.innerHTML = saved;
+        setEtabPhoto($etab("etab-photo").value);
+        console.warn("[etab photo]", err);
+        toast("Erreur upload image : " + (err.message || err), false);
+      }
+    }
+    const etabPhotoZone = $etab("etab-photo-zone");
+    $etab("etab-photo-browse").addEventListener("click", () => $etab("etab-photo-file").click());
+    $etab("etab-photo-browse2").addEventListener("click", () => $etab("etab-photo-file").click());
+    $etab("etab-photo-remove").addEventListener("click", () => {
+      setEtabPhoto("");
+      $etab("etab-photo-file").value = "";
+    });
+    $etab("etab-photo-file").addEventListener("change", (ev) => {
+      const f = ev.target.files?.[0];
+      if (f) uploadEtabPhotoBlob(f);
+      ev.target.value = "";
+    });
+    $etab("etab-photo-url").addEventListener("input", (ev) => setEtabPhoto(ev.target.value.trim()));
+    etabPhotoZone.addEventListener("focusin", () => etabPhotoZone.classList.add("focus"));
+    etabPhotoZone.addEventListener("focusout", () => etabPhotoZone.classList.remove("focus"));
+    etabPhotoZone.addEventListener("dragover", (ev) => {
+      ev.preventDefault();
+      etabPhotoZone.classList.add("focus");
+    });
+    etabPhotoZone.addEventListener("dragleave", () => etabPhotoZone.classList.remove("focus"));
+    etabPhotoZone.addEventListener("drop", (ev) => {
+      ev.preventDefault();
+      etabPhotoZone.classList.remove("focus");
+      const f = ev.dataTransfer.files?.[0];
+      if (f) uploadEtabPhotoBlob(f);
+    });
+
+    function resetEtabForm() {
+      ["etab-nom", "etab-categorie", "etab-adresse", "etab-telephone",
+       "etab-horaires", "etab-siteweb", "etab-lienmaps", "etab-photo-url"
+      ].forEach(id => { $etab(id).value = ""; });
+      $etab("etab-lat").value = "0";
+      $etab("etab-lon").value = "0";
+      $etab("etab-priority").value = "0";
+      $etab("etab-theme").selectedIndex = 0;
+      $etab("etab-quartier").selectedIndex = 0;
+      $etab("etab-style").selectedIndex = 0;
+      $etab("etab-active").checked = true;
+      $etab("etab-photo-file").value = "";
+      setEtabPhoto("");
+    }
+
+    $etab("etab-submit").addEventListener("click", async () => {
+      const btn = $etab("etab-submit");
+      const nom = $etab("etab-nom").value.trim();
+      if (!nom) {
+        toast("Le nom de l'établissement est requis", false);
+        return;
+      }
+      const rubrique = etabRubrique.value;
+      const siteWeb = $etab("etab-siteweb").value.trim();
+      const lienMaps = $etab("etab-lienmaps").value.trim();
+      const photo = $etab("etab-photo").value.trim();
+      for (const [lbl, u] of [["site web", siteWeb], ["lien Maps", lienMaps], ["photo", photo]]) {
+        if (u && !/^https?:\/\//.test(u)) {
+          toast(`L'URL ${lbl} doit commencer par http:// ou https://`, false);
+          return;
+        }
+      }
+      const ville = $etab("etab-ville").value.trim() || "Toulouse";
+      const isFood = rubrique === "food";
+      const payload = {
+        nom,
+        rubrique,
+        categorie: $etab("etab-categorie").value.trim(),
+        adresse: $etab("etab-adresse").value.trim(),
+        ville,
+        telephone: $etab("etab-telephone").value.trim(),
+        horaires: $etab("etab-horaires").value.trim(),
+        site_web: siteWeb,
+        lien_maps: lienMaps,
+        photo,
+        latitude: parseFloat($etab("etab-lat").value) || 0,
+        longitude: parseFloat($etab("etab-lon").value) || 0,
+        theme: isFood ? $etab("etab-theme").value : "",
+        quartier: isFood ? $etab("etab-quartier").value : "",
+        style: isFood ? $etab("etab-style").value : "",
+        display_priority: parseInt($etab("etab-priority").value, 10) || 0,
+        is_active: $etab("etab-active").checked,
+      };
+      btn.disabled = true;
+      btn.textContent = "…";
+      const { data, error } = await supabase
+        .from("etablissements")
+        .insert(payload)
+        .select()
+        .single();
+      btn.disabled = false;
+      btn.textContent = "Créer l'établissement";
+      if (error) {
+        console.warn("[etab insert]", error);
+        toast("Erreur : " + (error.message || "création échouée"), false);
+        return;
+      }
+      allEtabs.push(data);
+      resetEtabForm();
+      showEtabForm(false);
+      venuesNameSearch.value = "";
+      venuesCityFilter.value = ville;
+      refreshVenuesView();
+      toast(`« ${data.nom} » ajouté ✓`, true);
     });
 
     // ─── Onglet Bannières : edition video_url + link_url + is_active par ville ───
@@ -2232,10 +3295,15 @@
               </span>
             </div>
 
-            <label class="banner-field-label">URL de la vidéo (mp4)</label>
+            <label class="banner-field-label">Vidéo (mp4)</label>
             <input type="url" class="banner-input" data-field="video_url"
               value="${escapeHtml(videoUrl)}"
-              placeholder="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners/...mp4" />
+              placeholder="Colle une URL .mp4 — ou importe une vidéo ci-dessous" />
+            <div class="banner-upload-row">
+              <button type="button" class="paste-browse" data-action="pick-video">📂 Importer une vidéo depuis le PC</button>
+              <span class="banner-upload-status" data-role="video-status"></span>
+            </div>
+            <input type="file" accept="video/*" class="hidden" data-role="video-file" />
 
             <label class="banner-field-label">Lien quand on tape la bannière (optionnel)</label>
             <input type="url" class="banner-input" data-field="link_url"
@@ -2282,6 +3350,11 @@
       const existing = card.dataset.existing === "1";
       const id = card.dataset.id ? Number(card.dataset.id) : null;
       const action = btn.dataset.action;
+
+      if (action === "pick-video") {
+        card.querySelector('[data-role="video-file"]').click();
+        return;
+      }
 
       if (action === "delete") {
         if (!confirm(`Supprimer la bannière ${mode} pour "${ville}" ?`)) return;
@@ -2365,6 +3438,63 @@
         renderBannersList(ville);
         toast(`Bannière ${mode}/${ville} ${existing ? 'mise à jour' : 'créée'}`, true);
       }
+    });
+
+    // ─── Bannières : import d'une vidéo depuis le PC vers le bucket `videos` ───
+    // Upload d'une vidéo dans le bucket `videos`, sous-dossier `folder`
+    // ('banners' pour les bannières, 'venues' pour les fiches).
+    async function uploadVideoToBucket(file, folder) {
+      const rawExt = (file.name.split(".").pop() || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const ext = rawExt || "mp4";
+      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { data, error } = await supabase.storage
+        .from("videos")
+        .upload(path, file, { contentType: file.type || "video/mp4", upsert: false });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("videos").getPublicUrl(data.path);
+      return urlData.publicUrl;
+    }
+
+    async function handleBannerVideoUpload(card, file) {
+      if (!file) return;
+      if (!file.type.startsWith("video/")) {
+        toast("Choisis un fichier vidéo (mp4 de préférence)", false);
+        return;
+      }
+      const sizeMo = file.size / 1048576;
+      if (sizeMo > 100) {
+        toast(`Vidéo trop lourde (${sizeMo.toFixed(0)} Mo) — maximum 100 Mo`, false);
+        return;
+      }
+      const status = card.querySelector('[data-role="video-status"]');
+      const pickBtn = card.querySelector('[data-action="pick-video"]');
+      if (pickBtn) pickBtn.disabled = true;
+      status.style.color = "var(--text-dim)";
+      status.textContent = `⏳ Upload de la vidéo en cours… (${sizeMo.toFixed(1)} Mo)`;
+      try {
+        const url = await uploadVideoToBucket(file, "banners");
+        card.querySelector('[data-field="video_url"]').value = url;
+        status.style.color = "var(--ok)";
+        status.textContent = `✓ Vidéo importée — clique « ${card.dataset.existing === "1" ? "Enregistrer" : "Créer"} »`;
+        toast("Vidéo uploadée ✓", true);
+      } catch (err) {
+        console.warn("[banner video upload]", err);
+        const msg = (err && err.message) ? err.message : String(err);
+        status.style.color = "var(--err)";
+        status.textContent = "✕ Échec de l'upload : " + msg;
+        toast("Erreur upload vidéo : " + msg, false);
+      } finally {
+        if (pickBtn) pickBtn.disabled = false;
+      }
+    }
+
+    bannersList.addEventListener("change", (ev) => {
+      const input = ev.target.closest('input[data-role="video-file"]');
+      if (!input) return;
+      const card = input.closest(".banner-card");
+      const file = input.files?.[0];
+      if (card && file) handleBannerVideoUpload(card, file);
+      input.value = "";
     });
 
     // ─── Onglet Inspirations : table unifiée `inspirations` ───

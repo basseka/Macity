@@ -34,13 +34,18 @@ class RestaurantDetailSheet {
     RestaurantVenue venue, {
     String placeholderAsset = 'assets/images/pochette_restaurant.jpg',
   }) {
+    // Galerie : pochette + photos enregistrées (galerie admin.html). Les
+    // visuels génériques de plats ne servent que de repli quand le restaurant
+    // n'a aucune photo réelle.
     final photos = <String>[];
     if (venue.photo.isNotEmpty && venue.photo.startsWith('http')) {
       photos.add(venue.photo);
     }
-    for (final p in _defaultRestaurantPhotos) {
-      if (photos.length >= 6) break;
-      if (!photos.contains(p)) photos.add(p);
+    for (final p in venue.photos) {
+      if (p.isNotEmpty && !photos.contains(p)) photos.add(p);
+    }
+    if (photos.isEmpty) {
+      photos.addAll(_defaultRestaurantPhotos);
     }
 
     final venueIdInt = int.tryParse(venue.id) ?? 0;

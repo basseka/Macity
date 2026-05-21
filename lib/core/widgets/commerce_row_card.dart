@@ -367,6 +367,7 @@ class CommerceRowCard extends ConsumerWidget {
         claimSourceTable: _claimSourceTableFromSingular(commerce.sourceTable),
         claimSourceId: commerce.sourceId,
         photoGallery: _buildPhotoGalleryFor(commerce),
+        description: commerce.description,
         infos: [
           if (commerce.categorie.isNotEmpty)
             DetailInfoItem(Icons.category_outlined, commerce.categorie),

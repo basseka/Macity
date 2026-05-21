@@ -14,6 +14,7 @@ class RestaurantVenue {
   final String websiteUrl;
   final String lienMaps;
   final String photo;
+  final List<String> photos;
   final bool isVerified;
 
   const RestaurantVenue({
@@ -32,6 +33,7 @@ class RestaurantVenue {
     required this.websiteUrl,
     required this.lienMaps,
     this.photo = '',
+    this.photos = const [],
     this.isVerified = false,
   });
 }

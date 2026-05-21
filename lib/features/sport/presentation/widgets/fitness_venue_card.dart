@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 
 class FitnessVenueCard extends ConsumerWidget {
@@ -22,10 +22,17 @@ class FitnessVenueCard extends ConsumerWidget {
   };
 
   String _resolvePhoto() {
+    // 1. Vraie photo uploadee (URL reseau) ou galerie : prioritaire sur le logo
+    //    de chaine code en dur — permet de personnaliser la pochette via
+    //    admin.html, y compris pour les 5 enseignes connues.
+    if (commerce.photo.startsWith('http')) return commerce.photo;
+    if (commerce.photos.isNotEmpty) return commerce.photos.first;
+    // 2. Sinon, logo de l'enseigne si c'est une chaine connue.
     final nom = commerce.nom.toLowerCase();
     for (final entry in _logoMap.entries) {
       if (nom.contains(entry.key)) return entry.value;
     }
+    // 3. Repli : valeur DB (placeholder asset ou chaine vide).
     return commerce.photo;
   }
 
@@ -196,57 +203,14 @@ class FitnessVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    // Image principale : photos[0] si gallery, sinon photo single (URL ou
-    // asset local match par chaine), sinon emoji fallback.
-    final headerImageUrl = commerce.photos.isNotEmpty
-        ? commerce.photos.first
-        : (commerce.photo.startsWith('http') ? commerce.photo : null);
-    final headerAsset = headerImageUrl == null && commerce.photo.isNotEmpty &&
-            !commerce.photo.startsWith('http')
-        ? commerce.photo
-        : _resolvePhoto().startsWith('http') ? null : _resolvePhoto();
-    // Gallery : photos depuis DB. Si single photo URL existe et qu'on n'a
-    // pas deja de gallery, on la met en plus.
-    final gallery = <String>[
-      ...commerce.photos,
-      if (commerce.photos.isEmpty &&
-          commerce.photo.isNotEmpty &&
-          commerce.photo.startsWith('http'))
-        commerce.photo,
-    ];
-
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: commerce.nom,
-        emoji: '\uD83D\uDCAA',
-        imageUrl: headerImageUrl,
-        imageAsset: headerAsset,
-        videoUrl: commerce.videoUrl.isNotEmpty ? commerce.videoUrl : null,
-        photoGallery: gallery,
-        description: commerce.description,
-        claimSourceTable: commerce.sourceTable,
-        claimSourceId: commerce.sourceId,
-        infos: [
-          if (commerce.categorie.isNotEmpty)
-            DetailInfoItem(Icons.category_outlined, commerce.categorie),
-          if (commerce.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, commerce.horaires),
-          if (commerce.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, commerce.adresse),
-          if (commerce.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, commerce.telephone),
-        ],
-        primaryAction: commerce.siteWeb.isNotEmpty
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: commerce.siteWeb)
-            : null,
-        secondaryActions: [
-          if (commerce.lienMaps.isNotEmpty)
-            DetailAction(icon: Icons.map_outlined, label: 'Maps', url: commerce.lienMaps),
-        ],
-        shareText: '${commerce.nom}\n${commerce.categorie}\n${commerce.adresse}\n${commerce.siteWeb}\n\nDecouvre sur MaCity',
-      ),
-    );
+    // M\u00EAme fiche d\u00E9tail que les bo\u00EEtes de nuit : vid\u00E9o + galerie (jusqu'\u00E0
+    // 6 photos), avis, badge v\u00E9rifi\u00E9, partage\u2026 via CommerceRowCard.
+    // On passe le logo de cha\u00EEne en image d'en-t\u00EAte s'il n'y a pas de
+    // vraie photo (commerce.photo http).
+    final resolved = _resolvePhoto();
+    final headerAsset =
+        (resolved.isEmpty || resolved.startsWith('http')) ? null : resolved;
+    CommerceRowCard.showDetailSheet(context, commerce, imageAsset: headerAsset);
   }
 
   Widget _buildActionButton({

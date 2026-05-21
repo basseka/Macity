@@ -34,6 +34,10 @@ class RestaurantSupabaseService {
   }
 
   static RestaurantVenue _mapToVenue(Map<String, dynamic> json) {
+    final photosRaw = json['photos'];
+    final photos = photosRaw is List
+        ? photosRaw.whereType<String>().where((s) => s.isNotEmpty).toList()
+        : <String>[];
     return RestaurantVenue(
       id: '${json['id'] ?? ''}',
       name: json['nom'] as String? ?? '',
@@ -50,6 +54,7 @@ class RestaurantSupabaseService {
       websiteUrl: json['site_web'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: json['photo'] as String? ?? '',
+      photos: photos,
     );
   }
 }

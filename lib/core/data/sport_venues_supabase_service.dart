@@ -22,7 +22,7 @@ class SportVenuesSupabaseService {
     final params = <String, String>{
       'select': '*',
       'is_active': 'eq.true',
-      'order': 'nom.asc',
+      'order': 'display_priority.desc,nom.asc',
     };
     if (sportType != null) {
       params['sport_type'] = 'eq.$sportType';
