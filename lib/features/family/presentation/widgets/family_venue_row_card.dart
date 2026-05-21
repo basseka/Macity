@@ -5,7 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 
 /// Carte venue famille unifiee — remplace toutes les cartes specifiques
@@ -164,41 +165,28 @@ class FamilyVenueRowCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: venue.name,
-        emoji: '',
-        imageAsset: venue.photo.isEmpty ? _fallbackImage : null,
-        imageUrl: venue.photo.isNotEmpty ? venue.photo : null,
-        infos: [
-          if (venue.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, venue.horaires),
-          if (venue.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, venue.adresse),
-          if (venue.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, venue.telephone),
-          if (venue.tarif.isNotEmpty)
-            DetailInfoItem(Icons.euro, venue.tarif),
-          if (venue.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, venue.description),
-        ],
-        primaryAction: venue.ticketUrl.isNotEmpty
-            ? DetailAction(icon: Icons.confirmation_number_outlined, label: 'Billets', url: venue.ticketUrl)
-            : venue.websiteUrl.isNotEmpty
-                ? DetailAction(icon: Icons.language, label: 'Site web', url: venue.websiteUrl)
-                : null,
-        secondaryActions: [
-          if (venue.ticketUrl.isNotEmpty && venue.websiteUrl.isNotEmpty)
-            DetailAction(icon: Icons.language, label: 'Site web', url: venue.websiteUrl),
-          if (venue.telephone.isNotEmpty)
-            DetailAction(icon: Icons.phone_outlined, label: 'Appeler', url: 'tel:${venue.telephone.replaceAll(' ', '')}'),
-          if (venue.lienMaps.isNotEmpty)
-            DetailAction(icon: Icons.map_outlined, label: 'Maps', url: venue.lienMaps),
-        ],
-        shareText: '${venue.name}\n${venue.adresse}\n${venue.telephone}\n${venue.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+    final hasPhoto = venue.photo.isNotEmpty;
+    final imageAsset = hasPhoto ? null : _fallbackImage;
+    final description = [
+      if (venue.description.isNotEmpty) venue.description,
+      if (venue.tarif.isNotEmpty) 'Tarif : ${venue.tarif}',
+    ].join('\n\n');
+    final commerce = CommerceModel(
+      nom: venue.name,
+      categorie: venue.category,
+      adresse: venue.adresse,
+      ville: venue.ville,
+      horaires: venue.horaires,
+      telephone: venue.telephone,
+      siteWeb: venue.ticketUrl.isNotEmpty ? venue.ticketUrl : venue.websiteUrl,
+      lienMaps: venue.lienMaps,
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+      photo: hasPhoto ? venue.photo : '',
+      description: description,
+      isVerified: venue.isVerified,
     );
+    CommerceRowCard.showDetailSheet(context, commerce, imageAsset: imageAsset);
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {

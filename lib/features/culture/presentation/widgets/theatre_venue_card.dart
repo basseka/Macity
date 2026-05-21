@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
@@ -8,8 +7,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
-import 'package:pulz_app/features/day/domain/models/event.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class TheatreVenueCard extends ConsumerWidget {
@@ -178,164 +177,24 @@ class TheatreVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
+    final image =
+        theatre.image.isNotEmpty ? theatre.image : 'assets/images/pochette_theatre.webp';
+    final isHttp = image.startsWith('http');
+    final commerce = CommerceModel(
+      nom: theatre.name,
+      categorie: 'Theatre',
+      adresse: theatre.city,
+      ville: theatre.city,
+      horaires: theatre.horaires,
+      siteWeb: theatre.websiteUrl ?? '',
+      photo: image,
+      description: theatre.description,
+      isVerified: theatre.isVerified,
+    );
+    CommerceRowCard.showDetailSheet(
       context,
-      ItemDetailSheet(
-        title: theatre.name,
-        imageAsset: theatre.image.isNotEmpty ? theatre.image : 'assets/images/pochette_theatre.webp',
-        infos: [
-          if (theatre.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, theatre.description),
-          if (theatre.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, theatre.horaires),
-          if (theatre.city.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, theatre.city),
-        ],
-        primaryAction: theatre.websiteUrl != null
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: theatre.websiteUrl!)
-            : null,
-        shareText: '${theatre.name}\n${theatre.description}\n${theatre.city}\n${theatre.websiteUrl ?? ''}\n\nDecouvre sur MaCity',
-        imageHeightFraction: 0.15,
-        extraContent: Consumer(
-          builder: (_, ref, __) {
-            final asyncEvents = ref.watch(theatreVenueEventsProvider(theatre.id));
-            return asyncEvents.when(
-              data: (events) => events.isNotEmpty
-                  ? _buildProgrammation(events)
-                  : const SizedBox.shrink(),
-              loading: () => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-              ),
-              error: (_, __) => const SizedBox.shrink(),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgrammation(List<Event> events) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Programmation',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.white.withValues(alpha: 0.95),
-          ),
-        ),
-        const SizedBox(height: 8),
-        ...events.map((e) => _buildEventTile(e)),
-      ],
-    );
-  }
-
-  Widget _buildEventTile(Event event) {
-    final hasUrl = event.reservationUrl.isNotEmpty;
-    final hasPhoto = event.photoPath != null && event.photoPath!.startsWith('http');
-    return GestureDetector(
-      onTap: hasUrl ? () => _openUrl(event.reservationUrl) : null,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (hasPhoto)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: CachedNetworkImage(
-                    imageUrl: event.photoPath!,
-                    width: 45,
-                    height: 63,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
-                      width: 45,
-                      height: 63,
-                      color: Colors.white.withValues(alpha: 0.1),
-                      child: Icon(
-                        Icons.theater_comedy,
-                        size: 20,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    errorWidget: (_, __, ___) => Container(
-                      width: 45,
-                      height: 63,
-                      color: Colors.white.withValues(alpha: 0.1),
-                      child: Icon(
-                        Icons.theater_comedy,
-                        size: 20,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            else ...[
-              Icon(
-                Icons.theater_comedy,
-                size: 14,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-              const SizedBox(width: 8),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    event.titre,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.95),
-                      decoration: hasUrl ? TextDecoration.underline : null,
-                      decorationColor: Colors.white.withValues(alpha: 0.5),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (event.datesAffichageHoraires.isNotEmpty ||
-                      event.type.isNotEmpty)
-                    Text(
-                      [
-                        if (event.datesAffichageHoraires.isNotEmpty)
-                          event.datesAffichageHoraires,
-                        if (event.type.isNotEmpty) event.type,
-                      ].join(' · '),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.white.withValues(alpha: 0.6),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
-              ),
-            ),
-            if (hasUrl)
-              Icon(
-                Icons.open_in_new,
-                size: 12,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-          ],
-        ),
-      ),
+      commerce,
+      imageAsset: isHttp ? null : image,
     );
   }
 

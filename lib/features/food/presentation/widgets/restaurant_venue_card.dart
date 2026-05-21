@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
 import 'package:pulz_app/features/food/presentation/restaurant_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
@@ -99,15 +97,6 @@ class RestaurantVenueCard extends ConsumerWidget {
     );
   }
 
-  static const _defaultRestaurantPhotos = [
-    'assets/images/plat-01.png',
-    'assets/images/plat-02.png',
-    'assets/images/plat-03.png',
-    'assets/images/plat-04.png',
-    'assets/images/plat-05.png',
-    'assets/images/plat-06.png',
-  ];
-
   void _openDetail(BuildContext context) {
     // Delegate au helper centralise pour que le bouton "Reserver" + badge
     // de reservations actives soient cohérents partout (carte / liste / map).
@@ -129,18 +118,6 @@ class RestaurantVenueCard extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _openUrl(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      debugPrint('Impossible d\'ouvrir le lien: $e');
-    }
   }
 
   void _share() {

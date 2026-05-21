@@ -6,7 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class MonumentVenueCard extends ConsumerWidget {
@@ -14,19 +15,9 @@ class MonumentVenueCard extends ConsumerWidget {
 
   const MonumentVenueCard({super.key, required this.monument});
 
-  static const _typeEmojis = {
-    'Hotel particulier': '\uD83C\uDFDB\uFE0F',
-    'Vestige': '\uD83C\uDFF0',
-    'Edifice religieux': '\u26EA',
-    'Pont': '\uD83C\uDF09',
-    'Ouvrage hydraulique': '\u2699\uFE0F',
-    'Immeuble': '\uD83C\uDFE0',
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-    final emoji = _typeEmojis[monument.type] ?? '\uD83C\uDFF0';
 
     return GestureDetector(
       onTap: () => _openDetail(context),
@@ -123,25 +114,23 @@ class MonumentVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
+    final isHttp = monument.image.startsWith('http');
+    final commerce = CommerceModel(
+      nom: monument.name,
+      categorie: monument.type,
+      adresse: monument.adresse,
+      siteWeb: monument.websiteUrl,
+      lienMaps: monument.lienMaps,
+      latitude: monument.latitude,
+      longitude: monument.longitude,
+      photo: monument.image,
+      description: monument.description,
+      isVerified: monument.isVerified,
+    );
+    CommerceRowCard.showDetailSheet(
       context,
-      ItemDetailSheet(
-        title: monument.name,
-        emoji: '',
-        imageAsset: monument.image,
-        infos: [
-          if (monument.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, monument.description),
-          if (monument.type.isNotEmpty)
-            DetailInfoItem(Icons.category_outlined, monument.type),
-          if (monument.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, monument.adresse),
-        ],
-        primaryAction: monument.websiteUrl.isNotEmpty
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: monument.websiteUrl)
-            : null,
-        shareText: '${monument.name}\n${monument.description}\n${monument.adresse}\n${monument.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+      commerce,
+      imageAsset: isHttp ? null : monument.image,
     );
   }
 

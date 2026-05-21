@@ -11,8 +11,9 @@ import 'package:pulz_app/core/widgets/date_range_chip_bar.dart';
 import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/family/presentation/family_hub_grid.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -88,44 +89,31 @@ class FamilyScreen extends ConsumerWidget {
                   ].join(' · '),
                   photoUrl: v.photo,
                   isVerified: v.isVerified,
-                  onTap: (ctx) => ItemDetailSheet.show(
-                    ctx,
-                    ItemDetailSheet(
-                      title: v.name,
-                      imageUrl: v.photo.startsWith('http') ? v.photo : null,
-                      description: v.description,
+                  onTap: (ctx) {
+                    final isHttp = v.photo.startsWith('http');
+                    final description = [
+                      if (v.description.isNotEmpty) v.description,
+                      if (v.tarif.isNotEmpty) 'Tarif : ${v.tarif}',
+                    ].join('\n\n');
+                    final commerce = CommerceModel(
+                      nom: v.name,
+                      categorie: v.category,
+                      adresse: v.adresse,
+                      ville: v.ville,
+                      horaires: v.horaires,
+                      telephone: v.telephone,
+                      siteWeb: v.ticketUrl.isNotEmpty
+                          ? v.ticketUrl
+                          : v.websiteUrl,
+                      lienMaps: v.lienMaps,
+                      latitude: v.latitude,
+                      longitude: v.longitude,
+                      photo: isHttp ? v.photo : '',
+                      description: description,
                       isVerified: v.isVerified,
-                      infos: [
-                        if (v.adresse.isNotEmpty)
-                          DetailInfoItem(
-                              Icons.location_on_outlined, v.adresse),
-                        if (v.horaires.isNotEmpty)
-                          DetailInfoItem(
-                              Icons.access_time_rounded, v.horaires),
-                        if (v.tarif.isNotEmpty)
-                          DetailInfoItem(
-                              Icons.euro_rounded, v.tarif),
-                      ],
-                      primaryAction: v.websiteUrl.isNotEmpty
-                          ? DetailAction(
-                              icon: Icons.public_rounded,
-                              label: 'Site web',
-                              url: v.websiteUrl)
-                          : null,
-                      secondaryActions: [
-                        if (v.lienMaps.isNotEmpty)
-                          DetailAction(
-                              icon: Icons.map_rounded,
-                              label: 'Itinéraire',
-                              url: v.lienMaps),
-                        if (v.telephone.isNotEmpty)
-                          DetailAction(
-                              icon: Icons.phone_rounded,
-                              label: 'Appeler',
-                              url: 'tel:${v.telephone}'),
-                      ],
-                    ),
-                  ),
+                    );
+                    CommerceRowCard.showDetailSheet(ctx, commerce);
+                  },
                 ))
             .toList());
       },

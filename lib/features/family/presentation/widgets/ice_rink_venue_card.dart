@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/ice_rink_venues_data.dart';
 
 class IceRinkVenueCard extends ConsumerWidget {
@@ -100,48 +101,23 @@ class IceRinkVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: venue.name,
-        emoji: '\u{26F8}\u{FE0F}',
-        infos: [
-          if (venue.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, venue.horaires),
-          if (venue.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, venue.adresse),
-          if (venue.tarif.isNotEmpty)
-            DetailInfoItem(Icons.euro_outlined, venue.tarif),
-          if (venue.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, venue.telephone),
-          if (venue.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, venue.description),
-        ],
-        primaryAction: venue.websiteUrl.isNotEmpty
-            ? DetailAction(
-                icon: Icons.language,
-                label: 'Billetterie',
-                url: venue.websiteUrl,
-              )
-            : null,
-        secondaryActions: [
-          if (venue.telephone.isNotEmpty)
-            DetailAction(
-              icon: Icons.phone_outlined,
-              label: 'Appeler',
-              url: 'tel:${venue.telephone.replaceAll(' ', '')}',
-            ),
-          if (venue.lienMaps.isNotEmpty)
-            DetailAction(
-              icon: Icons.map_outlined,
-              label: 'Itineraire',
-              url: venue.lienMaps,
-            ),
-        ],
-        shareText:
-            '${venue.name}\n${venue.adresse}\n${venue.tarif}\n${venue.telephone}\n${venue.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+    final description = [
+      if (venue.description.isNotEmpty) venue.description,
+      if (venue.tarif.isNotEmpty) 'Tarif : ${venue.tarif}',
+    ].join('\n\n');
+    final commerce = CommerceModel(
+      nom: venue.name,
+      categorie: 'Patinoire',
+      adresse: venue.adresse,
+      horaires: venue.horaires,
+      telephone: venue.telephone,
+      siteWeb: venue.websiteUrl,
+      lienMaps: venue.lienMaps,
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+      description: description,
     );
+    CommerceRowCard.showDetailSheet(context, commerce);
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {

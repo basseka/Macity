@@ -21,7 +21,6 @@ import 'package:pulz_app/features/culture/data/museum_venues_data.dart' show Mus
 import 'package:pulz_app/features/culture/presentation/widgets/dance_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/library_venue_card.dart';
 import 'package:pulz_app/features/culture/presentation/widgets/monument_venue_card.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -73,28 +72,22 @@ class CultureScreen extends ConsumerWidget {
                             ].join(' · '),
                             photoUrl: m.image,
                             isVerified: m.isVerified,
-                            onTap: (ctx) => ItemDetailSheet.show(
+                            onTap: (ctx) => CommerceRowCard.showDetailSheet(
                               ctx,
-                              ItemDetailSheet(
-                                title: m.name,
-                                imageUrl: m.image.startsWith('http')
-                                    ? m.image
-                                    : null,
+                              CommerceModel(
+                                nom: m.name,
+                                categorie: m.category,
+                                adresse: m.city,
+                                ville: m.city,
+                                horaires: m.horaires,
+                                siteWeb: m.websiteUrl,
+                                photo: m.image,
                                 description: m.description,
                                 isVerified: m.isVerified,
-                                infos: [
-                                  if (m.horaires.isNotEmpty)
-                                    DetailInfoItem(
-                                        Icons.access_time_rounded,
-                                        m.horaires),
-                                ],
-                                primaryAction: m.websiteUrl.isNotEmpty
-                                    ? DetailAction(
-                                        icon: Icons.public_rounded,
-                                        label: 'Site web',
-                                        url: m.websiteUrl)
-                                    : null,
                               ),
+                              imageAsset: m.image.startsWith('http')
+                                  ? null
+                                  : m.image,
                             ),
                           ))
                       .toList(),
@@ -107,35 +100,23 @@ class CultureScreen extends ConsumerWidget {
                             subtitle: m.type,
                             photoUrl: m.image,
                             isVerified: m.isVerified,
-                            onTap: (ctx) => ItemDetailSheet.show(
+                            onTap: (ctx) => CommerceRowCard.showDetailSheet(
                               ctx,
-                              ItemDetailSheet(
-                                title: m.name,
-                                imageUrl: m.image.startsWith('http')
-                                    ? m.image
-                                    : null,
+                              CommerceModel(
+                                nom: m.name,
+                                categorie: m.type,
+                                adresse: m.adresse,
+                                siteWeb: m.websiteUrl,
+                                lienMaps: m.lienMaps,
+                                latitude: m.latitude,
+                                longitude: m.longitude,
+                                photo: m.image,
                                 description: m.description,
                                 isVerified: m.isVerified,
-                                infos: [
-                                  if (m.adresse.isNotEmpty)
-                                    DetailInfoItem(
-                                        Icons.location_on_outlined,
-                                        m.adresse),
-                                ],
-                                primaryAction: m.websiteUrl.isNotEmpty
-                                    ? DetailAction(
-                                        icon: Icons.public_rounded,
-                                        label: 'Site web',
-                                        url: m.websiteUrl)
-                                    : null,
-                                secondaryActions: [
-                                  if (m.lienMaps.isNotEmpty)
-                                    DetailAction(
-                                        icon: Icons.map_rounded,
-                                        label: 'Itinéraire',
-                                        url: m.lienMaps),
-                                ],
                               ),
+                              imageAsset: m.image.startsWith('http')
+                                  ? null
+                                  : m.image,
                             ),
                           ))
                       .toList(),
@@ -148,39 +129,25 @@ class CultureScreen extends ConsumerWidget {
                             subtitle: m.group,
                             photoUrl: m.image,
                             isVerified: m.isVerified,
-                            onTap: (ctx) => ItemDetailSheet.show(
+                            onTap: (ctx) => CommerceRowCard.showDetailSheet(
                               ctx,
-                              ItemDetailSheet(
-                                title: m.name,
-                                imageUrl: m.image.startsWith('http')
-                                    ? m.image
-                                    : null,
+                              CommerceModel(
+                                nom: m.name,
+                                categorie: m.group,
+                                adresse: m.adresse,
+                                horaires: m.horaires,
+                                telephone: m.telephone,
+                                siteWeb: m.websiteUrl,
+                                lienMaps: m.lienMaps,
+                                latitude: m.latitude,
+                                longitude: m.longitude,
+                                photo: m.image,
                                 description: m.description,
                                 isVerified: m.isVerified,
-                                infos: [
-                                  if (m.adresse.isNotEmpty)
-                                    DetailInfoItem(
-                                        Icons.location_on_outlined,
-                                        m.adresse),
-                                  if (m.horaires.isNotEmpty)
-                                    DetailInfoItem(
-                                        Icons.access_time_rounded,
-                                        m.horaires),
-                                ],
-                                primaryAction: m.websiteUrl.isNotEmpty
-                                    ? DetailAction(
-                                        icon: Icons.public_rounded,
-                                        label: 'Site web',
-                                        url: m.websiteUrl)
-                                    : null,
-                                secondaryActions: [
-                                  if (m.telephone.isNotEmpty)
-                                    DetailAction(
-                                        icon: Icons.phone_rounded,
-                                        label: 'Appeler',
-                                        url: 'tel:${m.telephone}'),
-                                ],
                               ),
+                              imageAsset: m.image.startsWith('http')
+                                  ? null
+                                  : m.image,
                             ),
                           ))
                       .toList(),
@@ -197,39 +164,14 @@ class CultureScreen extends ConsumerWidget {
                             ].join(' · '),
                             photoUrl: g.photo,
                             isVerified: g.isVerified,
-                            onTap: (ctx) => ItemDetailSheet.show(
+                            onTap: (ctx) => CommerceRowCard.showDetailSheet(
                               ctx,
-                              ItemDetailSheet(
-                                title: g.nom,
-                                imageUrl: g.photo.startsWith('http')
-                                    ? g.photo
-                                    : null,
-                                description: g.description,
-                                isVerified: g.isVerified,
-                                infos: [
-                                  if (g.adresse.isNotEmpty)
-                                    DetailInfoItem(
-                                        Icons.location_on_outlined,
-                                        g.adresse),
-                                  if (g.horaires.isNotEmpty)
-                                    DetailInfoItem(
-                                        Icons.access_time_rounded,
-                                        g.horaires),
-                                ],
-                                primaryAction: g.siteWeb.isNotEmpty
-                                    ? DetailAction(
-                                        icon: Icons.public_rounded,
-                                        label: 'Site web',
-                                        url: g.siteWeb)
-                                    : null,
-                                secondaryActions: [
-                                  if (g.lienMaps.isNotEmpty)
-                                    DetailAction(
-                                        icon: Icons.map_rounded,
-                                        label: 'Itinéraire',
-                                        url: g.lienMaps),
-                                ],
-                              ),
+                              g,
+                              imageAsset: g.photo.startsWith('http')
+                                  ? null
+                                  : (g.photo.isNotEmpty
+                                      ? g.photo
+                                      : 'assets/images/pochette_culture_art.webp'),
                             ),
                           ))
                       .toList(),
@@ -1179,25 +1121,22 @@ class _MuseumGridCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
+    final isHttp = museum.image.startsWith('http');
+    final commerce = CommerceModel(
+      nom: museum.name,
+      categorie: museum.category,
+      adresse: museum.city,
+      ville: museum.city,
+      horaires: museum.horaires,
+      siteWeb: museum.websiteUrl,
+      photo: museum.image,
+      description: museum.description,
+      isVerified: museum.isVerified,
+    );
+    CommerceRowCard.showDetailSheet(
       context,
-      ItemDetailSheet(
-        title: museum.name,
-        emoji: '',
-        imageAsset: museum.image,
-        infos: [
-          if (museum.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, museum.description),
-          if (museum.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, museum.horaires),
-          if (museum.city.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, museum.city),
-        ],
-        primaryAction: museum.websiteUrl.isNotEmpty
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: museum.websiteUrl)
-            : null,
-        shareText: '${museum.name}\n${museum.description}\n${museum.city}\n${museum.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+      commerce,
+      imageAsset: isHttp ? null : museum.image,
     );
   }
 }
@@ -1299,38 +1238,15 @@ class _GalleryCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    final image = gallery.photo.isNotEmpty
-        ? gallery.photo
-        : 'assets/images/pochette_culture_art.webp';
-    ItemDetailSheet.show(
+    final isHttp = gallery.photo.startsWith('http');
+    CommerceRowCard.showDetailSheet(
       context,
-      ItemDetailSheet(
-        title: gallery.nom,
-        emoji: '',
-        imageAsset: image,
-        infos: [
-          if (gallery.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, gallery.horaires),
-          if (gallery.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, gallery.adresse),
-          if (gallery.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, gallery.telephone),
-        ],
-        primaryAction: gallery.siteWeb.isNotEmpty
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: gallery.siteWeb)
-            : null,
-        secondaryActions: [
-          if (gallery.lienMaps.isNotEmpty)
-            DetailAction(icon: Icons.map_outlined, label: 'Maps', url: gallery.lienMaps),
-          if (gallery.telephone.isNotEmpty)
-            DetailAction(
-              icon: Icons.phone_outlined,
-              label: 'Appeler',
-              url: 'tel:${gallery.telephone.replaceAll(' ', '')}',
-            ),
-        ],
-        shareText: '${gallery.nom}\n${gallery.adresse}\n${gallery.horaires}\n${gallery.siteWeb}\n\nDecouvre sur MaCity',
-      ),
+      gallery,
+      imageAsset: isHttp
+          ? null
+          : (gallery.photo.isNotEmpty
+              ? gallery.photo
+              : 'assets/images/pochette_culture_art.webp'),
     );
   }
 

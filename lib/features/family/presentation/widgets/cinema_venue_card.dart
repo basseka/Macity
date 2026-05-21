@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/cinema_venues_data.dart';
 
 class CinemaVenueCard extends ConsumerWidget {
@@ -129,33 +130,17 @@ class CinemaVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: cinema.name,
-        emoji: '\uD83C\uDFAC',
-        infos: [
-          if (cinema.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, cinema.horaires),
-          if (cinema.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, cinema.adresse),
-          if (cinema.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, cinema.telephone),
-        ],
-        primaryAction: cinema.ticketUrl.isNotEmpty
-            ? DetailAction(icon: Icons.confirmation_number_outlined, label: 'Seances', url: cinema.ticketUrl)
-            : cinema.websiteUrl.isNotEmpty
-                ? DetailAction(icon: Icons.language, label: 'Site web', url: cinema.websiteUrl)
-                : null,
-        secondaryActions: [
-          if (cinema.ticketUrl.isNotEmpty && cinema.websiteUrl.isNotEmpty)
-            DetailAction(icon: Icons.language, label: 'Site web', url: cinema.websiteUrl),
-          if (cinema.telephone.isNotEmpty)
-            DetailAction(icon: Icons.phone_outlined, label: 'Appeler', url: 'tel:${cinema.telephone.replaceAll(' ', '')}'),
-        ],
-        shareText: '${cinema.name}\n${cinema.adresse}\n${cinema.telephone}\n${cinema.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+    final commerce = CommerceModel(
+      nom: cinema.name,
+      categorie: 'Cin\u00E9ma',
+      adresse: cinema.adresse,
+      horaires: cinema.horaires,
+      telephone: cinema.telephone,
+      siteWeb: cinema.ticketUrl.isNotEmpty ? cinema.ticketUrl : cinema.websiteUrl,
+      lienMaps: cinema.lienMaps,
+      description: cinema.description,
     );
+    CommerceRowCard.showDetailSheet(context, commerce);
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {

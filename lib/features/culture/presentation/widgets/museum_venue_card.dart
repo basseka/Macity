@@ -6,20 +6,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class MuseumVenueCard extends ConsumerWidget {
   final MuseumVenue museum;
 
   const MuseumVenueCard({super.key, required this.museum});
-
-  static const _categoryEmojis = {
-    'art': '\uD83C\uDFA8',
-    'histoire': '\uD83C\uDFF0',
-    'science': '\uD83D\uDD2C',
-    'culture': '\uD83C\uDFAD',
-  };
 
   static const _categoryLabels = {
     'art': 'Art',
@@ -31,8 +25,6 @@ class MuseumVenueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-    final emoji = _categoryEmojis[museum.category] ?? '\uD83C\uDFDB\uFE0F';
-    final categoryLabel = _categoryLabels[museum.category] ?? museum.category;
 
     return GestureDetector(
       onTap: () => _openDetail(context),
@@ -157,25 +149,23 @@ class MuseumVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
+    // Detail unifie (meme structure que Night : video/photo + galerie + avis).
+    final isHttp = museum.image.startsWith('http');
+    final commerce = CommerceModel(
+      nom: museum.name,
+      categorie: _categoryLabels[museum.category] ?? museum.category,
+      adresse: museum.city,
+      ville: museum.city,
+      horaires: museum.horaires,
+      siteWeb: museum.websiteUrl,
+      photo: museum.image,
+      description: museum.description,
+      isVerified: museum.isVerified,
+    );
+    CommerceRowCard.showDetailSheet(
       context,
-      ItemDetailSheet(
-        title: museum.name,
-        emoji: '',
-        imageAsset: museum.image,
-        infos: [
-          if (museum.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, museum.description),
-          if (museum.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, museum.horaires),
-          if (museum.city.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, museum.city),
-        ],
-        primaryAction: museum.websiteUrl.isNotEmpty
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: museum.websiteUrl)
-            : null,
-        shareText: '${museum.name}\n${museum.description}\n${museum.city}\n${museum.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+      commerce,
+      imageAsset: isHttp ? null : museum.image,
     );
   }
 

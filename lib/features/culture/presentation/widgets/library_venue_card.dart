@@ -6,7 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class LibraryVenueCard extends ConsumerWidget {
@@ -114,23 +115,25 @@ class LibraryVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
+    final isHttp = library.image.startsWith('http');
+    final commerce = CommerceModel(
+      nom: library.name,
+      categorie: library.group,
+      adresse: library.adresse,
+      horaires: library.horaires,
+      telephone: library.telephone,
+      siteWeb: library.websiteUrl,
+      lienMaps: library.lienMaps,
+      latitude: library.latitude,
+      longitude: library.longitude,
+      photo: library.image,
+      description: library.description,
+      isVerified: library.isVerified,
+    );
+    CommerceRowCard.showDetailSheet(
       context,
-      ItemDetailSheet(
-        title: library.name,
-        emoji: '',
-        imageAsset: library.image,
-        infos: [
-          if (library.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, library.horaires),
-          if (library.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, library.adresse),
-        ],
-        primaryAction: library.websiteUrl.isNotEmpty
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: library.websiteUrl)
-            : null,
-        shareText: '${library.name}\n${library.adresse}\n${library.horaires}\n${library.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+      commerce,
+      imageAsset: isHttp ? null : library.image,
     );
   }
 

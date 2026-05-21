@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/animal_park_venues_data.dart';
 
 class AnimalParkVenueCard extends ConsumerWidget {
@@ -125,36 +126,19 @@ class AnimalParkVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
-      context,
-      ItemDetailSheet(
-        title: park.name,
-        emoji: '\uD83E\uDD81',
-        imageAsset: 'assets/images/sc_parc_animalier.jpg',
-        infos: [
-          if (park.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, park.description),
-          if (park.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, park.horaires),
-          if (park.adresse.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, park.adresse),
-          if (park.telephone.isNotEmpty)
-            DetailInfoItem(Icons.phone_outlined, park.telephone),
-        ],
-        primaryAction: park.ticketUrl.isNotEmpty
-            ? DetailAction(icon: Icons.confirmation_number_outlined, label: 'Billetterie', url: park.ticketUrl)
-            : park.websiteUrl.isNotEmpty
-                ? DetailAction(icon: Icons.language, label: 'Site web', url: park.websiteUrl)
-                : null,
-        secondaryActions: [
-          if (park.ticketUrl.isNotEmpty && park.websiteUrl.isNotEmpty)
-            DetailAction(icon: Icons.language, label: 'Site web', url: park.websiteUrl),
-          if (park.telephone.isNotEmpty)
-            DetailAction(icon: Icons.phone_outlined, label: 'Appeler', url: 'tel:${park.telephone.replaceAll(' ', '')}'),
-        ],
-        shareText: '${park.name}\n${park.description}\n${park.adresse}\n${park.telephone}\n${park.websiteUrl}\n\nDecouvre sur MaCity',
-      ),
+    const imagePath = 'assets/images/sc_parc_animalier.jpg';
+    final commerce = CommerceModel(
+      nom: park.name,
+      categorie: 'Parc animalier',
+      adresse: park.adresse,
+      horaires: park.horaires,
+      telephone: park.telephone,
+      siteWeb: park.ticketUrl.isNotEmpty ? park.ticketUrl : park.websiteUrl,
+      lienMaps: park.lienMaps,
+      photo: imagePath,
+      description: park.description,
     );
+    CommerceRowCard.showDetailSheet(context, commerce, imageAsset: imagePath);
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {

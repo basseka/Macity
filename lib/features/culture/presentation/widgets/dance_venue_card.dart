@@ -6,7 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class DanceVenueCard extends ConsumerWidget {
@@ -24,7 +25,6 @@ class DanceVenueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final modeTheme = ref.watch(modeThemeProvider);
-    final categoryLabel = _categoryLabels[dance.category] ?? dance.category;
 
     return GestureDetector(
       onTap: () => _openDetail(context),
@@ -127,25 +127,22 @@ class DanceVenueCard extends ConsumerWidget {
   }
 
   void _openDetail(BuildContext context) {
-    ItemDetailSheet.show(
+    final isHttp = dance.image.startsWith('http');
+    final commerce = CommerceModel(
+      nom: dance.name,
+      categorie: _categoryLabels[dance.category] ?? dance.category,
+      adresse: dance.city,
+      ville: dance.city,
+      horaires: dance.horaires,
+      siteWeb: dance.websiteUrl ?? '',
+      photo: dance.image,
+      description: dance.description,
+      isVerified: dance.isVerified,
+    );
+    CommerceRowCard.showDetailSheet(
       context,
-      ItemDetailSheet(
-        title: dance.name,
-        emoji: '',
-        imageAsset: dance.image,
-        infos: [
-          if (dance.description.isNotEmpty)
-            DetailInfoItem(Icons.info_outline, dance.description),
-          if (dance.horaires.isNotEmpty)
-            DetailInfoItem(Icons.access_time, dance.horaires),
-          if (dance.city.isNotEmpty)
-            DetailInfoItem(Icons.location_on_outlined, dance.city),
-        ],
-        primaryAction: dance.websiteUrl != null
-            ? DetailAction(icon: Icons.language, label: 'Site web', url: dance.websiteUrl!)
-            : null,
-        shareText: '${dance.name}\n${dance.description}\n${dance.city}\n${dance.websiteUrl ?? ''}\n\nDecouvre sur MaCity',
-      ),
+      commerce,
+      imageAsset: isHttp ? null : dance.image,
     );
   }
 
