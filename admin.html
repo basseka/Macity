@@ -1172,13 +1172,13 @@
         <p class="subtitle">Tape une ville pour filtrer. Génère ou copie le code MaCity à envoyer au pro, ou clique sur <strong>📷 Photo</strong> pour mettre à jour la pochette d'une fiche (venue, établissement ou salle de sport).</p>
 
         <div class="etab-add-row">
-          <button class="banner-save-btn" id="etab-add-toggle">➕ Ajouter un établissement</button>
+          <button class="banner-save-btn" id="etab-add-toggle">➕ Ajouter un lieu</button>
         </div>
 
         <div id="etab-form" class="banner-card hidden">
           <div class="banner-card-head">
-            <span class="banner-mode-pill">Nouvel établissement</span>
-            <span style="font-size:11px; color:var(--text-faint);">Restaurant · bar · lieu culture / famille</span>
+            <span class="banner-mode-pill">Nouvelle fiche</span>
+            <span style="font-size:11px; color:var(--text-faint);">Restaurant · bar · culture / famille · salle de sport</span>
           </div>
 
           <label class="banner-field-label">Rubrique *</label>
@@ -1187,7 +1187,26 @@
             <option value="nuit">🌙 Nuit — bar, club, discothèque…</option>
             <option value="culture">🎭 Culture — musée, galerie, monument…</option>
             <option value="famille">👨‍👩‍👧 Famille — lieu pour enfants…</option>
+            <option value="sport">🏃 Sport — salle de fitness, boxe, piscine, golf…</option>
           </select>
+
+          <div id="etab-sport-type-wrap" class="hidden">
+            <label class="banner-field-label">Type de sport *</label>
+            <select class="banner-input" id="etab-sport-type">
+              <option value="fitness">🏋️ Salle de fitness</option>
+              <option value="boxe">🥊 Salle de boxe</option>
+              <option value="terrain-football">⚽ Terrain de football</option>
+              <option value="terrain-basketball">🏀 Terrain de basketball</option>
+              <option value="piscine">🏊 Piscine</option>
+              <option value="golf">⛳ Golf</option>
+              <option value="tennis">🎾 Tennis</option>
+              <option value="padel">🎾 Padel</option>
+              <option value="squash">🎾 Squash</option>
+              <option value="ping-pong">🏓 Ping-pong</option>
+              <option value="badminton">🏸 Badminton</option>
+              <option value="danse">💃 Danse</option>
+            </select>
+          </div>
 
           <label class="banner-field-label">Nom *</label>
           <input type="text" class="banner-input" id="etab-nom" placeholder="La Trattoria Bella" />
@@ -3074,18 +3093,23 @@
     const etabAddToggle = $etab("etab-add-toggle");
     const etabRubrique = $etab("etab-rubrique");
     const etabFoodFilters = $etab("etab-food-filters");
+    const etabSportTypeWrap = $etab("etab-sport-type-wrap");
 
-    function syncEtabFoodFilters() {
-      etabFoodFilters.classList.toggle("hidden", etabRubrique.value !== "food");
+    function syncEtabRubrique() {
+      const r = etabRubrique.value;
+      etabFoodFilters.classList.toggle("hidden", r !== "food");
+      etabSportTypeWrap.classList.toggle("hidden", r !== "sport");
+      $etab("etab-submit").textContent =
+        r === "sport" ? "Créer la salle de sport" : "Créer l'établissement";
     }
-    syncEtabFoodFilters();
-    etabRubrique.addEventListener("change", syncEtabFoodFilters);
+    syncEtabRubrique();
+    etabRubrique.addEventListener("change", syncEtabRubrique);
 
     function showEtabForm(show) {
       etabForm.classList.toggle("hidden", !show);
       etabAddToggle.textContent = show
         ? "✕ Fermer le formulaire"
-        : "➕ Ajouter un établissement";
+        : "➕ Ajouter un lieu";
       if (show) {
         const cityInput = $etab("etab-ville");
         if (!cityInput.value.trim()) {
@@ -3177,6 +3201,7 @@
       $etab("etab-quartier").selectedIndex = 0;
       $etab("etab-style").selectedIndex = 0;
       $etab("etab-active").checked = true;
+      $etab("etab-sport-type").selectedIndex = 0;
       $etab("etab-photo-file").value = "";
       setEtabPhoto("");
     }
@@ -3199,6 +3224,49 @@
         }
       }
       const ville = $etab("etab-ville").value.trim() || "Toulouse";
+
+      // ── Rubrique Sport → INSERT dans `sport_venues` (table dédiée) ──
+      if (rubrique === "sport") {
+        const sportPayload = {
+          nom,
+          sport_type: $etab("etab-sport-type").value,
+          categorie: $etab("etab-categorie").value.trim(),
+          adresse: $etab("etab-adresse").value.trim(),
+          ville,
+          telephone: $etab("etab-telephone").value.trim(),
+          horaires: $etab("etab-horaires").value.trim(),
+          site_web: siteWeb,
+          lien_maps: lienMaps,
+          photo,
+          latitude: parseFloat($etab("etab-lat").value) || 0,
+          longitude: parseFloat($etab("etab-lon").value) || 0,
+          display_priority: parseInt($etab("etab-priority").value, 10) || 0,
+          is_active: $etab("etab-active").checked,
+        };
+        btn.disabled = true;
+        btn.textContent = "…";
+        const { data, error } = await supabase
+          .from("sport_venues")
+          .insert(sportPayload)
+          .select()
+          .single();
+        btn.disabled = false;
+        syncEtabRubrique();
+        if (error) {
+          console.warn("[sport_venue insert]", error);
+          toast("Erreur : " + (error.message || "création échouée"), false);
+          return;
+        }
+        allSportVenues.push(data);
+        resetEtabForm();
+        showEtabForm(false);
+        venuesNameSearch.value = "";
+        venuesCityFilter.value = ville;
+        refreshVenuesView();
+        toast(`« ${data.nom} » ajouté ✓`, true);
+        return;
+      }
+
       const isFood = rubrique === "food";
       const payload = {
         nom,
