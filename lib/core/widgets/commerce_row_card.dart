@@ -456,6 +456,20 @@ class CommerceRowCard extends ConsumerWidget {
     '$_sportPhotosBase/default_6.jpg',
   ];
 
+  /// Photos generiques — repli universel pour toute fiche sans media
+  /// (Culture, Famille, etc.). 6 images a uploader dans le bucket public
+  /// `photos`, dossier `defaults/`, nommees default_1.jpg ... default_6.jpg.
+  static const _genericPhotosBase =
+      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/defaults';
+  static const _defaultGenericPhotos = [
+    '$_genericPhotosBase/default_1.jpg',
+    '$_genericPhotosBase/default_2.jpg',
+    '$_genericPhotosBase/default_3.jpg',
+    '$_genericPhotosBase/default_4.jpg',
+    '$_genericPhotosBase/default_5.jpg',
+    '$_genericPhotosBase/default_6.jpg',
+  ];
+
   /// Construit la galerie photo pour le detail.
   /// Priorite : photos[] uploadees par le pro > photo principale > defaults
   /// generiques (uniquement si la fiche n'a pas ete revendiquee).
@@ -474,19 +488,20 @@ class CommerceRowCard extends ConsumerWidget {
 
     if (!commerce.isVerified && photos.length < 6) {
       final cat = commerce.categorie.toLowerCase();
-      List<String>? defaults;
+      final List<String> defaults;
       if (cat.contains('club') || cat.contains('discotheque')) {
         defaults = _defaultClubPhotos;
       } else if (cat.contains('restaurant') || cat.contains('food') || cat.contains('brunch') || cat.contains('salon de the') || cat.contains('buffet') || cat.contains('guinguette')) {
         defaults = _defaultRestaurantPhotos;
       } else if (commerce.sourceTable == 'sport_venues') {
         defaults = _defaultSportPhotos;
+      } else {
+        // Repli universel (Culture, Famille, fiches sans categorie connue).
+        defaults = _defaultGenericPhotos;
       }
-      if (defaults != null) {
-        for (final p in defaults) {
-          if (photos.length >= 6) break;
-          if (!photos.contains(p)) photos.add(p);
-        }
+      for (final p in defaults) {
+        if (photos.length >= 6) break;
+        if (!photos.contains(p)) photos.add(p);
       }
     }
 
@@ -501,6 +516,10 @@ class CommerceRowCard extends ConsumerWidget {
   static const _defaultSportVideo =
       'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners/sport.mp4';
 
+  /// Video par defaut — repli universel (Culture, Famille, etc.).
+  static const _defaultGenericVideo =
+      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners/day.mp4';
+
   static String? _defaultVideoUrlFor(CommerceModel commerce) {
     if (commerce.isVerified) return null;
     final cat = commerce.categorie.toLowerCase();
@@ -511,7 +530,8 @@ class CommerceRowCard extends ConsumerWidget {
     if (commerce.sourceTable == 'sport_venues') {
       return _defaultSportVideo;
     }
-    return null;
+    // Repli universel : toute autre fiche (Culture, Famille…) a une video.
+    return _defaultGenericVideo;
   }
 
   static String _buildShareTextFor(CommerceModel commerce) {
