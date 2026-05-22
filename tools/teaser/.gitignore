@@ -1,0 +1,6 @@
+# Outils installés en local (recréés par setup.sh) et sorties — non versionnés.
+.venv/
+bin/
+out/
+# Secret : clé API Claude — ne jamais committer.
+.env

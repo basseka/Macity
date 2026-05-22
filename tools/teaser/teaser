@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Wrapper : exécute make_teaser.py avec le Python du venv local.
+# Charge tools/teaser/.env si présent (pour ANTHROPIC_API_KEY).
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [[ -f "$DIR/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$DIR/.env"
+  set +a
+fi
+
+if [[ ! -x "$DIR/.venv/bin/python" ]]; then
+  echo "[teaser] venv absent — lance d'abord : bash $DIR/setup.sh" >&2
+  exit 1
+fi
+
+exec "$DIR/.venv/bin/python" "$DIR/make_teaser.py" "$@"
