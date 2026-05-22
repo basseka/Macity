@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
-import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
@@ -92,42 +92,8 @@ class SportScreen extends ConsumerWidget {
                         ].join(' · '),
                         photoUrl: c.photo,
                         isVerified: c.isVerified,
-                        onTap: (ctx) => ItemDetailSheet.show(
-                          ctx,
-                          ItemDetailSheet(
-                            title: c.nom,
-                            imageUrl:
-                                c.photo.startsWith('http') ? c.photo : null,
-                            description: c.description,
-                            isVerified: c.isVerified,
-                            infos: [
-                              if (c.adresse.isNotEmpty)
-                                DetailInfoItem(
-                                    Icons.location_on_outlined, c.adresse),
-                              if (c.horaires.isNotEmpty)
-                                DetailInfoItem(
-                                    Icons.access_time_rounded, c.horaires),
-                            ],
-                            primaryAction: c.siteWeb.isNotEmpty
-                                ? DetailAction(
-                                    icon: Icons.public_rounded,
-                                    label: 'Site web',
-                                    url: c.siteWeb)
-                                : null,
-                            secondaryActions: [
-                              if (c.lienMaps.isNotEmpty)
-                                DetailAction(
-                                    icon: Icons.map_rounded,
-                                    label: 'Itinéraire',
-                                    url: c.lienMaps),
-                              if (c.telephone.isNotEmpty)
-                                DetailAction(
-                                    icon: Icons.phone_rounded,
-                                    label: 'Appeler',
-                                    url: 'tel:${c.telephone}'),
-                            ],
-                          ),
-                        ),
+                        onTap: (ctx) =>
+                            CommerceRowCard.showDetailSheet(ctx, c),
                       ))
                   .toList(),
             );
