@@ -80,42 +80,41 @@ class FamilyScreen extends ConsumerWidget {
       onBack: () => context.go('/home'),
       itemsBuilder: (ref, chipKey) {
         final async = ref.watch(familySupabaseVenuesProvider(chipKey));
-        return async.whenData((venues) => venues
-            .map((v) => RubriqueItem(
-                  title: v.name,
-                  subtitle: [
-                    if (v.category.isNotEmpty) v.category,
-                    if (v.ville.isNotEmpty) v.ville,
-                  ].join(' · '),
-                  photoUrl: v.photo,
-                  isVerified: v.isVerified,
-                  onTap: (ctx) {
-                    final isHttp = v.photo.startsWith('http');
-                    final description = [
-                      if (v.description.isNotEmpty) v.description,
-                      if (v.tarif.isNotEmpty) 'Tarif : ${v.tarif}',
-                    ].join('\n\n');
-                    final commerce = CommerceModel(
-                      nom: v.name,
-                      categorie: v.category,
-                      adresse: v.adresse,
-                      ville: v.ville,
-                      horaires: v.horaires,
-                      telephone: v.telephone,
-                      siteWeb: v.ticketUrl.isNotEmpty
-                          ? v.ticketUrl
-                          : v.websiteUrl,
-                      lienMaps: v.lienMaps,
-                      latitude: v.latitude,
-                      longitude: v.longitude,
-                      photo: isHttp ? v.photo : '',
-                      description: description,
-                      isVerified: v.isVerified,
-                    );
-                    CommerceRowCard.showDetailSheet(ctx, commerce);
-                  },
-                ))
-            .toList());
+        return async.whenData((venues) => venues.map((v) {
+              final isHttp = v.photo.startsWith('http');
+              final description = [
+                if (v.description.isNotEmpty) v.description,
+                if (v.tarif.isNotEmpty) 'Tarif : ${v.tarif}',
+              ].join('\n\n');
+              final commerce = CommerceModel(
+                nom: v.name,
+                categorie: v.category,
+                adresse: v.adresse,
+                ville: v.ville,
+                horaires: v.horaires,
+                telephone: v.telephone,
+                siteWeb:
+                    v.ticketUrl.isNotEmpty ? v.ticketUrl : v.websiteUrl,
+                lienMaps: v.lienMaps,
+                latitude: v.latitude,
+                longitude: v.longitude,
+                photo: isHttp ? v.photo : '',
+                description: description,
+                isVerified: v.isVerified,
+              );
+              return RubriqueItem(
+                title: v.name,
+                subtitle: [
+                  if (v.category.isNotEmpty) v.category,
+                  if (v.ville.isNotEmpty) v.ville,
+                ].join(' · '),
+                photoUrl: v.photo,
+                isVerified: v.isVerified,
+                commerce: commerce,
+                onTap: (ctx) =>
+                    CommerceRowCard.showDetailSheet(ctx, commerce),
+              );
+            }).toList());
       },
     );
   }
@@ -185,6 +184,10 @@ class FamilyScreen extends ConsumerWidget {
           );
         }
 
+        // Siblings pour le pager swipable : meme ordre que la liste source.
+        final siblings =
+            venues.map(FamilyVenueRowCard.toCommerce).toList();
+
         // Grouper par groupe si les venues ont des groupes
         final hasGroups = venues.any((v) => v.groupe.isNotEmpty);
         if (!hasGroups) {
@@ -193,7 +196,11 @@ class FamilyScreen extends ConsumerWidget {
             itemCount: venues.length,
             itemBuilder: (context, index) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: FamilyVenueRowCard(venue: venues[index]),
+              child: FamilyVenueRowCard(
+                venue: venues[index],
+                pagerSiblings: siblings,
+                pagerIndex: index,
+              ),
             ),
           );
         }
@@ -252,7 +259,11 @@ class FamilyScreen extends ConsumerWidget {
             items.add(
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                child: FamilyVenueRowCard(venue: venue),
+                child: FamilyVenueRowCard(
+                  venue: venue,
+                  pagerSiblings: siblings,
+                  pagerIndex: venues.indexOf(venue),
+                ),
               ),
             );
           }
@@ -264,7 +275,11 @@ class FamilyScreen extends ConsumerWidget {
           items.add(
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              child: FamilyVenueRowCard(venue: venue),
+              child: FamilyVenueRowCard(
+                venue: venue,
+                pagerSiblings: siblings,
+                pagerIndex: venues.indexOf(venue),
+              ),
             ),
           );
         }

@@ -54,6 +54,8 @@ class DanceVenuesList extends ConsumerWidget {
         Expanded(
           child: dancesAsync.when(
             data: (dances) {
+              final siblings =
+                  dances.map(DanceVenueCard.toCommerce).toList();
               final groupOrder = <String>[];
               for (final d in dances) {
                 if (d.group.isNotEmpty && !groupOrder.contains(d.group)) {
@@ -90,7 +92,11 @@ class DanceVenuesList extends ConsumerWidget {
                 for (final venue in groupVenues) {
                   items.add(Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-                    child: DanceVenueCard(dance: venue),
+                    child: DanceVenueCard(
+                      dance: venue,
+                      pagerSiblings: siblings,
+                      pagerIndex: dances.indexOf(venue),
+                    ),
                   ));
                 }
               }

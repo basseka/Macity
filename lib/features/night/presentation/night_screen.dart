@@ -13,7 +13,7 @@ import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
-import 'package:pulz_app/features/night/presentation/clubs_pager_view.dart';
+import 'package:pulz_app/core/widgets/commerce_pager_view.dart';
 import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_clubs_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_hub_grid.dart';
@@ -119,9 +119,9 @@ class NightScreen extends ConsumerWidget {
                         // Ouvre le pager swipable avec la fiche detail riche
                         // (teaser, 6 photos, avis, likes, commentaires) —
                         // meme detail que l'ancienne liste Night.
-                        onTap: (ctx) => ClubsPagerView.open(
+                        onTap: (ctx) => CommercePagerView.open(
                           ctx,
-                          clubs: list,
+                          commerces: list,
                           initialIndex: e.key,
                         ),
                       ))
@@ -453,9 +453,9 @@ class NightScreen extends ConsumerWidget {
                         padding: const EdgeInsets.only(bottom: 10),
                         child: CommerceRowCard(
                           commerce: venues[index],
-                          onTap: () => ClubsPagerView.open(
+                          onTap: () => CommercePagerView.open(
                             context,
-                            clubs: venues,
+                            commerces: venues,
                             initialIndex: index,
                           ),
                         ),

@@ -138,6 +138,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                       onTap: () => RestaurantDetailSheet.show(
                         context,
                         list[i],
+                        siblings: list,
+                        index: i,
                       ),
                     ),
                   ),

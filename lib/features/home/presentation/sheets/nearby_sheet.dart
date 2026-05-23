@@ -201,7 +201,11 @@ class _NearbySheetState extends ConsumerState<NearbySheet> {
           itemCount: venues.length,
           itemBuilder: (_, i) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: CommerceRowCard(commerce: venues[i]),
+            child: CommerceRowCard(
+              commerce: venues[i],
+              pagerSiblings: venues,
+              pagerIndex: i,
+            ),
           ),
         );
       },

@@ -92,6 +92,7 @@ class SportScreen extends ConsumerWidget {
                         ].join(' · '),
                         photoUrl: c.photo,
                         isVerified: c.isVerified,
+                        commerce: c,
                         onTap: (ctx) =>
                             CommerceRowCard.showDetailSheet(ctx, c),
                       ))

@@ -12,8 +12,28 @@ import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class DanceVenueCard extends ConsumerWidget {
   final DanceVenue dance;
+  final List<CommerceModel>? pagerSiblings;
+  final int? pagerIndex;
 
-  const DanceVenueCard({super.key, required this.dance});
+  const DanceVenueCard({
+    super.key,
+    required this.dance,
+    this.pagerSiblings,
+    this.pagerIndex,
+  });
+
+  /// Convertit un DanceVenue en CommerceModel — pour construire `pagerSiblings`.
+  static CommerceModel toCommerce(DanceVenue dance) => CommerceModel(
+        nom: dance.name,
+        categorie: _categoryLabels[dance.category] ?? dance.category,
+        adresse: dance.city,
+        ville: dance.city,
+        horaires: dance.horaires,
+        siteWeb: dance.websiteUrl ?? '',
+        photo: dance.image,
+        description: dance.description,
+        isVerified: dance.isVerified,
+      );
 
   static const _categoryLabels = {
     'Ecole generale': 'Ecole generale',
@@ -128,21 +148,12 @@ class DanceVenueCard extends ConsumerWidget {
 
   void _openDetail(BuildContext context) {
     final isHttp = dance.image.startsWith('http');
-    final commerce = CommerceModel(
-      nom: dance.name,
-      categorie: _categoryLabels[dance.category] ?? dance.category,
-      adresse: dance.city,
-      ville: dance.city,
-      horaires: dance.horaires,
-      siteWeb: dance.websiteUrl ?? '',
-      photo: dance.image,
-      description: dance.description,
-      isVerified: dance.isVerified,
-    );
-    CommerceRowCard.showDetailSheet(
+    CommerceRowCard.openDetail(
       context,
-      commerce,
+      toCommerce(dance),
       imageAsset: isHttp ? null : dance.image,
+      siblings: pagerSiblings,
+      index: pagerIndex,
     );
   }
 

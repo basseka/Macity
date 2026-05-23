@@ -9,6 +9,8 @@ import 'package:video_player/video_player.dart';
 
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/data/inspiration_service.dart';
+import 'package:pulz_app/core/widgets/commerce_pager_view.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 
 /// Palette + typo paramétrables d'une rubrique (réutilise le design Food
 /// mais avec la couleur signature de chaque rubrique).
@@ -132,12 +134,17 @@ class RubriqueItem {
   final bool isVerified;
   final void Function(BuildContext context) onTap;
 
+  /// Commerce sous-jacent. Si fourni, le tap ouvre un pager swipable sur tous
+  /// les items commerce de la liste ; sinon, [onTap] est utilisé.
+  final CommerceModel? commerce;
+
   const RubriqueItem({
     required this.title,
     required this.subtitle,
     required this.photoUrl,
     required this.onTap,
     this.isVerified = false,
+    this.commerce,
   });
 }
 
@@ -243,6 +250,26 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     }
   }
 
+  /// Ouvre l'item tapé : un pager swipable sur tous les commerces de la liste
+  /// si l'item porte un CommerceModel, sinon le handler [onTap] de l'item.
+  void _openItem(BuildContext ctx, List<RubriqueItem> items, int index) {
+    final tapped = items[index];
+    if (tapped.commerce == null) {
+      tapped.onTap(ctx);
+      return;
+    }
+    final commerces = <CommerceModel>[];
+    var pagerIndex = 0;
+    for (var j = 0; j < items.length; j++) {
+      final c = items[j].commerce;
+      if (c == null) continue;
+      if (j == index) pagerIndex = commerces.length;
+      commerces.add(c);
+    }
+    CommercePagerView.open(ctx,
+        commerces: commerces, initialIndex: pagerIndex);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cfg = widget.config;
@@ -282,6 +309,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                       item: items[i],
                       theme: t,
                       coupDeCoeur: i == 0,
+                      onOpen: (ctx) => _openItem(ctx, items, i),
                     ),
                   ),
                 );
@@ -714,10 +742,12 @@ class _ItemCard extends StatelessWidget {
   final RubriqueItem item;
   final RubriqueTheme theme;
   final bool coupDeCoeur;
+  final void Function(BuildContext context) onOpen;
   const _ItemCard({
     required this.item,
     required this.theme,
     required this.coupDeCoeur,
+    required this.onOpen,
   });
 
   @override
@@ -725,7 +755,7 @@ class _ItemCard extends StatelessWidget {
     final hasPhoto =
         item.photoUrl.isNotEmpty && item.photoUrl.startsWith('http');
     return GestureDetector(
-      onTap: () => item.onTap(context),
+      onTap: () => onOpen(context),
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 160,

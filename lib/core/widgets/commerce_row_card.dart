@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
+import 'package:pulz_app/core/widgets/commerce_pager_view.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
@@ -32,11 +33,20 @@ class CommerceRowCard extends ConsumerWidget {
   /// vers RestaurantDetailSheet (avec CTA Reserver + badges).
   final VoidCallback? onTap;
 
+  /// Liste complete dans laquelle l'utilisateur navigue. Si fournie (avec
+  /// [pagerIndex]), le tap ouvre un pager swipable au lieu d'une fiche isolee.
+  final List<CommerceModel>? pagerSiblings;
+
+  /// Position de [commerce] dans [pagerSiblings].
+  final int? pagerIndex;
+
   const CommerceRowCard({
     super.key,
     required this.commerce,
     this.imageAsset,
     this.onTap,
+    this.pagerSiblings,
+    this.pagerIndex,
   });
 
   /// Retourne la photo DB, l'asset explicite, ou la pochette par defaut.
@@ -327,8 +337,13 @@ class CommerceRowCard extends ConsumerWidget {
     );
   }
 
-  void _openDetail(BuildContext context) =>
-      showDetailSheet(context, commerce, imageAsset: imageAsset);
+  void _openDetail(BuildContext context) => openDetail(
+        context,
+        commerce,
+        imageAsset: imageAsset,
+        siblings: pagerSiblings,
+        index: pagerIndex,
+      );
 
   /// Convertit le `sourceTable` singulier (convention reviews :
   /// 'venue', 'etablissement') vers le pluriel attendu par les RPC
@@ -347,7 +362,7 @@ class CommerceRowCard extends ConsumerWidget {
 
   /// Construit le widget ItemDetailSheet pour ce commerce. Reutilise par
   /// showDetailSheet (popup classique) et par les pagers swipables qui
-  /// rendent plusieurs commerces a la suite (ex: ClubsPagerView).
+  /// rendent plusieurs commerces a la suite (ex: CommercePagerView).
   static ItemDetailSheet buildDetailSheet(
     CommerceModel commerce, {
     String? imageAsset,
@@ -411,7 +426,7 @@ class CommerceRowCard extends ConsumerWidget {
   }
 
   /// Ouvre le sheet detail pour un commerce isole. Pour swiper entre
-  /// plusieurs commerces, utiliser un pager (ex: ClubsPagerView).
+  /// plusieurs commerces, utiliser un pager (ex: CommercePagerView).
   static void showDetailSheet(
     BuildContext context,
     CommerceModel commerce, {
@@ -421,6 +436,36 @@ class CommerceRowCard extends ConsumerWidget {
       context,
       buildDetailSheet(commerce, imageAsset: imageAsset),
     );
+  }
+
+  /// Ouvre un pager swipable plein ecran sur [commerces], positionne a [index].
+  static Future<void> openPager(
+    BuildContext context,
+    List<CommerceModel> commerces,
+    int index,
+  ) {
+    return CommercePagerView.open(
+      context,
+      commerces: commerces,
+      initialIndex: index,
+    );
+  }
+
+  /// Ouvre le detail d'un commerce. Si [siblings] (la liste dans laquelle
+  /// navigue l'utilisateur) est fournie avec [index], ouvre un pager swipable
+  /// positionne sur cet item ; sinon, ouvre la fiche isolee.
+  static void openDetail(
+    BuildContext context,
+    CommerceModel commerce, {
+    String? imageAsset,
+    List<CommerceModel>? siblings,
+    int? index,
+  }) {
+    if (siblings != null && siblings.length > 1 && index != null) {
+      openPager(context, siblings, index);
+    } else {
+      showDetailSheet(context, commerce, imageAsset: imageAsset);
+    }
   }
 
   /// Photos generiques pour les clubs/discotheques non revendiques.

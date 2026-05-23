@@ -13,8 +13,40 @@ import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 /// (CinemaVenueCard, BowlingVenueCard, etc.)
 class FamilyVenueRowCard extends ConsumerWidget {
   final FamilyVenue venue;
+  final List<CommerceModel>? pagerSiblings;
+  final int? pagerIndex;
 
-  const FamilyVenueRowCard({super.key, required this.venue});
+  const FamilyVenueRowCard({
+    super.key,
+    required this.venue,
+    this.pagerSiblings,
+    this.pagerIndex,
+  });
+
+  /// Convertit un [FamilyVenue] en [CommerceModel] — utilisable par les
+  /// parents pour construire la liste de `pagerSiblings`.
+  static CommerceModel toCommerce(FamilyVenue venue) {
+    final hasPhoto = venue.photo.isNotEmpty;
+    final description = [
+      if (venue.description.isNotEmpty) venue.description,
+      if (venue.tarif.isNotEmpty) 'Tarif : ${venue.tarif}',
+    ].join('\n\n');
+    return CommerceModel(
+      nom: venue.name,
+      categorie: venue.category,
+      adresse: venue.adresse,
+      ville: venue.ville,
+      horaires: venue.horaires,
+      telephone: venue.telephone,
+      siteWeb: venue.ticketUrl.isNotEmpty ? venue.ticketUrl : venue.websiteUrl,
+      lienMaps: venue.lienMaps,
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+      photo: hasPhoto ? venue.photo : '',
+      description: description,
+      isVerified: venue.isVerified,
+    );
+  }
 
   static const _categoryImages = <String, String>{
     "Parc d'attractions": 'assets/images/pochette_parc_attraction.webp',
@@ -167,26 +199,11 @@ class FamilyVenueRowCard extends ConsumerWidget {
   void _openDetail(BuildContext context) {
     final hasPhoto = venue.photo.isNotEmpty;
     final imageAsset = hasPhoto ? null : _fallbackImage;
-    final description = [
-      if (venue.description.isNotEmpty) venue.description,
-      if (venue.tarif.isNotEmpty) 'Tarif : ${venue.tarif}',
-    ].join('\n\n');
-    final commerce = CommerceModel(
-      nom: venue.name,
-      categorie: venue.category,
-      adresse: venue.adresse,
-      ville: venue.ville,
-      horaires: venue.horaires,
-      telephone: venue.telephone,
-      siteWeb: venue.ticketUrl.isNotEmpty ? venue.ticketUrl : venue.websiteUrl,
-      lienMaps: venue.lienMaps,
-      latitude: venue.latitude,
-      longitude: venue.longitude,
-      photo: hasPhoto ? venue.photo : '',
-      description: description,
-      isVerified: venue.isVerified,
-    );
-    CommerceRowCard.showDetailSheet(context, commerce, imageAsset: imageAsset);
+    final commerce = toCommerce(venue);
+    CommerceRowCard.openDetail(context, commerce,
+        imageAsset: imageAsset,
+        siblings: pagerSiblings,
+        index: pagerIndex);
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {

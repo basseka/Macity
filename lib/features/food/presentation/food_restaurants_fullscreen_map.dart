@@ -48,7 +48,12 @@ class FoodRestaurantsFullscreenMap extends ConsumerWidget {
               onVenueTap: (c) {
                 final v = byKey[_commerceKey(c)];
                 if (v != null) {
-                  RestaurantDetailSheet.show(context, v);
+                  RestaurantDetailSheet.show(
+                    context,
+                    v,
+                    siblings: valid,
+                    index: valid.indexOf(v),
+                  );
                 }
               },
             ),

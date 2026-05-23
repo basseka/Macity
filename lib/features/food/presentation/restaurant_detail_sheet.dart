@@ -19,8 +19,10 @@ class RestaurantDetailSheet {
     BuildContext context,
     RestaurantVenue venue, {
     String placeholderAsset = 'assets/images/pochette_restaurant.jpg',
+    List<RestaurantVenue>? siblings,
+    int? index,
   }) {
-    final commerce = _toCommerce(venue);
+    final commerce = toCommerce(venue);
 
     // imageAsset : on ne passe un asset local que si la photo principale du
     // venue est un asset (pas une URL http). Sinon null -> CommerceRowCard
@@ -28,16 +30,22 @@ class RestaurantDetailSheet {
     final hasLocalAsset =
         venue.photo.isNotEmpty && !venue.photo.startsWith('http');
 
-    CommerceRowCard.showDetailSheet(
+    // Si une liste de siblings est fournie, on ouvre un pager swipable sur
+    // tous les restaurants (meme detail unifie pour chacun).
+    final commerceSiblings = siblings?.map(toCommerce).toList();
+    CommerceRowCard.openDetail(
       context,
       commerce,
       imageAsset: hasLocalAsset ? venue.photo : null,
+      siblings: commerceSiblings,
+      index: index,
     );
   }
 
   /// Convertit un [RestaurantVenue] (modele rubrique Food) vers le
-  /// [CommerceModel] generique attendu par le detail unifie.
-  static CommerceModel _toCommerce(RestaurantVenue venue) {
+  /// [CommerceModel] generique attendu par le detail unifie. Public pour que
+  /// les parents qui construisent un `pagerSiblings` n'aient pas a redupliquer.
+  static CommerceModel toCommerce(RestaurantVenue venue) {
     // categorie : on privilegie le theme (ex: "Asiatique"), sinon le group.
     final categorie = venue.theme.isNotEmpty ? venue.theme : venue.group;
 

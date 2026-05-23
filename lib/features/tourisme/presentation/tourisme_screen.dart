@@ -539,7 +539,11 @@ class TourismeScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: points.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (_, i) => CommerceRowCard(commerce: points[i]),
+          itemBuilder: (_, i) => CommerceRowCard(
+            commerce: points[i],
+            pagerSiblings: points,
+            pagerIndex: i,
+          ),
         );
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),

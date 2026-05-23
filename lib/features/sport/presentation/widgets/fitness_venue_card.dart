@@ -10,8 +10,15 @@ import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 
 class FitnessVenueCard extends ConsumerWidget {
   final CommerceModel commerce;
+  final List<CommerceModel>? pagerSiblings;
+  final int? pagerIndex;
 
-  const FitnessVenueCard({super.key, required this.commerce});
+  const FitnessVenueCard({
+    super.key,
+    required this.commerce,
+    this.pagerSiblings,
+    this.pagerIndex,
+  });
 
   static const _logoMap = <String, String>{
     'basic-fit': 'assets/images/logo_salle_basicfit.png',
@@ -210,7 +217,10 @@ class FitnessVenueCard extends ConsumerWidget {
     final resolved = _resolvePhoto();
     final headerAsset =
         (resolved.isEmpty || resolved.startsWith('http')) ? null : resolved;
-    CommerceRowCard.showDetailSheet(context, commerce, imageAsset: headerAsset);
+    CommerceRowCard.openDetail(context, commerce,
+        imageAsset: headerAsset,
+        siblings: pagerSiblings,
+        index: pagerIndex);
   }
 
   Widget _buildActionButton({

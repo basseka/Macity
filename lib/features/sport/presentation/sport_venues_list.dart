@@ -73,7 +73,11 @@ class SportVenuesList extends ConsumerWidget {
               itemCount: venues.length,
               itemBuilder: (context, index) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: FitnessVenueCard(commerce: venues[index]),
+                child: FitnessVenueCard(
+                  commerce: venues[index],
+                  pagerSiblings: venues,
+                  pagerIndex: index,
+                ),
               ),
             ),
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),

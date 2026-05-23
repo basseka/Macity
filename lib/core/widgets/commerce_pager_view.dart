@@ -2,33 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 
-/// Pager swipable horizontalement entre les fiches detail de clubs.
-/// Ouvert depuis la liste Night → Club Discotheque : l'user tape un club,
-/// arrive sur son detail, et peut swiper de droite vers la gauche pour
-/// passer au suivant dans la liste.
-class ClubsPagerView extends StatefulWidget {
-  final List<CommerceModel> clubs;
+/// Pager swipable horizontalement entre les fiches détail de commerces.
+///
+/// L'utilisateur tape un item dans une liste, arrive sur sa fiche détail, et
+/// peut swiper de gauche/droite pour passer au précédent/suivant de la liste —
+/// comme la rubrique Night. Réutilisé par toutes les rubriques.
+class CommercePagerView extends StatefulWidget {
+  final List<CommerceModel> commerces;
   final int initialIndex;
 
-  const ClubsPagerView({
+  const CommercePagerView({
     super.key,
-    required this.clubs,
+    required this.commerces,
     required this.initialIndex,
   });
 
-  /// Push le pager en mode dialog plein ecran (background noir 70%).
+  /// Pousse le pager en dialog plein écran (fond noir 70%).
   static Future<void> open(
     BuildContext context, {
-    required List<CommerceModel> clubs,
+    required List<CommerceModel> commerces,
     required int initialIndex,
   }) {
+    if (commerces.isEmpty) return Future.value();
     return Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black.withValues(alpha: 0.7),
-        pageBuilder: (_, __, ___) => ClubsPagerView(
-          clubs: clubs,
-          initialIndex: initialIndex.clamp(0, clubs.length - 1),
+        pageBuilder: (_, __, ___) => CommercePagerView(
+          commerces: commerces,
+          initialIndex: initialIndex.clamp(0, commerces.length - 1),
         ),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
@@ -38,10 +40,10 @@ class ClubsPagerView extends StatefulWidget {
   }
 
   @override
-  State<ClubsPagerView> createState() => _ClubsPagerViewState();
+  State<CommercePagerView> createState() => _CommercePagerViewState();
 }
 
-class _ClubsPagerViewState extends State<ClubsPagerView> {
+class _CommercePagerViewState extends State<CommercePagerView> {
   late final PageController _ctrl;
 
   @override
@@ -62,11 +64,12 @@ class _ClubsPagerViewState extends State<ClubsPagerView> {
       backgroundColor: Colors.transparent,
       body: PageView.builder(
         controller: _ctrl,
-        itemCount: widget.clubs.length,
+        itemCount: widget.commerces.length,
         // PageView consomme les drags horizontaux : le swipe gauche-droite
-        // passe d'une fiche a l'autre. Les drags verticaux (scroll a
-        // l'interieur de l'ItemDetailSheet) restent gerees par le contenu.
-        itemBuilder: (_, i) => CommerceRowCard.buildDetailSheet(widget.clubs[i]),
+        // passe d'une fiche à l'autre. Les drags verticaux (scroll dans
+        // l'ItemDetailSheet) restent gérés par le contenu.
+        itemBuilder: (_, i) =>
+            CommerceRowCard.buildDetailSheet(widget.commerces[i]),
       ),
     );
   }

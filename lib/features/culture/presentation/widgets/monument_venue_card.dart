@@ -12,8 +12,29 @@ import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class MonumentVenueCard extends ConsumerWidget {
   final MonumentVenue monument;
+  final List<CommerceModel>? pagerSiblings;
+  final int? pagerIndex;
 
-  const MonumentVenueCard({super.key, required this.monument});
+  const MonumentVenueCard({
+    super.key,
+    required this.monument,
+    this.pagerSiblings,
+    this.pagerIndex,
+  });
+
+  /// Convertit un MonumentVenue en CommerceModel — pour construire `pagerSiblings`.
+  static CommerceModel toCommerce(MonumentVenue monument) => CommerceModel(
+        nom: monument.name,
+        categorie: monument.type,
+        adresse: monument.adresse,
+        siteWeb: monument.websiteUrl,
+        lienMaps: monument.lienMaps,
+        latitude: monument.latitude,
+        longitude: monument.longitude,
+        photo: monument.image,
+        description: monument.description,
+        isVerified: monument.isVerified,
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -115,22 +136,12 @@ class MonumentVenueCard extends ConsumerWidget {
 
   void _openDetail(BuildContext context) {
     final isHttp = monument.image.startsWith('http');
-    final commerce = CommerceModel(
-      nom: monument.name,
-      categorie: monument.type,
-      adresse: monument.adresse,
-      siteWeb: monument.websiteUrl,
-      lienMaps: monument.lienMaps,
-      latitude: monument.latitude,
-      longitude: monument.longitude,
-      photo: monument.image,
-      description: monument.description,
-      isVerified: monument.isVerified,
-    );
-    CommerceRowCard.showDetailSheet(
+    CommerceRowCard.openDetail(
       context,
-      commerce,
+      toCommerce(monument),
       imageAsset: isHttp ? null : monument.image,
+      siblings: pagerSiblings,
+      index: pagerIndex,
     );
   }
 

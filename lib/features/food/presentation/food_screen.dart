@@ -351,6 +351,8 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                     onTap: () => RestaurantDetailSheet.show(
                       context,
                       allVenues[index],
+                      siblings: allVenues,
+                      index: index,
                     ),
                   ),
                 ),

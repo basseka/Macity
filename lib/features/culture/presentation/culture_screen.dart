@@ -63,94 +63,91 @@ class CultureScreen extends ConsumerWidget {
         switch (chipKey) {
           case 'Musee':
             return ref.watch(museumVenuesSupabaseProvider).whenData(
-                  (list) => list
-                      .map((m) => RubriqueItem(
-                            title: m.name,
-                            subtitle: [
-                              if (m.category.isNotEmpty) m.category,
-                              if (m.city.isNotEmpty) m.city,
-                            ].join(' · '),
-                            photoUrl: m.image,
-                            isVerified: m.isVerified,
-                            onTap: (ctx) => CommerceRowCard.showDetailSheet(
-                              ctx,
-                              CommerceModel(
-                                nom: m.name,
-                                categorie: m.category,
-                                adresse: m.city,
-                                ville: m.city,
-                                horaires: m.horaires,
-                                siteWeb: m.websiteUrl,
-                                photo: m.image,
-                                description: m.description,
-                                isVerified: m.isVerified,
-                              ),
-                              imageAsset: m.image.startsWith('http')
-                                  ? null
-                                  : m.image,
-                            ),
-                          ))
-                      .toList(),
+                  (list) => list.map((m) {
+                    final commerce = CommerceModel(
+                      nom: m.name,
+                      categorie: m.category,
+                      adresse: m.city,
+                      ville: m.city,
+                      horaires: m.horaires,
+                      siteWeb: m.websiteUrl,
+                      photo: m.image,
+                      description: m.description,
+                      isVerified: m.isVerified,
+                    );
+                    final imageAsset =
+                        m.image.startsWith('http') ? null : m.image;
+                    return RubriqueItem(
+                      title: m.name,
+                      subtitle: [
+                        if (m.category.isNotEmpty) m.category,
+                        if (m.city.isNotEmpty) m.city,
+                      ].join(' · '),
+                      photoUrl: m.image,
+                      isVerified: m.isVerified,
+                      commerce: commerce,
+                      onTap: (ctx) => CommerceRowCard.showDetailSheet(
+                          ctx, commerce, imageAsset: imageAsset),
+                    );
+                  }).toList(),
                 );
           case 'Monument historique':
             return ref.watch(monumentVenuesSupabaseProvider).whenData(
-                  (list) => list
-                      .map((m) => RubriqueItem(
-                            title: m.name,
-                            subtitle: m.type,
-                            photoUrl: m.image,
-                            isVerified: m.isVerified,
-                            onTap: (ctx) => CommerceRowCard.showDetailSheet(
-                              ctx,
-                              CommerceModel(
-                                nom: m.name,
-                                categorie: m.type,
-                                adresse: m.adresse,
-                                siteWeb: m.websiteUrl,
-                                lienMaps: m.lienMaps,
-                                latitude: m.latitude,
-                                longitude: m.longitude,
-                                photo: m.image,
-                                description: m.description,
-                                isVerified: m.isVerified,
-                              ),
-                              imageAsset: m.image.startsWith('http')
-                                  ? null
-                                  : m.image,
-                            ),
-                          ))
-                      .toList(),
+                  (list) => list.map((m) {
+                    final commerce = CommerceModel(
+                      nom: m.name,
+                      categorie: m.type,
+                      adresse: m.adresse,
+                      siteWeb: m.websiteUrl,
+                      lienMaps: m.lienMaps,
+                      latitude: m.latitude,
+                      longitude: m.longitude,
+                      photo: m.image,
+                      description: m.description,
+                      isVerified: m.isVerified,
+                    );
+                    final imageAsset =
+                        m.image.startsWith('http') ? null : m.image;
+                    return RubriqueItem(
+                      title: m.name,
+                      subtitle: m.type,
+                      photoUrl: m.image,
+                      isVerified: m.isVerified,
+                      commerce: commerce,
+                      onTap: (ctx) => CommerceRowCard.showDetailSheet(
+                          ctx, commerce, imageAsset: imageAsset),
+                    );
+                  }).toList(),
                 );
           case 'Bibliotheque':
             return ref.watch(libraryVenuesSupabaseProvider).whenData(
-                  (list) => list
-                      .map((m) => RubriqueItem(
-                            title: m.name,
-                            subtitle: m.group,
-                            photoUrl: m.image,
-                            isVerified: m.isVerified,
-                            onTap: (ctx) => CommerceRowCard.showDetailSheet(
-                              ctx,
-                              CommerceModel(
-                                nom: m.name,
-                                categorie: m.group,
-                                adresse: m.adresse,
-                                horaires: m.horaires,
-                                telephone: m.telephone,
-                                siteWeb: m.websiteUrl,
-                                lienMaps: m.lienMaps,
-                                latitude: m.latitude,
-                                longitude: m.longitude,
-                                photo: m.image,
-                                description: m.description,
-                                isVerified: m.isVerified,
-                              ),
-                              imageAsset: m.image.startsWith('http')
-                                  ? null
-                                  : m.image,
-                            ),
-                          ))
-                      .toList(),
+                  (list) => list.map((m) {
+                    final commerce = CommerceModel(
+                      nom: m.name,
+                      categorie: m.group,
+                      adresse: m.adresse,
+                      horaires: m.horaires,
+                      telephone: m.telephone,
+                      siteWeb: m.websiteUrl,
+                      lienMaps: m.lienMaps,
+                      latitude: m.latitude,
+                      longitude: m.longitude,
+                      photo: m.image,
+                      description: m.description,
+                      isVerified: m.isVerified,
+                    );
+                    final imageAsset =
+                        m.image.startsWith('http') ? null : m.image;
+                    return RubriqueItem(
+                      title: m.name,
+                      subtitle: m.group,
+                      photoUrl: m.image,
+                      isVerified: m.isVerified,
+                      commerce: commerce,
+                      onTap: (ctx) => CommerceRowCard.showDetailSheet(
+                          ctx, commerce, imageAsset: imageAsset),
+                    );
+                  }).toList(),
                 );
           case 'Galerie':
           default:
@@ -164,6 +161,7 @@ class CultureScreen extends ConsumerWidget {
                             ].join(' · '),
                             photoUrl: g.photo,
                             isVerified: g.isVerified,
+                            commerce: g,
                             onTap: (ctx) => CommerceRowCard.showDetailSheet(
                               ctx,
                               g,
@@ -659,12 +657,17 @@ class CultureScreen extends ConsumerWidget {
             icon: Icons.music_note,
           );
         }
+        final siblings = venues.map(DanceVenueCard.toCommerce).toList();
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: venues.length,
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: DanceVenueCard(dance: venues[index]),
+            child: DanceVenueCard(
+              dance: venues[index],
+              pagerSiblings: siblings,
+              pagerIndex: index,
+            ),
           ),
         );
       },
@@ -716,12 +719,17 @@ class CultureScreen extends ConsumerWidget {
             icon: Icons.local_library,
           );
         }
+        final siblings = libraries.map(LibraryVenueCard.toCommerce).toList();
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: libraries.length,
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: LibraryVenueCard(library: libraries[index]),
+            child: LibraryVenueCard(
+              library: libraries[index],
+              pagerSiblings: siblings,
+              pagerIndex: index,
+            ),
           ),
         );
       },
@@ -745,12 +753,17 @@ class CultureScreen extends ConsumerWidget {
             icon: Icons.account_balance,
           );
         }
+        final siblings = monuments.map(MonumentVenueCard.toCommerce).toList();
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: monuments.length,
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: MonumentVenueCard(monument: monuments[index]),
+            child: MonumentVenueCard(
+              monument: monuments[index],
+              pagerSiblings: siblings,
+              pagerIndex: index,
+            ),
           ),
         );
       },

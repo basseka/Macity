@@ -83,7 +83,11 @@ class GamingScreen extends ConsumerWidget {
                       itemCount: venues.length,
                       itemBuilder: (context, index) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: CommerceRowCard(commerce: venues[index]),
+                        child: CommerceRowCard(
+                          commerce: venues[index],
+                          pagerSiblings: venues,
+                          pagerIndex: index,
+                        ),
                       ),
                     );
                   },

@@ -12,8 +12,31 @@ import 'package:pulz_app/core/widgets/verified_badge.dart';
 
 class LibraryVenueCard extends ConsumerWidget {
   final LibraryVenue library;
+  final List<CommerceModel>? pagerSiblings;
+  final int? pagerIndex;
 
-  const LibraryVenueCard({super.key, required this.library});
+  const LibraryVenueCard({
+    super.key,
+    required this.library,
+    this.pagerSiblings,
+    this.pagerIndex,
+  });
+
+  /// Convertit une LibraryVenue en CommerceModel — pour construire `pagerSiblings`.
+  static CommerceModel toCommerce(LibraryVenue library) => CommerceModel(
+        nom: library.name,
+        categorie: library.group,
+        adresse: library.adresse,
+        horaires: library.horaires,
+        telephone: library.telephone,
+        siteWeb: library.websiteUrl,
+        lienMaps: library.lienMaps,
+        latitude: library.latitude,
+        longitude: library.longitude,
+        photo: library.image,
+        description: library.description,
+        isVerified: library.isVerified,
+      );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,24 +139,12 @@ class LibraryVenueCard extends ConsumerWidget {
 
   void _openDetail(BuildContext context) {
     final isHttp = library.image.startsWith('http');
-    final commerce = CommerceModel(
-      nom: library.name,
-      categorie: library.group,
-      adresse: library.adresse,
-      horaires: library.horaires,
-      telephone: library.telephone,
-      siteWeb: library.websiteUrl,
-      lienMaps: library.lienMaps,
-      latitude: library.latitude,
-      longitude: library.longitude,
-      photo: library.image,
-      description: library.description,
-      isVerified: library.isVerified,
-    );
-    CommerceRowCard.showDetailSheet(
+    CommerceRowCard.openDetail(
       context,
-      commerce,
+      toCommerce(library),
       imageAsset: isHttp ? null : library.image,
+      siblings: pagerSiblings,
+      index: pagerIndex,
     );
   }
 
