@@ -354,7 +354,7 @@ class ItemDetailSheet extends ConsumerWidget {
                           if (primaryAction != null) ...[
                             SizedBox(
                               width: double.infinity,
-                              height: 44,
+                              height: 48,
                               child: ElevatedButton.icon(
                                 onPressed: primaryAction!.disabled
                                     ? null
@@ -421,11 +421,13 @@ class ItemDetailSheet extends ConsumerWidget {
                           ],
 
                           // ── Boutons actions secondaires ──
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 8,
-                            children: [
-                              // Like
+                          // Force tous les pills sur une seule ligne via
+                          // Expanded (chaque pill prend 1/Npart egal de la
+                          // largeur). _buildPillButton centre son contenu pour
+                          // que le rendu reste lisible quand la largeur est
+                          // imposee depuis l'exterieur.
+                          Builder(builder: (_) {
+                            final pills = <Widget>[
                               if (likeId != null)
                                 _buildPillButton(
                                   icon: isLiked
@@ -445,7 +447,6 @@ class ItemDetailSheet extends ConsumerWidget {
                                         ),
                                       ),
                                 ),
-                              // Share
                               if (shareText.isNotEmpty)
                                 _buildPillButton(
                                   icon: Icons.share_outlined,
@@ -453,7 +454,6 @@ class ItemDetailSheet extends ConsumerWidget {
                                   color: Colors.white,
                                   onTap: () => Share.share(shareText),
                                 ),
-                              // Secondary actions
                               ...secondaryActions.map(
                                 (action) => _buildPillButton(
                                   icon: action.icon,
@@ -464,8 +464,16 @@ class ItemDetailSheet extends ConsumerWidget {
                                       : _openUrl(action.url),
                                 ),
                               ),
-                            ],
-                          ),
+                            ];
+                            return Row(
+                              children: [
+                                for (var i = 0; i < pills.length; i++) ...[
+                                  if (i > 0) const SizedBox(width: 8),
+                                  Expanded(child: pills[i]),
+                                ],
+                              ],
+                            );
+                          }),
 
                           const SizedBox(height: 16),
                         ],
@@ -529,7 +537,7 @@ class ItemDetailSheet extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
@@ -537,20 +545,31 @@ class ItemDetailSheet extends ConsumerWidget {
             color: Colors.white.withValues(alpha: 0.3),
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: color,
-                fontWeight: FontWeight.w500,
+        // Center sans widthFactor : le pill est toujours wrappé dans Expanded
+        // (forcage 1 ligne pour les 3 actions), donc Center recoit des
+        // contraintes bornees et centre le Row interne au lieu de coller a
+        // gauche.
+        child: Center(
+          heightFactor: 1.0,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: color,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

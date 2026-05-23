@@ -51,23 +51,23 @@ class AppBottomNavBar extends ConsumerWidget {
     final _selectedIndex = ref.watch(navBarIndexProvider);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    final navBg = AppColors.isLightTheme
-        ? const Color(0xFFFFFFFF)
-        : AppColors.surface;
+    // La navbar reste toujours en couleurs claires, peu importe le mode :
+    // sur Night, ModeShell bascule AppColors.isLightTheme=false ce qui rendait
+    // navBg=AppColors.surface (violet 0xFF1A0F2E). On hardcode pour eviter ce
+    // flip selon le mode courant.
+    const navBg = Color(0xFFFFFFFF);
     return Material(
       color: navBg,
       elevation: 0,
       child: Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: navBg,
-        border: Border(top: BorderSide(color: AppColors.line)),
+        border: Border(top: BorderSide(color: Color(0x401A0F2E))),
         boxShadow: [
           BoxShadow(
-            color: AppColors.isLightTheme
-                ? const Color(0x14000000)
-                : const Color(0x66000000),
+            color: Color(0x14000000),
             blurRadius: 16,
-            offset: const Offset(0, -4),
+            offset: Offset(0, -4),
           ),
         ],
       ),
