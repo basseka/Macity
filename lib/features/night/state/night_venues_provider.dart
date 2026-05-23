@@ -236,6 +236,29 @@ final nightVenuesByTagProvider =
     FutureProvider.family<List<CommerceModel>, String>((ref, category) async {
   final city = ref.watch(selectedCityProvider);
 
+  // Tag parent (ex: "Spicy") : on agrege ses enfants (Coquin + Strip) sinon
+  // le query venues WHERE category ILIKE '%Spicy%' renvoie 0 (aucune row n'a
+  // category=Spicy en DB, les sous-categories portent les vrais labels).
+  final children = _subGridChildren[category];
+  if (children != null) {
+    final results = <CommerceModel>[];
+    for (final child in children) {
+      try {
+        final venues = await VenuesSupabaseService().fetchVenues(
+          mode: 'night', ville: city, category: child,
+        );
+        if (venues.isNotEmpty) {
+          results.addAll(venues);
+          continue;
+        }
+      } catch (_) {}
+      results.addAll(NightBarsData.toulouseBars.where((b) =>
+          b.categorie == child &&
+          b.ville.toLowerCase() == city.toLowerCase()));
+    }
+    return _dedupeByNameAndPosition(results);
+  }
+
   List<CommerceModel> venues;
   if (_curatedTags.contains(category)) {
     try {
