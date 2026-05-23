@@ -557,25 +557,101 @@ class CommerceRowCard extends ConsumerWidget {
   static const _defaultClubVideo =
       'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/user-events/teaser_disco_1.mp4';
 
-  /// Video par defaut pour les salles de sport non revendiquees.
-  static const _defaultSportVideo =
-      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners/sport.mp4';
+  static const _bannersBase =
+      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners';
 
-  /// Video par defaut — repli universel (Culture, Famille, etc.).
-  static const _defaultGenericVideo =
-      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/videos/banners/day.mp4';
+  /// Video par defaut pour les salles de sport non revendiquees.
+  static const _defaultSportVideo = '$_bannersBase/sport.mp4';
+  static const _defaultCultureVideo = '$_bannersBase/culture.mp4';
+  static const _defaultFamilyVideo = '$_bannersBase/family.mp4';
+  static const _defaultFoodVideo = '$_bannersBase/food.mp4';
+  static const _defaultGamingVideo = '$_bannersBase/gaming.mp4';
+
+  /// Video par defaut — repli universel (mode Day, etc.).
+  static const _defaultGenericVideo = '$_bannersBase/day.mp4';
 
   static String? _defaultVideoUrlFor(CommerceModel commerce) {
     if (commerce.isVerified) return null;
-    final cat = commerce.categorie.toLowerCase();
-    if (cat.contains('club') || cat.contains('discotheque')) {
-      return _defaultClubVideo;
-    }
-    // Salles de sport : video d'ambiance par defaut, comme les clubs.
+
+    // Sport : table dediee, prioritaire sur le matching par categorie.
     if (commerce.sourceTable == 'sport_venues') {
       return _defaultSportVideo;
     }
-    // Repli universel : toute autre fiche (Culture, Famille…) a une video.
+
+    final cat = commerce.categorie.toLowerCase();
+
+    // Night : clubs / discotheques (les autres categories "de nuit"
+    // — bar, pub, tabac, epicerie — retombent sur le fallback day.mp4).
+    if (cat.contains('club') || cat.contains('discotheque')) {
+      return _defaultClubVideo;
+    }
+
+    // Famille : verifie AVANT food pour que "Restaurant familial" matche ici.
+    if (cat.contains('familial') ||
+        cat.contains('aire de jeux') ||
+        cat.contains('parc') ||
+        cat.contains('attraction') ||
+        cat.contains('ferme') ||
+        cat.contains('accrobranche') ||
+        cat.contains('mini golf') ||
+        cat.contains('mini-golf') ||
+        cat.contains('trampoline') ||
+        cat.contains('aquarium') ||
+        cat.contains('zoo') ||
+        cat.contains('bowling') ||
+        cat.contains('patinoire') ||
+        cat.contains('kart')) {
+      return _defaultFamilyVideo;
+    }
+
+    // Gaming
+    if (cat.contains('escape') ||
+        cat.contains('laser') ||
+        cat.contains('gaming') ||
+        cat.contains('arcade') ||
+        cat.contains('jeu vid') ||
+        cat.contains('jeux vid') ||
+        cat.contains('virtuelle') ||
+        cat.contains('manga') ||
+        cat.contains('comics') ||
+        cat.contains('cosplay') ||
+        cat.contains('figurine')) {
+      return _defaultGamingVideo;
+    }
+
+    // Culture
+    if (cat.contains('cinema') ||
+        cat.contains('cine') ||
+        cat.contains('theatre') ||
+        cat.contains('theatr') ||
+        cat.contains('musee') ||
+        cat.contains('galerie') ||
+        cat.contains('opera') ||
+        cat.contains('bibliotheque') ||
+        cat.contains('mediatheque') ||
+        cat.contains('exposition') ||
+        cat.contains('expo') ||
+        cat.contains('monument') ||
+        cat.contains('patrimoine') ||
+        cat.contains('concert') ||
+        cat.contains('danse') ||
+        cat.contains('art')) {
+      return _defaultCultureVideo;
+    }
+
+    // Food
+    if (cat.contains('restaurant') ||
+        cat.contains('brasserie') ||
+        cat.contains('pizzeria') ||
+        cat.contains('sushi') ||
+        cat.contains('bistro') ||
+        cat.contains('food') ||
+        cat.contains('cafe') ||
+        cat.contains('café')) {
+      return _defaultFoodVideo;
+    }
+
+    // Repli universel (mode Day + categories non typees).
     return _defaultGenericVideo;
   }
 
