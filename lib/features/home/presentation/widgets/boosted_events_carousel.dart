@@ -46,7 +46,7 @@ class BoostedEventsCarousel extends ConsumerWidget {
     // Hero : chaque card occupe la largeur ecran - 32px de marge L/R.
     // PageView avec snap pour toujours centrer la card visible.
     final cardWidth = MediaQuery.of(context).size.width - 32;
-    final cardHeight = cardWidth / 1.4375;
+    final cardHeight = cardWidth / 1.2;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -351,10 +351,10 @@ class BoostedP2Carousel extends ConsumerWidget {
     return eventsAsync.when(
       data: (events) {
         if (events.isEmpty) return const SizedBox.shrink();
-        // Meme dimensions que "A la une" (ratio 1.4375) pour un swap visuel
+        // Meme dimensions que "A la une" (ratio 1.2) pour un swap visuel
         // cohérent quand l'utilisateur toggle entre les deux pills.
         final cardWidth = MediaQuery.of(context).size.width - 32;
-        final cardHeight = cardWidth / 1.4375;
+        final cardHeight = cardWidth / 1.2;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
