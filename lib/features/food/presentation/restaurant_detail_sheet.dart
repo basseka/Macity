@@ -67,6 +67,10 @@ class RestaurantDetailSheet {
       photo: venue.photo,
       siteWeb: venue.websiteUrl,
       isVerified: venue.isVerified,
+      // On force food.mp4 pour les fiches non revendiquees : les categories
+      // food (Asiatique, Brunch, Guinguette…) sont trop variees pour etre
+      // matchees fiablement par mots-cles dans _defaultVideoUrlFor.
+      videoUrl: venue.isVerified ? '' : CommerceRowCard.defaultFoodVideo,
       sourceId: hasNumericId ? venueIdInt : null,
       sourceTable: hasNumericId ? 'etablissements' : null,
       description: venue.description,

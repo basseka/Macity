@@ -564,7 +564,9 @@ class CommerceRowCard extends ConsumerWidget {
   static const _defaultSportVideo = '$_bannersBase/sport.mp4';
   static const _defaultCultureVideo = '$_bannersBase/culture.mp4';
   static const _defaultFamilyVideo = '$_bannersBase/family.mp4';
-  static const _defaultFoodVideo = '$_bannersBase/food.mp4';
+  /// Public : reutilise par les mappers RestaurantVenue -> CommerceModel
+  /// (les categories food sont trop variees pour matcher par mots-cles fiables).
+  static const defaultFoodVideo = '$_bannersBase/food.mp4';
   static const _defaultGamingVideo = '$_bannersBase/gaming.mp4';
 
   /// Video par defaut — repli universel (mode Day, etc.).
@@ -648,7 +650,7 @@ class CommerceRowCard extends ConsumerWidget {
         cat.contains('food') ||
         cat.contains('cafe') ||
         cat.contains('café')) {
-      return _defaultFoodVideo;
+      return defaultFoodVideo;
     }
 
     // Repli universel (mode Day + categories non typees).
