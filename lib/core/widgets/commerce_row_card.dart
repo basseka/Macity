@@ -572,6 +572,27 @@ class CommerceRowCard extends ConsumerWidget {
   /// Video par defaut — repli universel (mode Day, etc.).
   static const _defaultGenericVideo = '$_bannersBase/day.mp4';
 
+  /// Normalise une chaine pour matching : minuscules + accents francais
+  /// retires. Sans ca, `'cinéma'.contains('cinema')` retourne false a cause
+  /// du é, et toutes les fiches Culture ('cinéma', 'théâtre', 'musée',
+  /// 'bibliothèque', 'médiathèque', 'opéra') tombent sur day.mp4.
+  static String _normalizeForMatch(String s) {
+    const accents = {
+      'à': 'a', 'â': 'a', 'ä': 'a',
+      'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+      'î': 'i', 'ï': 'i',
+      'ô': 'o', 'ö': 'o',
+      'û': 'u', 'ù': 'u', 'ü': 'u',
+      'ç': 'c',
+    };
+    final lower = s.toLowerCase();
+    final buf = StringBuffer();
+    for (final ch in lower.split('')) {
+      buf.write(accents[ch] ?? ch);
+    }
+    return buf.toString();
+  }
+
   static String? _defaultVideoUrlFor(CommerceModel commerce) {
     if (commerce.isVerified) return null;
 
@@ -580,7 +601,7 @@ class CommerceRowCard extends ConsumerWidget {
       return _defaultSportVideo;
     }
 
-    final cat = commerce.categorie.toLowerCase();
+    final cat = _normalizeForMatch(commerce.categorie);
 
     // Night : clubs / discotheques (les autres categories "de nuit"
     // — bar, pub, tabac, epicerie — retombent sur le fallback day.mp4).
@@ -621,7 +642,9 @@ class CommerceRowCard extends ConsumerWidget {
       return _defaultGamingVideo;
     }
 
-    // Culture
+    // Culture (les keywords sont tous sans accents — _normalizeForMatch a
+    // deja strippe les accents de cat). 'histoire'/'science'/'culture' sont
+    // les labels MuseumVenue, 'biblio' couvre bibliotheque + bibliotheques.
     if (cat.contains('cinema') ||
         cat.contains('cine') ||
         cat.contains('theatre') ||
@@ -629,7 +652,7 @@ class CommerceRowCard extends ConsumerWidget {
         cat.contains('musee') ||
         cat.contains('galerie') ||
         cat.contains('opera') ||
-        cat.contains('bibliotheque') ||
+        cat.contains('biblio') ||
         cat.contains('mediatheque') ||
         cat.contains('exposition') ||
         cat.contains('expo') ||
@@ -637,6 +660,9 @@ class CommerceRowCard extends ConsumerWidget {
         cat.contains('patrimoine') ||
         cat.contains('concert') ||
         cat.contains('danse') ||
+        cat.contains('histoire') ||
+        cat.contains('science') ||
+        cat.contains('culture') ||
         cat.contains('art')) {
       return _defaultCultureVideo;
     }
@@ -648,8 +674,7 @@ class CommerceRowCard extends ConsumerWidget {
         cat.contains('sushi') ||
         cat.contains('bistro') ||
         cat.contains('food') ||
-        cat.contains('cafe') ||
-        cat.contains('café')) {
+        cat.contains('cafe')) {
       return defaultFoodVideo;
     }
 
