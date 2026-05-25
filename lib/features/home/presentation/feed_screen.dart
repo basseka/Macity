@@ -2714,12 +2714,26 @@ class _VenueRowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Couleurs hardcodees claires : le cardTheme global pointe sur
+    // AppColors.surface qui est fige au demarrage sur la valeur dark theme
+    // (#1A0F2E), rendant le texte navy `#1A1A2E` invisible sur fond sombre.
+    // Tant que le theme n'est pas rebuilt sur changement de mode, on force
+    // le rendu light ici (meme pattern que app_bottom_nav_bar.dart).
+    const cardBg = Color(0xFFFFFFFF);
+    const cardBorder = Color(0x14000000);
+    const textPrimary = Color(0xFF1A1A2E);
+    const textSecondary = Color(0xFF6B6B7A);
     return GestureDetector(
       onTap: () => _openVenue(),
       child: Card(
+      color: cardBg,
+      surfaceTintColor: cardBg,
       elevation: 1,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: cardBorder, width: 1),
+      ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -2727,7 +2741,7 @@ class _VenueRowCard extends StatelessWidget {
           children: [
             Icon(
               _resolveIcon(venue.categorie),
-              color: AppColors.textDim,
+              color: textSecondary,
               size: 18,
             ),
             const SizedBox(width: 8),
@@ -2739,17 +2753,19 @@ class _VenueRowCard extends StatelessWidget {
                   Text(
                     venue.name,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A2E),
+                      color: textPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (venue.categorie.isNotEmpty)
+                    const SizedBox(height: 2),
+                  if (venue.categorie.isNotEmpty)
                     Text(
                       venue.categorie,
-                      style: TextStyle(fontSize: 9, color: AppColors.textDim),
+                      style: const TextStyle(fontSize: 11, color: textSecondary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
