@@ -13,6 +13,7 @@ import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/engagement/domain/event_source_detector.dart';
 import 'package:pulz_app/features/engagement/presentation/widgets/engagement_stats_row.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
+import 'package:video_player/video_player.dart';
 
 String _eventSourceFor(UserEvent e) => detectEventSource(e.id);
 
@@ -130,8 +131,22 @@ class _BoostedCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Image
-            if (hasPhoto && event.resolvedPhoto!.startsWith('http'))
+            // Video (autoplay muted loop) si presente, sinon photo, sinon
+            // gradient. Pendant le chargement de la video, on garde la photo
+            // en fallback pour eviter le flash gradient.
+            if (event.videoUrl.isNotEmpty)
+              _AutoPlayVideo(
+                url: event.videoUrl,
+                fallback: hasPhoto && event.resolvedPhoto!.startsWith('http')
+                    ? CachedNetworkImage(
+                        imageUrl: event.resolvedPhoto!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => _gradientBg(),
+                        errorWidget: (_, __, ___) => _gradientBg(),
+                      )
+                    : _gradientBg(),
+              )
+            else if (hasPhoto && event.resolvedPhoto!.startsWith('http'))
               CachedNetworkImage(
                 imageUrl: event.resolvedPhoto!,
                 fit: BoxFit.cover,
@@ -443,8 +458,20 @@ class _P2Card extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Image full-bleed
-            if (hasPhoto)
+            // Video > photo > gradient. Meme logique que _BoostedCard.
+            if (event.videoUrl.isNotEmpty)
+              _AutoPlayVideo(
+                url: event.videoUrl,
+                fallback: hasPhoto
+                    ? CachedNetworkImage(
+                        imageUrl: event.resolvedPhoto!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => _gradientBgP2(),
+                        errorWidget: (_, __, ___) => _gradientBgP2(),
+                      )
+                    : _gradientBgP2(),
+              )
+            else if (hasPhoto)
               CachedNetworkImage(
                 imageUrl: event.resolvedPhoto!,
                 fit: BoxFit.cover,
@@ -676,6 +703,62 @@ class _SectionTitle extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Lecteur video autoplay/muted/loop pour les cartes carousel boostees.
+/// Affiche `fallback` (photo/gradient) pendant l'init ou en cas d'erreur, puis
+/// remplace par le VideoPlayer une fois la premiere frame disponible.
+/// FittedBox(BoxFit.cover) garantit que la video remplit la card meme si son
+/// ratio differe.
+class _AutoPlayVideo extends StatefulWidget {
+  final String url;
+  final Widget fallback;
+  const _AutoPlayVideo({required this.url, required this.fallback});
+
+  @override
+  State<_AutoPlayVideo> createState() => _AutoPlayVideoState();
+}
+
+class _AutoPlayVideoState extends State<_AutoPlayVideo> {
+  VideoPlayerController? _ctrl;
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final c = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _ctrl = c;
+    c.setLooping(true);
+    c.setVolume(0);
+    c.initialize().then((_) {
+      if (!mounted) return;
+      c.play();
+      setState(() => _ready = true);
+    }).catchError((_) {
+      // Sur erreur, on laisse le fallback affiche (pas de re-setState : _ready
+      // reste false donc build() rend widget.fallback).
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = _ctrl;
+    if (!_ready || c == null) return widget.fallback;
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        width: c.value.size.width,
+        height: c.value.size.height,
+        child: VideoPlayer(c),
+      ),
     );
   }
 }

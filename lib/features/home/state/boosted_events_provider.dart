@@ -111,6 +111,7 @@ UserEvent _scrapedRowToUserEvent(Map<String, dynamic> r) {
     lieuAdresse: r['lieu_adresse_2'] as String? ?? '',
     ville: r['commune'] as String? ?? '',
     photoUrl: photoUrl != null && photoUrl.isNotEmpty ? photoUrl : null,
+    videoUrl: r['video_url'] as String? ?? '',
     lienBilletterie: r['reservation_site_internet'] as String? ?? '',
     createdAt: DateTime.now(),
     dateFin: r['date_fin'] as String? ?? '',
@@ -124,7 +125,7 @@ Future<UserEvent?> _fetchScrapedAsUserEvent(String identifiant) async {
     dio.interceptors.add(SupabaseInterceptor());
     final response = await dio.get('scraped_events', queryParameters: {
       'select':
-          'identifiant,nom_de_la_manifestation,date_debut,date_fin,horaires,lieu_nom,lieu_adresse_2,commune,photo_url,descriptif_court,descriptif_long,reservation_site_internet,source,rubrique',
+          'identifiant,nom_de_la_manifestation,date_debut,date_fin,horaires,lieu_nom,lieu_adresse_2,commune,photo_url,video_url,descriptif_court,descriptif_long,reservation_site_internet,source,rubrique',
       'identifiant': 'eq.$identifiant',
       'limit': '1',
     });
