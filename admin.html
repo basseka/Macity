@@ -1105,6 +1105,27 @@
           <input type="file" id="file-input" accept="image/*" class="hidden" />
           <div class="helper">Si aucune photo : l'event n'apparaîtra pas dans le feed (le service filtre `photo_url` vide).</div>
 
+          <!-- ═══ Bloc Vidéo optionnelle (teaser / promo) ═══ -->
+          <div style="margin-top: 18px;">
+            <h3 style="font-size: 14px; margin: 0 0 8px; color: var(--text);">Vidéo (optionnel)</h3>
+            <div id="video-paste-zone" class="paste-zone" tabindex="0">
+              <div id="video-paste-empty">
+                <div class="paste-icon">🎬</div>
+                <div class="paste-hint">Glisse une vidéo ici ou…</div>
+                <button type="button" class="paste-browse" id="video-browse-btn">📂 Explorer le PC</button>
+              </div>
+              <div id="video-paste-filled" class="hidden">
+                <video id="video-paste-preview" class="paste-preview" controls muted style="max-height: 220px;"></video>
+                <div>
+                  <button type="button" class="paste-browse" id="video-browse-btn-replace">📂 Remplacer</button>
+                  <button type="button" class="paste-remove" id="video-paste-remove">× Retirer la vidéo</button>
+                </div>
+              </div>
+            </div>
+            <input type="file" id="video-file-input" accept="video/*" class="hidden" />
+            <div class="helper">MP4 / MOV / WebM, max 100 Mo. Affichée en haut de la fiche détail à la place de l'affiche.</div>
+          </div>
+
           <!-- ═══ Bloc IA : analyse du flyer ═══ -->
           <div id="ai-scan-block" class="hidden" style="margin-top: 14px;">
             <button type="button" id="ai-scan-btn" class="paste-browse" style="
@@ -1686,6 +1707,70 @@
       }
     });
 
+    // ─── Zone vidéo (optionnelle) — meme UX que la zone photo, sans paste
+    // clipboard (les videos ne sont pas paste-ables depuis le presse-papier).
+    const videoPasteZone = document.getElementById("video-paste-zone");
+    const videoPastePreview = document.getElementById("video-paste-preview");
+    const videoPasteEmpty = document.getElementById("video-paste-empty");
+    const videoPasteFilled = document.getElementById("video-paste-filled");
+    const videoPasteRemove = document.getElementById("video-paste-remove");
+    const videoFileInput = document.getElementById("video-file-input");
+    let pastedVideoBlob = null;
+    let existingVideoUrl = null;
+    const VIDEO_MAX_BYTES = 100 * 1024 * 1024; // 100 Mo = limite du bucket "videos"
+
+    function loadVideoBlob(blob) {
+      if (blob.size > VIDEO_MAX_BYTES) {
+        alert(`Vidéo trop lourde (${(blob.size / 1048576).toFixed(1)} Mo) — max 100 Mo.`);
+        return;
+      }
+      pastedVideoBlob = blob;
+      const url = URL.createObjectURL(blob);
+      videoPastePreview.src = url;
+      videoPasteEmpty.classList.add("hidden");
+      videoPasteFilled.classList.remove("hidden");
+      videoPasteZone.classList.add("has-image");
+    }
+
+    function clearPastedVideo() {
+      pastedVideoBlob = null;
+      videoPastePreview.removeAttribute("src");
+      videoPastePreview.load();
+      videoPasteEmpty.classList.remove("hidden");
+      videoPasteFilled.classList.add("hidden");
+      videoPasteZone.classList.remove("has-image");
+      videoFileInput.value = "";
+    }
+
+    videoPasteRemove.addEventListener("click", (e) => {
+      e.stopPropagation();
+      clearPastedVideo();
+      existingVideoUrl = null; // en mode edition, retire aussi la video existante
+    });
+
+    document.getElementById("video-browse-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      videoFileInput.click();
+    });
+    document.getElementById("video-browse-btn-replace").addEventListener("click", (e) => {
+      e.stopPropagation();
+      videoFileInput.click();
+    });
+
+    videoFileInput.addEventListener("change", (e) => {
+      const f = e.target.files?.[0];
+      if (f && f.type.startsWith("video/")) loadVideoBlob(f);
+    });
+
+    videoPasteZone.addEventListener("dragover", (e) => { e.preventDefault(); videoPasteZone.classList.add("focus"); });
+    videoPasteZone.addEventListener("dragleave", () => videoPasteZone.classList.remove("focus"));
+    videoPasteZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      videoPasteZone.classList.remove("focus");
+      const f = e.dataTransfer.files?.[0];
+      if (f && f.type.startsWith("video/")) loadVideoBlob(f);
+    });
+
     // ─── Analyse IA du flyer (scan-event-flyer edge function) ───
     //
     // Flow :
@@ -1990,6 +2075,24 @@
       });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("admin-events").getPublicUrl(data.path);
+      return urlData.publicUrl;
+    }
+
+    // Upload vidéo : bucket "videos" (déjà 100 Mo + mime types vidéo + admin RLS),
+    // sous-dossier events/ pour separer des banners/.
+    async function uploadVideo(blob) {
+      const ext = (blob.type.split("/")[1] || "mp4")
+        .replace("quicktime", "mov")
+        .replace("x-m4v", "m4v")
+        .replace("x-matroska", "mkv")
+        .replace("x-msvideo", "avi");
+      const path = `events/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const { data, error } = await supabase.storage.from("videos").upload(path, blob, {
+        contentType: blob.type || "video/mp4",
+        upsert: false,
+      });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("videos").getPublicUrl(data.path);
       return urlData.publicUrl;
     }
 
@@ -4226,6 +4329,18 @@
         clearPastedImage();
       }
 
+      // Video existante en preview (meme logique que la photo)
+      pastedVideoBlob = null;
+      existingVideoUrl = ev.video_url || null;
+      if (existingVideoUrl) {
+        videoPastePreview.src = existingVideoUrl;
+        videoPasteEmpty.classList.add("hidden");
+        videoPasteFilled.classList.remove("hidden");
+        videoPasteZone.classList.add("has-image");
+      } else {
+        clearPastedVideo();
+      }
+
       // UI mode edition
       editBanner.classList.remove("hidden");
       editBannerTitle.textContent = ev.nom_de_la_manifestation;
@@ -4241,10 +4356,12 @@
     function exitEditMode() {
       editingEvent = null;
       existingPhotoUrl = null;
+      existingVideoUrl = null;
       editBanner.classList.add("hidden");
       submitBtn.textContent = "✨ Créer l'event";
       eventForm.reset();
       clearPastedImage();
+      clearPastedVideo();
       tarifWrap.classList.remove("hidden");
       boostTypeWrap.classList.add("hidden");
       // Re-cache le bloc avance
@@ -4326,6 +4443,22 @@
         }
       }
 
+      // Étape 1bis : upload vidéo (si présente). Peut etre long (jusqu'a
+      // ~30s pour 100 Mo), on garde le bouton disable.
+      let videoUrl = "";
+      if (pastedVideoBlob) {
+        try {
+          btn.textContent = "📤 Upload vidéo…";
+          videoUrl = await uploadVideo(pastedVideoBlob);
+        } catch (err) {
+          console.error("[upload video]", err);
+          showError("Upload de la vidéo", err);
+          btn.disabled = false;
+          btn.textContent = editingEvent ? "💾 Mettre à jour l'event" : "✨ Créer l'event";
+          return;
+        }
+      }
+
       // En mode edition : on garde l'identifiant d'origine pour ne pas creer
       // un doublon. En mode creation : on en genere un nouveau.
       const identifiant = editingEvent
@@ -4335,6 +4468,10 @@
       const finalPhotoUrl = pastedBlob
         ? photoUrl
         : (existingPhotoUrl || "");
+      // Video : meme logique (nouvelle upload > video existante > vide).
+      const finalVideoUrl = pastedVideoBlob
+        ? videoUrl
+        : (existingVideoUrl || "");
       const gratuit = gratuitChk.checked;
       const row = {
         identifiant,
@@ -4360,6 +4497,7 @@
         tarif_normal: gratuit ? "" : (f.get("tarif_normal") || ""),
         reservation_site_internet: f.get("reservation_site_internet") || "",
         photo_url: finalPhotoUrl,
+        video_url: finalVideoUrl,
       };
 
       // Étape 2 : upsert event
