@@ -474,10 +474,14 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
   Future<void> _inviteBySms() async {
     final recipients = _nonPulzRecipients;
     if (recipients.isEmpty) return;
-    // Deep link direct vers l'event dans l'app (scheme custom, sans web).
-    final deepLink = 'pulzapp://event/${widget.eventId}';
+    // URL HTTPS : les messageries (WhatsApp, SMS, Messenger…) auto-linkent
+    // http(s) mais PAS les schemes custom comme pulzapp://. Android App Links
+    // sont configures sur macity.app/event/* (autoVerify=true), donc sur
+    // device avec l'app installee le tap ouvre directement la fiche event.
+    // Sans app → fallback web macity.app (placeholder en attendant le Next.js).
+    final shareLink = 'https://macity.app/event/${widget.eventId}';
     final message =
-        'Salut ! Rejoins-moi sur Pulz pour decouvrir "${widget.eventTitle}" :\n$deepLink';
+        'Salut ! Rejoins-moi sur Pulz pour decouvrir "${widget.eventTitle}" :\n$shareLink';
     await Share.share(message, subject: 'Rejoins-moi sur Pulz');
     if (!mounted) return;
     setState(() {
