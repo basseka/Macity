@@ -10,6 +10,7 @@ import 'package:pulz_app/features/reported_events/state/reported_events_provider
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/data/permanent_fake_stories.dart';
+import 'package:pulz_app/features/reported_events/state/seen_stories_provider.dart';
 
 /// Tier de popularite d'un signalement.
 enum _HeatTier { hot, warm, normal }
@@ -107,11 +108,16 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                   width: bubbleSize,
                   height: bubbleSize,
                   circular: true,
-                  onTap: () => ReportedEventsPagedSheet.open(
-                    context,
-                    events: sorted,
-                    initialIndex: index,
-                  ),
+                  onTap: () {
+                    ref
+                        .read(seenStoriesProvider.notifier)
+                        .markSeen(event.id);
+                    ReportedEventsPagedSheet.open(
+                      context,
+                      events: sorted,
+                      initialIndex: index,
+                    );
+                  },
                 ),
               );
 

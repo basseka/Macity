@@ -10,6 +10,7 @@ import 'package:pulz_app/features/reported_events/domain/models/reported_event.d
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
+import 'package:pulz_app/features/reported_events/state/seen_stories_provider.dart';
 
 /// "En direct autour de vous" : carrousel horizontal des stories Map Live
 /// formattees en cards rectangulaires (photo + nom + temps relatif).
@@ -58,10 +59,14 @@ class ReportedEventsLiveStripe extends ConsumerWidget {
 
         if (sorted.isEmpty) return const SizedBox.shrink();
 
+        final seen = ref.watch(seenStoriesProvider);
+        final unseenCount = sorted.where((e) => !seen.contains(e.id)).length;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SectionHeader(
+              unseenCount: unseenCount,
               onSeeAll: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const MapLivePage()),
               ),
@@ -108,7 +113,8 @@ class ReportedEventsLiveStripe extends ConsumerWidget {
 
 class _SectionHeader extends StatelessWidget {
   final VoidCallback onSeeAll;
-  const _SectionHeader({required this.onSeeAll});
+  final int unseenCount;
+  const _SectionHeader({required this.onSeeAll, required this.unseenCount});
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +142,30 @@ class _SectionHeader extends StatelessWidget {
               color: const Color(0xFFFF6B2C),
             ),
           ),
+          if (unseenCount > 0) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: AppShadows.neon(
+                  const Color(0xFFEF4444),
+                  blur: 6,
+                  y: 1,
+                ),
+              ),
+              child: Text(
+                '$unseenCount',
+                style: GoogleFonts.geistMono(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ],
           const Spacer(),
           GestureDetector(
             onTap: onSeeAll,
@@ -167,7 +197,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _LiveCard extends StatelessWidget {
+class _LiveCard extends ConsumerWidget {
   final ReportedEvent event;
   final List<ReportedEvent> allEvents;
   final int index;
@@ -178,11 +208,14 @@ class _LiveCard extends StatelessWidget {
     required this.index,
   });
 
-  static const _cardWidth = 112.0;
+  // _cardWidth inclut le ring (2px de chaque cote), _photoSize est la zone
+  // photo interne. Le layout horizontal de la stripe utilise _cardWidth.
+  static const _cardWidth = 116.0;
   static const _photoSize = 112.0;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isSeen = ref.watch(seenStoriesProvider).contains(event.id);
     final hasPhoto = event.photos.isNotEmpty;
     final title = event.generated?.title.isNotEmpty == true
         ? event.generated!.title
@@ -191,22 +224,12 @@ class _LiveCard extends StatelessWidget {
             : (event.locationName.isNotEmpty
                 ? event.locationName
                 : 'Story Map Live'));
-    return GestureDetector(
-      onTap: () {
-        debugPrint('[LiveStripe] tap card index=$index id=${event.id}');
-        ReportedEventsPagedSheet.open(
-          context,
-          events: allEvents,
-          initialIndex: index,
-        );
-      },
-      behavior: HitTestBehavior.opaque,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: _cardWidth,
-          height: _photoSize,
-          child: Stack(
+    final card = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: _photoSize,
+        height: _photoSize,
+        child: Stack(
             fit: StackFit.expand,
             children: [
               // Photo de fond
@@ -325,6 +348,36 @@ class _LiveCard extends StatelessWidget {
             ],
           ),
         ),
+    );
+
+    return GestureDetector(
+      onTap: () {
+        debugPrint('[LiveStripe] tap card index=$index id=${event.id}');
+        ref.read(seenStoriesProvider.notifier).markSeen(event.id);
+        ReportedEventsPagedSheet.open(
+          context,
+          events: allEvents,
+          initialIndex: index,
+        );
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: _cardWidth,
+        height: _cardWidth,
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          // Ring degrade orange/rouge sur les stories non vues, transparent
+          // (donc plat) une fois la story ouverte.
+          gradient: isSeen
+              ? null
+              : const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFF6B2C), Color(0xFFEF4444)],
+                ),
+        ),
+        child: card,
       ),
     );
   }
