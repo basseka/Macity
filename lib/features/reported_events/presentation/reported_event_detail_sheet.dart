@@ -10,6 +10,7 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_chat.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/story_video_cache.dart';
 import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
 
@@ -21,12 +22,18 @@ import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
 class ReportedEventDetailSheet extends ConsumerStatefulWidget {
   final ReportedEvent event;
 
+  /// Index du media affiche au sein de l'event (photos+videos aplatis en
+  /// FIFO par timestamp de capture, cf. [mediasOfEvent]). 0 = premier media.
+  /// Le parent [ReportedEventsPagedSheet] le fait varier au tap droite/gauche.
+  final int mediaIndex;
+
   /// Auto-ouvre la sheet discussion au mount (tap sur notif `chat_message`).
   final bool initialScrollToChat;
 
   const ReportedEventDetailSheet({
     super.key,
     required this.event,
+    this.mediaIndex = 0,
     this.initialScrollToChat = false,
   });
 
@@ -90,22 +97,29 @@ class _ReportedEventDetailSheetState
   Widget build(BuildContext context) {
     final g = event.generated;
     final media = MediaQuery.of(context);
-    final hasPhoto = event.firstPhoto != null;
-    final hasVideo = event.videos.isNotEmpty;
     final prenom = event.reporterPrenom ?? '';
     final contributorsExtra = event.contributors.length - 1;
+
+    // Selection du media courant (FIFO par timestamp de capture du nom de
+    // fichier upload). Le parent [ReportedEventsPagedSheet] fait avancer
+    // [widget.mediaIndex] au tap zone droite/gauche.
+    final medias = mediasOfEvent(event);
+    final currentMedia = medias.isEmpty
+        ? null
+        : medias[widget.mediaIndex.clamp(0, medias.length - 1)];
 
     return ReportedEventViewTracker(
       eventId: event.id,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Media full-bleed : video autoplay/loop muted si presente,
-          //    sinon photo. Pause sync avec chatInputFocusedProvider (sheet
-          //    ouverte / chat focus / long-press).
+          // 1. Media full-bleed : video autoplay/loop muted ou photo selon
+          //    le media courant. Pause sync avec chatInputFocusedProvider
+          //    (sheet ouverte / chat focus / long-press).
           _StoryMedia(
-            videoUrl: hasVideo ? event.videos.first : null,
-            photoUrl: hasPhoto ? event.firstPhoto : null,
+            key: ValueKey('media-${event.id}-${widget.mediaIndex}'),
+            videoUrl: currentMedia?.isVideo == true ? currentMedia!.url : null,
+            photoUrl: currentMedia?.isVideo == false ? currentMedia!.url : null,
           ),
 
           // 2. Gradient overlay bas pour lisibilité du texte
@@ -182,7 +196,7 @@ class _ReportedEventDetailSheetState
 class _StoryMedia extends ConsumerStatefulWidget {
   final String? videoUrl;
   final String? photoUrl;
-  const _StoryMedia({this.videoUrl, this.photoUrl});
+  const _StoryMedia({super.key, this.videoUrl, this.photoUrl});
 
   @override
   ConsumerState<_StoryMedia> createState() => _StoryMediaState();
