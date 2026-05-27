@@ -501,6 +501,58 @@
       margin-bottom: 8px;
       transition: border-color 0.15s;
     }
+    .rub-pill {
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--text-faint);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .rub-pill:hover { border-color: var(--magenta); color: var(--text); }
+    .rub-pill.active {
+      background: var(--magenta);
+      border-color: var(--magenta);
+      color: #fff;
+    }
+    .venue-cat-prios {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      display: none;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      align-items: end;
+    }
+    .venue-cat-prios.open { display: grid; }
+    .venue-cat-prios > div { display: flex; flex-direction: column; gap: 4px; }
+    .venue-cat-prios label {
+      font-size: 10px;
+      color: var(--text-faint);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+    .venue-cat-prios input[type="number"] {
+      background: var(--surface-hi);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 6px 8px;
+      font-size: 13px;
+      width: 100%;
+    }
+    .venue-cat-prios .save-row {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+    }
     .venue-row:hover { border-color: var(--line-strong); }
     .venue-row-info { flex: 1; min-width: 0; }
     .venue-row-name {
@@ -1232,9 +1284,9 @@
           <label class="banner-field-label">Nom *</label>
           <input type="text" class="banner-input" id="etab-nom" placeholder="La Trattoria Bella" />
 
-          <label class="banner-field-label">Catégorie</label>
+          <label class="banner-field-label">Catégorie <span style="opacity:.6;font-weight:400">— libellé large affiché en sous-titre (ex : Restaurant, Bar, Musée). Ne filtre pas l'app.</span></label>
           <input type="text" class="banner-input" id="etab-categorie"
-            placeholder="ex : Restaurant, Pizzeria, Bar de nuit, Musée…" />
+            placeholder="ex : Restaurant, Bar, Musée, Salle de concert…" />
 
           <div class="etab-grid2">
             <div>
@@ -1286,7 +1338,7 @@
             <div class="vp-section-label">🍴 Filtres restaurant <span>— utilisés par les filtres de la rubrique Food</span></div>
             <div class="etab-grid2">
               <div>
-                <label class="banner-field-label">Thème culinaire</label>
+                <label class="banner-field-label">Type / cuisine <span style="opacity:.6;font-weight:400">— c'est ce champ qui filtre dans l'app (Guinguette, Brunch, Asiatique…)</span></label>
                 <select class="banner-input" id="etab-theme"></select>
               </div>
               <div>
@@ -1296,6 +1348,30 @@
             </div>
             <label class="banner-field-label">Style / ambiance</label>
             <select class="banner-input" id="etab-style"></select>
+
+            <div class="vp-section-label" style="margin-top:16px">🎯 Priorité par catégorie <span>— laisse vide pour utiliser la priorité globale ci-dessus. Plus grand = en haut de la liste filtrée.</span></div>
+            <div class="etab-grid2">
+              <div>
+                <label class="banner-field-label">Restaurant</label>
+                <input type="number" class="banner-input" id="etab-prio-restaurant" placeholder="0" step="1" />
+              </div>
+              <div>
+                <label class="banner-field-label">Guinguette</label>
+                <input type="number" class="banner-input" id="etab-prio-guinguette" placeholder="0" step="1" />
+              </div>
+            </div>
+            <div class="etab-grid2">
+              <div>
+                <label class="banner-field-label">Buffet</label>
+                <input type="number" class="banner-input" id="etab-prio-buffet" placeholder="0" step="1" />
+              </div>
+              <div>
+                <label class="banner-field-label">Salon de thé</label>
+                <input type="number" class="banner-input" id="etab-prio-salon" placeholder="0" step="1" />
+              </div>
+            </div>
+            <label class="banner-field-label">Brunch</label>
+            <input type="number" class="banner-input" id="etab-prio-brunch" placeholder="0" step="1" />
           </div>
 
           <div class="vp-section-label">📌 Photo pochette <span>— optionnelle, modifiable ensuite via 📷 Photo</span></div>
@@ -1339,6 +1415,17 @@
           <div class="city-stats" id="venues-stats">—</div>
         </div>
         <datalist id="cities-datalist"></datalist>
+
+        <!-- Filtre par rubrique (page de l'app) -->
+        <div class="rubrique-filter-row" id="venues-rubrique-filter" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px;">
+          <button type="button" class="rub-pill active" data-rub="">Tous</button>
+          <button type="button" class="rub-pill" data-rub="food">🍴 Food</button>
+          <button type="button" class="rub-pill" data-rub="nuit">🌙 Night</button>
+          <button type="button" class="rub-pill" data-rub="famille">👨‍👩‍👧 Famille</button>
+          <button type="button" class="rub-pill" data-rub="culture">🎭 Culture</button>
+          <button type="button" class="rub-pill" data-rub="sport">⚽ Sport</button>
+          <button type="button" class="rub-pill" data-rub="cinema">🎬 Cinéma</button>
+        </div>
 
         <div id="venues-loading" class="venues-empty">Chargement des fiches…</div>
         <div id="venues-list"></div>
@@ -2254,7 +2341,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("etablissements")
-          .select("id, nom, adresse, ville, rubrique, pro_claim_code, photo, photos, display_priority, video_url")
+          .select("id, nom, adresse, ville, rubrique, pro_claim_code, photo, photos, display_priority, priorities, video_url")
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
         if (error) {
@@ -2468,6 +2555,18 @@
     const venuesLoading = document.getElementById("venues-loading");
     const venuesStats = document.getElementById("venues-stats");
     const citiesDatalist = document.getElementById("cities-datalist");
+    const venuesRubriqueFilter = document.getElementById("venues-rubrique-filter");
+
+    // Bascule la rubrique active. Met a jour l'etat visuel des pills + re-render.
+    venuesRubriqueFilter?.addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".rub-pill");
+      if (!btn) return;
+      currentRubriqueFilter = btn.dataset.rub || "";
+      for (const p of venuesRubriqueFilter.querySelectorAll(".rub-pill")) {
+        p.classList.toggle("active", p === btn);
+      }
+      renderVenuesList();
+    });
 
     // Liste unifiee venues + etablissements pour l'affichage admin.
     function unifiedFiches() {
@@ -2478,10 +2577,12 @@
         ville: r.ville || "",
         adresse: r.adresse || "",
         type: r.category || r.mode || "",
+        rubrique: r.mode || "",
         code: r.pro_claim_code,
         photo: r.photo || "",
         photos: Array.isArray(r.photos) ? r.photos : [],
         priority: 0,
+        priorities: {},
         videoUrl: r.video_url || "",
       }));
       const e = allEtabs.map(r => ({
@@ -2491,10 +2592,12 @@
         ville: r.ville || "",
         adresse: r.adresse || "",
         type: r.rubrique || "",
+        rubrique: r.rubrique || "",
         code: r.pro_claim_code,
         photo: r.photo || "",
         photos: Array.isArray(r.photos) ? r.photos : [],
         priority: r.display_priority ?? 0,
+        priorities: (r.priorities && typeof r.priorities === "object") ? r.priorities : {},
         videoUrl: r.video_url || "",
       }));
       const s = allSportVenues.map(r => ({
@@ -2504,10 +2607,12 @@
         ville: r.ville || "",
         adresse: r.adresse || "",
         type: r.categorie || r.sport_type || "",
+        rubrique: "sport",
         code: null,            // sport_venues : pas de code de revendication
         photo: r.photo || "",
         photos: Array.isArray(r.photos) ? r.photos : [],
         priority: r.display_priority ?? 0,
+        priorities: {},
         videoUrl: r.video_url || "",
       }));
       return v.concat(e).concat(s);
@@ -2641,6 +2746,25 @@
       const prioCtrl = (f.source === "etablissements" || f.source === "sport_venues")
         ? `<label class="venue-prio" title="Priorité d'affichage dans la rubrique — plus grand = plus haut dans la liste"><span>Prio</span><input type="number" data-role="prio-input" value="${Number(f.priority) || 0}" step="1" /></label>`
         : "";
+      // Pour les food etabs : bouton qui deplie les 5 inputs prio par cat.
+      const isFoodEtab = f.source === "etablissements" && (f.rubrique || "").toLowerCase() === "food";
+      const catPrioBtn = isFoodEtab
+        ? `<button class="photo-btn" data-action="toggle-cat-prio" title="Priorité par catégorie (Restaurant, Guinguette, Buffet, Salon de thé, Brunch)">🎯 Cat</button>`
+        : "";
+      const p = (f.priorities && typeof f.priorities === "object") ? f.priorities : {};
+      const catVal = (cat) => (cat in p) ? String(p[cat]) : "";
+      const catPanel = isFoodEtab ? `
+        <div class="venue-cat-prios" data-role="cat-prios">
+          <div><label>Restaurant</label><input type="number" data-cat="Restaurant" value="${escapeHtml(catVal('Restaurant'))}" placeholder="—" /></div>
+          <div><label>Guinguette</label><input type="number" data-cat="Guinguette" value="${escapeHtml(catVal('Guinguette'))}" placeholder="—" /></div>
+          <div><label>Buffet</label><input type="number" data-cat="Buffet" value="${escapeHtml(catVal('Buffet'))}" placeholder="—" /></div>
+          <div><label>Salon de thé</label><input type="number" data-cat="Salon de the" value="${escapeHtml(catVal('Salon de the'))}" placeholder="—" /></div>
+          <div><label>Brunch</label><input type="number" data-cat="Brunch" value="${escapeHtml(catVal('Brunch'))}" placeholder="—" /></div>
+          <div class="save-row">
+            <span style="font-size:11px;color:var(--text-faint);margin-right:auto;align-self:center;">Laisse vide pour utiliser la priorité globale.</span>
+            <button class="banner-save-btn" data-action="save-cat-prio">Enregistrer</button>
+          </div>
+        </div>` : "";
       return `
         <div class="venue-item" data-source="${f.source}" data-id="${f.id}">
           <div class="venue-row">
@@ -2649,8 +2773,9 @@
               <div class="venue-row-name">${badge}${escapeHtml(f.name)}</div>
               <div class="venue-row-meta">${meta}</div>
             </div>
-            <div class="venue-row-actions">${prioCtrl}${codeAction}${photoBtn}</div>
+            <div class="venue-row-actions">${prioCtrl}${catPrioBtn}${codeAction}${photoBtn}</div>
           </div>
+          ${catPanel}
           ${venuePhotoEditorHtml(f)}
         </div>
       `;
@@ -2661,23 +2786,31 @@
     const VENUES_RENDER_CAP = 300;
 
     // Filtre la liste par nom (recherche rapide) ET / OU par ville.
+    // Filtre rubrique courant (pills "Tous / Food / Night / …"). Géré par
+    // les boutons .rub-pill dans la barre #venues-rubrique-filter.
+    let currentRubriqueFilter = "";
+
     function renderVenuesList() {
       const all = unifiedFiches();
       const cityQ = normalizeCity(venuesCityFilter.value);
       const nameQ = normalizeCity(venuesNameSearch.value);
 
-      // Rien de saisi : invite + total disponible
-      if (!cityQ && !nameQ) {
+      // Si une rubrique est selectionnee, on affiche meme sans recherche.
+      // Sinon : invite + total disponible.
+      if (!cityQ && !nameQ && !currentRubriqueFilter) {
         venuesStats.textContent = `${all.length} fiches au total`;
         venuesEmpty.classList.add("hidden");
         venuesLoading.classList.add("hidden");
-        venuesList.innerHTML = `<div class="venues-empty">Tape un <strong>nom</strong> dans la barre de recherche pour trouver une fiche, ou filtre par ville.</div>`;
+        venuesList.innerHTML = `<div class="venues-empty">Tape un <strong>nom</strong> dans la barre de recherche, filtre par ville, ou clique une rubrique.</div>`;
         return;
       }
 
       let filtered = all;
       if (cityQ) filtered = filtered.filter(f => normalizeCity(f.ville) === cityQ);
       if (nameQ) filtered = filtered.filter(f => normalizeCity(f.name).includes(nameQ));
+      if (currentRubriqueFilter) {
+        filtered = filtered.filter(f => (f.rubrique || "").toLowerCase() === currentRubriqueFilter);
+      }
 
       venuesLoading.classList.add("hidden");
 
@@ -3057,6 +3190,54 @@
       ev.target.value = "";
     });
 
+    // Bascule l'affichage du panel "Prios par catégorie" (food seulement).
+    venuesList.addEventListener("click", (ev) => {
+      const btn = ev.target.closest('[data-action="toggle-cat-prio"]');
+      if (!btn) return;
+      const item = btn.closest(".venue-item");
+      const panel = item?.querySelector('[data-role="cat-prios"]');
+      if (panel) panel.classList.toggle("open");
+    });
+
+    // Save des prios par catégorie -> UPDATE etablissements SET priorities = ...
+    venuesList.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest('[data-action="save-cat-prio"]');
+      if (!btn) return;
+      const item = btn.closest(".venue-item");
+      if (!item || item.dataset.source !== "etablissements") return;
+      const id = Number(item.dataset.id);
+      const inputs = item.querySelectorAll('[data-role="cat-prios"] input[data-cat]');
+      const priorities = {};
+      for (const inp of inputs) {
+        const raw = inp.value.trim();
+        if (raw === "") continue;
+        const n = parseInt(raw, 10);
+        if (!Number.isNaN(n)) priorities[inp.dataset.cat] = n;
+      }
+      btn.disabled = true;
+      const prev = btn.textContent;
+      btn.textContent = "…";
+      const { data, error } = await supabase
+        .from("etablissements")
+        .update({ priorities })
+        .eq("id", id)
+        .select("id, priorities");
+      btn.disabled = false;
+      btn.textContent = prev;
+      if (error) {
+        console.warn("[cat priorities]", error);
+        toast("Erreur : " + (error.message || "échec"), false);
+        return;
+      }
+      if (!data || data.length === 0) {
+        toast("⚠️ 0 ligne modifiée (RLS)", false);
+        return;
+      }
+      const row = allEtabs.find(r => r.id === id);
+      if (row) row.priorities = priorities;
+      toast("Priorités catégorie enregistrées ✓", true);
+    });
+
     // Édition de la priorité d'affichage (établissements + salles de sport)
     // — sauvegarde au blur.
     venuesList.addEventListener("change", async (ev) => {
@@ -3166,7 +3347,15 @@
     //  (restaurants, bars, lieux culture / famille). Listes alignées sur
     //  AdminAddEtablissementSheet (côté app Flutter).
     // ════════════════════════════════════════════════════════════════════
-    const ETAB_THEMES = ['', 'Francais', 'Asiatique', 'Japonais', 'Italien',
+    // ATTENTION : la valeur de `theme` est ce qui filtre les listings cote app.
+    // Pour qu'un etablissement remonte dans le filtre "Guinguette" du hub Food,
+    // il faut THEME = "Guinguette" (pas la colonne categorie). Idem pour
+    // Buffet (singulier), Salon de the (sans accent), Brunch.
+    const ETAB_THEMES = ['',
+      // Sous-rubriques Food qui ont leur propre filtre dans l'app :
+      'Guinguette', 'Buffet', 'Salon de the', 'Brunch',
+      // Cuisines :
+      'Francais', 'Asiatique', 'Japonais', 'Italien',
       'Orientale', 'Mediterraneen', 'Mexicain', 'Africain', 'Indien',
       'Fusion', 'Sud-Ouest', 'Fruits de mer', 'Vegetarien'];
     const ETAB_QUARTIERS = ['', 'Capitole', 'Saint-Georges', 'Esquirol',
@@ -3293,6 +3482,35 @@
       if (f) uploadEtabPhotoBlob(f);
     });
 
+    // Catégories Food avec une priorité dédiée éditable dans le form.
+    // Chaque clé correspond à un champ Dart côté app (food_venues_provider).
+    // Si vide → priorité = display_priority globale.
+    const PRIO_CAT_FIELDS = [
+      ["Restaurant", "etab-prio-restaurant"],
+      ["Guinguette", "etab-prio-guinguette"],
+      ["Buffet",     "etab-prio-buffet"],
+      ["Salon de the", "etab-prio-salon"],
+      ["Brunch",     "etab-prio-brunch"],
+    ];
+
+    function readPrioritiesPayload() {
+      const out = {};
+      for (const [cat, id] of PRIO_CAT_FIELDS) {
+        const raw = $etab(id).value.trim();
+        if (raw === "") continue;
+        const n = parseInt(raw, 10);
+        if (!Number.isNaN(n)) out[cat] = n;
+      }
+      return out;
+    }
+
+    function fillPrioritiesForm(priorities) {
+      const p = priorities && typeof priorities === "object" ? priorities : {};
+      for (const [cat, id] of PRIO_CAT_FIELDS) {
+        $etab(id).value = (cat in p) ? String(p[cat]) : "";
+      }
+    }
+
     function resetEtabForm() {
       ["etab-nom", "etab-categorie", "etab-adresse", "etab-telephone",
        "etab-horaires", "etab-siteweb", "etab-lienmaps", "etab-photo-url"
@@ -3306,6 +3524,7 @@
       $etab("etab-active").checked = true;
       $etab("etab-sport-type").selectedIndex = 0;
       $etab("etab-photo-file").value = "";
+      fillPrioritiesForm({});
       setEtabPhoto("");
     }
 
@@ -3388,6 +3607,7 @@
         quartier: isFood ? $etab("etab-quartier").value : "",
         style: isFood ? $etab("etab-style").value : "",
         display_priority: parseInt($etab("etab-priority").value, 10) || 0,
+        priorities: isFood ? readPrioritiesPayload() : {},
         is_active: $etab("etab-active").checked,
       };
       btn.disabled = true;

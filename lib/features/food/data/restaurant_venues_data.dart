@@ -16,6 +16,12 @@ class RestaurantVenue {
   final String photo;
   final List<String> photos;
   final bool isVerified;
+  final int displayPriority;
+  // Override de priorite par categorie (clé = nom catégorie food, ex
+  // "Guinguette", valeur = entier). Si la clé est absente pour la categorie
+  // affichée, on retombe sur [displayPriority]. Cf. migration
+  // 20260527100000_etablissements_priorities.sql.
+  final Map<String, int> priorities;
 
   const RestaurantVenue({
     required this.id,
@@ -35,6 +41,8 @@ class RestaurantVenue {
     this.photo = '',
     this.photos = const [],
     this.isVerified = false,
+    this.displayPriority = 0,
+    this.priorities = const {},
   });
 
   /// Matche un theme sur `theme` OU `group` (= `categorie` cote DB).
@@ -45,6 +53,32 @@ class RestaurantVenue {
     final needle = t.toLowerCase();
     return theme.toLowerCase() == needle || group.toLowerCase() == needle;
   }
+
+  /// Priorite effective pour une categorie : on prend l'override
+  /// [priorities] si une clé matche (case-insensitive), sinon [displayPriority].
+  int priorityFor(String category) {
+    final needle = category.toLowerCase();
+    for (final entry in priorities.entries) {
+      if (entry.key.toLowerCase() == needle) return entry.value;
+    }
+    return displayPriority;
+  }
+}
+
+/// Trie une liste de restaurants par leur priorite EFFECTIVE pour [category]
+/// (decroissante) puis alphabetique. Utiliser apres un filtre par catégorie
+/// pour respecter les overrides definis par l'admin.
+List<RestaurantVenue> sortRestaurantsForCategory(
+  List<RestaurantVenue> list,
+  String category,
+) {
+  final copy = [...list];
+  copy.sort((a, b) {
+    final cmp = b.priorityFor(category).compareTo(a.priorityFor(category));
+    if (cmp != 0) return cmp;
+    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+  });
+  return copy;
 }
 
 class RestaurantVenuesData {

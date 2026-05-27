@@ -38,6 +38,21 @@ class RestaurantSupabaseService {
     final photos = photosRaw is List
         ? photosRaw.whereType<String>().where((s) => s.isNotEmpty).toList()
         : <String>[];
+    final prioRaw = json['priorities'];
+    final priorities = <String, int>{};
+    if (prioRaw is Map) {
+      for (final e in prioRaw.entries) {
+        final v = e.value;
+        if (v is int) {
+          priorities[e.key.toString()] = v;
+        } else if (v is num) {
+          priorities[e.key.toString()] = v.toInt();
+        } else if (v is String) {
+          final n = int.tryParse(v);
+          if (n != null) priorities[e.key.toString()] = n;
+        }
+      }
+    }
     return RestaurantVenue(
       id: '${json['id'] ?? ''}',
       name: json['nom'] as String? ?? '',
@@ -55,6 +70,8 @@ class RestaurantSupabaseService {
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: json['photo'] as String? ?? '',
       photos: photos,
+      displayPriority: (json['display_priority'] as num?)?.toInt() ?? 0,
+      priorities: priorities,
     );
   }
 }
