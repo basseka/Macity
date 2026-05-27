@@ -257,7 +257,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     return restaurantsAsync.when(
       data: (venues) {
         final filtered = presetTheme != null
-            ? venues.where((r) => r.theme.toLowerCase() == presetTheme.toLowerCase()).toList()
+            ? venues.where((r) => r.matchesTheme(presetTheme)).toList()
             : venues;
         return _buildRestaurantsFiltered(ref, filtered, modeTheme, category: category, hideThemeFilter: presetTheme != null, placeholderAsset: placeholderAsset);
       },

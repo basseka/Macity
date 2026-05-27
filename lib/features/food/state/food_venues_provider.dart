@@ -65,7 +65,7 @@ final foodCategoryCountProvider =
   if (searchTag == 'Guinguette' || searchTag == 'Buffets' || searchTag == 'Salon de the' || searchTag == 'Brunch') {
     final theme = searchTag == 'Buffets' ? 'Buffet' : searchTag;
     final restaurants = await RestaurantSupabaseService().fetchRestaurants(ville: city);
-    return restaurants.where((r) => r.theme.toLowerCase() == theme.toLowerCase()).length;
+    return restaurants.where((r) => r.matchesTheme(theme)).length;
   }
   final venues = await repository.searchByVille(ville: city, query: searchTag);
   return venues.length + uc;

@@ -36,6 +36,15 @@ class RestaurantVenue {
     this.photos = const [],
     this.isVerified = false,
   });
+
+  /// Matche un theme sur `theme` OU `group` (= `categorie` cote DB).
+  /// Convention attendue : `theme` rempli. Mais des saisies admin mettent
+  /// parfois la valeur dans `categorie` a la place (ex: Le Petit L'U cat=
+  /// Guinguette, theme=Francais). On accepte les deux.
+  bool matchesTheme(String t) {
+    final needle = t.toLowerCase();
+    return theme.toLowerCase() == needle || group.toLowerCase() == needle;
+  }
 }
 
 class RestaurantVenuesData {

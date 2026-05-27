@@ -81,9 +81,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   List<RestaurantVenue> _filtered(List<RestaurantVenue> all) {
     final chip = _chips.firstWhere((c) => c.label == _activeChip);
     if (chip.theme == null) return all;
-    return all
-        .where((r) => r.theme.toLowerCase() == chip.theme!.toLowerCase())
-        .toList();
+    return all.where((r) => r.matchesTheme(chip.theme!)).toList();
   }
 
   @override
