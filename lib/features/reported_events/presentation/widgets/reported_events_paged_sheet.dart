@@ -249,8 +249,10 @@ class _ReportedEventsPagedSheetState
     if (status == AnimationStatus.completed) _goNext();
   }
 
-  /// Avance au media suivant : interne a l'event si possible, sinon event
-  /// suivant. Au dernier media du dernier event, ferme le viewer.
+  /// Avance au media suivant a l'interieur de l'event. Au dernier media on
+  /// FERME le viewer (on ne passe PAS automatiquement a l'event suivant) —
+  /// l'utilisateur garde le controle via le swipe horizontal pour naviguer
+  /// entre les events.
   void _goNext() {
     final mediaCount = _mediaCountOf(_current);
     if (_currentMediaIdx < mediaCount - 1) {
@@ -258,15 +260,8 @@ class _ReportedEventsPagedSheetState
       _startStory(_current, mediaIdx: _currentMediaIdx);
       return;
     }
-    if (_current < widget.events.length - 1) {
-      _pageCtrl.animateToPage(
-        _current + 1,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
-    } else {
-      Navigator.of(context).maybePop();
-    }
+    // Dernier media de l'event courant : on s'arrete (close viewer).
+    Navigator.of(context).maybePop();
   }
 
   /// Recule au media precedent : interne a l'event si possible, sinon event
