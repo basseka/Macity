@@ -289,8 +289,11 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       photo: v.photo,
       siteWeb: v.websiteUrl,
       isVerified: v.isVerified,
-      // food.mp4 force pour les fiches non revendiquees (cf restaurant_detail_sheet).
-      videoUrl: v.isVerified ? '' : CommerceRowCard.defaultFoodVideo,
+      // Priorite : video uploadee via admin (video_url en DB), sinon
+      // food.mp4 par defaut pour les fiches non revendiquees, sinon rien.
+      videoUrl: v.videoUrl.isNotEmpty
+          ? v.videoUrl
+          : (v.isVerified ? '' : CommerceRowCard.defaultFoodVideo),
       sourceId: parsedId,
       sourceTable: parsedId == null ? null : 'etablissement',
     );

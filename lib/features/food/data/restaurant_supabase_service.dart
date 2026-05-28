@@ -70,6 +70,7 @@ class RestaurantSupabaseService {
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: json['photo'] as String? ?? '',
       photos: photos,
+      videoUrl: json['video_url'] as String? ?? '',
       displayPriority: (json['display_priority'] as num?)?.toInt() ?? 0,
       priorities: priorities,
     );

@@ -518,6 +518,11 @@
       border-color: var(--magenta);
       color: #fff;
     }
+    .rub-pill-sub { padding: 4px 10px; font-size: 11px; }
+    .rub-pill-sub.active {
+      background: linear-gradient(135deg, var(--magenta), #ff6b2c);
+      border-color: transparent;
+    }
     .venue-cat-prios {
       margin-top: 8px;
       padding: 10px 12px;
@@ -1426,6 +1431,9 @@
           <button type="button" class="rub-pill" data-rub="sport">⚽ Sport</button>
           <button type="button" class="rub-pill" data-rub="cinema">🎬 Cinéma</button>
         </div>
+
+        <!-- Sous-filtre par catégorie de la rubrique active (popule dynamiquement) -->
+        <div class="rubrique-filter-row" id="venues-subcat-filter" style="display:none;gap:6px;flex-wrap:wrap;margin:4px 0 8px;padding-left:8px;border-left:2px solid var(--magenta);"></div>
 
         <div id="venues-loading" class="venues-empty">Chargement des fiches…</div>
         <div id="venues-list"></div>
@@ -2341,7 +2349,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("etablissements")
-          .select("id, nom, adresse, ville, rubrique, pro_claim_code, photo, photos, display_priority, priorities, video_url")
+          .select("id, nom, adresse, ville, rubrique, categorie, theme, pro_claim_code, photo, photos, display_priority, priorities, video_url")
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
         if (error) {
@@ -2556,6 +2564,69 @@
     const venuesStats = document.getElementById("venues-stats");
     const citiesDatalist = document.getElementById("cities-datalist");
     const venuesRubriqueFilter = document.getElementById("venues-rubrique-filter");
+    const venuesSubCatFilter = document.getElementById("venues-subcat-filter");
+
+    // Sous-categories par rubrique (clé `cat` = ce qu'on compare avec theme/
+    // categorie cote DB, alignée sur food_category_data.dart côté app).
+    // `catchAll: true` = ne filtre rien, sert juste de raccourci visuel.
+    const RUBRIQUE_SUBCATS = {
+      food: [
+        { label: "🍽️ Restaurant", cat: "Restaurant", catchAll: true },
+        { label: "🌿 Guinguette", cat: "Guinguette" },
+        { label: "🍱 Buffet", cat: "Buffet" },
+        { label: "🫖 Salon de thé", cat: "Salon de the" },
+        { label: "🥐 Brunch", cat: "Brunch" },
+      ],
+      nuit: [
+        { label: "🎆 Discothèque", cat: "Club Discotheque" },
+        { label: "🌙 Bar de nuit", cat: "Bar de nuit" },
+        { label: "🍸 Cocktails", cat: "Bar a cocktails" },
+        { label: "💨 Chicha", cat: "Bar a chicha" },
+        { label: "🍻 Pub", cat: "Pub" },
+        { label: "🌶️ Spicy", cat: "Spicy" },
+        { label: "🆘 SOS Apero", cat: "SOS Apero" },
+        { label: "🌃 Épicerie nuit", cat: "Epicerie de nuit" },
+      ],
+      famille: [
+        { label: "🎢 Parc d'attractions", cat: "Parc d'attractions" },
+        { label: "🧒 Aire de jeux", cat: "Aire de jeux" },
+        { label: "🦁 Parc animalier", cat: "Parc animalier" },
+        { label: "🐄 Ferme pédagogique", cat: "Ferme pedagogique" },
+        { label: "🎬 Cinéma", cat: "Cinema" },
+        { label: "🎳 Bowling", cat: "Bowling" },
+        { label: "🔫 Laser game", cat: "Laser game" },
+        { label: "🔐 Escape game", cat: "Escape game" },
+        { label: "⛸️ Patinoire", cat: "Patinoire" },
+        { label: "🐟 Aquarium", cat: "Aquarium" },
+        { label: "👨‍👩‍👧 Resto familial", cat: "Restaurant familial" },
+      ],
+      culture: [
+        { label: "🎬 Cinéma", cat: "Cinema" },
+        { label: "🎭 Théâtre", cat: "Theatre" },
+        { label: "🏛️ Musée", cat: "Musee" },
+        { label: "🖼️ Exposition", cat: "Exposition" },
+        { label: "🏰 Monument", cat: "Monument historique" },
+        { label: "📚 Bibliothèque", cat: "Bibliotheque" },
+        { label: "🏛️ Visites guidées", cat: "Visites guidees" },
+        { label: "🎨 Galerie d'art", cat: "Galerie d'art" },
+      ],
+    };
+
+    function renderSubCatFilter(rubrique) {
+      if (!venuesSubCatFilter) return;
+      const subs = RUBRIQUE_SUBCATS[rubrique];
+      if (!subs) {
+        venuesSubCatFilter.style.display = "none";
+        venuesSubCatFilter.innerHTML = "";
+        return;
+      }
+      venuesSubCatFilter.style.display = "flex";
+      const pills = [
+        `<button type="button" class="rub-pill rub-pill-sub active" data-cat="">— Toutes —</button>`,
+        ...subs.map(s => `<button type="button" class="rub-pill rub-pill-sub" data-cat="${escapeHtml(s.cat)}"${s.catchAll ? ' data-catchall="1"' : ''}>${s.label}</button>`),
+      ];
+      venuesSubCatFilter.innerHTML = pills.join("");
+    }
 
     // Bascule la rubrique active. Met a jour l'etat visuel des pills + re-render.
     venuesRubriqueFilter?.addEventListener("click", (ev) => {
@@ -2563,6 +2634,21 @@
       if (!btn) return;
       currentRubriqueFilter = btn.dataset.rub || "";
       for (const p of venuesRubriqueFilter.querySelectorAll(".rub-pill")) {
+        p.classList.toggle("active", p === btn);
+      }
+      // Repopule les sous-pills selon la rubrique + reset le sous-filtre
+      currentSubCatFilter = "";
+      renderSubCatFilter(currentRubriqueFilter);
+      renderVenuesList();
+    });
+
+    // Sous-filtre dynamique (food/nuit/famille/culture) — pills generees par
+    // renderSubCatFilter, listener delegate.
+    venuesSubCatFilter?.addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".rub-pill");
+      if (!btn) return;
+      currentSubCatFilter = btn.dataset.cat || "";
+      for (const p of venuesSubCatFilter.querySelectorAll(".rub-pill")) {
         p.classList.toggle("active", p === btn);
       }
       renderVenuesList();
@@ -2741,11 +2827,30 @@
           : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
       }
       const photoBtn = `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
-      // Priorité d'affichage : éditable pour les établissements (liste Food)
-      // et les salles de sport (liste Sport) — colonne display_priority.
-      const prioCtrl = (f.source === "etablissements" || f.source === "sport_venues")
-        ? `<label class="venue-prio" title="Priorité d'affichage dans la rubrique — plus grand = plus haut dans la liste"><span>Prio</span><input type="number" data-role="prio-input" value="${Number(f.priority) || 0}" step="1" /></label>`
-        : "";
+      // Priorité d'affichage : éditable pour les établissements (food/night/
+      // famille/culture) et les salles de sport.
+      // - Si une sous-catégorie est active ET que la fiche est dans la bonne
+      //   rubrique ET que la sous-cat n'est pas un catch-all (ex: Restaurant),
+      //   on affiche/edite la priorité de cette sous-cat (priorities[cat]).
+      // - Sinon, on edite la display_priority globale.
+      let prioCtrl = "";
+      if (f.source === "etablissements" || f.source === "sport_venues") {
+        const sameRub = f.source === "etablissements"
+          && (f.rubrique || "").toLowerCase() === currentRubriqueFilter;
+        const isCatOverride = sameRub
+          && currentSubCatFilter
+          && !isCatchAllSubCat(currentRubriqueFilter, currentSubCatFilter);
+        const activeCat = isCatOverride ? currentSubCatFilter : "";
+        const val = isCatOverride
+          ? effectivePriority(f, activeCat)
+          : (Number(f.priority) || 0);
+        const lbl = isCatOverride ? `Prio ${activeCat}` : "Prio";
+        const title = isCatOverride
+          ? `Priorité d'affichage dans la catégorie ${activeCat} — laisse vide pour utiliser la priorité globale`
+          : "Priorité d'affichage globale (display_priority)";
+        const catAttr = isCatOverride ? ` data-cat="${escapeHtml(activeCat)}"` : "";
+        prioCtrl = `<label class="venue-prio" title="${escapeHtml(title)}"><span>${escapeHtml(lbl)}</span><input type="number" data-role="prio-input"${catAttr} value="${val}" step="1" /></label>`;
+      }
       // Pour les food etabs : bouton qui deplie les 5 inputs prio par cat.
       const isFoodEtab = f.source === "etablissements" && (f.rubrique || "").toLowerCase() === "food";
       const catPrioBtn = isFoodEtab
@@ -2789,6 +2894,49 @@
     // Filtre rubrique courant (pills "Tous / Food / Night / …"). Géré par
     // les boutons .rub-pill dans la barre #venues-rubrique-filter.
     let currentRubriqueFilter = "";
+    // Sous-filtre sous-catégorie (Guinguette, Discotheque, Cinema, etc).
+    let currentSubCatFilter = "";
+
+    // Catch-all = sous-pills qui n'imposent pas de filtre strict (juste un
+    // raccourci visuel). Ex : pill "Restaurant" en rubrique food. Lu depuis
+    // l'attribut data-catchall="1" sur la pill, mis dans RUBRIQUE_SUBCATS.
+    function isCatchAllSubCat(rubrique, cat) {
+      const subs = RUBRIQUE_SUBCATS[rubrique];
+      if (!subs) return false;
+      return subs.some(s => s.cat === cat && s.catchAll);
+    }
+
+    // Matche un etab vs une sous-categorie pour la rubrique active. Aligne
+    // sur l'app (RestaurantVenue.matchesTheme) : on accepte que la valeur
+    // soit dans le champ `theme` OU `categorie`.
+    function matchesSubCat(fiche, rubrique, cat) {
+      if (!cat) return true;
+      if (fiche.source !== "etablissements") return false;
+      if (isCatchAllSubCat(rubrique, cat)) {
+        return (fiche.rubrique || "").toLowerCase() === rubrique;
+      }
+      const needle = cat.toLowerCase();
+      const row = allEtabs.find(r => r.id === fiche.id);
+      if (!row) return false;
+      const t = (row.theme || "").toLowerCase();
+      const c = (row.categorie || "").toLowerCase();
+      return t === needle || c === needle;
+    }
+
+    // Priorite effective pour une categorie : priorities[cat] OR display_priority.
+    function effectivePriority(fiche, cat) {
+      if (fiche.source !== "etablissements") return fiche.priority || 0;
+      const row = allEtabs.find(r => r.id === fiche.id);
+      if (!row) return fiche.priority || 0;
+      const p = (row.priorities && typeof row.priorities === "object") ? row.priorities : {};
+      if (cat) {
+        const needle = cat.toLowerCase();
+        for (const k of Object.keys(p)) {
+          if (k.toLowerCase() === needle) return p[k];
+        }
+      }
+      return row.display_priority || 0;
+    }
 
     function renderVenuesList() {
       const all = unifiedFiches();
@@ -2811,6 +2959,9 @@
       if (currentRubriqueFilter) {
         filtered = filtered.filter(f => (f.rubrique || "").toLowerCase() === currentRubriqueFilter);
       }
+      if (currentSubCatFilter) {
+        filtered = filtered.filter(f => matchesSubCat(f, currentRubriqueFilter, currentSubCatFilter));
+      }
 
       venuesLoading.classList.add("hidden");
 
@@ -2827,11 +2978,14 @@
       }
       venuesEmpty.classList.add("hidden");
 
-      // Tri : priorité décroissante d'abord (reflète l'ordre de la rubrique
-      // Food), puis ceux qui ont déjà un code, puis alpha.
+      // Tri : priorite EFFECTIVE decroissante (override par categorie quand
+      // une sous-cat est selectionnee, sinon display_priority globale), puis
+      // ceux qui ont deja un code, puis alpha. Reflete l'ordre que verra
+      // l'utilisateur dans l'app pour cette categorie.
+      const cat = currentSubCatFilter;
       filtered.sort((a, b) => {
-        const pa = a.priority || 0;
-        const pb = b.priority || 0;
+        const pa = effectivePriority(a, cat);
+        const pb = effectivePriority(b, cat);
         if (pa !== pb) return pb - pa;
         const ac = a.code ? 0 : 1;
         const bc = b.code ? 0 : 1;
@@ -3239,7 +3393,8 @@
     });
 
     // Édition de la priorité d'affichage (établissements + salles de sport)
-    // — sauvegarde au blur.
+    // — sauvegarde au blur. Si l'input porte data-cat (ex: Guinguette), on
+    // patch priorities[cat] au lieu de display_priority (override par cat).
     venuesList.addEventListener("change", async (ev) => {
       const input = ev.target.closest('input[data-role="prio-input"]');
       if (!input) return;
@@ -3248,14 +3403,36 @@
       const source = item.dataset.source;
       if (source !== "etablissements" && source !== "sport_venues") return;
       const id = Number(item.dataset.id);
-      const priority = parseInt(input.value, 10) || 0;
-      input.value = priority;
+      const cat = input.dataset.cat || "";
+      const raw = input.value.trim();
+
       input.disabled = true;
+      let patch;
+      let toastMsg;
+      if (cat) {
+        // Override par catégorie : on merge dans le jsonb existant.
+        const row = allEtabs.find(r => r.id === id);
+        const existing = (row && row.priorities && typeof row.priorities === "object") ? {...row.priorities} : {};
+        if (raw === "") {
+          delete existing[cat];
+          toastMsg = `Override ${cat} retiré (fallback prio globale)`;
+        } else {
+          const n = parseInt(raw, 10) || 0;
+          existing[cat] = n;
+          toastMsg = `Priorité ${cat} = ${n} ✓`;
+        }
+        patch = { priorities: existing };
+      } else {
+        const priority = parseInt(raw, 10) || 0;
+        input.value = priority;
+        patch = { display_priority: priority };
+        toastMsg = `Priorité enregistrée (${priority})`;
+      }
       const { data, error } = await supabase
         .from(source)
-        .update({ display_priority: priority })
+        .update(patch)
         .eq("id", id)
-        .select("id");
+        .select("id, priorities, display_priority");
       input.disabled = false;
       if (error) {
         console.warn("[venue priority]", error);
@@ -3269,8 +3446,11 @@
       }
       const cache = source === "etablissements" ? allEtabs : allSportVenues;
       const row = cache.find(r => r.id === id);
-      if (row) row.display_priority = priority;
-      toast(`Priorité enregistrée (${priority})`, true);
+      if (row) {
+        if ("display_priority" in patch) row.display_priority = patch.display_priority;
+        if ("priorities" in patch) row.priorities = patch.priorities;
+      }
+      toast(toastMsg, true);
       renderVenuesList();
     });
 

@@ -15,6 +15,7 @@ class RestaurantVenue {
   final String lienMaps;
   final String photo;
   final List<String> photos;
+  final String videoUrl;
   final bool isVerified;
   final int displayPriority;
   // Override de priorite par categorie (clé = nom catégorie food, ex
@@ -40,6 +41,7 @@ class RestaurantVenue {
     required this.lienMaps,
     this.photo = '',
     this.photos = const [],
+    this.videoUrl = '',
     this.isVerified = false,
     this.displayPriority = 0,
     this.priorities = const {},

@@ -67,12 +67,18 @@ class RestaurantDetailSheet {
       photo: venue.photo,
       siteWeb: venue.websiteUrl,
       isVerified: venue.isVerified,
-      // On force food.mp4 pour les fiches non revendiquees : les categories
-      // food (Asiatique, Brunch, Guinguette…) sont trop variees pour etre
-      // matchees fiablement par mots-cles dans _defaultVideoUrlFor.
-      videoUrl: venue.isVerified ? '' : CommerceRowCard.defaultFoodVideo,
+      // 1) si une video a ete uploadee via admin (video_url en DB) → on la
+      //    prend, peu importe le statut verifie ;
+      // 2) sinon, fiche verifiee = pas de video (le pro decide) ;
+      // 3) sinon (fiche non revendiquee) → fallback food.mp4 par defaut.
+      videoUrl: venue.videoUrl.isNotEmpty
+          ? venue.videoUrl
+          : (venue.isVerified ? '' : CommerceRowCard.defaultFoodVideo),
       sourceId: hasNumericId ? venueIdInt : null,
-      sourceTable: hasNumericId ? 'etablissements' : null,
+      // Convention reviews/claim : SINGULIER. `_claimSourceTableFromSingular`
+      // côté commerce_row_card.dart se charge de convertir en pluriel pour
+      // les opérations SQL qui visent la table `etablissements`.
+      sourceTable: hasNumericId ? 'etablissement' : null,
       description: venue.description,
       photos: venue.photos,
     );
