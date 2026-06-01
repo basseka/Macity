@@ -67,5 +67,15 @@
 	</array>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Pulz utilise l'appareil photo pour vous permettre de signaler un événement en photo ou en vidéo.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Pulz utilise le micro lors de l'enregistrement vidéo d'un événement.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Pulz accède à vos photos pour partager un événement depuis votre galerie.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Pulz peut enregistrer une photo ou vidéo dans votre galerie.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Pulz utilise votre localisation pour vous montrer les événements et sorties proches.</string>
 </dict>
 </plist>
