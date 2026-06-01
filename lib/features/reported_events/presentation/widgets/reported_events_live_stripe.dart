@@ -216,7 +216,8 @@ class _LiveCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSeen = ref.watch(seenStoriesProvider).contains(event.id);
-    final hasPhoto = event.photos.isNotEmpty;
+    final cover = event.coverPhoto;
+    final hasPhoto = cover != null && cover.isNotEmpty;
     final title = event.generated?.title.isNotEmpty == true
         ? event.generated!.title
         : (event.rawTitle.isNotEmpty
@@ -235,7 +236,7 @@ class _LiveCard extends ConsumerWidget {
               // Photo de fond
               hasPhoto
                   ? CachedNetworkImage(
-                      imageUrl: event.firstPhoto!,
+                      imageUrl: cover,
                       fit: BoxFit.cover,
                       placeholder: (_, __) =>
                           Container(color: AppColors.surfaceHi),

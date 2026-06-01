@@ -32,6 +32,14 @@ class ReportedEvent {
   /// Videos courtes accumulees (10s max chacune).
   final List<String> videos;
 
+  /// Photo de pochette utilisee pour les bulles du carrousel map live et du
+  /// strip "En Direct" du home. Distincte de [photos] : si l'utilisateur a
+  /// poste une video, [coverUrl] contient une miniature extraite de cette
+  /// video (qui n'apparait PAS dans le viewer Snap-style).
+  /// Null pour les events legacy d'avant la migration cover_url ; dans ce
+  /// cas, utiliser [coverPhoto] qui fait le fallback sur [firstPhoto].
+  final String? coverUrl;
+
   /// Nombre de personnes distinctes qui ont signale cet event.
   /// 1 = uniquement le reporter original, >1 = signalements communautaires.
   final int reportCount;
@@ -75,6 +83,7 @@ class ReportedEvent {
     this.osmId,
     this.photos = const [],
     this.videos = const [],
+    this.coverUrl,
     this.reportCount = 1,
     this.reporterIds = const [],
     this.reporterPrenom,
@@ -94,6 +103,11 @@ class ReportedEvent {
   /// Premiere photo disponible, ou null.
   /// Utilise pour l'affichage rapide dans la carte poster.
   String? get firstPhoto => photos.isNotEmpty ? photos.first : null;
+
+  /// Pochette pour les bulles carrousel/strip. Prefere [coverUrl] (miniature
+  /// vidéo ou photo dediee) puis fallback sur [firstPhoto] pour les events
+  /// legacy d'avant la migration cover_url.
+  String? get coverPhoto => coverUrl ?? firstPhoto;
 
   /// Le signalement a-t-il ete corrobore par plusieurs users ?
   bool get isCommunityConfirmed => reportCount >= 2;
@@ -159,6 +173,9 @@ class ReportedEvent {
           : (json['video_url'] is String && (json['video_url'] as String).isNotEmpty)
               ? [json['video_url'] as String]
               : const <String>[],
+      coverUrl: (json['cover_url'] is String && (json['cover_url'] as String).isNotEmpty)
+          ? json['cover_url'] as String
+          : null,
       reportCount: (json['report_count'] as num?)?.toInt() ?? 1,
       reporterIds: reporterIdsRaw is List
           ? reporterIdsRaw.map((e) => e.toString()).toList()

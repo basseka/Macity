@@ -51,7 +51,7 @@ class ReportedEventPosterCard extends StatelessWidget {
     final g = event.generated;
     final from = _parseHex(g?.gradientFrom) ?? const Color(0xFF7C3AED);
     final to = _parseHex(g?.gradientTo) ?? const Color(0xFFEC4899);
-    final firstPhoto = event.firstPhoto;
+    final firstPhoto = event.coverPhoto;
     final hasPhoto = firstPhoto != null && firstPhoto.isNotEmpty;
 
     final titleFontSize = isUltra ? 10.0 : (isCompact ? 12.0 : 14.0);
@@ -301,7 +301,7 @@ class ReportedEventPosterCard extends StatelessWidget {
     final g = event.generated;
     final from = _parseHex(g?.gradientFrom) ?? const Color(0xFFA855F7);
     final to = _parseHex(g?.gradientTo) ?? const Color(0xFFFF3D8B);
-    final firstPhoto = event.firstPhoto;
+    final firstPhoto = event.coverPhoto;
     final hasPhoto = firstPhoto != null && firstPhoto.isNotEmpty;
 
     // Taille effective : on utilise min(w,h) pour garantir un cercle parfait.

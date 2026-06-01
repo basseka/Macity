@@ -13,6 +13,7 @@ import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:video_compress/video_compress.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 
 /// Resultat de la soumission d'un signalement.
@@ -264,10 +265,35 @@ class ReportedEventsService {
     }
 
     String? videoUrl;
+    String? coverUrl;
     if (localVideoPath != null && localVideoPath.isNotEmpty) {
       videoUrl = await _uploadVideoLight(localVideoPath);
       if (videoUrl == null) {
         debugPrint('[ReportedEvents] video upload returned null, continuing without video');
+      }
+
+      // Pas de photo postee -> on extrait une miniature de la video pour
+      // servir de pochette aux bulles du carrousel/strip. Cette miniature
+      // est stockee dans `cover_url` cote DB, PAS dans photos[] -> elle
+      // n'apparait donc pas dans le viewer Snap-style (qui itere sur
+      // photos + videos).
+      if (photoUrls.isEmpty) {
+        try {
+          final thumbPath = await VideoThumbnail.thumbnailFile(
+            video: localVideoPath,
+            imageFormat: ImageFormat.JPEG,
+            maxWidth: 1080,
+            quality: 85,
+          );
+          if (thumbPath != null) {
+            coverUrl = await _uploadPhotoLight(thumbPath);
+            if (coverUrl != null) {
+              debugPrint('[ReportedEvents] cover uploaded from video thumbnail: $coverUrl');
+            }
+          }
+        } catch (e) {
+          debugPrint('[ReportedEvents] cover thumbnail extraction failed: $e');
+        }
       }
     }
 
@@ -278,6 +304,8 @@ class ReportedEventsService {
     // La RPC l'utilisera si pas de merge, sinon elle ignore ce id.
     final clientId = const Uuid().v4();
     final firstPhotoUrl = photoUrls.isNotEmpty ? photoUrls.first : null;
+    // Cover : miniature extraite si video-only, sinon 1ere photo postee.
+    final effectiveCoverUrl = coverUrl ?? firstPhotoUrl;
 
     final payload = {
       'p_id': clientId,
@@ -289,6 +317,7 @@ class ReportedEventsService {
       'p_photo_url': firstPhotoUrl,
       'p_video_url': videoUrl,
       'p_osm_id': (osmId != null && osmId.isNotEmpty) ? osmId : null,
+      'p_cover_url': effectiveCoverUrl,
     };
     debugPrint('[ReportedEvents] rpc payload: $payload');
 
