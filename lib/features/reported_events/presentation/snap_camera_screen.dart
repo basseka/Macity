@@ -84,7 +84,7 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
     _camCtrl?.dispose();
     _camCtrl = CameraController(
       _cameras[index],
-      ResolutionPreset.high,
+      ResolutionPreset.veryHigh,
       enableAudio: true,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );

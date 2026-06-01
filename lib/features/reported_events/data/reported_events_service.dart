@@ -13,7 +13,6 @@ import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:video_compress/video_compress.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 
 /// Resultat de la soumission d'un signalement.
@@ -84,15 +83,14 @@ class ReportedEventsService {
         return null;
       }
 
-      // Compression JPEG 1024px / quality 80 : garantit un payload leger
-      // meme quand ImagePicker n'a pas applique ses contraintes (HEIC iOS,
-      // certains chemins gallery). Sans ca, des photos plein cadre (~3-8 MB)
-      // peuvent timeout en upload sur reseau lent et silencieusement disparaitre.
+      // Compression JPEG 1440px / quality 90 : preset "qualite elevee equilibree".
+      // Convertit aussi le HEIC iOS et garantit un payload < 1.5 MB meme sur
+      // photo plein cadre.
       Uint8List? bytes = await FlutterImageCompress.compressWithFile(
         localPath,
-        minWidth: 1024,
-        minHeight: 1024,
-        quality: 80,
+        minWidth: 1440,
+        minHeight: 1440,
+        quality: 90,
         format: CompressFormat.jpeg,
       );
       bytes ??= await file.readAsBytes();
@@ -102,8 +100,8 @@ class ReportedEventsService {
         debugPrint('[ReportedEvents] photo empty, skipping');
         return null;
       }
-      // Garde-fou : refuse > 5 MB (ne devrait jamais arriver apres compression)
-      if (bytes.length > 5 * 1024 * 1024) {
+      // Garde-fou : refuse > 8 MB (ne devrait jamais arriver apres compression)
+      if (bytes.length > 8 * 1024 * 1024) {
         debugPrint('[ReportedEvents] photo too large after compression: ${bytes.length} bytes');
         return null;
       }
@@ -149,15 +147,14 @@ class ReportedEventsService {
       if (!await file.exists()) return null;
 
       // Compression AVANT lecture des bytes : une video camera brute
-      // (ResolutionPreset.high, 10s) pese souvent 15-25 MB -> elle depassait
-      // le garde-fou 20 MB ou le timeout d'upload sur reseau mobile, et etait
-      // silencieusement abandonnee (videos vide en DB, seul le thumbnail
-      // restait visible). LowQuality ramene a ~1-3 MB.
+      // (ResolutionPreset.veryHigh, 10s) pese souvent 25-50 MB.
+      // Res1280x720Quality ramene a ~4-8 MB tout en gardant une qualite
+      // visuelle "Snapchat moderne".
       Uint8List bytes;
       try {
         final info = await VideoCompress.compressVideo(
           localPath,
-          quality: VideoQuality.LowQuality,
+          quality: VideoQuality.Res1280x720Quality,
           deleteOrigin: false,
         );
         if (info?.file != null) {
@@ -171,8 +168,8 @@ class ReportedEventsService {
         bytes = await file.readAsBytes();
       }
       if (bytes.isEmpty) return null;
-      // Garde-fou : refuse > 20 MB (apres compression : ne devrait jamais arriver)
-      if (bytes.length > 20 * 1024 * 1024) {
+      // Garde-fou : refuse > 30 MB (apres compression : ne devrait jamais arriver)
+      if (bytes.length > 30 * 1024 * 1024) {
         debugPrint('[ReportedEvents] video too large after compression: ${bytes.length} bytes');
         return null;
       }
@@ -188,12 +185,12 @@ class ReportedEventsService {
             data: bytes,
             options: Options(
               headers: {'Content-Type': 'video/mp4'},
-              sendTimeout: const Duration(seconds: 30),
-              receiveTimeout: const Duration(seconds: 30),
+              sendTimeout: const Duration(seconds: 60),
+              receiveTimeout: const Duration(seconds: 60),
             ),
           )
           .timeout(
-        const Duration(seconds: 30),
+        const Duration(seconds: 60),
         onTimeout: () {
           debugPrint('[ReportedEvents] video upload timeout');
           throw TimeoutException('Video upload timeout');
@@ -271,27 +268,6 @@ class ReportedEventsService {
       videoUrl = await _uploadVideoLight(localVideoPath);
       if (videoUrl == null) {
         debugPrint('[ReportedEvents] video upload returned null, continuing without video');
-      }
-
-      // Si pas de photo, extraire un thumbnail de la video comme photo
-      if (photoUrls.isEmpty) {
-        try {
-          final thumbPath = await VideoThumbnail.thumbnailFile(
-            video: localVideoPath,
-            imageFormat: ImageFormat.JPEG,
-            maxWidth: 800,
-            quality: 70,
-          );
-          if (thumbPath != null) {
-            final thumbUrl = await _uploadPhotoLight(thumbPath);
-            if (thumbUrl != null) {
-              photoUrls.add(thumbUrl);
-              debugPrint('[ReportedEvents] video thumbnail uploaded: $thumbUrl');
-            }
-          }
-        } catch (e) {
-          debugPrint('[ReportedEvents] thumbnail extraction failed: $e');
-        }
       }
     }
 
