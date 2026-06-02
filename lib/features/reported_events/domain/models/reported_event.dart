@@ -40,6 +40,11 @@ class ReportedEvent {
   /// cas, utiliser [coverPhoto] qui fait le fallback sur [firstPhoto].
   final String? coverUrl;
 
+  /// Story marquee privee : visible uniquement par son reporter (filtrage
+  /// cote requete via or=(is_private.eq.false,reported_by.eq.<uuid>)).
+  /// Utilise pour valider le comportement sans polluer le feed des autres.
+  final bool isPrivate;
+
   /// Nombre de personnes distinctes qui ont signale cet event.
   /// 1 = uniquement le reporter original, >1 = signalements communautaires.
   final int reportCount;
@@ -84,6 +89,7 @@ class ReportedEvent {
     this.photos = const [],
     this.videos = const [],
     this.coverUrl,
+    this.isPrivate = false,
     this.reportCount = 1,
     this.reporterIds = const [],
     this.reporterPrenom,
@@ -176,6 +182,7 @@ class ReportedEvent {
       coverUrl: (json['cover_url'] is String && (json['cover_url'] as String).isNotEmpty)
           ? json['cover_url'] as String
           : null,
+      isPrivate: (json['is_private'] as bool?) ?? false,
       reportCount: (json['report_count'] as num?)?.toInt() ?? 1,
       reporterIds: reporterIdsRaw is List
           ? reporterIdsRaw.map((e) => e.toString()).toList()

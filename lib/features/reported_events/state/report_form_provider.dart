@@ -29,6 +29,9 @@ class ReportFormState {
   final bool isLocating;
   final bool isSubmitting;
   final String? error;
+  /// Story marquee privee : visible uniquement par moi (device UUID).
+  /// Utilise pour valider le comportement sans polluer le feed des autres.
+  final bool isPrivate;
 
   const ReportFormState({
     this.lat,
@@ -42,6 +45,7 @@ class ReportFormState {
     this.isLocating = false,
     this.isSubmitting = false,
     this.error,
+    this.isPrivate = false,
   });
 
   // Plus besoin de titre ni de catégorie pour publier une story Map Live :
@@ -62,6 +66,7 @@ class ReportFormState {
     bool? isLocating,
     bool? isSubmitting,
     String? error,
+    bool? isPrivate,
     bool clearError = false,
     bool clearOsmId = false,
   }) {
@@ -77,6 +82,7 @@ class ReportFormState {
       isLocating: isLocating ?? this.isLocating,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       error: clearError ? null : (error ?? this.error),
+      isPrivate: isPrivate ?? this.isPrivate,
     );
   }
 }
@@ -270,6 +276,7 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
   void setTitle(String t) => state = state.copyWith(rawTitle: t);
   void setLocationName(String n) => state = state.copyWith(locationName: n);
   void setVideo(String path) => state = state.copyWith(localVideoPath: path);
+  void setIsPrivate(bool v) => state = state.copyWith(isPrivate: v);
   void setPin(double lat, double lng) =>
       state = state.copyWith(lat: lat, lng: lng);
 
@@ -401,6 +408,7 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         localVideoPath: state.localVideoPath,
         locationName: state.locationName.trim(),
         osmId: state.osmId,
+        isPrivate: state.isPrivate,
       );
       debugPrint('[ReportForm] submit success id=${result.id} '
           'photoFailures=${result.photoFailures}');

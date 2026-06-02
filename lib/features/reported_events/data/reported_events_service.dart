@@ -228,6 +228,7 @@ class ReportedEventsService {
     String? localVideoPath,
     String locationName = '',
     String? osmId,
+    bool isPrivate = false,
   }) async {
     // Yield au scheduler avant les operations lourdes pour eviter ANR
     await Future<void>.delayed(Duration.zero);
@@ -318,6 +319,7 @@ class ReportedEventsService {
       'p_video_url': videoUrl,
       'p_osm_id': (osmId != null && osmId.isNotEmpty) ? osmId : null,
       'p_cover_url': effectiveCoverUrl,
+      'p_is_private': isPrivate,
     };
     debugPrint('[ReportedEvents] rpc payload: $payload');
 
@@ -473,10 +475,14 @@ class ReportedEventsService {
   /// retourne les 50 signalements les plus recents toutes villes confondues.
   Future<List<ReportedEvent>> fetchActive({String? ville}) async {
     final nowIso = DateTime.now().toUtc().toIso8601String();
+    final userId = await UserIdentityService.getUserId();
     final query = <String, String>{
       'select': '*',
       'status': 'in.(published,ai_generating)',
       'expires_at': 'gt.$nowIso',
+      // Stories privees : visibles uniquement par leur reporter (device UUID).
+      // PostgREST `or=(...)` cree un OR : public OU bien la mienne.
+      'or': '(is_private.eq.false,reported_by.eq.$userId)',
       'order': 'created_at.desc',
       'limit': '1000',
     };
