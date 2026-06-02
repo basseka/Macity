@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter/services.dart';
@@ -334,65 +335,68 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
                         maxLength: 80,
                       ),
                     ),
-                    const SizedBox(height: 8),
-
-                    // Toggle "Story de test" : visible uniquement par moi
-                    // (filtre PostgREST or=(is_private.eq.false,
-                    // reported_by.eq.<device_uuid>)). Utile pour valider
-                    // sans polluer le feed des autres users.
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: state.isPrivate
-                            ? const Color(0xFFDC2626).withValues(alpha: 0.15)
-                            : const Color(0xFF1A1A1A),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
+                    // Toggle "Story de test" : visible uniquement par moi.
+                    // Gate sur kDebugMode -> le toggle DISPARAIT en build
+                    // release (Play Store / TestFlight) : les users prod
+                    // ne le verront jamais et posteront toujours publique.
+                    // Reste visible quand tu lances en debug (flutter run)
+                    // pour valider le comportement.
+                    if (kDebugMode) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 4),
+                        decoration: BoxDecoration(
                           color: state.isPrivate
-                              ? const Color(0xFFDC2626)
-                              : Colors.grey.shade800,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            state.isPrivate
-                                ? Icons.lock_rounded
-                                : Icons.lock_open_rounded,
-                            size: 18,
+                              ? const Color(0xFFDC2626).withValues(alpha: 0.15)
+                              : const Color(0xFF1A1A1A),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
                             color: state.isPrivate
                                 ? const Color(0xFFDC2626)
-                                : Colors.white70,
+                                : Colors.grey.shade800,
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
                               state.isPrivate
-                                  ? 'Story de test (visible que par moi)'
-                                  : 'Story de test',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
+                                  ? Icons.lock_rounded
+                                  : Icons.lock_open_rounded,
+                              size: 18,
+                              color: state.isPrivate
+                                  ? const Color(0xFFDC2626)
+                                  : Colors.white70,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                state.isPrivate
+                                    ? 'Story de test (visible que par moi)'
+                                    : 'Story de test',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                          ),
-                          Transform.scale(
-                            scale: 0.85,
-                            child: Switch(
-                              value: state.isPrivate,
-                              onChanged: state.isSubmitting
-                                  ? null
-                                  : (v) => ref
-                                      .read(reportFormProvider.notifier)
-                                      .setIsPrivate(v),
-                              activeThumbColor: const Color(0xFFDC2626),
+                            Transform.scale(
+                              scale: 0.85,
+                              child: Switch(
+                                value: state.isPrivate,
+                                onChanged: state.isSubmitting
+                                    ? null
+                                    : (v) => ref
+                                        .read(reportFormProvider.notifier)
+                                        .setIsPrivate(v),
+                                activeThumbColor: const Color(0xFFDC2626),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 12),
 
                     // Annuler + Publier
