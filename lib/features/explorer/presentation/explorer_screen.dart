@@ -6,7 +6,7 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_city_header.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
-import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
+import 'package:pulz_app/features/offers/presentation/offer_detail_screen.dart';
 import 'package:pulz_app/features/offers/state/offers_provider.dart';
 
 /// Ecran "Explorer" — feed des offres.
@@ -57,19 +57,19 @@ class ExplorerScreen extends ConsumerWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: 'Toutes les ',
+                              text: 'Toutes les offres premium par ',
                               style: EditorialText.displayTitle()
-                                  .copyWith(fontSize: 24),
+                                  .copyWith(fontSize: 22),
                             ),
                             TextSpan(
-                              text: 'offres',
+                              text: 'BeThere',
                               style: EditorialText.sectionItalic(
                                 color: EditorialColors.gold,
-                              ).copyWith(fontSize: 24),
+                              ).copyWith(fontSize: 22),
                             ),
                           ],
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -158,7 +158,11 @@ class ExplorerScreen extends ConsumerWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, i) => _OfferCard(
                   offer: offers[i],
-                  onTap: () => OfferCodePopup.show(context, offers[i]),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => OfferDetailScreen(offer: offers[i]),
+                    ),
+                  ),
                 ),
                 childCount: offers.length,
               ),
