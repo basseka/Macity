@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
-import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
+import 'package:pulz_app/features/offers/presentation/my_offers_screen.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/private_events/presentation/my_invitations_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
@@ -275,21 +275,6 @@ class AccountMenu {
         const SizedBox(height: 5),
         _menuItem(
           ctx: ctx,
-          icon: Icons.auto_awesome_rounded,
-          label: 'Scanner un flyer (IA)',
-          subtitle: 'Pre-remplit l\'event depuis une photo',
-          gradientColors: const [Color(0xFF7C3AED), Color(0xFFEC4899)],
-          onTap: () {
-            Navigator.pop(ctx);
-            AddEventBottomSheet.triggerScanFlow(
-              context: rootContext,
-              ref: ref,
-            );
-          },
-        ),
-        const SizedBox(height: 5),
-        _menuItem(
-          ctx: ctx,
           icon: Icons.local_offer_rounded,
           label: 'Creer une offre',
           subtitle: 'Publier une offre promotionnelle',
@@ -302,6 +287,22 @@ class AccountMenu {
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
               builder: (_) => const AddOfferBottomSheet(),
+            );
+          },
+        ),
+        const SizedBox(height: 5),
+        _menuItem(
+          ctx: ctx,
+          icon: Icons.list_alt_rounded,
+          label: 'Mes offres',
+          subtitle: 'Voir, modifier ou supprimer',
+          gradientColors: const [Color(0xFFE91E8C), Color(0xFFFF6EB4)],
+          onTap: () {
+            Navigator.pop(ctx);
+            Navigator.of(rootContext).push(
+              MaterialPageRoute(
+                builder: (_) => const MyOffersScreen(),
+              ),
             );
           },
         ),

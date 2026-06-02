@@ -14,7 +14,15 @@ import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 class AddOfferBottomSheet extends ConsumerStatefulWidget {
   final String? initialPhotoPath;
 
-  const AddOfferBottomSheet({super.key, this.initialPhotoPath});
+  /// Si fourni, on est en mode EDITION : champs preremplis depuis cette offre
+  /// et la soumission appelle updateOffer au lieu d'insertOffer.
+  final Offer? existing;
+
+  const AddOfferBottomSheet({
+    super.key,
+    this.initialPhotoPath,
+    this.existing,
+  });
 
   @override
   ConsumerState<AddOfferBottomSheet> createState() =>
@@ -31,15 +39,28 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
 
   DateTime? _expiresAt;
   String? _photoPath;
+  String? _existingImageUrl;
   bool _isSubmitting = false;
 
   static const _primaryColor = Color(0xFF7B2D8E);
   static const _primaryDarkColor = Color(0xFF4A1259);
 
+  bool get _isEditing => widget.existing != null;
+
   @override
   void initState() {
     super.initState();
     _photoPath = widget.initialPhotoPath;
+    final existing = widget.existing;
+    if (existing != null) {
+      _titleController.text = existing.title;
+      _descriptionController.text = existing.description;
+      _emojiController.text = existing.emoji;
+      _addressController.text = existing.businessAddress;
+      _spotsController.text = existing.totalSpots.toString();
+      _expiresAt = existing.expiresAt;
+      _existingImageUrl = existing.imageUrl;
+    }
   }
 
   @override
@@ -54,6 +75,15 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final proState = ref.watch(proAuthProvider);
+    final profile = proState.profile;
+
+    // Gate : un pro non encore approuve ne peut pas publier d'offres.
+    // L'admin valide manuellement via admin.html apres appel telephonique.
+    if (profile == null || !profile.approved) {
+      return _PendingApprovalSheet(hasProfile: profile != null);
+    }
+
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -84,9 +114,9 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               const SizedBox(height: 12),
 
               // Title
-              const Text(
-                'Creer une offre',
-                style: TextStyle(
+              Text(
+                _isEditing ? 'Modifier l\'offre' : 'Creer une offre',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: _primaryDarkColor,
@@ -281,9 +311,9 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'Publier',
-                        style: TextStyle(
+                    : Text(
+                        _isEditing ? 'Enregistrer' : 'Publier',
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
@@ -396,37 +426,51 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
       final profile = proState.profile;
       final city = ref.read(selectedCityProvider);
 
+      // Si nouvelle photo locale -> upload. Sinon on garde l'URL existante
+      // (mode edition sans changement de photo).
       String? imageUrl;
       if (_photoPath != null) {
         imageUrl = await service.uploadPhoto(_photoPath!);
+      } else if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
+        imageUrl = _existingImageUrl;
       }
 
+      final existing = widget.existing;
       final offer = Offer(
-        id: '',
-        proProfileId: profile?.id ?? '',
-        businessName: profile?.nom ?? '',
+        id: existing?.id ?? '',
+        proProfileId: existing?.proProfileId ?? profile?.id ?? '',
+        businessName: existing?.businessName ?? profile?.nom ?? '',
         businessAddress: _addressController.text.trim(),
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         emoji: _emojiController.text.trim(),
         imageUrl: imageUrl ?? '',
         totalSpots: int.tryParse(_spotsController.text.trim()) ?? 10,
-        startsAt: DateTime.now(),
+        claimedSpots: existing?.claimedSpots ?? 0,
+        startsAt: existing?.startsAt ?? DateTime.now(),
         expiresAt: _expiresAt ?? DateTime.now().add(const Duration(days: 7)),
-        city: city,
-        createdAt: DateTime.now(),
+        isActive: existing?.isActive ?? true,
+        city: existing?.city ?? city,
+        createdAt: existing?.createdAt ?? DateTime.now(),
       );
 
-      await service.insertOffer(offer);
+      if (_isEditing) {
+        await service.updateOffer(offer);
+      } else {
+        await service.insertOffer(offer);
+      }
 
-      // Rafraichir le provider
+      // Rafraichir les providers (active + mes offres)
       ref.invalidate(activeOffersProvider);
+      ref.invalidate(myOffersProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Offre publiee avec succes !'),
-            backgroundColor: Color(0xFF7B2D8E),
+          SnackBar(
+            content: Text(_isEditing
+                ? 'Offre modifiee avec succes !'
+                : 'Offre publiee avec succes !'),
+            backgroundColor: const Color(0xFF7B2D8E),
           ),
         );
         Navigator.of(context).pop();
@@ -445,5 +489,96 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+}
+
+/// Affiche quand un pro non encore approuve tente de creer une offre.
+/// Le compte est soit en cours de validation manuelle par l'admin (appel
+/// telephonique avant approbation), soit non connecte du tout.
+class _PendingApprovalSheet extends StatelessWidget {
+  final bool hasProfile;
+
+  const _PendingApprovalSheet({required this.hasProfile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(28, 16, 28, 32),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.lineStrong,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: const Color(0xFF7B2D8E).withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.hourglass_top_rounded,
+              color: Color(0xFF7B2D8E),
+              size: 36,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            hasProfile
+                ? 'Compte en cours de validation'
+                : 'Connexion pro requise',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1A0A2E),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            hasProfile
+                ? 'Ton compte pro est bien créé. Notre équipe va t\'appeler très bientôt au numéro renseigné pour valider ton inscription. Tu pourras publier des offres dès que ton compte sera approuvé.'
+                : 'Tu dois être connecté avec un compte pro approuvé pour publier une offre.',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textFaint,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7B2D8E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

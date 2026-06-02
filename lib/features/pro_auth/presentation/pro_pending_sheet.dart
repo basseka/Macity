@@ -20,6 +20,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
 
   final _codeController = TextEditingController();
   bool _isResending = false;
+  bool _codeVerified = false;
 
   @override
   void dispose() {
@@ -38,7 +39,14 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
       );
       return;
     }
-    await ref.read(proAuthProvider.notifier).verifyCode(code);
+    final ok = await ref.read(proAuthProvider.notifier).verifyCode(code);
+    if (!mounted) return;
+    if (ok) {
+      // Code valide : l'email est verifie cote DB (approval_code clear).
+      // Mais le compte reste approved=false : l'admin doit valider via
+      // admin.html apres appel telephonique. On affiche un ecran d'attente.
+      setState(() => _codeVerified = true);
+    }
   }
 
   Future<void> _resend() async {
@@ -72,9 +80,10 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
 
     ref.listen<ProAuthState>(proAuthProvider, (prev, next) {
       if (next.status == ProAuthStatus.approved) {
+        // L'admin a valide via admin.html pendant qu'on etait sur l'ecran.
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Compte verifie ! Bienvenue sur MaCity'),
+            content: Text('Compte approuve ! Bienvenue sur MaCity'),
             backgroundColor: _primaryColor,
           ),
         );
@@ -84,6 +93,16 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
         Navigator.of(context).pop();
       }
     });
+
+    // Apres une saisie reussie du code email, on affiche un ecran "en
+    // cours de validation par l'admin" plutot que de fermer la sheet
+    // (le compte reste approved=false tant que l'admin n'a pas valide).
+    if (_codeVerified) {
+      return _AwaitingAdminApprovalView(
+        email: email,
+        onClose: () => Navigator.of(context).pop(),
+      );
+    }
 
     return Container(
       padding: EdgeInsets.only(
@@ -266,6 +285,115 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
                   fontSize: 12,
                   color: Colors.grey,
                   decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Ecran affiche apres une saisie reussie du code email : le code etait
+/// bon (email verifie cote DB), mais le compte attend la validation
+/// manuelle de l'admin par telephone via admin.html.
+class _AwaitingAdminApprovalView extends StatelessWidget {
+  static const _primaryColor = Color(0xFF7B2D8E);
+  static const _primaryDarkColor = Color(0xFF4A1259);
+
+  final String email;
+  final VoidCallback onClose;
+
+  const _AwaitingAdminApprovalView({
+    required this.email,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(28, 16, 28, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _primaryColor.withValues(alpha: 0.1),
+              ),
+              child: const Icon(
+                Icons.hourglass_top_rounded,
+                size: 36,
+                color: _primaryColor,
+              ),
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'Email verifie !',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: _primaryDarkColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Compte en cours de validation',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: _primaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Notre equipe va t\'appeler tres bientot au numero que tu as renseigne pour finaliser la validation de ton compte.\n\nUne fois ton compte approuve, tu pourras publier des offres et acceder a toutes les fonctionnalites pro.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 22),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: ElevatedButton(
+                onPressed: onClose,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'OK, j\'attends l\'appel',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
               ),
             ),

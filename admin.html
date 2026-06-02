@@ -924,6 +924,7 @@
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
           <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
+          <span class="nav-btn" id="goto-pros-btn">👔 Pros <span id="pros-pending-badge" style="display:none; background:#DC2626; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
         </div>
       </div>
 
@@ -1528,6 +1529,23 @@
         </div>
         <div id="insp-list"></div>
       </div>
+
+      <!-- ═══ VUE PROS ═══ -->
+      <div id="pros-view" class="hidden">
+        <h1>👔 Comptes pros</h1>
+        <p class="subtitle">Liste des pros inscrits. Avant d'approuver, <strong>appelle</strong> au numéro indiqué pour vérifier l'identité et l'activité. Une fois approuvé, le pro peut publier des offres.</p>
+
+        <!-- Filtres -->
+        <div style="display:flex; gap:8px; margin:16px 0; flex-wrap:wrap;">
+          <button type="button" class="rub-pill active" data-pro-filter="pending">⏳ En attente</button>
+          <button type="button" class="rub-pill" data-pro-filter="approved">✅ Approuvés</button>
+          <button type="button" class="rub-pill" data-pro-filter="all">Tous</button>
+        </div>
+
+        <div id="pros-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="pros-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun pro dans cette catégorie.</div>
+        <div id="pros-list"></div>
+      </div>
     </div>
   </div>
 
@@ -1538,7 +1556,7 @@
 
     const SUPABASE_URL = "https://dpqxefmwjfvoysacwgef.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwcXhlZm13amZ2b3lzYWN3Z2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyOTkxMTgsImV4cCI6MjA4NTg3NTExOH0.xzNidmrcNsUhpsTFcaaL_lXtHcx_MWzQHCPF7kY5i90";
-    const ADMIN_EMAILS = ["basseka@yahoo.fr", "djellalisr@gmail.com"];
+    const ADMIN_EMAILS = ["basseka@yahoo.fr"];
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -2502,6 +2520,8 @@
     const gotoBannersBtn = document.getElementById("goto-banners-btn");
     const inspirationsView = document.getElementById("inspirations-view");
     const gotoInspirationsBtn = document.getElementById("goto-inspirations-btn");
+    const prosView = document.getElementById("pros-view");
+    const gotoProsBtn = document.getElementById("goto-pros-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -2509,11 +2529,13 @@
       venuesView.classList.add("hidden");
       bannersView.classList.add("hidden");
       inspirationsView.classList.add("hidden");
+      prosView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
       gotoBannersBtn.style.display = "inline-flex";
       gotoInspirationsBtn.style.display = "inline-flex";
+      gotoProsBtn.style.display = "inline-flex";
     }
     function showFormView() {
       _hideAllViews();
@@ -2549,11 +2571,141 @@
       refreshInspirationsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
+    function showProsView() {
+      _hideAllViews();
+      prosView.classList.remove("hidden");
+      gotoProsBtn.style.display = "none";
+      refreshProsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     gotoEventsBtn.addEventListener("click", showEventsView);
     gotoFormBtn.addEventListener("click", showFormView);
     gotoVenuesBtn.addEventListener("click", showVenuesView);
     gotoBannersBtn.addEventListener("click", showBannersView);
     gotoInspirationsBtn.addEventListener("click", showInspirationsView);
+    gotoProsBtn.addEventListener("click", showProsView);
+
+    // ─── Onglet Pros : liste pros + actions approve/revoke ───
+    let _allPros = [];
+    let _proFilter = "pending"; // pending | approved | all
+    const prosLoading = document.getElementById("pros-loading");
+    const prosEmpty = document.getElementById("pros-empty");
+    const prosList = document.getElementById("pros-list");
+    const prosPendingBadge = document.getElementById("pros-pending-badge");
+
+    document.querySelectorAll("[data-pro-filter]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-pro-filter]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        _proFilter = btn.dataset.proFilter;
+        renderProsList();
+      });
+    });
+
+    async function refreshProsView() {
+      prosLoading.classList.remove("hidden");
+      prosEmpty.classList.add("hidden");
+      prosList.innerHTML = "";
+      try {
+        // RPC SECURITY DEFINER avec check email admin interne (is_admin_user).
+        const { data, error } = await supabase.rpc("admin_list_all_pros");
+        if (error) throw error;
+        _allPros = data || [];
+        updateProsPendingBadge();
+        renderProsList();
+      } catch (e) {
+        console.error("[Pros] load failed", e);
+        prosList.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur chargement : ${e.message}</div>`;
+      } finally {
+        prosLoading.classList.add("hidden");
+      }
+    }
+
+    function updateProsPendingBadge() {
+      const pending = _allPros.filter(p => !p.approved).length;
+      if (pending > 0) {
+        prosPendingBadge.textContent = pending;
+        prosPendingBadge.style.display = "inline-block";
+      } else {
+        prosPendingBadge.style.display = "none";
+      }
+    }
+
+    function renderProsList() {
+      const filtered = _allPros.filter(p => {
+        if (_proFilter === "pending") return !p.approved;
+        if (_proFilter === "approved") return p.approved;
+        return true;
+      });
+      if (filtered.length === 0) {
+        prosEmpty.classList.remove("hidden");
+        prosList.innerHTML = "";
+        return;
+      }
+      prosEmpty.classList.add("hidden");
+      prosList.innerHTML = filtered.map(p => {
+        const emailVerified = !p.approval_code; // code clear = email verified
+        const dateInsc = new Date(p.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+        const safeEmail = String(p.email).replace(/'/g, "\\'");
+        const actionBtn = p.approved
+          ? `<button type="button" class="banner-save-btn" style="background:#DC2626;" data-revoke="${safeEmail}">Révoquer</button>`
+          : `<button type="button" class="banner-save-btn" data-approve="${safeEmail}">Approuver</button>`;
+        return `
+          <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;">
+              <div style="flex:1; min-width:260px;">
+                <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                  <strong style="font-size:16px;">${escapeHtml(p.nom)}</strong>
+                  <span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(124,45,142,0.2); color:#A855F7;">${escapeHtml(p.type)}</span>
+                  ${p.approved
+                    ? '<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(16,185,129,0.2); color:#10B981;">✓ Approuvé</span>'
+                    : '<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(245,158,11,0.2); color:#F59E0B;">⏳ En attente</span>'}
+                  ${emailVerified
+                    ? '<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(59,130,246,0.15); color:#3B82F6;">📧 Email vérifié</span>'
+                    : '<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(120,120,120,0.2); color:var(--text-dim);">📧 Email non vérifié</span>'}
+                </div>
+                <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
+                  📧 <a href="mailto:${escapeHtml(p.email)}" style="color:#A855F7;">${escapeHtml(p.email)}</a><br>
+                  📞 <a href="tel:${escapeHtml(p.telephone)}" style="color:#A855F7;">${escapeHtml(p.telephone)}</a><br>
+                  🗓️ Inscrit le ${escapeHtml(dateInsc)}
+                </div>
+              </div>
+              <div>${actionBtn}</div>
+            </div>
+          </div>`;
+      }).join("");
+
+      prosList.querySelectorAll("[data-approve]").forEach(btn => {
+        btn.addEventListener("click", () => approvePro(btn.dataset.approve));
+      });
+      prosList.querySelectorAll("[data-revoke]").forEach(btn => {
+        btn.addEventListener("click", () => revokePro(btn.dataset.revoke));
+      });
+    }
+
+    async function approvePro(email) {
+      if (!confirm(`Approuver le compte de ${email} ?\n\nLe pro pourra publier des offres.`)) return;
+      try {
+        const { error } = await supabase.rpc("admin_approve_pro", { p_email: email });
+        if (error) throw error;
+        toast("✓ Pro approuvé");
+        await refreshProsView();
+      } catch (e) {
+        toast("Erreur approbation : " + (e.message || e), false);
+      }
+    }
+
+    async function revokePro(email) {
+      if (!confirm(`Révoquer le compte de ${email} ?\n\nLe pro ne pourra plus publier d'offres.`)) return;
+      try {
+        const { error } = await supabase.rpc("admin_revoke_pro", { p_email: email });
+        if (error) throw error;
+        toast("✓ Pro révoqué");
+        await refreshProsView();
+      } catch (e) {
+        toast("Erreur révocation : " + (e.message || e), false);
+      }
+    }
 
     // ─── Onglet Etablissements : filtre par ville + actions code ───
     const venuesCityFilter = document.getElementById("venues-city-filter");

@@ -101,6 +101,48 @@ class OfferSupabaseService {
     );
   }
 
+  /// Recupere TOUTES les offres d'un pro (actives + expirees + inactives).
+  /// Trie par created_at desc. Utilise pour l'ecran "Mes offres".
+  Future<List<Offer>> fetchOffersByPro(String proProfileId) async {
+    final response = await _restDio.get(
+      'offers',
+      queryParameters: {
+        'select': '*',
+        'pro_profile_id': 'eq.$proProfileId',
+        'order': 'created_at.desc',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => Offer.fromSupabaseJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Met a jour une offre existante (titre, description, dates, places, etc.).
+  /// L'id de l'offre doit etre dans `offer.id`.
+  Future<void> updateOffer(Offer offer) async {
+    await _restDio.patch(
+      'offers',
+      queryParameters: {'id': 'eq.${offer.id}'},
+      data: offer.toSupabaseJson(),
+      options: Options(
+        headers: {'Prefer': 'return=minimal'},
+      ),
+    );
+  }
+
+  /// Supprime une offre. Le pro ne peut supprimer que ses propres offres
+  /// (RLS permissive actuellement, a durcir cote DB si besoin).
+  Future<void> deleteOffer(String offerId) async {
+    await _restDio.delete(
+      'offers',
+      queryParameters: {'id': 'eq.$offerId'},
+      options: Options(
+        headers: {'Prefer': 'return=minimal'},
+      ),
+    );
+  }
+
   /// Incremente claimed_spots pour une offre.
   Future<void> claimSpot(String offerId) async {
     // Utilise RPC ou PATCH avec un header special pour incrementer
