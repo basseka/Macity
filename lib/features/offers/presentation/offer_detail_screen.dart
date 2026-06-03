@@ -136,21 +136,27 @@ class OfferDetailScreen extends StatelessWidget {
                   // Bloc validite
                   _InfoBlock(
                     icon: Icons.event_available_rounded,
-                    label: 'Valable jusqu\'au',
-                    value: _formatDate(offer.expiresAt),
+                    label: 'Valable',
+                    value: offer.hasNoExpiration
+                        ? 'Sans date limite'
+                        : 'jusqu\'au ${_formatDate(offer.expiresAt)}',
                   ),
                   const SizedBox(height: 14),
 
                   // Bloc places
                   _InfoBlock(
                     icon: Icons.confirmation_number_rounded,
-                    label: offer.hasSpots ? 'Disponibilite' : 'Statut',
-                    value: offer.hasSpots
-                        ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''} sur ${offer.totalSpots}'
-                        : 'Complet',
-                    valueColor: offer.hasSpots
+                    label: 'Disponibilite',
+                    value: offer.isUnlimited
+                        ? 'Places illimitees'
+                        : (offer.hasSpots
+                            ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''} sur ${offer.totalSpots}'
+                            : 'Complet'),
+                    valueColor: offer.isUnlimited
                         ? const Color(0xFFE8A0BF)
-                        : Colors.red.shade300,
+                        : (offer.hasSpots
+                            ? const Color(0xFFE8A0BF)
+                            : Colors.red.shade300),
                   ),
                 ],
               ),
@@ -269,9 +275,11 @@ class _SpotsBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        hasSpots
-            ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
-            : 'Complet',
+        offer.isUnlimited
+            ? '∞ Illimite'
+            : (hasSpots
+                ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
+                : 'Complet'),
         style: GoogleFonts.geist(
           fontSize: 12,
           fontWeight: FontWeight.w700,

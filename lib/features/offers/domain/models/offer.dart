@@ -41,8 +41,23 @@ class Offer {
   // Proprietes calculees
   // ─────────────────────────────────────────
 
+  /// Sentinelle : totalSpots >= 99999 signifie "places illimitees" cote UI.
+  /// On stocke un nombre en DB plutot que NULL pour eviter une migration de
+  /// schema (la colonne est NOT NULL). 99999 + DateTime(2099) sont utilises
+  /// comme valeurs neutres detectees par les getters ci-dessous.
+  static const int unlimitedSpotsSentinel = 99999;
+
+  /// Sentinelle : annee >= 2099 signifie "sans date d'expiration".
+  static const int noExpirationYear = 2099;
+
+  /// L'offre a-t-elle des places limitees ?
+  bool get isUnlimited => totalSpots >= unlimitedSpotsSentinel;
+
+  /// L'offre a-t-elle une date d'expiration definie ?
+  bool get hasNoExpiration => expiresAt.year >= noExpirationYear;
+
   int get remainingSpots => totalSpots - claimedSpots;
-  bool get hasSpots => remainingSpots > 0;
+  bool get hasSpots => isUnlimited || remainingSpots > 0;
 
   // ─────────────────────────────────────────
   // Serialisation locale (SharedPreferences)

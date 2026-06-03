@@ -169,8 +169,11 @@ class _MyOfferTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImage = offer.imageUrl.isNotEmpty;
-    final isExpired = offer.expiresAt.isBefore(DateTime.now());
-    final isComplete = !offer.hasSpots;
+    // Une offre "sans expiration" (sentinelle 2099) n'expire jamais.
+    final isExpired = !offer.hasNoExpiration &&
+        offer.expiresAt.isBefore(DateTime.now());
+    // Une offre "illimitee" n'est jamais complete.
+    final isComplete = !offer.isUnlimited && !offer.hasSpots;
     final isLive = !isExpired && !isComplete && offer.isActive;
 
     return Container(
@@ -248,7 +251,9 @@ class _MyOfferTile extends StatelessWidget {
                         size: 13, color: AppColors.textFaint),
                     const SizedBox(width: 4),
                     Text(
-                      '${offer.claimedSpots}/${offer.totalSpots} reclamees',
+                      offer.isUnlimited
+                          ? '${offer.claimedSpots} reclamee${offer.claimedSpots > 1 ? "s" : ""} · ∞'
+                          : '${offer.claimedSpots}/${offer.totalSpots} reclamees',
                       style: GoogleFonts.geist(
                         fontSize: 11,
                         color: AppColors.textFaint,
@@ -258,7 +263,9 @@ class _MyOfferTile extends StatelessWidget {
                     Icon(Icons.event, size: 13, color: AppColors.textFaint),
                     const SizedBox(width: 4),
                     Text(
-                      _formatDate(offer.expiresAt),
+                      offer.hasNoExpiration
+                          ? 'Sans expiration'
+                          : _formatDate(offer.expiresAt),
                       style: GoogleFonts.geist(
                         fontSize: 11,
                         color: isExpired

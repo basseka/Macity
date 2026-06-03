@@ -31,6 +31,7 @@ class AddOfferBottomSheet extends ConsumerStatefulWidget {
 
 class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
   final _formKey = GlobalKey<FormState>();
+  final _businessNameController = TextEditingController();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _emojiController = TextEditingController();
@@ -41,6 +42,8 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
   String? _photoPath;
   String? _existingImageUrl;
   bool _isSubmitting = false;
+  bool _unlimitedSpots = false;
+  bool _noExpiration = false;
 
   static const _primaryColor = Color(0xFF7B2D8E);
   static const _primaryDarkColor = Color(0xFF4A1259);
@@ -53,18 +56,30 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
     _photoPath = widget.initialPhotoPath;
     final existing = widget.existing;
     if (existing != null) {
+      _businessNameController.text = existing.businessName;
       _titleController.text = existing.title;
       _descriptionController.text = existing.description;
       _emojiController.text = existing.emoji;
       _addressController.text = existing.businessAddress;
-      _spotsController.text = existing.totalSpots.toString();
-      _expiresAt = existing.expiresAt;
+      _unlimitedSpots = existing.isUnlimited;
+      _spotsController.text = existing.isUnlimited
+          ? '10'
+          : existing.totalSpots.toString();
+      _noExpiration = existing.hasNoExpiration;
+      _expiresAt = existing.hasNoExpiration ? null : existing.expiresAt;
       _existingImageUrl = existing.imageUrl;
+    } else {
+      // Pre-remplir avec le nom du pro (modifiable).
+      final pro = ref.read(proAuthProvider).profile;
+      if (pro != null) {
+        _businessNameController.text = pro.nom;
+      }
     }
   }
 
   @override
   void dispose() {
+    _businessNameController.dispose();
     _titleController.dispose();
     _descriptionController.dispose();
     _emojiController.dispose();
@@ -152,6 +167,21 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                 ),
               ),
               const SizedBox(height: 12),
+
+              // Nom de l'etablissement qui offre (pre-rempli depuis le
+              // profil pro, editable si l'offre concerne une autre entite).
+              TextFormField(
+                controller: _businessNameController,
+                decoration: _inputDecoration(
+                  label: "Nom de l'etablissement",
+                  icon: Icons.business_outlined,
+                ),
+                style: TextStyle(fontSize: 13, color: AppColors.text),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? "Le nom de l'etablissement est requis"
+                    : null,
+              ),
+              const SizedBox(height: 10),
 
               // Titre de l'offre
               TextFormField(
@@ -248,45 +278,71 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               ),
               const SizedBox(height: 10),
 
-              // Nombre de places
-              TextFormField(
-                controller: _spotsController,
-                decoration: _inputDecoration(
-                  label: 'Nombre de places',
-                  icon: Icons.people_outline,
+              // Nombre de places (cache si "illimite" coche)
+              if (!_unlimitedSpots) ...[
+                TextFormField(
+                  controller: _spotsController,
+                  decoration: _inputDecoration(
+                    label: 'Nombre de places',
+                    icon: Icons.people_outline,
+                  ),
+                  style: TextStyle(fontSize: 13, color: AppColors.text),
+                  keyboardType: TextInputType.number,
+                  validator: (v) {
+                    if (_unlimitedSpots) return null;
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Le nombre de places est requis';
+                    }
+                    final n = int.tryParse(v.trim());
+                    if (n == null || n <= 0) {
+                      return 'Entrez un nombre valide';
+                    }
+                    return null;
+                  },
                 ),
-                style: TextStyle(fontSize: 13, color: AppColors.text),
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Le nombre de places est requis';
-                  }
-                  final n = int.tryParse(v.trim());
-                  if (n == null || n <= 0) {
-                    return 'Entrez un nombre valide';
-                  }
-                  return null;
-                },
+                const SizedBox(height: 6),
+              ],
+              // Toggle "Places illimitees"
+              _CompactToggle(
+                value: _unlimitedSpots,
+                label: 'Places illimitees',
+                icon: Icons.all_inclusive_rounded,
+                color: _primaryColor,
+                onChanged: (v) => setState(() => _unlimitedSpots = v),
               ),
               const SizedBox(height: 10),
 
-              // Date d'expiration
-              GestureDetector(
-                onTap: _pickExpirationDate,
-                child: AbsorbPointer(
-                  child: TextFormField(
-                    decoration: _inputDecoration(
-                      label: _expiresAt != null
-                          ? DateFormat('dd/MM/yyyy').format(_expiresAt!)
-                          : "Date d'expiration",
-                      icon: Icons.calendar_today,
+              // Date d'expiration (cachee si "sans expiration" coche)
+              if (!_noExpiration) ...[
+                GestureDetector(
+                  onTap: _pickExpirationDate,
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      decoration: _inputDecoration(
+                        label: _expiresAt != null
+                            ? DateFormat('dd/MM/yyyy').format(_expiresAt!)
+                            : "Date d'expiration",
+                        icon: Icons.calendar_today,
+                      ),
+                      style: TextStyle(fontSize: 13, color: AppColors.text),
+                      validator: (_) {
+                        if (_noExpiration) return null;
+                        return _expiresAt == null
+                            ? "La date d'expiration est requise"
+                            : null;
+                      },
                     ),
-                    style: TextStyle(fontSize: 13, color: AppColors.text),
-                    validator: (_) => _expiresAt == null
-                        ? "La date d'expiration est requise"
-                        : null,
                   ),
                 ),
+                const SizedBox(height: 6),
+              ],
+              // Toggle "Sans date d'expiration"
+              _CompactToggle(
+                value: _noExpiration,
+                label: "Sans date d'expiration",
+                icon: Icons.event_repeat_rounded,
+                color: _primaryColor,
+                onChanged: (v) => setState(() => _noExpiration = v),
               ),
               const SizedBox(height: 16),
 
@@ -436,19 +492,29 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
       }
 
       final existing = widget.existing;
+
+      // Sentinelles : 99999 = illimite, DateTime(2099) = sans expiration.
+      // Pas de migration DB necessaire (colonnes NOT NULL preservees).
+      final effectiveTotalSpots = _unlimitedSpots
+          ? Offer.unlimitedSpotsSentinel
+          : (int.tryParse(_spotsController.text.trim()) ?? 10);
+      final effectiveExpiresAt = _noExpiration
+          ? DateTime(Offer.noExpirationYear, 12, 31)
+          : (_expiresAt ?? DateTime.now().add(const Duration(days: 7)));
+
       final offer = Offer(
         id: existing?.id ?? '',
         proProfileId: existing?.proProfileId ?? profile?.id ?? '',
-        businessName: existing?.businessName ?? profile?.nom ?? '',
+        businessName: _businessNameController.text.trim(),
         businessAddress: _addressController.text.trim(),
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         emoji: _emojiController.text.trim(),
         imageUrl: imageUrl ?? '',
-        totalSpots: int.tryParse(_spotsController.text.trim()) ?? 10,
+        totalSpots: effectiveTotalSpots,
         claimedSpots: existing?.claimedSpots ?? 0,
         startsAt: existing?.startsAt ?? DateTime.now(),
-        expiresAt: _expiresAt ?? DateTime.now().add(const Duration(days: 7)),
+        expiresAt: effectiveExpiresAt,
         isActive: existing?.isActive ?? true,
         city: existing?.city ?? city,
         createdAt: existing?.createdAt ?? DateTime.now(),
@@ -578,6 +644,59 @@ class _PendingApprovalSheet extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Toggle compact ligne unique : icone + label + Switch a droite.
+/// Utilise pour "Places illimitees" et "Sans date d'expiration".
+class _CompactToggle extends StatelessWidget {
+  final bool value;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final ValueChanged<bool> onChanged;
+
+  const _CompactToggle({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: color.withValues(alpha: 0.75)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.text,
+                ),
+              ),
+            ),
+            Transform.scale(
+              scale: 0.75,
+              child: Switch(
+                value: value,
+                onChanged: onChanged,
+                activeThumbColor: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

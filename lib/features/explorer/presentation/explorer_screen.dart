@@ -272,9 +272,11 @@ class _OfferCard extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          offer.hasSpots
-                              ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
-                              : 'Complet',
+                          offer.isUnlimited
+                              ? '∞ Illimite'
+                              : (offer.hasSpots
+                                  ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
+                                  : 'Complet'),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
