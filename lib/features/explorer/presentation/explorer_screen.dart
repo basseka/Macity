@@ -57,15 +57,22 @@ class ExplorerScreen extends ConsumerWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: 'Toutes les offres premium par ',
+                              text: 'Toutes les offres par ',
                               style: EditorialText.displayTitle()
-                                  .copyWith(fontSize: 22),
+                                  .copyWith(fontSize: 18),
                             ),
                             TextSpan(
                               text: 'BeThere',
+                              // Gold marron riche pour faire ressortir le
+                              // nom de marque. Plus sature et plus sombre
+                              // que EditorialColors.gold (#F4C84A jaune).
                               style: EditorialText.sectionItalic(
-                                color: EditorialColors.gold,
-                              ).copyWith(fontSize: 22),
+                                color: const Color(0xFFB8860B),
+                              ).copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.2,
+                              ),
                             ),
                           ],
                         ),

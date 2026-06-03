@@ -24,7 +24,7 @@ class EditorialCityHeader extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.brand),
             child: Image.asset(
-              'assets/icon/app_icon.png',
+              'assets/images/bethere-icon.png',
               width: 32,
               height: 32,
               fit: BoxFit.cover,

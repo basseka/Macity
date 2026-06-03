@@ -309,15 +309,25 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
                 maxLength: 500,
                 minLines: 1,
                 maxLines: 4,
-                style: GoogleFonts.geist(fontSize: 13, color: AppColors.text),
+                // Texte clair force pour rester lisible quand le champ est
+                // rendu sur le fond sombre du composer (independant du
+                // theme global, qui peut faire ressortir AppColors.text en
+                // navy fonce -> invisible).
+                style: GoogleFonts.geist(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+                cursorColor: AppColors.magenta,
                 decoration: InputDecoration(
                   hintText: pseudo != null
                       ? 'Commenter en tant que ${pseudo.displayName}…'
                       : 'Chargement…',
                   hintStyle: GoogleFonts.geist(
                     fontSize: 13,
-                    color: AppColors.textFaint,
+                    color: Colors.white.withValues(alpha: 0.45),
                   ),
+                  filled: true,
+                  fillColor: const Color(0xFF241640),
                   counterText: '',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
