@@ -133,6 +133,13 @@ class _AddCommerceBottomSheetState
               // Categorie dropdown
               DropdownButtonFormField<String>(
                 initialValue: _selectedCategorie,
+                // Fond blanc force pour eviter texte sombre invisible
+                // quand le dropdown ouvre dans un contexte dark theme.
+                dropdownColor: Colors.white,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF1A0F2E),
+                ),
                 decoration: _inputDecoration(
                   label: 'Categorie',
                   icon: Icons.category_outlined,
@@ -141,7 +148,14 @@ class _AddCommerceBottomSheetState
                 items: _categories.map((cat) {
                   return DropdownMenuItem(
                     value: cat,
-                    child: Text(cat),
+                    child: Text(
+                      cat,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF1A0F2E),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   );
                 }).toList(),
                 onChanged: (value) {

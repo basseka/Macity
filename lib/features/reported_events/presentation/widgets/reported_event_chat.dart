@@ -292,16 +292,26 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                       minLines: 1,
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _send(),
+                      // Texte clair force pour rester lisible sur le fond
+                      // sombre du chat story (mode Snap).
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                      cursorColor: _accent,
                       decoration: InputDecoration(
                         hintText: 'Pose une question...',
                         hintStyle: TextStyle(
-                            fontSize: 13, color: AppColors.textFaint),
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.45)),
                         counterText: '',
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 10),
                         filled: true,
-                        fillColor: AppColors.surfaceHi,
+                        // Fond sombre hardcode (style Snap) : independant du
+                        // theme global pour garantir un contraste blanc/sombre.
+                        fillColor: const Color(0xFF241640),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
                           borderSide: BorderSide(color: AppColors.line),

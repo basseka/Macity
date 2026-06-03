@@ -255,7 +255,12 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 DropdownButtonFormField<String>(
                   initialValue: _selectedType,
                   isExpanded: true,
-                  style: TextStyle(fontSize: 13, color: AppColors.text),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF1A0F2E)),
+                  // Force le fond blanc du menu deroulant pour que le texte
+                  // sombre soit lisible (sinon le dropdown hereite d'un fond
+                  // sombre du theme dans certains contextes -> texte invisible).
+                  dropdownColor: Colors.white,
+                  iconEnabledColor: _primaryColor,
                   decoration: _inputDecoration(
                     label: 'Type de structure',
                     icon: Icons.category_outlined,
@@ -264,8 +269,15 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                       .map(
                         (e) => DropdownMenuItem(
                           value: e.key,
-                          child:
-                              Text(e.value, style: TextStyle(fontSize: 13, color: AppColors.text), overflow: TextOverflow.ellipsis),
+                          child: Text(
+                            e.value,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF1A0F2E),
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       )
                       .toList(),

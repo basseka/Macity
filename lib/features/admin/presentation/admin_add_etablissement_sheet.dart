@@ -428,6 +428,10 @@ class _AdminAddEtablissementSheetState
     return DropdownButtonFormField<String>(
       value: items.contains(value) ? value : items.first,
       isExpanded: true,
+      // Fond blanc force pour eviter texte sombre invisible
+      // quand le menu deroulant ouvre dans un contexte dark theme.
+      dropdownColor: Colors.white,
+      style: const TextStyle(fontSize: 14, color: Colors.black87),
       decoration: InputDecoration(
         labelText: label,
         filled: true,
