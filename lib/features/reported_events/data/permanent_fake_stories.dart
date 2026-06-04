@@ -28,7 +28,11 @@ List<ReportedEvent> permanentFakeStories() => [
         lng: 1.4442,
         ville: 'Toulouse',
         locationName: 'Canal du Midi',
-        photos: ['$_bucketUrl/fake-thumb-1.jpg'],
+        // photos vide : la story demarre directement sur la video dans le
+        // viewer Snap-style. Le thumbnail reste dispo via coverUrl pour la
+        // bulle du carrousel/strip.
+        photos: const [],
+        coverUrl: '$_bucketUrl/fake-thumb-1.jpg',
         videos: ['$_bucketUrl/fake-story-1.mp4'],
         reportCount: 3,
         reporterPrenom: 'Lucas',
@@ -59,7 +63,8 @@ List<ReportedEvent> permanentFakeStories() => [
         lng: 1.4537,
         ville: 'Toulouse',
         locationName: 'Le Bikini',
-        photos: ['$_bucketUrl/fake-thumb-2.jpg'],
+        photos: const [],
+        coverUrl: '$_bucketUrl/fake-thumb-2.jpg',
         videos: ['$_bucketUrl/fake-story-2.mp4'],
         reportCount: 5,
         reporterPrenom: 'Léa',
@@ -89,7 +94,8 @@ List<ReportedEvent> permanentFakeStories() => [
         lng: 1.4348,
         ville: 'Toulouse',
         locationName: 'Rooftop place du Capitole',
-        photos: ['$_bucketUrl/fake-thumb-3.jpg'],
+        photos: const [],
+        coverUrl: '$_bucketUrl/fake-thumb-3.jpg',
         videos: ['$_bucketUrl/fake-story-3.mp4'],
         reportCount: 2,
         reporterPrenom: 'Mila',

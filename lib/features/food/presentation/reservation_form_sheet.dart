@@ -336,13 +336,21 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                       controller: _telCtrl,
                       keyboardType: TextInputType.phone,
                       decoration: _input('Téléphone (facultatif)'),
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF1A0F2E),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: _commentaireCtrl,
                       decoration: _input('Commentaire (allergies, occasion...)'),
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF1A0F2E),
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 3,
                     ),
                     if (_error != null) ...[

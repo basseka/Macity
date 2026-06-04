@@ -106,7 +106,12 @@ class _SearchEventsBottomSheetState
               controller: _controller,
               autofocus: true,
               onChanged: _onQueryChanged,
-              style: GoogleFonts.inter(fontSize: 14),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFF1A0F2E),
+                fontWeight: FontWeight.w500,
+              ),
+              cursorColor: AppColors.magenta,
               decoration: InputDecoration(
                 hintText: 'Nom, lieu, artiste...',
                 hintStyle: GoogleFonts.inter(
