@@ -78,6 +78,12 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
     final totals = totalsState.totals[tKey];
     final liked = totalsState.userLiked[tKey] ?? false;
 
+    // Hauteur du clavier : MediaQuery.viewInsetsOf rebuild ce widget
+    // quand le clavier s'ouvre/ferme -> on remonte l'input en consequence.
+    // Necessaire car DraggableScrollableSheet n'ajuste pas sa hauteur sur
+    // le clavier (sa taille est figee par initialChildSize).
+    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
       minChildSize: 0.4,
@@ -107,7 +113,13 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
                 ),
               ),
               Divider(height: 1, color: AppColors.line),
-              _inputBar(pseudoAsync.valueOrNull),
+              // Padding bas dynamique pour rester au-dessus du clavier.
+              AnimatedPadding(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+                padding: EdgeInsets.only(bottom: keyboardHeight),
+                child: _inputBar(pseudoAsync.valueOrNull),
+              ),
             ],
           ),
         );

@@ -308,7 +308,16 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                     const SizedBox(height: 14),
                     TextField(
                       controller: _villeController,
-                      style: GoogleFonts.inter(fontSize: 14),
+                      // Couleur du texte hardcodee : le fillColor est blanc
+                      // donc le texte tape doit etre sombre quel que soit
+                      // le theme global (sinon AppColors.text peut tomber
+                      // sur du blanc en dark mode -> invisible).
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: const Color(0xFF1A0F2E),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      cursorColor: _primaryColor,
                       decoration: InputDecoration(
                         hintText: 'Ajouter une ville...',
                         hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 13),
