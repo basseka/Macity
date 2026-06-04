@@ -99,7 +99,9 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
       return _PendingApprovalSheet(hasProfile: profile != null);
     }
 
-    return Container(
+    return Stack(
+      children: [
+        Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
@@ -398,6 +400,59 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
           ),
         ),
       ),
+        ),
+        // Overlay de chargement modal pendant la publication.
+        // Bloque l'interaction et affiche un sablier visible jusqu'a
+        // confirmation success/erreur.
+        if (_isSubmitting)
+          Positioned.fill(
+            child: AbsorbPointer(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.5),
+                alignment: Alignment.center,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 28, vertical: 22),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 20,
+                        offset: Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: CircularProgressIndicator(
+                          color: _primaryColor,
+                          strokeWidth: 3,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        _isEditing
+                            ? 'Modification en cours...'
+                            : 'Publication en cours...',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _primaryDarkColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -472,7 +527,20 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    // Capture le messenger du parent AVANT le pop : sinon les snackbars
+    // attachees au bottom sheet disparaissent instantanement au close.
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (!_formKey.currentState!.validate()) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Verifie les champs en rouge avant de publier'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSubmitting = true);
 
@@ -530,26 +598,28 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
       ref.invalidate(activeOffersProvider);
       ref.invalidate(myOffersProvider);
 
+      // Pop AVANT le snackbar : la snackbar est attachee au messenger
+      // capture au debut (parent du bottom sheet) donc elle survit.
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_isEditing
-                ? 'Offre modifiee avec succes !'
-                : 'Offre publiee avec succes !'),
-            backgroundColor: const Color(0xFF7B2D8E),
-          ),
-        );
         Navigator.of(context).pop();
       }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(_isEditing
+              ? 'Offre modifiee avec succes !'
+              : 'Offre publiee avec succes !'),
+          backgroundColor: const Color(0xFF7B2D8E),
+          duration: const Duration(seconds: 3),
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur : $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Erreur : $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
