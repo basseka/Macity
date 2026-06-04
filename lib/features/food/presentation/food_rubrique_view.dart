@@ -1,8 +1,10 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
@@ -27,16 +29,22 @@ class FoodRubriqueView extends ConsumerStatefulWidget {
 }
 
 class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
+  /// Marqueur theme special : trie par distance a l'utilisateur au lieu
+  /// de filtrer par categorie. Detecte dans `_filtered`.
+  static const String _proximityMarker = '__plus_proche__';
+
   static const _chips = <_Chip>[
     _Chip('Restaurants', Icons.restaurant_rounded, null),
     _Chip('Guinguette', Icons.deck_rounded, 'Guinguette'),
     _Chip('Buffets', Icons.room_service_rounded, 'Buffet'),
     _Chip('Salon de Thé', Icons.local_cafe_rounded, 'Salon de the'),
     _Chip('Brunch', Icons.egg_alt_rounded, 'Brunch'),
+    _Chip('Plus proche', Icons.near_me_rounded, _proximityMarker),
   ];
 
   String _activeChip = 'Restaurants';
   final Set<String> _saved = {};
+  Position? _userPosition;
 
   VideoPlayerController? _video;
   String? _videoUrl;
@@ -81,10 +89,70 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   List<RestaurantVenue> _filtered(List<RestaurantVenue> all) {
     final chip = _chips.firstWhere((c) => c.label == _activeChip);
     if (chip.theme == null) return all;
+    // Mode "Plus proche" : trie par distance haversine a l'utilisateur,
+    // sans filtre de categorie. Si la position user est inconnue, on
+    // garde l'ordre par defaut (le fetch est lance en parallele).
+    if (chip.theme == _proximityMarker) {
+      final pos = _userPosition;
+      if (pos == null) return all;
+      final withDist = all
+          .map((r) => MapEntry(r, _haversineKm(pos.latitude, pos.longitude,
+              r.latitude, r.longitude)))
+          .toList()
+        ..sort((a, b) => a.value.compareTo(b.value));
+      return withDist.map((e) => e.key).toList();
+    }
     return sortRestaurantsForCategory(
       all.where((r) => r.matchesTheme(chip.theme!)).toList(),
       chip.theme!,
     );
+  }
+
+  /// Distance Haversine en km entre 2 points (lat, lon en degres).
+  double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
+    const r = 6371.0; // rayon terre km
+    final dLat = (lat2 - lat1) * math.pi / 180;
+    final dLon = (lon2 - lon1) * math.pi / 180;
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(lat1 * math.pi / 180) *
+            math.cos(lat2 * math.pi / 180) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  }
+
+  /// Recupere la position user (rapide via lastKnown, fallback current).
+  /// Pas de prompt agressif : si la permission n'est pas accordee, on
+  /// laisse le mode "Plus proche" sans tri.
+  Future<void> _ensureUserPosition() async {
+    if (_userPosition != null) return;
+    try {
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        return;
+      }
+      // 1) lastKnown si recent : ultra-rapide, pas de prompt
+      final last = await Geolocator.getLastKnownPosition();
+      if (last != null && mounted) {
+        setState(() => _userPosition = last);
+      }
+      // 2) fix courante pour affiner
+      final current = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+      if (mounted) {
+        setState(() => _userPosition = current);
+      }
+    } catch (_) {
+      // GPS off / permission refusee -> mode "Plus proche" reste sans tri
+    }
   }
 
   @override
@@ -126,23 +194,41 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                     padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
                     itemCount: list.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (_, i) => _RestaurantCard(
-                      venue: list[i],
-                      coupDeCoeur: i == 0,
-                      saved: _saved.contains(list[i].id),
-                      onToggleSaved: () => setState(() {
-                        final id = list[i].id;
-                        _saved.contains(id)
-                            ? _saved.remove(id)
-                            : _saved.add(id);
-                      }),
-                      onTap: () => RestaurantDetailSheet.show(
-                        context,
-                        list[i],
-                        siblings: list,
-                        index: i,
-                      ),
-                    ),
+                    itemBuilder: (_, i) {
+                      // Distance affichee uniquement en mode "Plus proche"
+                      // et si on a la position user.
+                      final activeIsProximity = _chips
+                              .firstWhere((c) => c.label == _activeChip)
+                              .theme ==
+                          _proximityMarker;
+                      double? distKm;
+                      if (activeIsProximity && _userPosition != null) {
+                        distKm = _haversineKm(
+                          _userPosition!.latitude,
+                          _userPosition!.longitude,
+                          list[i].latitude,
+                          list[i].longitude,
+                        );
+                      }
+                      return _RestaurantCard(
+                        venue: list[i],
+                        coupDeCoeur: i == 0,
+                        saved: _saved.contains(list[i].id),
+                        distanceKm: distKm,
+                        onToggleSaved: () => setState(() {
+                          final id = list[i].id;
+                          _saved.contains(id)
+                              ? _saved.remove(id)
+                              : _saved.add(id);
+                        }),
+                        onTap: () => RestaurantDetailSheet.show(
+                          context,
+                          list[i],
+                          siblings: list,
+                          index: i,
+                        ),
+                      );
+                    },
                   ),
                 );
               },
@@ -171,7 +257,15 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
           final c = _chips[i];
           final active = c.label == _activeChip;
           return GestureDetector(
-            onTap: () => setState(() => _activeChip = c.label),
+            onTap: () {
+              setState(() => _activeChip = c.label);
+              // Si on selectionne "Plus proche", on lance le fetch position
+              // (au cas ou il n'a pas deja ete fait). Le setState futur
+              // declenchera un re-tri une fois la position connue.
+              if (c.theme == _proximityMarker) {
+                _ensureUserPosition();
+              }
+            },
             behavior: HitTestBehavior.opaque,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
@@ -661,32 +755,42 @@ class _Hero extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(FoodTokens.rPill),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            height: 28,
-            padding: const EdgeInsets.fromLTRB(8, 5, 10, 5),
-            decoration: BoxDecoration(
-              color: const Color(0x8C142019),
-              borderRadius: BorderRadius.circular(FoodTokens.rPill),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.14), width: 1),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.near_me_rounded,
-                    size: 12, color: FoodTokens.teal),
-                const SizedBox(width: 5),
-                Text(
-                  'Map Live',
-                  style: FoodTokens.chip(color: Colors.white),
-                ),
-              ],
-            ),
+      child: Container(
+        height: 34,
+        padding: const EdgeInsets.fromLTRB(10, 5, 12, 5),
+        decoration: BoxDecoration(
+          // Fond teal sature pour ressortir nettement sur le hero photo.
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [FoodTokens.teal, Color(0xFF0EA5A4)],
           ),
+          borderRadius: BorderRadius.circular(FoodTokens.rPill),
+          border: Border.all(
+              color: Colors.white.withValues(alpha: 0.4), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: FoodTokens.teal.withValues(alpha: 0.5),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.near_me_rounded,
+                size: 13, color: Colors.white),
+            const SizedBox(width: 5),
+            Text(
+              'Autour de moi',
+              style: FoodTokens.chip(color: Colors.white).copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -700,6 +804,9 @@ class _RestaurantCard extends StatelessWidget {
   final bool saved;
   final VoidCallback onToggleSaved;
   final VoidCallback onTap;
+  /// Distance en km a l'utilisateur. Null = pas affichee (mode autre que
+  /// "Plus proche" ou position user inconnue).
+  final double? distanceKm;
 
   const _RestaurantCard({
     required this.venue,
@@ -707,7 +814,15 @@ class _RestaurantCard extends StatelessWidget {
     required this.saved,
     required this.onToggleSaved,
     required this.onTap,
+    this.distanceKm,
   });
+
+  /// Affiche "350 m" si < 1 km, sinon "1.2 km" ou "12 km" (entier si >= 10).
+  static String _formatDistance(double km) {
+    if (km < 1) return '${(km * 1000).round()} m';
+    if (km < 10) return '${km.toStringAsFixed(1)} km';
+    return '${km.round()} km';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -834,6 +949,36 @@ class _RestaurantCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Pill distance affichee en mode "Plus proche".
+                  if (distanceKm != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: FoodTokens.teal,
+                        borderRadius:
+                            BorderRadius.circular(FoodTokens.rPill),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.near_me_rounded,
+                              size: 10, color: Colors.white),
+                          const SizedBox(width: 3),
+                          Text(
+                            _formatDistance(distanceKm!),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   Text(
                     venue.name,
                     maxLines: 2,
