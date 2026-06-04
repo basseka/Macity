@@ -61,17 +61,20 @@ class ExplorerScreen extends ConsumerWidget {
                               style: EditorialText.displayTitle()
                                   .copyWith(fontSize: 18),
                             ),
-                            TextSpan(
-                              text: 'BeThere',
-                              // Gold marron riche pour faire ressortir le
-                              // nom de marque. Plus sature et plus sombre
-                              // que EditorialColors.gold (#F4C84A jaune).
-                              style: EditorialText.sectionItalic(
-                                color: const Color(0xFFB8860B),
-                              ).copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
+                            // Logo BeThere a la place du mot, aligne avec
+                            // la baseline du texte. La hauteur du logo (28)
+                            // est legerement superieure a la x-height du
+                            // texte 18pt pour mieux ressortir.
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 2),
+                                child: Image.asset(
+                                  'assets/images/bethere-logo.png',
+                                  height: 60,
+                                  fit: BoxFit.contain,
+                                  filterQuality: FilterQuality.high,
+                                ),
                               ),
                             ),
                           ],
