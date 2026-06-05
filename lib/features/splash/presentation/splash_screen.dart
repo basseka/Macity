@@ -203,7 +203,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           child: ScaleTransition(
                             scale: _titleScale,
                             child: Text(
-                              'Macity',
+                              'MaCity',
                               style: GoogleFonts.poppins(
                                 fontSize: 72,
                                 fontWeight: FontWeight.w800,

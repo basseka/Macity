@@ -302,7 +302,7 @@ class _TotoSplashScreenState extends State<TotoSplashScreen>
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'Macity',
+                              'MaCity',
                               style: GoogleFonts.poppins(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w600,
