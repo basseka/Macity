@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 
-/// Ecran de proposition d'abonnement BeThere — 5 EUR/mois pour debloquer
+/// Ecran de proposition d'abonnement BeThere — 5.90 EUR/mois pour debloquer
 /// toutes les offres premium.
 ///
 /// Lance depuis OfferDetailScreen quand l'utilisateur tap "J'en profite".
@@ -168,7 +168,20 @@ class SubscriptionScreen extends StatelessWidget {
                                       ),
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.only(top: 8),
+                                      padding: const EdgeInsets.only(top: 14),
+                                      child: Text(
+                                        ',90',
+                                        style: GoogleFonts.geist(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w800,
+                                          color: EditorialColors.gold,
+                                          height: 1.0,
+                                          letterSpacing: -1,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8, left: 4),
                                       child: Text(
                                         '€',
                                         style: GoogleFonts.geist(
@@ -246,7 +259,7 @@ class SubscriptionScreen extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: Text(
-                        'S\'abonner pour 5€/mois',
+                        'S\'abonner pour 5,90€/mois',
                         style: GoogleFonts.geist(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
