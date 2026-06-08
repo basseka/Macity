@@ -19,9 +19,9 @@ workflows:
     integrations:
       app_store_connect: CodemagicAppStoreKey
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.macity.app
+      # NOTE: pas de bloc `ios_signing` — il déclenche une recherche de profil
+      # pré-existant au démarrage (échec immédiat). La signature est entièrement
+      # gérée par le script "Set up code signing" qui crée cert + profil à la volée.
       vars:
         APP_STORE_APPLE_ID: 6778110272
         BUNDLE_ID: "com.macity.app"
