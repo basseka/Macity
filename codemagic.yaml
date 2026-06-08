@@ -1,0 +1,58 @@
+# Codemagic CI/CD — build & upload MaCity (iOS) to App Store Connect.
+#
+# AVANT le premier build, dans l'interface Codemagic :
+#  1. Teams/App settings ▸ Integrations ▸ App Store Connect ▸ Add key
+#       → colle le .p8, le Key ID et l'Issuer ID. Donne-lui le nom : "CodemagicAppStoreKey"
+#         (doit correspondre EXACTEMENT au nom utilisé ci-dessous).
+#  2. Récupère l'« Apple ID » NUMÉRIQUE de l'app sur App Store Connect
+#       (App ▸ App Information ▸ General Information ▸ Apple ID)
+#       et mets-le dans APP_STORE_APPLE_ID ci-dessous.
+#
+# Le code généré (*.g.dart, *.freezed.dart) est gitignoré : le build le régénère
+# via build_runner — ne pas retirer cette étape, sinon la compilation échoue.
+
+workflows:
+  ios-appstore:
+    name: MaCity — iOS App Store
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    integrations:
+      app_store_connect: CodemagicAppStoreKey
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.macity.app
+      vars:
+        APP_STORE_APPLE_ID: 0000000000   # <-- REMPLACE par l'Apple ID numérique de l'app
+        BUNDLE_ID: "com.macity.app"
+      flutter: stable
+      xcode: latest          # fournit le SDK iOS 26 requis par Apple
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Generate code (freezed / json_serializable / drift)
+        script: dart run build_runner build --delete-conflicting-outputs
+      - name: Install CocoaPods
+        script: find . -name "Podfile" -execdir pod install \;
+      - name: Set up code signing (fetch App Store profiles)
+        script: xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true     # dépose la build sur TestFlight
+        submit_to_app_store: false     # passe à true quand tu veux soumettre à la review
+      email:
+        recipients:
+          - basseka@yahoo.fr
+        notify:
+          success: true
+          failure: true
