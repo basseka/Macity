@@ -35,8 +35,14 @@ workflows:
         script: dart run build_runner build --delete-conflicting-outputs
       - name: Install CocoaPods
         script: find . -name "Podfile" -execdir pod install \;
-      - name: Set up code signing (fetch App Store profiles)
-        script: xcode-project use-profiles
+      - name: Set up code signing (fetch/create App Store cert + profile)
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "com.macity.app" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build IPA
         script: |
           flutter build ipa --release \
