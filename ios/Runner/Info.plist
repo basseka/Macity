@@ -77,6 +77,10 @@
 	<string>Pulz peut enregistrer une photo ou vidéo dans votre galerie.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Pulz utilise votre localisation pour vous montrer les événements et sorties proches.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Pulz utilise votre localisation pour vous montrer les événements et sorties proches.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Pulz accède à vos contacts pour vous permettre d'inviter vos amis à vos événements privés.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
