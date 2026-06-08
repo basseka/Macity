@@ -35,11 +35,15 @@ workflows:
         script: dart run build_runner build --delete-conflicting-outputs
       - name: Install CocoaPods
         script: find . -name "Podfile" -execdir pod install \;
-      - name: Set up code signing (fetch/create App Store cert + profile)
+      - name: Set up code signing (create distribution cert + App Store profile)
         script: |
           keychain initialize
+          # Clé privée requise pour CRÉER un certificat de distribution
+          # (sinon "Cannot save Signing Certificates without certificate private key").
+          openssl genrsa -out /tmp/dist_cert_key.pem 2048
           app-store-connect fetch-signing-files "com.macity.app" \
             --type IOS_APP_STORE \
+            --certificate-key=@file:/tmp/dist_cert_key.pem \
             --create
           keychain add-certificates
           xcode-project use-profiles
