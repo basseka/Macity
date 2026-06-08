@@ -1,4 +1,6 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
-DEVELOPMENT_TEAM = BG2AU3T74F
-CODE_SIGN_STYLE = Automatic
+# Signature gérée par Codemagic (xcode-project use-profiles → manuelle).
+# Ne PAS forcer DEVELOPMENT_TEAM / CODE_SIGN_STYLE=Automatic ici : ça pousse
+# Flutter vers la signature automatique (nécessite un compte Xcode connecté,
+# absent en CI) et casse le profil manuel App Store.
