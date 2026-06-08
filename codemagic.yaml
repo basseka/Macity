@@ -23,7 +23,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.macity.app
       vars:
-        APP_STORE_APPLE_ID: 0000000000   # <-- REMPLACE par l'Apple ID numérique de l'app
+        APP_STORE_APPLE_ID: 6778110272
         BUNDLE_ID: "com.macity.app"
       flutter: stable
       xcode: latest          # fournit le SDK iOS 26 requis par Apple
