@@ -3271,12 +3271,46 @@
           return;
         }
         // Met à jour le cache local de la table concernée
-        const cache = source === "venues" ? allVenues
-          : source === "etablissements" ? allEtabs : allSportVenues;
-        const row = cache.find(r => r.id === id);
-        if (row) { row.photo = photo; row.photos = photos; row.video_url = videoUrl; }
+        const TABLES = { venues: allVenues, etablissements: allEtabs, sport_venues: allSportVenues };
+        const editedRow = (TABLES[source] || []).find(r => r.id === id);
+        if (editedRow) { editedRow.photo = photo; editedRow.photos = photos; editedRow.video_url = videoUrl; }
+
+        // ── Propagation aux doublons dans les autres tables ──
+        // Une même enseigne peut exister à la fois dans `venues` ET
+        // `etablissements` (ex: L'Étoile, club édité côté etab alors que la
+        // fiche Night lit `venues`). Chaque mode ne lit qu'une seule table,
+        // donc sans propagation l'édition peut ne jamais s'afficher. On
+        // recopie le média sur tout jumeau (même nom + ville) des autres
+        // tables pour que l'édition atterrisse quoi qu'il arrive.
+        let propagated = 0;
+        if (editedRow) {
+          const norm = (s) => (s || "").toLowerCase()
+            .normalize("NFD").replace(/[̀-ͯ]/g, "")
+            .replace(/[^a-z0-9]+/g, " ").trim();
+          const rowName = (r) => r.name ?? r.nom ?? "";
+          const key = norm(rowName(editedRow));
+          const ville = norm(editedRow.ville);
+          if (key) {
+            for (const [tbl, cache] of Object.entries(TABLES)) {
+              if (tbl === source) continue;
+              const twin = (cache || []).find(r =>
+                r.id !== id && norm(rowName(r)) === key && norm(r.ville) === ville);
+              if (!twin) continue;
+              const { data: tData, error: tErr } = await supabase
+                .from(tbl).update({ photo, photos, video_url: videoUrl })
+                .eq("id", twin.id).select("id");
+              if (tErr) { console.warn(`[media propagate ${tbl}]`, tErr); continue; }
+              if (tData && tData.length) {
+                twin.photo = photo; twin.photos = photos; twin.video_url = videoUrl;
+                propagated++;
+              }
+            }
+          }
+        }
         renderVenuesList();
-        toast("Médias mis à jour", true);
+        toast(propagated > 0
+          ? `Médias mis à jour (+${propagated} doublon synchronisé)`
+          : "Médias mis à jour", true);
         return;
       }
 
