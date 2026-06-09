@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/widgets/fullscreen_image_viewer.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/engagement/domain/event_source_detector.dart';
 import 'package:pulz_app/features/engagement/presentation/event_engagement_sheet.dart';
@@ -120,7 +121,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        _buildFullPochette(),
+                        _buildFullPochette(context),
                         // Gradient overlay : IgnorePointer pour ne pas
                         // bloquer les taps sur les boutons en dessous (mute,
                         // fullscreen). Sans ca, le Container avec decoration
@@ -534,7 +535,11 @@ class EventFullscreenPopup extends ConsumerWidget {
   }
 
   /// Construit la pochette plein ecran (image ou video).
-  Widget _buildFullPochette() {
+  ///
+  /// Pour une affiche image (pas video, pas placeholder), un tap ouvre le
+  /// viewer plein ecran zoomable. La video garde sa propre logique (play/pause
+  /// + bouton fullscreen dedie).
+  Widget _buildFullPochette(BuildContext context) {
     // Si video, afficher le player
     if (event.videoUrl != null && event.videoUrl!.isNotEmpty) {
       return _EventVideoPlayer(videoUrl: event.videoUrl!);
@@ -552,43 +557,53 @@ class EventFullscreenPopup extends ConsumerWidget {
       );
     }
 
-    if (photo.startsWith('http')) {
-      return CachedNetworkImage(
-        imageUrl: photo,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        fadeInDuration: const Duration(milliseconds: 200),
-        placeholder: (_, __) => Image.asset(
-          fallbackAsset,
-          fit: BoxFit.cover,
-          cacheWidth: 300,
-          width: double.infinity,
-          errorBuilder: (_, __, ___) =>
-              Image.asset(_defaultPochette, fit: BoxFit.cover),
-        ),
-        errorWidget: (_, __, ___) => Image.asset(
-          fallbackAsset,
-          fit: BoxFit.cover,
-          cacheWidth: 300,
-          width: double.infinity,
-          errorBuilder: (_, __, ___) =>
-              Image.asset(_defaultPochette, fit: BoxFit.cover),
-        ),
-      );
-    }
+    final isNetwork = photo.startsWith('http');
+    final Widget image = isNetwork
+        ? CachedNetworkImage(
+            imageUrl: photo,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            fadeInDuration: const Duration(milliseconds: 200),
+            placeholder: (_, __) => Image.asset(
+              fallbackAsset,
+              fit: BoxFit.cover,
+              cacheWidth: 300,
+              width: double.infinity,
+              errorBuilder: (_, __, ___) =>
+                  Image.asset(_defaultPochette, fit: BoxFit.cover),
+            ),
+            errorWidget: (_, __, ___) => Image.asset(
+              fallbackAsset,
+              fit: BoxFit.cover,
+              cacheWidth: 300,
+              width: double.infinity,
+              errorBuilder: (_, __, ___) =>
+                  Image.asset(_defaultPochette, fit: BoxFit.cover),
+            ),
+          )
+        : Image.file(
+            File(photo),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            errorBuilder: (_, __, ___) => Image.asset(
+              fallbackAsset,
+              fit: BoxFit.cover,
+              cacheWidth: 300,
+              width: double.infinity,
+              errorBuilder: (_, __, ___) =>
+                  Image.asset(_defaultPochette, fit: BoxFit.cover),
+            ),
+          );
 
-    return Image.file(
-      File(photo),
-      fit: BoxFit.cover,
-      width: double.infinity,
-      errorBuilder: (_, __, ___) => Image.asset(
-        fallbackAsset,
-        fit: BoxFit.cover,
-        cacheWidth: 300,
-        width: double.infinity,
-        errorBuilder: (_, __, ___) =>
-            Image.asset(_defaultPochette, fit: BoxFit.cover),
+    // Tap sur l'affiche -> plein ecran zoomable.
+    return GestureDetector(
+      onTap: () => showFullscreenImage(
+        context,
+        imageUrl: isNetwork ? photo : null,
+        imageFile: isNetwork ? null : photo,
+        imageAsset: fallbackAsset,
       ),
+      child: image,
     );
   }
 

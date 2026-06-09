@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/core/widgets/fullscreen_image_viewer.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart' show ClaimVenueSheet;
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
@@ -121,7 +122,13 @@ class ItemDetailSheet extends ConsumerWidget {
                                     ? screenHeight * 0.85 * imageHeightFraction
                                     : double.infinity,
                               ),
-                              child: hasVideo ? _DetailVideoPlayer(videoUrl: videoUrl!) : _buildImage(),
+                              child: hasVideo
+                                  ? _DetailVideoPlayer(videoUrl: videoUrl!)
+                                  : GestureDetector(
+                                      // Tap sur l'affiche -> plein ecran zoomable.
+                                      onTap: () => _showFullAffiche(context),
+                                      child: _buildImage(),
+                                    ),
                             )
                           : _buildGradientFallback(),
                     ),
@@ -473,7 +480,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                 ],
                               ],
                             );
-                          }),
+                          },),
 
                           const SizedBox(height: 16),
                         ],
@@ -510,6 +517,16 @@ class ItemDetailSheet extends ConsumerWidget {
       cacheWidth: 300,
       width: double.infinity,
       errorBuilder: (_, __, ___) => _buildGradientFallback(),
+    );
+  }
+
+  /// Ouvre l'affiche principale en plein ecran, zoomable (pinch) et
+  /// deplacable. Tap n'importe ou (ou la croix) pour fermer.
+  void _showFullAffiche(BuildContext context) {
+    showFullscreenImage(
+      context,
+      imageUrl: imageUrl,
+      imageAsset: imageAsset,
     );
   }
 
