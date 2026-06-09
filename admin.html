@@ -2338,7 +2338,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("venues")
-          .select("id, name, adresse, ville, mode, category, pro_claim_code, photo, photos, video_url")
+          .select("id, name, adresse, ville, mode, category, pro_claim_code, photo, photos, video_url, display_priority")
           .eq("is_active", true)
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
@@ -2806,6 +2806,18 @@
       renderVenuesList();
     });
 
+    // Les pills rubrique de l'admin sont en FR ("nuit", "famille") alors que
+    // `venues.mode` est en EN ("night", "family"). On canonise le mode des
+    // venues vers le vocabulaire des pills pour que le filtre/les sous-cats
+    // matchent les fiches venues (sinon le pill "Night" ne voyait QUE les
+    // etablissements `nuit`, jamais les vrais clubs en table venues).
+    function canonRubrique(mode) {
+      const x = (mode || "").toLowerCase().trim();
+      if (x === "night") return "nuit";
+      if (x === "family") return "famille";
+      return x;
+    }
+
     // Liste unifiee venues + etablissements pour l'affichage admin.
     function unifiedFiches() {
       const v = allVenues.map(r => ({
@@ -2815,29 +2827,38 @@
         ville: r.ville || "",
         adresse: r.adresse || "",
         type: r.category || r.mode || "",
-        rubrique: r.mode || "",
-        code: r.pro_claim_code,
-        photo: r.photo || "",
-        photos: Array.isArray(r.photos) ? r.photos : [],
-        priority: 0,
-        priorities: {},
-        videoUrl: r.video_url || "",
-      }));
-      const e = allEtabs.map(r => ({
-        source: "etablissements",
-        id: r.id,
-        name: r.nom || "",
-        ville: r.ville || "",
-        adresse: r.adresse || "",
-        type: r.rubrique || "",
-        rubrique: r.rubrique || "",
+        rubrique: canonRubrique(r.mode),
         code: r.pro_claim_code,
         photo: r.photo || "",
         photos: Array.isArray(r.photos) ? r.photos : [],
         priority: r.display_priority ?? 0,
-        priorities: (r.priorities && typeof r.priorities === "object") ? r.priorities : {},
+        priorities: {},          // venues : pas d'override par categorie
         videoUrl: r.video_url || "",
       }));
+      // L'app ne lit `etablissements` QUE pour food. Pour night/culture/
+      // famille elle lit `venues` (et sport → `sport_venues`), donc les
+      // lignes etablissements de ces rubriques sont des doublons orphelins
+      // jamais affichés par l'app. On ne les montre pas ici pour éviter
+      // d'éditer dans le vide (cf. bug L'Étoile : édité côté etab alors que
+      // la fiche Night lit venues).
+      const ETAB_ORPHAN_RUBRIQUES = new Set(["nuit", "night", "culture", "famille", "family"]);
+      const e = allEtabs
+        .filter(r => !ETAB_ORPHAN_RUBRIQUES.has((r.rubrique || "").toLowerCase().trim()))
+        .map(r => ({
+          source: "etablissements",
+          id: r.id,
+          name: r.nom || "",
+          ville: r.ville || "",
+          adresse: r.adresse || "",
+          type: r.rubrique || "",
+          rubrique: r.rubrique || "",
+          code: r.pro_claim_code,
+          photo: r.photo || "",
+          photos: Array.isArray(r.photos) ? r.photos : [],
+          priority: r.display_priority ?? 0,
+          priorities: (r.priorities && typeof r.priorities === "object") ? r.priorities : {},
+          videoUrl: r.video_url || "",
+        }));
       const s = allSportVenues.map(r => ({
         source: "sport_venues",
         id: r.id,
@@ -2986,7 +3007,9 @@
       //   on affiche/edite la priorité de cette sous-cat (priorities[cat]).
       // - Sinon, on edite la display_priority globale.
       let prioCtrl = "";
-      if (f.source === "etablissements" || f.source === "sport_venues") {
+      if (f.source === "etablissements" || f.source === "sport_venues" || f.source === "venues") {
+        // L'override par sous-categorie (priorities[cat]) n'existe que pour
+        // les etablissements food ; venues/sport n'ont qu'une prio globale.
         const sameRub = f.source === "etablissements"
           && (f.rubrique || "").toLowerCase() === currentRubriqueFilter;
         const isCatOverride = sameRub
@@ -3063,16 +3086,32 @@
     // soit dans le champ `theme` OU `categorie`.
     function matchesSubCat(fiche, rubrique, cat) {
       if (!cat) return true;
-      if (fiche.source !== "etablissements") return false;
       if (isCatchAllSubCat(rubrique, cat)) {
         return (fiche.rubrique || "").toLowerCase() === rubrique;
       }
       const needle = cat.toLowerCase();
-      const row = allEtabs.find(r => r.id === fiche.id);
-      if (!row) return false;
-      const t = (row.theme || "").toLowerCase();
-      const c = (row.categorie || "").toLowerCase();
-      return t === needle || c === needle;
+      // Les sous-cats (RUBRIQUE_SUBCATS) sont exprimees dans le vocabulaire
+      // `venues.category` ("Club Discotheque", "Bar de nuit"...). On matche
+      // donc selon la table source de la fiche.
+      if (fiche.source === "etablissements") {
+        const row = allEtabs.find(r => r.id === fiche.id);
+        if (!row) return false;
+        const t = (row.theme || "").toLowerCase();
+        const c = (row.categorie || "").toLowerCase();
+        return t === needle || c === needle;
+      }
+      if (fiche.source === "venues") {
+        const row = allVenues.find(r => r.id === fiche.id);
+        if (!row) return false;
+        return (row.category || "").toLowerCase() === needle;
+      }
+      if (fiche.source === "sport_venues") {
+        const row = allSportVenues.find(r => r.id === fiche.id);
+        if (!row) return false;
+        return (row.categorie || "").toLowerCase() === needle
+          || (row.sport_type || "").toLowerCase() === needle;
+      }
+      return false;
     }
 
     // Priorite effective pour une categorie : priorities[cat] OR display_priority.
@@ -3587,7 +3626,7 @@
       const item = input.closest(".venue-item");
       if (!item) return;
       const source = item.dataset.source;
-      if (source !== "etablissements" && source !== "sport_venues") return;
+      if (source !== "etablissements" && source !== "sport_venues" && source !== "venues") return;
       const id = Number(item.dataset.id);
       const cat = input.dataset.cat || "";
       const raw = input.value.trim();
@@ -3618,7 +3657,11 @@
         .from(source)
         .update(patch)
         .eq("id", id)
-        .select("id, priorities, display_priority");
+        // `display_priority` existe dans les 3 tables ; on ne demande PAS
+        // `priorities` ici car venues/sport_venues n'ont pas cette colonne
+        // (-> erreur 42703). Le cache se met a jour depuis `patch` de toute
+        // facon, pas depuis ce retour.
+        .select("id, display_priority");
       input.disabled = false;
       if (error) {
         console.warn("[venue priority]", error);
@@ -3630,7 +3673,8 @@
         toast(`⚠️ 0 ligne modifiée (RLS) — applique la migration « admin_update_${source} ».`, false);
         return;
       }
-      const cache = source === "etablissements" ? allEtabs : allSportVenues;
+      const cache = source === "etablissements" ? allEtabs
+        : source === "venues" ? allVenues : allSportVenues;
       const row = cache.find(r => r.id === id);
       if (row) {
         if ("display_priority" in patch) row.display_priority = patch.display_priority;
