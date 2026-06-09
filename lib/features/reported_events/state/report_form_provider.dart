@@ -138,8 +138,11 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
       // connue de Google (ex: "rue de Dakar Toulouse" alors que l'user est
       // a Beaupuy). Une vraie fix GPS satellite est < 50m ; une fix
       // wifi/cell typique est 200-2000m.
+      // `high` (pas `best`) : un fix arrive beaucoup plus vite, precision
+      // largement suffisante pour situer un lieu (le user ajuste au besoin
+      // avec le pin draggable).
       const settings = LocationSettings(
-        accuracy: LocationAccuracy.best,
+        accuracy: LocationAccuracy.high,
         distanceFilter: 0,
       );
 
@@ -147,7 +150,7 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
       // On accepte meme une fix imprecise (wifi/cell ~500m) car la
       // localisation grossiere est mieux que rien : le user peut
       // ajuster avec le pin draggable, et le stream/refine continuent
-      // d'affiner en background. Refus uniquement si TROP vieux (>5min)
+      // d'affiner en background. Refus uniquement si TROP vieux (>30min)
       // ou totalement aberrant (>10km de precision).
       Position? seed;
       try {
@@ -156,7 +159,7 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
           final ageSec = DateTime.now()
               .difference(lk.timestamp.toLocal())
               .inSeconds;
-          if (ageSec < 300 && lk.accuracy < 10000) {
+          if (ageSec < 1800 && lk.accuracy < 10000) {
             seed = lk;
             debugPrint('[ReportForm] seed lastKnown: ${lk.latitude},${lk.longitude} (age=${ageSec}s, acc=${lk.accuracy}m)');
             // On affiche immediatement la position seed pour que l'UI
@@ -176,8 +179,9 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         debugPrint('[ReportForm] lastKnown failed: $e');
       }
 
-      // PRIORITE 2 : stream, premiere fix < 50m gagne (vraie fix GPS).
-      // On garde toutes les fixes < 200m comme fallback (Fused mixed wifi+GPS).
+      // PRIORITE 2 : stream, premiere fix < 120m gagne (assez precis pour un
+      // lieu, et atteignable en interieur — un fix < 50m n'arrive quasi
+      // jamais en intra muros et faisait timeout a chaque fois).
       Position? bestFix = seed;
       final completer = Completer<Position>();
       late StreamSubscription<Position> sub;
@@ -186,16 +190,16 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         if (bestFix == null || pos.accuracy < bestFix!.accuracy) {
           bestFix = pos;
         }
-        if (pos.accuracy < 50 && !completer.isCompleted) {
+        if (pos.accuracy < 120 && !completer.isCompleted) {
           completer.complete(pos);
         }
       }, onError: (e) {
         debugPrint('[ReportForm] stream error: $e');
-      });
+      },);
 
       try {
         final fix = await completer.future
-            .timeout(const Duration(seconds: 20));
+            .timeout(const Duration(seconds: 6));
         await sub.cancel();
         debugPrint('[ReportForm] fix accepte: ${fix.latitude},${fix.longitude} (acc=${fix.accuracy}m)');
         state = state.copyWith(
@@ -207,7 +211,7 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         return;
       } on TimeoutException {
         await sub.cancel();
-        // Pas de fix < 50m en 20s. On garde la meilleure recue MEME si
+        // Pas de fix < 120m en 6s. On garde la meilleure recue MEME si
         // imprecise (mieux que "GPS indisponible"). User peut bouger le
         // pin manuellement dans le draggable map.
         if (bestFix != null) {

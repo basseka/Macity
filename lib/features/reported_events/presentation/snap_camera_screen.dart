@@ -84,7 +84,9 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
     _camCtrl?.dispose();
     _camCtrl = CameraController(
       _cameras[index],
-      ResolutionPreset.veryHigh,
+      // `high` (pas veryHigh) : init + capture + upload nettement plus
+      // rapides pour une story, qualite largement suffisante.
+      ResolutionPreset.high,
       enableAudio: true,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
