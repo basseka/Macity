@@ -12,27 +12,26 @@ class _StoryMediaItem {
   const _StoryMediaItem({required this.url, required this.isVideo});
 }
 
-/// Extrait le timestamp ms du nom de fichier `<ts>_report.{jpg|mp4}` upload
-/// par [reported_events_service]. Retourne 0 si l'URL ne match pas le pattern
-/// (placeholders, fakes, sources externes) — la sort stable de Dart preserve
-/// alors l'ordre d'apparition dans les listes photos/videos.
-final RegExp _mediaTsRegex = RegExp(r'(\d{10,15})_report\.(jpg|mp4|jpeg|png|webp)');
-int _mediaCaptureTs(String url) {
-  final m = _mediaTsRegex.firstMatch(url);
-  if (m == null) return 0;
-  return int.tryParse(m.group(1)!) ?? 0;
-}
-
-/// Aplatit photos + videos d'un event en une liste FIFO par timestamp de
-/// capture (extrait du nom de fichier `<ts>_report.<ext>`). Les medias sans
-/// timestamp parseable retombent en queue dans l'ordre photos-puis-videos.
+/// Aplatit les medias d'un event dans l'ordre STRICTEMENT chronologique.
+///
+/// Source de verite : la colonne `media` (timestamp serveur `ts` par media,
+/// pose par le RPC via now()). On trie dessus -> ordre de publication exact,
+/// types confondus, independant de l'horloge de l'appareil (souvent decalee,
+/// ce qui inversait l'ordre quand on triait par le ts du nom de fichier).
+///
+/// Fallback legacy (rows d'avant la migration `media`) : `photos` puis
+/// `videos`, dans leur ordre d'insertion serveur.
 List<_StoryMediaItem> mediasOfEvent(ReportedEvent e) {
-  final list = <_StoryMediaItem>[
+  if (e.media.isNotEmpty) {
+    final ordered = [...e.media]..sort((a, b) => a.ts.compareTo(b.ts));
+    return ordered
+        .map((m) => _StoryMediaItem(url: m.url, isVideo: m.isVideo))
+        .toList();
+  }
+  return <_StoryMediaItem>[
     ...e.photos.map((u) => _StoryMediaItem(url: u, isVideo: false)),
     ...e.videos.map((u) => _StoryMediaItem(url: u, isVideo: true)),
   ];
-  list.sort((a, b) => _mediaCaptureTs(a.url).compareTo(_mediaCaptureTs(b.url)));
-  return list;
 }
 
 /// Viewer plein ecran style Snapchat / Instagram stories.

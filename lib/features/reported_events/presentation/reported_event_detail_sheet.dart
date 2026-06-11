@@ -120,6 +120,10 @@ class _ReportedEventDetailSheetState
             key: ValueKey('media-${event.id}-${widget.mediaIndex}'),
             videoUrl: currentMedia?.isVideo == true ? currentMedia!.url : null,
             photoUrl: currentMedia?.isVideo == false ? currentMedia!.url : null,
+            // Poster de repli pour une video : cover (miniature) ou 1ere photo
+            // -> pas d'ecran gris pendant le chargement/echec video.
+            posterUrl:
+                currentMedia?.isVideo == true ? event.coverPhoto : null,
           ),
 
           // 2. Gradient overlay bas pour lisibilité du texte
@@ -196,7 +200,11 @@ class _ReportedEventDetailSheetState
 class _StoryMedia extends ConsumerStatefulWidget {
   final String? videoUrl;
   final String? photoUrl;
-  const _StoryMedia({super.key, this.videoUrl, this.photoUrl});
+  /// Image de repli (cover/miniature) affichee tant que la video n'est pas
+  /// prete, ou si elle echoue : evite l'ecran gris pendant que le CDN
+  /// propage une video tout juste uploadee.
+  final String? posterUrl;
+  const _StoryMedia({super.key, this.videoUrl, this.photoUrl, this.posterUrl});
 
   @override
   ConsumerState<_StoryMedia> createState() => _StoryMediaState();
@@ -287,11 +295,17 @@ class _StoryMediaState extends ConsumerState<_StoryMedia> {
         ),
       );
     }
-    // Pas de video (ou pas encore prete) -> photo en attendant
-    final photo = widget.photoUrl;
-    if (photo != null && photo.isNotEmpty) {
+    // Pas de video (ou pas encore prete) -> photo/poster en attendant.
+    // Pour un media video, photoUrl est null mais posterUrl (cover/miniature)
+    // sert d'image de repli -> on ne montre jamais un ecran gris vide.
+    final fallback = (widget.photoUrl != null && widget.photoUrl!.isNotEmpty)
+        ? widget.photoUrl
+        : (widget.posterUrl != null && widget.posterUrl!.isNotEmpty
+            ? widget.posterUrl
+            : null);
+    if (fallback != null) {
       return CachedNetworkImage(
-        imageUrl: photo,
+        imageUrl: fallback,
         fit: BoxFit.cover,
         placeholder: (_, __) => Container(color: AppColors.bgSecondary),
         errorWidget: (_, __, ___) => Container(color: AppColors.bgSecondary),

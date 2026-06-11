@@ -32,6 +32,13 @@ class ReportedEvent {
   /// Videos courtes accumulees (10s max chacune).
   final List<String> videos;
 
+  /// Medias (photos + videos) avec leur timestamp SERVEUR d'ajout (colonne
+  /// `media` jsonb, posee par le RPC via now()). Source de verite pour l'ordre
+  /// d'affichage STRICTEMENT chronologique, independante de l'horloge de
+  /// l'appareil (souvent decalee). Vide pour les rows legacy -> le viewer
+  /// retombe sur l'ordre photos-puis-videos.
+  final List<ReportedMedia> media;
+
   /// Photo de pochette utilisee pour les bulles du carrousel map live et du
   /// strip "En Direct" du home. Distincte de [photos] : si l'utilisateur a
   /// poste une video, [coverUrl] contient une miniature extraite de cette
@@ -88,6 +95,7 @@ class ReportedEvent {
     this.osmId,
     this.photos = const [],
     this.videos = const [],
+    this.media = const [],
     this.coverUrl,
     this.isPrivate = false,
     this.reportCount = 1,
@@ -179,6 +187,13 @@ class ReportedEvent {
           : (json['video_url'] is String && (json['video_url'] as String).isNotEmpty)
               ? [json['video_url'] as String]
               : const <String>[],
+      media: (json['media'] is List)
+          ? (json['media'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map(ReportedMedia.fromJson)
+              .where((m) => m.url.isNotEmpty)
+              .toList()
+          : const <ReportedMedia>[],
       coverUrl: (json['cover_url'] is String && (json['cover_url'] as String).isNotEmpty)
           ? json['cover_url'] as String
           : null,
@@ -207,6 +222,27 @@ class ReportedEvent {
       startsAt: DateTime.parse(json['starts_at'] as String),
       expiresAt: DateTime.parse(json['expires_at'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
+}
+
+/// Un media (photo ou video) avec son timestamp serveur d'ajout (ms epoch).
+/// Permet d'ordonner photos et videos d'une story de facon strictement
+/// chronologique, quelle que soit l'horloge de l'appareil qui a poste.
+class ReportedMedia {
+  final String url;
+  final bool isVideo;
+
+  /// Epoch ms pose par le serveur (now()) au moment de l'ajout. 0 si inconnu.
+  final int ts;
+
+  const ReportedMedia({required this.url, required this.isVideo, this.ts = 0});
+
+  factory ReportedMedia.fromJson(Map<String, dynamic> json) {
+    return ReportedMedia(
+      url: (json['url'] as String?) ?? '',
+      isVideo: (json['type'] as String?) == 'video',
+      ts: (json['ts'] as num?)?.toInt() ?? 0,
     );
   }
 }
