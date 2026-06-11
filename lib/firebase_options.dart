@@ -59,10 +59,10 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDcJU-XX9I9fdYqIoergrRYd3g35ErpjV8',
-    appId: '1:935675945253:ios:c7771e6c6a29b711613acc',
+    appId: '1:935675945253:ios:25c021a36c463701613acc',
     messagingSenderId: '935675945253',
     projectId: 'pulz-app-5c24b',
     storageBucket: 'pulz-app-5c24b.firebasestorage.app',
-    iosBundleId: 'com.pulzapp.pulzApp',
+    iosBundleId: 'com.macity.app',
   );
 }

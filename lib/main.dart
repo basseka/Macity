@@ -16,7 +16,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Doit etre une top-level function (pas une methode de classe).
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  // Options explicites obligatoires : sur iOS il n'y a pas de
+  // GoogleService-Info.plist, donc Firebase.initializeApp() sans options
+  // echoue (meme cause que l'ancien crash natif). DefaultFirebaseOptions
+  // n'a pas besoin du .plist.
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('[FCM] background message: ${message.notification?.title}');
 }
 
