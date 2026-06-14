@@ -46,16 +46,19 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     if (_busy) return;
     setState(() => _busy = true);
 
+    // Le flux natif IMMEDIATE mene normalement a un redemarrage de l'app.
+    // Mais si l'user ANNULE l'overlay Play (le plugin resout alors `true`
+    // sans relancer l'app), on ne doit PAS rester bloque sur le spinner :
+    // on retombe sur le store seulement si le natif n'a pas pris le relai,
+    // et on remet TOUJOURS _busy a false pour debloquer le bouton.
     final native = await AppUpdateService.instance.tryNativeFlow(immediate: true);
-    if (native) {
-      return;
-    }
-
-    final url = widget.status.storeUrl;
-    if (url != null && url.isNotEmpty) {
-      final uri = Uri.tryParse(url);
-      if (uri != null) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!native) {
+      final url = widget.status.storeUrl;
+      if (url != null && url.isNotEmpty) {
+        final uri = Uri.tryParse(url);
+        if (uri != null) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
       }
     }
     if (mounted) setState(() => _busy = false);
