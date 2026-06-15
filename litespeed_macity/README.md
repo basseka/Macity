@@ -11,6 +11,11 @@ Ce dossier est une **copie de référence versionnée** de ce qui doit y vivre.
 |---|---|---|
 | `apple-app-site-association` | `https://macity.app/.well-known/apple-app-site-association` | `application/json` |
 | `assetlinks.json` | `https://macity.app/.well-known/assetlinks.json` | `application/json` |
+| `.htaccess` | (non public) `public_html/.well-known/.htaccess` | — |
+
+⚠️ `apple-app-site-association` n'a **pas d'extension** → Hostinger/LiteSpeed le sert en
+`text/plain` par défaut. Le `.htaccess` (ForceType application/json) corrige ça. Sans lui,
+iOS ignore le fichier et les Universal Links ne marchent pas.
 
 ### Règles strictes
 - **Pas d'extension** sur `apple-app-site-association` (ni `.json`).

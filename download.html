@@ -14,7 +14,7 @@
   <meta property="og:url" content="https://macity.app/download" />
   <meta property="og:image" content="https://macity.app/macity_icon.png" />
 
-  <!-- Redirection automatique sur mobile (Android → Play Store, iOS → section iOS) -->
+  <!-- Redirection automatique sur mobile (Android → Play Store, iOS → App Store) -->
   <script>
     (function () {
       var ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -24,6 +24,8 @@
 
       if (isAndroid) {
         window.location.replace('https://play.google.com/store/apps/details?id=com.macity.app');
+      } else if (isIOS) {
+        window.location.replace('https://apps.apple.com/app/macity-app/id6778110272');
       }
       document.documentElement.classList.add(isIOS ? 'is-ios' : (isAndroid ? 'is-android' : 'is-desktop'));
     })();
@@ -117,20 +119,6 @@
       cursor: not-allowed;
       pointer-events: none;
     }
-    .ios-waitlist {
-      margin-top: 24px;
-      padding: 16px;
-      background: #FAF5FB;
-      border-radius: 12px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-    .ios-waitlist a {
-      color: var(--purple);
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .ios-waitlist a:hover { color: var(--pink); }
     .footer {
       margin-top: 32px;
       font-size: 13px;
@@ -139,10 +127,10 @@
     .footer a { color: var(--muted); text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
 
-    .btn-android, .btn-ios-placeholder { display: none; }
+    .btn-android, .btn-ios { display: none; }
     html.is-desktop .btn-android,
-    html.is-desktop .btn-ios-placeholder,
-    html.is-ios .btn-ios-placeholder,
+    html.is-desktop .btn-ios,
+    html.is-ios .btn-ios,
     html.is-android .btn-android { display: flex; }
   </style>
 </head>
@@ -158,32 +146,11 @@
       ▶ Télécharger sur Google Play
     </a>
 
-    <!-- Bouton iOS : placeholder tant que l'app n'est pas sur l'App Store -->
-    <a class="btn btn-secondary btn-disabled btn-ios-placeholder"
-       href="#ios-info">
-      🍎 App Store — bientôt disponible
+    <!-- Bouton iOS / App Store -->
+    <a class="btn btn-primary btn-ios"
+       href="https://apps.apple.com/app/macity-app/id6778110272">
+      🍎 Télécharger sur l'App Store
     </a>
-
-    <!--
-      Quand l'app iOS sera publiée, remplace le bloc ci-dessus par :
-
-      <a class="btn btn-primary btn-ios-placeholder"
-         href="https://apps.apple.com/fr/app/macity/idXXXXXXXXX">
-        🍎 Télécharger sur l'App Store
-      </a>
-
-      Ou pour une beta TestFlight en attendant :
-
-      <a class="btn btn-secondary btn-ios-placeholder"
-         href="https://testflight.apple.com/join/XXXXXX">
-        🍎 Rejoindre la bêta TestFlight
-      </a>
-    -->
-
-    <div class="ios-waitlist" id="ios-info">
-      Tu es sur iPhone ? L'app arrive très bientôt sur l'App Store.
-      <br /><a href="mailto:contact@macity.app?subject=Me prévenir iOS">Me prévenir à la sortie →</a>
-    </div>
 
     <div class="footer">
       <a href="https://macity.app">macity.app</a>

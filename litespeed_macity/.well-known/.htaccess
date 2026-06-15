@@ -1,0 +1,8 @@
+# macity.app/.well-known/ (Hostinger / LiteSpeed)
+#
+# apple-app-site-association n'a PAS d'extension -> servi en text/plain par
+# defaut. Apple exige application/json sinon iOS ignore le fichier et les
+# Universal Links ne fonctionnent pas. On force le bon Content-Type ici.
+<Files "apple-app-site-association">
+  ForceType application/json
+</Files>
