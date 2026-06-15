@@ -1388,10 +1388,11 @@ class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
     if (_sharing) return;
     setState(() => _sharing = true);
     try {
-      // Deep link direct vers l'event dans l'app (scheme custom, sans web).
-      // Tap -> EventDeeplinkScreen fetch l'event et ouvre l'affiche.
-      // Si l'app n'est pas installee, le lien est inerte (choix assume).
-      final deepLink = 'pulzapp://event/${widget.eventIdentifiant}';
+      // App Link https vers l'event : cliquable dans les messageries (WhatsApp
+      // ne rend cliquable que les liens http/https, jamais un scheme custom).
+      // macity.app/event/* a assetlinks autoVerify -> tap ouvre l'app si
+      // installee, sinon la page web propose l'app + le Play Store.
+      final deepLink = 'https://macity.app/event/${widget.eventIdentifiant}';
       final caption =
           '${widget.eventTitle}\n\nDécouvre cet évènement sur MaCity 👇\n$deepLink';
 
