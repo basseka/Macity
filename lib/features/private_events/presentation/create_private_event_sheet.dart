@@ -539,7 +539,7 @@ String buildPrivateEventShareText(PrivateEvent event) {
   final buf = StringBuffer();
   buf.writeln('🤫 Tu es sur la liste.');
   buf.writeln(
-    "Une soiree privee t'attend... Ouvre le coffre pour decouvrir ou, quand et tous les details 👀",
+    "Une soirée privée t'attend… Ouvre le coffre pour découvrir où, quand et tous les détails 👀",
   );
   buf.writeln('');
   buf.writeln('👉 https://macity.app/coffre/${event.accessToken}');
