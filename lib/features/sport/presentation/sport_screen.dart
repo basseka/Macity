@@ -17,6 +17,7 @@ import 'package:pulz_app/features/sport/presentation/match_events_hub.dart';
 import 'package:pulz_app/features/sport/presentation/raquette_hub.dart';
 import 'package:pulz_app/features/sport/presentation/sport_fullscreen_map.dart';
 import 'package:pulz_app/features/sport/presentation/sport_home_matches_section.dart';
+import 'package:pulz_app/features/sport/presentation/sport_news_section.dart';
 import 'package:pulz_app/features/sport/presentation/sport_hub_grid.dart';
 import 'package:pulz_app/features/sport/presentation/sport_matches_list.dart';
 import 'package:pulz_app/features/sport/presentation/sport_venues_list.dart';
@@ -83,6 +84,7 @@ class SportScreen extends ConsumerWidget {
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
       extraSections: (ctx) => const [SportHomeMatchesSection()],
+      extraSectionsBottom: (ctx) => const [SportNewsSection()],
       itemsBuilder: (ref, chipKey) {
         return ref.watch(sportVenuesProvider(chipKey)).whenData(
               (list) => list

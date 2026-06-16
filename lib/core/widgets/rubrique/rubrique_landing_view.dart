@@ -185,6 +185,10 @@ class RubriqueConfig {
   /// `core` aux features.
   final List<Widget> Function(BuildContext context)? extraSections;
 
+  /// Comme [extraSections], mais inséré APRÈS la bannière (tout en bas de la
+  /// page). Ex. Sport : le bloc "Actu sport" sous "les meilleurs spots".
+  final List<Widget> Function(BuildContext context)? extraSectionsBottom;
+
   const RubriqueConfig({
     required this.theme,
     required this.eyebrowLeft,
@@ -201,6 +205,7 @@ class RubriqueConfig {
     required this.onBack,
     this.onBannerCta,
     this.extraSections,
+    this.extraSectionsBottom,
   });
 }
 
@@ -343,6 +348,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             ...(cfg.extraSections?.call(context) ?? const <Widget>[]),
             ..._inspirationsSection(cfg, t),
             _banner(cfg),
+            ...(cfg.extraSectionsBottom?.call(context) ?? const <Widget>[]),
           ],
         ),
       ),
