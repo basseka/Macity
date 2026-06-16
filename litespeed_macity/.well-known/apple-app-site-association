@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "BG2AU3T74F.com.macity.app",
-        "paths": ["/event/*"]
+        "paths": ["/event/*", "/coffre/*"]
       }
     ]
   }

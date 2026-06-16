@@ -13,6 +13,17 @@ Ce dossier est une **copie de référence versionnée** de ce qui doit y vivre.
 | `assetlinks.json` | `https://macity.app/.well-known/assetlinks.json` | `application/json` |
 | `.htaccess` | (non public) `public_html/.well-known/.htaccess` | — |
 
+## Pages de fallback (app non installée)
+
+| Fichier | URL servie | Note |
+|---|---|---|
+| `coffre/index.html` | `https://macity.app/coffre/{token}` | **Nouveau** — invitation soirée privée. Token lu dans le **chemin**. Nécessite que `/coffre/*` serve cette page (rewrite, comme `/event/*`). |
+
+⚠️ Le coffre passe désormais de `pulz-app-5c24b.web.app/coffre?t=…` (Firebase, ancien
+nom de marque) à **`macity.app/coffre/{token}`** (App Link vérifié, cohérent avec `/event`).
+Il faut donc que Hostinger serve `/coffre/{token}` avec cette page (même mécanisme de
+rewrite que `/event/{id}`).
+
 ⚠️ `apple-app-site-association` n'a **pas d'extension** → Hostinger/LiteSpeed le sert en
 `text/plain` par défaut. Le `.htaccess` (ForceType application/json) corrige ça. Sans lui,
 iOS ignore le fichier et les Universal Links ne marchent pas.
@@ -29,7 +40,7 @@ iOS ignore le fichier et les Universal Links ne marchent pas.
 - Bundle / package : `com.macity.app`
 - App Store ID : `6778110272`
 - appID Universal Links : `BG2AU3T74F.com.macity.app`
-- Chemins pris en charge : `/event/*`
+- Chemins pris en charge : `/event/*`, `/coffre/*`
 
 ## Vérification après dépôt
 ```

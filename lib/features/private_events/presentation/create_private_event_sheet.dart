@@ -544,7 +544,7 @@ String buildPrivateEventShareText(PrivateEvent event) {
       '${event.heure.isNotEmpty ? " - ${event.heure}" : ""}');
   buf.writeln('');
   buf.writeln('👉 Ouvre le coffre (clique, le token se remplit tout seul) :');
-  buf.writeln('https://pulz-app-5c24b.web.app/coffre?t=${event.accessToken}');
+  buf.writeln('https://macity.app/coffre/${event.accessToken}');
   buf.writeln('');
   buf.writeln('Code a taper : ${event.passcode}');
   return buf.toString();
