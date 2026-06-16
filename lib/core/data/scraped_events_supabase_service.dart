@@ -139,6 +139,35 @@ class ScrapedEventsSupabaseService {
     return (allEvents, futureData.length);
   }
 
+  /// Fetch plusieurs events par leurs identifiants, en UNE requete.
+  /// L'ordre de [ids] est preserve (PostgREST ne garantit pas l'ordre d'un
+  /// filtre `in.()`), et les ids introuvables sont simplement omis.
+  /// Utilise par le tap sur la notif "Ta sélection" (digest du soir).
+  Future<List<Event>> fetchEventsByIds(List<String> ids) async {
+    final cleaned = ids.where((e) => e.trim().isNotEmpty).toList();
+    if (cleaned.isEmpty) return [];
+    final response = await _dio.get(
+      'scraped_events',
+      queryParameters: {
+        'select': '*',
+        'identifiant': 'in.(${cleaned.join(",")})',
+        'limit': '${cleaned.length}',
+      },
+    );
+    final data = response.data as List;
+    final byId = <String, Event>{};
+    for (final raw in data) {
+      try {
+        final event = Event.fromJson(raw as Map<String, dynamic>);
+        byId[event.identifiant] = event;
+      } catch (_) {
+        // ignore les lignes non parsables
+      }
+    }
+    // Reordonne selon [ids] et omet les introuvables.
+    return [for (final id in cleaned) if (byId[id] != null) byId[id]!];
+  }
+
   /// Fetch a single event by its identifiant.
   Future<Event?> fetchEventById(String identifiant) async {
     final response = await _dio.get(

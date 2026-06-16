@@ -13,6 +13,10 @@ String? _pendingEventId;
 /// Event déjà chargé en attente (stream, app ouverte).
 Event? _pendingEvent;
 
+/// Sélection d'events en attente pour le container "Ta sélection"
+/// (tap sur la notif digest du soir) — affichée en carrousel plein écran.
+List<Event>? _pendingDigestEvents;
+
 /// Guard pour éviter les doubles appels.
 bool _isShowing = false;
 
@@ -26,10 +30,38 @@ void deepLinkSetPending(Event event) {
   _pendingEvent = event;
 }
 
+/// Stocker une sélection d'events (notif digest du soir) à afficher en
+/// carrousel plein écran swipeable.
+void deepLinkSetPendingDigest(List<Event> events) {
+  _pendingDigestEvents = events;
+}
+
 /// Appelé depuis FeedScreen.initState — charge et affiche le deep link en attente.
 /// Utilise le NavigatorState global pour éviter les context invalides.
 Future<void> deepLinkShowPending() async {
   if (_isShowing) return;
+
+  // Cas digest : une sélection de plusieurs events → carrousel plein écran.
+  final digest = _pendingDigestEvents;
+  if (digest != null && digest.isNotEmpty) {
+    _pendingDigestEvents = null;
+    final navContext = deepLinkNavigatorKey?.currentContext;
+    if (navContext == null) return;
+    _isShowing = true;
+    try {
+      await EventFullscreenPopup.showPaged(
+        navContext,
+        events: digest,
+        initialIndex: 0,
+        fallbackAssetBuilder: (_) => 'assets/images/pochette_default.jpg',
+        badge: 'Ta sélection',
+      );
+    } catch (e) {
+      debugPrint('[DeepLink] error showing digest popup: $e');
+    }
+    _isShowing = false;
+    return;
+  }
 
   Event? eventToShow;
 

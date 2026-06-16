@@ -199,17 +199,54 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         ref.read(modeSubcategoriesProvider.notifier).select(universe, null);
         ref.read(dateRangeFilterProvider.notifier).state = const DateRangeFilter();
         appRouter.go('/mode/$universe');
-      } else if (type == 'daily_digest' || type == 'event_reminder') {
-        // Ouvrir le detail de l'event si event_id présent
-        final eventId = data['event_id'] as String? ?? '';
-        if (eventId.isNotEmpty) {
-          ScrapedEventsSupabaseService().fetchEventById(eventId).then((event) {
-            if (event != null) {
-              deepLinkSetPending(event);
+      } else if (type == 'daily_digest') {
+        // Selection du soir : plusieurs events → container plein ecran
+        // swipeable. Nouveau payload : data.event_ids (ids separes par
+        // virgule). Fallback sur data.event_id (anciennes notifs deja
+        // distribuees qui ne portent qu'un seul event).
+        final ids = (data['event_ids'] as String? ?? '')
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
+        if (ids.length > 1) {
+          ScrapedEventsSupabaseService().fetchEventsByIds(ids).then((events) {
+            if (events.isNotEmpty) {
+              deepLinkSetPendingDigest(events);
               appRouter.go('/home');
+              // Cold start : FeedScreen est peut-etre deja monte (son
+              // initState ne re-jouera pas). On declenche aussi l'affichage
+              // ici ; le guard _isShowing + la consommation du pending
+              // evitent tout double affichage.
+              Future.delayed(
+                const Duration(milliseconds: 800),
+                deepLinkShowPending,
+              );
             } else {
               appRouter.go('/home');
             }
+          });
+        } else {
+          final eventId = ids.isNotEmpty
+              ? ids.first
+              : (data['event_id'] as String? ?? '');
+          if (eventId.isNotEmpty) {
+            ScrapedEventsSupabaseService().fetchEventById(eventId).then((event) {
+              if (event != null) deepLinkSetPending(event);
+              appRouter.go('/home');
+            });
+          } else {
+            appRouter.go('/home');
+          }
+        }
+        return;
+      } else if (type == 'event_reminder') {
+        // Rappel d'un event precis → ouvrir son detail.
+        final eventId = data['event_id'] as String? ?? '';
+        if (eventId.isNotEmpty) {
+          ScrapedEventsSupabaseService().fetchEventById(eventId).then((event) {
+            if (event != null) deepLinkSetPending(event);
+            appRouter.go('/home');
           });
         } else {
           appRouter.go('/home');
