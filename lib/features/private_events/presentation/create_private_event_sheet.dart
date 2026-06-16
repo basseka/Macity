@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -529,25 +530,52 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
   }
 }
 
-/// Construit le texte d'invitation a partager (Share.share). Public pour
-/// reutilisation depuis la liste "Mes soirees privees".
+/// Texte d'invitation "teaser" : volontairement enigmatique. On ne devoile NI
+/// le titre, NI le lieu, NI l'adresse, NI la date — l'invite les decouvre en
+/// ouvrant le coffre. L'invitation embarque surtout la PHOTO de l'event
+/// (cf [sharePrivateEventInvite]). Public pour reutilisation depuis la liste
+/// "Mes soirees privees".
 String buildPrivateEventShareText(PrivateEvent event) {
   final buf = StringBuffer();
-  buf.writeln('Tu es invite(e) a mon event privé 🎉');
-  buf.writeln(event.title);
-  if (event.lieu.isNotEmpty) buf.writeln('📍 ${event.lieu}');
-  if (event.adresse.isNotEmpty) buf.writeln('   ${event.adresse}');
-  final d = DateTime.tryParse(event.date);
-  final friendly =
-      d != null ? DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(d) : event.date;
-  buf.writeln('📅 $friendly'
-      '${event.heure.isNotEmpty ? " - ${event.heure}" : ""}');
+  buf.writeln('🤫 Tu es sur la liste.');
+  buf.writeln(
+    "Une soiree privee t'attend... Ouvre le coffre pour decouvrir ou, quand et tous les details 👀",
+  );
   buf.writeln('');
-  buf.writeln('👉 Ouvre le coffre (clique, le token se remplit tout seul) :');
-  buf.writeln('https://macity.app/coffre/${event.accessToken}');
-  buf.writeln('');
-  buf.writeln('Code a taper : ${event.passcode}');
+  buf.writeln('👉 https://macity.app/coffre/${event.accessToken}');
+  buf.writeln('🔑 Code : ${event.passcode}');
   return buf.toString();
+}
+
+/// Partage l'invitation : la PHOTO de l'event (si dispo) + un texte minimal.
+/// WhatsApp/Insta affichent alors l'affiche en grand avec juste le lien + le
+/// code ; le lieu/la date restent caches jusqu'a l'ouverture du coffre. Si la
+/// photo n'est pas dispo (pas d'URL ou download KO), on partage le texte seul.
+Future<void> sharePrivateEventInvite(PrivateEvent event) async {
+  final text = buildPrivateEventShareText(event);
+  final photo = await _resolveInvitePhoto(event.photoUrl);
+  if (photo != null) {
+    await Share.shareXFiles([photo], text: text);
+  } else {
+    await Share.share(text);
+  }
+}
+
+/// Telecharge la photo de l'event vers un fichier partageable. Renvoie null si
+/// pas d'URL http ou si le download echoue/timeout (-> partage texte seul).
+Future<XFile?> _resolveInvitePhoto(String? url) async {
+  if (url == null || !url.startsWith('http')) return null;
+  try {
+    final file = await DefaultCacheManager()
+        .getSingleFile(url)
+        .timeout(const Duration(seconds: 9));
+    if (await file.exists() && await file.length() > 0) {
+      return XFile(file.path);
+    }
+  } catch (e) {
+    debugPrint('[private-share] photo download failed: $e');
+  }
+  return null;
 }
 
 /// Vue de confirmation : montre le token + passcode et permet de partager.
@@ -628,8 +656,7 @@ class _SuccessView extends StatelessWidget {
             width: double.infinity,
             height: 46,
             child: ElevatedButton.icon(
-              onPressed: () =>
-                  Share.share(buildPrivateEventShareText(event)),
+              onPressed: () => sharePrivateEventInvite(event),
               icon: const Icon(Icons.share, size: 18),
               label: Text(
                 'Partager',

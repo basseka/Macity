@@ -7,7 +7,6 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Liste des soirees privees creees par ce device. Permet de re-partager le
 /// lien+code et de supprimer un event.
@@ -132,9 +131,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, i) => _EventTile(
                 event: events[i],
-                onShare: () => Share.share(
-                  buildPrivateEventShareText(events[i]),
-                ),
+                onShare: () => sharePrivateEventInvite(events[i]),
                 onDelete: () => _delete(events[i]),
                 onShowGuests: () => _showGuests(events[i]),
               ),
