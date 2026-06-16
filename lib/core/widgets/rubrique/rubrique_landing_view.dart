@@ -179,6 +179,12 @@ class RubriqueConfig {
   final VoidCallback onBack;
   final VoidCallback? onBannerCta;
 
+  /// Sections additionnelles propres à la rubrique, insérées juste avant le
+  /// carrousel "Inspirations". Permet à une feature (ex. Sport : matchs à
+  /// domicile) d'injecter un bloc maison sans coupler ce widget générique
+  /// `core` aux features.
+  final List<Widget> Function(BuildContext context)? extraSections;
+
   const RubriqueConfig({
     required this.theme,
     required this.eyebrowLeft,
@@ -194,6 +200,7 @@ class RubriqueConfig {
     required this.itemsBuilder,
     required this.onBack,
     this.onBannerCta,
+    this.extraSections,
   });
 }
 
@@ -333,6 +340,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                     style: RubriqueTheme.body()),
               ),
             ),
+            ...(cfg.extraSections?.call(context) ?? const <Widget>[]),
             ..._inspirationsSection(cfg, t),
             _banner(cfg),
           ],
