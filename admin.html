@@ -924,6 +924,7 @@
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
           <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
+          <span class="nav-btn" id="goto-sportnews-btn">📰 Actu sport</span>
           <span class="nav-btn" id="goto-pros-btn">👔 Pros <span id="pros-pending-badge" style="display:none; background:#DC2626; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
         </div>
       </div>
@@ -1528,6 +1529,19 @@
           <button class="banner-save-btn" id="insp-add-btn">+ Ajouter une carte</button>
         </div>
         <div id="insp-list"></div>
+      </div>
+
+      <!-- ═══ VUE ACTU SPORT ═══ -->
+      <div id="sportnews-view" class="hidden">
+        <h1>📰 Actu sport</h1>
+        <p class="subtitle">Mini-articles du bloc « Actu sport » de la page Sport. Générés <strong>automatiquement chaque jour par IA</strong> (reformulés depuis des sources locales). Ici tu peux <strong>masquer</strong> un article douteux, le <strong>corriger</strong>, le <strong>supprimer</strong>, ou en <strong>ajouter</strong> un à la main. ⚠️ Le run quotidien remplace les articles auto ; <strong>dès que tu enregistres une modif, l'article devient « manuel » et est conservé</strong> (plus écrasé par le run).</p>
+        <div class="city-filter-row" style="gap:10px;">
+          <div class="city-stats" id="sportnews-stats">—</div>
+        </div>
+        <div style="margin:14px 0;">
+          <button class="banner-save-btn" id="sportnews-add-btn">+ Ajouter un article</button>
+        </div>
+        <div id="sportnews-list"></div>
       </div>
 
       <!-- ═══ VUE PROS ═══ -->
@@ -2520,6 +2534,8 @@
     const gotoBannersBtn = document.getElementById("goto-banners-btn");
     const inspirationsView = document.getElementById("inspirations-view");
     const gotoInspirationsBtn = document.getElementById("goto-inspirations-btn");
+    const sportnewsView = document.getElementById("sportnews-view");
+    const gotoSportnewsBtn = document.getElementById("goto-sportnews-btn");
     const prosView = document.getElementById("pros-view");
     const gotoProsBtn = document.getElementById("goto-pros-btn");
 
@@ -2529,12 +2545,14 @@
       venuesView.classList.add("hidden");
       bannersView.classList.add("hidden");
       inspirationsView.classList.add("hidden");
+      sportnewsView.classList.add("hidden");
       prosView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
       gotoBannersBtn.style.display = "inline-flex";
       gotoInspirationsBtn.style.display = "inline-flex";
+      gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
     }
     function showFormView() {
@@ -2578,12 +2596,205 @@
       refreshProsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
+    function showSportNewsView() {
+      _hideAllViews();
+      sportnewsView.classList.remove("hidden");
+      gotoSportnewsBtn.style.display = "none";
+      refreshSportNewsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     gotoEventsBtn.addEventListener("click", showEventsView);
     gotoFormBtn.addEventListener("click", showFormView);
     gotoVenuesBtn.addEventListener("click", showVenuesView);
     gotoBannersBtn.addEventListener("click", showBannersView);
     gotoInspirationsBtn.addEventListener("click", showInspirationsView);
+    gotoSportnewsBtn.addEventListener("click", showSportNewsView);
     gotoProsBtn.addEventListener("click", showProsView);
+
+    // ─── Onglet Actu sport : table `sport_news` ───
+    const sportnewsList = document.getElementById("sportnews-list");
+    const sportnewsStats = document.getElementById("sportnews-stats");
+    const sportnewsAddBtn = document.getElementById("sportnews-add-btn");
+    let allSportNews = [];
+
+    async function loadSportNews() {
+      const { data, error } = await supabase
+        .from("sport_news")
+        .select("*")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.warn("[sport_news]", error);
+        toast("Erreur de chargement de l'actu sport", false);
+        return;
+      }
+      allSportNews = data || [];
+    }
+
+    const SPORTNEWS_OPTS = ["rugby", "football", "basket", "hand", "autre"];
+
+    function sportNewsCardHtml(row) {
+      const exists = row != null;
+      const title = row?.title ?? "";
+      const summary = row?.summary ?? "";
+      const sport = (row?.sport ?? "autre").toLowerCase();
+      const sourceName = row?.source_name ?? "";
+      const sourceUrl = row?.source_url ?? "";
+      const imageUrl = row?.image_url ?? "";
+      const sortOrder = row?.sort_order ?? 0;
+      const isActive = row?.is_active ?? true;
+      const stype = row?.source_type ?? "manual";
+      return `
+        <div class="banner-card" data-existing="${exists ? "1" : "0"}" data-id="${row?.id ?? ""}">
+          <div class="banner-card-head">
+            <span class="banner-mode-pill">${exists ? `Article #${row.id} · ${stype === 'ai' ? '🤖 auto' : '✍️ manuel'}` : "Nouvel article"}</span>
+            <span style="font-size:11px; color:var(--text-faint);">
+              <span class="banner-status-dot ${isActive ? 'on' : 'off'}"></span>
+              ${exists ? (isActive ? 'Affiché' : 'Masqué') : 'Sera créé au save'}
+            </span>
+          </div>
+
+          <label class="banner-field-label">Titre *</label>
+          <input type="text" class="banner-input" data-field="title"
+            value="${escapeHtml(title)}" placeholder="Le TFC s'impose au Stadium" />
+
+          <label class="banner-field-label">Résumé (mini-article) *</label>
+          <textarea class="banner-input" data-field="summary" rows="3"
+            placeholder="2 à 3 phrases qui résument l'actu.">${escapeHtml(summary)}</textarea>
+
+          <label class="banner-field-label">Sport</label>
+          <select class="banner-input" data-field="sport">
+            ${SPORTNEWS_OPTS.map(s => `<option value="${s}" ${s === sport ? 'selected' : ''}>${s}</option>`).join("")}
+          </select>
+
+          <label class="banner-field-label">Source (nom du média)</label>
+          <input type="text" class="banner-input" data-field="source_name"
+            value="${escapeHtml(sourceName)}" placeholder="La Dépêche" />
+
+          <label class="banner-field-label">Lien source (cliquable dans l'app)</label>
+          <input type="url" class="banner-input" data-field="source_url"
+            value="${escapeHtml(sourceUrl)}" placeholder="https://…" />
+
+          <label class="banner-field-label">Image (URL, optionnel)</label>
+          <input type="url" class="banner-input" data-field="image_url"
+            value="${escapeHtml(imageUrl)}" placeholder="https://…" />
+
+          <label class="banner-field-label">Ordre d'affichage (petit = en premier)</label>
+          <input type="number" class="banner-input" data-field="sort_order"
+            value="${Number(sortOrder)}" step="1" />
+
+          <div class="banner-actions-row">
+            <label class="banner-toggle">
+              <input type="checkbox" data-field="is_active" ${isActive ? 'checked' : ''} />
+              <span>Affiché</span>
+            </label>
+            ${sourceUrl ? `<a class="banner-link-btn" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener">🔗 Tester</a>` : ''}
+            ${exists ? `<button class="banner-delete-btn" data-action="delete">Supprimer</button>` : ''}
+            <button class="banner-save-btn" data-action="save">${exists ? 'Enregistrer' : 'Créer'}</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSportNewsList() {
+      const active = allSportNews.filter(r => r.is_active).length;
+      sportnewsStats.textContent = `${allSportNews.length} article(s) · ${active} affiché(s)`;
+      sportnewsList.innerHTML = allSportNews.length
+        ? allSportNews.map(sportNewsCardHtml).join("")
+        : `<div class="venues-empty">Aucun article pour l'instant. Le run quotidien en génère automatiquement, ou clique sur « + Ajouter un article ».</div>`;
+    }
+
+    function refreshSportNewsView() {
+      loadSportNews().then(renderSportNewsList);
+    }
+
+    sportnewsAddBtn.addEventListener("click", () => {
+      const empty = sportnewsList.querySelector(".venues-empty");
+      if (empty) sportnewsList.innerHTML = "";
+      sportnewsList.insertAdjacentHTML("afterbegin", sportNewsCardHtml(null));
+    });
+
+    sportnewsList.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-action]");
+      if (!btn) return;
+      const card = btn.closest(".banner-card");
+      if (!card) return;
+      const existing = card.dataset.existing === "1";
+      const id = card.dataset.id ? Number(card.dataset.id) : null;
+      const action = btn.dataset.action;
+
+      if (action === "delete") {
+        if (!confirm("Supprimer cet article ? (s'il reste dans le flux, le run quotidien peut le régénérer)")) return;
+        btn.disabled = true;
+        const { error } = await supabase.from("sport_news").delete().eq("id", id);
+        if (error) {
+          btn.disabled = false;
+          toast("Erreur suppression : " + error.message, false);
+          return;
+        }
+        allSportNews = allSportNews.filter(r => r.id !== id);
+        renderSportNewsList();
+        toast("Article supprimé", true);
+        return;
+      }
+
+      if (action === "save") {
+        const get = (f) => card.querySelector(`[data-field="${f}"]`);
+        const title = get("title").value.trim();
+        const summary = get("summary").value.trim();
+        const sport = get("sport").value;
+        const sourceName = get("source_name").value.trim();
+        const sourceUrl = get("source_url").value.trim();
+        const imageUrl = get("image_url").value.trim();
+        const sortOrder = Number(get("sort_order").value) || 0;
+        const isActive = get("is_active").checked;
+
+        if (!title || !summary) {
+          toast("Titre et résumé sont requis", false);
+          return;
+        }
+        for (const [label, url] of [["source", sourceUrl], ["image", imageUrl]]) {
+          if (url && !url.startsWith("http")) {
+            toast(`L'URL ${label} doit commencer par http`, false);
+            return;
+          }
+        }
+
+        btn.disabled = true;
+        btn.textContent = "…";
+        // Tout article touché en admin devient 'manual' => preserve du run quotidien.
+        const payload = {
+          ville: "Toulouse",
+          title,
+          summary,
+          sport: sport || "autre",
+          source_name: sourceName,
+          source_url: sourceUrl,
+          image_url: imageUrl,
+          sort_order: sortOrder,
+          is_active: isActive,
+          source_type: "manual",
+        };
+
+        const resp = existing
+          ? await supabase.from("sport_news").update(payload).eq("id", id).select().single()
+          : await supabase.from("sport_news").insert(payload).select().single();
+
+        if (resp.error) {
+          btn.disabled = false;
+          btn.textContent = existing ? "Enregistrer" : "Créer";
+          toast("Erreur : " + resp.error.message, false);
+          return;
+        }
+        const saved = resp.data;
+        const idx = allSportNews.findIndex(r => r.id === saved.id);
+        if (idx >= 0) allSportNews[idx] = saved;
+        else allSportNews.push(saved);
+        renderSportNewsList();
+        toast(existing ? "Article enregistré" : "Article créé", true);
+        return;
+      }
+    });
 
     // ─── Onglet Pros : liste pros + actions approve/revoke ───
     let _allPros = [];
