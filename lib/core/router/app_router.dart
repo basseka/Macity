@@ -43,8 +43,19 @@ late final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/splash',
   redirect: (context, state) {
-    // Allow deep links to /event/ even if onboarding not done
+    // Deep link custom-scheme (pulzapp://coffre/{token}, pulzapp://event/{id})
+    // delivre par la plateforme au demarrage a froid : go_router ne sait pas
+    // matcher l'URI brute (-> "no routes for location: pulzapp://...").
+    // On la convertit ici en route interne valide.
+    if (state.uri.scheme == 'pulzapp') {
+      if (state.uri.host == 'coffre' && state.uri.pathSegments.isNotEmpty) {
+        return '/coffre/${state.uri.pathSegments.first}';
+      }
+      return '/home';
+    }
+    // Allow deep links to /event/ et /coffre/ even if onboarding not done
     if (state.matchedLocation.startsWith('/event/')) return null;
+    if (state.matchedLocation.startsWith('/coffre/')) return null;
     if (_onboardingDone == false &&
         state.matchedLocation != '/onboarding' &&
         state.matchedLocation != '/splash') {
