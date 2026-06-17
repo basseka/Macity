@@ -1154,7 +1154,12 @@ class _SwipeHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    // IgnorePointer : ce hint est purement decoratif et centre en bas, pile
+    // au-dessus du bouton "Billetterie". Sans ca, la pastille capte les taps
+    // au centre du bouton (centre mort, cf. bug iOS/Android). Cf. le gradient
+    // plus haut qui utilise deja IgnorePointer pour la meme raison.
+    return IgnorePointer(
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.55),
@@ -1185,6 +1190,7 @@ class _SwipeHint extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

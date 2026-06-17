@@ -44,7 +44,7 @@ class _MetroTramwayMapState extends State<MetroTramwayMap> {
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       if (!mounted) return;
-      _controller.runJavaScript('onLocationSuccess(${pos.latitude}, ${pos.longitude})');
+      _controller.runJavaScript('onLocationSuccess(${pos.latitude}, ${pos.longitude}); void 0;');
     } catch (e) {
       debugPrint('[MetroTramwayMap] location error: $e');
     }

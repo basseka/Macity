@@ -130,7 +130,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     if (center == null) return;
     debugPrint('[ReportedEventsMap] center on city $city: ${center.lat}, ${center.lng}');
     await _controller.runJavaScript(
-      'centerOnCity(${center.lat}, ${center.lng})',
+      'centerOnCity(${center.lat}, ${center.lng}); void 0;',
     );
   }
 
@@ -180,13 +180,13 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       if (pos != null && _pageReady) {
         debugPrint('[Map] user pos: ${pos.latitude}, ${pos.longitude}');
         await _controller.runJavaScript(
-          'showUserPin(${pos.latitude}, ${pos.longitude})',
+          'showUserPin(${pos.latitude}, ${pos.longitude}); void 0;',
         );
         // Sur la page MapLive (mode dynamique), recentre sur le user à
         // zoom rapproché. Sur la home (presentation), garde le centre ville.
         if (!widget.usePresentationMarkers) {
           await _controller.runJavaScript(
-            'map.setView([${pos.latitude}, ${pos.longitude}], 14)',
+            'map.setView([${pos.latitude}, ${pos.longitude}], 14); void 0;',
           );
         }
       } else {
@@ -267,7 +267,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     await Future.delayed(const Duration(milliseconds: 250));
     debugPrint(
         '[PresentationMap] injecting ${fakes.length} fake + ${realEvents.length} real markers around $city');
-    await _controller.runJavaScript('setPresentationReports($json)');
+    await _controller.runJavaScript('setPresentationReports($json); void 0;');
   }
 
   void _handleMarkerTap(String id) {
@@ -290,7 +290,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       final category = e.category.replaceAll("'", "\\'");
       return "{id:'${e.id}',lat:${e.lat},lng:${e.lng},emoji:'$emoji',title:'$title',photos:$photoCount,reports:$reportCount,category:'$category'}";
     }).join(',');
-    await _controller.runJavaScript('setReports([$js])');
+    await _controller.runJavaScript('setReports([$js]); void 0;');
   }
 
   String _buildHtml() {

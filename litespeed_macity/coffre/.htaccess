@@ -1,0 +1,6 @@
+# macity.app/coffre/ — sert index.html pour tout token dynamique
+# (ex: /coffre/6a824ab6-...). Le token est lu côté JS depuis l'URL.
+RewriteEngine On
+# Si la requête n'est pas un fichier réel existant -> on sert la page coffre.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.html [L]

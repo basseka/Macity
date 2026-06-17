@@ -137,7 +137,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
 
   void _injectPosition(Position pos) {
     _controller.runJavaScript(
-      'onLocationSuccess(${pos.latitude}, ${pos.longitude})',
+      'onLocationSuccess(${pos.latitude}, ${pos.longitude}); void 0;',
     );
   }
 
@@ -153,7 +153,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _controller.runJavaScript(
-          "onLocationError('Active la localisation dans les parametres')",
+          "onLocationError('Active la localisation dans les parametres'); void 0;",
         );
         return;
       }
@@ -164,12 +164,12 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       }
       if (permission == LocationPermission.deniedForever) {
         _controller.runJavaScript(
-          "onLocationError('Autorise la localisation dans les parametres de l appli')",
+          "onLocationError('Autorise la localisation dans les parametres de l appli'); void 0;",
         );
         return;
       }
       if (permission == LocationPermission.denied) {
-        _controller.runJavaScript("onLocationError('Permission refusee')");
+        _controller.runJavaScript("onLocationError('Permission refusee'); void 0;");
         return;
       }
 
@@ -187,7 +187,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       _injectPosition(position);
     } catch (e) {
       _controller.runJavaScript(
-        "onLocationError('Impossible d obtenir la position: ${e.toString().replaceAll("'", "")}')",
+        "onLocationError('Impossible d obtenir la position: ${e.toString().replaceAll("'", "")}'); void 0;",
       );
     }
   }
