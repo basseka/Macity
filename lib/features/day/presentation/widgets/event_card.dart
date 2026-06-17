@@ -119,6 +119,7 @@ class EventCard extends ConsumerWidget {
                   child: hasNetworkPhoto
                       ? CachedNetworkImage(
                           imageUrl: event.photoPath!,
+                          memCacheWidth: 900,
                           fit: BoxFit.cover,
                           width: double.infinity,
                           placeholder: (_, __) => pochette != null

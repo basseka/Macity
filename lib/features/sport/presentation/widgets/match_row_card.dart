@@ -441,6 +441,7 @@ class MatchRowCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(8),
         child: CachedNetworkImage(
           imageUrl: ecussonPath,
+          memCacheWidth: 160,
           width: 56,
           height: 56,
           fit: BoxFit.contain,

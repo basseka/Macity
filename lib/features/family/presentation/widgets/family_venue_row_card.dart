@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -95,10 +96,12 @@ class FamilyVenueRowCard extends ConsumerWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: venue.photo.isNotEmpty
-                            ? Image.network(
-                                venue.photo,
+                            ? CachedNetworkImage(
+                                imageUrl: venue.photo,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _imageFallback(modeTheme),
+                                memCacheWidth: 400,
+                                placeholder: (_, __) => _imageFallback(modeTheme),
+                                errorWidget: (_, __, ___) => _imageFallback(modeTheme),
                               )
                             : _imageFallback(modeTheme),
                       ),

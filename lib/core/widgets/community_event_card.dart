@@ -206,6 +206,7 @@ class CommunityEventCard extends StatelessWidget {
       if (photoUrl!.startsWith('http')) {
         return CachedNetworkImage(
           imageUrl: photoUrl!,
+          memCacheWidth: 800,
           fit: BoxFit.cover,
           placeholder: (_, __) => _assetFallback(),
           errorWidget: (_, __, ___) => _assetFallback(),

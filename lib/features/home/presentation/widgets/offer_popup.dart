@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
 import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
@@ -140,24 +141,22 @@ class OfferPopup extends StatelessWidget {
         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
       );
     } else if (offer.imageUrl.isNotEmpty) {
-      image = Image.network(
-        offer.imageUrl,
+      image = CachedNetworkImage(
+        imageUrl: offer.imageUrl,
         width: double.infinity,
         height: 180,
         fit: BoxFit.cover,
-        loadingBuilder: (_, child, progress) {
-          if (progress == null) return child;
-          return const SizedBox(
-            height: 180,
-            child: Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFE8A0BF),
-                strokeWidth: 2,
-              ),
+        memCacheWidth: 800,
+        placeholder: (_, __) => const SizedBox(
+          height: 180,
+          child: Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFFE8A0BF),
+              strokeWidth: 2,
             ),
-          );
-        },
-        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        ),
+        errorWidget: (_, __, ___) => const SizedBox.shrink(),
       );
     }
 

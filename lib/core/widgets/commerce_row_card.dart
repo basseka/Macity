@@ -153,6 +153,7 @@ class CommerceRowCard extends ConsumerWidget {
     if (isNetwork) {
       return CachedNetworkImage(
         imageUrl: src,
+        memCacheWidth: 400,
         fit: BoxFit.cover,
         filterQuality: FilterQuality.medium,
         placeholder: (_, __) => Container(color: modeTheme.chipBgColor),

@@ -327,6 +327,7 @@ class EventRowCard extends ConsumerWidget {
     if (photo.startsWith('http')) {
       return CachedNetworkImage(
         imageUrl: photo,
+        memCacheWidth: 400,
         fit: BoxFit.cover,
         fadeInDuration: const Duration(milliseconds: 200),
         placeholder: (_, __) => Image.asset(

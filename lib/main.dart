@@ -56,9 +56,11 @@ void main() {
         ),
       );
 
-      // Limiter le cache images en memoire (30 images, 50 MB max)
-      PaintingBinding.instance.imageCache.maximumSize = 30;
-      PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20;
+      // Cache images en memoire. 30/50Mo etait trop bas pour un feed riche
+      // en images -> evictions + re-decodages en boucle au scroll (saccades).
+      // 250 images / 200 Mo : large pour un feed fluide, safe sur iPhone 4+ Go.
+      PaintingBinding.instance.imageCache.maximumSize = 250;
+      PaintingBinding.instance.imageCache.maximumSizeBytes = 200 << 20;
 
       // Catch Flutter framework errors.
       FlutterError.onError = (details) {

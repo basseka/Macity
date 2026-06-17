@@ -90,6 +90,7 @@ class ReportedEventPosterCard extends StatelessWidget {
               if (hasPhoto)
                 CachedNetworkImage(
                   imageUrl: firstPhoto,
+                  memCacheWidth: 800,
                   fit: BoxFit.cover,
                   placeholder: (_, __) => const SizedBox.shrink(),
                   errorWidget: (_, __, ___) => const SizedBox.shrink(),
@@ -339,6 +340,7 @@ class ReportedEventPosterCard extends StatelessWidget {
               if (hasPhoto)
                 CachedNetworkImage(
                   imageUrl: firstPhoto,
+                  memCacheWidth: 800,
                   fit: BoxFit.cover,
                   placeholder: (_, __) => const SizedBox.shrink(),
                   errorWidget: (_, __, ___) => const SizedBox.shrink(),
