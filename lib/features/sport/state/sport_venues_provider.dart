@@ -21,6 +21,19 @@ const _sportTypeToCategory = <String, String>{
   'badminton': 'Badminton',
 };
 
+/// Photo de pochette par chaine (token -> photo_url), depuis `fitness_chains`.
+/// Sert a afficher une vraie photo sur la carte chaine (Basic-Fit, Keep Cool…).
+/// Vide en cas d'erreur : la carte retombe sur le logo asset puis l'icone.
+final fitnessChainPhotosProvider =
+    FutureProvider<Map<String, String>>((ref) async {
+  try {
+    return await SportVenuesSupabaseService().fetchChainPhotos();
+  } catch (e) {
+    debugPrint('[fitnessChainPhotos] $e');
+    return const <String, String>{};
+  }
+});
+
 /// Provider qui charge les venues sport depuis Supabase, filtrées par ville.
 /// Essaie d'abord sport_venues (ancienne table), puis venues (nouvelle table OSM).
 final sportVenuesProvider =

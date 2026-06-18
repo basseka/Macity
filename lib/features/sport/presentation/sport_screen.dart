@@ -109,6 +109,9 @@ class SportScreen extends ConsumerWidget {
           if (chipKey != 'fitness' && chipKey != 'muscu') {
             return list.map(itemForVenue).toList();
           }
+          final chainPhotos =
+              ref.watch(fitnessChainPhotosProvider).valueOrNull ??
+                  const <String, String>{};
           return groupFitnessVenues(list).map((e) {
             return switch (e) {
               SingleVenueEntry(:final venue) => itemForVenue(venue),
@@ -117,9 +120,11 @@ class SportScreen extends ConsumerWidget {
                   subtitle: salles.length > 1
                       ? '${salles.length} salles'
                       : '1 salle',
-                  photoUrl: '',
+                  photoUrl: chainPhotos[chain.token] ?? '',
                   commerce: null,
-                  onTap: (ctx) => showChainSallesSheet(ctx, chain, salles),
+                  onTap: (ctx) =>
+                      showChainSallesSheet(ctx, chain, salles,
+                          coverUrl: chainPhotos[chain.token]),
                 ),
             };
           }).toList();

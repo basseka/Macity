@@ -925,6 +925,7 @@
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
           <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
           <span class="nav-btn" id="goto-sportnews-btn">📰 Actu sport</span>
+          <span class="nav-btn" id="goto-chains-btn">🏋️ Chaînes fitness</span>
           <span class="nav-btn" id="goto-pros-btn">👔 Pros <span id="pros-pending-badge" style="display:none; background:#DC2626; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
         </div>
       </div>
@@ -1560,6 +1561,14 @@
         <div id="pros-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun pro dans cette catégorie.</div>
         <div id="pros-list"></div>
       </div>
+
+      <!-- ═══ VUE CHAÎNES FITNESS ═══ -->
+      <div id="chains-view" class="hidden">
+        <h1>🏋️ Chaînes fitness</h1>
+        <p class="subtitle">Photo de <strong>pochette par chaîne</strong> (Basic-Fit, Keep Cool…). Cette image s'affiche sur la <strong>carte chaîne</strong> de la page Sport (qui regroupe toutes les salles de l'enseigne). Colle (Ctrl+V), glisse une image ou explore le PC, puis <strong>Enregistre</strong>.</p>
+        <div id="chains-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="chains-list"></div>
+      </div>
     </div>
   </div>
 
@@ -1816,10 +1825,12 @@
 
     // Paste global (seulement quand la zone a le focus OU body)
     document.addEventListener("paste", (e) => {
-      // L'onglet Inspirations Food gère son propre collage par carte :
-      // on ne laisse pas le formulaire event happer l'image.
+      // Les onglets Inspirations et Chaînes gèrent leur propre collage par
+      // carte : on ne laisse pas le formulaire event happer l'image.
       const iv = document.getElementById("inspirations-view");
       if (iv && !iv.classList.contains("hidden")) return;
+      const cv = document.getElementById("chains-view");
+      if (cv && !cv.classList.contains("hidden")) return;
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of items) {
@@ -2538,6 +2549,8 @@
     const gotoSportnewsBtn = document.getElementById("goto-sportnews-btn");
     const prosView = document.getElementById("pros-view");
     const gotoProsBtn = document.getElementById("goto-pros-btn");
+    const chainsView = document.getElementById("chains-view");
+    const gotoChainsBtn = document.getElementById("goto-chains-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -2547,6 +2560,7 @@
       inspirationsView.classList.add("hidden");
       sportnewsView.classList.add("hidden");
       prosView.classList.add("hidden");
+      chainsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -2554,6 +2568,7 @@
       gotoInspirationsBtn.style.display = "inline-flex";
       gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
+      gotoChainsBtn.style.display = "inline-flex";
     }
     function showFormView() {
       _hideAllViews();
@@ -2603,6 +2618,13 @@
       refreshSportNewsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
+    function showChainsView() {
+      _hideAllViews();
+      chainsView.classList.remove("hidden");
+      gotoChainsBtn.style.display = "none";
+      loadChains();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     gotoEventsBtn.addEventListener("click", showEventsView);
     gotoFormBtn.addEventListener("click", showFormView);
     gotoVenuesBtn.addEventListener("click", showVenuesView);
@@ -2610,6 +2632,185 @@
     gotoInspirationsBtn.addEventListener("click", showInspirationsView);
     gotoSportnewsBtn.addEventListener("click", showSportNewsView);
     gotoProsBtn.addEventListener("click", showProsView);
+    gotoChainsBtn.addEventListener("click", showChainsView);
+
+    // ─── Onglet Chaînes fitness : photo de pochette par chaîne ───
+    // Table `fitness_chains` (token, nom, photo_url). La photo s'affiche sur la
+    // carte chaîne de la page Sport. Upload via le bucket admin-events (réutilise
+    // uploadImage). Token = clé de jointure avec FitnessChain.token côté app.
+    const chainsList = document.getElementById("chains-list");
+    const chainsLoading = document.getElementById("chains-loading");
+    let allChains = [];
+
+    async function loadChains() {
+      chainsLoading.classList.remove("hidden");
+      const { data, error } = await supabase
+        .from("fitness_chains")
+        .select("token, nom, photo_url")
+        .order("nom", { ascending: true });
+      chainsLoading.classList.add("hidden");
+      if (error) {
+        console.warn("[fitness_chains]", error);
+        chainsList.innerHTML = `<div class="venues-empty">Erreur de chargement (la table fitness_chains existe-t-elle ?).</div>`;
+        return;
+      }
+      allChains = data || [];
+      renderChains();
+    }
+
+    function renderChains() {
+      chainsList.innerHTML = allChains.map((c) => {
+        const hasPhoto = (c.photo_url || "").startsWith("http");
+        return `
+        <div class="venue-item" data-token="${escapeHtml(c.token)}">
+          <div class="venue-row">
+            <div class="venue-thumb" data-role="ch-thumb">${hasPhoto ? `<img src="${escapeHtml(c.photo_url)}" onerror="this.parentElement.textContent='🏋️'" />` : "🏋️"}</div>
+            <div class="venue-row-info">
+              <div class="venue-row-name">${escapeHtml(c.nom)}</div>
+              <div class="venue-row-meta">token : ${escapeHtml(c.token)}</div>
+            </div>
+          </div>
+          <div class="paste-zone insp-paste-zone ${hasPhoto ? "has-image" : ""}" tabindex="0" data-role="ch-zone">
+            <div data-role="ch-empty" class="${hasPhoto ? "hidden" : ""}">
+              <div class="paste-icon">🖼️</div>
+              <div class="paste-hint">Clique ici puis <strong>Ctrl+V</strong> pour coller, glisse une image, ou…</div>
+              <button type="button" class="paste-browse" data-role="ch-browse">📂 Explorer le PC</button>
+            </div>
+            <div data-role="ch-filled" class="${hasPhoto ? "" : "hidden"}">
+              <img class="paste-preview" data-role="ch-preview" src="${hasPhoto ? escapeHtml(c.photo_url) : ""}" onerror="this.style.opacity=0.3" />
+            </div>
+          </div>
+          <input type="hidden" data-field="photo_url" value="${escapeHtml(c.photo_url || "")}" />
+          <input type="file" accept="image/*" class="hidden" data-role="ch-file" />
+          <div class="venue-photo-actions">
+            ${hasPhoto ? `<button class="gen-btn" data-action="ch-clear">Retirer</button>` : ""}
+            <button class="banner-save-btn" data-action="ch-save">Enregistrer</button>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    function _chItem(el) { return el.closest(".venue-item"); }
+
+    function _chSetPhoto(item, url) {
+      const hidden = item.querySelector('[data-field="photo_url"]');
+      const zone = item.querySelector('[data-role="ch-zone"]');
+      const empty = item.querySelector('[data-role="ch-empty"]');
+      const filled = item.querySelector('[data-role="ch-filled"]');
+      const prev = item.querySelector('[data-role="ch-preview"]');
+      const v = url || "";
+      const isHttp = v.startsWith("http");
+      hidden.value = v;
+      if (isHttp) {
+        prev.src = v; prev.style.opacity = 1;
+        empty.classList.add("hidden"); filled.classList.remove("hidden");
+        zone.classList.add("has-image");
+      } else {
+        prev.src = "";
+        empty.classList.remove("hidden"); filled.classList.add("hidden");
+        zone.classList.remove("has-image");
+      }
+    }
+
+    async function _chUploadAndSet(item, blob) {
+      const zone = item.querySelector('[data-role="ch-zone"]');
+      zone.classList.add("uploading");
+      try {
+        const url = await uploadImage(blob);
+        _chSetPhoto(item, url);
+        toast("Image importée — pense à Enregistrer", true);
+      } catch (e) {
+        console.warn("[chain upload]", e);
+        toast("Échec de l'import de l'image", false);
+      } finally {
+        zone.classList.remove("uploading");
+      }
+    }
+
+    // Clics : explorer / retirer / enregistrer.
+    chainsList.addEventListener("click", async (ev) => {
+      const target = ev.target.closest("[data-action],[data-role]");
+      if (!target) return;
+      const item = _chItem(target);
+      if (!item) return;
+
+      if (target.dataset.role === "ch-browse") {
+        item.querySelector('[data-role="ch-file"]').click();
+        return;
+      }
+      if (target.dataset.action === "ch-clear") {
+        _chSetPhoto(item, "");
+        return;
+      }
+      if (target.dataset.action === "ch-save") {
+        const token = item.dataset.token;
+        const photo = item.querySelector('[data-field="photo_url"]').value.trim();
+        target.disabled = true; target.textContent = "…";
+        const { data, error } = await supabase
+          .from("fitness_chains")
+          .update({ photo_url: photo || null, updated_at: new Date().toISOString() })
+          .eq("token", token)
+          .select("token");
+        target.disabled = false; target.textContent = "Enregistrer";
+        if (error) {
+          console.warn("[chain save]", error);
+          toast("Erreur : " + (error.message || "échec"), false);
+          return;
+        }
+        if (!data || data.length === 0) {
+          toast("⚠️ 0 ligne modifiée (RLS) — applique la migration fitness_chains.", false);
+          return;
+        }
+        const row = allChains.find(c => c.token === token);
+        if (row) row.photo_url = photo;
+        toast("Pochette enregistrée", true);
+        return;
+      }
+    });
+
+    // Sélection de fichier.
+    chainsList.addEventListener("change", (ev) => {
+      const input = ev.target.closest('[data-role="ch-file"]');
+      if (!input || !input.files || !input.files[0]) return;
+      _chUploadAndSet(_chItem(input), input.files[0]);
+      input.value = "";
+    });
+
+    // Drag & drop sur une zone.
+    chainsList.addEventListener("dragover", (ev) => {
+      const zone = ev.target.closest('[data-role="ch-zone"]');
+      if (zone) { ev.preventDefault(); zone.classList.add("focus"); }
+    });
+    chainsList.addEventListener("dragleave", (ev) => {
+      const zone = ev.target.closest('[data-role="ch-zone"]');
+      if (zone) zone.classList.remove("focus");
+    });
+    chainsList.addEventListener("drop", (ev) => {
+      const zone = ev.target.closest('[data-role="ch-zone"]');
+      if (!zone) return;
+      ev.preventDefault();
+      zone.classList.remove("focus");
+      const f = ev.dataTransfer.files && ev.dataTransfer.files[0];
+      if (f && f.type.startsWith("image/")) _chUploadAndSet(_chItem(zone), f);
+    });
+
+    // Coller (Ctrl+V) dans la zone focalisée de l'onglet Chaînes.
+    document.addEventListener("paste", (ev) => {
+      if (chainsView.classList.contains("hidden")) return;
+      const zone = document.activeElement &&
+        document.activeElement.closest &&
+        document.activeElement.closest('[data-role="ch-zone"]');
+      if (!zone) return;
+      const items = ev.clipboardData && ev.clipboardData.items;
+      if (!items) return;
+      for (const it of items) {
+        if (it.type.startsWith("image/")) {
+          const blob = it.getAsFile();
+          if (blob) { ev.preventDefault(); _chUploadAndSet(_chItem(zone), blob); }
+          break;
+        }
+      }
+    });
 
     // ─── Onglet Actu sport : table `sport_news` ───
     const sportnewsList = document.getElementById("sportnews-list");

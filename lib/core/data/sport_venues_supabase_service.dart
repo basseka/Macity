@@ -72,6 +72,26 @@ class SportVenuesSupabaseService {
     }
   }
 
+  /// Photos de pochette par chaine (table `fitness_chains`).
+  /// Renvoie token -> photo_url (seulement les chaines avec une photo non vide).
+  Future<Map<String, String>> fetchChainPhotos() async {
+    final response = await _dio.get(
+      'fitness_chains',
+      queryParameters: const {'select': 'token,photo_url'},
+    );
+    final data = response.data as List;
+    final map = <String, String>{};
+    for (final e in data) {
+      final m = e as Map<String, dynamic>;
+      final token = m['token'] as String?;
+      final url = m['photo_url'] as String?;
+      if (token != null && url != null && url.isNotEmpty) {
+        map[token] = url;
+      }
+    }
+    return map;
+  }
+
   static CommerceModel _mapToCommerce(Map<String, dynamic> json) {
     final photosRaw = json['photos'];
     final photos = photosRaw is List

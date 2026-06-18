@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
@@ -6,12 +7,14 @@ import 'package:pulz_app/features/sport/data/fitness_chains.dart';
 
 /// Ouvre une feuille listant toutes les salles d'une chaine (Basic-Fit, etc.)
 /// avec leur localisation (ville · adresse), un acces Maps et un tap vers la
-/// fiche detail de chaque salle.
+/// fiche detail de chaque salle. [coverUrl] = photo de pochette de la chaine
+/// (table fitness_chains) ; a defaut on retombe sur le logo asset.
 void showChainSallesSheet(
   BuildContext context,
   FitnessChain chain,
-  List<CommerceModel> salles,
-) {
+  List<CommerceModel> salles, {
+  String? coverUrl,
+}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -19,15 +22,21 @@ void showChainSallesSheet(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (_) => _ChainSallesSheet(chain: chain, salles: salles),
+    builder: (_) =>
+        _ChainSallesSheet(chain: chain, salles: salles, coverUrl: coverUrl),
   );
 }
 
 class _ChainSallesSheet extends StatelessWidget {
   final FitnessChain chain;
   final List<CommerceModel> salles;
+  final String? coverUrl;
 
-  const _ChainSallesSheet({required this.chain, required this.salles});
+  const _ChainSallesSheet({
+    required this.chain,
+    required this.salles,
+    this.coverUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -61,13 +70,21 @@ class _ChainSallesSheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: Image.asset(
-                      chain.logo,
-                      fit: BoxFit.cover,
-                      cacheWidth: 88,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.fitness_center, size: 22),
-                    ),
+                    child: (coverUrl != null && coverUrl!.startsWith('http'))
+                        ? CachedNetworkImage(
+                            imageUrl: coverUrl!,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 88,
+                            errorWidget: (_, __, ___) =>
+                                const Icon(Icons.fitness_center, size: 22),
+                          )
+                        : Image.asset(
+                            chain.logo,
+                            fit: BoxFit.cover,
+                            cacheWidth: 88,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.fitness_center, size: 22),
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -79,6 +96,7 @@ class _ChainSallesSheet extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -115,20 +133,25 @@ class _ChainSallesSheet extends StatelessWidget {
                       salle.ville,
                   ].join(' · ');
                   return ListTile(
-                    leading: const Icon(Icons.location_on_outlined),
+                    leading: const Icon(Icons.location_on_outlined,
+                        color: Colors.black54),
                     title: Text(
                       title,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        color: Colors.black87,
                       ),
                     ),
                     subtitle: subtitle.isNotEmpty
-                        ? Text(subtitle, style: const TextStyle(fontSize: 12))
+                        ? Text(subtitle,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54))
                         : null,
                     trailing: salle.lienMaps.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.map_outlined),
+                            icon: const Icon(Icons.map_outlined,
+                                color: Colors.black54),
                             tooltip: 'Maps',
                             onPressed: () => _openMaps(salle.lienMaps),
                           )

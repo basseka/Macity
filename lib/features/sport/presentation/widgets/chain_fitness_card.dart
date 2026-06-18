@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,6 +7,7 @@ import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/sport/data/fitness_chains.dart';
+import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 
 /// Carte unique pour une chaine de salles (Basic-Fit, Fitness Park, etc.).
 /// Repliee : logo + nom + nombre de salles. Depliee : liste des salles avec
@@ -31,6 +33,8 @@ class _ChainFitnessCardState extends ConsumerState<ChainFitnessCard> {
   Widget build(BuildContext context) {
     final modeTheme = ref.watch(modeThemeProvider);
     final count = widget.salles.length;
+    final coverUrl =
+        ref.watch(fitnessChainPhotosProvider).valueOrNull?[widget.chain.token];
 
     return Card(
       elevation: 2,
@@ -56,18 +60,31 @@ class _ChainFitnessCardState extends ConsumerState<ChainFitnessCard> {
                     ),
                     clipBehavior: Clip.antiAlias,
                     alignment: Alignment.center,
-                    child: Image.asset(
-                      widget.chain.logo,
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                      cacheWidth: 96,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.fitness_center,
-                        color: modeTheme.primaryColor,
-                        size: 22,
-                      ),
-                    ),
+                    child: (coverUrl != null && coverUrl.startsWith('http'))
+                        ? CachedNetworkImage(
+                            imageUrl: coverUrl,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 96,
+                            errorWidget: (_, __, ___) => Icon(
+                              Icons.fitness_center,
+                              color: modeTheme.primaryColor,
+                              size: 22,
+                            ),
+                          )
+                        : Image.asset(
+                            widget.chain.logo,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                            cacheWidth: 96,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.fitness_center,
+                              color: modeTheme.primaryColor,
+                              size: 22,
+                            ),
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -79,6 +96,7 @@ class _ChainFitnessCardState extends ConsumerState<ChainFitnessCard> {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -190,6 +208,7 @@ class _SalleRow extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

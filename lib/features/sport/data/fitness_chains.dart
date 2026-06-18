@@ -29,8 +29,11 @@ const List<FitnessChain> kFitnessChains = [
   FitnessChain('clarkpowel', 'Clark Powell', 'assets/images/logo_salle_calrkpowel.png'),
   FitnessChain('movida', 'Movida', 'assets/images/logo_salle_movida.png'),
   // Pas encore de logo : tombe sur l'icone fitness tant que le fichier
-  // logo_salle_onair.png n'existe pas dans assets/images/.
+  // correspondant n'existe pas dans assets/images/.
   FitnessChain('onair', 'On Air', 'assets/images/logo_salle_onair.png'),
+  FitnessChain('keepcool', 'Keep Cool', 'assets/images/logo_salle_keepcool.png'),
+  FitnessChain('orangebleu', 'L\'Orange Bleue', 'assets/images/logo_salle_orangebleue.png'),
+  FitnessChain('sunform', 'Sun Form', 'assets/images/logo_salle_sunform.png'),
 ];
 
 /// Normalise un nom : minuscules, sans accents, sans caractere non alphanum.
