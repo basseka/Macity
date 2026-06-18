@@ -4,6 +4,13 @@ import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 
 const _onboardingDoneKey = 'onboarding_done';
 
+/// Verrou d'accès à l'app : passe à true uniquement après une inscription OU
+/// une connexion réussie (email + téléphone fournis). Tant qu'il est false,
+/// le routeur renvoie sur l'onboarding (cf. gating dans app_router.dart).
+/// Distinct de `onboarding_done` pour re-verrouiller les anciens utilisateurs
+/// qui avaient « passé » l'étape avant que l'inscription devienne obligatoire.
+const _userRegisteredKey = 'user_registered';
+
 final onboardingDoneProvider = FutureProvider<bool>((ref) async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_onboardingDoneKey) ?? false;
@@ -12,6 +19,12 @@ final onboardingDoneProvider = FutureProvider<bool>((ref) async {
 Future<void> markOnboardingDone() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool(_onboardingDoneKey, true);
+}
+
+/// Marque l'utilisateur comme inscrit (email + téléphone enregistrés).
+Future<void> markRegistered() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_userRegisteredKey, true);
 }
 
 final userProfileServiceProvider = Provider((_) => UserProfileService());

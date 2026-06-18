@@ -25,18 +25,22 @@ final rootNavigatorKey =
 final GlobalKey<NavigatorState> _shellNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'shell');
 
-/// Cache the onboarding state so we only read SharedPreferences once.
-bool? _onboardingDone;
+/// Verrou d'accès (cache mémoire, lu une seule fois depuis SharedPreferences) :
+/// true seulement après inscription/connexion (email + téléphone). Tant que
+/// false, tout chemin hors splash/onboarding/deep-links est redirigé vers
+/// /onboarding.
+bool? _userRegistered;
 
 Future<void> initOnboardingState() async {
   // Partager la clé root navigator avec le deep link service
   deepLinkNavigatorKey = rootNavigatorKey;
   final prefs = await SharedPreferences.getInstance();
-  _onboardingDone = prefs.getBool('onboarding_done') ?? false;
+  _userRegistered = prefs.getBool('user_registered') ?? false;
 }
 
-void markOnboardingComplete() {
-  _onboardingDone = true;
+/// Met à jour le cache mémoire du verrou après une inscription/connexion.
+void markRegisteredComplete() {
+  _userRegistered = true;
 }
 
 late final appRouter = GoRouter(
@@ -56,7 +60,10 @@ late final appRouter = GoRouter(
     // Allow deep links to /event/ et /coffre/ even if onboarding not done
     if (state.matchedLocation.startsWith('/event/')) return null;
     if (state.matchedLocation.startsWith('/coffre/')) return null;
-    if (_onboardingDone == false &&
+    // Verrou : sans inscription (email + téléphone), aucun accès hors
+    // onboarding/splash. Remplace l'ancien gating sur `onboarding_done`
+    // (contournable via le bouton « Passer », désormais supprimé).
+    if (_userRegistered != true &&
         state.matchedLocation != '/onboarding' &&
         state.matchedLocation != '/splash') {
       return '/onboarding';
