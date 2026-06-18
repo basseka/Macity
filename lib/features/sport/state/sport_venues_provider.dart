@@ -50,21 +50,6 @@ final sportVenuesProvider =
     }
   }
 
-  // Fitness : Gymnasia Rouffiac epinglee en tete (partenariat).
-  if (sportType == 'fitness' && venues.isNotEmpty) {
-    final pinned = <CommerceModel>[];
-    final rest = <CommerceModel>[];
-    for (final v in venues) {
-      final n = v.nom.toLowerCase();
-      if (n.contains('gymnasia') && n.contains('rouffiac')) {
-        pinned.add(v);
-      } else {
-        rest.add(v);
-      }
-    }
-    venues = [...pinned, ...rest];
-  }
-
   return venues;
 });
 

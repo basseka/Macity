@@ -4,7 +4,9 @@ import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/sport/data/fitness_chains.dart';
 import 'package:pulz_app/features/sport/presentation/sport_back_button.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/chain_fitness_card.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/fitness_venue_card.dart';
 import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 
@@ -68,18 +70,46 @@ class SportVenuesList extends ConsumerWidget {
         const SizedBox(height: 8),
         Expanded(
           child: venuesAsync.when(
-            data: (venues) => ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: venues.length,
-              itemBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: FitnessVenueCard(
-                  commerce: venues[index],
-                  pagerSiblings: venues,
-                  pagerIndex: index,
+            data: (venues) {
+              // Cours Co (fitness) + Muscu : regroupe les salles d'une meme
+              // chaine (Basic-Fit, Fitness Park, Interval, Clark Powell, Movida,
+              // On Air) dans une seule carte depliable. Les autres sports
+              // gardent une carte par salle.
+              if (sportType == 'fitness' || sportType == 'muscu') {
+                final entries = groupFitnessVenues(venues);
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) {
+                    final entry = entries[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: switch (entry) {
+                        ChainGroupEntry(:final chain, :final salles) =>
+                          ChainFitnessCard(chain: chain, salles: salles),
+                        SingleVenueEntry(:final venue) => FitnessVenueCard(
+                            commerce: venue,
+                            pagerSiblings: venues,
+                            pagerIndex: venues.indexOf(venue),
+                          ),
+                      },
+                    );
+                  },
+                );
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: venues.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: FitnessVenueCard(
+                    commerce: venues[index],
+                    pagerSiblings: venues,
+                    pagerIndex: index,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
             error: (error, _) => AppErrorWidget(
               message: 'Erreur lors du chargement des venues',

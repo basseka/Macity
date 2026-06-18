@@ -6,7 +6,10 @@ import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/sport/data/fitness_chains.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/chain_salles_sheet.dart';
 import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 import 'package:pulz_app/features/sport/presentation/boxe_events_grid.dart';
 import 'package:pulz_app/features/sport/presentation/complexe_sportif_hub.dart';
@@ -69,7 +72,9 @@ class SportScreen extends ConsumerWidget {
       subtitle: 'Salles, terrains, piscines — bouger près de chez toi.',
       sectionTitle: 'Où pratiquer',
       chips: const [
-        RubriqueChip('Fitness', Icons.fitness_center_rounded, 'fitness'),
+        RubriqueChip('Cours Co', Icons.fitness_center_rounded, 'fitness'),
+        RubriqueChip('Muscu', Icons.sports_gymnastics_rounded, 'muscu'),
+        RubriqueChip('Gym Douce', Icons.self_improvement_rounded, 'gym-douce'),
         RubriqueChip('Boxe', Icons.sports_mma_rounded, 'boxe'),
         RubriqueChip('Football', Icons.sports_soccer_rounded,
             'terrain-football'),
@@ -86,22 +91,39 @@ class SportScreen extends ConsumerWidget {
       extraSections: (ctx) => const [SportHomeMatchesSection()],
       extraSectionsBottom: (ctx) => const [SportNewsSection()],
       itemsBuilder: (ref, chipKey) {
-        return ref.watch(sportVenuesProvider(chipKey)).whenData(
-              (list) => list
-                  .map((c) => RubriqueItem(
-                        title: c.nom,
-                        subtitle: [
-                          if (c.categorie.isNotEmpty) c.categorie,
-                          if (c.ville.isNotEmpty) c.ville,
-                        ].join(' · '),
-                        photoUrl: c.photo,
-                        isVerified: c.isVerified,
-                        commerce: c,
-                        onTap: (ctx) =>
-                            CommerceRowCard.showDetailSheet(ctx, c),
-                      ))
-                  .toList(),
-            );
+        return ref.watch(sportVenuesProvider(chipKey)).whenData((list) {
+          RubriqueItem itemForVenue(CommerceModel c) => RubriqueItem(
+                title: c.nom,
+                subtitle: [
+                  if (c.categorie.isNotEmpty) c.categorie,
+                  if (c.ville.isNotEmpty) c.ville,
+                ].join(' · '),
+                photoUrl: c.photo,
+                isVerified: c.isVerified,
+                commerce: c,
+                onTap: (ctx) => CommerceRowCard.showDetailSheet(ctx, c),
+              );
+          // Cours Co (fitness) + Muscu : une seule carte par chaine (Basic-Fit,
+          // Fitness Park, Interval, Clark Powell, Movida, On Air). Tap ->
+          // feuille listant toutes les salles de la chaine avec leur localisation.
+          if (chipKey != 'fitness' && chipKey != 'muscu') {
+            return list.map(itemForVenue).toList();
+          }
+          return groupFitnessVenues(list).map((e) {
+            return switch (e) {
+              SingleVenueEntry(:final venue) => itemForVenue(venue),
+              ChainGroupEntry(:final chain, :final salles) => RubriqueItem(
+                  title: chain.name,
+                  subtitle: salles.length > 1
+                      ? '${salles.length} salles'
+                      : '1 salle',
+                  photoUrl: '',
+                  commerce: null,
+                  onTap: (ctx) => showChainSallesSheet(ctx, chain, salles),
+                ),
+            };
+          }).toList();
+        });
       },
     );
   }

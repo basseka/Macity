@@ -3211,6 +3211,10 @@
           : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
       }
       const photoBtn = `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
+      // Suppression : réservée aux salles de sport (table sport_venues).
+      const deleteBtn = f.source === "sport_venues"
+        ? `<button class="gen-btn" data-action="delete-venue" data-id="${f.id}" title="Supprimer cette salle" style="border-color:#ef4444;color:#ef4444;">🗑 Supprimer</button>`
+        : "";
       // Priorité d'affichage : éditable pour les établissements (food/night/
       // famille/culture) et les salles de sport.
       // - Si une sous-catégorie est active ET que la fiche est dans la bonne
@@ -3264,7 +3268,7 @@
               <div class="venue-row-name">${badge}${escapeHtml(f.name)}</div>
               <div class="venue-row-meta">${meta}</div>
             </div>
-            <div class="venue-row-actions">${prioCtrl}${catPrioBtn}${codeAction}${photoBtn}</div>
+            <div class="venue-row-actions">${prioCtrl}${catPrioBtn}${codeAction}${photoBtn}${deleteBtn}</div>
           </div>
           ${catPanel}
           ${venuePhotoEditorHtml(f)}
@@ -3360,6 +3364,12 @@
       if (nameQ) filtered = filtered.filter(f => normalizeCity(f.name).includes(nameQ));
       if (currentRubriqueFilter) {
         filtered = filtered.filter(f => (f.rubrique || "").toLowerCase() === currentRubriqueFilter);
+        // Rubrique Sport : l'app ne lit que `sport_venues`. On masque donc les
+        // eventuelles fiches venues/etablissements de rubrique "sport" (doublons
+        // orphelins jamais affiches par l'app) pour n'editer que la vraie table.
+        if (currentRubriqueFilter === "sport") {
+          filtered = filtered.filter(f => f.source === "sport_venues");
+        }
       }
       if (currentSubCatFilter) {
         filtered = filtered.filter(f => matchesSubCat(f, currentRubriqueFilter, currentSubCatFilter));
@@ -3561,6 +3571,40 @@
         toast(propagated > 0
           ? `Médias mis à jour (+${propagated} doublon synchronisé)`
           : "Médias mis à jour", true);
+        return;
+      }
+
+      if (action === "delete-venue") {
+        const id = parseInt(target.dataset.id, 10);
+        const row = allSportVenues.find(r => r.id === id);
+        const nom = row ? (row.nom || "cette salle") : "cette salle";
+        if (!confirm(`Supprimer définitivement « ${nom} » de la table sport_venues ?`)) return;
+        target.disabled = true;
+        target.textContent = "⏳ Suppression…";
+        const { data, error } = await supabase
+          .from("sport_venues")
+          .delete()
+          .eq("id", id)
+          .select("id");
+        if (error) {
+          target.disabled = false;
+          target.textContent = "🗑 Supprimer";
+          console.warn("[sport_venues delete]", error);
+          toast("Erreur : " + (error.message || "suppression échouée"), false);
+          return;
+        }
+        // RLS : un DELETE sans policy ne renvoie pas d'erreur mais ne touche
+        // aucune ligne. On vérifie qu'une ligne a bien été supprimée.
+        if (!data || data.length === 0) {
+          target.disabled = false;
+          target.textContent = "🗑 Supprimer";
+          console.warn("[sport_venues delete] 0 ligne supprimée — RLS ?", id);
+          toast("⚠️ 0 ligne supprimée : la base a refusé l'écriture (RLS). Vérifie la policy DELETE sur sport_venues.", false);
+          return;
+        }
+        allSportVenues = allSportVenues.filter(r => r.id !== id);
+        renderVenuesList();
+        toast(`« ${nom} » supprimée`, true);
         return;
       }
 
