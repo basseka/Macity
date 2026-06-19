@@ -45,11 +45,14 @@
 
 ---
 
-## (3) aps-environment = production pour l'App Store  ⚠️
-- `ios/Runner/Runner.entitlements` est figé sur `development`.
-- Pour le build **TestFlight / App Store**, il faut **`production`** (sinon token sandbox → push prod non livrés).
-- Option propre = un entitlements par config (Debug=development, Release=production).
-  → **Demander à Claude de coder le split** une fois devant Xcode (touche la signature, à valider dans Xcode).
+## (3) aps-environment = production pour l'App Store  ✅ FAIT (code)
+- Split entitlements par config codé :
+  - `Runner.entitlements` (`development`) → Debug + Profile
+  - `Runner-Release.entitlements` (`production`) → Release (TestFlight/App Store)
+  - `CODE_SIGN_ENTITLEMENTS` câblé dans les 3 configs du target Runner (était absent avant → le fichier entitlements n'était même pas appliqué).
+- ⚠️ À valider dans Xcode : à l'ajout de la capability Push (point 2), vérifier que Xcode
+  **ne recrée pas** un entitlements en doublon et ne décâble pas `CODE_SIGN_ENTITLEMENTS`.
+  Comme les deux fichiers contiennent déjà `aps-environment`, le toggle doit juste cocher l'identifier.
 
 ---
 
