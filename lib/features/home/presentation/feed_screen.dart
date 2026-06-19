@@ -176,6 +176,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   DateTimeRange? _dateRange;
   List<Event>? _dateResults; // null = pas de recherche date en cours
   bool _dateLoading = false;
+  // Filtre categorie de la vue resultats-dates (independant du filtre Feed).
+  String? _dateCategoryFilter;
 
   static String _isoDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -405,6 +407,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final title = r == null
         ? 'Évènements'
         : 'Du ${_frDate(r.start)} au ${_frDate(r.end)}';
+    final all = _dateResults ?? const <Event>[];
+    // Liste filtree par categorie (chips). Sans filtre = tout.
+    final filtered = _dateCategoryFilter == null
+        ? all
+        : all.where((e) => _matchesCategoryFilter(e, _dateCategoryFilter)).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -432,7 +439,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     ),
                     if (_dateResults != null)
                       Text(
-                        '${_dateResults!.length} évènement${_dateResults!.length > 1 ? 's' : ''} sur la période',
+                        _dateCategoryFilter == null
+                            ? '${all.length} évènement${all.length > 1 ? 's' : ''} sur la période'
+                            : '${filtered.length}/${all.length} · ${_dateCategoryFilter!}',
                         style: GoogleFonts.geist(
                           fontSize: 11,
                           color: AppColors.textDim,
@@ -455,12 +464,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             ],
           ),
         ),
+        // Barre de filtres par categorie (visible des qu'il y a des resultats).
+        if (!_dateLoading && all.isNotEmpty) ...[
+          _buildDateCategoryBar(),
+          const SizedBox(height: 6),
+        ],
         Expanded(
           child: _dateLoading
               ? const Center(
                   child: CircularProgressIndicator(color: AppColors.magenta),
                 )
-              : (_dateResults == null || _dateResults!.isEmpty)
+              : all.isEmpty
                   ? Center(
                       child: Text(
                         'Aucun évènement sur cette période',
@@ -468,16 +482,74 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             fontSize: 13, color: AppColors.textFaint),
                       ),
                     )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 90),
-                      itemCount: _dateResults!.length,
-                      itemBuilder: (context, i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: EventRowCard(event: _dateResults![i]),
-                      ),
-                    ),
+                  : filtered.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Aucun évènement « ${_dateCategoryFilter ?? ''} » sur cette période',
+                            style: GoogleFonts.geist(
+                                fontSize: 13, color: AppColors.textFaint),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 90),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: EventRowCard(event: filtered[i]),
+                          ),
+                        ),
         ),
       ],
+    );
+  }
+
+  /// Chips de filtre par categorie pour la vue resultats-dates.
+  /// Reutilise `_feedCategories` et la logique `_matchesCategoryFilter`.
+  Widget _buildDateCategoryBar() {
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: _feedCategories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        itemBuilder: (context, i) {
+          final cat = _feedCategories[i];
+          final isAll = cat == 'Tout';
+          final isActive =
+              (isAll && _dateCategoryFilter == null) || _dateCategoryFilter == cat;
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(
+              () => _dateCategoryFilter = isAll ? null : cat,
+            ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? AppColors.magenta.withValues(alpha: 0.10)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isActive ? AppColors.magenta : AppColors.line,
+                  width: isActive ? 1.4 : 1,
+                ),
+              ),
+              child: Text(
+                cat,
+                style: GoogleFonts.geist(
+                  fontSize: 11,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  letterSpacing: 0.1,
+                  color: isActive ? AppColors.magenta : AppColors.textDim,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -903,6 +975,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       _dateRange = picked;
       _dateLoading = true;
       _dateResults = null;
+      _dateCategoryFilter = null;
     });
     try {
       final ville = ref.read(selectedCityProvider);
@@ -939,6 +1012,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       _dateRange = null;
       _dateResults = null;
       _dateLoading = false;
+      _dateCategoryFilter = null;
     });
   }
 
@@ -1122,8 +1196,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   /// (events scraped legacy), on retombe sur le matching keyword historique.
   /// Match flexible pour les chips de categorie du Feed (slot 1).
   /// Verifie categorie + type + rubrique + titre avec quelques alias.
-  bool _matchesCategoryFilter(Event e) {
-    final f = _categoryFilter;
+  bool _matchesCategoryFilter(Event e, [String? filter]) {
+    final f = filter ?? _categoryFilter;
     if (f == null) return true;
     final cat = e.categorie.toLowerCase();
     final type = e.type.toLowerCase();
