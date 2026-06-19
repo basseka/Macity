@@ -15,8 +15,10 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/constants/event_categories.dart' as ev_cats;
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/admin/domain/models/admin_pin.dart';
 import 'package:pulz_app/features/admin/presentation/widgets/admin_pin_gesture.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -2723,8 +2725,9 @@ class _VenueRowCard extends StatelessWidget {
     const cardBorder = Color(0x14000000);
     const textPrimary = Color(0xFF1A1A2E);
     const textSecondary = Color(0xFF6B6B7A);
+    final hasPhoto = (venue.photo ?? '').startsWith('http');
     return GestureDetector(
-      onTap: () => _openVenue(),
+      onTap: () => _openDetail(context),
       child: Card(
       color: cardBg,
       surfaceTintColor: cardBg,
@@ -2736,15 +2739,26 @@ class _VenueRowCard extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Row(
           children: [
-            Icon(
-              _resolveIcon(venue.categorie),
-              color: textSecondary,
-              size: 18,
+            // Pochette (photo de la fiche, sinon icone categorie).
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 46,
+                height: 46,
+                child: hasPhoto
+                    ? CachedNetworkImage(
+                        imageUrl: venue.photo!,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 92,
+                        errorWidget: (_, __, ___) => _iconThumb(),
+                      )
+                    : _iconThumb(),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2769,8 +2783,23 @@ class _VenueRowCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                  if (venue.adresse.isNotEmpty)
+                    Text(
+                      venue.adresse,
+                      style: const TextStyle(fontSize: 10, color: textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                 ],
               ),
+            ),
+            const SizedBox(width: 4),
+            // Bouton Maps
+            IconButton(
+              icon: const Icon(Icons.map_outlined, size: 22, color: textSecondary),
+              tooltip: 'Ouvrir sur la carte',
+              visualDensity: VisualDensity.compact,
+              onPressed: _openMaps,
             ),
           ],
         ),
@@ -2779,14 +2808,39 @@ class _VenueRowCard extends StatelessWidget {
     );
   }
 
-  void _openVenue() {
-    // Priorite : site web > lien maps > recherche Google
-    final url = (venue.siteWeb != null && venue.siteWeb!.isNotEmpty)
-        ? venue.siteWeb!
-        : (venue.lienMaps != null && venue.lienMaps!.isNotEmpty)
-            ? venue.lienMaps!
-            : 'https://www.google.com/search?q=${Uri.encodeComponent(venue.name)}';
-    final uri = Uri.tryParse(url);
+  Widget _iconThumb() => ColoredBox(
+        color: const Color(0xFFF1F1F4),
+        child: Icon(_resolveIcon(venue.categorie),
+            color: const Color(0xFF6B6B7A), size: 22),
+      );
+
+  /// Ouvre la fiche detail in-app (meme sheet que les commerces Night/Food).
+  void _openDetail(BuildContext context) {
+    final idInt = int.tryParse(venue.id);
+    final commerce = CommerceModel(
+      nom: venue.name,
+      adresse: venue.adresse,
+      ville: venue.ville,
+      categorie: venue.categorie,
+      horaires: venue.horaires,
+      telephone: venue.telephone,
+      photo: venue.photo ?? '',
+      siteWeb: venue.siteWeb ?? '',
+      lienMaps: venue.lienMaps ?? '',
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+      sourceId: idInt,
+      sourceTable: idInt != null ? venue.sourceTable : null,
+    );
+    CommerceRowCard.showDetailSheet(context, commerce);
+  }
+
+  void _openMaps() {
+    final link = (venue.lienMaps != null && venue.lienMaps!.isNotEmpty)
+        ? venue.lienMaps!
+        : 'https://www.google.com/maps/search/?api=1&query='
+            '${Uri.encodeComponent('${venue.name} ${venue.ville}'.trim())}';
+    final uri = Uri.tryParse(link);
     if (uri != null) {
       launchUrl(uri, mode: LaunchMode.externalApplication);
     }
