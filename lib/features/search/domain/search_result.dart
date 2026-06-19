@@ -47,25 +47,36 @@ class VenueResult extends SearchResult {
   final String name;
   final String categorie;
   final String adresse;
+  final String ville;
   final String horaires;
   final String telephone;
   final String? photo;
   final String? siteWeb;
   final String? lienMaps;
+  final double latitude;
+  final double longitude;
+
+  /// Table source ('etablissements' ou 'sport_venues') — pour les avis in-app
+  /// et la deduplication (les id se chevauchent entre tables).
+  final String sourceTable;
 
   const VenueResult({
     required this.id,
     required this.name,
     required this.categorie,
     required this.adresse,
+    this.ville = '',
     this.horaires = '',
     this.telephone = '',
     this.photo,
     this.siteWeb,
     this.lienMaps,
+    this.latitude = 0,
+    this.longitude = 0,
+    this.sourceTable = 'etablissements',
     required super.relevance,
   }) : super(date: '9999-12-31'); // Venues n'ont pas de date, affichees apres les events
 
   @override
-  String get deduplicationKey => 'venue_$id';
+  String get deduplicationKey => 'venue_${sourceTable}_$id';
 }

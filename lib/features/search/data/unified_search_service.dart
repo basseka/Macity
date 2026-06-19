@@ -58,18 +58,21 @@ class UnifiedSearchService {
     final futureMatches = _matchService.searchMatches(normalized, limit: 15, ville: ville);
     final futureUserEvents = _userEventService.searchEvents(normalized, limit: 15, ville: ville);
     final futureVenues = _searchVenues(normalized, ville: ville, limit: 20);
+    final futureSportVenues = _searchSportVenues(normalized, ville: ville, limit: 20);
 
     final results = await Future.wait([
       futureScraped,
       futureMatches,
       futureUserEvents,
       futureVenues,
+      futureSportVenues,
     ]);
 
     final scrapedEvents = results[0] as List<Event>;
     final matches = results[1] as List<SupabaseMatch>;
     final userEvents = results[2] as List<UserEvent>;
     final venues = results[3] as List<VenueResult>;
+    final sportVenues = results[4] as List<VenueResult>;
 
     final searchResults = <SearchResult>[];
 
@@ -101,8 +104,9 @@ class UnifiedSearchService {
       ));
     }
 
-    // Add venue results
+    // Add venue results (etablissements + salles de sport)
     searchResults.addAll(venues);
+    searchResults.addAll(sportVenues);
 
     // Deduplicate by deduplicationKey
     final seen = <String>{};
@@ -127,7 +131,7 @@ class UnifiedSearchService {
   Future<List<VenueResult>> _searchVenues(String query, {String? ville, int limit = 20}) async {
     try {
       final params = <String, String>{
-        'select': 'id,nom,categorie,adresse,horaires,telephone,site_web,lien_maps',
+        'select': 'id,nom,categorie,adresse,ville,horaires,telephone,site_web,lien_maps,photo,latitude,longitude',
         'is_active': 'eq.true',
         'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,adresse.ilike.*$query*)',
         'order': 'nom.asc',
@@ -154,10 +158,61 @@ class UnifiedSearchService {
           name: name,
           categorie: cat,
           adresse: j['adresse'] as String? ?? '',
+          ville: j['ville'] as String? ?? '',
           horaires: j['horaires'] as String? ?? '',
           telephone: j['telephone'] as String? ?? '',
           siteWeb: j['site_web'] as String? ?? '',
           lienMaps: j['lien_maps'] as String? ?? '',
+          photo: j['photo'] as String? ?? '',
+          latitude: (j['latitude'] as num?)?.toDouble() ?? 0,
+          longitude: (j['longitude'] as num?)?.toDouble() ?? 0,
+          relevance: relevance,
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Recherche dans la table sport_venues (salles de sport : fitness, crossfit,
+  /// boxe, piscines…). Distincte de `etablissements` qui ne contient pas le sport.
+  Future<List<VenueResult>> _searchSportVenues(String query, {String? ville, int limit = 20}) async {
+    try {
+      final params = <String, String>{
+        'select': 'id,nom,categorie,sport_type,adresse,ville,horaires,telephone,site_web,lien_maps,photo,latitude,longitude',
+        'is_active': 'eq.true',
+        'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,sport_type.ilike.*$query*,adresse.ilike.*$query*)',
+        'order': 'nom.asc',
+        'limit': '$limit',
+      };
+      if (ville != null && ville.isNotEmpty) {
+        params['ville'] = 'ilike.$ville';
+      }
+      final response = await _dio.get('sport_venues', queryParameters: params);
+      final data = response.data as List;
+      final q = query.toLowerCase();
+      return data.map((json) {
+        final j = json as Map<String, dynamic>;
+        final name = j['nom'] as String? ?? '';
+        final cat = j['categorie'] as String? ?? '';
+        final sportType = j['sport_type'] as String? ?? '';
+        final relevance = name.toLowerCase().contains(q) ? 0
+            : (cat.toLowerCase().contains(q) || sportType.toLowerCase().contains(q)) ? 1
+            : 2;
+        return VenueResult(
+          id: '${j['id'] ?? name}',
+          name: name,
+          categorie: cat.isNotEmpty ? cat : sportType,
+          adresse: j['adresse'] as String? ?? '',
+          ville: j['ville'] as String? ?? '',
+          horaires: j['horaires'] as String? ?? '',
+          telephone: j['telephone'] as String? ?? '',
+          siteWeb: j['site_web'] as String? ?? '',
+          lienMaps: j['lien_maps'] as String? ?? '',
+          photo: j['photo'] as String? ?? '',
+          latitude: (j['latitude'] as num?)?.toDouble() ?? 0,
+          longitude: (j['longitude'] as num?)?.toDouble() ?? 0,
+          sourceTable: 'sport_venues',
           relevance: relevance,
         );
       }).toList();

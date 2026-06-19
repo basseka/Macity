@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/search/data/unified_search_service.dart';
 import 'package:pulz_app/features/search/domain/search_result.dart';
@@ -231,12 +234,14 @@ class _VenueSearchTile extends StatelessWidget {
   final VenueResult venue;
   const _VenueSearchTile({required this.venue});
 
+  bool get _hasPhoto => (venue.photo ?? '').startsWith('http');
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _openVenue(),
+      onTap: () => _openDetail(context),
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -244,8 +249,23 @@ class _VenueSearchTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.place, size: 18, color: AppColors.textFaint),
-            const SizedBox(width: 8),
+            // Pochette
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: _hasPhoto
+                    ? CachedNetworkImage(
+                        imageUrl: venue.photo!,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 96,
+                        errorWidget: (_, __, ___) => _thumbFallback(),
+                      )
+                    : _thumbFallback(),
+              ),
+            ),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +273,7 @@ class _VenueSearchTile extends StatelessWidget {
                   Text(
                     venue.name,
                     style: GoogleFonts.inter(
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF1A1A2E),
                     ),
@@ -263,30 +283,67 @@ class _VenueSearchTile extends StatelessWidget {
                   if (venue.categorie.isNotEmpty)
                     Text(
                       venue.categorie,
-                      style: GoogleFonts.inter(fontSize: 9, color: AppColors.textDim),
+                      style: GoogleFonts.inter(fontSize: 10, color: AppColors.textDim),
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (venue.adresse.isNotEmpty)
+                    Text(
+                      venue.adresse,
+                      style: GoogleFonts.inter(fontSize: 9, color: AppColors.textFaint),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                 ],
               ),
             ),
-            if (venue.horaires.isNotEmpty)
-              Text(
-                venue.horaires,
-                style: GoogleFonts.inter(fontSize: 8, color: AppColors.textFaint),
-              ),
+            const SizedBox(width: 6),
+            // Bouton Maps
+            IconButton(
+              icon: Icon(Icons.map_outlined, size: 22, color: AppColors.textDim),
+              tooltip: 'Ouvrir sur la carte',
+              visualDensity: VisualDensity.compact,
+              onPressed: _openMaps,
+            ),
           ],
         ),
       ),
     );
   }
 
-  void _openVenue() {
-    final url = (venue.siteWeb != null && venue.siteWeb!.isNotEmpty)
-        ? venue.siteWeb!
-        : (venue.lienMaps != null && venue.lienMaps!.isNotEmpty)
-            ? venue.lienMaps!
-            : 'https://www.google.com/search?q=${Uri.encodeComponent(venue.name)}';
-    final uri = Uri.tryParse(url);
+  Widget _thumbFallback() => ColoredBox(
+        color: const Color(0xFFF1F1F4),
+        child: Icon(Icons.storefront, size: 22, color: AppColors.textFaint),
+      );
+
+  /// Ouvre la fiche detail in-app (meme sheet que les commerces Night/Food).
+  void _openDetail(BuildContext context) {
+    final idInt = int.tryParse(venue.id);
+    final commerce = CommerceModel(
+      nom: venue.name,
+      adresse: venue.adresse,
+      ville: venue.ville,
+      categorie: venue.categorie,
+      horaires: venue.horaires,
+      telephone: venue.telephone,
+      photo: venue.photo ?? '',
+      siteWeb: venue.siteWeb ?? '',
+      lienMaps: venue.lienMaps ?? '',
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+      // Active les avis in-app si le lieu a un id stable.
+      sourceId: idInt,
+      sourceTable: idInt != null ? venue.sourceTable : null,
+    );
+    CommerceRowCard.showDetailSheet(context, commerce);
+  }
+
+  void _openMaps() {
+    final link = (venue.lienMaps != null && venue.lienMaps!.isNotEmpty)
+        ? venue.lienMaps!
+        : 'https://www.google.com/maps/search/?api=1&query='
+            '${Uri.encodeComponent('${venue.name} ${venue.ville}'.trim())}';
+    final uri = Uri.tryParse(link);
     if (uri != null) {
       launchUrl(uri, mode: LaunchMode.externalApplication);
     }
