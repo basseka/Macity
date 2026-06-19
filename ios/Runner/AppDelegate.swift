@@ -5,6 +5,11 @@ import FirebaseMessaging
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
+  // L'APNs token peut arriver AVANT que Firebase (initialise cote Dart) soit
+  // pret. On le met en cache et on l'applique des que FirebaseApp.app() existe,
+  // sinon il est perdu et getToken() reste null indefiniment (bug : 0 token iOS).
+  private var pendingApnsToken: Data?
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -22,15 +27,38 @@ import FirebaseMessaging
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Transmet le token APNs a Firebase (seulement si Firebase est deja configure,
-  // pour eviter tout crash si le token arrive avant l'init Dart).
+  // Transmet le token APNs a Firebase. Si Firebase n'est pas encore configure
+  // (init cote Dart pas terminee), on met le token en cache et on reessaie
+  // jusqu'a ce que FirebaseApp.app() existe.
   override func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    if FirebaseApp.app() != nil {
-      Messaging.messaging().apnsToken = deviceToken
-    }
+    pendingApnsToken = deviceToken
+    applyApnsTokenWhenReady()
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+
+  override func application(
+    _ application: UIApplication,
+    didFailToRegisterForRemoteNotificationsWithError error: Error
+  ) {
+    NSLog("[APNs] echec enregistrement: \(error.localizedDescription)")
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
+  }
+
+  // Applique l'APNs token des que Firebase est pret. Retente toutes les 0.3s
+  // (max ~12s) pour absorber la race init Firebase (Dart) vs callback APNs.
+  private func applyApnsTokenWhenReady(attempt: Int = 0) {
+    guard let token = pendingApnsToken else { return }
+    if FirebaseApp.app() != nil {
+      Messaging.messaging().apnsToken = token
+      pendingApnsToken = nil
+      return
+    }
+    if attempt >= 40 { return }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+      self?.applyApnsTokenWhenReady(attempt: attempt + 1)
+    }
   }
 }

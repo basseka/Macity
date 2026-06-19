@@ -69,8 +69,30 @@ class FcmService {
       onDidReceiveNotificationResponse: _onLocalNotificationTap,
     );
 
-    // Token initial
-    final token = await _messaging.getToken();
+    // Token initial.
+    // iOS : getToken() renvoie null tant que l'APNs token n'est pas remonte a
+    // Firebase (le device s'enregistre aupres d'Apple de maniere asynchrone).
+    // On attend donc l'APNs token (jusqu'a ~10s) AVANT de demander le token FCM,
+    // sinon le token n'est jamais recupere ni enregistre (bug : 0 token iOS).
+    if (Platform.isIOS) {
+      String? apns = await _messaging.getAPNSToken();
+      for (var i = 0; apns == null && i < 20; i++) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        apns = await _messaging.getAPNSToken();
+      }
+      if (apns == null) {
+        debugPrint('[FCM] APNs token indisponible apres ~10s '
+            '(verifie la cle APNs dans Firebase + capability Push) — '
+            'token FCM non recupere');
+      }
+    }
+
+    String? token = await _messaging.getToken();
+    // Retry court si null (absorbe une race APNs residuelle).
+    for (var i = 0; token == null && i < 3; i++) {
+      await Future.delayed(const Duration(seconds: 1));
+      token = await _messaging.getToken();
+    }
     if (token != null) await _upsertToken(token);
 
     // Refresh automatique
