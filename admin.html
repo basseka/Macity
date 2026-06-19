@@ -926,6 +926,7 @@
           <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
           <span class="nav-btn" id="goto-sportnews-btn">📰 Actu sport</span>
           <span class="nav-btn" id="goto-chains-btn">🏋️ Chaînes fitness</span>
+          <span class="nav-btn" id="goto-notifs-btn">🔔 Notifications push</span>
           <span class="nav-btn" id="goto-pros-btn">👔 Pros <span id="pros-pending-badge" style="display:none; background:#DC2626; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
         </div>
       </div>
@@ -1568,6 +1569,68 @@
         <p class="subtitle">Photo de <strong>pochette par chaîne</strong> (Basic-Fit, Keep Cool…). Cette image s'affiche sur la <strong>carte chaîne</strong> de la page Sport (qui regroupe toutes les salles de l'enseigne). Colle (Ctrl+V), glisse une image ou explore le PC, puis <strong>Enregistre</strong>.</p>
         <div id="chains-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="chains-list"></div>
+      </div>
+
+      <!-- ═══ VUE NOTIFICATIONS PUSH ═══ -->
+      <div id="notifs-view" class="hidden">
+        <h1>🔔 Notifications push</h1>
+        <p class="subtitle">Envoie une notification push aux utilisateurs : <strong>à tous</strong> (info importante) ou <strong>ciblée</strong> par centres d'intérêt. La notif part immédiatement sur les appareils enregistrés.</p>
+
+        <div style="max-width:680px; display:flex; flex-direction:column; gap:18px; margin-top:8px;">
+
+          <!-- Contenu -->
+          <div>
+            <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;">Titre</label>
+            <input type="text" id="notif-title" maxlength="65" placeholder="Ex : Nouveau festival ce week-end 🎉"
+              style="width:100%; box-sizing:border-box; padding:11px 13px; border-radius:10px; border:1px solid var(--stroke,#ffffff22); background:rgba(255,255,255,0.04); color:var(--text,#fff); font-size:14px;" />
+            <div style="text-align:right; font-size:11px; color:var(--text-faint); margin-top:3px;"><span id="notif-title-count">0</span>/65</div>
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;">Message</label>
+            <textarea id="notif-body" maxlength="180" rows="3" placeholder="Le texte affiché sous le titre…"
+              style="width:100%; box-sizing:border-box; padding:11px 13px; border-radius:10px; border:1px solid var(--stroke,#ffffff22); background:rgba(255,255,255,0.04); color:var(--text,#fff); font-size:14px; resize:vertical;"></textarea>
+            <div style="text-align:right; font-size:11px; color:var(--text-faint); margin-top:3px;"><span id="notif-body-count">0</span>/180</div>
+          </div>
+
+          <!-- Cible -->
+          <div>
+            <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:8px;">Destinataires</label>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+              <button type="button" class="rub-pill active" data-notif-target="all">📢 Tous les utilisateurs</button>
+              <button type="button" class="rub-pill" data-notif-target="interests">🎯 Par centre d'intérêt</button>
+            </div>
+            <div id="notif-interests" class="hidden" style="display:flex; gap:8px; flex-wrap:wrap; padding:12px; border:1px dashed var(--stroke,#ffffff22); border-radius:10px;">
+              <button type="button" class="rub-pill" data-interest="day">🎭 Concerts & Spectacles</button>
+              <button type="button" class="rub-pill" data-interest="sport">⚽ Sport</button>
+              <button type="button" class="rub-pill" data-interest="culture">🎨 Culture & Arts</button>
+              <button type="button" class="rub-pill" data-interest="family">👨‍👩‍👧 En Famille</button>
+              <button type="button" class="rub-pill" data-interest="food">🍴 Food & Lifestyle</button>
+              <button type="button" class="rub-pill" data-interest="gaming">🎮 Gaming & Pop Culture</button>
+              <button type="button" class="rub-pill" data-interest="night">🌙 Nuit & Sorties</button>
+              <button type="button" class="rub-pill" data-interest="tourisme">🧭 Tourisme & Découvertes</button>
+            </div>
+          </div>
+
+          <!-- Aperçu -->
+          <div>
+            <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:8px;">Aperçu</label>
+            <div style="background:#ffffff; border-radius:14px; padding:12px 14px; display:flex; gap:11px; align-items:flex-start; box-shadow:0 2px 12px rgba(0,0,0,0.18);">
+              <div style="width:38px; height:38px; border-radius:9px; background:linear-gradient(135deg,#7B2D8E,#E91E8C); flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:20px;">📍</div>
+              <div style="min-width:0;">
+                <div style="font-size:11px; color:#888; margin-bottom:2px;">MaCity · maintenant</div>
+                <div id="notif-prev-title" style="font-size:14px; font-weight:700; color:#111; word-break:break-word;">Titre de la notification</div>
+                <div id="notif-prev-body" style="font-size:13px; color:#444; word-break:break-word;">Le message apparaîtra ici.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Envoi -->
+          <div style="display:flex; align-items:center; gap:14px;">
+            <button class="banner-save-btn" id="notif-send-btn">🚀 Envoyer la notification</button>
+            <span id="notif-target-hint" style="font-size:12px; color:var(--text-dim);">Cible : tous les utilisateurs</span>
+          </div>
+          <div id="notif-result" style="font-size:13px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -2551,6 +2614,8 @@
     const gotoProsBtn = document.getElementById("goto-pros-btn");
     const chainsView = document.getElementById("chains-view");
     const gotoChainsBtn = document.getElementById("goto-chains-btn");
+    const notifsView = document.getElementById("notifs-view");
+    const gotoNotifsBtn = document.getElementById("goto-notifs-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -2561,6 +2626,7 @@
       sportnewsView.classList.add("hidden");
       prosView.classList.add("hidden");
       chainsView.classList.add("hidden");
+      notifsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -2569,6 +2635,7 @@
       gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
+      gotoNotifsBtn.style.display = "inline-flex";
     }
     function showFormView() {
       _hideAllViews();
@@ -2633,6 +2700,130 @@
     gotoSportnewsBtn.addEventListener("click", showSportNewsView);
     gotoProsBtn.addEventListener("click", showProsView);
     gotoChainsBtn.addEventListener("click", showChainsView);
+    function showNotifsView() {
+      _hideAllViews();
+      notifsView.classList.remove("hidden");
+      gotoNotifsBtn.style.display = "none";
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoNotifsBtn.addEventListener("click", showNotifsView);
+
+    // ─── Onglet Notifications push : broadcast FCM cible ───
+    // Appelle l'edge function `broadcast-notification` (auth via JWT admin).
+    // Cible : tous, ou les users dont preferences recoupe les interets choisis.
+    (function setupNotifs() {
+      const $ = (id) => document.getElementById(id);
+      const titleEl = $("notif-title");
+      const bodyEl = $("notif-body");
+      const prevTitle = $("notif-prev-title");
+      const prevBody = $("notif-prev-body");
+      const hint = $("notif-target-hint");
+      const interestsBox = $("notif-interests");
+      const resultEl = $("notif-result");
+      const sendBtn = $("notif-send-btn");
+      if (!titleEl) return;
+
+      let target = "all"; // 'all' | 'interests'
+
+      function selectedInterests() {
+        return [...interestsBox.querySelectorAll(".rub-pill.active")]
+          .map((b) => b.dataset.interest);
+      }
+
+      function refreshHint() {
+        if (target === "all") {
+          hint.textContent = "Cible : tous les utilisateurs";
+          return;
+        }
+        const sel = selectedInterests();
+        hint.textContent = sel.length
+          ? `Cible : ${sel.length} centre(s) d'intérêt`
+          : "Choisis au moins un centre d'intérêt";
+      }
+
+      function refreshPreview() {
+        const t = titleEl.value.trim();
+        const b = bodyEl.value.trim();
+        prevTitle.textContent = t || "Titre de la notification";
+        prevBody.textContent = b || "Le message apparaîtra ici.";
+        $("notif-title-count").textContent = titleEl.value.length;
+        $("notif-body-count").textContent = bodyEl.value.length;
+      }
+
+      titleEl.addEventListener("input", refreshPreview);
+      bodyEl.addEventListener("input", refreshPreview);
+
+      // Choix du type de cible (Tous / Par intérêt)
+      notifsView.querySelectorAll("[data-notif-target]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          target = btn.dataset.notifTarget;
+          notifsView.querySelectorAll("[data-notif-target]").forEach((b) =>
+            b.classList.toggle("active", b === btn));
+          interestsBox.classList.toggle("hidden", target !== "interests");
+          refreshHint();
+        });
+      });
+
+      // Sélection multiple des centres d'intérêt
+      interestsBox.querySelectorAll("[data-interest]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          btn.classList.toggle("active");
+          refreshHint();
+        });
+      });
+
+      sendBtn.addEventListener("click", async () => {
+        const title = titleEl.value.trim();
+        const body = bodyEl.value.trim();
+        if (!title || !body) {
+          toast("Titre et message requis", false);
+          return;
+        }
+        const interests = target === "interests" ? selectedInterests() : [];
+        if (target === "interests" && interests.length === 0) {
+          toast("Choisis au moins un centre d'intérêt", false);
+          return;
+        }
+        const cibleTxt = target === "all"
+          ? "TOUS les utilisateurs"
+          : `les intéressés par : ${interests.join(", ")}`;
+        if (!confirm(`Envoyer cette notification à ${cibleTxt} ?\n\n« ${title} »`)) return;
+
+        sendBtn.disabled = true;
+        const oldLabel = sendBtn.textContent;
+        sendBtn.textContent = "⏳ Envoi…";
+        resultEl.textContent = "";
+        resultEl.style.color = "var(--text-dim)";
+        try {
+          const { data, error } = await supabase.functions.invoke(
+            "broadcast-notification",
+            { body: { title, body, interests } },
+          );
+          if (error) throw error;
+          if (data && data.ok) {
+            resultEl.style.color = "#22c55e";
+            resultEl.textContent =
+              `✅ Envoyé : ${data.sent}/${data.total} appareils` +
+              (data.failed ? ` · ${data.failed} échec(s)` : "") +
+              (data.cleaned ? ` · ${data.cleaned} token(s) obsolète(s) nettoyé(s)` : "");
+            toast("Notification envoyée", true);
+          } else {
+            resultEl.style.color = "#ef4444";
+            resultEl.textContent = "Réponse inattendue : " + JSON.stringify(data);
+          }
+        } catch (e) {
+          console.warn("[broadcast]", e);
+          resultEl.style.color = "#ef4444";
+          resultEl.textContent = "Erreur : " + (e.message || "envoi échoué (es-tu connecté en admin ?)");
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.textContent = oldLabel;
+        }
+      });
+
+      refreshPreview();
+      refreshHint();
+    })();
 
     // ─── Onglet Chaînes fitness : photo de pochette par chaîne ───
     // Table `fitness_chains` (token, nom, photo_url). La photo s'affiche sur la
