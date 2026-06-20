@@ -13,6 +13,7 @@ import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
+import 'package:pulz_app/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,6 +25,36 @@ class FcmService {
   static late final Dio _dio;
   static bool _initialized = false;
   static final List<StreamSubscription> _subscriptions = [];
+
+  // --- Diagnostic push iOS (affiche un dialogue au demarrage si echec) ---
+  // Capture l'etat de la chaine d'enregistrement pour pointer la cause exacte
+  // sans avoir besoin de Console.app. A retirer une fois le push iOS valide.
+  static AuthorizationStatus? lastPermission;
+  static String? lastApnsToken;
+  static String? lastFcmToken;
+  static bool lastUpsertOk = false;
+  static String? lastUpsertError;
+  /// Complete quand la sequence d'enregistrement du token est terminee
+  /// (succes ou echec) -> l'UI peut alors lire le diagnostic.
+  static final Completer<void> diagnosticReady = Completer<void>();
+
+  static String _short(String? s) =>
+      (s == null || s.isEmpty) ? '∅' : '${s.substring(0, s.length.clamp(0, 14))}…';
+
+  /// Rapport lisible de l'etat de la chaine push (permission/APNs/FCM/upsert).
+  static String buildDiagnosticReport() {
+    final b = StringBuffer()
+      ..writeln('=== Diagnostic Push iOS ===')
+      ..writeln('Plateforme : ${Platform.isIOS ? "iOS" : "Android"}')
+      ..writeln('Mode release : $kReleaseMode')
+      ..writeln('Permission : ${lastPermission ?? "?"}')
+      ..writeln('APNs token : ${lastApnsToken == null ? "❌ NULL" : "✅ ${_short(lastApnsToken)}"}')
+      ..writeln('FCM token : ${lastFcmToken == null ? "❌ NULL" : "✅ ${_short(lastFcmToken)}"}')
+      ..writeln('Upsert Supabase : ${lastUpsertOk ? "✅ OK" : "❌ ${lastUpsertError ?? "non tente"}"}')
+      ..writeln('Firebase appId : ${DefaultFirebaseOptions.ios.appId}')
+      ..writeln('Bundle : ${DefaultFirebaseOptions.ios.iosBundleId}');
+    return b.toString();
+  }
 
   /// Callback appelé quand l'utilisateur tape sur une notification.
   /// La map contient les données FCM (type, universe, event_ids, etc.).
@@ -44,11 +75,12 @@ class FcmService {
     _dio.interceptors.add(SupabaseInterceptor());
 
     // Permissions (iOS + Android 13+ POST_NOTIFICATIONS)
-    await _messaging.requestPermission(
+    final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
+    lastPermission = settings.authorizationStatus;
 
     final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<
@@ -80,6 +112,7 @@ class FcmService {
         await Future.delayed(const Duration(milliseconds: 500));
         apns = await _messaging.getAPNSToken();
       }
+      lastApnsToken = apns;
       if (apns == null) {
         debugPrint('[FCM] APNs token indisponible apres ~10s '
             '(verifie la cle APNs dans Firebase + capability Push) — '
@@ -93,7 +126,9 @@ class FcmService {
       await Future.delayed(const Duration(seconds: 1));
       token = await _messaging.getToken();
     }
+    lastFcmToken = token;
     if (token != null) await _upsertToken(token);
+    if (!diagnosticReady.isCompleted) diagnosticReady.complete();
 
     // Refresh automatique
     _subscriptions.add(_messaging.onTokenRefresh.listen(_upsertToken));
@@ -223,8 +258,12 @@ class FcmService {
           },
         ),
       );
+      lastUpsertOk = true;
+      lastUpsertError = null;
       debugPrint('[FCM] token registered');
     } catch (e) {
+      lastUpsertOk = false;
+      lastUpsertError = e.toString();
       debugPrint('[FCM] token upsert failed: $e');
     }
   }

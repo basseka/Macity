@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +53,42 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       // donc les notifs en attente sont consommees).
       FcmService.resetBadge();
       _checkAppUpdate();
+      _maybeShowPushDiagnostic();
+    });
+  }
+
+  /// DIAGNOSTIC TEMPORAIRE (push iOS) : si le token FCM n'a pas pu etre
+  /// enregistre sur iOS, affiche un dialogue avec l'etat exact de la chaine
+  /// (permission / APNs / FCM / upsert) + bouton Copier. Evite Console.app.
+  /// A retirer une fois le push iOS valide.
+  void _maybeShowPushDiagnostic() {
+    if (!Platform.isIOS) return;
+    FcmService.diagnosticReady.future.then((_) {
+      if (!mounted) return;
+      if (FcmService.lastFcmToken != null && FcmService.lastUpsertOk) return;
+      final ctx = rootNavigatorKey.currentContext;
+      if (ctx == null) return;
+      final report = FcmService.buildDiagnosticReport();
+      // ctx provient du rootNavigatorKey global (pas du State), deja garde par
+      // le check `mounted` ci-dessus.
+      showDialog<void>(
+        // ignore: use_build_context_synchronously
+        context: ctx,
+        builder: (c) => AlertDialog(
+          title: const Text('Diagnostic Push iOS'),
+          content: SingleChildScrollView(child: SelectableText(report)),
+          actions: [
+            TextButton(
+              onPressed: () => Clipboard.setData(ClipboardData(text: report)),
+              child: const Text('Copier'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(c).pop(),
+              child: const Text('Fermer'),
+            ),
+          ],
+        ),
+      );
     });
   }
 
