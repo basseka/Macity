@@ -63,33 +63,47 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
   /// A retirer une fois le push iOS valide.
   void _maybeShowPushDiagnostic() {
     if (!Platform.isIOS) return;
-    FcmService.diagnosticReady.future.then((_) {
-      if (!mounted) return;
-      if (FcmService.lastFcmToken != null && FcmService.lastUpsertOk) return;
-      final ctx = rootNavigatorKey.currentContext;
-      if (ctx == null) return;
-      final report = FcmService.buildDiagnosticReport();
-      // ctx provient du rootNavigatorKey global (pas du State), deja garde par
-      // le check `mounted` ci-dessus.
-      showDialog<void>(
-        // ignore: use_build_context_synchronously
-        context: ctx,
-        builder: (c) => AlertDialog(
-          title: const Text('Diagnostic Push iOS'),
-          content: SingleChildScrollView(child: SelectableText(report)),
-          actions: [
-            TextButton(
-              onPressed: () => Clipboard.setData(ClipboardData(text: report)),
-              child: const Text('Copier'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(c).pop(),
-              child: const Text('Fermer'),
-            ),
-          ],
-        ),
-      );
-    });
+    // Timeout de secours : si l'init se bloque/leve avant de completer le
+    // Completer, on affiche quand meme le diagnostic apres 22s.
+    Future.any<void>([
+      FcmService.diagnosticReady.future,
+      Future<void>.delayed(const Duration(seconds: 22)),
+    ]).then((_) => _showPushDiagnosticDialog());
+  }
+
+  void _showPushDiagnosticDialog([int attempt = 0]) {
+    if (!mounted) return;
+    if (FcmService.lastFcmToken != null && FcmService.lastUpsertOk) return;
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) {
+      // Navigator pas encore pret : on retente quelques fois.
+      if (attempt < 6) {
+        Future.delayed(
+          const Duration(seconds: 1),
+          () => _showPushDiagnosticDialog(attempt + 1),
+        );
+      }
+      return;
+    }
+    final report = FcmService.buildDiagnosticReport();
+    showDialog<void>(
+      // ignore: use_build_context_synchronously
+      context: ctx,
+      builder: (c) => AlertDialog(
+        title: const Text('Diagnostic Push iOS'),
+        content: SingleChildScrollView(child: SelectableText(report)),
+        actions: [
+          TextButton(
+            onPressed: () => Clipboard.setData(ClipboardData(text: report)),
+            child: const Text('Copier'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(c).pop(),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _checkAppUpdate() async {

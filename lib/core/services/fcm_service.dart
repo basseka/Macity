@@ -34,6 +34,7 @@ class FcmService {
   static String? lastFcmToken;
   static bool lastUpsertOk = false;
   static String? lastUpsertError;
+  static String? lastError;
   /// Complete quand la sequence d'enregistrement du token est terminee
   /// (succes ou echec) -> l'UI peut alors lire le diagnostic.
   static final Completer<void> diagnosticReady = Completer<void>();
@@ -51,6 +52,7 @@ class FcmService {
       ..writeln('APNs token : ${lastApnsToken == null ? "❌ NULL" : "✅ ${_short(lastApnsToken)}"}')
       ..writeln('FCM token : ${lastFcmToken == null ? "❌ NULL" : "✅ ${_short(lastFcmToken)}"}')
       ..writeln('Upsert Supabase : ${lastUpsertOk ? "✅ OK" : "❌ ${lastUpsertError ?? "non tente"}"}')
+      ..writeln('Erreur init : ${lastError ?? "—"}')
       ..writeln('Firebase appId : ${DefaultFirebaseOptions.ios.appId}')
       ..writeln('Bundle : ${DefaultFirebaseOptions.ios.iosBundleId}');
     return b.toString();
@@ -106,29 +108,38 @@ class FcmService {
     // Firebase (le device s'enregistre aupres d'Apple de maniere asynchrone).
     // On attend donc l'APNs token (jusqu'a ~10s) AVANT de demander le token FCM,
     // sinon le token n'est jamais recupere ni enregistre (bug : 0 token iOS).
-    if (Platform.isIOS) {
-      String? apns = await _messaging.getAPNSToken();
-      for (var i = 0; apns == null && i < 20; i++) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        apns = await _messaging.getAPNSToken();
+    try {
+      if (Platform.isIOS) {
+        String? apns = await _messaging.getAPNSToken();
+        for (var i = 0; apns == null && i < 20; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          apns = await _messaging.getAPNSToken();
+        }
+        lastApnsToken = apns;
+        if (apns == null) {
+          debugPrint('[FCM] APNs token indisponible apres ~10s '
+              '(verifie la cle APNs dans Firebase + capability Push) — '
+              'token FCM non recupere');
+        }
       }
-      lastApnsToken = apns;
-      if (apns == null) {
-        debugPrint('[FCM] APNs token indisponible apres ~10s '
-            '(verifie la cle APNs dans Firebase + capability Push) — '
-            'token FCM non recupere');
-      }
-    }
 
-    String? token = await _messaging.getToken();
-    // Retry court si null (absorbe une race APNs residuelle).
-    for (var i = 0; token == null && i < 3; i++) {
-      await Future.delayed(const Duration(seconds: 1));
-      token = await _messaging.getToken();
+      String? token = await _messaging.getToken();
+      // Retry court si null (absorbe une race APNs residuelle).
+      for (var i = 0; token == null && i < 3; i++) {
+        await Future.delayed(const Duration(seconds: 1));
+        token = await _messaging.getToken();
+      }
+      lastFcmToken = token;
+      if (token != null) await _upsertToken(token);
+    } catch (e) {
+      // getToken()/getAPNSToken() peuvent LEVER sur iOS (ex: apns-token-not-set)
+      // au lieu de renvoyer null -> on capture l'erreur pour le diagnostic au
+      // lieu de laisser l'init planter en silence (sinon : pas de dialogue).
+      lastError = e.toString();
+      debugPrint('[FCM] init token error: $e');
+    } finally {
+      if (!diagnosticReady.isCompleted) diagnosticReady.complete();
     }
-    lastFcmToken = token;
-    if (token != null) await _upsertToken(token);
-    if (!diagnosticReady.isCompleted) diagnosticReady.complete();
 
     // Refresh automatique
     _subscriptions.add(_messaging.onTokenRefresh.listen(_upsertToken));
