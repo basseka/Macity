@@ -35,6 +35,9 @@ class FcmService {
   static bool lastUpsertOk = false;
   static String? lastUpsertError;
   static String? lastError;
+  /// Rapport publie pour la banniere de diagnostic UI (null tant que pas pret).
+  static final ValueNotifier<String?> diagnosticReport =
+      ValueNotifier<String?>(null);
   /// Complete quand la sequence d'enregistrement du token est terminee
   /// (succes ou echec) -> l'UI peut alors lire le diagnostic.
   static final Completer<void> diagnosticReady = Completer<void>();
@@ -138,6 +141,7 @@ class FcmService {
       lastError = e.toString();
       debugPrint('[FCM] init token error: $e');
     } finally {
+      diagnosticReport.value = buildDiagnosticReport();
       if (!diagnosticReady.isCompleted) diagnosticReady.complete();
     }
 

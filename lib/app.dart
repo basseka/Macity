@@ -39,6 +39,7 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
 
   AppUpdateStatus? _updateStatus;
   bool _bannerDismissed = false;
+  bool _diagDismissed = false; // DIAGNOSTIC TEMPORAIRE push iOS
 
   @override
   void initState() {
@@ -53,57 +54,18 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       // donc les notifs en attente sont consommees).
       FcmService.resetBadge();
       _checkAppUpdate();
-      _maybeShowPushDiagnostic();
+      _armPushDiagnosticFallback();
     });
   }
 
-  /// DIAGNOSTIC TEMPORAIRE (push iOS) : si le token FCM n'a pas pu etre
-  /// enregistre sur iOS, affiche un dialogue avec l'etat exact de la chaine
-  /// (permission / APNs / FCM / upsert) + bouton Copier. Evite Console.app.
-  /// A retirer une fois le push iOS valide.
-  void _maybeShowPushDiagnostic() {
+  /// DIAGNOSTIC TEMPORAIRE (push iOS) : filet de securite. Si FcmService.init
+  /// se bloque/leve avant de publier son rapport, on le publie quand meme apres
+  /// 24s pour que la banniere s'affiche. A retirer une fois le push valide.
+  void _armPushDiagnosticFallback() {
     if (!Platform.isIOS) return;
-    // Timeout de secours : si l'init se bloque/leve avant de completer le
-    // Completer, on affiche quand meme le diagnostic apres 22s.
-    Future.any<void>([
-      FcmService.diagnosticReady.future,
-      Future<void>.delayed(const Duration(seconds: 22)),
-    ]).then((_) => _showPushDiagnosticDialog());
-  }
-
-  void _showPushDiagnosticDialog([int attempt = 0]) {
-    if (!mounted) return;
-    if (FcmService.lastFcmToken != null && FcmService.lastUpsertOk) return;
-    final ctx = rootNavigatorKey.currentContext;
-    if (ctx == null) {
-      // Navigator pas encore pret : on retente quelques fois.
-      if (attempt < 6) {
-        Future.delayed(
-          const Duration(seconds: 1),
-          () => _showPushDiagnosticDialog(attempt + 1),
-        );
-      }
-      return;
-    }
-    final report = FcmService.buildDiagnosticReport();
-    showDialog<void>(
-      // ignore: use_build_context_synchronously
-      context: ctx,
-      builder: (c) => AlertDialog(
-        title: const Text('Diagnostic Push iOS'),
-        content: SingleChildScrollView(child: SelectableText(report)),
-        actions: [
-          TextButton(
-            onPressed: () => Clipboard.setData(ClipboardData(text: report)),
-            child: const Text('Copier'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(c).pop(),
-            child: const Text('Fermer'),
-          ),
-        ],
-      ),
-    );
+    Future<void>.delayed(const Duration(seconds: 24), () {
+      FcmService.diagnosticReport.value ??= FcmService.buildDiagnosticReport();
+    });
   }
 
   Future<void> _checkAppUpdate() async {
@@ -479,8 +441,86 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
             ],
           );
         }
+        // DIAGNOSTIC TEMPORAIRE push iOS : banniere rendue DANS l'arbre (donc
+        // toujours visible, contrairement a un showDialog). A retirer une fois ok.
+        if (Platform.isIOS && !_diagDismissed) {
+          content = ValueListenableBuilder<String?>(
+            valueListenable: FcmService.diagnosticReport,
+            child: content,
+            builder: (context, report, child) {
+              if (report == null) return child!;
+              return Column(
+                children: [
+                  _PushDiagnosticBanner(
+                    report: report,
+                    onDismiss: () => setState(() => _diagDismissed = true),
+                  ),
+                  Expanded(child: child!),
+                ],
+              );
+            },
+          );
+        }
         return content;
       },
+    );
+  }
+}
+
+/// DIAGNOSTIC TEMPORAIRE (push iOS) — banniere rendue en haut de l'app pour
+/// montrer l'etat de la chaine push (permission/APNs/FCM/upsert/erreur) sans
+/// dependre d'un showDialog. A RETIRER une fois le push iOS valide.
+class _PushDiagnosticBanner extends StatelessWidget {
+  final String report;
+  final VoidCallback onDismiss;
+  const _PushDiagnosticBanner({required this.report, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFF7B1FA2),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Diagnostic Push iOS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        Clipboard.setData(ClipboardData(text: report)),
+                    child: const Text(
+                      'Copier',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onDismiss,
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
+                ],
+              ),
+              SelectableText(
+                report,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
