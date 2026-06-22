@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +37,6 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
 
   AppUpdateStatus? _updateStatus;
   bool _bannerDismissed = false;
-  bool _diagDismissed = false; // DIAGNOSTIC TEMPORAIRE push iOS
 
   @override
   void initState() {
@@ -54,17 +51,6 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       // donc les notifs en attente sont consommees).
       FcmService.resetBadge();
       _checkAppUpdate();
-      _armPushDiagnosticFallback();
-    });
-  }
-
-  /// DIAGNOSTIC TEMPORAIRE (push iOS) : filet de securite. Si FcmService.init
-  /// se bloque/leve avant de publier son rapport, on le publie quand meme apres
-  /// 24s pour que la banniere s'affiche. A retirer une fois le push valide.
-  void _armPushDiagnosticFallback() {
-    if (!Platform.isIOS) return;
-    Future<void>.delayed(const Duration(seconds: 24), () {
-      FcmService.diagnosticReport.value ??= FcmService.buildDiagnosticReport();
     });
   }
 
@@ -441,86 +427,8 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
             ],
           );
         }
-        // DIAGNOSTIC TEMPORAIRE push iOS : banniere rendue DANS l'arbre (donc
-        // toujours visible, contrairement a un showDialog). A retirer une fois ok.
-        if (Platform.isIOS && !_diagDismissed) {
-          content = ValueListenableBuilder<String?>(
-            valueListenable: FcmService.diagnosticReport,
-            child: content,
-            builder: (context, report, child) {
-              if (report == null) return child!;
-              return Column(
-                children: [
-                  _PushDiagnosticBanner(
-                    report: report,
-                    onDismiss: () => setState(() => _diagDismissed = true),
-                  ),
-                  Expanded(child: child!),
-                ],
-              );
-            },
-          );
-        }
         return content;
       },
-    );
-  }
-}
-
-/// DIAGNOSTIC TEMPORAIRE (push iOS) — banniere rendue en haut de l'app pour
-/// montrer l'etat de la chaine push (permission/APNs/FCM/upsert/erreur) sans
-/// dependre d'un showDialog. A RETIRER une fois le push iOS valide.
-class _PushDiagnosticBanner extends StatelessWidget {
-  final String report;
-  final VoidCallback onDismiss;
-  const _PushDiagnosticBanner({required this.report, required this.onDismiss});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFF7B1FA2),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Diagnostic Push iOS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () =>
-                        Clipboard.setData(ClipboardData(text: report)),
-                    child: const Text(
-                      'Copier',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: onDismiss,
-                    icon: const Icon(Icons.close, color: Colors.white),
-                  ),
-                ],
-              ),
-              SelectableText(
-                report,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
