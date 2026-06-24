@@ -1574,7 +1574,7 @@
       <!-- ═══ VUE NOTIFICATIONS PUSH ═══ -->
       <div id="notifs-view" class="hidden">
         <h1>🔔 Notifications push</h1>
-        <p class="subtitle">Envoie une notification push aux utilisateurs : <strong>à tous</strong> (info importante) ou <strong>ciblée</strong> par centres d'intérêt. La notif part immédiatement sur les appareils enregistrés.</p>
+        <p class="subtitle">Envoie une notification push aux utilisateurs : <strong>à tous</strong> ou <strong>ciblée</strong> par centres d'intérêt et/ou par <strong>ville</strong> (Toulouse, Marseille, Carcassonne). La notif part immédiatement sur les appareils enregistrés.</p>
 
         <div style="max-width:680px; display:flex; flex-direction:column; gap:18px; margin-top:8px;">
 
@@ -1609,6 +1609,18 @@
               <button type="button" class="rub-pill" data-interest="night">🌙 Nuit & Sorties</button>
               <button type="button" class="rub-pill" data-interest="tourisme">🧭 Tourisme & Découvertes</button>
             </div>
+          </div>
+
+          <!-- Ville ciblée -->
+          <div>
+            <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:8px;">Ville ciblée</label>
+            <div id="notif-cities" style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="rub-pill active" data-notif-city="">🌍 Toutes les villes</button>
+              <button type="button" class="rub-pill" data-notif-city="Toulouse">📍 Toulouse</button>
+              <button type="button" class="rub-pill" data-notif-city="Marseille">📍 Marseille</button>
+              <button type="button" class="rub-pill" data-notif-city="Carcassonne">📍 Carcassonne</button>
+            </div>
+            <div style="font-size:11px; color:var(--text-faint); margin-top:6px;">Cible les utilisateurs dont la ville (ou une ville de notification) correspond. « Toutes les villes » = aucun filtre géographique.</div>
           </div>
 
           <!-- Aperçu -->
@@ -2724,6 +2736,8 @@
       if (!titleEl) return;
 
       let target = "all"; // 'all' | 'interests'
+      let city = "";       // "" = toutes les villes, sinon "Toulouse" | "Marseille" | "Carcassonne"
+      const citiesBox = $("notif-cities");
 
       function selectedInterests() {
         return [...interestsBox.querySelectorAll(".rub-pill.active")]
@@ -2731,14 +2745,17 @@
       }
 
       function refreshHint() {
+        let base;
         if (target === "all") {
-          hint.textContent = "Cible : tous les utilisateurs";
-          return;
+          base = "tous les utilisateurs";
+        } else {
+          const sel = selectedInterests();
+          base = sel.length
+            ? `${sel.length} centre(s) d'intérêt`
+            : "⚠ choisis au moins un centre d'intérêt";
         }
-        const sel = selectedInterests();
-        hint.textContent = sel.length
-          ? `Cible : ${sel.length} centre(s) d'intérêt`
-          : "Choisis au moins un centre d'intérêt";
+        const villeTxt = city ? ` · ville : ${city}` : " · toutes les villes";
+        hint.textContent = `Cible : ${base}${villeTxt}`;
       }
 
       function refreshPreview() {
@@ -2772,6 +2789,16 @@
         });
       });
 
+      // Sélection unique de la ville ciblée (Toutes / Toulouse / Marseille / Carcassonne)
+      citiesBox?.querySelectorAll("[data-notif-city]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          city = btn.dataset.notifCity || "";
+          citiesBox.querySelectorAll("[data-notif-city]").forEach((b) =>
+            b.classList.toggle("active", b === btn));
+          refreshHint();
+        });
+      });
+
       sendBtn.addEventListener("click", async () => {
         const title = titleEl.value.trim();
         const body = bodyEl.value.trim();
@@ -2787,7 +2814,8 @@
         const cibleTxt = target === "all"
           ? "TOUS les utilisateurs"
           : `les intéressés par : ${interests.join(", ")}`;
-        if (!confirm(`Envoyer cette notification à ${cibleTxt} ?\n\n« ${title} »`)) return;
+        const villeTxt = city ? ` à ${city}` : " (toutes villes)";
+        if (!confirm(`Envoyer cette notification à ${cibleTxt}${villeTxt} ?\n\n« ${title} »`)) return;
 
         sendBtn.disabled = true;
         const oldLabel = sendBtn.textContent;
@@ -2797,7 +2825,7 @@
         try {
           const { data, error } = await supabase.functions.invoke(
             "broadcast-notification",
-            { body: { title, body, interests } },
+            { body: { title, body, interests, ville: city } },
           );
           if (error) throw error;
           if (data && data.ok) {
