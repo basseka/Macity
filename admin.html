@@ -3293,11 +3293,21 @@
     }
 
     async function approvePro(email) {
-      if (!confirm(`Approuver le compte de ${email} ?\n\nLe pro pourra publier des offres.`)) return;
+      const pro = _allPros.find(p => p.email === email);
+      const nom = pro?.nom || "votre établissement";
+      if (!confirm(`Approuver ${nom} (${email}) ?\n\nLe pro pourra publier des offres et recevra un mail de validation (copie à contact@macity.app).`)) return;
       try {
         const { error } = await supabase.rpc("admin_approve_pro", { p_email: email });
         if (error) throw error;
-        toast("✓ Pro approuvé");
+        // Mail de bienvenue/validation auto au pro + copie (bcc) au service client.
+        const { error: mailErr } = await supabase.functions.invoke("notify-pro-approved", {
+          body: { email, nom },
+        });
+        if (mailErr) {
+          toast("✓ Pro approuvé — mais l'envoi du mail a échoué : " + (mailErr.message || mailErr), false);
+        } else {
+          toast("✓ Pro approuvé — mail de validation envoyé");
+        }
         await refreshProsView();
       } catch (e) {
         toast("Erreur approbation : " + (e.message || e), false);
