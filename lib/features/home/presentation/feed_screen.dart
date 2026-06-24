@@ -155,7 +155,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   String? _categoryFilter;
 
   static const List<String> _feedCategories = [
-    'Tout', 'Concerts', 'Soirée', 'Spectacle', 'Cinéma', 'Food', 'Sport', 'Famille',
+    'Tout', 'Concerts', 'Soirée', 'Spectacle', 'Danse', 'Cinéma', 'Food', 'Sport', 'Famille',
   ];
 
   // Flag anti-spam : évite d'empiler plusieurs post-frame loadNextPage
@@ -1238,6 +1238,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         return rub == 'night' || any(['soir', 'club', 'disco', 'dj', 'party', 'bar', 'after']);
       case 'Spectacle':
         return any(['spectacle', 'theatre', 'théâtre', 'humour', 'stand', 'one-man', 'danse', 'opera', 'comédie', 'comedie']);
+      case 'Danse':
+        return any(['danse', 'ballet', 'kizomba', 'salsa', 'bachata', 'tango', 'bal ', 'dancefloor', 'choré', 'chore']);
       case 'Cinéma':
         return any(['cinema', 'cinéma', 'film', 'projection']);
       case 'Food':

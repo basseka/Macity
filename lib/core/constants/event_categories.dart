@@ -34,6 +34,7 @@ const kSubcategoryToFilter = <String, List<(String tab, String sub)>>{
   'Cinema':            [('Event', 'Cinéma')],
 
   // Danse
+  'Danse':             [('En Scène', 'Danse')],
   'Cours de danse':    [('En Scène', 'Danse')],
   'Spectacle':         [('En Scène', 'Spectacle'), ('En Scène', 'Danse')],
   'Bal':               [('En Scène', 'Danse')],
