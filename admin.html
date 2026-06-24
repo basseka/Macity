@@ -3250,9 +3250,15 @@
         const emailVerified = !p.approval_code; // code clear = email verified
         const dateInsc = new Date(p.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
         const safeEmail = String(p.email).replace(/'/g, "\\'");
+        // Approuvé : bouton Révoquer seul. En attente : Approuver + Révoquer
+        // (refuser la demande = mail de refus auto, compte gardé en non-approuvé).
+        const revokeBtn = `<button type="button" class="banner-save-btn" style="background:#DC2626;" data-revoke="${safeEmail}">Révoquer</button>`;
         const actionBtn = p.approved
-          ? `<button type="button" class="banner-save-btn" style="background:#DC2626;" data-revoke="${safeEmail}">Révoquer</button>`
-          : `<button type="button" class="banner-save-btn" data-approve="${safeEmail}">Approuver</button>`;
+          ? revokeBtn
+          : `<div style="display:flex; gap:8px; flex-wrap:wrap;">`
+            + `<button type="button" class="banner-save-btn" data-approve="${safeEmail}">Approuver</button>`
+            + revokeBtn
+            + `</div>`;
         return `
           <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;">
@@ -3299,11 +3305,21 @@
     }
 
     async function revokePro(email) {
-      if (!confirm(`Révoquer le compte de ${email} ?\n\nLe pro ne pourra plus publier d'offres.`)) return;
+      const pro = _allPros.find(p => p.email === email);
+      const nom = pro?.nom || "votre établissement";
+      if (!confirm(`Révoquer / refuser ${nom} (${email}) ?\n\nLe pro ne pourra pas publier d'offres et recevra un mail de refus (copie à contact@macity.app).`)) return;
       try {
         const { error } = await supabase.rpc("admin_revoke_pro", { p_email: email });
         if (error) throw error;
-        toast("✓ Pro révoqué");
+        // Mail de refus auto au pro + copie (bcc) au service client.
+        const { error: mailErr } = await supabase.functions.invoke("notify-pro-rejected", {
+          body: { email, nom },
+        });
+        if (mailErr) {
+          toast("✓ Pro révoqué — mais l'envoi du mail a échoué : " + (mailErr.message || mailErr), false);
+        } else {
+          toast("✓ Pro révoqué — mail de refus envoyé");
+        }
         await refreshProsView();
       } catch (e) {
         toast("Erreur révocation : " + (e.message || e), false);
