@@ -928,6 +928,7 @@
           <span class="nav-btn" id="goto-chains-btn">🏋️ Chaînes fitness</span>
           <span class="nav-btn" id="goto-notifs-btn">🔔 Notifications push</span>
           <span class="nav-btn" id="goto-pros-btn">👔 Pros <span id="pros-pending-badge" style="display:none; background:#DC2626; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
+          <span class="nav-btn" id="goto-moderation-btn">🛡️ Modération</span>
         </div>
       </div>
 
@@ -1561,6 +1562,23 @@
         <div id="pros-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="pros-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun pro dans cette catégorie.</div>
         <div id="pros-list"></div>
+      </div>
+
+      <!-- ═══ VUE MODÉRATION POSTS PROS ═══ -->
+      <div id="moderation-view" class="hidden">
+        <h1>🛡️ Modération des posts pros</h1>
+        <p class="subtitle">Tous les events publiés par des comptes pros. Supprime tout contenu inapproprié — l'action est <strong>irréversible</strong>.</p>
+
+        <!-- Filtres -->
+        <div style="display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="moderation-search" placeholder="Filtrer par pro ou titre…"
+            style="flex:1; min-width:200px; padding:9px 12px; border-radius:10px; border:1px solid var(--stroke,#ffffff22); background:rgba(255,255,255,0.04); color:var(--text,#fff); font-size:13px;" />
+          <button type="button" class="banner-save-btn" id="moderation-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
+        </div>
+
+        <div id="moderation-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="moderation-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun post pro trouvé.</div>
+        <div id="moderation-list"></div>
       </div>
 
       <!-- ═══ VUE CHAÎNES FITNESS ═══ -->
@@ -2622,6 +2640,8 @@
     const gotoSportnewsBtn = document.getElementById("goto-sportnews-btn");
     const prosView = document.getElementById("pros-view");
     const gotoProsBtn = document.getElementById("goto-pros-btn");
+    const moderationView = document.getElementById("moderation-view");
+    const gotoModerationBtn = document.getElementById("goto-moderation-btn");
     const chainsView = document.getElementById("chains-view");
     const gotoChainsBtn = document.getElementById("goto-chains-btn");
     const notifsView = document.getElementById("notifs-view");
@@ -2635,6 +2655,7 @@
       inspirationsView.classList.add("hidden");
       sportnewsView.classList.add("hidden");
       prosView.classList.add("hidden");
+      moderationView.classList.add("hidden");
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
@@ -2644,6 +2665,7 @@
       gotoInspirationsBtn.style.display = "inline-flex";
       gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
+      gotoModerationBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
     }
@@ -2709,6 +2731,14 @@
     gotoInspirationsBtn.addEventListener("click", showInspirationsView);
     gotoSportnewsBtn.addEventListener("click", showSportNewsView);
     gotoProsBtn.addEventListener("click", showProsView);
+    function showModerationView() {
+      _hideAllViews();
+      moderationView.classList.remove("hidden");
+      gotoModerationBtn.style.display = "none";
+      refreshModerationView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoModerationBtn.addEventListener("click", showModerationView);
     gotoChainsBtn.addEventListener("click", showChainsView);
     function showNotifsView() {
       _hideAllViews();
@@ -3244,6 +3274,104 @@
         return;
       }
     });
+
+    // ─── Onglet Modération posts pros ───────────────────────────────────────
+    let _allProPosts = [];
+    const moderationLoading = document.getElementById("moderation-loading");
+    const moderationEmpty = document.getElementById("moderation-empty");
+    const moderationList = document.getElementById("moderation-list");
+    const moderationSearch = document.getElementById("moderation-search");
+    const moderationRefreshBtn = document.getElementById("moderation-refresh-btn");
+
+    moderationSearch?.addEventListener("input", renderModerationList);
+    moderationRefreshBtn?.addEventListener("click", refreshModerationView);
+
+    async function refreshModerationView() {
+      moderationLoading.classList.remove("hidden");
+      moderationEmpty.classList.add("hidden");
+      moderationList.innerHTML = "";
+      try {
+        const { data, error } = await supabase.rpc("admin_list_pro_posts");
+        if (error) throw error;
+        _allProPosts = data || [];
+        renderModerationList();
+      } catch (e) {
+        console.error("[Modération] load failed", e);
+        moderationList.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur chargement : ${escapeHtml(e.message)}</div>`;
+      } finally {
+        moderationLoading.classList.add("hidden");
+      }
+    }
+
+    function renderModerationList() {
+      const q = (moderationSearch?.value || "").toLowerCase().trim();
+      const filtered = _allProPosts.filter(p => {
+        if (!q) return true;
+        return (p.titre || "").toLowerCase().includes(q)
+          || (p.pro_nom || "").toLowerCase().includes(q)
+          || (p.pro_email || "").toLowerCase().includes(q)
+          || (p.ville || "").toLowerCase().includes(q);
+      });
+      if (filtered.length === 0) {
+        moderationEmpty.classList.remove("hidden");
+        moderationList.innerHTML = "";
+        return;
+      }
+      moderationEmpty.classList.add("hidden");
+      moderationList.innerHTML = filtered.map(p => {
+        const datePost = new Date(p.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+        const eventDate = p.event_date ? p.event_date : "—";
+        const proLabel = p.pro_nom
+          ? `${escapeHtml(p.pro_nom)} <span style="color:var(--text-faint); font-weight:400;">(${escapeHtml(p.pro_email || "")})</span>`
+          : `<span style="color:var(--text-faint);">Pro inconnu</span>`;
+        const approvedBadge = p.pro_approved
+          ? `<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(16,185,129,0.2); color:#10B981;">✓ Approuvé</span>`
+          : `<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(245,158,11,0.2); color:#F59E0B;">⏳ Non approuvé</span>`;
+        const photo = p.photo_url
+          ? `<img src="${escapeHtml(p.photo_url)}" alt="photo" style="width:72px; height:72px; object-fit:cover; border-radius:10px; flex-shrink:0;" onerror="this.style.display='none'" />`
+          : `<div style="width:72px; height:72px; border-radius:10px; background:rgba(255,255,255,0.06); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:22px;">📅</div>`;
+        return `
+          <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:10px;">
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              ${photo}
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                  <strong style="font-size:15px;">${escapeHtml(p.titre || "Sans titre")}</strong>
+                  <span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(124,45,142,0.2); color:#A855F7;">${escapeHtml(p.rubrique || p.categorie || "")}</span>
+                  ${approvedBadge}
+                </div>
+                <div style="font-size:12px; color:var(--text-dim); line-height:1.7; margin-bottom:6px;">
+                  👔 ${proLabel}<br>
+                  📍 ${escapeHtml(p.lieu_nom || "—")}${p.ville ? ` · <strong style="color:var(--text);">${escapeHtml(p.ville)}</strong>` : ""}<br>
+                  📅 ${escapeHtml(eventDate)} · Posté le ${escapeHtml(datePost)}
+                </div>
+              </div>
+              <button type="button"
+                style="flex-shrink:0; padding:8px 14px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
+                data-delete-post="${escapeHtml(p.id)}">🗑️ Supprimer</button>
+            </div>
+          </div>`;
+      }).join("");
+
+      moderationList.querySelectorAll("[data-delete-post]").forEach(btn => {
+        btn.addEventListener("click", () => deleteProPost(btn.dataset.deletePost));
+      });
+    }
+
+    async function deleteProPost(id) {
+      const post = _allProPosts.find(p => p.id === id);
+      const label = post ? `"${post.titre}" (${post.pro_nom || post.pro_email || "pro inconnu"})` : id;
+      if (!confirm(`Supprimer définitivement ${label} ?\n\nCette action est irréversible.`)) return;
+      try {
+        const { error } = await supabase.rpc("admin_delete_pro_post", { p_id: id });
+        if (error) throw error;
+        toast("✓ Post supprimé");
+        _allProPosts = _allProPosts.filter(p => p.id !== id);
+        renderModerationList();
+      } catch (e) {
+        toast("Erreur suppression : " + (e.message || e), false);
+      }
+    }
 
     // ─── Onglet Pros : liste pros + actions approve/revoke ───
     let _allPros = [];
