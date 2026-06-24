@@ -1473,13 +1473,44 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return GestureDetector(
       onTap: () async {
         final id = r['identifiant'] as String? ?? '';
+        // Resultat "lieu" (venue/etablissement) : pas un event scrape, donc
+        // fetchEventById echouerait silencieusement. On ouvre la fiche commerce
+        // (meme sheet que _VenueRowCard). Detection par champ `type` (nouveau
+        // search-ai) avec fallback sur le prefixe d'id (anciennes reponses).
+        final type = r['type'] as String? ?? '';
+        final isPlace =
+            type == 'place' || id.startsWith('venue_') || id.startsWith('etab_');
+        if (isPlace) {
+          final sourceId = (r['id'] as num?)?.toInt();
+          final sourceTable = r['sourceTable'] as String?;
+          final commerce = CommerceModel(
+            nom: titre,
+            adresse: lieu,
+            ville: ref.read(selectedCityProvider),
+            categorie: r['categorie'] as String? ?? '',
+            horaires: horaires,
+            telephone: r['telephone'] as String? ?? '',
+            photo: photo,
+            siteWeb: r['site'] as String? ?? '',
+            lienMaps: (r['maps'] as String?)?.isNotEmpty == true
+                ? r['maps'] as String
+                : (r['lien'] as String? ?? ''),
+            // Avis in-app actifs uniquement si on a un id stable + sa table.
+            sourceId: sourceTable != null ? sourceId : null,
+            sourceTable: sourceId != null ? sourceTable : null,
+          );
+          CommerceRowCard.showDetailSheet(context, commerce);
+          return;
+        }
         if (id.isEmpty) return;
         try {
           final event = await ScrapedEventsSupabaseService().fetchEventById(id);
           if (event != null && mounted) {
             EventFullscreenPopup.show(context, event, 'assets/images/pochette_default.jpg');
           }
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[ai-result] open event "$id" failed: $e');
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(10),
