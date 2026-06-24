@@ -1566,18 +1566,24 @@
 
       <!-- ═══ VUE MODÉRATION POSTS PROS ═══ -->
       <div id="moderation-view" class="hidden">
-        <h1>🛡️ Modération des posts pros</h1>
-        <p class="subtitle">Tous les events publiés par des comptes pros. Supprime tout contenu inapproprié — l'action est <strong>irréversible</strong>.</p>
+        <h1>🛡️ Modération</h1>
+        <p class="subtitle">Supervise et supprime tout contenu inapproprié — l'action est <strong>irréversible</strong>.</p>
 
-        <!-- Filtres -->
-        <div style="display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; align-items:center;">
-          <input type="text" id="moderation-search" placeholder="Filtrer par pro ou titre…"
+        <!-- Onglets -->
+        <div style="display:flex; gap:8px; margin:16px 0 12px; flex-wrap:wrap;">
+          <button type="button" class="rub-pill active" data-mod-tab="posts">📋 Posts pros</button>
+          <button type="button" class="rub-pill" data-mod-tab="stories">📸 Stories</button>
+        </div>
+
+        <!-- Recherche + refresh -->
+        <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="moderation-search" placeholder="Filtrer par titre, pro, ville…"
             style="flex:1; min-width:200px; padding:9px 12px; border-radius:10px; border:1px solid var(--stroke,#ffffff22); background:rgba(255,255,255,0.04); color:var(--text,#fff); font-size:13px;" />
           <button type="button" class="banner-save-btn" id="moderation-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
         </div>
 
         <div id="moderation-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
-        <div id="moderation-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun post pro trouvé.</div>
+        <div id="moderation-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun contenu trouvé.</div>
         <div id="moderation-list"></div>
       </div>
 
@@ -3275,13 +3281,25 @@
       }
     });
 
-    // ─── Onglet Modération posts pros ───────────────────────────────────────
+    // ─── Onglet Modération (posts pros + stories) ───────────────────────────
     let _allProPosts = [];
+    let _allStories = [];
+    let _modTab = "posts"; // "posts" | "stories"
     const moderationLoading = document.getElementById("moderation-loading");
     const moderationEmpty = document.getElementById("moderation-empty");
     const moderationList = document.getElementById("moderation-list");
     const moderationSearch = document.getElementById("moderation-search");
     const moderationRefreshBtn = document.getElementById("moderation-refresh-btn");
+
+    document.querySelectorAll("[data-mod-tab]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-mod-tab]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        _modTab = btn.dataset.modTab;
+        moderationSearch.value = "";
+        refreshModerationView();
+      });
+    });
 
     moderationSearch?.addEventListener("input", renderModerationList);
     moderationRefreshBtn?.addEventListener("click", refreshModerationView);
@@ -3291,9 +3309,15 @@
       moderationEmpty.classList.add("hidden");
       moderationList.innerHTML = "";
       try {
-        const { data, error } = await supabase.rpc("admin_list_pro_posts");
-        if (error) throw error;
-        _allProPosts = data || [];
+        if (_modTab === "posts") {
+          const { data, error } = await supabase.rpc("admin_list_pro_posts");
+          if (error) throw error;
+          _allProPosts = data || [];
+        } else {
+          const { data, error } = await supabase.rpc("admin_list_reported_events");
+          if (error) throw error;
+          _allStories = data || [];
+        }
         renderModerationList();
       } catch (e) {
         console.error("[Modération] load failed", e);
@@ -3304,6 +3328,11 @@
     }
 
     function renderModerationList() {
+      if (_modTab === "posts") renderPostsList();
+      else renderStoriesList();
+    }
+
+    function renderPostsList() {
       const q = (moderationSearch?.value || "").toLowerCase().trim();
       const filtered = _allProPosts.filter(p => {
         if (!q) return true;
@@ -3320,7 +3349,7 @@
       moderationEmpty.classList.add("hidden");
       moderationList.innerHTML = filtered.map(p => {
         const datePost = new Date(p.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
-        const eventDate = p.event_date ? p.event_date : "—";
+        const eventDate = p.event_date || "—";
         const proLabel = p.pro_nom
           ? `${escapeHtml(p.pro_nom)} <span style="color:var(--text-faint); font-weight:400;">(${escapeHtml(p.pro_email || "")})</span>`
           : `<span style="color:var(--text-faint);">Pro inconnu</span>`;
@@ -3328,7 +3357,7 @@
           ? `<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(16,185,129,0.2); color:#10B981;">✓ Approuvé</span>`
           : `<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(245,158,11,0.2); color:#F59E0B;">⏳ Non approuvé</span>`;
         const photo = p.photo_url
-          ? `<img src="${escapeHtml(p.photo_url)}" alt="photo" style="width:72px; height:72px; object-fit:cover; border-radius:10px; flex-shrink:0;" onerror="this.style.display='none'" />`
+          ? `<img src="${escapeHtml(p.photo_url)}" alt="" style="width:72px; height:72px; object-fit:cover; border-radius:10px; flex-shrink:0;" onerror="this.style.display='none'" />`
           : `<div style="width:72px; height:72px; border-radius:10px; background:rgba(255,255,255,0.06); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:22px;">📅</div>`;
         return `
           <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:10px;">
@@ -3352,9 +3381,64 @@
             </div>
           </div>`;
       }).join("");
-
       moderationList.querySelectorAll("[data-delete-post]").forEach(btn => {
         btn.addEventListener("click", () => deleteProPost(btn.dataset.deletePost));
+      });
+    }
+
+    function renderStoriesList() {
+      const q = (moderationSearch?.value || "").toLowerCase().trim();
+      const filtered = _allStories.filter(s => {
+        if (!q) return true;
+        return (s.raw_title || "").toLowerCase().includes(q)
+          || (s.generated_title || "").toLowerCase().includes(q)
+          || (s.reporter_prenom || "").toLowerCase().includes(q)
+          || (s.ville || "").toLowerCase().includes(q)
+          || (s.category || "").toLowerCase().includes(q);
+      });
+      if (filtered.length === 0) {
+        moderationEmpty.classList.remove("hidden");
+        moderationList.innerHTML = "";
+        return;
+      }
+      moderationEmpty.classList.add("hidden");
+      moderationList.innerHTML = filtered.map(s => {
+        const datePost = new Date(s.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+        const titre = s.generated_title || s.raw_title || "Sans titre";
+        const auteur = s.reporter_prenom || s.reported_by?.slice(0, 8) + "…" || "Anonyme";
+        const statusColor = s.status === "published" ? "#10B981" : s.status === "rejected" ? "#DC2626" : "#F59E0B";
+        const statusLabel = s.status === "published" ? "✓ Publié" : s.status === "rejected" ? "✗ Rejeté" : s.status === "ai_generating" ? "⏳ IA en cours" : s.status;
+        const coverUrl = s.cover_url || (Array.isArray(s.photos) && s.photos[0]) || null;
+        const photo = coverUrl
+          ? `<img src="${escapeHtml(coverUrl)}" alt="" style="width:72px; height:72px; object-fit:cover; border-radius:10px; flex-shrink:0;" onerror="this.style.display='none'" />`
+          : `<div style="width:72px; height:72px; border-radius:10px; background:rgba(255,255,255,0.06); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:22px;">📸</div>`;
+        const privateBadge = s.is_private
+          ? `<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(100,100,100,0.3); color:var(--text-dim);">🔒 Privé</span>`
+          : "";
+        return `
+          <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:10px;">
+            <div style="display:flex; gap:12px; align-items:flex-start;">
+              ${photo}
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                  <strong style="font-size:15px;">${escapeHtml(titre)}</strong>
+                  <span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(59,130,246,0.2); color:#60A5FA;">${escapeHtml(s.category || "")}</span>
+                  <span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(0,0,0,0.3); color:${statusColor};">${statusLabel}</span>
+                  ${privateBadge}
+                </div>
+                <div style="font-size:12px; color:var(--text-dim); line-height:1.7; margin-bottom:6px;">
+                  👤 ${escapeHtml(auteur)}${s.ville ? ` · <strong style="color:var(--text);">${escapeHtml(s.ville)}</strong>` : ""}<br>
+                  📅 Posté le ${escapeHtml(datePost)}${s.report_count > 1 ? ` · 👥 ${s.report_count} signalements` : ""}
+                </div>
+              </div>
+              <button type="button"
+                style="flex-shrink:0; padding:8px 14px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
+                data-delete-story="${escapeHtml(s.id)}">🗑️ Supprimer</button>
+            </div>
+          </div>`;
+      }).join("");
+      moderationList.querySelectorAll("[data-delete-story]").forEach(btn => {
+        btn.addEventListener("click", () => deleteStory(btn.dataset.deleteStory));
       });
     }
 
@@ -3367,6 +3451,22 @@
         if (error) throw error;
         toast("✓ Post supprimé");
         _allProPosts = _allProPosts.filter(p => p.id !== id);
+        renderModerationList();
+      } catch (e) {
+        toast("Erreur suppression : " + (e.message || e), false);
+      }
+    }
+
+    async function deleteStory(id) {
+      const story = _allStories.find(s => s.id === id);
+      const titre = story?.generated_title || story?.raw_title || id;
+      const auteur = story?.reporter_prenom || "anonyme";
+      if (!confirm(`Supprimer définitivement "${titre}" (${auteur}) ?\n\nCette action est irréversible.`)) return;
+      try {
+        const { error } = await supabase.rpc("admin_delete_reported_event", { p_id: id });
+        if (error) throw error;
+        toast("✓ Story supprimée");
+        _allStories = _allStories.filter(s => s.id !== id);
         renderModerationList();
       } catch (e) {
         toast("Erreur suppression : " + (e.message || e), false);
