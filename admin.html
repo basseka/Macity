@@ -3246,7 +3246,7 @@
         return;
       }
       prosEmpty.classList.add("hidden");
-      prosList.innerHTML = filtered.map(p => {
+      prosList.innerHTML = filtered.map((p, idx) => {
         const emailVerified = !p.approval_code; // code clear = email verified
         const dateInsc = new Date(p.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
         const safeEmail = String(p.email).replace(/'/g, "\\'");
@@ -3281,6 +3281,15 @@
               </div>
               <div>${actionBtn}</div>
             </div>
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
+              <div style="font-size:12px; color:var(--text-faint); margin-bottom:6px;">🔎 Vérification officielle (annuaire des entreprises / RNA associations)</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <input type="text" id="verify-input-${idx}" placeholder="N° SIRET, SIREN ou RNA (ex : W313011435)"
+                  style="flex:1; min-width:220px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px;" />
+                <button type="button" class="banner-save-btn" style="background:#2563EB;" data-verify="${idx}">Vérifier</button>
+              </div>
+              <div id="verify-result-${idx}" style="margin-top:10px; font-size:13px;"></div>
+            </div>
           </div>`;
       }).join("");
 
@@ -3290,6 +3299,64 @@
       prosList.querySelectorAll("[data-revoke]").forEach(btn => {
         btn.addEventListener("click", () => revokePro(btn.dataset.revoke));
       });
+      prosList.querySelectorAll("[data-verify]").forEach(btn => {
+        btn.addEventListener("click", () => verifyEntity(btn.dataset.verify));
+        const input = document.getElementById(`verify-input-${btn.dataset.verify}`);
+        input?.addEventListener("keydown", (e) => { if (e.key === "Enter") verifyEntity(btn.dataset.verify); });
+      });
+    }
+
+    // Vérifie une entité (SIRET / SIREN / RNA) via l'API publique de l'État
+    // recherche-entreprises.api.gouv.fr (CORS ouvert). Affiche un statut pour
+    // aider la décision d'approbation. Couvre entreprises ET associations (RNA).
+    async function verifyEntity(idx) {
+      const input = document.getElementById(`verify-input-${idx}`);
+      const out = document.getElementById(`verify-result-${idx}`);
+      if (!input || !out) return;
+      const raw = (input.value || "").trim().replace(/\s+/g, "");
+      if (!raw) {
+        out.innerHTML = `<span style="color:#F59E0B;">Saisis un n° SIRET, SIREN ou RNA (W…).</span>`;
+        return;
+      }
+      out.innerHTML = `<span style="color:var(--text-dim);">⏳ Recherche dans les bases officielles…</span>`;
+      try {
+        const res = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(raw)}&page=1&per_page=1`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const r = (data.results || [])[0];
+        if (!r) {
+          out.innerHTML = `<div style="background:rgba(245,158,11,0.12); border:1px solid #F59E0B; border-radius:10px; padding:12px; color:#F59E0B;">❌ Aucune entité trouvée pour « ${escapeHtml(raw)} ». Vérifie le numéro saisi.</div>`;
+          return;
+        }
+        const active = r.etat_administratif === "A";
+        const rna = (r.complements || {}).identifiant_association;
+        const dirs = (r.dirigeants || []).map(d => {
+          if (d.nom || d.prenoms) {
+            return `${(d.prenoms || "").trim()} ${(d.nom || "").trim()}`.trim() + (d.qualite ? ` (${d.qualite})` : "");
+          }
+          return d.denomination || "";
+        }).filter(Boolean);
+        const dateCre = r.date_creation
+          ? new Date(r.date_creation).toLocaleDateString("fr-FR")
+          : "—";
+        out.innerHTML = `
+          <div style="background:${active ? 'rgba(16,185,129,0.12)' : 'rgba(220,38,38,0.12)'}; border:1px solid ${active ? '#10B981' : '#DC2626'}; border-radius:10px; padding:12px;">
+            <div style="font-weight:700; color:${active ? '#10B981' : '#DC2626'}; margin-bottom:6px;">
+              ${active ? '✅ Entité ACTIVE' : '⛔ Entité CESSÉE / radiée'}
+            </div>
+            <div style="color:var(--text-dim); line-height:1.7;">
+              <strong style="color:var(--text);">${escapeHtml(r.nom_complet || '—')}</strong><br>
+              📅 Créée le ${escapeHtml(dateCre)}<br>
+              🏷️ SIREN ${escapeHtml(r.siren || '—')}${rna ? ` · RNA ${escapeHtml(rna)}` : ''}<br>
+              📍 ${escapeHtml((r.siege || {}).adresse || '—')}<br>
+              👤 ${dirs.length ? 'Dirigeant(s) : ' + escapeHtml(dirs.join(', ')) : 'Dirigeant(s) : non communiqué(s) publiquement'}
+            </div>
+            <a href="https://annuaire-entreprises.data.gouv.fr/entreprise/${escapeHtml(r.siren || '')}" target="_blank" rel="noopener"
+               style="display:inline-block; margin-top:8px; font-size:12px; color:#3B82F6;">Voir la fiche officielle ↗</a>
+          </div>`;
+      } catch (e) {
+        out.innerHTML = `<span style="color:#DC2626;">Erreur de vérification : ${escapeHtml(String(e.message || e))}</span>`;
+      }
     }
 
     async function approvePro(email) {
