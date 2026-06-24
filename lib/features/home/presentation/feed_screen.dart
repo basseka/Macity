@@ -24,6 +24,8 @@ import 'package:pulz_app/features/admin/presentation/widgets/admin_pin_gesture.d
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/home/state/today_events_provider.dart';
 import 'package:pulz_app/features/home/state/paginated_feed_provider.dart';
+import 'package:pulz_app/features/home/state/banners_provider.dart';
+import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
 import 'package:pulz_app/features/food/state/food_venues_provider.dart';
@@ -395,7 +397,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         if (!_isSearching && _isFeedOnlyView) _buildFeedCategoryBar(),
         if (!_isSearching) const SizedBox(height: 10),
         Expanded(
-          child: _isSearching ? _buildSearchResults() : _buildFeed(),
+          child: _isSearching
+              ? _buildSearchResults()
+              : RefreshIndicator(
+                  onRefresh: _onRefresh,
+                  color: AppColors.magenta,
+                  child: _buildFeed(),
+                ),
         ),
       ],
     );
@@ -738,13 +746,29 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   /// Vue home (slot 0, classic, sans filtre) : tout scrolle ensemble dans
   /// l'ordre exact du design — brand, recherche, pills, carte À la une,
   /// tuiles catégories, "En direct" + cards.
+  /// Pull-to-refresh (style Instagram) : recharge les données principales du
+  /// feed/home en invalidant leurs providers. Utilisé par les RefreshIndicator.
+  Future<void> _onRefresh() async {
+    ref.invalidate(paginatedFeedProvider);
+    ref.invalidate(activeBannersProvider);
+    ref.invalidate(boostedEventsProvider);
+    ref.invalidate(boostedP2EventsProvider);
+    ref.invalidate(reportedEventsFeedProvider);
+    // Laisse les refetch démarrer + un minimum de feedback visuel sur le spinner.
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+  }
+
   Widget _buildHomeView() {
     final boostedTab = ref.watch(boostedCarouselTabProvider);
     final boostedCarousel = boostedTab == BoostedCarouselTab.top
         ? const BoostedP2Carousel()
         : const BoostedEventsCarousel();
     final showNavTabs = boostedTab != BoostedCarouselTab.top;
-    return ListView(
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: AppColors.magenta,
+      child: ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
         Padding(
@@ -766,6 +790,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         const ReportedEventsLiveStripe(),
         const SizedBox(height: 90),
       ],
+      ),
     );
   }
 
@@ -1628,6 +1653,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // La grille d'events n'apparait que dans la vue "Feed" (slot 1).
     if (!_isFeedOnlyView && _activeTab == null) {
       return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.zero,
         children: const [
           ReportedEventsLiveStripe(),
@@ -1753,6 +1779,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final sortedDays = dayGroups.keys.toList()..sort();
 
     return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         for (final day in sortedDays) ...[
           SliverToBoxAdapter(
@@ -1873,6 +1900,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     if (dayGroups.isEmpty && !_isLandscape && _activeTab == null) {
       return CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           if (showLiveStripe)
             const SliverToBoxAdapter(child: ReportedEventsLiveStripe()),
@@ -1925,6 +1953,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       },
       child: CustomScrollView(
         controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           // Live stripe en haut du feed quand on est sur /home sans filtre
           // (les boosted carousels sont deja dans le greeting block).
