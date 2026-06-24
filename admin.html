@@ -3375,12 +3375,65 @@
                   📅 ${escapeHtml(eventDate)} · Posté le ${escapeHtml(datePost)}
                 </div>
               </div>
-              <button type="button"
-                style="flex-shrink:0; padding:8px 14px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
-                data-delete-post="${escapeHtml(p.id)}">🗑️ Supprimer</button>
+              <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+                <button type="button"
+                  style="padding:8px 14px; border-radius:10px; border:none; background:#2563EB; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
+                  data-edit-post="${escapeHtml(p.id)}">✏️ Classer</button>
+                <button type="button"
+                  style="padding:8px 14px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
+                  data-delete-post="${escapeHtml(p.id)}">🗑️ Supprimer</button>
+              </div>
+            </div>
+            <div id="edit-form-${escapeHtml(p.id)}" class="hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line); display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <select id="edit-cat-${escapeHtml(p.id)}"
+                style="padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:rgba(255,255,255,0.07); color:var(--text); font-size:13px; cursor:pointer;">
+                <option value="Concerts">🎵 Concerts</option>
+                <option value="Soirée">🌙 Soirée</option>
+                <option value="Spectacle">🎭 Spectacle</option>
+                <option value="Cinéma">🎬 Cinéma</option>
+                <option value="Food">🍴 Food</option>
+                <option value="Sport">⚽ Sport</option>
+                <option value="Famille">👨‍👩‍👧 Famille</option>
+              </select>
+              <span id="edit-rub-${escapeHtml(p.id)}" style="font-size:12px; color:var(--text-faint);"></span>
+              <button type="button" style="padding:8px 14px; border-radius:8px; border:none; background:#10B981; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
+                data-save-post="${escapeHtml(p.id)}">Enregistrer</button>
+              <button type="button" style="padding:8px 12px; border-radius:8px; border:none; background:rgba(255,255,255,0.07); color:var(--text-dim); font-size:13px; cursor:pointer;"
+                data-cancel-edit="${escapeHtml(p.id)}">Annuler</button>
             </div>
           </div>`;
       }).join("");
+
+      const CAT_TO_RUB = {
+        'Concerts': 'day', 'Soirée': 'night', 'Spectacle': 'culture',
+        'Cinéma': 'culture', 'Food': 'food', 'Sport': 'sport', 'Famille': 'family',
+      };
+      moderationList.querySelectorAll("[data-edit-post]").forEach(btn => {
+        const id = btn.dataset.editPost;
+        const form = document.getElementById(`edit-form-${id}`);
+        const sel = document.getElementById(`edit-cat-${id}`);
+        const rubEl = document.getElementById(`edit-rub-${id}`);
+        const post = _allProPosts.find(p => p.id === id);
+        if (sel && post?.rubrique) {
+          const match = Object.entries(CAT_TO_RUB).find(([,r]) => r === post.rubrique);
+          if (match) sel.value = match[0];
+        }
+        if (sel && rubEl) rubEl.textContent = `→ ${CAT_TO_RUB[sel.value] || ""}`;
+        sel?.addEventListener("change", () => { rubEl.textContent = `→ ${CAT_TO_RUB[sel.value] || ""}`; });
+        btn.addEventListener("click", () => form?.classList.toggle("hidden"));
+      });
+      moderationList.querySelectorAll("[data-cancel-edit]").forEach(btn => {
+        document.getElementById(`edit-form-${btn.dataset.cancelEdit}`)?.classList.add("hidden");
+      });
+      moderationList.querySelectorAll("[data-save-post]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.savePost;
+          const sel = document.getElementById(`edit-cat-${id}`);
+          const cat = sel?.value;
+          const rub = CAT_TO_RUB[cat];
+          if (cat && rub) updateProPostCategory(id, cat, rub);
+        });
+      });
       moderationList.querySelectorAll("[data-delete-post]").forEach(btn => {
         btn.addEventListener("click", () => deleteProPost(btn.dataset.deletePost));
       });
@@ -3454,6 +3507,22 @@
         renderModerationList();
       } catch (e) {
         toast("Erreur suppression : " + (e.message || e), false);
+      }
+    }
+
+    async function updateProPostCategory(id, categorie, rubrique) {
+      try {
+        const { error } = await supabase.rpc("admin_update_pro_post_category", {
+          p_id: id, p_categorie: categorie, p_rubrique: rubrique,
+        });
+        if (error) throw error;
+        toast(`✓ Classé : ${categorie} (${rubrique})`);
+        const post = _allProPosts.find(p => p.id === id);
+        if (post) { post.categorie = categorie; post.rubrique = rubrique; }
+        document.getElementById(`edit-form-${id}`)?.classList.add("hidden");
+        renderModerationList();
+      } catch (e) {
+        toast("Erreur classification : " + (e.message || e), false);
       }
     }
 
