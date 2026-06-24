@@ -1614,13 +1614,11 @@
           <!-- Ville ciblée -->
           <div>
             <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:8px;">Ville ciblée</label>
-            <div id="notif-cities" style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="rub-pill active" data-notif-city="">🌍 Toutes les villes</button>
-              <button type="button" class="rub-pill" data-notif-city="Toulouse">📍 Toulouse</button>
-              <button type="button" class="rub-pill" data-notif-city="Marseille">📍 Marseille</button>
-              <button type="button" class="rub-pill" data-notif-city="Carcassonne">📍 Carcassonne</button>
-            </div>
-            <div style="font-size:11px; color:var(--text-faint); margin-top:6px;">Cible les utilisateurs dont la ville (ou une ville de notification) correspond. « Toutes les villes » = aucun filtre géographique.</div>
+            <select id="notif-city-select"
+              style="width:100%; box-sizing:border-box; padding:11px 13px; border-radius:10px; border:1px solid var(--stroke,#ffffff22); background:rgba(255,255,255,0.04); color:var(--text,#fff); font-size:14px;">
+              <option value="">🌍 Toutes les villes</option>
+            </select>
+            <div style="font-size:11px; color:var(--text-faint); margin-top:6px;">Liste alimentée par les villes réellement choisies par les utilisateurs. « Toutes les villes » = aucun filtre géographique.</div>
           </div>
 
           <!-- Aperçu -->
@@ -2736,8 +2734,8 @@
       if (!titleEl) return;
 
       let target = "all"; // 'all' | 'interests'
-      let city = "";       // "" = toutes les villes, sinon "Toulouse" | "Marseille" | "Carcassonne"
-      const citiesBox = $("notif-cities");
+      let city = "";       // "" = toutes les villes, sinon un nom de ville
+      const citySelect = $("notif-city-select");
 
       function selectedInterests() {
         return [...interestsBox.querySelectorAll(".rub-pill.active")]
@@ -2789,15 +2787,46 @@
         });
       });
 
-      // Sélection unique de la ville ciblée (Toutes / Toulouse / Marseille / Carcassonne)
-      citiesBox?.querySelectorAll("[data-notif-city]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          city = btn.dataset.notifCity || "";
-          citiesBox.querySelectorAll("[data-notif-city]").forEach((b) =>
-            b.classList.toggle("active", b === btn));
-          refreshHint();
-        });
+      // Ville ciblée : menu déroulant alimenté dynamiquement.
+      citySelect?.addEventListener("change", () => {
+        city = citySelect.value || "";
+        refreshHint();
       });
+
+      // Charge la liste des villes réellement présentes (villes choisies par les
+      // users), dédupliquées par nom (le suffixe "(code postal)" est retiré).
+      async function loadNotifCities() {
+        if (!citySelect) return;
+        try {
+          const { data, error } = await supabase
+            .from("user_profiles")
+            .select("ville,villes_notifications");
+          if (error) throw error;
+          const cityName = (s) =>
+            String(s || "").split("(")[0].trim();
+          const names = new Set();
+          for (const row of (data || [])) {
+            const v = cityName(row.ville);
+            if (v) names.add(v);
+            if (Array.isArray(row.villes_notifications)) {
+              for (const x of row.villes_notifications) {
+                const n = cityName(x);
+                if (n) names.add(n);
+              }
+            }
+          }
+          const sorted = [...names].sort((a, b) => a.localeCompare(b, "fr"));
+          for (const n of sorted) {
+            const opt = document.createElement("option");
+            opt.value = n;
+            opt.textContent = "📍 " + n;
+            citySelect.appendChild(opt);
+          }
+        } catch (e) {
+          console.warn("[notif-cities]", e);
+        }
+      }
+      loadNotifCities();
 
       sendBtn.addEventListener("click", async () => {
         const title = titleEl.value.trim();
