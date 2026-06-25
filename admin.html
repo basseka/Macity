@@ -185,17 +185,22 @@
       font-weight: 700;
       border: none;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
+      transition: transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s, filter 0.15s;
       width: 100%;
     }
     .btn-primary {
       background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
       color: white;
-      box-shadow: 0 8px 24px rgba(233, 30, 99, 0.35);
+      box-shadow: 0 8px 24px rgba(233, 30, 99, 0.35), inset 0 1px 0 rgba(255,255,255,0.2);
     }
     .btn-primary:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 28px rgba(233, 30, 99, 0.45);
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      box-shadow: 0 14px 32px rgba(233, 30, 99, 0.5), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3), inset 0 1px 3px rgba(0,0,0,0.2);
     }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .toast {
@@ -243,23 +248,34 @@
       align-items: center;
       gap: 6px;
       padding: 9px 16px;
-      border-radius: 10px;
+      border-radius: 11px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       border: 1px solid var(--line-strong);
-      background: var(--surface-hi);
+      background: linear-gradient(180deg, var(--surface-hi), var(--surface));
       color: var(--text);
-      transition: border-color 0.15s, background 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: transform 0.15s cubic-bezier(.2,.8,.2,1), border-color 0.15s, background 0.15s, box-shadow 0.15s;
       user-select: none;
     }
-    .top-toolbar .nav-btn:hover { border-color: var(--magenta); background: rgba(233, 30, 99, 0.08); }
+    .top-toolbar .nav-btn:hover {
+      border-color: var(--magenta);
+      background: linear-gradient(180deg, #2c1a4d, #20143a);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3), 0 0 0 1px rgba(233,30,99,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .top-toolbar .nav-btn:active { transform: translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.25); }
     .top-toolbar .nav-btn.primary {
       background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
       border-color: transparent;
-      box-shadow: 0 4px 14px rgba(233, 30, 99, 0.3);
+      box-shadow: 0 4px 14px rgba(233, 30, 99, 0.35), inset 0 1px 0 rgba(255,255,255,0.18);
     }
-    .top-toolbar .nav-btn.primary:hover { background: linear-gradient(135deg, var(--magenta), var(--purple-dark)); }
+    .top-toolbar .nav-btn.primary:hover {
+      background: linear-gradient(135deg, var(--magenta), var(--purple-dark));
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px rgba(233, 30, 99, 0.5), inset 0 1px 0 rgba(255,255,255,0.22);
+    }
 
     /* ─── Historique : grille des events ─── */
     .events-grid {
@@ -502,21 +518,23 @@
       transition: border-color 0.15s;
     }
     .rub-pill {
-      padding: 6px 12px;
-      background: var(--surface);
+      padding: 6px 13px;
+      background: linear-gradient(180deg, var(--surface-hi), var(--surface));
       border: 1px solid var(--line);
       border-radius: 999px;
       color: var(--text-faint);
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+      transition: transform 0.15s cubic-bezier(.2,.8,.2,1), border-color 0.15s, color 0.15s, background 0.15s, box-shadow 0.15s;
     }
-    .rub-pill:hover { border-color: var(--magenta); color: var(--text); }
+    .rub-pill:hover { border-color: var(--magenta); color: var(--text); transform: translateY(-1px); }
     .rub-pill.active {
-      background: var(--magenta);
-      border-color: var(--magenta);
+      background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
+      border-color: transparent;
       color: #fff;
+      box-shadow: 0 4px 12px rgba(233,30,99,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
     }
     .rub-pill-sub { padding: 4px 10px; font-size: 11px; }
     .rub-pill-sub.active {
@@ -607,21 +625,25 @@
     .code-pill:hover { background: rgba(16, 185, 129, 0.2); }
     .code-pill .copy-icon { font-size: 12px; opacity: 0.8; }
     .gen-btn {
-      padding: 6px 12px;
-      border-radius: 8px;
+      padding: 7px 13px;
+      border-radius: 9px;
       border: 1px solid var(--line-strong);
-      background: var(--surface);
+      background: linear-gradient(180deg, var(--surface-hi), var(--surface));
       color: var(--text);
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+      transition: transform 0.15s cubic-bezier(.2,.8,.2,1), border-color 0.15s, background 0.15s, box-shadow 0.15s;
       white-space: nowrap;
     }
     .gen-btn:hover {
       border-color: var(--magenta);
-      background: rgba(233, 30, 99, 0.1);
+      background: linear-gradient(180deg, #2c1a4d, #20143a);
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.07);
     }
+    .gen-btn:active { transform: translateY(0); box-shadow: inset 0 1px 2px rgba(0,0,0,0.25); }
     .gen-btn:disabled { opacity: 0.6; cursor: wait; }
     .venues-empty {
       text-align: center;
@@ -871,18 +893,39 @@
     }
     .banner-save-btn {
       margin-left: auto;
-      padding: 8px 16px;
+      padding: 9px 17px;
       background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 9px;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 3px 10px rgba(233, 30, 99, 0.3), inset 0 1px 0 rgba(255,255,255,0.18);
+      transition: transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s, filter 0.15s;
     }
-    .banner-save-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(233, 30, 99, 0.35); }
+    .banner-save-btn:hover { transform: translateY(-2px); filter: brightness(1.06); box-shadow: 0 8px 20px rgba(233, 30, 99, 0.45), inset 0 1px 0 rgba(255,255,255,0.22); }
+    .banner-save-btn:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(233,30,99,0.3), inset 0 1px 3px rgba(0,0,0,0.2); }
     .banner-save-btn:disabled { opacity: 0.5; cursor: wait; }
+
+    /* ─── Boutons d'action réutilisables (listes dynamiques) ─── */
+    .act {
+      padding: 9px 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s, filter 0.15s;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .act:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .act:active { transform: translateY(0); filter: brightness(0.97); box-shadow: inset 0 1px 3px rgba(0,0,0,0.25); }
+    .act-danger  { background: linear-gradient(135deg, #E11D48, #B91C1C); box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 3px 10px rgba(220,38,38,0.32); }
+    .act-success { background: linear-gradient(135deg, #10B981, #059669); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 3px 10px rgba(16,185,129,0.32); }
+    .act-info    { background: linear-gradient(135deg, #3B82F6, #2563EB); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 3px 10px rgba(37,99,235,0.32); }
+    .act-neutral { background: linear-gradient(180deg, var(--surface-hi), var(--surface)); color: var(--text-dim); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 3px rgba(0,0,0,0.2); }
     .banner-delete-btn {
       padding: 6px 10px;
       background: transparent;
@@ -1603,7 +1646,7 @@
       <!-- ═══ VUE MAJ APP (versions) ═══ -->
       <div id="appversions-view" class="hidden">
         <h1>🚀 Mise à jour de l'app</h1>
-        <p class="subtitle">Après avoir publié une release sur le store, déclare la nouvelle version ici. <strong>Proposer</strong> = bannière esquivable. <strong>Forcer</strong> = écran bloquant tant que l'user n'a pas mis à jour. ⚠️ Le forçage iOS nécessite un <strong>lien App Store</strong> renseigné.</p>
+        <p class="subtitle">Après avoir publié une release sur le store, déclare la nouvelle version ici. <strong>Proposer</strong> = bannière esquivable. <strong>Forcer</strong> = écran bloquant tant que l'user n'a pas mis à jour. Le lien store est optionnel (Android passe par le flux natif Play Store).</p>
         <div id="appversions-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="appversions-cards" class="hidden" style="display:flex; flex-direction:column; gap:18px; margin-top:8px; max-width:640px;"></div>
       </div>
@@ -3392,7 +3435,7 @@
           <input type="text" id="ver-input-${platform}" value="${escapeHtml(latest)}" placeholder="1.0.82"
             style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:14px; margin-bottom:10px;" />
 
-          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Lien store ${platform === "ios" ? '<strong style="color:#F59E0B;">(requis pour forcer)</strong>' : ""}</label>
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Lien store <span style="color:var(--text-faint);">(optionnel)</span></label>
           <input type="url" id="store-input-${platform}" value="${escapeHtml(storeUrl || "")}" placeholder="${escapeHtml(APP_STORE_DEFAULTS[platform])}"
             style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px; margin-bottom:10px;" />
 
@@ -3401,9 +3444,9 @@
             style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px; margin-bottom:14px;" />
 
           <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button type="button" style="flex:1; min-width:140px; padding:11px; border-radius:10px; border:none; background:#10B981; color:#fff; font-size:13px; font-weight:700; cursor:pointer;"
+            <button type="button" class="act act-success" style="flex:1; min-width:140px;"
               data-propose="${platform}">📢 Proposer la MAJ</button>
-            <button type="button" style="flex:1; min-width:140px; padding:11px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:700; cursor:pointer;"
+            <button type="button" class="act act-danger" style="flex:1; min-width:140px;"
               data-force="${platform}">🔒 Forcer la MAJ</button>
           </div>
         </div>`;
@@ -3426,10 +3469,9 @@
         toast("Version invalide (ex : 1.0.82)", false);
         return;
       }
-      if (force && !storeUrl) {
-        toast("Lien store requis pour forcer la MAJ", false);
-        return;
-      }
+      // Lien store optionnel : Android utilise le flux natif Play Store
+      // (in_app_update) qui n'en a pas besoin. Sur iOS il sert de fallback
+      // pour le bouton "Ouvrir l'App Store" mais n'est pas bloquant.
       const action = force ? "FORCER (écran bloquant)" : "Proposer (bannière)";
       if (!confirm(`${action} la MAJ ${platform.toUpperCase()} vers ${ver} ?`)) return;
       try {
@@ -3577,12 +3619,8 @@
                 </div>
               </div>
               <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
-                <button type="button"
-                  style="padding:8px 14px; border-radius:10px; border:none; background:#2563EB; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
-                  data-edit-post="${escapeHtml(p.id)}">✏️ Classer</button>
-                <button type="button"
-                  style="padding:8px 14px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
-                  data-delete-post="${escapeHtml(p.id)}">🗑️ Supprimer</button>
+                <button type="button" class="act act-info" data-edit-post="${escapeHtml(p.id)}">✏️ Classer</button>
+                <button type="button" class="act act-danger" data-delete-post="${escapeHtml(p.id)}">🗑️ Supprimer</button>
               </div>
             </div>
             <div id="edit-form-${escapeHtml(p.id)}" class="hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line); display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -3598,10 +3636,8 @@
                 <option value="Famille">👨‍👩‍👧 Famille</option>
               </select>
               <span id="edit-rub-${escapeHtml(p.id)}" style="font-size:12px; color:var(--text-faint);"></span>
-              <button type="button" style="padding:8px 14px; border-radius:8px; border:none; background:#10B981; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
-                data-save-post="${escapeHtml(p.id)}">Enregistrer</button>
-              <button type="button" style="padding:8px 12px; border-radius:8px; border:none; background:rgba(255,255,255,0.07); color:var(--text-dim); font-size:13px; cursor:pointer;"
-                data-cancel-edit="${escapeHtml(p.id)}">Annuler</button>
+              <button type="button" class="act act-success" data-save-post="${escapeHtml(p.id)}">Enregistrer</button>
+              <button type="button" class="act act-neutral" data-cancel-edit="${escapeHtml(p.id)}">Annuler</button>
             </div>
           </div>`;
       }).join("");
@@ -3686,8 +3722,7 @@
                   📅 Posté le ${escapeHtml(datePost)}${s.report_count > 1 ? ` · 👥 ${s.report_count} signalements` : ""}
                 </div>
               </div>
-              <button type="button"
-                style="flex-shrink:0; padding:8px 14px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:600; cursor:pointer;"
+              <button type="button" class="act act-danger" style="flex-shrink:0;"
                 data-delete-story="${escapeHtml(s.id)}">🗑️ Supprimer</button>
             </div>
           </div>`;
@@ -3808,11 +3843,11 @@
         const safeEmail = String(p.email).replace(/'/g, "\\'");
         // Approuvé : bouton Révoquer seul. En attente : Approuver + Révoquer
         // (refuser la demande = mail de refus auto, compte gardé en non-approuvé).
-        const revokeBtn = `<button type="button" class="banner-save-btn" style="background:#DC2626;" data-revoke="${safeEmail}">Révoquer</button>`;
+        const revokeBtn = `<button type="button" class="act act-danger" data-revoke="${safeEmail}">Révoquer</button>`;
         const actionBtn = p.approved
           ? revokeBtn
           : `<div style="display:flex; gap:8px; flex-wrap:wrap;">`
-            + `<button type="button" class="banner-save-btn" data-approve="${safeEmail}">Approuver</button>`
+            + `<button type="button" class="act act-success" data-approve="${safeEmail}">Approuver</button>`
             + revokeBtn
             + `</div>`;
         return `
@@ -3842,7 +3877,7 @@
               <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                 <input type="text" id="verify-input-${idx}" placeholder="N° SIRET, SIREN ou RNA (ex : W313011435)"
                   style="flex:1; min-width:220px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px;" />
-                <button type="button" class="banner-save-btn" style="background:#2563EB;" data-verify="${idx}">Vérifier</button>
+                <button type="button" class="act act-info" data-verify="${idx}">Vérifier</button>
               </div>
               <div id="verify-result-${idx}" style="margin-top:10px; font-size:13px;"></div>
             </div>
