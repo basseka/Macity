@@ -43,6 +43,10 @@ Future<List<UserEvent>> _fetchByPriority(String city, String priority, int limit
     // si le dept canonique de la ville est connu, on filtre ville+dept en
     // tolerant les events legacy sans dept renseigne (`dept.is.null`).
     final dept = deptForCity(city);
+    // Les boosts particuliers ont une fenetre `boost_until` : on exclut ceux
+    // expires. Les events pro/legacy ont boost_until=null → toujours visibles.
+    final nowIso = DateTime.now().toUtc().toIso8601String();
+    final boostClause = 'or(boost_until.is.null,boost_until.gte.$nowIso)';
     final params = <String, dynamic>{
       'select': '*',
       'priority': 'eq.$priority',
@@ -51,9 +55,9 @@ Future<List<UserEvent>> _fetchByPriority(String city, String priority, int limit
       'limit': '$limit',
     };
     if (dept != null) {
-      params['and'] = '(or($orClause),or(dept.eq.$dept,dept.is.null))';
+      params['and'] = '(or($orClause),or(dept.eq.$dept,dept.is.null),$boostClause)';
     } else {
-      params['or'] = '($orClause)';
+      params['and'] = '(or($orClause),$boostClause)';
     }
 
     final response = await dio.get('user_events', queryParameters: params);

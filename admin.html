@@ -974,6 +974,7 @@
           <span class="nav-btn" id="goto-moderation-btn">🛡️ Modération</span>
           <span class="nav-btn" id="goto-interest-btn">📊 Intérêt</span>
           <span class="nav-btn" id="goto-appversions-btn">🚀 MAJ App</span>
+          <span class="nav-btn" id="goto-pubprices-btn">💶 Tarifs publi</span>
         </div>
       </div>
 
@@ -1649,6 +1650,14 @@
         <p class="subtitle">Après avoir publié une release sur le store, déclare la nouvelle version ici. <strong>Proposer</strong> = bannière esquivable. <strong>Forcer</strong> = écran bloquant tant que l'user n'a pas mis à jour. Le lien store est optionnel (Android passe par le flux natif Play Store).</p>
         <div id="appversions-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="appversions-cards" class="hidden" style="display:flex; flex-direction:column; gap:18px; margin-top:8px; max-width:640px;"></div>
+      </div>
+
+      <!-- ═══ VUE TARIFS PUBLICATION (particulier) ═══ -->
+      <div id="pubprices-view" class="hidden">
+        <h1>💶 Tarifs publication</h1>
+        <p class="subtitle">Prix payés par un <strong>particulier</strong> pour diffuser un event public (forfait par formule × durée). Montants en euros TTC, modifiables ici. Le « Standard » est le ticket d'entrée anti-spam (pas de gratuit).</p>
+        <div id="pubprices-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="pubprices-table" class="hidden" style="overflow-x:auto; margin-top:8px;"></div>
       </div>
 
       <!-- ═══ VUE CHAÎNES FITNESS ═══ -->
@@ -2716,6 +2725,8 @@
     const gotoInterestBtn = document.getElementById("goto-interest-btn");
     const appversionsView = document.getElementById("appversions-view");
     const gotoAppversionsBtn = document.getElementById("goto-appversions-btn");
+    const pubpricesView = document.getElementById("pubprices-view");
+    const gotoPubpricesBtn = document.getElementById("goto-pubprices-btn");
     const chainsView = document.getElementById("chains-view");
     const gotoChainsBtn = document.getElementById("goto-chains-btn");
     const notifsView = document.getElementById("notifs-view");
@@ -2732,6 +2743,7 @@
       moderationView.classList.add("hidden");
       interestView.classList.add("hidden");
       appversionsView.classList.add("hidden");
+      pubpricesView.classList.add("hidden");
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
@@ -2744,6 +2756,7 @@
       gotoModerationBtn.style.display = "inline-flex";
       gotoInterestBtn.style.display = "inline-flex";
       gotoAppversionsBtn.style.display = "inline-flex";
+      gotoPubpricesBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
     }
@@ -2833,6 +2846,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoAppversionsBtn.addEventListener("click", showAppversionsView);
+    function showPubpricesView() {
+      _hideAllViews();
+      pubpricesView.classList.remove("hidden");
+      gotoPubpricesBtn.style.display = "none";
+      refreshPubpricesView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoPubpricesBtn.addEventListener("click", showPubpricesView);
     gotoChainsBtn.addEventListener("click", showChainsView);
     function showNotifsView() {
       _hideAllViews();
@@ -3368,6 +3389,91 @@
         return;
       }
     });
+
+    // ─── Onglet Tarifs publication (particulier) ────────────────────────────
+    const pubpricesLoading = document.getElementById("pubprices-loading");
+    const pubpricesTable = document.getElementById("pubprices-table");
+    const PUB_TIERS = [
+      { key: "a_la_une", label: "⭐ À la une" },
+      { key: "au_top",   label: "🔝 Au top" },
+      { key: "standard", label: "📋 Standard" },
+    ];
+    const PUB_DURS = [
+      { key: "semaine", label: "1 semaine" },
+      { key: "mois",    label: "1 mois" },
+      { key: "date",    label: "Jusqu'à la date" },
+    ];
+    let _pubPrices = {};
+
+    async function refreshPubpricesView() {
+      pubpricesLoading.classList.remove("hidden");
+      pubpricesTable.classList.add("hidden");
+      try {
+        const { data, error } = await supabase.rpc("admin_get_publication_prices");
+        if (error) throw error;
+        _pubPrices = {};
+        (data || []).forEach(r => { _pubPrices[`${r.tier}_${r.duration_key}`] = r; });
+        renderPubpricesTable();
+        pubpricesTable.classList.remove("hidden");
+      } catch (e) {
+        console.error("[Tarifs publi] load failed", e);
+        pubpricesTable.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
+        pubpricesTable.classList.remove("hidden");
+      } finally {
+        pubpricesLoading.classList.add("hidden");
+      }
+    }
+
+    function renderPubpricesTable() {
+      const cell = (tier, dur) => {
+        const r = _pubPrices[`${tier}_${dur}`];
+        const euros = r ? (r.amount_cents / 100).toFixed(2) : "";
+        return `<td style="padding:8px;">
+          <div style="display:flex; gap:6px; align-items:center;">
+            <input type="number" step="0.01" min="0" id="pp-${tier}-${dur}" value="${euros}"
+              style="width:80px; padding:8px; border-radius:8px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px;" />
+            <span style="color:var(--text-faint); font-size:12px;">€</span>
+            <button type="button" class="act act-success" style="padding:7px 10px; font-size:12px;" data-pp-save="${tier}|${dur}">✓</button>
+          </div>
+        </td>`;
+      };
+      let rows = "";
+      for (const t of PUB_TIERS) {
+        rows += `<tr><td style="padding:8px; font-weight:700; white-space:nowrap;">${t.label}</td>`;
+        for (const d of PUB_DURS) rows += cell(t.key, d.key);
+        rows += `</tr>`;
+      }
+      pubpricesTable.innerHTML = `
+        <table style="border-collapse:collapse; min-width:560px;">
+          <tr>
+            <th style="padding:8px; text-align:left; color:var(--text-dim); font-size:12px;">Formule \\ Durée</th>
+            ${PUB_DURS.map(d => `<th style="padding:8px; text-align:left; color:var(--text-dim); font-size:12px;">${d.label}</th>`).join("")}
+          </tr>
+          ${rows}
+        </table>`;
+      pubpricesTable.querySelectorAll("[data-pp-save]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const [tier, dur] = btn.dataset.ppSave.split("|");
+          savePubPrice(tier, dur);
+        });
+      });
+    }
+
+    async function savePubPrice(tier, dur) {
+      const input = document.getElementById(`pp-${tier}-${dur}`);
+      const euros = parseFloat(input?.value);
+      if (isNaN(euros) || euros < 0) { toast("Montant invalide", false); return; }
+      const cents = Math.round(euros * 100);
+      try {
+        const { error } = await supabase.rpc("admin_set_publication_price", {
+          p_tier: tier, p_duration_key: dur, p_amount_cents: cents, p_is_active: true,
+        });
+        if (error) throw error;
+        toast(`✓ ${tier} / ${dur} → ${euros.toFixed(2)} €`);
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    }
 
     // ─── Onglet MAJ App (versions) ──────────────────────────────────────────
     const appversionsLoading = document.getElementById("appversions-loading");

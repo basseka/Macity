@@ -8,11 +8,18 @@ import 'package:pulz_app/features/day/presentation/create_event/steps/step_essen
 import 'package:pulz_app/core/services/stripe_service.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
+import 'package:pulz_app/features/day/presentation/publication_tarifs_screen.dart';
 
 class CreateEventPage extends ConsumerStatefulWidget {
   final String? initialPhotoPath;
   final UserEvent? eventToEdit;
   final int initialStep;
+
+  /// Mode publication payante par un particulier (non-pro) : au lieu d'insérer
+  /// directement (réservé aux pros), on assemble l'event puis on ouvre l'écran
+  /// Tarifs (Standard/Au top/À la une × durée) → paiement Stripe → le webhook
+  /// publie l'event après confirmation.
+  final bool paidPublicMode;
 
   /// Donnees brutes extraites par l'edge function `scan-event-flyer`.
   /// Appliquees dans [initState] via [CreateEventNotifier.prefillFromScan].
@@ -29,6 +36,7 @@ class CreateEventPage extends ConsumerStatefulWidget {
     this.initialStep = 0,
     this.scanPrefillData,
     this.scanPrefillPhotoUrl,
+    this.paidPublicMode = false,
   });
 
   @override
@@ -333,6 +341,31 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
       'isLast=${_isLastStep(state)}',
     );
     if (_isLastStep(state)) {
+      // Mode particulier payant : on assemble l'event puis on passe à l'écran
+      // Tarifs (paiement Stripe) au lieu d'insérer directement.
+      if (widget.paidPublicMode && !_isEditing) {
+        final event = await notifier.assembleEventForPublication();
+        if (event == null && mounted) {
+          final msg = ref.read(createEventProvider).errorMessage ?? 'Vérifie les champs';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red.shade700,
+              content: Text(msg),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+        if (event != null && mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PublicationTarifsScreen(event: event),
+            ),
+          );
+        }
+        return;
+      }
+
       final success = await notifier.submit();
       // Remonte toute erreur de submit via un SnackBar bien visible.
       if (!success && mounted) {

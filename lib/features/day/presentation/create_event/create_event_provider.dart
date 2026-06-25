@@ -521,6 +521,81 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
     state = state.copyWith(isSubmitting: true, clearError: true);
 
     try {
+      final event = await _assembleEvent();
+
+      if (state.isEditing) {
+        await _ref.read(userEventsProvider.notifier).updateEvent(event);
+      } else {
+        String? establishmentId;
+        final proState = _ref.read(proAuthProvider);
+        if (proState.status == ProAuthStatus.approved &&
+            proState.profile != null) {
+          establishmentId = proState.profile!.id;
+        }
+
+        await _ref
+            .read(userEventsProvider.notifier)
+            .addEvent(event, establishmentId: establishmentId);
+
+        ActivityService.instance.eventCreated(
+          eventId: event.id,
+          titre: event.titre,
+          categorie: event.categorie,
+          rubrique: event.rubrique,
+          ville: event.ville,
+        );
+      }
+
+      _ref.invalidate(paginatedFeedProvider);
+
+      lastCreatedEventId = event.id;
+      state = state.copyWith(isSubmitting: false);
+      return true;
+    } catch (e, st) {
+      debugPrint('[CreateEvent] submit FAILED: $e\n$st');
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: _friendlyError(e),
+      );
+      return false;
+    }
+  }
+
+  /// Construit l'[UserEvent] depuis l'état courant et upload les médias,
+  /// SANS l'insérer en base. Utilisé par [submit] (flux pro) et par la
+  /// publication payante particulier (qui passe ensuite par l'écran Tarifs +
+  /// Stripe avant que le webhook ne l'insère).
+  Future<UserEvent?> assembleEventForPublication() async {
+    final error = state.validateCurrentStep();
+    if (error != null) {
+      state = state.copyWith(errorMessage: error);
+      return null;
+    }
+    if (state.dateDebut == null || state.heureDebut == null) {
+      state = state.copyWith(
+        errorMessage: 'Renseigne la date et l\'heure avant de publier.',
+        currentStep: 0,
+      );
+      return null;
+    }
+    if (state.categorie == null) {
+      state = state.copyWith(errorMessage: 'Choisis une catégorie', currentStep: 0);
+      return null;
+    }
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      final event = await _assembleEvent();
+      state = state.copyWith(isSubmitting: false);
+      return event;
+    } catch (e, st) {
+      debugPrint('[CreateEvent] assemble FAILED: $e\n$st');
+      state = state.copyWith(isSubmitting: false, errorMessage: _friendlyError(e));
+      return null;
+    }
+  }
+
+  /// Cœur d'assemblage partagé : upload médias + construction de l'UserEvent.
+  Future<UserEvent> _assembleEvent() async {
       final s = state;
       final id = s.isEditing ? s.editingEventId! : '${DateTime.now().millisecondsSinceEpoch}';
       final dateStr = s.dateDebut != null
@@ -626,42 +701,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         priority: s.priority,
       );
 
-      if (s.isEditing) {
-        await _ref.read(userEventsProvider.notifier).updateEvent(event);
-      } else {
-        String? establishmentId;
-        final proState = _ref.read(proAuthProvider);
-        if (proState.status == ProAuthStatus.approved &&
-            proState.profile != null) {
-          establishmentId = proState.profile!.id;
-        }
-
-        await _ref
-            .read(userEventsProvider.notifier)
-            .addEvent(event, establishmentId: establishmentId);
-
-        ActivityService.instance.eventCreated(
-          eventId: event.id,
-          titre: event.titre,
-          categorie: event.categorie,
-          rubrique: event.rubrique,
-          ville: event.ville,
-        );
-      }
-
-      _ref.invalidate(paginatedFeedProvider);
-
-      lastCreatedEventId = event.id;
-      state = state.copyWith(isSubmitting: false);
-      return true;
-    } catch (e, st) {
-      debugPrint('[CreateEvent] submit FAILED: $e\n$st');
-      state = state.copyWith(
-        isSubmitting: false,
-        errorMessage: _friendlyError(e),
-      );
-      return false;
-    }
+      return event;
   }
 
   String _friendlyError(Object e) {

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
+import 'package:pulz_app/features/day/presentation/publish_choice_sheet.dart';
 import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.dart';
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
@@ -120,6 +121,18 @@ class AccountMenu {
                 ],
                 const SizedBox(height: 12),
                 ..._buildProActions(ctx, context, ref),
+                const SizedBox(height: 5),
+                _menuItem(
+                  ctx: ctx,
+                  icon: Icons.add_circle_outline_rounded,
+                  label: 'Publier un event',
+                  subtitle: 'Privé, public ou pro',
+                  gradientColors: const [Color(0xFFFF6B00), Color(0xFFE91E63)],
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    PublishChoiceSheet.show(context);
+                  },
+                ),
                 const SizedBox(height: 5),
                 _menuItem(
                   ctx: ctx,
