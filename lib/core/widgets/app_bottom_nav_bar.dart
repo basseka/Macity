@@ -413,9 +413,26 @@ class AppBottomNavBar extends ConsumerWidget {
               ),
               const SizedBox(height: 10),
               _PublishOptionTile(
+                icon: Icons.public,
+                title: 'Event public',
+                subtitle: 'Visible par tous — formules à partir de 1,99 €',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF6B00), Color(0xFFE91E63)],
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  Navigator.of(_navContext).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreateEventPage(paidPublicMode: true),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _PublishOptionTile(
                 icon: Icons.verified_user_outlined,
                 title: 'Accès pro',
-                subtitle: 'Publier un event public (lieu, organisateur)',
+                subtitle: 'Compte pro : publication gratuite et illimitée',
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFF3D8B), Color(0xFFFBBF24)],
                 ),
