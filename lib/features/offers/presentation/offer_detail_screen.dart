@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
+import 'package:pulz_app/features/offers/data/subscription_interest_service.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
 import 'package:pulz_app/features/offers/presentation/subscription_screen.dart';
 
@@ -174,6 +175,12 @@ class OfferDetailScreen extends StatelessWidget {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
+                // Tracking intérêt (fire-and-forget, n'attend pas).
+                SubscriptionInterestService().trackEnProfite(
+                  offerId: offer.id,
+                  offerTitle: offer.title,
+                  ville: offer.city,
+                );
                 // "J'en profite" -> proposition d'abonnement BeThere
                 // Premium 5 EUR/mois pour debloquer toutes les offres.
                 // Toujours actif (meme sur offre complete) : l'abonnement

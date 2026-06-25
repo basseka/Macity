@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
+import 'package:pulz_app/features/offers/data/subscription_interest_service.dart';
 
 /// Ecran de proposition d'abonnement BeThere — 5.90 EUR/mois pour debloquer
 /// toutes les offres premium.
@@ -239,6 +240,8 @@ class SubscriptionScreen extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
+                        // Tracking intérêt (fire-and-forget, n'attend pas).
+                        SubscriptionInterestService().trackAbonner();
                         // TODO: brancher Apple IAP (iOS) / Google Billing
                         // (Android). Apple impose IAP pour les abonnements
                         // digitaux consommes dans l'app -> 30%/15% commission.
