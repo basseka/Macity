@@ -33,9 +33,9 @@ class _DurMeta {
 
 class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
   static const _tiers = [
-    _TierMeta('a_la_une', 'À la une', '⭐', 'Visibilité maximale, en tête du feed'),
-    _TierMeta('au_top', 'Au top', '🔝', 'Mis en avant dans un bandeau dédié'),
-    _TierMeta('standard', 'Standard', '📋', 'Visible dans le feed standard'),
+    _TierMeta('a_la_une', 'À la une', '⭐', 'En tête du feed'),
+    _TierMeta('au_top', 'Au top', '🔝', 'Bandeau dédié'),
+    _TierMeta('standard', 'Standard', '📋', 'Feed standard'),
   ];
   static const _durations = [
     _DurMeta('date', 'Jusqu\'à la date'),
@@ -168,21 +168,19 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
                 children: [
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
                       children: [
-                        Text('Choisis ta formule',
-                            style: GoogleFonts.geist(
-                                color: AppColors.text, fontSize: 20, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 4),
-                        Text('Ton event « ${widget.event.titre} » sera publié après paiement.',
-                            style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 13)),
-                        const SizedBox(height: 20),
+                        Text('Ton event « ${widget.event.titre} »',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 12.5)),
+                        const SizedBox(height: 12),
                         ..._tiers.map(_buildTierCard),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
                         Text('Durée de diffusion',
                             style: GoogleFonts.geist(
-                                color: AppColors.text, fontSize: 16, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 10),
+                                color: AppColors.text, fontSize: 14, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
                         Row(
                           children: _durations.map((d) {
                             final selected = d.key == _duration;
@@ -192,7 +190,7 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
                                 child: GestureDetector(
                                   onTap: () => setState(() => _duration = d.key),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
                                     decoration: BoxDecoration(
                                       color: selected
                                           ? AppColors.magenta.withValues(alpha: 0.16)
@@ -207,11 +205,13 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
                                       children: [
                                         Text(d.label,
                                             textAlign: TextAlign.center,
+                                            maxLines: 2,
                                             style: GoogleFonts.geist(
                                                 color: AppColors.text,
-                                                fontSize: 11.5,
+                                                fontSize: 11,
+                                                height: 1.15,
                                                 fontWeight: FontWeight.w600)),
-                                        const SizedBox(height: 4),
+                                        const SizedBox(height: 3),
                                         Text(_priceLabel(_tier, d.key),
                                             style: GoogleFonts.geist(
                                                 color: selected ? AppColors.magenta : AppColors.textDim,
@@ -245,11 +245,11 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
     return GestureDetector(
       onTap: () => setState(() => _tier = t.key),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: selected ? AppColors.magenta.withValues(alpha: 0.12) : AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: selected ? AppColors.magenta : AppColors.line,
             width: selected ? 1.6 : 1,
@@ -257,18 +257,20 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
         ),
         child: Row(
           children: [
-            Text(t.emoji, style: const TextStyle(fontSize: 26)),
-            const SizedBox(width: 14),
+            Text(t.emoji, style: const TextStyle(fontSize: 20)),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(t.label,
                       style: GoogleFonts.geist(
-                          color: AppColors.text, fontSize: 16, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 2),
+                          color: AppColors.text, fontSize: 15, fontWeight: FontWeight.w700)),
                   Text(t.desc,
-                      style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 12, height: 1.3)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 11.5)),
                 ],
               ),
             ),
