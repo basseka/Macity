@@ -929,6 +929,8 @@
           <span class="nav-btn" id="goto-notifs-btn">🔔 Notifications push</span>
           <span class="nav-btn" id="goto-pros-btn">👔 Pros <span id="pros-pending-badge" style="display:none; background:#DC2626; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-moderation-btn">🛡️ Modération</span>
+          <span class="nav-btn" id="goto-interest-btn">📊 Intérêt</span>
+          <span class="nav-btn" id="goto-appversions-btn">🚀 MAJ App</span>
         </div>
       </div>
 
@@ -1585,6 +1587,25 @@
         <div id="moderation-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="moderation-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun contenu trouvé.</div>
         <div id="moderation-list"></div>
+      </div>
+
+      <!-- ═══ VUE INTÉRÊT ABONNEMENT ═══ -->
+      <div id="interest-view" class="hidden">
+        <h1>📊 Intérêt abonnement</h1>
+        <p class="subtitle">Mesure de l'appétence pour l'abonnement BeThere Premium (5,90€/mois), avant de brancher le paiement. Chaque clic est tracké côté app.</p>
+        <div style="display:flex; gap:8px; margin:16px 0;">
+          <button type="button" class="banner-save-btn" id="interest-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
+        </div>
+        <div id="interest-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="interest-cards" class="hidden" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-top:8px;"></div>
+      </div>
+
+      <!-- ═══ VUE MAJ APP (versions) ═══ -->
+      <div id="appversions-view" class="hidden">
+        <h1>🚀 Mise à jour de l'app</h1>
+        <p class="subtitle">Après avoir publié une release sur le store, déclare la nouvelle version ici. <strong>Proposer</strong> = bannière esquivable. <strong>Forcer</strong> = écran bloquant tant que l'user n'a pas mis à jour. ⚠️ Le forçage iOS nécessite un <strong>lien App Store</strong> renseigné.</p>
+        <div id="appversions-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="appversions-cards" class="hidden" style="display:flex; flex-direction:column; gap:18px; margin-top:8px; max-width:640px;"></div>
       </div>
 
       <!-- ═══ VUE CHAÎNES FITNESS ═══ -->
@@ -2648,6 +2669,10 @@
     const gotoProsBtn = document.getElementById("goto-pros-btn");
     const moderationView = document.getElementById("moderation-view");
     const gotoModerationBtn = document.getElementById("goto-moderation-btn");
+    const interestView = document.getElementById("interest-view");
+    const gotoInterestBtn = document.getElementById("goto-interest-btn");
+    const appversionsView = document.getElementById("appversions-view");
+    const gotoAppversionsBtn = document.getElementById("goto-appversions-btn");
     const chainsView = document.getElementById("chains-view");
     const gotoChainsBtn = document.getElementById("goto-chains-btn");
     const notifsView = document.getElementById("notifs-view");
@@ -2662,6 +2687,8 @@
       sportnewsView.classList.add("hidden");
       prosView.classList.add("hidden");
       moderationView.classList.add("hidden");
+      interestView.classList.add("hidden");
+      appversionsView.classList.add("hidden");
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
@@ -2672,6 +2699,8 @@
       gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
       gotoModerationBtn.style.display = "inline-flex";
+      gotoInterestBtn.style.display = "inline-flex";
+      gotoAppversionsBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
     }
@@ -2745,6 +2774,22 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoModerationBtn.addEventListener("click", showModerationView);
+    function showInterestView() {
+      _hideAllViews();
+      interestView.classList.remove("hidden");
+      gotoInterestBtn.style.display = "none";
+      refreshInterestView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoInterestBtn.addEventListener("click", showInterestView);
+    function showAppversionsView() {
+      _hideAllViews();
+      appversionsView.classList.remove("hidden");
+      gotoAppversionsBtn.style.display = "none";
+      refreshAppversionsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoAppversionsBtn.addEventListener("click", showAppversionsView);
     gotoChainsBtn.addEventListener("click", showChainsView);
     function showNotifsView() {
       _hideAllViews();
@@ -3280,6 +3325,162 @@
         return;
       }
     });
+
+    // ─── Onglet MAJ App (versions) ──────────────────────────────────────────
+    const appversionsLoading = document.getElementById("appversions-loading");
+    const appversionsCards = document.getElementById("appversions-cards");
+
+    const APP_STORE_DEFAULTS = {
+      android: "https://play.google.com/store/apps/details?id=com.macity.app",
+      ios:     "https://apps.apple.com/app/macity-app/id6778110272",
+    };
+    const PLATFORM_META = {
+      android: { emoji: "🤖", label: "Android (Play Store)" },
+      ios:     { emoji: "🍏", label: "iOS (App Store)" },
+    };
+
+    async function refreshAppversionsView() {
+      appversionsLoading.classList.remove("hidden");
+      appversionsCards.classList.add("hidden");
+      appversionsCards.innerHTML = "";
+      try {
+        const { data, error } = await supabase.rpc("admin_get_app_versions");
+        if (error) throw error;
+        const rows = data || [];
+        const byPlatform = {};
+        rows.forEach(r => { byPlatform[r.platform] = r; });
+        appversionsCards.innerHTML = ["android", "ios"]
+          .map(p => renderAppversionCard(p, byPlatform[p]))
+          .join("");
+        appversionsCards.classList.remove("hidden");
+        bindAppversionCardEvents();
+      } catch (e) {
+        console.error("[MAJ App] load failed", e);
+        appversionsCards.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur chargement : ${escapeHtml(e.message)}</div>`;
+        appversionsCards.classList.remove("hidden");
+      } finally {
+        appversionsLoading.classList.add("hidden");
+      }
+    }
+
+    function renderAppversionCard(platform, row) {
+      const meta = PLATFORM_META[platform];
+      const storeUrl = row?.store_url || APP_STORE_DEFAULTS[platform];
+      const latest = row?.latest_version || "";
+      const min = row?.min_version || "—";
+      const forced = row?.force_update;
+      const updatedAt = row?.updated_at
+        ? new Date(row.updated_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })
+        : "jamais";
+      const noStore = !storeUrl;
+      return `
+        <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:16px; padding:18px;">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <span style="font-size:22px;">${meta.emoji}</span>
+            <strong style="font-size:16px;">${meta.label}</strong>
+            ${forced
+              ? '<span style="font-size:11px; padding:2px 8px; border-radius:8px; background:rgba(220,38,38,0.2); color:#F87171;">🔒 Forçage actif</span>'
+              : '<span style="font-size:11px; padding:2px 8px; border-radius:8px; background:rgba(16,185,129,0.18); color:#10B981;">Proposition</span>'}
+          </div>
+          <div style="font-size:12px; color:var(--text-dim); line-height:1.8; margin-bottom:14px;">
+            Dernière version publiée : <strong style="color:var(--text);">${escapeHtml(latest || "—")}</strong><br>
+            Version minimale (forçage en-dessous) : <strong style="color:var(--text);">${escapeHtml(min)}</strong><br>
+            Dernière modif : ${escapeHtml(updatedAt)}
+          </div>
+
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Nouvelle version (ex : 1.0.82)</label>
+          <input type="text" id="ver-input-${platform}" value="${escapeHtml(latest)}" placeholder="1.0.82"
+            style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:14px; margin-bottom:10px;" />
+
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Lien store ${platform === "ios" ? '<strong style="color:#F59E0B;">(requis pour forcer)</strong>' : ""}</label>
+          <input type="url" id="store-input-${platform}" value="${escapeHtml(storeUrl || "")}" placeholder="${escapeHtml(APP_STORE_DEFAULTS[platform])}"
+            style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px; margin-bottom:10px;" />
+
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Message (optionnel)</label>
+          <input type="text" id="msg-input-${platform}" value="${escapeHtml(row?.message || "")}" placeholder="Nouvelle version disponible 🎉"
+            style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:13px; margin-bottom:14px;" />
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" style="flex:1; min-width:140px; padding:11px; border-radius:10px; border:none; background:#10B981; color:#fff; font-size:13px; font-weight:700; cursor:pointer;"
+              data-propose="${platform}">📢 Proposer la MAJ</button>
+            <button type="button" style="flex:1; min-width:140px; padding:11px; border-radius:10px; border:none; background:#DC2626; color:#fff; font-size:13px; font-weight:700; cursor:pointer;"
+              data-force="${platform}">🔒 Forcer la MAJ</button>
+          </div>
+        </div>`;
+    }
+
+    function bindAppversionCardEvents() {
+      appversionsCards.querySelectorAll("[data-propose]").forEach(btn => {
+        btn.addEventListener("click", () => setAppVersion(btn.dataset.propose, false));
+      });
+      appversionsCards.querySelectorAll("[data-force]").forEach(btn => {
+        btn.addEventListener("click", () => setAppVersion(btn.dataset.force, true));
+      });
+    }
+
+    async function setAppVersion(platform, force) {
+      const ver = document.getElementById(`ver-input-${platform}`)?.value.trim();
+      const storeUrl = document.getElementById(`store-input-${platform}`)?.value.trim();
+      const message = document.getElementById(`msg-input-${platform}`)?.value.trim();
+      if (!ver || !/^\d+(\.\d+)*$/.test(ver)) {
+        toast("Version invalide (ex : 1.0.82)", false);
+        return;
+      }
+      if (force && !storeUrl) {
+        toast("Lien store requis pour forcer la MAJ", false);
+        return;
+      }
+      const action = force ? "FORCER (écran bloquant)" : "Proposer (bannière)";
+      if (!confirm(`${action} la MAJ ${platform.toUpperCase()} vers ${ver} ?`)) return;
+      try {
+        const { error } = await supabase.rpc("admin_set_app_version", {
+          p_platform: platform,
+          p_latest_version: ver,
+          p_force_update: force,
+          p_store_url: storeUrl || null,
+          p_message: message || null,
+        });
+        if (error) throw error;
+        toast(force ? `🔒 Forçage ${platform} → ${ver}` : `📢 Proposition ${platform} → ${ver}`);
+        refreshAppversionsView();
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    }
+
+    // ─── Onglet Intérêt abonnement ──────────────────────────────────────────
+    const interestLoading = document.getElementById("interest-loading");
+    const interestCards = document.getElementById("interest-cards");
+    document.getElementById("interest-refresh-btn")?.addEventListener("click", refreshInterestView);
+
+    async function refreshInterestView() {
+      interestLoading.classList.remove("hidden");
+      interestCards.classList.add("hidden");
+      interestCards.innerHTML = "";
+      try {
+        const { data, error } = await supabase.rpc("admin_subscription_interest_stats");
+        if (error) throw error;
+        const s = data || {};
+        const card = (emoji, label, value, sub) => `
+          <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:18px;">
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:8px;">${emoji} ${label}</div>
+            <div style="font-size:32px; font-weight:700; color:var(--text);">${value ?? 0}</div>
+            ${sub ? `<div style="font-size:12px; color:var(--text-faint); margin-top:4px;">${sub}</div>` : ""}
+          </div>`;
+        interestCards.innerHTML =
+          card("🎁", "« J'en profite »", s.en_profite_total, `${s.en_profite_users || 0} utilisateurs distincts`)
+          + card("💳", "« S'abonner 5,90€ »", s.abonner_total, `${s.abonner_users || 0} utilisateurs distincts`)
+          + card("👥", "Utilisateurs intéressés", s.total_users, "tous types de clics confondus")
+          + card("📅", "Clics 7 derniers jours", s.last_7d, "");
+        interestCards.classList.remove("hidden");
+      } catch (e) {
+        console.error("[Intérêt] load failed", e);
+        interestCards.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur chargement : ${escapeHtml(e.message)}</div>`;
+        interestCards.classList.remove("hidden");
+      } finally {
+        interestLoading.classList.add("hidden");
+      }
+    }
 
     // ─── Onglet Modération (posts pros + stories) ───────────────────────────
     let _allProPosts = [];
