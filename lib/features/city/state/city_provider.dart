@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pulz_app/core/constants/app_constants.dart';
+import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 
 class CityNotifier extends StateNotifier<String> {
   CityNotifier() : super(AppConstants.defaultCity) {
@@ -17,6 +18,7 @@ class CityNotifier extends StateNotifier<String> {
     state = city;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(AppConstants.prefSelectedCity, city);
+    UserProfileService().updateVille(city).catchError((_) {});
   }
 }
 
