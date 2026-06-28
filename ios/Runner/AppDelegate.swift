@@ -23,6 +23,14 @@ import FirebaseMessaging
     UNUserNotificationCenter.current().delegate = self
     application.registerForRemoteNotifications()
 
+    // TODO(iOS son stories) : activer l'AVAudioSession en .playback, sinon
+    // video_player ne joue PAS le son des stories Map Live quand l'iPhone est
+    // en mode silencieux (le son est demande cote Dart via setVolume(1.0),
+    // commit dbd8017). Decommenter `import AVFoundation` en haut + ce bloc :
+    //   try? AVAudioSession.sharedInstance().setCategory(.playback)
+    //   try? AVAudioSession.sharedInstance().setActive(true)
+    // (verifier que ca ne lance pas de lecture en arriere-plan non desiree.)
+
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
