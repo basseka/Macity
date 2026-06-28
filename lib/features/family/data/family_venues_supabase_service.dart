@@ -38,6 +38,32 @@ class FamilyVenuesSupabaseService {
         .toList();
   }
 
+  /// Fetch les venues de PLUSIEURS categories (types) d'un coup — utilise pour
+  /// afficher une rubrique entiere (ex: "Divertissements" = Cinema + Bowling +
+  /// Laser game + …). Filtre `category=in.(...)`.
+  Future<List<FamilyVenue>> fetchVenuesByCategories(
+    List<String> categories, {
+    required String ville,
+  }) async {
+    if (categories.isEmpty) return [];
+    // PostgREST in.() : valeurs entre guillemets (espaces/apostrophes).
+    final list = categories.map((c) => '"${c.replaceAll('"', '')}"').join(',');
+    final response = await _dio.get(
+      'family_venues',
+      queryParameters: {
+        'select': '*',
+        'is_active': 'eq.true',
+        'ville': 'ilike.$ville',
+        'category': 'in.($list)',
+        'order': 'groupe.asc,name.asc',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => FamilyVenue.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Count active venues per category, filtered by [ville].
   Future<int> countByCategory(String category, {required String ville}) async {
     final response = await _dio.get(

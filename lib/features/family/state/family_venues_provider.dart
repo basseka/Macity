@@ -119,6 +119,17 @@ final familySupabaseVenuesProvider =
   return results;
 });
 
+/// Venues d'une RUBRIQUE entiere (ex: "Divertissements" = tous ses types),
+/// pour la ville selectionnee. Sert aux chips de la landing (chip = rubrique).
+final familyGroupVenuesProvider =
+    FutureProvider.family<List<FamilyVenue>, String>((ref, groupName) async {
+  final city = ref.watch(selectedCityProvider);
+  final service = ref.read(_familyServiceProvider);
+  final tags = FamilyCategoryData.typeTagsForGroup(groupName);
+  if (tags.isEmpty) return [];
+  return service.fetchVenuesByCategories(tags, ville: city);
+});
+
 /// Scraped events famille (rubrique='family') pour la ville selectionnee.
 final familyScrapedEventsProvider = FutureProvider<List<Event>>((ref) async {
   final city = ref.watch(selectedCityProvider);

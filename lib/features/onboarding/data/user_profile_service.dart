@@ -89,6 +89,7 @@ class UserProfileService {
     required String ville,
     required List<String> preferences,
     String? avatarUrl,
+    String? bio,
   }) async {
     final userId = await UserIdentityService.getUserId();
     await _dio.post(
@@ -101,6 +102,7 @@ class UserProfileService {
         'ville': ville,
         'preferences': preferences,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
+        if (bio != null) 'bio': bio,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       },
       options: Options(
@@ -157,6 +159,31 @@ class UserProfileService {
     );
 
     return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+  }
+
+  Future<void> updateBio(String? bio) async {
+    final userId = await UserIdentityService.getUserId();
+    await _dio.patch(
+      'user_profiles',
+      queryParameters: {'user_id': 'eq.$userId'},
+      data: {
+        'bio': (bio != null && bio.trim().isNotEmpty) ? bio.trim() : null,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      },
+    );
+  }
+
+  /// Profil public d'un contributeur (par device UUID) via RPC : ne renvoie
+  /// que prenom + avatar_url + bio + ville (jamais email/telephone).
+  /// Retourne null si le profil n'existe pas.
+  Future<Map<String, dynamic>?> fetchPublicProfile(String userId) async {
+    final response = await _dio.post(
+      'rpc/get_public_profile',
+      data: {'p_user_id': userId},
+    );
+    final data = response.data as List;
+    if (data.isEmpty) return null;
+    return data.first as Map<String, dynamic>;
   }
 
   Future<void> updateVille(String ville) async {

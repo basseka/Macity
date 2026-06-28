@@ -965,6 +965,7 @@
           <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
+          <span class="nav-btn" id="goto-family-btn">👨‍👩‍👧 Lieux Famille</span>
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
           <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
           <span class="nav-btn" id="goto-sportnews-btn">📰 Actu sport</span>
@@ -975,6 +976,7 @@
           <span class="nav-btn" id="goto-interest-btn">📊 Intérêt</span>
           <span class="nav-btn" id="goto-appversions-btn">🚀 MAJ App</span>
           <span class="nav-btn" id="goto-pubprices-btn">💶 Tarifs publi</span>
+          <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
         </div>
       </div>
 
@@ -1658,6 +1660,101 @@
         <p class="subtitle">Prix payés par un <strong>particulier</strong> pour diffuser un event public (forfait par formule × durée). Montants en euros TTC, modifiables ici. Le « Standard » est le ticket d'entrée anti-spam (pas de gratuit).</p>
         <div id="pubprices-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="pubprices-table" class="hidden" style="overflow-x:auto; margin-top:8px;"></div>
+      </div>
+
+      <!-- ═══ VUE DURÉE STORIES (TTL) ═══ -->
+      <div id="storyttl-view" class="hidden">
+        <h1>⏱️ Durée des stories</h1>
+        <p class="subtitle">Combien de temps une story Map Live reste <strong>affichée</strong> dans l'app après sa publication. Chaque nouveau snap sur le même lieu réétend ce délai. S'applique aux <strong>nouvelles</strong> stories et aux prolongations ; les stories déjà en cours gardent leur expiration actuelle.</p>
+        <div id="storyttl-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="storyttl-card" class="hidden" style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:16px; padding:18px; max-width:480px; margin-top:8px;">
+          <div style="font-size:12px; color:var(--text-dim); line-height:1.8; margin-bottom:14px;">
+            Durée actuelle : <strong id="storyttl-current" style="color:var(--text);">—</strong>
+          </div>
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Durée en heures (1 à 168)</label>
+          <input type="number" id="storyttl-input" min="1" max="168" step="1" placeholder="18"
+            style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:14px; margin-bottom:14px;" />
+          <button type="button" class="act act-success" id="storyttl-save-btn" style="width:100%;">💾 Enregistrer</button>
+          <p style="font-size:11px; color:var(--text-faint); margin:12px 0 0; line-height:1.6;">Exemples : 18 = ~une soirée + nuit · 24 = une journée · 48 = un week-end. Au-delà, pense à élargir aussi la fenêtre de fusion des snaps (côté SQL).</p>
+        </div>
+      </div>
+
+      <!-- ═══ VUE LIEUX FAMILLE (family_venues) ═══ -->
+      <div id="family-view" class="hidden">
+        <h1>👨‍👩‍👧 Lieux Famille</h1>
+        <p class="subtitle">Ajoute et classe les lieux de la rubrique <strong>Famille</strong>. Le <strong>Type</strong> détermine dans quelle rubrique de l'app le lieu apparaît (Divertissements, Animaux et Nature, Activité Aquatique…).</p>
+
+        <button class="banner-save-btn" id="family-add-toggle">➕ Ajouter un lieu</button>
+
+        <div id="family-form" class="hidden" style="margin-top:14px; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:16px; padding:16px; max-width:700px;">
+          <input type="hidden" id="family-id" />
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div style="grid-column:1 / -1;">
+              <label class="banner-field-label">Nom *</label>
+              <input type="text" class="banner-input" id="family-name" placeholder="Ex: Zoo de Plaisance" />
+            </div>
+            <div>
+              <label class="banner-field-label">Type * <span style="opacity:.6;font-weight:400">— classe le lieu dans une rubrique</span></label>
+              <select class="banner-input" id="family-type"></select>
+            </div>
+            <div>
+              <label class="banner-field-label">Ville</label>
+              <input type="text" class="banner-input" id="family-ville" placeholder="Toulouse" />
+            </div>
+            <div style="grid-column:1 / -1;">
+              <label class="banner-field-label">Adresse</label>
+              <input type="text" class="banner-input" id="family-adresse" placeholder="12 rue… 31000 Toulouse" />
+            </div>
+            <div style="grid-column:1 / -1;">
+              <label class="banner-field-label">Description</label>
+              <input type="text" class="banner-input" id="family-description" placeholder="Courte description affichée sur la fiche" />
+            </div>
+            <div>
+              <label class="banner-field-label">Horaires</label>
+              <input type="text" class="banner-input" id="family-horaires" placeholder="Lun-Dim 10h-19h" />
+            </div>
+            <div>
+              <label class="banner-field-label">Téléphone</label>
+              <input type="text" class="banner-input" id="family-telephone" placeholder="05 61 …" />
+            </div>
+            <div>
+              <label class="banner-field-label">Site web</label>
+              <input type="url" class="banner-input" id="family-website" placeholder="https://…" />
+            </div>
+            <div>
+              <label class="banner-field-label">Photo <span style="opacity:.6;font-weight:400">— URL ou upload</span></label>
+              <div style="display:flex; gap:6px;">
+                <input type="url" class="banner-input" id="family-photo" placeholder="https://…/photo.jpg" style="flex:1; margin:0;" />
+                <button type="button" class="banner-save-btn" id="family-photo-browse" style="background:rgba(255,255,255,0.08); color:var(--text); padding:0 12px; white-space:nowrap;">📂</button>
+              </div>
+              <input type="file" id="family-photo-file" accept="image/*" style="display:none;" />
+              <img id="family-photo-preview" style="display:none; margin-top:6px; max-height:72px; border-radius:8px;" />
+            </div>
+            <div>
+              <label class="banner-field-label">Latitude</label>
+              <input type="number" step="any" class="banner-input" id="family-lat" placeholder="43.6045" />
+            </div>
+            <div>
+              <label class="banner-field-label">Longitude</label>
+              <input type="number" step="any" class="banner-input" id="family-lng" placeholder="1.4440" />
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="banner-save-btn" id="family-cancel" style="background:rgba(255,255,255,0.08); color:var(--text);">Annuler</button>
+            <button class="banner-save-btn" id="family-submit">💾 Enregistrer</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin:16px 0; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="family-city-filter" placeholder="Filtrer par ville…"
+            style="padding:9px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.04); color:var(--text); font-size:13px;" />
+          <input type="text" id="family-name-search" placeholder="Filtrer par nom…"
+            style="flex:1; min-width:160px; padding:9px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.04); color:var(--text); font-size:13px;" />
+          <button type="button" class="banner-save-btn" id="family-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
+        </div>
+        <div id="family-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="family-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun lieu famille.</div>
+        <div id="family-list"></div>
       </div>
 
       <!-- ═══ VUE CHAÎNES FITNESS ═══ -->
@@ -2707,6 +2804,8 @@
     const formView = document.getElementById("form-view");
     const eventsView = document.getElementById("events-view");
     const venuesView = document.getElementById("venues-view");
+    const familyView = document.getElementById("family-view");
+    const gotoFamilyBtn = document.getElementById("goto-family-btn");
     const gotoFormBtn = document.getElementById("goto-form-btn");
     const gotoEventsBtn = document.getElementById("goto-events-btn");
     const gotoVenuesBtn = document.getElementById("goto-venues-btn");
@@ -2727,6 +2826,8 @@
     const gotoAppversionsBtn = document.getElementById("goto-appversions-btn");
     const pubpricesView = document.getElementById("pubprices-view");
     const gotoPubpricesBtn = document.getElementById("goto-pubprices-btn");
+    const storyttlView = document.getElementById("storyttl-view");
+    const gotoStoryttlBtn = document.getElementById("goto-storyttl-btn");
     const chainsView = document.getElementById("chains-view");
     const gotoChainsBtn = document.getElementById("goto-chains-btn");
     const notifsView = document.getElementById("notifs-view");
@@ -2744,6 +2845,8 @@
       interestView.classList.add("hidden");
       appversionsView.classList.add("hidden");
       pubpricesView.classList.add("hidden");
+      storyttlView.classList.add("hidden");
+      familyView.classList.add("hidden");
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
@@ -2757,6 +2860,8 @@
       gotoInterestBtn.style.display = "inline-flex";
       gotoAppversionsBtn.style.display = "inline-flex";
       gotoPubpricesBtn.style.display = "inline-flex";
+      gotoStoryttlBtn.style.display = "inline-flex";
+      gotoFamilyBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
     }
@@ -2854,6 +2959,22 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoPubpricesBtn.addEventListener("click", showPubpricesView);
+    function showStoryttlView() {
+      _hideAllViews();
+      storyttlView.classList.remove("hidden");
+      gotoStoryttlBtn.style.display = "none";
+      refreshStoryttlView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoStoryttlBtn.addEventListener("click", showStoryttlView);
+    function showFamilyView() {
+      _hideAllViews();
+      familyView.classList.remove("hidden");
+      gotoFamilyBtn.style.display = "none";
+      refreshFamilyView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoFamilyBtn.addEventListener("click", showFamilyView);
     gotoChainsBtn.addEventListener("click", showChainsView);
     function showNotifsView() {
       _hideAllViews();
@@ -3595,6 +3716,293 @@
         toast("Erreur : " + (e.message || e), false);
       }
     }
+
+    // ─── Onglet Durée stories (TTL) ─────────────────────────────────────────
+    const storyttlLoading = document.getElementById("storyttl-loading");
+    const storyttlCard = document.getElementById("storyttl-card");
+    const storyttlInput = document.getElementById("storyttl-input");
+    const storyttlCurrent = document.getElementById("storyttl-current");
+
+    async function refreshStoryttlView() {
+      storyttlLoading.classList.remove("hidden");
+      storyttlCard.classList.add("hidden");
+      try {
+        const { data, error } = await supabase.rpc("admin_get_story_ttl");
+        if (error) throw error;
+        const hours = data ?? 18;
+        storyttlCurrent.textContent = `${hours} h`;
+        storyttlInput.value = hours;
+        storyttlCard.classList.remove("hidden");
+      } catch (e) {
+        console.error("[Durée stories] load failed", e);
+        toast("Erreur chargement : " + (e.message || e), false);
+      } finally {
+        storyttlLoading.classList.add("hidden");
+      }
+    }
+
+    document.getElementById("storyttl-save-btn")?.addEventListener("click", async () => {
+      const hours = parseInt(storyttlInput.value, 10);
+      if (!Number.isInteger(hours) || hours < 1 || hours > 168) {
+        toast("Durée invalide (1 à 168 heures)", false);
+        return;
+      }
+      if (!confirm(`Les nouvelles stories dureront ${hours} h. Confirmer ?`)) return;
+      try {
+        const { error } = await supabase.rpc("admin_set_story_ttl", { p_hours: hours });
+        if (error) throw error;
+        toast(`⏱️ Durée des stories → ${hours} h`);
+        refreshStoryttlView();
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    });
+
+    // ─── Onglet Lieux Famille (family_venues) ───────────────────────────────
+    // Taxonomie miroir de family_category_data.dart (Dart). Si tu changes les
+    // types côté app, mets à jour cette liste pour garder le dropdown aligné.
+    const FAMILY_TYPES = [
+      { rubrique: "Divertissements",     types: ["Parc d'attractions", "Laser game", "Escape game", "Bowling", "Cinema"] },
+      { rubrique: "Jeux d'enfants",      types: ["Aire de jeux", "Parc de loisirs"] },
+      { rubrique: "Animaux et Nature",   types: ["Parc animalier", "Ferme pedagogique", "Aquarium", "Zoo", "Jardin botanique"] },
+      { rubrique: "Activite Aquatique",  types: ["Aquarium", "Centre aquatique", "Piscine"] },
+      { rubrique: "Sortie en Plein Air", types: ["Parcs", "Balade familiale", "Accrobranche", "Mini golf", "Base de loisirs"] },
+      { rubrique: "Decouvrir",           types: ["Musee pour enfants", "Planetarium", "Atelier creatif"] },
+    ];
+
+    const familyLoading = document.getElementById("family-loading");
+    const familyEmpty = document.getElementById("family-empty");
+    const familyListEl = document.getElementById("family-list");
+    const familyTypeSelect = document.getElementById("family-type");
+    const familyForm = document.getElementById("family-form");
+    let _allFamilyVenues = [];
+
+    // Remplit le <select> du formulaire avec optgroups par rubrique.
+    (function fillFamilyTypeSelect() {
+      familyTypeSelect.innerHTML = FAMILY_TYPES.map(g =>
+        `<optgroup label="${escapeHtml(g.rubrique)}">` +
+        g.types.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("") +
+        `</optgroup>`
+      ).join("");
+    })();
+
+    // Rubrique d'un type (pour affichage dans la liste).
+    function familyRubriqueOf(type) {
+      const g = FAMILY_TYPES.find(x => x.types.includes(type));
+      return g ? g.rubrique : "—";
+    }
+
+    // <select> réutilisé en ligne pour reclasser un lieu (value présélectionnée).
+    function familyTypeOptionsHtml(selected) {
+      return FAMILY_TYPES.map(g =>
+        `<optgroup label="${escapeHtml(g.rubrique)}">` +
+        g.types.map(t => `<option value="${escapeHtml(t)}"${t === selected ? " selected" : ""}>${escapeHtml(t)}</option>`).join("") +
+        `</optgroup>`
+      ).join("");
+    }
+
+    async function refreshFamilyView() {
+      familyLoading.classList.remove("hidden");
+      familyEmpty.classList.add("hidden");
+      familyListEl.innerHTML = "";
+      try {
+        const { data, error } = await supabase
+          .from("family_venues")
+          .select("id, name, category, ville, adresse, description, horaires, telephone, latitude, longitude, website_url, photo, groupe, is_active")
+          .order("ville", { ascending: true })
+          .order("name", { ascending: true });
+        if (error) throw error;
+        _allFamilyVenues = data || [];
+        renderFamilyList();
+      } catch (e) {
+        console.error("[Famille] load", e);
+        toast("Erreur chargement : " + (e.message || e), false);
+      } finally {
+        familyLoading.classList.add("hidden");
+      }
+    }
+
+    function renderFamilyList() {
+      const cityQ = normalizeCity(document.getElementById("family-city-filter").value);
+      const nameQ = normalizeCity(document.getElementById("family-name-search").value);
+      let list = _allFamilyVenues;
+      if (cityQ) list = list.filter(v => normalizeCity(v.ville) === cityQ);
+      if (nameQ) list = list.filter(v => normalizeCity(v.name).includes(nameQ));
+
+      if (list.length === 0) {
+        familyListEl.innerHTML = "";
+        familyEmpty.classList.remove("hidden");
+        return;
+      }
+      familyEmpty.classList.add("hidden");
+      familyListEl.innerHTML = list.map(v => {
+        const thumb = (v.photo || "").startsWith("http")
+          ? `<div class="venue-thumb"><img src="${escapeHtml(v.photo)}" onerror="this.parentElement.textContent='🎡'" /></div>`
+          : `<div class="venue-thumb">🎡</div>`;
+        return `
+          <div class="venue-item" data-fid="${v.id}">
+            <div class="venue-row">
+              ${thumb}
+              <div class="venue-row-info">
+                <div class="venue-row-name">${escapeHtml(v.name)}</div>
+                <div class="venue-row-meta">${escapeHtml(familyRubriqueOf(v.category))} · ${escapeHtml(v.ville || "")}</div>
+              </div>
+              <div class="venue-row-actions">
+                <select class="banner-input" data-faction="reclass" data-id="${v.id}" style="width:auto; min-width:150px; margin:0;">${familyTypeOptionsHtml(v.category)}</select>
+                <button class="gen-btn" data-faction="edit" data-id="${v.id}">✏️ Éditer</button>
+                <button class="gen-btn" data-faction="delete" data-id="${v.id}" style="border-color:#ef4444;color:#ef4444;">🗑 Supprimer</button>
+              </div>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    // Filtres + refresh
+    document.getElementById("family-city-filter").addEventListener("input", renderFamilyList);
+    document.getElementById("family-name-search").addEventListener("input", renderFamilyList);
+    document.getElementById("family-refresh-btn").addEventListener("click", refreshFamilyView);
+
+    // Formulaire : toggle / cancel / reset
+    function familyFormReset() {
+      document.getElementById("family-id").value = "";
+      ["family-name","family-ville","family-adresse","family-description","family-horaires","family-telephone","family-website","family-photo","family-lat","family-lng"].forEach(id => document.getElementById(id).value = "");
+      familyTypeSelect.selectedIndex = 0;
+      const prev = document.getElementById("family-photo-preview");
+      prev.removeAttribute("src"); prev.style.display = "none";
+    }
+    document.getElementById("family-add-toggle").addEventListener("click", () => {
+      familyFormReset();
+      familyForm.classList.remove("hidden");
+      document.getElementById("family-name").focus();
+    });
+    document.getElementById("family-cancel").addEventListener("click", () => {
+      familyForm.classList.add("hidden");
+    });
+
+    // Upload photo (réutilise uploadImage → bucket admin-events, compressé).
+    function familySetPhoto(url) {
+      document.getElementById("family-photo").value = url || "";
+      const prev = document.getElementById("family-photo-preview");
+      if (url) { prev.src = url; prev.style.display = "block"; }
+      else { prev.removeAttribute("src"); prev.style.display = "none"; }
+    }
+    document.getElementById("family-photo-browse").addEventListener("click", () =>
+      document.getElementById("family-photo-file").click());
+    document.getElementById("family-photo-file").addEventListener("change", async (ev) => {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      const btn = document.getElementById("family-photo-browse");
+      btn.disabled = true; btn.textContent = "⏳";
+      try {
+        const url = await uploadImage(file);
+        familySetPhoto(url);
+        toast("Photo uploadée", true);
+      } catch (e) {
+        toast("Erreur upload : " + (e.message || e), false);
+      } finally {
+        btn.disabled = false; btn.textContent = "📂";
+        ev.target.value = "";
+      }
+    });
+
+    // Enregistrer (création ou édition)
+    document.getElementById("family-submit").addEventListener("click", async () => {
+      const idVal = document.getElementById("family-id").value;
+      const name = document.getElementById("family-name").value.trim();
+      const category = familyTypeSelect.value;
+      if (!name) { toast("Nom requis", false); return; }
+      if (!category) { toast("Type requis", false); return; }
+      const latRaw = document.getElementById("family-lat").value.trim();
+      const lngRaw = document.getElementById("family-lng").value.trim();
+      const payload = {
+        p_id: idVal ? parseInt(idVal, 10) : null,
+        p_name: name,
+        p_category: category,
+        p_ville: document.getElementById("family-ville").value.trim() || "Toulouse",
+        p_adresse: document.getElementById("family-adresse").value.trim(),
+        p_description: document.getElementById("family-description").value.trim(),
+        p_horaires: document.getElementById("family-horaires").value.trim(),
+        p_telephone: document.getElementById("family-telephone").value.trim(),
+        p_latitude: latRaw ? parseFloat(latRaw) : null,
+        p_longitude: lngRaw ? parseFloat(lngRaw) : null,
+        p_website_url: document.getElementById("family-website").value.trim(),
+        p_photo: document.getElementById("family-photo").value.trim(),
+        p_groupe: "",
+      };
+      try {
+        const { error } = await supabase.rpc("admin_upsert_family_venue", payload);
+        if (error) throw error;
+        toast(idVal ? "Lieu mis à jour" : `« ${name} » ajouté`, true);
+        familyForm.classList.add("hidden");
+        refreshFamilyView();
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    });
+
+    // Délégation actions liste : reclasser / éditer / supprimer
+    familyListEl.addEventListener("change", async (ev) => {
+      const sel = ev.target.closest('[data-faction="reclass"]');
+      if (!sel) return;
+      const id = parseInt(sel.dataset.id, 10);
+      const v = _allFamilyVenues.find(x => x.id === id);
+      if (!v) return;
+      try {
+        const { error } = await supabase.rpc("admin_upsert_family_venue", {
+          p_id: id, p_name: v.name, p_category: sel.value,
+          p_ville: v.ville || "Toulouse", p_adresse: v.adresse || "",
+          p_description: v.description || "", p_horaires: v.horaires || "",
+          p_telephone: v.telephone || "", p_latitude: v.latitude, p_longitude: v.longitude,
+          p_website_url: v.website_url || "", p_photo: v.photo || "", p_groupe: v.groupe || "",
+        });
+        if (error) throw error;
+        v.category = sel.value;
+        toast(`« ${v.name} » → ${sel.value}`, true);
+        renderFamilyList();
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    });
+
+    familyListEl.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-faction]");
+      if (!btn) return;
+      const action = btn.dataset.faction;
+      const id = parseInt(btn.dataset.id, 10);
+      const v = _allFamilyVenues.find(x => x.id === id);
+      if (!v) return;
+
+      if (action === "edit") {
+        document.getElementById("family-id").value = v.id;
+        document.getElementById("family-name").value = v.name || "";
+        familyTypeSelect.value = v.category || "";
+        document.getElementById("family-ville").value = v.ville || "";
+        document.getElementById("family-adresse").value = v.adresse || "";
+        document.getElementById("family-description").value = v.description || "";
+        document.getElementById("family-horaires").value = v.horaires || "";
+        document.getElementById("family-telephone").value = v.telephone || "";
+        document.getElementById("family-website").value = v.website_url || "";
+        familySetPhoto(v.photo || "");
+        document.getElementById("family-lat").value = v.latitude ?? "";
+        document.getElementById("family-lng").value = v.longitude ?? "";
+        familyForm.classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      if (action === "delete") {
+        if (!confirm(`Supprimer définitivement « ${v.name} » ?\n\nCette action est irréversible.`)) return;
+        try {
+          const { error } = await supabase.rpc("admin_delete_family_venue", { p_id: id });
+          if (error) throw error;
+          _allFamilyVenues = _allFamilyVenues.filter(x => x.id !== id);
+          toast(`« ${v.name} » supprimé`, true);
+          renderFamilyList();
+        } catch (e) {
+          toast("Erreur : " + (e.message || e), false);
+        }
+      }
+    });
 
     // ─── Onglet Intérêt abonnement ──────────────────────────────────────────
     const interestLoading = document.getElementById("interest-loading");
@@ -4393,9 +4801,13 @@
           : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
       }
       const photoBtn = `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
-      // Suppression : réservée aux salles de sport (table sport_venues).
-      const deleteBtn = f.source === "sport_venues"
-        ? `<button class="gen-btn" data-action="delete-venue" data-id="${f.id}" title="Supprimer cette salle" style="border-color:#ef4444;color:#ef4444;">🗑 Supprimer</button>`
+      // Suppression : sport_venues, etablissements (Food) et venues. Sert
+      // surtout à nettoyer les doublons. La source réelle est lue sur la
+      // .venue-item parente (data-source) par le handler.
+      const deletable = f.source === "sport_venues"
+        || f.source === "etablissements" || f.source === "venues";
+      const deleteBtn = deletable
+        ? `<button class="gen-btn" data-action="delete-venue" data-id="${f.id}" title="Supprimer définitivement cette fiche" style="border-color:#ef4444;color:#ef4444;">🗑 Supprimer</button>`
         : "";
       // Priorité d'affichage : éditable pour les établissements (food/night/
       // famille/culture) et les salles de sport.
@@ -4757,36 +5169,44 @@
       }
 
       if (action === "delete-venue") {
+        const item = target.closest(".venue-item");
+        const source = item?.dataset.source || "sport_venues";
         const id = parseInt(target.dataset.id, 10);
-        const row = allSportVenues.find(r => r.id === id);
-        const nom = row ? (row.nom || "cette salle") : "cette salle";
-        if (!confirm(`Supprimer définitivement « ${nom} » de la table sport_venues ?`)) return;
+        const fiche = unifiedFiches().find(
+          f => f.source === source && String(f.id) === String(id));
+        const nom = fiche ? (fiche.name || "cette fiche") : "cette fiche";
+        const tableLabel = source === "sport_venues" ? "sport_venues"
+          : source === "etablissements" ? "etablissements (Food)" : "venues";
+        if (!confirm(`Supprimer définitivement « ${nom} » de la table ${tableLabel} ?\n\nCette action est irréversible.`)) return;
         target.disabled = true;
         target.textContent = "⏳ Suppression…";
-        const { data, error } = await supabase
-          .from("sport_venues")
-          .delete()
-          .eq("id", id)
-          .select("id");
-        if (error) {
+        try {
+          if (source === "sport_venues") {
+            // Pas de RPC dédiée : DELETE direct + détection RLS (0 ligne).
+            const { data, error } = await supabase
+              .from("sport_venues").delete().eq("id", id).select("id");
+            if (error) throw error;
+            if (!data || data.length === 0) {
+              throw new Error("0 ligne supprimée : la base a refusé l'écriture (RLS).");
+            }
+            allSportVenues = allSportVenues.filter(r => r.id !== id);
+          } else if (source === "etablissements") {
+            const { error } = await supabase.rpc("admin_delete_etablissement", { p_id: id });
+            if (error) throw error;
+            allEtabs = allEtabs.filter(r => r.id !== id);
+          } else {
+            const { error } = await supabase.rpc("admin_delete_venue", { p_id: id });
+            if (error) throw error;
+            allVenues = allVenues.filter(r => r.id !== id);
+          }
+          renderVenuesList();
+          toast(`« ${nom} » supprimée`, true);
+        } catch (e) {
           target.disabled = false;
           target.textContent = "🗑 Supprimer";
-          console.warn("[sport_venues delete]", error);
-          toast("Erreur : " + (error.message || "suppression échouée"), false);
-          return;
+          console.warn("[venue delete]", source, id, e);
+          toast("Erreur : " + (e.message || "suppression échouée"), false);
         }
-        // RLS : un DELETE sans policy ne renvoie pas d'erreur mais ne touche
-        // aucune ligne. On vérifie qu'une ligne a bien été supprimée.
-        if (!data || data.length === 0) {
-          target.disabled = false;
-          target.textContent = "🗑 Supprimer";
-          console.warn("[sport_venues delete] 0 ligne supprimée — RLS ?", id);
-          toast("⚠️ 0 ligne supprimée : la base a refusé l'écriture (RLS). Vérifie la policy DELETE sur sport_venues.", false);
-          return;
-        }
-        allSportVenues = allSportVenues.filter(r => r.id !== id);
-        renderVenuesList();
-        toast(`« ${nom} » supprimée`, true);
         return;
       }
 

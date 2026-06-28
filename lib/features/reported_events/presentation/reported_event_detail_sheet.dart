@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_chat.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_event_view_tracker.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
@@ -93,6 +94,14 @@ class _ReportedEventDetailSheetState
     return 'il y a ${diff.inDays}j';
   }
 
+  /// Device UUID du reporter principal (1er contributeur, sinon 1er reporter).
+  /// Vide => fiche non ouvrable (contributeur anonyme).
+  String _mainReporterId() {
+    if (event.contributors.isNotEmpty) return event.contributors.first.userId;
+    if (event.reporterIds.isNotEmpty) return event.reporterIds.first;
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final g = event.generated;
@@ -147,8 +156,12 @@ class _ReportedEventDetailSheetState
           ),
 
           // 3. Header (avatar + nom + LIVE + multiplicateur + sous-ligne)
+          // Decale sous la barre de progression (topInset+6) ET le bouton
+          // fermer (topInset+14..+46) rendus par le parent ReportedEventsPagedSheet,
+          // sinon l'avatar cliquable chevauche la barre de temps et le tap
+          // sur le profil ne passe pas.
           Positioned(
-            top: 8,
+            top: media.padding.top + 26,
             left: 14,
             right: 14,
             child: _StoryHeader(
@@ -158,6 +171,12 @@ class _ReportedEventDetailSheetState
               multiplier:
                   contributorsExtra > 0 ? (contributorsExtra + 1) : null,
               subline: '${_relativeAge()}  ·  ${event.ville ?? ''}'.trim(),
+              onAvatarTap: () => ContributorProfileSheet.show(
+                context,
+                userId: _mainReporterId(),
+                fallbackPrenom: prenom,
+                fallbackAvatarUrl: event.reporterAvatarUrl,
+              ),
             ),
           ),
 
@@ -325,6 +344,7 @@ class _StoryHeader extends StatelessWidget {
   final bool isLive;
   final int? multiplier;
   final String subline;
+  final VoidCallback? onAvatarTap;
 
   const _StoryHeader({
     required this.prenom,
@@ -332,6 +352,7 @@ class _StoryHeader extends StatelessWidget {
     required this.isLive,
     required this.multiplier,
     required this.subline,
+    this.onAvatarTap,
   });
 
   @override
@@ -344,8 +365,12 @@ class _StoryHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Avatar gradient avec initiale
-              _AvatarBubble(initial: initial, url: avatarUrl),
+              // Avatar gradient avec initiale (tap -> fiche contributeur)
+              GestureDetector(
+                onTap: onAvatarTap,
+                behavior: HitTestBehavior.opaque,
+                child: _AvatarBubble(initial: initial, url: avatarUrl),
+              ),
               const SizedBox(width: 10),
               // Nom + badges
               Expanded(

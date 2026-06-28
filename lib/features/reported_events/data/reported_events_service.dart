@@ -25,6 +25,14 @@ class ReportSubmitResult {
   const ReportSubmitResult({required this.id, this.photoFailures = 0});
 }
 
+/// Levee quand aucun media n'a pu etre uploade (reseau/compression/timeout).
+/// On refuse alors de creer une story vide : l'UI invite a reessayer.
+class NoMediaUploadedException implements Exception {
+  const NoMediaUploadedException();
+  @override
+  String toString() => 'NoMediaUploadedException';
+}
+
 /// Service Supabase pour les signalements communautaires (style Waze).
 ///
 /// Table PostgREST  : `reported_events`
@@ -110,30 +118,39 @@ class ReportedEventsService {
       // Yield avant l'upload
       await Future<void>.delayed(Duration.zero);
 
-      final ts = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '${ts}_report.jpg';
-
-      // Hard timeout 12s — si le reseau est mort, on abandonne et on continue
-      // sans photo plutot que de laisser la modal bloquee.
-      await _storageDio
-          .post(
-            'object/user-events/$fileName',
-            data: bytes,
-            options: Options(
-              headers: {'Content-Type': 'image/jpeg'},
-              sendTimeout: const Duration(seconds: 12),
-              receiveTimeout: const Duration(seconds: 12),
-            ),
-          )
-          .timeout(
-        const Duration(seconds: 12),
-        onTimeout: () {
-          debugPrint('[ReportedEvents] upload timeout after 12s');
-          throw TimeoutException('Upload timeout');
-        },
-      );
-
-      return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+      // Upload avec retry : 2 tentatives, timeout 20s/essai, backoff 2s. Un
+      // nouveau fileName est genere a chaque essai pour eviter un 409. Si tout
+      // echoue, on continue sans photo plutot que de bloquer la modal.
+      const maxAttempts = 2;
+      for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+        final ts = DateTime.now().millisecondsSinceEpoch;
+        final fileName = '${ts}_report.jpg';
+        try {
+          await _storageDio
+              .post(
+                'object/user-events/$fileName',
+                data: bytes,
+                options: Options(
+                  headers: {'Content-Type': 'image/jpeg'},
+                  sendTimeout: const Duration(seconds: 20),
+                  receiveTimeout: const Duration(seconds: 20),
+                ),
+              )
+              .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () {
+              throw TimeoutException('Upload timeout');
+            },
+          );
+          return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+        } catch (e) {
+          debugPrint('[ReportedEvents] photo upload attempt '
+              '$attempt/$maxAttempts failed: $e');
+          if (attempt == maxAttempts) return null;
+          await Future<void>.delayed(Duration(seconds: 2 * attempt));
+        }
+      }
+      return null;
     } catch (e, st) {
       debugPrint('[ReportedEvents] _uploadPhotoLight failed: $e\n$st');
       return null;
@@ -151,6 +168,14 @@ class ReportedEventsService {
       // (ResolutionPreset.veryHigh, 10s) pese souvent 25-50 MB.
       // Res1280x720Quality ramene a ~4-8 MB tout en gardant une qualite
       // visuelle "Snapchat moderne".
+      // Duree d'origine (avant compression) pour detecter le bug VFR.
+      double? originalDurationMs;
+      try {
+        originalDurationMs = (await VideoCompress.getMediaInfo(localPath)).duration;
+      } catch (_) {
+        // getMediaInfo indispo : on ne pourra pas detecter le VFR, tant pis.
+      }
+
       Uint8List bytes;
       try {
         final info = await VideoCompress.compressVideo(
@@ -158,10 +183,30 @@ class ReportedEventsService {
           quality: VideoQuality.Res1280x720Quality,
           deleteOrigin: false,
         );
-        if (info?.file != null) {
-          bytes = await info!.file!.readAsBytes();
+        final compressedFile = info?.file;
+        final compressedDurationMs = info?.duration;
+
+        // Detection VFR (Variable Frame Rate) : sur les cameras Xiaomi/MIUI,
+        // le transcodeur de video_compress contracte la duree (frames VFR
+        // ree-crites a 30 fps constant sans preserver les PTS) -> la video
+        // parait acceleree. Si la duree compressee a retreci de >10%, on jette
+        // la version compressee et on uploade le brut : ExoPlayer (video_player)
+        // joue le VFR a la bonne vitesse. La detection est par symptome (duree),
+        // donc valable pour TOUS les appareils VFR, pas seulement Xiaomi.
+        final shrunk = originalDurationMs != null &&
+            compressedDurationMs != null &&
+            originalDurationMs > 0 &&
+            compressedDurationMs < originalDurationMs * 0.9;
+
+        if (compressedFile != null && !shrunk) {
+          bytes = await compressedFile.readAsBytes();
           debugPrint('[ReportedEvents] video compressed: ${bytes.length ~/ 1024} KB');
         } else {
+          if (shrunk) {
+            debugPrint('[ReportedEvents] VFR detecte '
+                '(compressee ${compressedDurationMs.toInt()}ms < '
+                'origine ${originalDurationMs.toInt()}ms) -> upload brut');
+          }
           bytes = await file.readAsBytes();
         }
       } catch (e) {
@@ -169,36 +214,49 @@ class ReportedEventsService {
         bytes = await file.readAsBytes();
       }
       if (bytes.isEmpty) return null;
-      // Garde-fou : refuse > 30 MB (apres compression : ne devrait jamais arriver)
-      if (bytes.length > 30 * 1024 * 1024) {
-        debugPrint('[ReportedEvents] video too large after compression: ${bytes.length} bytes');
+      // Garde-fou taille : 50 MB. Plafond eleve car le fallback brut VFR n'est
+      // pas compresse (720p/10s ~ 10-25 MB, marge pour les bitrates eleves).
+      if (bytes.length > 50 * 1024 * 1024) {
+        debugPrint('[ReportedEvents] video too large: ${bytes.length} bytes');
         return null;
       }
 
       await Future<void>.delayed(Duration.zero);
 
-      final ts = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '${ts}_report.mp4';
-
-      await _storageDio
-          .post(
-            'object/user-events/$fileName',
-            data: bytes,
-            options: Options(
-              headers: {'Content-Type': 'video/mp4'},
-              sendTimeout: const Duration(seconds: 60),
-              receiveTimeout: const Duration(seconds: 60),
-            ),
-          )
-          .timeout(
-        const Duration(seconds: 60),
-        onTimeout: () {
-          debugPrint('[ReportedEvents] video upload timeout');
-          throw TimeoutException('Video upload timeout');
-        },
-      );
-
-      return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+      // Upload avec retry : reseau mobile instable -> jusqu'a 3 tentatives,
+      // timeout 120s/essai, backoff 2s puis 4s. Un nouveau fileName est genere
+      // a chaque tentative pour eviter un 409 (l'objet d'un essai precedent
+      // partiellement uploade ne bloque pas le suivant).
+      const maxAttempts = 3;
+      for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+        final ts = DateTime.now().millisecondsSinceEpoch;
+        final fileName = '${ts}_report.mp4';
+        try {
+          await _storageDio
+              .post(
+                'object/user-events/$fileName',
+                data: bytes,
+                options: Options(
+                  headers: {'Content-Type': 'video/mp4'},
+                  sendTimeout: const Duration(seconds: 120),
+                  receiveTimeout: const Duration(seconds: 120),
+                ),
+              )
+              .timeout(
+            const Duration(seconds: 120),
+            onTimeout: () {
+              throw TimeoutException('Video upload timeout');
+            },
+          );
+          return '${SupabaseConfig.supabaseUrl}/storage/v1/object/public/user-events/$fileName';
+        } catch (e) {
+          debugPrint('[ReportedEvents] video upload attempt '
+              '$attempt/$maxAttempts failed: $e');
+          if (attempt == maxAttempts) return null;
+          await Future<void>.delayed(Duration(seconds: 2 * attempt));
+        }
+      }
+      return null;
     } catch (e, st) {
       debugPrint('[ReportedEvents] _uploadVideoLight failed: $e\n$st');
       return null;
@@ -296,6 +354,15 @@ class ReportedEventsService {
           debugPrint('[ReportedEvents] cover thumbnail extraction failed: $e');
         }
       }
+    }
+
+    // Garde-fou : ne JAMAIS creer une story sans aucun media. Si tous les
+    // uploads ont echoue (reseau/compression/timeout) on abandonne ici et on
+    // remonte l'echec a l'UI au lieu de publier une coquille vide (photos +
+    // videos + cover tous null). C'est ce qui generait les stories fantomes.
+    if (photoUrls.isEmpty && videoUrl == null) {
+      debugPrint('[ReportedEvents] abort: aucun media uploade avec succes');
+      throw const NoMediaUploadedException();
     }
 
     // Yield avant la RPC

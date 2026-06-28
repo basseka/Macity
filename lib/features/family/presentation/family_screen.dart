@@ -30,40 +30,32 @@ class FamilyScreen extends ConsumerWidget {
     accent2: Color(0xFFF7BE4A),
   );
 
-  IconData _iconFor(String tag) {
-    switch (tag) {
-      case 'Parc d\'attractions':
+  /// Icone par RUBRIQUE (chip de la landing).
+  IconData _iconForGroup(String group) {
+    switch (group) {
+      case 'Divertissements':
         return Icons.attractions_rounded;
-      case 'Aire de jeux':
+      case 'Jeux d\'enfants':
         return Icons.child_friendly_rounded;
-      case 'Parc animalier':
+      case 'Animaux et Nature':
         return Icons.pets_rounded;
-      case 'Ferme pedagogique':
-        return Icons.agriculture_rounded;
-      case 'Cinema':
-        return Icons.movie_rounded;
-      case 'Bowling':
-        return Icons.sports_rounded;
-      case 'Laser game':
-        return Icons.sports_esports_rounded;
-      case 'Escape game':
-        return Icons.lock_rounded;
-      case 'Patinoire':
-        return Icons.ice_skating_rounded;
-      case 'Aquarium':
-        return Icons.water_rounded;
-      case 'Restaurant familial':
-        return Icons.restaurant_rounded;
+      case 'Activite Aquatique':
+        return Icons.pool_rounded;
+      case 'Sortie en Plein Air':
+        return Icons.park_rounded;
+      case 'Decouvrir':
+        return Icons.travel_explore_rounded;
       default:
         return Icons.family_restroom_rounded;
     }
   }
 
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {
-    final chips = FamilyCategoryData.allSubcategories
-        .where((s) => s.searchTag != 'A venir')
-        .map((s) =>
-            RubriqueChip(s.label, _iconFor(s.searchTag), s.searchTag))
+    // Chips = les 6 rubriques (Divertissements, Jeux d'enfants, …). La clé
+    // du chip = le nom de la rubrique ; le carrousel affiche tous les types
+    // de cette rubrique via familyGroupVenuesProvider.
+    final chips = FamilyCategoryData.browsableGroups
+        .map((g) => RubriqueChip(g.name, _iconForGroup(g.name), g.name))
         .toList();
     return RubriqueConfig(
       theme: _famille,
@@ -79,7 +71,8 @@ class FamilyScreen extends ConsumerWidget {
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
       itemsBuilder: (ref, chipKey) {
-        final async = ref.watch(familySupabaseVenuesProvider(chipKey));
+        // chipKey = nom de la rubrique → venues de tous ses types.
+        final async = ref.watch(familyGroupVenuesProvider(chipKey));
         return async.whenData((venues) => venues.map((v) {
               final isHttp = v.photo.startsWith('http');
               final description = [

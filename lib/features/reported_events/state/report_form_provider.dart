@@ -421,9 +421,12 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
       return result;
     } catch (e) {
       debugPrint('[ReportForm] submit error: $e');
+      final isMediaFail = e is NoMediaUploadedException;
       state = state.copyWith(
         isSubmitting: false,
-        error: 'Echec du signalement, reessaie',
+        error: isMediaFail
+            ? "Echec de l'envoi du media, verifie ta connexion et reessaie"
+            : 'Echec du signalement, reessaie',
       );
       return null;
     }

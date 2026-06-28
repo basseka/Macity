@@ -49,6 +49,8 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
 
   final _prenomController = TextEditingController();
   String? _initialPrenom;
+  final _bioController = TextEditingController();
+  String? _initialBio;
   String? _avatarUrl;
   String? _newAvatarPath;
   bool _avatarRemoved = false;
@@ -102,6 +104,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     _villeDebounce?.cancel();
     _villeController.dispose();
     _prenomController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -115,6 +118,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
         final ville = (profile['ville'] as String?) ?? '';
         final resolvedVilles = villes.isNotEmpty ? villes : (ville.isNotEmpty ? [ville] : <String>[]);
         final prenom = (profile['prenom'] as String?) ?? '';
+        final bio = (profile['bio'] as String?) ?? '';
         final avatar = profile['avatar_url'] as String?;
         setState(() {
           _selectedModes.addAll(prefs);
@@ -123,6 +127,8 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
           _initialVilles = List.of(resolvedVilles);
           _prenomController.text = prenom;
           _initialPrenom = prenom;
+          _bioController.text = bio;
+          _initialBio = bio;
           _avatarUrl = (avatar != null && avatar.isNotEmpty) ? avatar : null;
           _loading = false;
         });
@@ -172,6 +178,12 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
       if (newPrenom.isNotEmpty && newPrenom != (_initialPrenom ?? '')) {
         await _service.updatePrenom(newPrenom);
         ref.invalidate(userPrenomProvider);
+      }
+
+      // Profil : bio
+      final newBio = _bioController.text.trim();
+      if (newBio != (_initialBio ?? '')) {
+        await _service.updateBio(newBio);
       }
 
       // Profil : avatar
@@ -408,10 +420,14 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     final hasRemoteAvatar = !_avatarRemoved && _avatarUrl != null && !hasLocalAvatar;
     return Padding(
       padding: const EdgeInsets.only(top: 10, bottom: 4),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
-            onTap: _pickAvatar,
+          Row(
+            children: [
+              GestureDetector(
+                onTap: _pickAvatar,
             child: Stack(
               children: [
                 Container(
@@ -501,6 +517,50 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                   ),
                 ),
               ],
+            ),
+          ),
+            ],
+          ),
+          // ── Bio (description publique affichee sur la fiche contributeur) ──
+          const SizedBox(height: 14),
+          Text(
+            'Bio',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDim,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _bioController,
+            minLines: 2,
+            maxLines: 4,
+            maxLength: 200,
+            style: const TextStyle(fontSize: 14, color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Quelques mots sur toi (visible sur tes stories)',
+              hintStyle: TextStyle(fontSize: 13, color: AppColors.textFaint),
+              isDense: true,
+              counterStyle: TextStyle(color: AppColors.textFaint, fontSize: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+              filled: true,
+              fillColor: AppColors.surfaceHi,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: AppColors.line),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: AppColors.line),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: _accentColor),
+              ),
             ),
           ),
         ],
