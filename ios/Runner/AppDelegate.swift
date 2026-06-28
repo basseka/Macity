@@ -2,6 +2,7 @@ import UIKit
 import Flutter
 import FirebaseCore
 import FirebaseMessaging
+import AVFoundation
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -23,13 +24,24 @@ import FirebaseMessaging
     UNUserNotificationCenter.current().delegate = self
     application.registerForRemoteNotifications()
 
-    // TODO(iOS son stories) : activer l'AVAudioSession en .playback, sinon
-    // video_player ne joue PAS le son des stories Map Live quand l'iPhone est
-    // en mode silencieux (le son est demande cote Dart via setVolume(1.0),
-    // commit dbd8017). Decommenter `import AVFoundation` en haut + ce bloc :
-    //   try? AVAudioSession.sharedInstance().setCategory(.playback)
-    //   try? AVAudioSession.sharedInstance().setActive(true)
-    // (verifier que ca ne lance pas de lecture en arriere-plan non desiree.)
+    // Son des stories (Map Live) : sans configurer l'AVAudioSession, video_player
+    // ne joue PAS le son quand l'iPhone est en mode silencieux. On passe la session
+    // en .playback -> le son ignore l'interrupteur silencieux (le volume est demande
+    // cote Dart via setVolume(1.0), commit dbd8017).
+    // .mixWithOthers : setActive(true) au lancement n'interrompt PAS la musique /
+    // podcast deja en cours chez l'utilisateur (sinon, .playback seul couperait son
+    // audio des l'ouverture de l'app, avant meme qu'une story joue). Le son des
+    // stories se superpose au lieu de tout couper.
+    // NB : configurer la session ne DECLENCHE aucune lecture, et aucun mode audio en
+    // arriere-plan n'est declare (UIBackgroundModes) -> pas de lecture background non
+    // desiree. Retirer .mixWithOthers si l'on veut que la story prenne le dessus.
+    do {
+      let session = AVAudioSession.sharedInstance()
+      try session.setCategory(.playback, options: [.mixWithOthers])
+      try session.setActive(true)
+    } catch {
+      NSLog("[AVAudioSession] config .playback echouee: \(error.localizedDescription)")
+    }
 
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
