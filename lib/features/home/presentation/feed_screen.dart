@@ -2961,6 +2961,8 @@ class _VenueRowCard extends StatelessWidget {
       horaires: venue.horaires,
       telephone: venue.telephone,
       photo: venue.photo ?? '',
+      photos: venue.photos,
+      videoUrl: venue.videoUrl,
       siteWeb: venue.siteWeb ?? '',
       lienMaps: venue.lienMaps ?? '',
       latitude: venue.latitude,

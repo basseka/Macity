@@ -56,8 +56,15 @@ class VenueResult extends SearchResult {
   final double latitude;
   final double longitude;
 
-  /// Table source ('etablissements' ou 'sport_venues') — pour les avis in-app
-  /// et la deduplication (les id se chevauchent entre tables).
+  /// Galerie + video uploadees (table source) — pour que la fiche detail
+  /// ouverte depuis la recherche affiche les MEMES medias que le hub
+  /// (sinon elle retombe sur les medias par defaut).
+  final List<String> photos;
+  final String videoUrl;
+
+  /// Table source ('etablissement' ou 'sport_venues') — pour les avis in-app
+  /// et la deduplication (les id se chevauchent entre tables). Convention
+  /// SINGULIER cote app (reviews/claim) : 'etablissement', 'venue'.
   final String sourceTable;
 
   const VenueResult({
@@ -73,7 +80,9 @@ class VenueResult extends SearchResult {
     this.lienMaps,
     this.latitude = 0,
     this.longitude = 0,
-    this.sourceTable = 'etablissements',
+    this.photos = const [],
+    this.videoUrl = '',
+    this.sourceTable = 'etablissement',
     required super.relevance,
   }) : super(date: '9999-12-31'); // Venues n'ont pas de date, affichees apres les events
 

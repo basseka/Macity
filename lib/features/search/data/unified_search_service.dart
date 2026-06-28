@@ -131,7 +131,7 @@ class UnifiedSearchService {
   Future<List<VenueResult>> _searchVenues(String query, {String? ville, int limit = 20}) async {
     try {
       final params = <String, String>{
-        'select': 'id,nom,categorie,adresse,ville,horaires,telephone,site_web,lien_maps,photo,latitude,longitude',
+        'select': 'id,nom,categorie,adresse,ville,horaires,telephone,site_web,lien_maps,photo,photos,video_url,latitude,longitude',
         'is_active': 'eq.true',
         'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,adresse.ilike.*$query*)',
         'order': 'nom.asc',
@@ -153,6 +153,10 @@ class UnifiedSearchService {
         final relevance = name.toLowerCase().contains(q) ? 0
             : cat.toLowerCase().contains(q) ? 1
             : 2;
+        final photosRaw = j['photos'];
+        final photos = photosRaw is List
+            ? photosRaw.whereType<String>().where((s) => s.isNotEmpty).toList()
+            : <String>[];
         return VenueResult(
           id: '${j['id'] ?? name}',
           name: name,
@@ -164,6 +168,9 @@ class UnifiedSearchService {
           siteWeb: j['site_web'] as String? ?? '',
           lienMaps: j['lien_maps'] as String? ?? '',
           photo: j['photo'] as String? ?? '',
+          photos: photos,
+          videoUrl: j['video_url'] as String? ?? '',
+          sourceTable: 'etablissement',
           latitude: (j['latitude'] as num?)?.toDouble() ?? 0,
           longitude: (j['longitude'] as num?)?.toDouble() ?? 0,
           relevance: relevance,
