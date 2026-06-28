@@ -69,7 +69,10 @@ class _CacheEntry {
         .timeout(const Duration(seconds: 12))
         .then((_) {
       ctrl.setLooping(true);
-      ctrl.setVolume(0);
+      // Son actif : une story Map Live se regarde AVEC le son (comme
+      // Insta/Snap). Seule la story visible joue (les preloads ne sont pas
+      // lances), donc pas de cacophonie au swipe.
+      ctrl.setVolume(1.0);
       return ctrl;
     }).catchError((Object e) {
       debugPrint('[StoryVideoCache] init failed for $url: $e');

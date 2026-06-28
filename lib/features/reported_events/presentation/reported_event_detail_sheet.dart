@@ -122,7 +122,7 @@ class _ReportedEventDetailSheetState
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Media full-bleed : video autoplay/loop muted ou photo selon
+          // 1. Media full-bleed : video autoplay/loop AVEC son ou photo selon
           //    le media courant. Pause sync avec chatInputFocusedProvider
           //    (sheet ouverte / chat focus / long-press).
           _StoryMedia(
@@ -213,7 +213,7 @@ class _ReportedEventDetailSheetState
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Media background : video autoplay/loop muted, fallback photo
+// Media background : video autoplay/loop avec son, fallback photo
 // ──────────────────────────────────────────────────────────────────────────
 
 class _StoryMedia extends ConsumerStatefulWidget {

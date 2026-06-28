@@ -58,6 +58,15 @@ class CityCenters {
   static const double _deltaLat = 0.32;
   static const double _deltaLng = 0.45;
 
+  /// Override du rayon pour certaines villes. Toulouse est elargi a ~55 km
+  /// pour inclure Montauban et son agglo dans les bulles.
+  /// 0.50 lat = ~55 km ; 0.68 lng = ~55 km a la latitude de Toulouse
+  /// (1 deg lng ~ 80 km ici). Bord nord = 43.6047 + 0.50 = 44.105
+  /// (Montauban centre = 44.017).
+  static const Map<String, ({double lat, double lng})> _deltaOverrides = {
+    'toulouse': (lat: 0.50, lng: 0.68),
+  };
+
   /// Retourne le centre d'une ville, ou null si inconnue.
   static ({double lat, double lng})? center(String city) {
     final key = _normalize(city);
@@ -71,11 +80,14 @@ class CityCenters {
   ) {
     final c = center(city);
     if (c == null) return null;
+    final d = _deltaOverrides[_normalize(city)];
+    final dLat = d?.lat ?? _deltaLat;
+    final dLng = d?.lng ?? _deltaLng;
     return (
-      minLat: c.lat - _deltaLat,
-      maxLat: c.lat + _deltaLat,
-      minLng: c.lng - _deltaLng,
-      maxLng: c.lng + _deltaLng,
+      minLat: c.lat - dLat,
+      maxLat: c.lat + dLat,
+      minLng: c.lng - dLng,
+      maxLng: c.lng + dLng,
     );
   }
 
