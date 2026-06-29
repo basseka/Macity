@@ -138,9 +138,14 @@ class AppUpdateService {
   /// - `com.apple.AppStore`  : App Store iOS (peut aussi etre null en
   ///   TestFlight selon la version d'iOS)
   bool _isFromOfficialStore(String? installerStore) {
-    if (installerStore == null || installerStore.isEmpty) return false;
+    // Android : on exige le Play Store (le flow natif in-app-update en depend).
     if (Platform.isAndroid) return installerStore == 'com.android.vending';
-    if (Platform.isIOS) return installerStore == 'com.apple.AppStore';
+    // iOS : `installerStore` est NON FIABLE (null/`com.apple.testflight` en
+    // TestFlight, souvent null meme depuis l'App Store) -> s'y fier sautait le
+    // check et cassait le forcage iOS. On se base sur le mode release : un
+    // build release = distribue (TestFlight/App Store), le forcage doit donc
+    // s'appliquer. En debug (flutter run) on skip pour ne pas bloquer le dev.
+    if (Platform.isIOS) return kReleaseMode;
     return false;
   }
 
