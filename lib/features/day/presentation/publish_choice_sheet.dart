@@ -12,7 +12,7 @@ import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 ///   • Event privé  → coffre secret sur invitation (gratuit)
 ///   • Accès Pro    → espace pro (publication illimitée si approuvé)
 ///   • Event public → publication payante particulier (écran Tarifs + Stripe)
-class PublishChoiceSheet extends ConsumerWidget {
+class PublishChoiceSheet extends ConsumerStatefulWidget {
   const PublishChoiceSheet({super.key});
 
   static Future<void> show(BuildContext context) {
@@ -26,7 +26,27 @@ class PublishChoiceSheet extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PublishChoiceSheet> createState() =>
+      _PublishChoiceSheetState();
+}
+
+class _PublishChoiceSheetState extends ConsumerState<PublishChoiceSheet> {
+  @override
+  void initState() {
+    super.initState();
+    // Rafraichit le palier d'abonnement (live) a l'ouverture : si l'admin l'a
+    // change apres le login du pro, le bandeau reflete la valeur a jour
+    // (le profil en cache datait du login).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (ref.read(proAuthProvider).status == ProAuthStatus.approved) {
+        ref.read(proAuthProvider.notifier).refreshStatus();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final proState = ref.watch(proAuthProvider);
     final isProApproved = proState.status == ProAuthStatus.approved;
 
@@ -124,17 +144,17 @@ class PublishChoiceSheet extends ConsumerWidget {
       'premium' => (
           label: '💎 Abonnement Premium',
           effet: 'Tous vos events passent à la une du feed.',
-          grad: [Color(0xFF7B2D8E), Color(0xFFA855F7)],
+          grad: const [Color(0xFF7B2D8E), Color(0xFFA855F7)],
         ),
       'gold' => (
           label: '🥇 Abonnement Gold',
           effet: 'Tous vos events sont mis au top du feed.',
-          grad: [Color(0xFFB8860B), Color(0xFFF59E0B)],
+          grad: const [Color(0xFFB8860B), Color(0xFFF59E0B)],
         ),
       _ => (
           label: 'Abonnement Normal',
           effet: 'Vos events apparaissent dans le feed standard.',
-          grad: [Color(0xFF3A3A3A), Color(0xFF5A5A5A)],
+          grad: const [Color(0xFF3A3A3A), Color(0xFF5A5A5A)],
         ),
     };
     return Container(
