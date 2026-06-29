@@ -1802,6 +1802,15 @@
               <div id="sysmon-storage"></div>
             </div>
           </div>
+
+          <h2 style="font-size:15px; margin:26px 0 10px;">🤖 Consommation IA (30 derniers jours)</h2>
+          <div id="ai-usage-loading" style="color:var(--text-dim); font-size:13px;">Chargement…</div>
+          <div id="ai-usage-content" class="hidden">
+            <div id="ai-usage-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:14px; margin-bottom:16px;"></div>
+            <h3 style="font-size:13px; margin:0 0 8px; color:var(--text-dim);">Par modèle (coût · tokens in/out)</h3>
+            <div id="ai-usage-models"></div>
+          </div>
+          <div id="ai-usage-error" class="hidden" style="color:var(--text-faint); font-size:12px;"></div>
         </div>
       </div>
 
@@ -3049,6 +3058,7 @@
       sysmonView.classList.remove("hidden");
       gotoSysmonBtn.style.display = "none";
       refreshSysmonView();
+      refreshAiUsage();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoSysmonBtn.addEventListener("click", showSysmonView);
@@ -4215,7 +4225,80 @@
       return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
     }
 
-    document.getElementById("sysmon-refresh-btn").addEventListener("click", refreshSysmonView);
+    document.getElementById("sysmon-refresh-btn").addEventListener("click", () => {
+      refreshSysmonView();
+      refreshAiUsage();
+    });
+
+    // ─── Conso IA (Admin API Anthropic via edge function) ───────────────────
+    function _humanTokens(n) {
+      if (!n) return "0";
+      if (n >= 1e9) return (n / 1e9).toFixed(2) + " G";
+      if (n >= 1e6) return (n / 1e6).toFixed(2) + " M";
+      if (n >= 1e3) return (n / 1e3).toFixed(1) + " k";
+      return String(n);
+    }
+
+    async function refreshAiUsage() {
+      const loading = document.getElementById("ai-usage-loading");
+      const content = document.getElementById("ai-usage-content");
+      const errEl = document.getElementById("ai-usage-error");
+      loading.classList.remove("hidden");
+      content.classList.add("hidden");
+      errEl.classList.add("hidden");
+      try {
+        const { data, error } = await supabase.functions.invoke("admin-ai-usage", {
+          body: { days: 30 },
+        });
+        if (error) throw error;
+        if (!data || data.error) throw new Error(data?.error || "réponse vide");
+
+        const totalUsd = data.total_usd || 0;
+        const days = data.by_day || [];
+        const models = data.by_model || [];
+        const totalTokens = models.reduce((a, m) => a + (m.input_tokens || 0) + (m.output_tokens || 0), 0);
+
+        document.getElementById("ai-usage-cards").innerHTML = [
+          `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+            <div style="font-size:24px; font-weight:800; color:var(--text);">$${totalUsd.toFixed(2)}</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Coût total (30 j)</div>
+          </div>`,
+          `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+            <div style="font-size:24px; font-weight:800; color:var(--text);">${_humanTokens(totalTokens)}</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Tokens (in + out)</div>
+          </div>`,
+          `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+            <div style="font-size:24px; font-weight:800; color:var(--text);">$${days.length ? (totalUsd / days.length).toFixed(2) : "0.00"}</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Coût moyen / jour</div>
+          </div>`,
+        ].join("");
+
+        const maxCost = Math.max(0.000001, ...models.map(m => m.cost_usd || 0));
+        document.getElementById("ai-usage-models").innerHTML = models.length
+          ? models.map(m => {
+              const pct = Math.round(((m.cost_usd || 0) / maxCost) * 100);
+              return `<div style="margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;">
+                  <span style="color:var(--text);">${escapeHtml(m.model)}</span>
+                  <span style="color:var(--text-dim);">$${(m.cost_usd || 0).toFixed(2)} · ${_humanTokens(m.input_tokens)} / ${_humanTokens(m.output_tokens)}</span>
+                </div>
+                <div style="height:7px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;">
+                  <div style="height:100%; width:${pct}%; background:linear-gradient(90deg,#10B981,#0EA5E9);"></div>
+                </div>
+              </div>`;
+            }).join("")
+          : `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée sur la période.</div>`;
+
+        content.classList.remove("hidden");
+      } catch (e) {
+        console.warn("[Conso IA]", e);
+        errEl.textContent = "Conso IA indisponible : " + (e.message || e) +
+          " (vérifie le secret ANTHROPIC_ADMIN_KEY et le déploiement de l'edge function admin-ai-usage).";
+        errEl.classList.remove("hidden");
+      } finally {
+        loading.classList.add("hidden");
+      }
+    }
 
     // ─── Onglet Intérêt abonnement ──────────────────────────────────────────
     const interestLoading = document.getElementById("interest-loading");
