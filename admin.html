@@ -978,6 +978,7 @@
           <span class="nav-btn" id="goto-pubprices-btn">💶 Tarifs publi</span>
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
           <span class="nav-btn" id="goto-userstats-btn">👥 Utilisateurs</span>
+          <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
         </div>
       </div>
 
@@ -1776,6 +1777,29 @@
             <div>
               <h2 style="font-size:15px; margin:0 0 10px;">🎯 Centres d'intérêt</h2>
               <div id="userstats-interets"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ VUE SYSTÈME (monitoring base + IA) ═══ -->
+      <div id="sysmon-view" class="hidden">
+        <h1>🩺 Système</h1>
+        <p class="subtitle">État de la base : taille, plus grosses tables, usage du Storage. <span id="sysmon-ai-note" style="color:var(--text-faint);"></span></p>
+        <div style="display:flex; gap:8px; margin:16px 0;">
+          <button type="button" class="banner-save-btn" id="sysmon-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
+        </div>
+        <div id="sysmon-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="sysmon-content" class="hidden">
+          <div id="sysmon-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:22px;"></div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:22px;">
+            <div>
+              <h2 style="font-size:15px; margin:0 0 10px;">🗄️ Plus grosses tables</h2>
+              <div id="sysmon-tables"></div>
+            </div>
+            <div>
+              <h2 style="font-size:15px; margin:0 0 10px;">📦 Storage par bucket</h2>
+              <div id="sysmon-storage"></div>
             </div>
           </div>
         </div>
@@ -2857,6 +2881,8 @@
     const gotoPubpricesBtn = document.getElementById("goto-pubprices-btn");
     const userstatsView = document.getElementById("userstats-view");
     const gotoUserstatsBtn = document.getElementById("goto-userstats-btn");
+    const sysmonView = document.getElementById("sysmon-view");
+    const gotoSysmonBtn = document.getElementById("goto-sysmon-btn");
     const storyttlView = document.getElementById("storyttl-view");
     const gotoStoryttlBtn = document.getElementById("goto-storyttl-btn");
     const chainsView = document.getElementById("chains-view");
@@ -2879,6 +2905,7 @@
       storyttlView.classList.add("hidden");
       familyView.classList.add("hidden");
       userstatsView.classList.add("hidden");
+      sysmonView.classList.add("hidden");
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
@@ -2895,6 +2922,7 @@
       gotoStoryttlBtn.style.display = "inline-flex";
       gotoFamilyBtn.style.display = "inline-flex";
       gotoUserstatsBtn.style.display = "inline-flex";
+      gotoSysmonBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
     }
@@ -3016,6 +3044,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoUserstatsBtn.addEventListener("click", showUserstatsView);
+    function showSysmonView() {
+      _hideAllViews();
+      sysmonView.classList.remove("hidden");
+      gotoSysmonBtn.style.display = "none";
+      refreshSysmonView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoSysmonBtn.addEventListener("click", showSysmonView);
     gotoChainsBtn.addEventListener("click", showChainsView);
     function showNotifsView() {
       _hideAllViews();
@@ -4108,6 +4144,78 @@
       }
     }
     document.getElementById("userstats-refresh-btn").addEventListener("click", refreshUserstatsView);
+
+    // ─── Onglet Système (monitoring base) ───────────────────────────────────
+    const sysmonLoading = document.getElementById("sysmon-loading");
+    const sysmonContent = document.getElementById("sysmon-content");
+
+    function _sysBar(label, value, sub, bytes, maxBytes) {
+      const pct = maxBytes > 0 ? Math.round((bytes / maxBytes) * 100) : 0;
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;">
+          <span style="color:var(--text);">${escapeHtml(label)}</span>
+          <span style="color:var(--text-dim);">${escapeHtml(value)}${sub ? ` · ${escapeHtml(sub)}` : ""}</span>
+        </div>
+        <div style="height:7px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;">
+          <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, var(--magenta), #7c3aed);"></div>
+        </div>
+      </div>`;
+    }
+
+    async function refreshSysmonView() {
+      sysmonLoading.classList.remove("hidden");
+      sysmonContent.classList.add("hidden");
+      try {
+        const { data, error } = await supabase.rpc("admin_db_stats");
+        if (error) throw error;
+        const s = data || {};
+        const tables = s.top_tables || [];
+        const storage = s.storage || [];
+        const storageBytes = storage.reduce((a, b) => a + (b.bytes || 0), 0);
+
+        document.getElementById("sysmon-cards").innerHTML = [
+          `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+            <div style="font-size:24px; font-weight:800; color:var(--text);">${escapeHtml(s.db_size_pretty || "—")}</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Taille de la base</div>
+          </div>`,
+          `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+            <div style="font-size:24px; font-weight:800; color:var(--text);">${_humanBytes(storageBytes)}</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Storage (tous buckets)</div>
+          </div>`,
+          `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+            <div style="font-size:24px; font-weight:800; color:var(--text);">${tables.length}</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">Tables (top 15 affichées)</div>
+          </div>`,
+        ].join("");
+
+        const maxTable = Math.max(1, ...tables.map(t => t.size_bytes || 0));
+        document.getElementById("sysmon-tables").innerHTML = tables.length
+          ? tables.map(t => _sysBar(t.table_name, t.size_pretty, `${(t.rows_estimate || 0).toLocaleString("fr-FR")} lignes`, t.size_bytes || 0, maxTable)).join("")
+          : `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée.</div>`;
+
+        const maxBucket = Math.max(1, ...storage.map(b => b.bytes || 0));
+        document.getElementById("sysmon-storage").innerHTML = storage.length
+          ? storage.map(b => _sysBar(b.bucket, b.size_pretty, `${(b.objects || 0).toLocaleString("fr-FR")} objets`, b.bytes || 0, maxBucket)).join("")
+          : `<div style="color:var(--text-faint); font-size:12px;">Aucun objet.</div>`;
+
+        sysmonContent.classList.remove("hidden");
+      } catch (e) {
+        console.error("[Système] load", e);
+        toast("Erreur chargement : " + (e.message || e), false);
+      } finally {
+        sysmonLoading.classList.add("hidden");
+      }
+    }
+
+    function _humanBytes(n) {
+      if (!n) return "0 o";
+      const u = ["o", "Ko", "Mo", "Go", "To"];
+      let i = 0; let v = n;
+      while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+      return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
+    }
+
+    document.getElementById("sysmon-refresh-btn").addEventListener("click", refreshSysmonView);
 
     // ─── Onglet Intérêt abonnement ──────────────────────────────────────────
     const interestLoading = document.getElementById("interest-loading");
