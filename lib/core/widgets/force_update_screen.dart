@@ -53,7 +53,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
     // et on remet TOUJOURS _busy a false pour debloquer le bouton.
     final native = await AppUpdateService.instance.tryNativeFlow(immediate: true);
     if (!native) {
-      final url = widget.status.storeUrl;
+      final url = widget.status.effectiveStoreUrl;
       if (url != null && url.isNotEmpty) {
         final uri = Uri.tryParse(url);
         if (uri != null) {

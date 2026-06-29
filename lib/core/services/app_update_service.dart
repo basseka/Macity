@@ -17,6 +17,11 @@ class AppUpdateService {
   AppUpdateService._();
   static final AppUpdateService instance = AppUpdateService._();
 
+  /// URL App Store de secours, utilisee si `app_versions.ios.store_url` est
+  /// absent : evite que le bouton de l'ecran de forcage iOS (bloquant, sans
+  /// bouton fermer) reste sans effet et piege l'utilisateur. (Apple ID 6778110272.)
+  static const iosStoreFallbackUrl = 'https://apps.apple.com/app/id6778110272';
+
   AppUpdateStatus? _lastStatus;
   AppUpdateStatus? get lastStatus => _lastStatus;
 
@@ -246,6 +251,17 @@ extension AppUpdateStatusFields on AppUpdateStatus {
     final s = this;
     if (s is _UpdateAvailable) return s.storeUrl;
     if (s is _ForceUpdate) return s.storeUrl;
+    return null;
+  }
+
+  /// URL store a ouvrir effectivement, avec fallback App Store sur iOS si la
+  /// base ne fournit pas de store_url (sinon l'ecran de forcage iOS — bloquant
+  /// — aurait un bouton sans effet => cul-de-sac). Android : pas de fallback
+  /// (le flow natif in-app-update prend le relai, et store_url est attendu).
+  String? get effectiveStoreUrl {
+    final url = storeUrl;
+    if (url != null && url.isNotEmpty) return url;
+    if (Platform.isIOS) return AppUpdateService.iosStoreFallbackUrl;
     return null;
   }
 

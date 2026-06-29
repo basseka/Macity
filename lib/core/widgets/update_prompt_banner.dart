@@ -33,7 +33,7 @@ class _UpdatePromptBannerState extends State<UpdatePromptBanner> {
       return;
     }
 
-    final url = widget.status.storeUrl;
+    final url = widget.status.effectiveStoreUrl;
     if (url != null && url.isNotEmpty) {
       final uri = Uri.tryParse(url);
       if (uri != null) {
