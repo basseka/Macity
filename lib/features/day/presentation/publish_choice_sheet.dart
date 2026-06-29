@@ -56,6 +56,13 @@ class PublishChoiceSheet extends ConsumerWidget {
               style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 13)),
           const SizedBox(height: 20),
 
+          // Retour pro : rappelle son palier d'abonnement et l'effet sur le
+          // placement de ses events dans le feed.
+          if (isProApproved) ...[
+            _tierBanner(proState.profile?.subscriptionTier ?? 'normal'),
+            const SizedBox(height: 14),
+          ],
+
           _choice(
             emoji: '🔒',
             title: 'Event privé',
@@ -105,6 +112,63 @@ class PublishChoiceSheet extends ConsumerWidget {
                 );
               }
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Bandeau qui indique au pro son palier et l'effet sur ses publications.
+  Widget _tierBanner(String tier) {
+    final ({String label, String effet, List<Color> grad}) meta = switch (tier) {
+      'premium' => (
+          label: '💎 Abonnement Premium',
+          effet: 'Tous vos events passent à la une du feed.',
+          grad: [Color(0xFF7B2D8E), Color(0xFFA855F7)],
+        ),
+      'gold' => (
+          label: '🥇 Abonnement Gold',
+          effet: 'Tous vos events sont mis au top du feed.',
+          grad: [Color(0xFFB8860B), Color(0xFFF59E0B)],
+        ),
+      _ => (
+          label: 'Abonnement Normal',
+          effet: 'Vos events apparaissent dans le feed standard.',
+          grad: [Color(0xFF3A3A3A), Color(0xFF5A5A5A)],
+        ),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: meta.grad,
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.workspace_premium_rounded,
+              color: Colors.white, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(meta.label,
+                    style: GoogleFonts.geist(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(meta.effet,
+                    style: GoogleFonts.geist(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 12)),
+              ],
+            ),
           ),
         ],
       ),

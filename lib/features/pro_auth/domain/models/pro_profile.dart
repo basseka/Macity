@@ -7,6 +7,9 @@ class ProProfile {
   final String telephone;
   final String? accessCode;
   final bool approved;
+  /// Palier d'abonnement : 'normal' | 'gold' | 'premium'. Pilote le placement
+  /// des events du pro dans le feed (standard / au top / a la une).
+  final String subscriptionTier;
   final DateTime createdAt;
 
   ProProfile({
@@ -18,10 +21,11 @@ class ProProfile {
     required this.telephone,
     this.accessCode,
     this.approved = false,
+    this.subscriptionTier = 'normal',
     required this.createdAt,
   });
 
-  ProProfile copyWith({bool? approved}) {
+  ProProfile copyWith({bool? approved, String? subscriptionTier}) {
     return ProProfile(
       id: id,
       userId: userId,
@@ -31,6 +35,7 @@ class ProProfile {
       telephone: telephone,
       accessCode: accessCode,
       approved: approved ?? this.approved,
+      subscriptionTier: subscriptionTier ?? this.subscriptionTier,
       createdAt: createdAt,
     );
   }
@@ -48,6 +53,7 @@ class ProProfile {
         'telephone': telephone,
         'accessCode': accessCode,
         'approved': approved,
+        'subscriptionTier': subscriptionTier,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -60,6 +66,7 @@ class ProProfile {
         telephone: json['telephone'] as String,
         accessCode: json['accessCode'] as String?,
         approved: json['approved'] as bool? ?? false,
+        subscriptionTier: json['subscriptionTier'] as String? ?? 'normal',
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
 
@@ -86,6 +93,7 @@ class ProProfile {
         telephone: json['telephone'] as String,
         accessCode: json['access_code'] as String?,
         approved: json['approved'] as bool? ?? false,
+        subscriptionTier: json['subscription_tier'] as String? ?? 'normal',
         createdAt: json['created_at'] != null
             ? DateTime.parse(json['created_at'] as String)
             : DateTime.now(),

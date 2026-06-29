@@ -4469,6 +4469,20 @@
             + `<button type="button" class="act act-success" data-approve="${safeEmail}">Approuver</button>`
             + revokeBtn
             + `</div>`;
+        // Palier d'abonnement (normal / gold / premium)
+        const tier = p.subscription_tier || "normal";
+        const tierMeta = {
+          normal:  { label: "Normal",  bg: "rgba(120,120,120,0.2)", fg: "var(--text-dim)" },
+          gold:    { label: "🥇 Gold",  bg: "rgba(245,158,11,0.2)",  fg: "#F59E0B" },
+          premium: { label: "💎 Premium", bg: "rgba(168,85,247,0.22)", fg: "#A855F7" },
+        }[tier] || { label: tier, bg: "rgba(120,120,120,0.2)", fg: "var(--text-dim)" };
+        const tierBadge = `<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:${tierMeta.bg}; color:${tierMeta.fg};">${tierMeta.label}</span>`;
+        const tierSelect = `
+          <select data-tier-email="${safeEmail}" class="banner-input" style="width:auto; min-width:130px; margin:0;">
+            <option value="normal"${tier === "normal" ? " selected" : ""}>Normal (standard)</option>
+            <option value="gold"${tier === "gold" ? " selected" : ""}>Gold (au top)</option>
+            <option value="premium"${tier === "premium" ? " selected" : ""}>Premium (à la une)</option>
+          </select>`;
         return `
           <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;">
@@ -4482,6 +4496,7 @@
                   ${emailVerified
                     ? '<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(59,130,246,0.15); color:#3B82F6;">📧 Email vérifié</span>'
                     : '<span style="font-size:11px; padding:2px 7px; border-radius:8px; background:rgba(120,120,120,0.2); color:var(--text-dim);">📧 Email non vérifié</span>'}
+                  ${tierBadge}
                 </div>
                 <div style="font-size:13px; color:var(--text-dim); line-height:1.7;">
                   📧 <a href="mailto:${escapeHtml(p.email)}" style="color:#A855F7;">${escapeHtml(p.email)}</a><br>
@@ -4490,6 +4505,11 @@
                 </div>
               </div>
               <div>${actionBtn}</div>
+            </div>
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line); display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <span style="font-size:12px; color:var(--text-faint);">💳 Abonnement :</span>
+              ${tierSelect}
+              <span style="font-size:11px; color:var(--text-faint);">Normal = standard · Gold = au top · Premium = à la une (s'applique à tous ses events)</span>
             </div>
             <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
               <div style="font-size:12px; color:var(--text-faint); margin-bottom:6px;">🔎 Vérification officielle (annuaire des entreprises / RNA associations)</div>
@@ -4508,6 +4528,24 @@
       });
       prosList.querySelectorAll("[data-revoke]").forEach(btn => {
         btn.addEventListener("click", () => revokePro(btn.dataset.revoke));
+      });
+      prosList.querySelectorAll("[data-tier-email]").forEach(sel => {
+        sel.addEventListener("change", async () => {
+          const email = sel.dataset.tierEmail;
+          const tier = sel.value;
+          try {
+            const { error } = await supabase.rpc("admin_set_pro_subscription", {
+              p_email: email, p_tier: tier,
+            });
+            if (error) throw error;
+            const pro = _allPros.find(p => String(p.email) === email);
+            if (pro) pro.subscription_tier = tier;
+            toast(`Abonnement → ${tier}`, true);
+            renderProsList();
+          } catch (e) {
+            toast("Erreur : " + (e.message || e), false);
+          }
+        });
       });
       prosList.querySelectorAll("[data-verify]").forEach(btn => {
         btn.addEventListener("click", () => verifyEntity(btn.dataset.verify));
