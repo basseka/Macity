@@ -238,7 +238,7 @@
     /* ─── Top toolbar (logout left, nav right) ─── */
     .top-toolbar {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 16px;
@@ -961,7 +961,7 @@
       <!-- ═══ Top toolbar : logout (gauche) + nav (droite) ═══ -->
       <div class="top-toolbar">
         <span class="logout" id="logout-btn" style="margin-bottom: 0;">← Se déconnecter</span>
-        <div style="display:flex; gap:8px;">
+        <div style="display:grid; grid-template-columns:repeat(4, max-content); gap:8px; justify-content:end;">
           <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
@@ -977,6 +977,7 @@
           <span class="nav-btn" id="goto-appversions-btn">🚀 MAJ App</span>
           <span class="nav-btn" id="goto-pubprices-btn">💶 Tarifs publi</span>
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
+          <span class="nav-btn" id="goto-userstats-btn">👥 Utilisateurs</span>
         </div>
       </div>
 
@@ -1757,6 +1758,29 @@
         <div id="family-list"></div>
       </div>
 
+      <!-- ═══ VUE STATS UTILISATEURS ═══ -->
+      <div id="userstats-view" class="hidden">
+        <h1>👥 Utilisateurs</h1>
+        <p class="subtitle">Statistiques agrégées des profils (<code>user_profiles</code>) : volume, complétion, répartition par ville et centres d'intérêt. Aucune donnée perso affichée.</p>
+        <div style="display:flex; gap:8px; margin:16px 0;">
+          <button type="button" class="banner-save-btn" id="userstats-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
+        </div>
+        <div id="userstats-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="userstats-content" class="hidden">
+          <div id="userstats-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px; margin-bottom:22px;"></div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:22px;">
+            <div>
+              <h2 style="font-size:15px; margin:0 0 10px;">🏙️ Par ville</h2>
+              <div id="userstats-villes"></div>
+            </div>
+            <div>
+              <h2 style="font-size:15px; margin:0 0 10px;">🎯 Centres d'intérêt</h2>
+              <div id="userstats-interets"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ═══ VUE CHAÎNES FITNESS ═══ -->
       <div id="chains-view" class="hidden">
         <h1>🏋️ Chaînes fitness</h1>
@@ -1784,6 +1808,11 @@
             <textarea id="notif-body" maxlength="180" rows="3" placeholder="Le texte affiché sous le titre…"
               style="width:100%; box-sizing:border-box; padding:11px 13px; border-radius:10px; border:1px solid var(--stroke,#ffffff22); background:rgba(255,255,255,0.04); color:var(--text,#fff); font-size:14px; resize:vertical;"></textarea>
             <div style="text-align:right; font-size:11px; color:var(--text-faint); margin-top:3px;"><span id="notif-body-count">0</span>/180</div>
+          </div>
+          <div>
+            <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;">Lien au tap <span style="opacity:.6;font-weight:400">— optionnel. Si renseigné, taper la notif ouvre ce lien (ex : page Play Store pour une MAJ).</span></label>
+            <input type="url" id="notif-url" placeholder="https://play.google.com/store/apps/details?id=com.macity.app"
+              style="width:100%; box-sizing:border-box; padding:11px 13px; border-radius:10px; border:1px solid var(--stroke,#ffffff22); background:rgba(255,255,255,0.04); color:var(--text,#fff); font-size:14px;" />
           </div>
 
           <!-- Cible -->
@@ -2826,6 +2855,8 @@
     const gotoAppversionsBtn = document.getElementById("goto-appversions-btn");
     const pubpricesView = document.getElementById("pubprices-view");
     const gotoPubpricesBtn = document.getElementById("goto-pubprices-btn");
+    const userstatsView = document.getElementById("userstats-view");
+    const gotoUserstatsBtn = document.getElementById("goto-userstats-btn");
     const storyttlView = document.getElementById("storyttl-view");
     const gotoStoryttlBtn = document.getElementById("goto-storyttl-btn");
     const chainsView = document.getElementById("chains-view");
@@ -2847,6 +2878,7 @@
       pubpricesView.classList.add("hidden");
       storyttlView.classList.add("hidden");
       familyView.classList.add("hidden");
+      userstatsView.classList.add("hidden");
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
@@ -2862,6 +2894,7 @@
       gotoPubpricesBtn.style.display = "inline-flex";
       gotoStoryttlBtn.style.display = "inline-flex";
       gotoFamilyBtn.style.display = "inline-flex";
+      gotoUserstatsBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
     }
@@ -2975,6 +3008,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoFamilyBtn.addEventListener("click", showFamilyView);
+    function showUserstatsView() {
+      _hideAllViews();
+      userstatsView.classList.remove("hidden");
+      gotoUserstatsBtn.style.display = "none";
+      refreshUserstatsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoUserstatsBtn.addEventListener("click", showUserstatsView);
     gotoChainsBtn.addEventListener("click", showChainsView);
     function showNotifsView() {
       _hideAllViews();
@@ -3118,9 +3159,14 @@
         resultEl.textContent = "";
         resultEl.style.color = "var(--text-dim)";
         try {
+          // Lien optionnel : si renseigné, on attache data.{type:open_url,url}
+          // → l'app (app.dart, type 'open_url') ouvre l'URL au tap de la notif.
+          const tapUrl = document.getElementById("notif-url").value.trim();
+          const reqBody = { title, body, interests, ville: city };
+          if (tapUrl) reqBody.data = { type: "open_url", url: tapUrl };
           const { data, error } = await supabase.functions.invoke(
             "broadcast-notification",
-            { body: { title, body, interests, ville: city } },
+            { body: reqBody },
           );
           if (error) throw error;
           if (data && data.ok) {
@@ -4003,6 +4049,65 @@
         }
       }
     });
+
+    // ─── Onglet Utilisateurs (stats agrégées) ───────────────────────────────
+    const userstatsLoading = document.getElementById("userstats-loading");
+    const userstatsContent = document.getElementById("userstats-content");
+
+    function _statCard(label, value, sub) {
+      return `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+        <div style="font-size:26px; font-weight:800; color:var(--text);">${value}</div>
+        <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">${escapeHtml(label)}</div>
+        ${sub ? `<div style="font-size:11px; color:var(--text-faint); margin-top:2px;">${escapeHtml(sub)}</div>` : ""}
+      </div>`;
+    }
+
+    // Barre proportionnelle (label + count) pour les listes ville/intérêt.
+    function _statBars(rows, total) {
+      if (!rows || rows.length === 0) return `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée.</div>`;
+      const max = Math.max(...rows.map(r => r.n));
+      return rows.map(r => {
+        const pct = max > 0 ? Math.round((r.n / max) * 100) : 0;
+        const share = total > 0 ? Math.round((r.n / total) * 100) : 0;
+        return `<div style="margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:3px;">
+            <span style="color:var(--text);">${escapeHtml(String(r.ville ?? r.interet ?? "—"))}</span>
+            <span style="color:var(--text-dim);">${r.n} · ${share}%</span>
+          </div>
+          <div style="height:7px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;">
+            <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, var(--magenta), #7c3aed);"></div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    async function refreshUserstatsView() {
+      userstatsLoading.classList.remove("hidden");
+      userstatsContent.classList.add("hidden");
+      try {
+        const { data, error } = await supabase.rpc("admin_user_stats");
+        if (error) throw error;
+        const s = data || {};
+        const total = s.total || 0;
+        const pct = (n) => total > 0 ? Math.round((n / total) * 100) : 0;
+        document.getElementById("userstats-cards").innerHTML = [
+          _statCard("Profils au total", total, ""),
+          _statCard("Avec prénom", s.avec_prenom || 0, `${pct(s.avec_prenom || 0)}%`),
+          _statCard("Avec email", s.avec_email || 0, `${pct(s.avec_email || 0)}%`),
+          _statCard("Avec avatar", s.avec_avatar || 0, `${pct(s.avec_avatar || 0)}%`),
+          _statCard("Avec bio", s.avec_bio || 0, `${pct(s.avec_bio || 0)}%`),
+        ].join("");
+        document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
+        document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
+        userstatsContent.classList.remove("hidden");
+      } catch (e) {
+        console.error("[Utilisateurs] load", e);
+        toast("Erreur chargement : " + (e.message || e), false);
+      } finally {
+        userstatsLoading.classList.add("hidden");
+      }
+    }
+    document.getElementById("userstats-refresh-btn").addEventListener("click", refreshUserstatsView);
 
     // ─── Onglet Intérêt abonnement ──────────────────────────────────────────
     const interestLoading = document.getElementById("interest-loading");
