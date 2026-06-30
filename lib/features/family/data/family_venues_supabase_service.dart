@@ -22,7 +22,7 @@ class FamilyVenuesSupabaseService {
       'select': '*',
       'is_active': 'eq.true',
       'ville': 'ilike.$ville',
-      'order': 'groupe.asc,name.asc',
+      'order': 'display_priority.desc,name.asc',
     };
     if (category != null) {
       params['category'] = 'eq.$category';
@@ -55,7 +55,7 @@ class FamilyVenuesSupabaseService {
         'is_active': 'eq.true',
         'ville': 'ilike.$ville',
         'category': 'in.($list)',
-        'order': 'groupe.asc,name.asc',
+        'order': 'display_priority.desc,name.asc',
       },
     );
     final data = response.data as List;

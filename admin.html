@@ -1791,6 +1791,8 @@
         </div>
         <div id="sysmon-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="sysmon-content" class="hidden">
+          <h2 style="font-size:15px; margin:0 0 10px;">📊 Conso vs limites (forfait Pro)</h2>
+          <div id="sysmon-limits" style="margin-bottom:22px; max-width:640px;"></div>
           <div id="sysmon-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:22px;"></div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:22px;">
             <div>
@@ -3854,7 +3856,7 @@
     // Taxonomie miroir de family_category_data.dart (Dart). Si tu changes les
     // types côté app, mets à jour cette liste pour garder le dropdown aligné.
     const FAMILY_TYPES = [
-      { rubrique: "Divertissements",     types: ["Parc d'attractions", "Laser game", "Escape game", "Bowling", "Cinema"] },
+      { rubrique: "Divertissements",     types: ["Parc d'attractions", "Laser game", "Escape game", "Bowling", "Cinema", "Patinoire"] },
       { rubrique: "Jeux d'enfants",      types: ["Aire de jeux", "Parc de loisirs"] },
       { rubrique: "Animaux et Nature",   types: ["Parc animalier", "Ferme pedagogique", "Aquarium", "Zoo", "Jardin botanique"] },
       { rubrique: "Activite Aquatique",  types: ["Aquarium", "Centre aquatique", "Piscine"] },
@@ -3900,7 +3902,7 @@
       try {
         const { data, error } = await supabase
           .from("family_venues")
-          .select("id, name, category, ville, adresse, description, horaires, telephone, latitude, longitude, website_url, photo, groupe, is_active")
+          .select("id, name, category, ville, adresse, description, horaires, telephone, latitude, longitude, website_url, photo, groupe, is_active, display_priority")
           .order("ville", { ascending: true })
           .order("name", { ascending: true });
         if (error) throw error;
@@ -3927,7 +3929,9 @@
         return;
       }
       familyEmpty.classList.add("hidden");
-      familyListEl.innerHTML = list.map(v => {
+
+      // Rendu d'une ligne lieu (avec input priorité).
+      const rowHtml = (v) => {
         const thumb = (v.photo || "").startsWith("http")
           ? `<div class="venue-thumb"><img src="${escapeHtml(v.photo)}" onerror="this.parentElement.textContent='🎡'" /></div>`
           : `<div class="venue-thumb">🎡</div>`;
@@ -3937,15 +3941,40 @@
               ${thumb}
               <div class="venue-row-info">
                 <div class="venue-row-name">${escapeHtml(v.name)}</div>
-                <div class="venue-row-meta">${escapeHtml(familyRubriqueOf(v.category))} · ${escapeHtml(v.ville || "")}</div>
+                <div class="venue-row-meta">${escapeHtml(v.category || "")} · ${escapeHtml(v.ville || "")}</div>
               </div>
               <div class="venue-row-actions">
+                <label class="venue-prio" title="Priorité d'affichage dans la rubrique (plus haut = remonte)"><span>Prio</span><input type="number" data-faction="prio" data-id="${v.id}" value="${Number(v.display_priority) || 0}" step="1" /></label>
                 <select class="banner-input" data-faction="reclass" data-id="${v.id}" style="width:auto; min-width:150px; margin:0;">${familyTypeOptionsHtml(v.category)}</select>
                 <button class="gen-btn" data-faction="edit" data-id="${v.id}">✏️ Éditer</button>
                 <button class="gen-btn" data-faction="delete" data-id="${v.id}" style="border-color:#ef4444;color:#ef4444;">🗑 Supprimer</button>
               </div>
             </div>
           </div>`;
+      };
+
+      // Groupe par rubrique (ordre des FAMILY_TYPES), tri par priorité desc puis nom.
+      const rubriqueOrder = FAMILY_TYPES.map(g => g.rubrique);
+      const groups = {};
+      for (const v of list) {
+        const rub = familyRubriqueOf(v.category);
+        (groups[rub] = groups[rub] || []).push(v);
+      }
+      const orderedRubriques = [
+        ...rubriqueOrder.filter(r => groups[r]),
+        ...Object.keys(groups).filter(r => !rubriqueOrder.includes(r)), // "—" / non classés
+      ];
+
+      familyListEl.innerHTML = orderedRubriques.map(rub => {
+        const items = groups[rub].sort((a, b) =>
+          (Number(b.display_priority) || 0) - (Number(a.display_priority) || 0) ||
+          String(a.name).localeCompare(String(b.name), "fr"));
+        return `
+          <div style="margin:18px 0 8px; display:flex; align-items:center; gap:8px;">
+            <h3 style="font-size:14px; margin:0; color:var(--text);">${escapeHtml(rub === "—" ? "Non classés" : rub)}</h3>
+            <span style="font-size:11px; color:var(--text-faint);">${items.length} lieu(x)</span>
+          </div>
+          ${items.map(rowHtml).join("")}`;
       }).join("");
     }
 
@@ -4032,8 +4061,28 @@
       }
     });
 
-    // Délégation actions liste : reclasser / éditer / supprimer
+    // Délégation actions liste : priorité / reclasser / éditer / supprimer
     familyListEl.addEventListener("change", async (ev) => {
+      // Priorité (input number) → setter dédié, puis re-render pour réordonner.
+      const prio = ev.target.closest('[data-faction="prio"]');
+      if (prio) {
+        const id = parseInt(prio.dataset.id, 10);
+        const v = _allFamilyVenues.find(x => x.id === id);
+        if (!v) return;
+        const val = parseInt(prio.value, 10) || 0;
+        try {
+          const { error } = await supabase.rpc("admin_set_family_venue_priority", {
+            p_id: id, p_priority: val,
+          });
+          if (error) throw error;
+          v.display_priority = val;
+          toast(`Priorité « ${v.name} » → ${val}`, true);
+          renderFamilyList();
+        } catch (e) {
+          toast("Erreur : " + (e.message || e), false);
+        }
+        return;
+      }
       const sel = ev.target.closest('[data-faction="reclass"]');
       if (!sel) return;
       const id = parseInt(sel.dataset.id, 10);
@@ -4172,6 +4221,22 @@
       </div>`;
     }
 
+    // Jauge "X utilisé / Y inclus" colorée selon le taux de remplissage.
+    function _planGauge(label, usedBytes, limitBytes) {
+      const pct = limitBytes > 0 ? (usedBytes / limitBytes) * 100 : 0;
+      const pctClamped = Math.min(100, Math.round(pct));
+      const color = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "#10B981";
+      return `<div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+          <span style="color:var(--text); font-weight:600;">${escapeHtml(label)}</span>
+          <span style="color:var(--text-dim);">${_humanBytes(usedBytes)} / ${_humanBytes(limitBytes)} · <strong style="color:${color};">${pct.toFixed(1)}%</strong></span>
+        </div>
+        <div style="height:11px; background:rgba(255,255,255,0.06); border-radius:6px; overflow:hidden;">
+          <div style="height:100%; width:${pctClamped}%; background:${color}; transition:width .3s;"></div>
+        </div>
+      </div>`;
+    }
+
     async function refreshSysmonView() {
       sysmonLoading.classList.remove("hidden");
       sysmonContent.classList.add("hidden");
@@ -4182,6 +4247,16 @@
         const tables = s.top_tables || [];
         const storage = s.storage || [];
         const storageBytes = storage.reduce((a, b) => a + (b.bytes || 0), 0);
+
+        // Jauges conso vs limites du forfait Pro (~25€). Ajuste si ton plan
+        // change. GB = 1024^3 octets.
+        const GB = 1024 * 1024 * 1024;
+        const PLAN_DB_GB = 8;       // Base Postgres incluse (Pro)
+        const PLAN_STORAGE_GB = 100; // Storage fichiers inclus (Pro)
+        document.getElementById("sysmon-limits").innerHTML = [
+          _planGauge("🗄️ Base de données", s.db_size_bytes || 0, PLAN_DB_GB * GB),
+          _planGauge("📦 Storage (médias)", storageBytes, PLAN_STORAGE_GB * GB),
+        ].join("");
 
         document.getElementById("sysmon-cards").innerHTML = [
           `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">

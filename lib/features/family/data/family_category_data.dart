@@ -51,6 +51,7 @@ class FamilyCategoryData {
         FamilySubcategory(label: 'Escape game', searchTag: 'Escape game', emoji: '🔐', group: 'Divertissements', image: 'assets/images/pochette_gaming.jpg'),
         FamilySubcategory(label: 'Bowling', searchTag: 'Bowling', emoji: '🎳', group: 'Divertissements', image: 'assets/images/pochette_enfamille.jpg'),
         FamilySubcategory(label: 'Cinema', searchTag: 'Cinema', emoji: '🎬', group: 'Divertissements', image: 'assets/images/pochette_spectacle.webp'),
+        FamilySubcategory(label: 'Patinoire', searchTag: 'Patinoire', emoji: '⛸️', group: 'Divertissements', image: 'assets/images/pochette_enfamille.jpg'),
       ],
     ),
     FamilyCategoryGroup(
