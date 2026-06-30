@@ -59,6 +59,7 @@ class UnifiedSearchService {
     final futureUserEvents = _userEventService.searchEvents(normalized, limit: 15, ville: ville);
     final futureVenues = _searchVenues(normalized, ville: ville, limit: 20);
     final futureSportVenues = _searchSportVenues(normalized, ville: ville, limit: 20);
+    final futureFamilyVenues = _searchFamilyVenues(normalized, ville: ville, limit: 20);
 
     final results = await Future.wait([
       futureScraped,
@@ -66,6 +67,7 @@ class UnifiedSearchService {
       futureUserEvents,
       futureVenues,
       futureSportVenues,
+      futureFamilyVenues,
     ]);
 
     final scrapedEvents = results[0] as List<Event>;
@@ -73,6 +75,7 @@ class UnifiedSearchService {
     final userEvents = results[2] as List<UserEvent>;
     final venues = results[3] as List<VenueResult>;
     final sportVenues = results[4] as List<VenueResult>;
+    final familyVenues = results[5] as List<VenueResult>;
 
     final searchResults = <SearchResult>[];
 
@@ -104,9 +107,10 @@ class UnifiedSearchService {
       ));
     }
 
-    // Add venue results (etablissements + salles de sport)
+    // Add venue results (etablissements + salles de sport + lieux famille).
     searchResults.addAll(venues);
     searchResults.addAll(sportVenues);
+    searchResults.addAll(familyVenues);
 
     // Deduplicate by deduplicationKey
     final seen = <String>{};
@@ -133,7 +137,9 @@ class UnifiedSearchService {
       final params = <String, String>{
         'select': 'id,nom,categorie,adresse,ville,horaires,telephone,site_web,lien_maps,photo,photos,video_url,latitude,longitude',
         'is_active': 'eq.true',
-        'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,adresse.ilike.*$query*)',
+        // `theme` = classement Food (Salon de the, Guinguette, Brunch, cuisines…) :
+        // sans lui, taper "salon de the" ne trouvait que les noms contenant le texte.
+        'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,theme.ilike.*$query*,adresse.ilike.*$query*)',
         'order': 'nom.asc',
         'limit': '$limit',
       };
@@ -171,6 +177,53 @@ class UnifiedSearchService {
           photos: photos,
           videoUrl: j['video_url'] as String? ?? '',
           sourceTable: 'etablissement',
+          latitude: (j['latitude'] as num?)?.toDouble() ?? 0,
+          longitude: (j['longitude'] as num?)?.toDouble() ?? 0,
+          relevance: relevance,
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Recherche dans la table family_venues (cinemas, parcs, zoos, bowlings,
+  /// patinoires, aquariums…). Sans ça, taper "cinema" ne renvoyait que des
+  /// events film, pas les salles de cinema (qui sont des lieux famille).
+  Future<List<VenueResult>> _searchFamilyVenues(String query, {String? ville, int limit = 20}) async {
+    try {
+      final params = <String, String>{
+        'select': 'id,name,category,adresse,ville,horaires,telephone,website_url,lien_maps,photo,latitude,longitude',
+        'is_active': 'eq.true',
+        'or': '(name.ilike.*$query*,category.ilike.*$query*)',
+        'order': 'name.asc',
+        'limit': '$limit',
+      };
+      if (ville != null && ville.isNotEmpty) {
+        params['ville'] = 'ilike.$ville';
+      }
+      final response = await _dio.get('family_venues', queryParameters: params);
+      final data = response.data as List;
+      final q = query.toLowerCase();
+      return data.map((json) {
+        final j = json as Map<String, dynamic>;
+        final name = j['name'] as String? ?? '';
+        final cat = j['category'] as String? ?? '';
+        final relevance = name.toLowerCase().contains(q) ? 0
+            : cat.toLowerCase().contains(q) ? 1
+            : 2;
+        return VenueResult(
+          id: '${j['id'] ?? name}',
+          name: name,
+          categorie: cat,
+          adresse: j['adresse'] as String? ?? '',
+          ville: j['ville'] as String? ?? '',
+          horaires: j['horaires'] as String? ?? '',
+          telephone: j['telephone'] as String? ?? '',
+          siteWeb: j['website_url'] as String? ?? '',
+          lienMaps: j['lien_maps'] as String? ?? '',
+          photo: j['photo'] as String? ?? '',
+          sourceTable: 'family_venue',
           latitude: (j['latitude'] as num?)?.toDouble() ?? 0,
           longitude: (j['longitude'] as num?)?.toDouble() ?? 0,
           relevance: relevance,
