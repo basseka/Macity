@@ -266,6 +266,12 @@
       box-shadow: 0 6px 16px rgba(0,0,0,0.3), 0 0 0 1px rgba(233,30,99,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
     }
     .top-toolbar .nav-btn:active { transform: translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.25); }
+    .top-toolbar .nav-btn.active {
+      background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
+      border-color: var(--magenta);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(233, 30, 99, 0.45), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
     .top-toolbar .nav-btn.primary {
       background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
       border-color: transparent;
@@ -979,6 +985,7 @@
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
           <span class="nav-btn" id="goto-userstats-btn">👥 Utilisateurs</span>
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
+          <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
         </div>
       </div>
 
@@ -1662,6 +1669,18 @@
         <p class="subtitle">Prix payés par un <strong>particulier</strong> pour diffuser un event public (forfait par formule × durée). Montants en euros TTC, modifiables ici. Le « Standard » est le ticket d'entrée anti-spam (pas de gratuit).</p>
         <div id="pubprices-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="pubprices-table" class="hidden" style="overflow-x:auto; margin-top:8px;"></div>
+
+        <!-- ─── Statistiques de publication (events publics payés / mois) ─── -->
+        <div style="margin-top:36px; border-top:1px solid var(--line-strong); padding-top:24px;">
+          <h2 style="font-size:18px; margin:0 0 4px;">📊 Events publics publiés</h2>
+          <p class="subtitle" style="margin-top:0;">Nombre d'events publics payés et chiffre d'affaires, par mois (source : paiements confirmés).</p>
+          <div id="pubstats-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin:16px 0 22px;"></div>
+          <div id="pubstats-table" style="overflow-x:auto;"></div>
+
+          <h3 style="font-size:15px; margin:28px 0 4px;">Détail — qui a publié ?</h3>
+          <p class="subtitle" style="margin-top:0;">Chaque event public payé, avec l'organisateur déclaré.</p>
+          <div id="pubstats-detail" style="overflow-x:auto;"></div>
+        </div>
       </div>
 
       <!-- ═══ VUE DURÉE STORIES (TTL) ═══ -->
@@ -1724,13 +1743,17 @@
               <input type="url" class="banner-input" id="family-website" placeholder="https://…" />
             </div>
             <div>
-              <label class="banner-field-label">Photo <span style="opacity:.6;font-weight:400">— URL ou upload</span></label>
+              <label class="banner-field-label">Photo <span style="opacity:.6;font-weight:400">— URL, coller (Ctrl+V), glisser, ou 📂</span></label>
               <div style="display:flex; gap:6px;">
                 <input type="url" class="banner-input" id="family-photo" placeholder="https://…/photo.jpg" style="flex:1; margin:0;" />
                 <button type="button" class="banner-save-btn" id="family-photo-browse" style="background:rgba(255,255,255,0.08); color:var(--text); padding:0 12px; white-space:nowrap;">📂</button>
               </div>
               <input type="file" id="family-photo-file" accept="image/*" style="display:none;" />
-              <img id="family-photo-preview" style="display:none; margin-top:6px; max-height:72px; border-radius:8px;" />
+              <div id="family-photo-zone" data-role="fam-photo-zone" tabindex="0"
+                   style="margin-top:6px; border:1.5px dashed rgba(255,255,255,0.22); border-radius:8px; padding:10px; text-align:center; cursor:pointer; outline:none; transition:border-color .15s;">
+                <img id="family-photo-preview" style="display:none; max-height:72px; border-radius:8px;" />
+                <div id="family-photo-hint" style="font-size:12px; color:var(--text-faint);">📋 Clique ici puis <strong>Ctrl+V</strong> pour coller, glisse une image, ou 📂</div>
+              </div>
             </div>
             <div>
               <label class="banner-field-label">Latitude</label>
@@ -1769,6 +1792,17 @@
         <div id="userstats-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="userstats-content" class="hidden">
           <div id="userstats-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px; margin-bottom:22px;"></div>
+
+          <!-- Progression vers l'objectif -->
+          <div id="userstats-progress" style="margin-bottom:22px;"></div>
+
+          <!-- Inscriptions par jour (30 derniers jours) -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
+            <h2 style="font-size:15px; margin:0 0 4px;">📈 Inscriptions par jour</h2>
+            <p class="subtitle" style="margin:0 0 12px;">30 derniers jours (<code>user_profiles.created_at</code>, fuseau Paris).</p>
+            <div id="userstats-daily"></div>
+          </div>
+
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:22px;">
             <div>
               <h2 style="font-size:15px; margin:0 0 10px;">🏙️ Par ville</h2>
@@ -1898,6 +1932,59 @@
             <span id="notif-target-hint" style="font-size:12px; color:var(--text-dim);">Cible : tous les utilisateurs</span>
           </div>
           <div id="notif-result" style="font-size:13px;"></div>
+        </div>
+      </div>
+
+      <!-- ═══ VUE PROSPECTION ═══ -->
+      <div id="prospect-view" class="hidden">
+        <h1>📧 Prospection MaCity</h1>
+        <p class="subtitle">
+          Suivi des emails envoyés aux restaurants &amp; bars de Toulouse.
+          Les emails <strong>en attente de validation</strong> sont générés par le script Python local —
+          approuve ou rejette chaque email ici avant envoi.
+        </p>
+
+        <!-- Statistiques -->
+        <div id="prospect-stats" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px; margin-bottom:24px;"></div>
+
+        <!-- Filtres -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center;">
+          <select id="prospect-filter-status" style="padding:8px 12px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:rgba(255,255,255,0.06); color:var(--text,#fff); font-size:13px; cursor:pointer;">
+            <option value="pending_review">En attente de validation</option>
+            <option value="sent">Envoyés</option>
+            <option value="opened">Ouverts 👁</option>
+            <option value="replied">Réponses reçues</option>
+            <option value="bounced">Bounces</option>
+            <option value="unsubscribed">Désabonnés</option>
+            <option value="">Tous</option>
+          </select>
+          <button class="banner-save-btn" id="prospect-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
+          <button class="banner-save-btn" id="prospect-sync-btn" style="background:#0ea5e9;">🔄 Synchroniser les ouvertures</button>
+          <button class="banner-save-btn" id="prospect-approve-all-btn" style="background:#16a34a; display:none;">✅ Tout approuver</button>
+          <span id="prospect-sync-status" style="font-size:12px; color:var(--text-dim);"></span>
+        </div>
+
+        <!-- Liste -->
+        <div id="prospect-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="prospect-list" style="display:flex; flex-direction:column; gap:14px;"></div>
+        <div id="prospect-empty" class="hidden" style="text-align:center; padding:40px; color:var(--text-dim);">Aucun résultat pour ce filtre.</div>
+
+        <!-- Modal prévisualisation email -->
+        <div id="prospect-modal" style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.7); overflow:auto; padding:20px;" onclick="if(event.target===this)this.style.display='none'">
+          <div style="max-width:680px; margin:40px auto; background:#1a1a2e; border-radius:16px; padding:28px; border:1px solid rgba(255,255,255,0.1);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <h3 id="prospect-modal-title" style="margin:0; font-size:16px;">Prévisualisation</h3>
+              <button onclick="document.getElementById('prospect-modal').style.display='none'" style="background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer;">✕</button>
+            </div>
+            <div style="font-size:12px; color:var(--text-dim); margin-bottom:4px;">Objet :</div>
+            <div id="prospect-modal-subject" style="font-size:14px; color:var(--text); margin-bottom:16px; padding:10px; background:rgba(255,255,255,0.05); border-radius:8px;"></div>
+            <div style="font-size:12px; color:var(--text-dim); margin-bottom:4px;">Corps :</div>
+            <div id="prospect-modal-body" style="background:white; border-radius:8px; padding:16px; overflow:auto; max-height:60vh;"></div>
+            <div style="display:flex; gap:10px; margin-top:18px; justify-content:flex-end;">
+              <button id="prospect-modal-reject" class="banner-save-btn" style="background:#dc2626;">❌ Rejeter</button>
+              <button id="prospect-modal-approve" class="banner-save-btn" style="background:#16a34a;">✅ Approuver &amp; Envoyer</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2162,6 +2249,8 @@
       if (iv && !iv.classList.contains("hidden")) return;
       const cv = document.getElementById("chains-view");
       if (cv && !cv.classList.contains("hidden")) return;
+      const flv = document.getElementById("family-view");
+      if (flv && !flv.classList.contains("hidden")) return;
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of items) {
@@ -2900,6 +2989,8 @@
     const gotoChainsBtn = document.getElementById("goto-chains-btn");
     const notifsView = document.getElementById("notifs-view");
     const gotoNotifsBtn = document.getElementById("goto-notifs-btn");
+    const prospectView = document.getElementById("prospect-view");
+    const gotoProspectBtn = document.getElementById("goto-prospect-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -2919,6 +3010,7 @@
       sysmonView.classList.add("hidden");
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
+      prospectView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -2936,59 +3028,65 @@
       gotoSysmonBtn.style.display = "inline-flex";
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
+      gotoProspectBtn.style.display = "inline-flex";
+      // Retire la surbrillance de tous les onglets (le bouton actif sera
+      // re-surligne par la fonction showXView appelante).
+      document
+        .querySelectorAll(".top-toolbar .nav-btn.active")
+        .forEach((b) => b.classList.remove("active"));
     }
     function showFormView() {
       _hideAllViews();
       formView.classList.remove("hidden");
-      gotoFormBtn.style.display = "none";
+      gotoFormBtn.classList.add("active");
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showEventsView() {
       _hideAllViews();
       eventsView.classList.remove("hidden");
-      gotoEventsBtn.style.display = "none";
+      gotoEventsBtn.classList.add("active");
       loadHistory();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showVenuesView() {
       _hideAllViews();
       venuesView.classList.remove("hidden");
-      gotoVenuesBtn.style.display = "none";
+      gotoVenuesBtn.classList.add("active");
       refreshVenuesView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showBannersView() {
       _hideAllViews();
       bannersView.classList.remove("hidden");
-      gotoBannersBtn.style.display = "none";
+      gotoBannersBtn.classList.add("active");
       refreshBannersView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showInspirationsView() {
       _hideAllViews();
       inspirationsView.classList.remove("hidden");
-      gotoInspirationsBtn.style.display = "none";
+      gotoInspirationsBtn.classList.add("active");
       refreshInspirationsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showProsView() {
       _hideAllViews();
       prosView.classList.remove("hidden");
-      gotoProsBtn.style.display = "none";
+      gotoProsBtn.classList.add("active");
       refreshProsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showSportNewsView() {
       _hideAllViews();
       sportnewsView.classList.remove("hidden");
-      gotoSportnewsBtn.style.display = "none";
+      gotoSportnewsBtn.classList.add("active");
       refreshSportNewsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     function showChainsView() {
       _hideAllViews();
       chainsView.classList.remove("hidden");
-      gotoChainsBtn.style.display = "none";
+      gotoChainsBtn.classList.add("active");
       loadChains();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3002,7 +3100,7 @@
     function showModerationView() {
       _hideAllViews();
       moderationView.classList.remove("hidden");
-      gotoModerationBtn.style.display = "none";
+      gotoModerationBtn.classList.add("active");
       refreshModerationView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3010,7 +3108,7 @@
     function showInterestView() {
       _hideAllViews();
       interestView.classList.remove("hidden");
-      gotoInterestBtn.style.display = "none";
+      gotoInterestBtn.classList.add("active");
       refreshInterestView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3018,7 +3116,7 @@
     function showAppversionsView() {
       _hideAllViews();
       appversionsView.classList.remove("hidden");
-      gotoAppversionsBtn.style.display = "none";
+      gotoAppversionsBtn.classList.add("active");
       refreshAppversionsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3026,7 +3124,7 @@
     function showPubpricesView() {
       _hideAllViews();
       pubpricesView.classList.remove("hidden");
-      gotoPubpricesBtn.style.display = "none";
+      gotoPubpricesBtn.classList.add("active");
       refreshPubpricesView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3034,7 +3132,7 @@
     function showStoryttlView() {
       _hideAllViews();
       storyttlView.classList.remove("hidden");
-      gotoStoryttlBtn.style.display = "none";
+      gotoStoryttlBtn.classList.add("active");
       refreshStoryttlView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3042,7 +3140,7 @@
     function showFamilyView() {
       _hideAllViews();
       familyView.classList.remove("hidden");
-      gotoFamilyBtn.style.display = "none";
+      gotoFamilyBtn.classList.add("active");
       refreshFamilyView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3050,7 +3148,7 @@
     function showUserstatsView() {
       _hideAllViews();
       userstatsView.classList.remove("hidden");
-      gotoUserstatsBtn.style.display = "none";
+      gotoUserstatsBtn.classList.add("active");
       refreshUserstatsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -3058,17 +3156,279 @@
     function showSysmonView() {
       _hideAllViews();
       sysmonView.classList.remove("hidden");
-      gotoSysmonBtn.style.display = "none";
+      gotoSysmonBtn.classList.add("active");
       refreshSysmonView();
       refreshAiUsage();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoSysmonBtn.addEventListener("click", showSysmonView);
     gotoChainsBtn.addEventListener("click", showChainsView);
+
+    // ─── Onglet Prospection ───────────────────────────────────────────────────
+    function showProspectView() {
+      _hideAllViews();
+      prospectView.classList.remove("hidden");
+      gotoProspectBtn.classList.add("active");
+      loadProspectData();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoProspectBtn.addEventListener("click", showProspectView);
+
+    (function setupProspect() {
+      const STATUS_LABELS = {
+        pending_review: { label: "En attente", color: "#f59e0b" },
+        approved:       { label: "Approuvé",   color: "#3b82f6" },
+        sent:           { label: "Envoyé",     color: "#6366f1" },
+        followed_up:    { label: "Relancé",    color: "#8b5cf6" },
+        replied:        { label: "Réponse ✓",  color: "#16a34a" },
+        bounced:        { label: "Bounce",     color: "#dc2626" },
+        unsubscribed:   { label: "Désabonné",  color: "#6b7280" },
+        failed:         { label: "Échec",      color: "#dc2626" },
+        draft:          { label: "Draft",      color: "#6b7280" },
+      };
+
+      async function loadProspectData() {
+        const loadingEl = document.getElementById("prospect-loading");
+        const listEl    = document.getElementById("prospect-list");
+        const emptyEl   = document.getElementById("prospect-empty");
+        const statsEl   = document.getElementById("prospect-stats");
+        const filterSel = document.getElementById("prospect-filter-status");
+        const approveAllBtn = document.getElementById("prospect-approve-all-btn");
+
+        loadingEl.style.display = "block";
+        listEl.innerHTML = "";
+        emptyEl.classList.add("hidden");
+
+        const statusFilter = filterSel.value;
+
+        // Stats globales
+        const { data: allRows } = await supabase
+          .from("prospect_sends")
+          .select("status, opened_at");
+
+        if (allRows) {
+          const counts = {};
+          let openedCount = 0;
+          allRows.forEach(r => {
+            counts[r.status] = (counts[r.status] || 0) + 1;
+            if (r.opened_at) openedCount++;
+          });
+          const total = allRows.length;
+          const sentTotal = (counts.sent||0)+(counts.followed_up||0)+(counts.replied||0);
+          const openRate = sentTotal > 0 ? Math.round(openedCount / sentTotal * 100) : 0;
+          const cards = [
+            { label: "Total",         value: total,                          color: "#6366f1" },
+            { label: "En attente",    value: counts.pending_review || 0,     color: "#f59e0b" },
+            { label: "Envoyés",       value: (counts.sent||0)+(counts.followed_up||0), color: "#3b82f6" },
+            { label: `Ouverts (${openRate}%)`, value: openedCount,           color: "#f59e0b" },
+            { label: "Réponses",      value: counts.replied || 0,            color: "#16a34a" },
+            { label: "Bounces",       value: counts.bounced || 0,            color: "#dc2626" },
+          ];
+          statsEl.innerHTML = cards.map(c => `
+            <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; text-align:center;">
+              <div style="font-size:28px; font-weight:700; color:${c.color};">${c.value}</div>
+              <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">${c.label}</div>
+            </div>
+          `).join("");
+
+          // Badge dans la navbar
+          const badge = document.getElementById("prospect-pending-badge");
+          const pending = counts.pending_review || 0;
+          if (pending > 0) {
+            badge.textContent = pending;
+            badge.style.display = "inline";
+          } else {
+            badge.style.display = "none";
+          }
+        }
+
+        // Lignes filtrées
+        let query = supabase
+          .from("prospect_sends")
+          .select("*")
+          .order("generated_at", { ascending: false })
+          .limit(200);
+        if (statusFilter === "opened") {
+          // "Ouverts" = condition sur opened_at, pas un statut
+          query = query.not("opened_at", "is", null).order("opened_at", { ascending: false });
+        } else if (statusFilter) {
+          query = query.eq("status", statusFilter);
+        }
+
+        const { data: rows, error } = await query;
+        loadingEl.style.display = "none";
+
+        if (error) {
+          listEl.innerHTML = `<p style="color:#dc2626;">Erreur : ${error.message}</p>`;
+          return;
+        }
+        if (!rows || rows.length === 0) {
+          emptyEl.classList.remove("hidden");
+          approveAllBtn.style.display = "none";
+          return;
+        }
+
+        const hasPending = rows.some(r => r.status === "pending_review");
+        approveAllBtn.style.display = hasPending && statusFilter === "pending_review" ? "inline-flex" : "none";
+
+        listEl.innerHTML = rows.map(r => {
+          const sl = STATUS_LABELS[r.status] || { label: r.status, color: "#6b7280" };
+          const date = r.sent_at
+            ? new Date(r.sent_at).toLocaleDateString("fr-FR")
+            : new Date(r.generated_at).toLocaleDateString("fr-FR");
+          const isPending = r.status === "pending_review";
+          const openedStr    = r.opened_at    ? `<span style="color:#f59e0b;">👁 Ouvert le ${new Date(r.opened_at).toLocaleDateString('fr-FR')}</span>` : '';
+          const repliedStr   = r.replied_at   ? `<span style="color:#16a34a;">💬 Répondu le ${new Date(r.replied_at).toLocaleDateString('fr-FR')}</span>` : '';
+          const sentStr      = r.sent_at      ? `Envoyé le ${new Date(r.sent_at).toLocaleDateString('fr-FR')}` : `Généré le ${date}`;
+          const nextFuStr    = r.next_follow_up_at && !r.replied_at ? `<span style="color:#8b5cf6;">Relance prévue : ${new Date(r.next_follow_up_at).toLocaleDateString('fr-FR')}</span>` : '';
+          return `
+            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start;">
+              <div style="flex:1; min-width:220px;">
+                <div style="font-size:15px; font-weight:600; color:var(--text);">${r.nom}</div>
+                <div style="font-size:12px; color:#60a5fa; margin-top:2px;">${r.email}</div>
+                ${r.categorie ? `<div style="font-size:11px; color:var(--text-dim); margin-top:3px;">${r.categorie}${r.theme ? ' · '+r.theme : ''}${r.quartier ? ' · '+r.quartier : ''}</div>` : ''}
+                ${r.website   ? `<div style="font-size:11px; margin-top:3px;"><a href="${r.website}" target="_blank" style="color:var(--text-faint); text-decoration:none;">🌐 ${r.website.replace(/^https?:\/\//, '')}</a></div>` : ''}
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; font-size:11px;">
+                  ${openedStr}${repliedStr}
+                </div>
+              </div>
+              <div style="text-align:right; min-width:110px;">
+                <span style="background:${sl.color}22; color:${sl.color}; border-radius:20px; padding:4px 10px; font-size:12px; font-weight:600;">${sl.label}</span>
+                <div style="font-size:11px; color:var(--text-faint); margin-top:5px;">${sentStr}</div>
+                ${r.follow_up_number > 0 ? `<div style="font-size:11px; color:#8b5cf6; margin-top:2px;">Relance n°${r.follow_up_number}</div>` : ''}
+                <div style="font-size:11px; margin-top:2px;">${nextFuStr}</div>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button onclick="openProspectModal('${r.id}')" class="banner-save-btn" style="background:rgba(255,255,255,0.08); color:var(--text); font-size:12px; padding:6px 12px;">👁 Voir</button>
+                ${isPending ? `
+                  <button onclick="approveProspect('${r.id}')" class="banner-save-btn" style="background:#16a34a; font-size:12px; padding:6px 12px;">✅ Envoyer</button>
+                  <button onclick="rejectProspect('${r.id}')" class="banner-save-btn" style="background:#dc2626; font-size:12px; padding:6px 12px;">❌</button>
+                ` : ''}
+                ${r.status === 'sent' || r.status === 'followed_up' ? `
+                  <button onclick="markReplied('${r.id}')" class="banner-save-btn" style="background:#0ea5e9; font-size:12px; padding:6px 12px;">💬 Réponse reçue</button>
+                ` : ''}
+                ${r.status === 'replied' ? `
+                  <span style="font-size:12px; color:#16a34a; font-weight:600;">✓ A répondu</span>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Stockage local des rows pour la modal
+      let _prospectRows = {};
+
+      async function openProspectModal(id) {
+        const modal    = document.getElementById("prospect-modal");
+        const titleEl  = document.getElementById("prospect-modal-title");
+        const subjEl   = document.getElementById("prospect-modal-subject");
+        const bodyEl   = document.getElementById("prospect-modal-body");
+        const approveBtn = document.getElementById("prospect-modal-approve");
+        const rejectBtn  = document.getElementById("prospect-modal-reject");
+
+        const { data } = await supabase.from("prospect_sends").select("*").eq("id", id).single();
+        if (!data) return;
+
+        titleEl.textContent  = `${data.nom} — ${data.email}`;
+        subjEl.textContent   = data.subject || "(pas d'objet)";
+        bodyEl.innerHTML     = data.body_html || data.body_text || "(vide)";
+
+        approveBtn.style.display = data.status === "pending_review" ? "inline-flex" : "none";
+        rejectBtn.style.display  = data.status === "pending_review" ? "inline-flex" : "none";
+        approveBtn.onclick = () => { modal.style.display = "none"; approveProspect(id); };
+        rejectBtn.onclick  = () => { modal.style.display = "none"; rejectProspect(id); };
+
+        modal.style.display = "block";
+      }
+
+      async function approveProspect(id) {
+        const { error } = await supabase
+          .from("prospect_sends")
+          .update({ status: "approved", reviewed_at: new Date().toISOString() })
+          .eq("id", id);
+        if (error) { alert("Erreur : " + error.message); return; }
+        // Petit retour visuel
+        const row = document.querySelector(`[data-prospect-id="${id}"]`);
+        if (row) row.remove();
+        loadProspectData();
+      }
+
+      async function rejectProspect(id) {
+        const { error } = await supabase
+          .from("prospect_sends")
+          .update({ status: "draft" })
+          .eq("id", id);
+        if (error) { alert("Erreur : " + error.message); return; }
+        loadProspectData();
+      }
+
+      async function approveAll() {
+        if (!confirm("Approuver et marquer pour envoi tous les emails en attente ?")) return;
+        const { error } = await supabase
+          .from("prospect_sends")
+          .update({ status: "approved", reviewed_at: new Date().toISOString() })
+          .eq("status", "pending_review");
+        if (error) { alert("Erreur : " + error.message); return; }
+        loadProspectData();
+      }
+
+      async function markReplied(id) {
+        const { error } = await supabase
+          .from("prospect_sends")
+          .update({
+            status:     "replied",
+            replied_at: new Date().toISOString(),
+            next_follow_up_at: null,
+          })
+          .eq("id", id);
+        if (error) { alert("Erreur : " + error.message); return; }
+        loadProspectData();
+      }
+
+      // Expose en global pour onclick inline
+      window.loadProspectData   = loadProspectData;
+      window.openProspectModal  = openProspectModal;
+      window.approveProspect    = approveProspect;
+      window.rejectProspect     = rejectProspect;
+      window.markReplied        = markReplied;
+
+      async function syncProspectEvents() {
+        const btn    = document.getElementById("prospect-sync-btn");
+        const status = document.getElementById("prospect-sync-status");
+        btn.disabled = true;
+        const oldLabel = btn.textContent;
+        btn.textContent = "⏳ Synchronisation…";
+        status.textContent = "";
+        try {
+          const { data, error } = await supabase.functions.invoke("sync-prospect-events");
+          if (error) throw error;
+          status.textContent = `✓ ${data.updated} mis à jour · ${data.opened} ouverts (sur ${data.events} événements)`;
+          status.style.color = "#16a34a";
+          loadProspectData();
+        } catch (e) {
+          status.textContent = "✗ Erreur : " + (e.message || e);
+          status.style.color = "#dc2626";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = oldLabel;
+        }
+      }
+
+      document.getElementById("prospect-refresh-btn")
+        .addEventListener("click", loadProspectData);
+      document.getElementById("prospect-sync-btn")
+        .addEventListener("click", syncProspectEvents);
+      document.getElementById("prospect-filter-status")
+        .addEventListener("change", loadProspectData);
+      document.getElementById("prospect-approve-all-btn")
+        .addEventListener("click", approveAll);
+    })();
+    // ─────────────────────────────────────────────────────────────────────────
     function showNotifsView() {
       _hideAllViews();
       notifsView.classList.remove("hidden");
-      gotoNotifsBtn.style.display = "none";
+      gotoNotifsBtn.classList.add("active");
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoNotifsBtn.addEventListener("click", showNotifsView);
@@ -3630,6 +3990,7 @@
         (data || []).forEach(r => { _pubPrices[`${r.tier}_${r.duration_key}`] = r; });
         renderPubpricesTable();
         pubpricesTable.classList.remove("hidden");
+        loadPubStats();
       } catch (e) {
         console.error("[Tarifs publi] load failed", e);
         pubpricesTable.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
@@ -3637,6 +3998,146 @@
       } finally {
         pubpricesLoading.classList.add("hidden");
       }
+    }
+
+    // ─── Statistiques de publication : events publics payés / mois ───
+    const PUB_PRIORITY_LABELS = {
+      P1: "⭐ À la une",
+      P2: "🔝 Au top",
+      P3: "📋 Standard",
+    };
+
+    async function loadPubStats() {
+      const cardsEl = document.getElementById("pubstats-cards");
+      const tableEl = document.getElementById("pubstats-table");
+      if (!cardsEl || !tableEl) return;
+      cardsEl.innerHTML = "";
+      tableEl.innerHTML = `<div style="color:var(--text-dim); padding:12px;">Chargement…</div>`;
+
+      const { data, error } = await supabase
+        .from("boost_payments")
+        .select("priority, amount, created_at, status")
+        .eq("status", "paid")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        tableEl.innerHTML = `<div style="color:var(--err); padding:12px;">Erreur : ${escapeHtml(error.message)}</div>`;
+        return;
+      }
+      const rows = data || [];
+      if (rows.length === 0) {
+        cardsEl.innerHTML = "";
+        tableEl.innerHTML = `<div style="color:var(--text-dim); padding:12px;">Aucun event public payé pour l'instant.</div>`;
+        return;
+      }
+
+      // Regroupement par mois (YYYY-MM)
+      const months = {};
+      let totalCount = 0, totalCents = 0;
+      for (const r of rows) {
+        const ym = (r.created_at || "").slice(0, 7); // YYYY-MM
+        if (!ym) continue;
+        const m = (months[ym] ??= { count: 0, cents: 0, byTier: { P1: 0, P2: 0, P3: 0 } });
+        const cents = r.amount || 0;
+        m.count++;
+        m.cents += cents;
+        if (m.byTier[r.priority] != null) m.byTier[r.priority]++;
+        totalCount++;
+        totalCents += cents;
+      }
+
+      // Mois courant
+      const nowYm = new Date().toISOString().slice(0, 7);
+      const curr = months[nowYm] || { count: 0, cents: 0 };
+      const eur = (c) => (c / 100).toFixed(2).replace(".", ",") + " €";
+
+      // Cartes récap
+      const cards = [
+        { label: "Events publiés (total)", value: totalCount, color: "#6366f1" },
+        { label: "CA total", value: eur(totalCents), color: "#16a34a" },
+        { label: "Ce mois-ci", value: curr.count, color: "#3b82f6" },
+        { label: "CA ce mois", value: eur(curr.cents), color: "#16a34a" },
+      ];
+      cardsEl.innerHTML = cards.map(c => `
+        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; text-align:center;">
+          <div style="font-size:24px; font-weight:700; color:${c.color};">${c.value}</div>
+          <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">${c.label}</div>
+        </div>`).join("");
+
+      // Tableau par mois (du plus récent au plus ancien)
+      const sortedMonths = Object.keys(months).sort().reverse();
+      const fmtMonth = (ym) => {
+        const [y, m] = ym.split("-");
+        const names = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+        return `${names[parseInt(m, 10) - 1]} ${y}`;
+      };
+      let body = "";
+      for (const ym of sortedMonths) {
+        const m = months[ym];
+        body += `<tr style="border-top:1px solid var(--line);">
+          <td style="padding:10px; font-weight:600; white-space:nowrap;">${fmtMonth(ym)}</td>
+          <td style="padding:10px; text-align:center;">${m.count}</td>
+          <td style="padding:10px; text-align:center; color:#A6B4F5;">${m.byTier.P1}</td>
+          <td style="padding:10px; text-align:center; color:#A6B4F5;">${m.byTier.P2}</td>
+          <td style="padding:10px; text-align:center; color:#A6B4F5;">${m.byTier.P3}</td>
+          <td style="padding:10px; text-align:right; font-weight:700; color:#5FD08A; white-space:nowrap;">${eur(m.cents)}</td>
+        </tr>`;
+      }
+      tableEl.innerHTML = `
+        <table style="border-collapse:collapse; min-width:560px; width:100%;">
+          <tr>
+            <th style="padding:10px; text-align:left; color:var(--text-dim); font-size:12px;">Mois</th>
+            <th style="padding:10px; text-align:center; color:var(--text-dim); font-size:12px;">Events</th>
+            <th style="padding:10px; text-align:center; color:var(--text-dim); font-size:12px;">${PUB_PRIORITY_LABELS.P1}</th>
+            <th style="padding:10px; text-align:center; color:var(--text-dim); font-size:12px;">${PUB_PRIORITY_LABELS.P2}</th>
+            <th style="padding:10px; text-align:center; color:var(--text-dim); font-size:12px;">${PUB_PRIORITY_LABELS.P3}</th>
+            <th style="padding:10px; text-align:right; color:var(--text-dim); font-size:12px;">CA</th>
+          </tr>
+          ${body}
+        </table>`;
+
+      // ─── Détail : joindre les events pour récupérer l'organisateur ───
+      const detailEl = document.getElementById("pubstats-detail");
+      const eventIds = [...new Set(rows.map(r => r.event_id).filter(Boolean))];
+      const eventsById = {};
+      if (eventIds.length > 0) {
+        const { data: evs } = await supabase
+          .from("user_events")
+          .select("id, titre, organisateur_nom, organisateur_email, organisateur_telephone, ville")
+          .in("id", eventIds);
+        (evs || []).forEach(e => { eventsById[e.id] = e; });
+      }
+
+      const fmtDate = (iso) => {
+        const d = new Date(iso);
+        return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+      };
+      let drows = "";
+      for (const r of rows) {
+        const ev = eventsById[r.event_id] || {};
+        const orga = ev.organisateur_nom || "—";
+        const contact = ev.organisateur_email || ev.organisateur_telephone || "";
+        drows += `<tr style="border-top:1px solid var(--line);">
+          <td style="padding:9px; white-space:nowrap; color:var(--text-dim); font-size:12px;">${fmtDate(r.created_at)}</td>
+          <td style="padding:9px;">${escapeHtml(ev.titre || "(event supprimé)")}</td>
+          <td style="padding:9px;">${escapeHtml(orga)}${contact ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(contact)}</div>` : ""}</td>
+          <td style="padding:9px; white-space:nowrap;">${ev.ville || ""}</td>
+          <td style="padding:9px; text-align:center; white-space:nowrap;">${PUB_PRIORITY_LABELS[r.priority] || r.priority}</td>
+          <td style="padding:9px; text-align:right; font-weight:600; color:#5FD08A; white-space:nowrap;">${eur(r.amount || 0)}</td>
+        </tr>`;
+      }
+      detailEl.innerHTML = `
+        <table style="border-collapse:collapse; min-width:640px; width:100%;">
+          <tr>
+            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Date</th>
+            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Event</th>
+            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Organisateur</th>
+            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Ville</th>
+            <th style="padding:9px; text-align:center; color:var(--text-dim); font-size:12px;">Formule</th>
+            <th style="padding:9px; text-align:right; color:var(--text-dim); font-size:12px;">Prix</th>
+          </tr>
+          ${drows}
+        </table>`;
     }
 
     function renderPubpricesTable() {
@@ -3988,8 +4489,7 @@
       document.getElementById("family-id").value = "";
       ["family-name","family-ville","family-adresse","family-description","family-horaires","family-telephone","family-website","family-photo","family-lat","family-lng"].forEach(id => document.getElementById(id).value = "");
       familyTypeSelect.selectedIndex = 0;
-      const prev = document.getElementById("family-photo-preview");
-      prev.removeAttribute("src"); prev.style.display = "none";
+      familySetPhoto("");
     }
     document.getElementById("family-add-toggle").addEventListener("click", () => {
       familyFormReset();
@@ -4004,25 +4504,72 @@
     function familySetPhoto(url) {
       document.getElementById("family-photo").value = url || "";
       const prev = document.getElementById("family-photo-preview");
-      if (url) { prev.src = url; prev.style.display = "block"; }
-      else { prev.removeAttribute("src"); prev.style.display = "none"; }
+      const hint = document.getElementById("family-photo-hint");
+      if (url) {
+        prev.src = url; prev.style.display = "block";
+        if (hint) hint.style.display = "none";
+      } else {
+        prev.removeAttribute("src"); prev.style.display = "none";
+        if (hint) hint.style.display = "block";
+      }
     }
     document.getElementById("family-photo-browse").addEventListener("click", () =>
       document.getElementById("family-photo-file").click());
-    document.getElementById("family-photo-file").addEventListener("change", async (ev) => {
-      const file = ev.target.files?.[0];
-      if (!file) return;
+    // Upload commun (fichier / coller / glisser) → compresse, upload, set URL+preview.
+    async function familyUploadBlob(blob) {
+      if (!blob) return;
       const btn = document.getElementById("family-photo-browse");
       btn.disabled = true; btn.textContent = "⏳";
       try {
-        const url = await uploadImage(file);
+        const url = await uploadImage(blob);
         familySetPhoto(url);
         toast("Photo uploadée", true);
       } catch (e) {
         toast("Erreur upload : " + (e.message || e), false);
       } finally {
         btn.disabled = false; btn.textContent = "📂";
-        ev.target.value = "";
+      }
+    }
+    document.getElementById("family-photo-file").addEventListener("change", async (ev) => {
+      const file = ev.target.files?.[0];
+      if (file) await familyUploadBlob(file);
+      ev.target.value = "";
+    });
+
+    // Coller une URL d'image dans le champ → aperçu immédiat.
+    document.getElementById("family-photo").addEventListener("input", (ev) => {
+      familySetPhoto(ev.target.value.trim());
+    });
+
+    // Zone pochette : glisser-déposer + focus pour coller (Ctrl+V, géré ci-dessous).
+    const famPhotoZone = document.getElementById("family-photo-zone");
+    const FAM_ZONE_BORDER = "rgba(255,255,255,0.22)";
+    famPhotoZone.addEventListener("dragover", (e) => { e.preventDefault(); famPhotoZone.style.borderColor = "var(--magenta)"; });
+    famPhotoZone.addEventListener("dragleave", () => { famPhotoZone.style.borderColor = FAM_ZONE_BORDER; });
+    famPhotoZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      famPhotoZone.style.borderColor = FAM_ZONE_BORDER;
+      const file = [...(e.dataTransfer?.files || [])].find(f => f.type.startsWith("image/"));
+      familyUploadBlob(file);
+    });
+    famPhotoZone.addEventListener("focus", () => { famPhotoZone.style.borderColor = "var(--magenta)"; });
+    famPhotoZone.addEventListener("blur", () => { famPhotoZone.style.borderColor = FAM_ZONE_BORDER; });
+
+    // Ctrl+V : uniquement quand la vue Famille est ouverte ET la zone a le focus.
+    document.addEventListener("paste", (e) => {
+      if (familyView.classList.contains("hidden")) return;
+      const inZone = document.activeElement &&
+        document.activeElement.closest &&
+        document.activeElement.closest('[data-role="fam-photo-zone"]');
+      if (!inZone) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const it of items) {
+        if (it.type.startsWith("image/")) {
+          const blob = it.getAsFile();
+          if (blob) { e.preventDefault(); familyUploadBlob(blob); }
+          break;
+        }
       }
     });
 
@@ -4176,6 +4723,76 @@
       }).join("");
     }
 
+    // Objectif d'inscriptions à atteindre (aligné sur l'objectif téléchargements).
+    const USERSTATS_OBJECTIF = 20000;
+
+    // Barre de progression vers l'objectif + cartes today / 7j / 30j.
+    function _renderProgress(s, total) {
+      const obj = USERSTATS_OBJECTIF;
+      const pctObj = obj > 0 ? Math.min(100, (total / obj) * 100) : 0;
+      const reste = Math.max(0, obj - total);
+      return `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <h2 style="font-size:15px; margin:0;">🎯 Progression vers l'objectif</h2>
+            <span style="font-size:13px; color:var(--text-dim);">
+              <strong style="color:var(--text); font-size:18px;">${total.toLocaleString("fr-FR")}</strong>
+              / ${obj.toLocaleString("fr-FR")} · <strong style="color:var(--magenta);">${pctObj.toFixed(1)}%</strong>
+            </span>
+          </div>
+          <div style="height:14px; background:rgba(255,255,255,0.06); border-radius:8px; overflow:hidden;">
+            <div style="height:100%; width:${pctObj}%; background:linear-gradient(90deg, var(--magenta), #7c3aed); border-radius:8px; transition:width .4s;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint); margin-top:6px;">
+            <span>Reste ${reste.toLocaleString("fr-FR")} inscriptions</span>
+            <span>Objectif ${obj.toLocaleString("fr-FR")}</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:16px;">
+            ${_statCard("Aujourd'hui", (s.aujourdhui || 0), "nouvelles inscriptions")}
+            ${_statCard("7 derniers jours", (s.total_7j || 0), `${((s.total_7j || 0) / 7).toFixed(1)} / jour en moy.`)}
+            ${_statCard("30 derniers jours", (s.total_30j || 0), `${((s.total_30j || 0) / 30).toFixed(1)} / jour en moy.`)}
+          </div>
+        </div>`;
+    }
+
+    // Graphe en barres des inscriptions par jour (SVG, sans dépendance).
+    function _renderDaily(rows) {
+      if (!rows || rows.length === 0)
+        return `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée.</div>`;
+      const W = 720, H = 200, padL = 34, padB = 26, padT = 10;
+      const n = rows.length;
+      const maxN = Math.max(1, ...rows.map(r => r.n || 0));
+      const plotW = W - padL - 8, plotH = H - padT - padB;
+      const bw = plotW / n;
+      const bars = rows.map((r, i) => {
+        const x = padL + i * bw;
+        const h = (r.n || 0) / maxN * plotH;
+        const y = padT + plotH - h;
+        const d = r.jour ? r.jour.slice(8, 10) : "";
+        // Étiquette de date 1 jour sur 5 (lisibilité).
+        const lbl = (i % 5 === 0 || i === n - 1)
+          ? `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 8}" fill="#8a8a99" font-size="9" text-anchor="middle">${r.jour ? r.jour.slice(5) : ""}</text>`
+          : "";
+        const cnt = (r.n || 0) > 0
+          ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(y - 3).toFixed(1)}" fill="#c9b8e8" font-size="8.5" text-anchor="middle">${r.n}</text>`
+          : "";
+        return `<rect x="${(x + 1).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1, bw - 2).toFixed(1)}" height="${h.toFixed(1)}" rx="2"
+                  fill="url(#usDailyGrad)"><title>${r.jour} : ${r.n}</title></rect>${cnt}${lbl}`;
+      }).join("");
+      // Lignes de repère + libellés d'axe Y (0, max/2, max).
+      const yTicks = [0, Math.round(maxN / 2), maxN].map(v => {
+        const y = padT + plotH - (v / maxN) * plotH;
+        return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - 8}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" />
+                <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${v}</text>`;
+      }).join("");
+      return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="Inscriptions par jour">
+        <defs><linearGradient id="usDailyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#E91E8C"/><stop offset="1" stop-color="#7c3aed"/>
+        </linearGradient></defs>
+        ${yTicks}${bars}
+      </svg>`;
+    }
+
     async function refreshUserstatsView() {
       userstatsLoading.classList.remove("hidden");
       userstatsContent.classList.add("hidden");
@@ -4192,6 +4809,8 @@
           _statCard("Avec avatar", s.avec_avatar || 0, `${pct(s.avec_avatar || 0)}%`),
           _statCard("Avec bio", s.avec_bio || 0, `${pct(s.avec_bio || 0)}%`),
         ].join("");
+        document.getElementById("userstats-progress").innerHTML = _renderProgress(s, total);
+        document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || []);
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
         userstatsContent.classList.remove("hidden");
@@ -4971,6 +5590,22 @@
         { label: "📚 Bibliothèque", cat: "Bibliotheque" },
         { label: "🏛️ Visites guidées", cat: "Visites guidees" },
         { label: "🎨 Galerie d'art", cat: "Galerie d'art" },
+      ],
+      // Sport : les cat matchent `sport_venues.sport_type` (vocabulaire des
+      // chips de la page Sport de l'app). matchesSubCat compare sur sport_type
+      // OU categorie, donc la valeur = la clé sportType de l'app.
+      sport: [
+        { label: "🏋️ Cours Co", cat: "fitness" },
+        { label: "💪 Muscu", cat: "muscu" },
+        { label: "🧘 Gym douce", cat: "gym-douce" },
+        { label: "🥊 Boxe", cat: "boxe" },
+        { label: "⚽ Football", cat: "terrain-football" },
+        { label: "🏀 Basket", cat: "terrain-basketball" },
+        { label: "🏊 Piscine", cat: "piscine" },
+        { label: "⛳ Golf", cat: "golf" },
+        { label: "🎾 Tennis", cat: "tennis" },
+        { label: "🏸 Padel", cat: "padel" },
+        { label: "💃 Danse", cat: "danse" },
       ],
     };
 
