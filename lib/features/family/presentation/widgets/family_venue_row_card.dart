@@ -46,6 +46,8 @@ class FamilyVenueRowCard extends ConsumerWidget {
       photo: hasPhoto ? venue.photo : '',
       description: description,
       isVerified: venue.isVerified,
+      sourceId: venue.id,
+      sourceTable: 'family_venue',
     );
   }
 
@@ -206,7 +208,7 @@ class FamilyVenueRowCard extends ConsumerWidget {
     CommerceRowCard.openDetail(context, commerce,
         imageAsset: imageAsset,
         siblings: pagerSiblings,
-        index: pagerIndex);
+        index: pagerIndex,);
   }
 
   Widget _buildInfoRow(IconData icon, String text, Color iconColor) {
@@ -237,9 +239,15 @@ class FamilyVenueRowCard extends ConsumerWidget {
     final buffer = StringBuffer();
     buffer.writeln(venue.name);
     buffer.writeln(venue.adresse);
-    buffer.writeln(venue.telephone);
-    buffer.writeln(venue.websiteUrl);
-    buffer.writeln('\nDecouvre sur MaCity');
+    if (venue.telephone.isNotEmpty) buffer.writeln(venue.telephone);
+    if (venue.websiteUrl.isNotEmpty) buffer.writeln(venue.websiteUrl);
+    // Lien profond cliquable vers la fiche MaCity (family_venues).
+    if (venue.id > 0) {
+      buffer.writeln('\nDecouvre sur MaCity 👉');
+      buffer.writeln('https://macity.app/lieu/family_venue/${venue.id}');
+    } else {
+      buffer.writeln('\nDecouvre sur MaCity');
+    }
     Share.share(buffer.toString());
   }
 }

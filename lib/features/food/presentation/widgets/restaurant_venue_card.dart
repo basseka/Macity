@@ -125,8 +125,16 @@ class RestaurantVenueCard extends ConsumerWidget {
     buffer.writeln(venue.name);
     buffer.writeln(venue.adresse);
     if (venue.telephone.isNotEmpty) buffer.writeln(venue.telephone);
-    buffer.writeln(venue.websiteUrl);
-    buffer.writeln('\nDecouvre sur MaCity');
+    if (venue.websiteUrl.isNotEmpty) buffer.writeln(venue.websiteUrl);
+    // Lien profond cliquable (WhatsApp auto-linke https). venue.id = id
+    // etablissement. App Links macity.app/food/* ouvrent la fiche dans l'app.
+    final id = int.tryParse(venue.id);
+    if (id != null && id > 0) {
+      buffer.writeln('\nDecouvre sur MaCity 👉');
+      buffer.writeln('https://macity.app/lieu/etablissement/$id');
+    } else {
+      buffer.writeln('\nDecouvre sur MaCity');
+    }
     Share.share(buffer.toString());
   }
 }

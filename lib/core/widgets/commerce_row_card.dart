@@ -315,15 +315,7 @@ class CommerceRowCard extends ConsumerWidget {
                         _buildActionIcon(
                           Icons.share_outlined,
                           AppColors.textFaint,
-                          () {
-                            final buffer = StringBuffer();
-                            buffer.writeln(commerce.nom);
-                            if (commerce.adresse.isNotEmpty) {
-                              buffer.writeln(commerce.adresse);
-                            }
-                            buffer.writeln('\nDecouvre sur MaCity');
-                            Share.share(buffer.toString());
-                          },
+                          () => Share.share(_buildShareTextFor(commerce)),
                         ),
                       ],
                     ),
@@ -690,8 +682,27 @@ class CommerceRowCard extends ConsumerWidget {
     if (commerce.horaires.isNotEmpty) {
       buffer.writeln('Horaires: ${commerce.horaires}');
     }
-    buffer.writeln('\nDecouvre sur MaCity');
+    final link = buildShareLink(commerce);
+    if (link != null) {
+      buffer.writeln('\nDecouvre sur MaCity 👉');
+      buffer.writeln(link);
+    } else {
+      buffer.writeln('\nDecouvre sur MaCity');
+    }
     return buffer.toString();
+  }
+
+  /// Construit le lien profond cliquable d'une fiche (partage WhatsApp/SMS),
+  /// valable pour TOUTES les categories (Food, Famille, Culture, Sport, Night).
+  /// Les messageries auto-linkent uniquement le https:// (pas les schemes
+  /// custom). Les App Links macity.app/lieu/* (autoVerify) ouvrent la fiche
+  /// dans l'app si installee ; sinon fallback page web macity.app.
+  /// Retourne null si la fiche n'a pas d'identifiant exploitable.
+  static String? buildShareLink(CommerceModel commerce) {
+    final id = commerce.sourceId;
+    if (id == null || id <= 0) return null;
+    final table = commerce.sourceTable ?? 'etablissement';
+    return 'https://macity.app/lieu/$table/$id';
   }
 
   static IconData _categoryIcon(String category) {

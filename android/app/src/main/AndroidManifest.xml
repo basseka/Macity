@@ -75,7 +75,7 @@
                     android:host="coffre" />
             </intent-filter>
 
-            <!-- Android App Links (verified domain) : /event et /coffre -->
+            <!-- Android App Links (verified domain) : /event, /coffre, /lieu -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -88,6 +88,10 @@
                     android:scheme="https"
                     android:host="macity.app"
                     android:pathPrefix="/coffre" />
+                <data
+                    android:scheme="https"
+                    android:host="macity.app"
+                    android:pathPrefix="/lieu" />
             </intent-filter>
 
             <!-- FCM : resout click_action=FLUTTER_NOTIFICATION_CLICK vers

@@ -176,7 +176,15 @@ class FoodVenueCard extends ConsumerWidget {
                     if (commerce.adresse.isNotEmpty) {
                       buffer.writeln(commerce.adresse);
                     }
-                    buffer.writeln('\nDecouvre sur MaCity');
+                    // Lien profond cliquable vers la fiche MaCity.
+                    final id = commerce.sourceId;
+                    if (id != null && id > 0) {
+                      final table = commerce.sourceTable ?? 'etablissement';
+                      buffer.writeln('\nDecouvre sur MaCity 👉');
+                      buffer.writeln('https://macity.app/lieu/$table/$id');
+                    } else {
+                      buffer.writeln('\nDecouvre sur MaCity');
+                    }
                     Share.share(buffer.toString());
                   },
                 ),

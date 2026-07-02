@@ -18,6 +18,7 @@ import 'package:pulz_app/features/onboarding/presentation/onboarding_screen.dart
 import 'package:pulz_app/features/test/presentation/test_screen.dart';
 import 'package:pulz_app/features/splash/presentation/toto_splash_screen.dart';
 import 'package:pulz_app/features/day/presentation/event_deeplink_screen.dart';
+import 'package:pulz_app/core/widgets/lieu_deeplink_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/open_secret_box_screen.dart';
 
 final rootNavigatorKey =
@@ -57,9 +58,10 @@ late final appRouter = GoRouter(
       }
       return '/home';
     }
-    // Allow deep links to /event/ et /coffre/ even if onboarding not done
+    // Allow deep links to /event/, /coffre/ et /lieu/ even if onboarding not done
     if (state.matchedLocation.startsWith('/event/')) return null;
     if (state.matchedLocation.startsWith('/coffre/')) return null;
+    if (state.matchedLocation.startsWith('/lieu/')) return null;
     // Verrou : sans inscription (email + téléphone), aucun accès hors
     // onboarding/splash. Remplace l'ancien gating sur `onboarding_done`
     // (contournable via le bouton « Passer », désormais supprimé).
@@ -151,6 +153,13 @@ late final appRouter = GoRouter(
       path: '/coffre/:token',
       builder: (context, state) => OpenSecretBoxScreen(
         prefilledToken: state.pathParameters['token'],
+      ),
+    ),
+    GoRoute(
+      path: '/lieu/:table/:id',
+      builder: (context, state) => LieuDeeplinkScreen(
+        table: state.pathParameters['table'] ?? '',
+        id: state.pathParameters['id'] ?? '',
       ),
     ),
     GoRoute(
