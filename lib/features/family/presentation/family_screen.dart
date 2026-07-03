@@ -168,12 +168,26 @@ class FamilyScreen extends ConsumerWidget {
   Widget _buildCategoryVenues(WidgetRef ref, String category, ModeTheme modeTheme) {
     final venuesAsync = ref.watch(familySupabaseVenuesProvider(category));
 
-    return venuesAsync.when(
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(familySupabaseVenuesProvider);
+        ref.invalidate(familyGroupVenuesProvider);
+        ref.invalidate(familyAllVenuesGroupedProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      },
+      color: modeTheme.primaryColor,
+      child: venuesAsync.when(
       data: (venues) {
         if (venues.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucun lieu trouve pour cette categorie',
-            icon: Icons.family_restroom,
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 320),
+              EmptyStateWidget(
+                message: 'Aucun lieu trouve pour cette categorie',
+                icon: Icons.family_restroom,
+              ),
+            ],
           );
         }
 
@@ -185,6 +199,7 @@ class FamilyScreen extends ConsumerWidget {
         final hasGroups = venues.any((v) => v.groupe.isNotEmpty);
         if (!hasGroups) {
           return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             itemCount: venues.length,
             itemBuilder: (context, index) => Padding(
@@ -278,6 +293,7 @@ class FamilyScreen extends ConsumerWidget {
         }
 
         return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 16),
           children: items,
         );
@@ -287,6 +303,7 @@ class FamilyScreen extends ConsumerWidget {
         message: 'Erreur lors du chargement des lieux',
         onRetry: () => ref.invalidate(familySupabaseVenuesProvider(category)),
       ),
+    ),
     );
   }
 
@@ -330,12 +347,27 @@ class FamilyScreen extends ConsumerWidget {
       ..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
 
     if (filtered.isEmpty) {
-      return scrapedAsync.isLoading
-          ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-          : const EmptyStateWidget(
-              message: 'Aucun evenement famille pour le moment',
-              icon: Icons.family_restroom,
-            );
+      return RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(familySupabaseVenuesProvider);
+          ref.invalidate(familyGroupVenuesProvider);
+          ref.invalidate(familyAllVenuesGroupedProvider);
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+        },
+        color: modeTheme.primaryColor,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            const SizedBox(height: 320),
+            scrapedAsync.isLoading
+                ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                : const EmptyStateWidget(
+                    message: 'Aucun evenement famille pour le moment',
+                    icon: Icons.family_restroom,
+                  ),
+          ],
+        ),
+      );
     }
 
     final grouped = <DateTime, List<Event>>{};
@@ -346,7 +378,16 @@ class FamilyScreen extends ConsumerWidget {
     }
     final sortedDays = grouped.keys.toList()..sort();
 
-    return ListView(
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(familySupabaseVenuesProvider);
+        ref.invalidate(familyGroupVenuesProvider);
+        ref.invalidate(familyAllVenuesGroupedProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      },
+      color: modeTheme.primaryColor,
+      child: ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
         const Padding(
@@ -368,6 +409,7 @@ class FamilyScreen extends ConsumerWidget {
             ),
         ],
       ],
+    ),
     );
   }
 }

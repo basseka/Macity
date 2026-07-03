@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
+import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
@@ -136,6 +137,7 @@ class SportScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sub = ref.watch(sportSubcategoryProvider);
+    final modeTheme = ref.watch(modeThemeProvider);
 
     // Cartes plein ecran (sans chrome editorial)
     if (SportFullscreenMap.isMapTag(sub)) {
@@ -166,12 +168,12 @@ class SportScreen extends ConsumerWidget {
             ),
           ),
         ],
-        body: _resolve(sub),
+        body: _resolve(ref, modeTheme.primaryColor, sub),
       ),
     );
   }
 
-  Widget _resolve(String? sub) {
+  Widget _resolve(WidgetRef ref, Color accent, String? sub) {
     if (sub == null) return const SportHubGrid();
 
     return switch (sub) {
@@ -185,17 +187,17 @@ class SportScreen extends ConsumerWidget {
       'Courses a pied' => const SportEventsGrid(title: 'Courses a pied', fallbackImage: 'assets/images/pochette_courseapied.webp', emptyIcon: Icons.directions_run),
       'Competition' => const SportEventsGrid(title: 'Competition', fallbackImage: 'assets/images/pochette_competition.webp', emptyIcon: Icons.emoji_events),
       'Stage de danse' => const SportEventsGrid(title: 'Stage de danse', fallbackImage: 'assets/images/pochette_stagedanse.webp', emptyIcon: Icons.music_note),
-      'Danse' => const DanceVenuesList(),
+      'Danse' => _wrapVenuesRefresh(ref, accent, const DanceVenuesList()),
       // Venues avec sport_type direct
-      'Salle de fitness' => SportVenuesList(sportType: 'fitness', displayTitle: 'Salle de fitness', mapTag: _venueMapTags['Salle de fitness']),
-      'Salles de boxe' => SportVenuesList(sportType: 'boxe', displayTitle: 'Salles de boxe', mapTag: _venueMapTags['Salles de boxe']),
-      'Terrain de football' => SportVenuesList(sportType: 'terrain-football', displayTitle: 'Terrain de football', mapTag: _venueMapTags['Terrain de football']),
-      'Terrain de basketball' => SportVenuesList(sportType: 'terrain-basketball', displayTitle: 'Terrain de basketball', mapTag: _venueMapTags['Terrain de basketball']),
-      'Piscine' => SportVenuesList(sportType: 'piscine', displayTitle: 'Piscine', mapTag: _venueMapTags['Piscine']),
-      'Golf' => SportVenuesList(sportType: 'golf', displayTitle: 'Golf', mapTag: _venueMapTags['Golf']),
+      'Salle de fitness' => _wrapVenuesRefresh(ref, accent, SportVenuesList(sportType: 'fitness', displayTitle: 'Salle de fitness', mapTag: _venueMapTags['Salle de fitness'])),
+      'Salles de boxe' => _wrapVenuesRefresh(ref, accent, SportVenuesList(sportType: 'boxe', displayTitle: 'Salles de boxe', mapTag: _venueMapTags['Salles de boxe'])),
+      'Terrain de football' => _wrapVenuesRefresh(ref, accent, SportVenuesList(sportType: 'terrain-football', displayTitle: 'Terrain de football', mapTag: _venueMapTags['Terrain de football'])),
+      'Terrain de basketball' => _wrapVenuesRefresh(ref, accent, SportVenuesList(sportType: 'terrain-basketball', displayTitle: 'Terrain de basketball', mapTag: _venueMapTags['Terrain de basketball'])),
+      'Piscine' => _wrapVenuesRefresh(ref, accent, SportVenuesList(sportType: 'piscine', displayTitle: 'Piscine', mapTag: _venueMapTags['Piscine'])),
+      'Golf' => _wrapVenuesRefresh(ref, accent, SportVenuesList(sportType: 'golf', displayTitle: 'Golf', mapTag: _venueMapTags['Golf'])),
       // Sous-types raquette
       'Tennis' || 'Padel' || 'Squash' || 'Ping-pong' || 'Badminton' =>
-        _buildRaquetteVenues(sub),
+        _wrapVenuesRefresh(ref, accent, _buildRaquetteVenues(sub)),
       // Marathon race info
       _ when _marathonChildren.contains(sub) => MarathonRaceInfo(subcategory: sub),
       // Matchs (Rugby, Football, Basketball, etc.)
@@ -211,6 +213,21 @@ class SportScreen extends ConsumerWidget {
       mapTag: _venueMapTags[tag],
       backLabel: 'Sport',
       backTarget: '',
+    );
+  }
+
+  /// Enveloppe une liste de venues sport dans un pull-to-refresh qui invalide
+  /// les providers (autoDispose) pour forcer un refetch depuis Supabase.
+  Widget _wrapVenuesRefresh(WidgetRef ref, Color color, Widget child) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(sportVenuesProvider);
+        ref.invalidate(racketAllVenuesProvider);
+        ref.invalidate(danceVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      },
+      color: color,
+      child: child,
     );
   }
 }

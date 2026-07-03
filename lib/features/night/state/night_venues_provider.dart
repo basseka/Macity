@@ -233,7 +233,7 @@ List<CommerceModel> _dedupeByNameAndPosition(List<CommerceModel> venues) {
 /// [nightVenuesProvider] mais la categorie vient du chip au lieu de l'etat
 /// [nightCategoryProvider].
 final nightVenuesByTagProvider =
-    FutureProvider.family<List<CommerceModel>, String>((ref, category) async {
+    FutureProvider.autoDispose.family<List<CommerceModel>, String>((ref, category) async {
   final city = ref.watch(selectedCityProvider);
 
   // Tag parent (ex: "Spicy") : on agrege ses enfants (Coquin + Strip) sinon
@@ -288,7 +288,7 @@ final nightVenuesByTagProvider =
   return _dedupeByNameAndPosition(venues);
 });
 
-final nightVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
+final nightVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(nightCategoryProvider);
 

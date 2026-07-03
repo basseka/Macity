@@ -334,7 +334,14 @@ class NightScreen extends ConsumerWidget {
 
     final isAvenir = category == 'A venir';
 
-    return Column(
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(nightVenuesProvider);
+        ref.invalidate(nightVenuesByTagProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      },
+      color: modeTheme.primaryColor,
+      child: Column(
       children: [
         // Back button row (masquee sur A venir : la masthead a deja un back)
         if (!isAvenir) ...[
@@ -438,15 +445,22 @@ class NightScreen extends ConsumerWidget {
                     // uniquement dans l'onglet "A venir" — ici on liste juste
                     // les etablissements (clubs, bars, etc.).
                     if (venues.isEmpty) {
-                      return const EmptyStateWidget(
-                        message: 'Aucun commerce trouve pour cette categorie',
-                        icon: Icons.nightlife,
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 320),
+                          EmptyStateWidget(
+                            message: 'Aucun commerce trouve pour cette categorie',
+                            icon: Icons.nightlife,
+                          ),
+                        ],
                       );
                     }
                     // Tap ouvre le pager qui permet de swiper de droite vers la
                     // gauche pour voir le venue suivant — pour toutes les
                     // categories Night (clubs, bars, pubs, chicha, etc.).
                     return ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: venues.length,
                       itemBuilder: (context, index) => Padding(
@@ -471,6 +485,7 @@ class NightScreen extends ConsumerWidget {
                 ),
         ),
       ],
+      ),
     );
   }
 

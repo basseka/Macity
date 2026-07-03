@@ -78,6 +78,7 @@ class SportVenuesList extends ConsumerWidget {
               if (sportType == 'fitness' || sportType == 'muscu') {
                 final entries = groupFitnessVenues(venues);
                 return ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: entries.length,
                   itemBuilder: (context, index) {
@@ -98,6 +99,7 @@ class SportVenuesList extends ConsumerWidget {
                 );
               }
               return ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: venues.length,
                 itemBuilder: (context, index) => Padding(

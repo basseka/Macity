@@ -68,17 +68,31 @@ class GamingScreen extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(gamingVenuesProvider);
 
-    return category == 'A venir'
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(gamingVenuesProvider);
+        ref.invalidate(gamingGroupedVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      },
+      color: modeTheme.primaryColor,
+      child: category == 'A venir'
         ? _buildGroupedVenues(context, ref, modeTheme)
         : venuesAsync.when(
                   data: (venues) {
                     if (venues.isEmpty) {
-                      return const EmptyStateWidget(
-                        message: 'Aucun lieu trouve pour cette categorie',
-                        icon: Icons.sports_esports,
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 320),
+                          EmptyStateWidget(
+                            message: 'Aucun lieu trouve pour cette categorie',
+                            icon: Icons.sports_esports,
+                          ),
+                        ],
                       );
                     }
                     return ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: venues.length,
                       itemBuilder: (context, index) => Padding(
@@ -97,7 +111,8 @@ class GamingScreen extends ConsumerWidget {
                     message: 'Erreur lors du chargement des lieux',
                     onRetry: () => ref.invalidate(gamingVenuesProvider),
                   ),
-                );
+                ),
+    );
   }
 
   Widget _buildGroupedVenues(BuildContext context, WidgetRef ref, ModeTheme modeTheme) {
@@ -212,6 +227,7 @@ class GamingScreen extends ConsumerWidget {
     }
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 16),
       children: items,
     );

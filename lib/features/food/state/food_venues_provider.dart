@@ -71,7 +71,7 @@ final foodCategoryCountProvider =
   return venues.length + uc;
 });
 
-final foodVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
+final foodVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(foodCategoryProvider);
 
@@ -108,7 +108,7 @@ final foodVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
 /// Restaurants depuis Supabase (avec theme/quartier/style), filtres par ville.
 /// Fallback sur la table venues (OSM) si etablissements est vide.
 final restaurantsSupabaseProvider =
-    FutureProvider<List<RestaurantVenue>>((ref) async {
+    FutureProvider.autoDispose<List<RestaurantVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final results = await RestaurantSupabaseService().fetchRestaurants(ville: city);
   if (results.isNotEmpty) return results;
@@ -141,7 +141,7 @@ final restaurantsSupabaseProvider =
 
 /// Provider groupé par searchTag pour l'affichage "A venir".
 final foodGroupedVenuesProvider =
-    FutureProvider<Map<String, List<CommerceModel>>>((ref) async {
+    FutureProvider.autoDispose<Map<String, List<CommerceModel>>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);

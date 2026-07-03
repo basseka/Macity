@@ -37,7 +37,7 @@ final fitnessChainPhotosProvider =
 /// Provider qui charge les venues sport depuis Supabase, filtrées par ville.
 /// Essaie d'abord sport_venues (ancienne table), puis venues (nouvelle table OSM).
 final sportVenuesProvider =
-    FutureProvider.family<List<CommerceModel>, String>((ref, sportType) async {
+    FutureProvider.autoDispose.family<List<CommerceModel>, String>((ref, sportType) async {
   final city = ref.watch(selectedCityProvider);
 
   List<CommerceModel> venues = <CommerceModel>[];
@@ -68,7 +68,7 @@ final sportVenuesProvider =
 
 /// Combine toutes les venues raquette (5 sous-types).
 final racketAllVenuesProvider =
-    FutureProvider<List<CommerceModel>>((ref) async {
+    FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
   ref.watch(selectedCityProvider);
 
   final results = await Future.wait([
@@ -83,7 +83,7 @@ final racketAllVenuesProvider =
 
 /// Provider pour les salles de danse depuis Supabase.
 final danceVenuesProvider =
-    FutureProvider<List<DanceVenue>>((ref) async {
+    FutureProvider.autoDispose<List<DanceVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
 
   try {

@@ -89,7 +89,7 @@ final familyCategoryCountProvider =
 /// Venues Supabase pour la categorie selectionnee, filtrees par ville.
 /// Fallback sur la table venues (donnees OSM) si family_venues est vide.
 final familySupabaseVenuesProvider =
-    FutureProvider.family<List<FamilyVenue>, String>((ref, category) async {
+    FutureProvider.autoDispose.family<List<FamilyVenue>, String>((ref, category) async {
   final city = ref.watch(selectedCityProvider);
   final service = ref.read(_familyServiceProvider);
   final results = await service.fetchVenues(category: category, ville: city);
@@ -122,7 +122,7 @@ final familySupabaseVenuesProvider =
 /// Venues d'une RUBRIQUE entiere (ex: "Divertissements" = tous ses types),
 /// pour la ville selectionnee. Sert aux chips de la landing (chip = rubrique).
 final familyGroupVenuesProvider =
-    FutureProvider.family<List<FamilyVenue>, String>((ref, groupName) async {
+    FutureProvider.autoDispose.family<List<FamilyVenue>, String>((ref, groupName) async {
   final city = ref.watch(selectedCityProvider);
   final service = ref.read(_familyServiceProvider);
   final tags = FamilyCategoryData.typeTagsForGroup(groupName);
@@ -143,7 +143,7 @@ final familyScrapedEventsProvider = FutureProvider<List<Event>>((ref) async {
 
 /// Toutes les venues Supabase, groupees par categorie (pour "A venir"), filtrees par ville.
 final familyAllVenuesGroupedProvider =
-    FutureProvider<Map<String, List<FamilyVenue>>>((ref) async {
+    FutureProvider.autoDispose<Map<String, List<FamilyVenue>>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final service = ref.read(_familyServiceProvider);
   final grouped = <String, List<FamilyVenue>>{};

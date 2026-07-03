@@ -260,31 +260,50 @@ class CultureScreen extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(museumVenuesSupabaseProvider);
 
-    return venuesAsync.when(
-      data: (museums) {
-        if (museums.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucun musee trouve',
-            icon: Icons.museum,
-          );
-        }
-        return GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 0.7,
-          ),
-          itemCount: museums.length,
-          itemBuilder: (context, index) =>
-              _MuseumGridCard(museum: museums[index]),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(museumVenuesSupabaseProvider);
+        ref.invalidate(theatreVenuesSupabaseProvider);
+        ref.invalidate(galleryVenuesSupabaseProvider);
+        ref.invalidate(libraryVenuesSupabaseProvider);
+        ref.invalidate(monumentVenuesSupabaseProvider);
+        ref.invalidate(cultureVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des musees',
-        onRetry: () => ref.invalidate(museumVenuesSupabaseProvider),
+      color: modeTheme.primaryColor,
+      child: venuesAsync.when(
+        data: (museums) {
+          if (museums.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 320),
+                const EmptyStateWidget(
+                  message: 'Aucun musee trouve',
+                  icon: Icons.museum,
+                ),
+              ],
+            );
+          }
+          return GridView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.7,
+            ),
+            itemCount: museums.length,
+            itemBuilder: (context, index) =>
+                _MuseumGridCard(museum: museums[index]),
+          );
+        },
+        loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+        error: (error, _) => AppErrorWidget(
+          message: 'Erreur lors du chargement des musees',
+          onRetry: () => ref.invalidate(museumVenuesSupabaseProvider),
+        ),
       ),
     );
   }
@@ -649,32 +668,51 @@ class CultureScreen extends ConsumerWidget {
 
   Widget _buildDanceVenuesList(WidgetRef ref, ModeTheme modeTheme) {
     final venuesAsync = ref.watch(danceVenuesProvider);
-    return venuesAsync.when(
-      data: (venues) {
-        if (venues.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucune salle de danse trouvee',
-            icon: Icons.music_note,
-          );
-        }
-        final siblings = venues.map(DanceVenueCard.toCommerce).toList();
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: venues.length,
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: DanceVenueCard(
-              dance: venues[index],
-              pagerSiblings: siblings,
-              pagerIndex: index,
-            ),
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(museumVenuesSupabaseProvider);
+        ref.invalidate(theatreVenuesSupabaseProvider);
+        ref.invalidate(galleryVenuesSupabaseProvider);
+        ref.invalidate(libraryVenuesSupabaseProvider);
+        ref.invalidate(monumentVenuesSupabaseProvider);
+        ref.invalidate(cultureVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des salles de danse',
-        onRetry: () => ref.invalidate(danceVenuesProvider),
+      color: modeTheme.primaryColor,
+      child: venuesAsync.when(
+        data: (venues) {
+          if (venues.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 320),
+                const EmptyStateWidget(
+                  message: 'Aucune salle de danse trouvee',
+                  icon: Icons.music_note,
+                ),
+              ],
+            );
+          }
+          final siblings = venues.map(DanceVenueCard.toCommerce).toList();
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: venues.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: DanceVenueCard(
+                dance: venues[index],
+                pagerSiblings: siblings,
+                pagerIndex: index,
+              ),
+            ),
+          );
+        },
+        loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+        error: (error, _) => AppErrorWidget(
+          message: 'Erreur lors du chargement des salles de danse',
+          onRetry: () => ref.invalidate(danceVenuesProvider),
+        ),
       ),
     );
   }
@@ -682,27 +720,46 @@ class CultureScreen extends ConsumerWidget {
   Widget _buildGalleryVenuesList(WidgetRef ref, ModeTheme modeTheme) {
     final venuesAsync = ref.watch(galleryVenuesSupabaseProvider);
 
-    return venuesAsync.when(
-      data: (galleries) {
-        if (galleries.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucune galerie trouvee',
-            icon: Icons.palette,
-          );
-        }
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: galleries.length,
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _GalleryCard(gallery: galleries[index]),
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(museumVenuesSupabaseProvider);
+        ref.invalidate(theatreVenuesSupabaseProvider);
+        ref.invalidate(galleryVenuesSupabaseProvider);
+        ref.invalidate(libraryVenuesSupabaseProvider);
+        ref.invalidate(monumentVenuesSupabaseProvider);
+        ref.invalidate(cultureVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des galeries',
-        onRetry: () => ref.invalidate(galleryVenuesSupabaseProvider),
+      color: modeTheme.primaryColor,
+      child: venuesAsync.when(
+        data: (galleries) {
+          if (galleries.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 320),
+                const EmptyStateWidget(
+                  message: 'Aucune galerie trouvee',
+                  icon: Icons.palette,
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: galleries.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _GalleryCard(gallery: galleries[index]),
+            ),
+          );
+        },
+        loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+        error: (error, _) => AppErrorWidget(
+          message: 'Erreur lors du chargement des galeries',
+          onRetry: () => ref.invalidate(galleryVenuesSupabaseProvider),
+        ),
       ),
     );
   }
@@ -711,32 +768,51 @@ class CultureScreen extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(libraryVenuesSupabaseProvider);
 
-    return venuesAsync.when(
-      data: (libraries) {
-        if (libraries.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucune bibliotheque trouvee',
-            icon: Icons.local_library,
-          );
-        }
-        final siblings = libraries.map(LibraryVenueCard.toCommerce).toList();
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: libraries.length,
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: LibraryVenueCard(
-              library: libraries[index],
-              pagerSiblings: siblings,
-              pagerIndex: index,
-            ),
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(museumVenuesSupabaseProvider);
+        ref.invalidate(theatreVenuesSupabaseProvider);
+        ref.invalidate(galleryVenuesSupabaseProvider);
+        ref.invalidate(libraryVenuesSupabaseProvider);
+        ref.invalidate(monumentVenuesSupabaseProvider);
+        ref.invalidate(cultureVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des bibliotheques',
-        onRetry: () => ref.invalidate(libraryVenuesSupabaseProvider),
+      color: modeTheme.primaryColor,
+      child: venuesAsync.when(
+        data: (libraries) {
+          if (libraries.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 320),
+                const EmptyStateWidget(
+                  message: 'Aucune bibliotheque trouvee',
+                  icon: Icons.local_library,
+                ),
+              ],
+            );
+          }
+          final siblings = libraries.map(LibraryVenueCard.toCommerce).toList();
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: libraries.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: LibraryVenueCard(
+                library: libraries[index],
+                pagerSiblings: siblings,
+                pagerIndex: index,
+              ),
+            ),
+          );
+        },
+        loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+        error: (error, _) => AppErrorWidget(
+          message: 'Erreur lors du chargement des bibliotheques',
+          onRetry: () => ref.invalidate(libraryVenuesSupabaseProvider),
+        ),
       ),
     );
   }
@@ -745,32 +821,51 @@ class CultureScreen extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(monumentVenuesSupabaseProvider);
 
-    return venuesAsync.when(
-      data: (monuments) {
-        if (monuments.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucun monument trouve',
-            icon: Icons.account_balance,
-          );
-        }
-        final siblings = monuments.map(MonumentVenueCard.toCommerce).toList();
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: monuments.length,
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: MonumentVenueCard(
-              monument: monuments[index],
-              pagerSiblings: siblings,
-              pagerIndex: index,
-            ),
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(museumVenuesSupabaseProvider);
+        ref.invalidate(theatreVenuesSupabaseProvider);
+        ref.invalidate(galleryVenuesSupabaseProvider);
+        ref.invalidate(libraryVenuesSupabaseProvider);
+        ref.invalidate(monumentVenuesSupabaseProvider);
+        ref.invalidate(cultureVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des monuments',
-        onRetry: () => ref.invalidate(monumentVenuesSupabaseProvider),
+      color: modeTheme.primaryColor,
+      child: venuesAsync.when(
+        data: (monuments) {
+          if (monuments.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 320),
+                const EmptyStateWidget(
+                  message: 'Aucun monument trouve',
+                  icon: Icons.account_balance,
+                ),
+              ],
+            );
+          }
+          final siblings = monuments.map(MonumentVenueCard.toCommerce).toList();
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: monuments.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: MonumentVenueCard(
+                monument: monuments[index],
+                pagerSiblings: siblings,
+                pagerIndex: index,
+              ),
+            ),
+          );
+        },
+        loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+        error: (error, _) => AppErrorWidget(
+          message: 'Erreur lors du chargement des monuments',
+          onRetry: () => ref.invalidate(monumentVenuesSupabaseProvider),
+        ),
       ),
     );
   }
@@ -935,27 +1030,46 @@ class CultureScreen extends ConsumerWidget {
 
   Widget _buildCommerceVenuesList(WidgetRef ref, ModeTheme modeTheme) {
     final venuesAsync = ref.watch(cultureVenuesProvider);
-    return venuesAsync.when(
-      data: (venues) {
-        if (venues.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucun lieu culturel trouve pour cette categorie',
-            icon: Icons.museum,
-          );
-        }
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: venues.length,
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: CommerceRowCard(commerce: venues[index]),
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(museumVenuesSupabaseProvider);
+        ref.invalidate(theatreVenuesSupabaseProvider);
+        ref.invalidate(galleryVenuesSupabaseProvider);
+        ref.invalidate(libraryVenuesSupabaseProvider);
+        ref.invalidate(monumentVenuesSupabaseProvider);
+        ref.invalidate(cultureVenuesProvider);
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
-      loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des lieux culturels',
-        onRetry: () => ref.invalidate(cultureVenuesProvider),
+      color: modeTheme.primaryColor,
+      child: venuesAsync.when(
+        data: (venues) {
+          if (venues.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                const SizedBox(height: 320),
+                const EmptyStateWidget(
+                  message: 'Aucun lieu culturel trouve pour cette categorie',
+                  icon: Icons.museum,
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: venues.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: CommerceRowCard(commerce: venues[index]),
+            ),
+          );
+        },
+        loading: () => LoadingIndicator(color: modeTheme.primaryColor),
+        error: (error, _) => AppErrorWidget(
+          message: 'Erreur lors du chargement des lieux culturels',
+          onRetry: () => ref.invalidate(cultureVenuesProvider),
+        ),
       ),
     );
   }

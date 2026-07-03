@@ -9,7 +9,11 @@ import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
 /// Callback pour obtenir le count d'une catégorie (optionnel).
-typedef CategoryCountProvider = FutureProvider<int> Function(String searchTag);
+// Accepte aussi bien un FutureProvider<int> qu'un AutoDisposeFutureProvider<int>
+// (les deux implementent ProviderListenable<AsyncValue<int>>), pour permettre
+// aux counts d'etre autoDispose sans casser les hub grids.
+typedef CategoryCountProvider = ProviderListenable<AsyncValue<int>> Function(
+    String searchTag);
 
 /// Callback fallback : path d'asset local utilise si `categories.image_url` est
 /// vide en BDD pour une categorie donnee. Retourne null si pas de fallback.

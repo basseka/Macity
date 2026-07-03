@@ -156,7 +156,7 @@ final cultureTheatreEventsProgressiveProvider =
 
 /// Gallery venues depuis la table `venues` de Supabase, filtrees par ville.
 final galleryVenuesSupabaseProvider =
-    FutureProvider<List<CommerceModel>>((ref) async {
+    FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   try {
     final service = VenuesSupabaseService();
@@ -168,7 +168,7 @@ final galleryVenuesSupabaseProvider =
 
 /// Library venues depuis la table `venues` de Supabase, filtrees par ville.
 final libraryVenuesSupabaseProvider =
-    FutureProvider<List<LibraryVenue>>((ref) async {
+    FutureProvider.autoDispose<List<LibraryVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   try {
     final service = VenuesSupabaseService();
@@ -180,7 +180,7 @@ final libraryVenuesSupabaseProvider =
 
 /// Monument venues depuis la table `venues` de Supabase, filtrees par ville.
 final monumentVenuesSupabaseProvider =
-    FutureProvider<List<MonumentVenue>>((ref) async {
+    FutureProvider.autoDispose<List<MonumentVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   try {
     final service = VenuesSupabaseService();
@@ -192,7 +192,7 @@ final monumentVenuesSupabaseProvider =
 
 /// Museum venues depuis la table `venues` de Supabase, filtrees par ville.
 final museumVenuesSupabaseProvider =
-    FutureProvider<List<MuseumVenue>>((ref) async {
+    FutureProvider.autoDispose<List<MuseumVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   try {
     final service = VenuesSupabaseService();
@@ -204,7 +204,7 @@ final museumVenuesSupabaseProvider =
 
 /// Theatre venues depuis la table `venues` de Supabase, filtrees par ville.
 final theatreVenuesSupabaseProvider =
-    FutureProvider<List<TheatreVenue>>((ref) async {
+    FutureProvider.autoDispose<List<TheatreVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   try {
     final service = VenuesSupabaseService();
@@ -257,7 +257,7 @@ final theatreVenueEventsProvider =
 final selectedTheatreVenueProvider = StateProvider<String?>((ref) => null);
 
 final cultureCategoryCountProvider =
-    FutureProvider.family<int, String>((ref, searchTag) async {
+    FutureProvider.autoDispose.family<int, String>((ref, searchTag) async {
   if (searchTag == 'Musee') {
     final venues = await ref.watch(museumVenuesSupabaseProvider.future);
     return venues.length;
@@ -338,7 +338,7 @@ final cultureCategoryCountProvider =
   return venues.length + userCount;
 });
 
-final cultureVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
+final cultureVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(cultureCategoryProvider);
 

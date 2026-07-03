@@ -66,7 +66,7 @@ final gamingCategoryCountProvider =
   return venues.length + uc;
 });
 
-final gamingVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
+final gamingVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final category = ref.watch(gamingCategoryProvider);
 
@@ -95,7 +95,7 @@ final gamingVenuesProvider = FutureProvider<List<CommerceModel>>((ref) async {
 
 /// Provider groupé par searchTag pour l'affichage "A venir".
 final gamingGroupedVenuesProvider =
-    FutureProvider<Map<String, List<CommerceModel>>>((ref) async {
+    FutureProvider.autoDispose<Map<String, List<CommerceModel>>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final db = AppDatabase();
   final repository = CommerceRepository(db: db);

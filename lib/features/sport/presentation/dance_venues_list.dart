@@ -101,7 +101,7 @@ class DanceVenuesList extends ConsumerWidget {
                 }
               }
 
-              return ListView(padding: const EdgeInsets.only(bottom: 16), children: items);
+              return ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.only(bottom: 16), children: items);
             },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
             error: (error, _) => const AppErrorWidget(message: 'Erreur lors du chargement des salles de danse'),
