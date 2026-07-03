@@ -29,22 +29,21 @@ class FoodRubriqueView extends ConsumerStatefulWidget {
 }
 
 class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
-  /// Marqueur theme special : trie par distance a l'utilisateur au lieu
-  /// de filtrer par categorie. Detecte dans `_filtered`.
-  static const String _proximityMarker = '__plus_proche__';
-
   static const _chips = <_Chip>[
     _Chip('Restaurants', Icons.restaurant_rounded, null),
     _Chip('Guinguette', Icons.deck_rounded, 'Guinguette'),
     _Chip('Buffets', Icons.room_service_rounded, 'Buffet'),
     _Chip('Salon de Thé', Icons.local_cafe_rounded, 'Salon de the'),
     _Chip('Brunch', Icons.egg_alt_rounded, 'Brunch'),
-    _Chip('Plus proche', Icons.near_me_rounded, _proximityMarker),
   ];
 
   String _activeChip = 'Restaurants';
   final Set<String> _saved = {};
   Position? _userPosition;
+
+  /// Tri par proximité (toggle du bouton "Plus proche de moi"). Se combine
+  /// avec le filtre thème du chip actif (ex : guinguettes les plus proches).
+  bool _sortByProximity = false;
 
   VideoPlayerController? _video;
   String? _videoUrl;
@@ -88,24 +87,27 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
 
   List<RestaurantVenue> _filtered(List<RestaurantVenue> all) {
     final chip = _chips.firstWhere((c) => c.label == _activeChip);
-    if (chip.theme == null) return all;
-    // Mode "Plus proche" : trie par distance haversine a l'utilisateur,
-    // sans filtre de categorie. Si la position user est inconnue, on
-    // garde l'ordre par defaut (le fetch est lance en parallele).
-    if (chip.theme == _proximityMarker) {
+    // 1) Filtre thème du chip actif (null = tous les restaurants).
+    final base = chip.theme == null
+        ? all
+        : sortRestaurantsForCategory(
+            all.where((r) => r.matchesTheme(chip.theme!)).toList(),
+            chip.theme!,
+          );
+    // 2) Tri par proximité si le toggle est actif ET la position connue.
+    //    Se combine avec le filtre ci-dessus (ex : guinguettes les + proches).
+    if (_sortByProximity) {
       final pos = _userPosition;
-      if (pos == null) return all;
-      final withDist = all
-          .map((r) => MapEntry(r, _haversineKm(pos.latitude, pos.longitude,
-              r.latitude, r.longitude)))
-          .toList()
-        ..sort((a, b) => a.value.compareTo(b.value));
-      return withDist.map((e) => e.key).toList();
+      if (pos != null) {
+        final withDist = base
+            .map((r) => MapEntry(r, _haversineKm(pos.latitude, pos.longitude,
+                r.latitude, r.longitude)))
+            .toList()
+          ..sort((a, b) => a.value.compareTo(b.value));
+        return withDist.map((e) => e.key).toList();
+      }
     }
-    return sortRestaurantsForCategory(
-      all.where((r) => r.matchesTheme(chip.theme!)).toList(),
-      chip.theme!,
-    );
+    return base;
   }
 
   /// Distance Haversine en km entre 2 points (lat, lon en degres).
@@ -151,7 +153,26 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
         setState(() => _userPosition = current);
       }
     } catch (_) {
-      // GPS off / permission refusee -> mode "Plus proche" reste sans tri
+      // GPS off / permission refusee -> tri par proximité reste sans effet
+    }
+  }
+
+  /// Toggle du bouton "Plus proche de moi" : active/desactive le tri par
+  /// distance (combine au filtre thème courant). Si la localisation n'est
+  /// pas disponible, on annule le toggle et on invite a l'activer.
+  Future<void> _toggleProximitySort() async {
+    final turningOn = !_sortByProximity;
+    setState(() => _sortByProximity = turningOn);
+    if (!turningOn) return;
+    await _ensureUserPosition();
+    if (!mounted) return;
+    if (_userPosition == null) {
+      setState(() => _sortByProximity = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Active la localisation pour trier par proximité.'),
+        ),
+      );
     }
   }
 
@@ -181,7 +202,12 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             ),
             const SizedBox(height: 18),
             _chipsRow(),
-            _sectionHeader('Restaurants', onSeeAll: () {}),
+            _sectionHeader('Restaurants',
+                actionLabel: 'Plus proche de moi',
+                actionIcon: Icons.near_me_rounded,
+                actionPill: true,
+                actionActive: _sortByProximity,
+                onSeeAll: _toggleProximitySort),
             restaurantsAsync.when(
               data: (all) {
                 final list = _filtered(all);
@@ -195,14 +221,10 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                     itemCount: list.length,
                     separatorBuilder: (_, __) => const SizedBox(width: 10),
                     itemBuilder: (_, i) {
-                      // Distance affichee uniquement en mode "Plus proche"
-                      // et si on a la position user.
-                      final activeIsProximity = _chips
-                              .firstWhere((c) => c.label == _activeChip)
-                              .theme ==
-                          _proximityMarker;
+                      // Distance affichee uniquement quand le tri proximité
+                      // est actif et qu'on a la position user.
                       double? distKm;
-                      if (activeIsProximity && _userPosition != null) {
+                      if (_sortByProximity && _userPosition != null) {
                         distKm = _haversineKm(
                           _userPosition!.latitude,
                           _userPosition!.longitude,
@@ -257,15 +279,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
           final c = _chips[i];
           final active = c.label == _activeChip;
           return GestureDetector(
-            onTap: () {
-              setState(() => _activeChip = c.label);
-              // Si on selectionne "Plus proche", on lance le fetch position
-              // (au cas ou il n'a pas deja ete fait). Le setState futur
-              // declenchera un re-tri une fois la position connue.
-              if (c.theme == _proximityMarker) {
-                _ensureUserPosition();
-              }
-            },
+            onTap: () => setState(() => _activeChip = c.label),
             behavior: HitTestBehavior.opaque,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
@@ -316,7 +330,50 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
 
   // ─── Section header ──────────────────────────────────────────────────
   Widget _sectionHeader(String title,
-      {required VoidCallback onSeeAll, double? fontSize}) {
+      {required VoidCallback onSeeAll,
+      double? fontSize,
+      String actionLabel = 'Voir tout',
+      IconData actionIcon = Icons.chevron_right,
+      bool actionPill = false,
+      bool actionActive = false}) {
+    // actionPill : toggle pastille (plein = actif, contour = inactif).
+    // sinon : lien texte discret + chevron.
+    final Widget action;
+    if (actionPill) {
+      final Color fg = actionActive ? Colors.white : FoodTokens.forest;
+      action = AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: actionActive ? FoodTokens.forest : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: FoodTokens.forest, width: 1.4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(actionIcon, size: 15, color: fg),
+            const SizedBox(width: 5),
+            Text(
+              actionLabel,
+              style: FoodTokens.chip(color: fg, w: FontWeight.w600),
+            ),
+          ],
+        ),
+      );
+    } else {
+      action = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            actionLabel,
+            style: FoodTokens.chip(color: FoodTokens.forest),
+          ),
+          const SizedBox(width: 2),
+          Icon(actionIcon, size: 16, color: FoodTokens.forest),
+        ],
+      );
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
       child: Row(
@@ -330,18 +387,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
           GestureDetector(
             onTap: onSeeAll,
             behavior: HitTestBehavior.opaque,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Voir tout',
-                  style: FoodTokens.chip(color: FoodTokens.forest),
-                ),
-                const SizedBox(width: 2),
-                const Icon(Icons.chevron_right,
-                    size: 16, color: FoodTokens.forest),
-              ],
-            ),
+            child: action,
           ),
         ],
       ),
