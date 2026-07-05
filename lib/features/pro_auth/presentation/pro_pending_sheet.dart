@@ -175,6 +175,17 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 8),
+
+            Text(
+              'Pas recu ? Pensez a verifier vos spams / courriers indesirables.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textDim,
+                height: 1.3,
+              ),
+            ),
             const SizedBox(height: 20),
 
             // Input code

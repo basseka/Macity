@@ -138,6 +138,25 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
                   height: 1.4,
                 ),
               ),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.mark_email_unread_outlined,
+                      size: 15, color: Colors.white54),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Pas reçu ? Pensez à vérifier vos spams / courriers indésirables.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.white54,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
               TextField(
                 controller: _codeController,
