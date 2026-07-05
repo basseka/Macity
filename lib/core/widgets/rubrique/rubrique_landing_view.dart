@@ -132,6 +132,8 @@ class RubriqueItem {
   final String subtitle;
   final String photoUrl;
   final bool isVerified;
+  /// Lieu partenaire (mis en avant : badge doré).
+  final bool isPartner;
   final void Function(BuildContext context) onTap;
 
   /// Commerce sous-jacent. Si fourni, le tap ouvre un pager swipable sur tous
@@ -144,6 +146,7 @@ class RubriqueItem {
     required this.photoUrl,
     required this.onTap,
     this.isVerified = false,
+    this.isPartner = false,
     this.commerce,
   });
 }
@@ -189,6 +192,12 @@ class RubriqueConfig {
   /// page). Ex. Sport : le bloc "Actu sport" sous "les meilleurs spots".
   final List<Widget> Function(BuildContext context)? extraSectionsBottom;
 
+  /// Carrousel "Nos partenaires" affiché en tête de la landing (juste sous les
+  /// chips, avant la section principale). Renvoie l'AsyncValue des lieux
+  /// partenaires ; la section est masquée si null ou vide.
+  final AsyncValue<List<RubriqueItem>> Function(WidgetRef ref)? partnersBuilder;
+  final String partnersTitle;
+
   const RubriqueConfig({
     required this.theme,
     required this.eyebrowLeft,
@@ -206,6 +215,8 @@ class RubriqueConfig {
     this.onBannerCta,
     this.extraSections,
     this.extraSectionsBottom,
+    this.partnersBuilder,
+    this.partnersTitle = 'Nos partenaires',
   });
 }
 
@@ -299,6 +310,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             _hero(cfg),
             const SizedBox(height: 18),
             _chipsRow(cfg),
+            ..._partnerRail(cfg, t),
             _sectionHeader(cfg.sectionTitle, t),
             itemsAsync.when(
               data: (items) {
@@ -414,7 +426,36 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     );
   }
 
-  Widget _sectionHeader(String title, RubriqueTheme t, {double? fontSize}) {
+  /// Carrousel "Nos partenaires" en tête de landing. Masqué si aucun
+  /// partenaire (ou si la rubrique n'en fournit pas).
+  List<Widget> _partnerRail(RubriqueConfig cfg, RubriqueTheme t) {
+    final builder = cfg.partnersBuilder;
+    if (builder == null) return const [];
+    final items = builder(ref).valueOrNull ?? const <RubriqueItem>[];
+    if (items.isEmpty) return const [];
+    return [
+      _sectionHeader(cfg.partnersTitle, t, showAction: false),
+      SizedBox(
+        height: 212,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (_, i) => _ItemCard(
+            item: items[i],
+            theme: t,
+            coupDeCoeur: false,
+            onOpen: (ctx) => _openItem(ctx, items, i),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _sectionHeader(String title, RubriqueTheme t,
+      {double? fontSize, bool showAction = true}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
       child: Row(
@@ -427,14 +468,15 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             ),
           ),
           const Spacer(),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Voir tout', style: RubriqueTheme.chip(color: t.accent)),
-              const SizedBox(width: 2),
-              Icon(Icons.chevron_right, size: 15, color: t.accent),
-            ],
-          ),
+          if (showAction)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Voir tout', style: RubriqueTheme.chip(color: t.accent)),
+                const SizedBox(width: 2),
+                Icon(Icons.chevron_right, size: 15, color: t.accent),
+              ],
+            ),
         ],
       ),
     );
@@ -807,7 +849,34 @@ class _ItemCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (coupDeCoeur)
+            if (item.isPartner)
+              Positioned(
+                top: 6,
+                left: 6,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFC79A3E),
+                    borderRadius:
+                        BorderRadius.circular(RubriqueTheme.rPill),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star,
+                          size: 5, color: Color(0xFF2A1E06)),
+                      const SizedBox(width: 2),
+                      Text('PARTENAIRE',
+                          style: RubriqueTheme.tinyTag(
+                              color: const Color(0xFF2A1E06),
+                              size: 5,
+                              spacing: 0.5,
+                              w: FontWeight.w800)),
+                    ],
+                  ),
+                ),
+              )
+            else if (coupDeCoeur)
               Positioned(
                 top: 6,
                 left: 6,

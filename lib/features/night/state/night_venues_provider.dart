@@ -316,3 +316,13 @@ final nightVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref
 
   return venues;
 });
+
+/// Lieux partenaires Night pour la ville courante (badge doré + carrousel en
+/// tête de la landing Night). autoDispose : refetch au retour sur le hub.
+final nightPartnersProvider =
+    FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final venues =
+      await VenuesSupabaseService().fetchVenues(mode: 'night', ville: city);
+  return venues.where((v) => v.isPartner).toList();
+});

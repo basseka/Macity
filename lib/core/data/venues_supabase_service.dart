@@ -317,6 +317,7 @@ class VenuesSupabaseService {
       displayCount: (json['display_count'] as num?)?.toInt() ?? 0,
       videoUrl: json['video_url'] as String? ?? '',
       isVerified: json['is_verified'] as bool? ?? false,
+      isPartner: json['is_partner'] as bool? ?? false,
       sourceId: (json['id'] as num?)?.toInt(),
       sourceTable: 'venue',
     );

@@ -247,6 +247,20 @@ class CommerceRowCard extends ConsumerWidget {
                             child: const Icon(Icons.workspace_premium, size: 14, color: Color(0xFFFFD700)),
                           ),
                         ),
+                      if (commerce.isPartner)
+                        Positioned(
+                          top: -3,
+                          left: -3,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFC79A3E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.star,
+                                size: 11, color: Color(0xFF2A1E06)),
+                          ),
+                        ),
                     ],
                   ),
                   if (summary != null && summary.reviewCount > 0) ...[

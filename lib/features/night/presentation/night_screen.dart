@@ -103,6 +103,28 @@ class NightScreen extends ConsumerWidget {
       bannerSubtitle: 'Les meilleurs spots nocturnes vous attendent.',
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
+      partnersBuilder: (ref) => ref.watch(nightPartnersProvider).whenData(
+            (list) => list
+                .asMap()
+                .entries
+                .map((e) => RubriqueItem(
+                      title: e.value.nom,
+                      subtitle: [
+                        if (e.value.categorie.isNotEmpty) e.value.categorie,
+                        if (e.value.ville.isNotEmpty) e.value.ville,
+                      ].join(' · '),
+                      photoUrl: e.value.photo,
+                      isVerified: e.value.isVerified,
+                      isPartner: true,
+                      commerce: e.value,
+                      onTap: (ctx) => CommercePagerView.open(
+                        ctx,
+                        commerces: list,
+                        initialIndex: e.key,
+                      ),
+                    ))
+                .toList(),
+          ),
       itemsBuilder: (ref, chipKey) {
         return ref.watch(nightVenuesByTagProvider(chipKey)).whenData(
               (list) => list
@@ -116,6 +138,7 @@ class NightScreen extends ConsumerWidget {
                         ].join(' · '),
                         photoUrl: e.value.photo,
                         isVerified: e.value.isVerified,
+                        isPartner: e.value.isPartner,
                         // Ouvre le pager swipable avec la fiche detail riche
                         // (teaser, 6 photos, avis, likes, commentaires) —
                         // meme detail que l'ancienne liste Night.
