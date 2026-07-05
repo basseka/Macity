@@ -33,6 +33,7 @@ class ItemDetailSheet extends ConsumerWidget {
   final Widget? extraContent;
   final double imageHeightFraction;
   final bool isVerified;
+  final bool isPartner;
   final List<String> photoGallery;
   final ReviewsTarget? reviewsTarget;
   /// Description multi-paragraphes affichee sous la gallery (au-dessus des
@@ -60,6 +61,7 @@ class ItemDetailSheet extends ConsumerWidget {
     this.extraContent,
     this.imageHeightFraction = 1.0,
     this.isVerified = false,
+    this.isPartner = false,
     this.photoGallery = const [],
     this.reviewsTarget,
     this.description = '',
@@ -252,6 +254,33 @@ class ItemDetailSheet extends ConsumerWidget {
                               ),
                             ],
                           ),
+
+                          if (isPartner) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFC79A3E),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.star,
+                                      size: 13, color: Color(0xFF2A1E06)),
+                                  SizedBox(width: 5),
+                                  Text('Restaurant partenaire',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF2A1E06),
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.3,
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ],
 
                           const SizedBox(height: 10),
 

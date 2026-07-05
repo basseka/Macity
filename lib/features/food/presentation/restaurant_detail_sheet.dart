@@ -67,6 +67,7 @@ class RestaurantDetailSheet {
       photo: venue.photo,
       siteWeb: venue.websiteUrl,
       isVerified: venue.isVerified,
+      isPartner: venue.isPartner,
       // 1) si une video a ete uploadee via admin (video_url en DB) → on la
       //    prend, peu importe le statut verifie ;
       // 2) sinon, fiche verifiee = pas de video (le pro decide) ;

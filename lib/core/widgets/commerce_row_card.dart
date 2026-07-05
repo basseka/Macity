@@ -372,6 +372,7 @@ class CommerceRowCard extends ConsumerWidget {
             : _defaultVideoUrlFor(commerce),
         likeId: 'night_${commerce.nom}',
         isVerified: commerce.isVerified,
+        isPartner: commerce.isPartner,
         claimSourceTable: _claimSourceTableFromSingular(commerce.sourceTable),
         claimSourceId: commerce.sourceId,
         photoGallery: _buildPhotoGalleryFor(commerce),

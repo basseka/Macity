@@ -29,6 +29,8 @@ class CommerceModel with _$CommerceModel {
     @Default(0) int displayCount,
     @Default('') String videoUrl,
     @Default(false) bool isVerified,
+    // Restaurant partenaire (mis en avant : badge doré carte + fiche).
+    @Default(false) bool isPartner,
     // ID + table source pour relier des avis (commerce_reviews.target_*).
     // Nullables : les commerces fabriques sans backing DB (OSM enrichi, fallbacks)
     // n'ont pas d'identifiant stable et ne supportent pas les avis.

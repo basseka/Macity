@@ -289,6 +289,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       photo: v.photo,
       siteWeb: v.websiteUrl,
       isVerified: v.isVerified,
+      isPartner: v.isPartner,
       // Priorite : video uploadee via admin (video_url en DB), sinon
       // food.mp4 par defaut pour les fiches non revendiquees, sinon rien.
       videoUrl: v.videoUrl.isNotEmpty
