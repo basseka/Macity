@@ -202,6 +202,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             ),
             const SizedBox(height: 18),
             _chipsRow(),
+            ..._partnerSection(restaurantsAsync.valueOrNull ?? const []),
             _sectionHeader('Restaurants',
                 actionLabel: 'Plus proche de moi',
                 actionIcon: Icons.near_me_rounded,
@@ -335,7 +336,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
       String actionLabel = 'Voir tout',
       IconData actionIcon = Icons.chevron_right,
       bool actionPill = false,
-      bool actionActive = false}) {
+      bool actionActive = false,
+      bool showAction = true}) {
     // actionPill : toggle pastille (plein = actif, contour = inactif).
     // sinon : lien texte discret + chevron.
     final Widget action;
@@ -384,11 +386,12 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             style: FoodTokens.sectionHeader(fontSize: fontSize ?? 14),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: onSeeAll,
-            behavior: HitTestBehavior.opaque,
-            child: action,
-          ),
+          if (showAction)
+            GestureDetector(
+              onTap: onSeeAll,
+              behavior: HitTestBehavior.opaque,
+              child: action,
+            ),
         ],
       ),
     );
@@ -415,6 +418,49 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
           style: FoodTokens.body(),
         ),
       );
+
+  // ─── Partenaires ─────────────────────────────────────────────────────
+  /// Carrousel "Nos restaurants partenaires" (Piste C : cartes natives +
+  /// badge doré). Rotation quotidienne pour que chaque partenaire passe en
+  /// tête à tour de rôle. Section masquée s'il n'y a aucun partenaire.
+  List<Widget> _partnerSection(List<RestaurantVenue> all) {
+    final partners = all.where((r) => r.isPartner).toList();
+    if (partners.isEmpty) return const [];
+    // Melange stable sur la journee (seed = jour) : pas de re-tri a chaque
+    // rebuild, mais un ordre different chaque jour.
+    final seed = DateTime.now().difference(DateTime(2020, 1, 1)).inDays;
+    partners.shuffle(math.Random(seed));
+    final list = partners.take(10).toList();
+    return [
+      _sectionHeader('Nos restaurants partenaires',
+          showAction: false, onSeeAll: () {}),
+      SizedBox(
+        height: 212,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+          itemCount: list.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (_, i) => _RestaurantCard(
+            venue: list[i],
+            coupDeCoeur: false,
+            saved: _saved.contains(list[i].id),
+            onToggleSaved: () => setState(() {
+              final id = list[i].id;
+              _saved.contains(id) ? _saved.remove(id) : _saved.add(id);
+            }),
+            onTap: () => RestaurantDetailSheet.show(
+              context,
+              list[i],
+              siblings: list,
+              index: i,
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
 
   // ─── Inspirations ────────────────────────────────────────────────────
   /// Carrousel dynamique alimente par la table `inspirations` (rubrique='food')
@@ -920,7 +966,42 @@ class _RestaurantCard extends StatelessWidget {
               ),
             ),
 
-            if (coupDeCoeur)
+            if (venue.isPartner)
+              Positioned(
+                top: 6,
+                left: 6,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(4, 2, 4, 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFC79A3E),
+                    borderRadius: BorderRadius.circular(FoodTokens.rPill),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x80C79A3E),
+                        blurRadius: 6,
+                        spreadRadius: -2,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star,
+                          size: 6, color: Color(0xFF2A1E06)),
+                      const SizedBox(width: 2),
+                      Text('PARTENAIRE',
+                          style: FoodTokens.tinyTag(
+                            color: const Color(0xFF2A1E06),
+                            size: 5,
+                            spacing: 0.5,
+                            w: FontWeight.w800,
+                          )),
+                    ],
+                  ),
+                ),
+              )
+            else if (coupDeCoeur)
               Positioned(
                 top: 6,
                 left: 6,

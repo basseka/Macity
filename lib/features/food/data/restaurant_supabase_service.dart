@@ -72,6 +72,7 @@ class RestaurantSupabaseService {
       photos: photos,
       videoUrl: json['video_url'] as String? ?? '',
       displayPriority: (json['display_priority'] as num?)?.toInt() ?? 0,
+      isPartner: json['is_partner'] as bool? ?? false,
       priorities: priorities,
     );
   }

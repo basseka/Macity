@@ -17,6 +17,8 @@ class RestaurantVenue {
   final List<String> photos;
   final String videoUrl;
   final bool isVerified;
+  /// Restaurant partenaire (mis en avant : badge doré + carrousel dédié).
+  final bool isPartner;
   final int displayPriority;
   // Override de priorite par categorie (clé = nom catégorie food, ex
   // "Guinguette", valeur = entier). Si la clé est absente pour la categorie
@@ -43,6 +45,7 @@ class RestaurantVenue {
     this.photos = const [],
     this.videoUrl = '',
     this.isVerified = false,
+    this.isPartner = false,
     this.displayPriority = 0,
     this.priorities = const {},
   });
