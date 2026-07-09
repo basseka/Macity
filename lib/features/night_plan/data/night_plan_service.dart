@@ -15,9 +15,10 @@ import 'package:pulz_app/features/night_plan/domain/night_stop.dart';
 /// Construit une « feuille de route » de soirée autour d'un événement :
 /// un dîner, un bar et une boîte de nuit dans la même ville.
 ///
-/// D'abord un parcours curé par l'admin (RPC get_parcours_for_ville) ; chaque
-/// slot vide retombe sur la sélection auto « géo simple » : par distance quand
-/// on connaît les coordonnées de l'événement, sinon par partenaire + priorité.
+/// D'abord un parcours curé par l'admin (RPC get_parcours_for_event : ancre
+/// proche par proximité GPS, sinon parcours ville) ; chaque slot vide retombe
+/// sur la sélection auto « géo simple » : par distance quand on connaît les
+/// coordonnées de l'événement, sinon par partenaire + priorité.
 class NightPlanService {
   final VenuesSupabaseService _venues;
   final RestaurantSupabaseService _restaurants;
@@ -83,8 +84,9 @@ class NightPlanService {
     double? anchorLat,
     double? anchorLng,
   }) async {
-    // 1. Parcours curé par l'admin (si défini pour la ville).
-    final parcours = await _fetchParcours(ville);
+    // 1. Parcours curé par l'admin : d'abord un parcours ancré sur un lieu
+    // proche de l'event (proximité GPS), sinon le parcours de la ville.
+    final parcours = await _fetchParcours(ville, anchorLat, anchorLng);
     final curatedDinner = _stopFromJson(
       parcours?['dinner'],
       NightStopKind.dinner,
@@ -145,12 +147,21 @@ class NightPlanService {
     );
   }
 
-  /// Parcours curé pour la ville (null si aucun / RPC absente).
-  Future<Map<String, dynamic>?> _fetchParcours(String ville) async {
+  /// Parcours curé : ancre proche (coords) sinon ville. Null si aucun / RPC
+  /// absente.
+  Future<Map<String, dynamic>?> _fetchParcours(
+    String ville,
+    double? anchorLat,
+    double? anchorLng,
+  ) async {
     try {
       final res = await _dio.post(
-        'rpc/get_parcours_for_ville',
-        data: {'p_ville': ville},
+        'rpc/get_parcours_for_event',
+        data: {
+          'p_lat': anchorLat,
+          'p_lng': anchorLng,
+          'p_ville': ville,
+        },
       );
       final d = res.data;
       return d is Map<String, dynamic> ? d : null;
@@ -190,15 +201,18 @@ class NightPlanService {
     return Haversine.distanceInMeters(lat, lng, aLat, aLng).round();
   }
 
-  /// Classe : par distance si on a un point d'ancrage, sinon partenaires
-  /// d'abord (l'ordre priorité est déjà appliqué côté requête).
+  /// Classe la sélection AUTO : uniquement par distance quand on a un point
+  /// d'ancrage. Sinon on garde l'ordre de la requête (priorité d'affichage).
+  ///
+  /// Volontairement NEUTRE vis-à-vis des partenaires : la mise en avant d'un
+  /// partenaire se fait UNIQUEMENT via un parcours curé dans admin.html, jamais
+  /// en biaisant l'auto.
   void _rank<T>(
     List<T> list,
     double? aLat,
     double? aLng,
     double Function(T) getLat,
     double Function(T) getLng,
-    bool Function(T) isPartner,
   ) {
     if (aLat != null && aLng != null) {
       list.sort((a, b) {
@@ -206,11 +220,8 @@ class NightPlanService {
         final db = _distance(getLat(b), getLng(b), aLat, aLng) ?? 1 << 30;
         return da.compareTo(db);
       });
-    } else {
-      list.sort(
-        (a, b) => (isPartner(a) ? 0 : 1).compareTo(isPartner(b) ? 0 : 1),
-      );
     }
+    // Sans ancrage : ordre inchangé (déjà trié par display_priority côté requête).
   }
 
   // ── Conversion vers CommerceModel (type commun pour les 3 étapes) ──
@@ -318,7 +329,6 @@ class NightPlanService {
       aLng,
       (v) => v.latitude,
       (v) => v.longitude,
-      (v) => v.isPartner,
     );
     final v = sorted.first;
     return NightStop(

@@ -1815,13 +1815,33 @@
       <!-- ═══ VUE PARCOURS SOIRÉE (soiree_parcours) ═══ -->
       <div id="parcours-view" class="hidden">
         <h1>🌙 Parcours soirée</h1>
-        <p class="subtitle">Compose l'itinéraire « Ma soirée » d'une ville : un <strong>dîner</strong>, un <strong>bar</strong>, une <strong>boîte</strong>. Un slot laissé sur « — auto — » sera choisi automatiquement par l'app (partenaire + priorité). Un slot rempli force cet établissement.</p>
-        <div class="banner-card" style="max-width:560px; margin-top:8px;">
-          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Ville</label>
-          <input type="text" class="banner-input" id="parcours-ville" list="cities-datalist" placeholder="Angers" />
+        <p class="subtitle">Compose l'itinéraire « Ma soirée » : un <strong>dîner</strong>, un <strong>bar</strong>, une <strong>boîte</strong>. Deux types de parcours : <strong>par lieu</strong> (ancré sur une salle de concert / théâtre / boîte… → utilisé quand un event a lieu à proximité) ou <strong>par ville</strong> (défaut). Un slot « — auto — » est choisi par l'app (partenaire + priorité) ; un slot rempli force cet établissement.</p>
+
+        <div class="banner-card" style="max-width:600px; margin-top:8px;">
+          <!-- Mode -->
+          <div style="display:flex; gap:8px; margin-bottom:14px;">
+            <button type="button" class="rub-pill active" id="parcours-mode-anchor" data-mode="anchor">📍 Par lieu (ancre)</button>
+            <button type="button" class="rub-pill" id="parcours-mode-ville" data-mode="ville">🏙️ Par ville (défaut)</button>
+          </div>
+
+          <!-- Mode ANCRE : chercher le lieu de l'event -->
+          <div id="parcours-anchor-block">
+            <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Lieu-ancre <span style="opacity:.6">— salle de concert, théâtre, piscine, boîte… (le lieu où se passe l'event)</span></label>
+            <input type="text" class="banner-input" id="parcours-anchor-search" placeholder="Chercher un lieu par nom (ex : Le Bikini)…" autocomplete="off" />
+            <div id="parcours-anchor-results" style="margin-top:4px;"></div>
+            <div id="parcours-anchor-selected" class="hidden" style="margin-top:8px; padding:10px; border-radius:8px; background:rgba(255,255,255,.05); font-size:13px;"></div>
+            <label style="display:block; font-size:12px; color:var(--text-dim); margin:12px 0 4px;">Rayon de correspondance (mètres)</label>
+            <input type="number" class="banner-input" id="parcours-radius" value="300" step="50" min="50" style="max-width:160px;" />
+          </div>
+
+          <!-- Mode VILLE -->
+          <div id="parcours-ville-block" class="hidden">
+            <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Ville</label>
+            <input type="text" class="banner-input" id="parcours-ville" list="cities-datalist" placeholder="Angers" />
+          </div>
 
           <label style="display:block; font-size:12px; color:var(--text-dim); margin:12px 0 4px;">Titre affiché (optionnel)</label>
-          <input type="text" class="banner-input" id="parcours-title" placeholder="Ta soirée à Angers" />
+          <input type="text" class="banner-input" id="parcours-title" placeholder="Ta soirée près du Bikini" />
 
           <div id="parcours-slots" class="hidden">
             <label style="display:block; font-size:12px; color:var(--text-dim); margin:14px 0 4px;">🍽️ Dîner</label>
@@ -1837,9 +1857,21 @@
               <input type="checkbox" id="parcours-active" checked /> Parcours actif (visible dans l'app)
             </label>
 
-            <button type="button" class="banner-save-btn" id="parcours-save-btn" style="width:100%; margin-top:16px;">💾 Enregistrer le parcours</button>
+            <div style="display:flex; gap:8px; margin-top:16px;">
+              <button type="button" class="banner-save-btn" id="parcours-save-btn" style="flex:1;">💾 Enregistrer</button>
+              <button type="button" class="gen-btn" id="parcours-new-btn">➕ Nouveau</button>
+            </div>
           </div>
-          <div id="parcours-hint" style="font-size:12px; color:var(--text-faint); margin-top:14px;">Saisis une ville pour charger ses établissements.</div>
+          <div id="parcours-hint" style="font-size:12px; color:var(--text-faint); margin-top:14px;">Cherche un lieu-ancre, ou bascule sur « Par ville ».</div>
+        </div>
+
+        <!-- Liste des parcours existants -->
+        <div class="banner-card" style="max-width:600px; margin-top:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong style="font-size:14px;">Parcours enregistrés</strong>
+            <button type="button" class="gen-btn" id="parcours-refresh-btn">↻ Rafraîchir</button>
+          </div>
+          <div id="parcours-list" style="font-size:13px;">Chargement…</div>
         </div>
       </div>
 
@@ -3318,6 +3350,9 @@
       _hideAllViews();
       parcoursView.classList.remove("hidden");
       gotoParcoursBtn.classList.add("active");
+      setParcoursMode("anchor");
+      resetParcoursForm();
+      loadParcoursList();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoParcoursBtn.addEventListener("click", showParcoursView);
@@ -4587,6 +4622,20 @@
     const parcoursBarSel = document.getElementById("parcours-bar");
     const parcoursClubSel = document.getElementById("parcours-club");
     const parcoursActiveChk = document.getElementById("parcours-active");
+    const parcoursModeAnchorBtn = document.getElementById("parcours-mode-anchor");
+    const parcoursModeVilleBtn = document.getElementById("parcours-mode-ville");
+    const parcoursAnchorBlock = document.getElementById("parcours-anchor-block");
+    const parcoursVilleBlock = document.getElementById("parcours-ville-block");
+    const parcoursAnchorSearch = document.getElementById("parcours-anchor-search");
+    const parcoursAnchorResults = document.getElementById("parcours-anchor-results");
+    const parcoursAnchorSelected = document.getElementById("parcours-anchor-selected");
+    const parcoursRadiusInput = document.getElementById("parcours-radius");
+    const parcoursListEl = document.getElementById("parcours-list");
+
+    // État courant du formulaire.
+    let _parcoursMode = "anchor";          // 'anchor' | 'ville'
+    let _parcoursAnchor = null;            // {source,id,name,ville,lat,lng}
+    let _parcoursEditId = null;            // id d'un parcours en édition (sinon null)
 
     // Miroir du classement Dart (night_plan_service.dart).
     function _parcoursIsClub(c) {
@@ -4621,84 +4670,153 @@
       sel.value = value;
     }
 
+    // Peuple les 3 selects (dîner/bar/boîte) avec les lieux food/night de la
+    // ville donnée. Renvoie true si au moins un candidat trouvé.
     let _parcoursToken = 0;
-    async function loadParcoursForVille(rawVille) {
+    async function _parcoursLoadStops(rawVille) {
       const ville = (rawVille || "").trim();
-      if (!ville) {
-        parcoursSlots.classList.add("hidden");
-        parcoursHint.textContent = "Saisis une ville pour charger ses établissements.";
-        parcoursHint.classList.remove("hidden");
-        return;
-      }
+      _parcoursFill(parcoursDinnerSel, [], () => "", () => "");
+      _parcoursFill(parcoursBarSel, [], () => "", () => "");
+      _parcoursFill(parcoursClubSel, [], () => "", () => "");
+      if (!ville) return false;
       const token = ++_parcoursToken;
-      parcoursHint.textContent = "Chargement…";
-      parcoursHint.classList.remove("hidden");
-      try {
-        const [venRes, etabRes, curRes] = await Promise.all([
-          supabase.from("venues")
-            .select("id,name,category,adresse")
-            .eq("mode", "night").eq("is_active", true)
-            .ilike("ville", ville + "%")
-            .order("display_priority", { ascending: false }).limit(600),
-          supabase.from("etablissements")
-            .select("id,nom,categorie,adresse")
-            .eq("rubrique", "food").eq("is_active", true)
-            .ilike("ville", ville)
-            .order("display_priority", { ascending: false }).limit(600),
-          supabase.rpc("admin_get_parcours", { p_ville: ville }),
-        ]);
-        if (token !== _parcoursToken) return; // ville changée entre-temps
-        if (venRes.error) throw venRes.error;
-        if (etabRes.error) throw etabRes.error;
-        const venues = venRes.data || [];
-        const etabs = etabRes.data || [];
-        const bars = venues.filter((v) => _parcoursIsBar(v.category));
-        const clubs = venues.filter((v) => _parcoursIsClub(v.category));
-
-        _parcoursFill(parcoursDinnerSel, etabs,
-          (r) => `etablissements:${r.id}`, (r) => `${r.nom} · ${r.categorie || ""}`);
-        _parcoursFill(parcoursBarSel, bars,
-          (r) => `venues:${r.id}`, (r) => `${r.name} · ${r.category || ""}`);
-        _parcoursFill(parcoursClubSel, clubs,
-          (r) => `venues:${r.id}`, (r) => `${r.name} · ${r.category || ""}`);
-
-        const cur = curRes.data;
-        parcoursTitleInput.value = (cur && cur.title) || "";
-        parcoursActiveChk.checked = cur ? cur.is_active !== false : true;
-        _parcoursEnsure(parcoursDinnerSel,
-          cur && cur.dinner_source && cur.dinner_id ? `${cur.dinner_source}:${cur.dinner_id}` : "",
-          cur ? `#${cur.dinner_id}` : "");
-        _parcoursEnsure(parcoursBarSel,
-          cur && cur.bar_source && cur.bar_id ? `${cur.bar_source}:${cur.bar_id}` : "",
-          cur ? `#${cur.bar_id}` : "");
-        _parcoursEnsure(parcoursClubSel,
-          cur && cur.club_source && cur.club_id ? `${cur.club_source}:${cur.club_id}` : "",
-          cur ? `#${cur.club_id}` : "");
-
-        parcoursSlots.classList.remove("hidden");
-        if (!etabs.length && !bars.length && !clubs.length) {
-          parcoursHint.textContent = `Aucun établissement night/food trouvé à « ${ville} ».`;
-          parcoursHint.classList.remove("hidden");
-        } else {
-          parcoursHint.classList.add("hidden");
-        }
-      } catch (e) {
-        console.error("[Parcours] load", e);
-        toast("Erreur chargement : " + (e.message || e), false);
-        parcoursHint.textContent = "Erreur de chargement.";
-      }
+      const [venRes, etabRes] = await Promise.all([
+        supabase.from("venues")
+          .select("id,name,category,adresse")
+          .eq("mode", "night").eq("is_active", true)
+          .ilike("ville", ville + "%")
+          .order("display_priority", { ascending: false }).limit(600),
+        supabase.from("etablissements")
+          .select("id,nom,categorie,adresse")
+          .eq("rubrique", "food").eq("is_active", true)
+          .ilike("ville", ville)
+          .order("display_priority", { ascending: false }).limit(600),
+      ]);
+      if (token !== _parcoursToken) return false; // rechargé entre-temps
+      if (venRes.error) throw venRes.error;
+      if (etabRes.error) throw etabRes.error;
+      const venues = venRes.data || [];
+      const etabs = etabRes.data || [];
+      const bars = venues.filter((v) => _parcoursIsBar(v.category));
+      const clubs = venues.filter((v) => _parcoursIsClub(v.category));
+      _parcoursFill(parcoursDinnerSel, etabs,
+        (r) => `etablissements:${r.id}`, (r) => `${r.nom} · ${r.categorie || ""}`);
+      _parcoursFill(parcoursBarSel, bars,
+        (r) => `venues:${r.id}`, (r) => `${r.name} · ${r.category || ""}`);
+      _parcoursFill(parcoursClubSel, clubs,
+        (r) => `venues:${r.id}`, (r) => `${r.name} · ${r.category || ""}`);
+      return etabs.length || bars.length || clubs.length;
     }
 
-    let _parcoursDebounce;
-    parcoursVilleInput.addEventListener("input", () => {
-      clearTimeout(_parcoursDebounce);
-      _parcoursDebounce = setTimeout(
-        () => loadParcoursForVille(parcoursVilleInput.value), 400);
+    // ── Mode (ancre / ville) ──────────────────────────────────────────────────
+    function setParcoursMode(mode) {
+      _parcoursMode = mode;
+      const isAnchor = mode === "anchor";
+      parcoursModeAnchorBtn.classList.toggle("active", isAnchor);
+      parcoursModeVilleBtn.classList.toggle("active", !isAnchor);
+      parcoursAnchorBlock.classList.toggle("hidden", !isAnchor);
+      parcoursVilleBlock.classList.toggle("hidden", isAnchor);
+    }
+    parcoursModeAnchorBtn.addEventListener("click", () => setParcoursMode("anchor"));
+    parcoursModeVilleBtn.addEventListener("click", () => setParcoursMode("ville"));
+
+    // ── Recherche du lieu-ancre (4 tables, par nom) ───────────────────────────
+    let _anchorSearchDebounce, _anchorSearchToken = 0;
+    async function _searchAnchor(q) {
+      const like = `%${q}%`;
+      const token = ++_anchorSearchToken;
+      const [v, e, s, f] = await Promise.all([
+        supabase.from("venues").select("id,name,category,ville,latitude,longitude").ilike("name", like).eq("is_active", true).limit(15),
+        supabase.from("etablissements").select("id,nom,categorie,ville,latitude,longitude").ilike("nom", like).eq("is_active", true).limit(15),
+        supabase.from("sport_venues").select("id,nom,categorie,ville,latitude,longitude").ilike("nom", like).eq("is_active", true).limit(15),
+        supabase.from("family_venues").select("id,name,category,ville,latitude,longitude").ilike("name", like).eq("is_active", true).limit(15),
+      ]);
+      if (token !== _anchorSearchToken) return null;
+      const rows = [];
+      (v.data || []).forEach(r => rows.push({ source: "venues", id: r.id, name: r.name, cat: r.category, ville: r.ville, lat: r.latitude, lng: r.longitude }));
+      (e.data || []).forEach(r => rows.push({ source: "etablissements", id: r.id, name: r.nom, cat: r.categorie, ville: r.ville, lat: r.latitude, lng: r.longitude }));
+      (s.data || []).forEach(r => rows.push({ source: "sport_venues", id: r.id, name: r.nom, cat: r.categorie, ville: r.ville, lat: r.latitude, lng: r.longitude }));
+      (f.data || []).forEach(r => rows.push({ source: "family_venues", id: r.id, name: r.name, cat: r.category, ville: r.ville, lat: r.latitude, lng: r.longitude }));
+      return rows;
+    }
+    const _ANCHOR_SRC_LABEL = { venues: "night/culture", etablissements: "food", sport_venues: "sport", family_venues: "famille" };
+    function _renderAnchorResults(rows) {
+      if (!rows || !rows.length) { parcoursAnchorResults.innerHTML = ""; return; }
+      parcoursAnchorResults.innerHTML = rows.slice(0, 30).map((r, i) =>
+        `<div class="anchor-result" data-idx="${i}" style="padding:7px 10px; border-radius:7px; cursor:pointer; background:rgba(255,255,255,.04); margin-bottom:3px;">
+          <strong>${escapeHtml(r.name)}</strong>
+          <span style="opacity:.6; font-size:12px;"> · ${escapeHtml(r.cat || "")} · ${escapeHtml(r.ville || "")} · <em>${_ANCHOR_SRC_LABEL[r.source] || r.source}</em></span>
+        </div>`).join("");
+      parcoursAnchorResults._rows = rows;
+    }
+    parcoursAnchorResults.addEventListener("click", (ev) => {
+      const el = ev.target.closest(".anchor-result");
+      if (!el) return;
+      const rows = parcoursAnchorResults._rows || [];
+      const r = rows[Number(el.dataset.idx)];
+      if (r) selectParcoursAnchor(r);
+    });
+    parcoursAnchorSearch.addEventListener("input", () => {
+      clearTimeout(_anchorSearchDebounce);
+      const q = parcoursAnchorSearch.value.trim();
+      if (q.length < 2) { parcoursAnchorResults.innerHTML = ""; return; }
+      _anchorSearchDebounce = setTimeout(async () => {
+        try {
+          const rows = await _searchAnchor(q);
+          if (rows) _renderAnchorResults(rows);
+        } catch (e) { console.warn("[anchor search]", e); }
+      }, 350);
     });
 
+    async function selectParcoursAnchor(a) {
+      _parcoursAnchor = a;
+      parcoursAnchorResults.innerHTML = "";
+      parcoursAnchorSearch.value = a.name;
+      const hasCoords = a.lat && a.lng && !(a.lat === 0 && a.lng === 0);
+      parcoursAnchorSelected.classList.remove("hidden");
+      parcoursAnchorSelected.innerHTML =
+        `📍 <strong>${escapeHtml(a.name)}</strong> · ${escapeHtml(a.ville || "")}<br>` +
+        (hasCoords
+          ? `<span style="opacity:.6; font-size:12px;">${a.lat.toFixed(5)}, ${a.lng.toFixed(5)}</span>`
+          : `<span style="color:#ef9a9a; font-size:12px;">⚠️ Pas de coordonnées GPS → le matching par proximité ne marchera pas. Renseigne lat/lng de ce lieu d'abord.</span>`);
+      parcoursHint.classList.add("hidden");
+      parcoursSlots.classList.remove("hidden");
+      try { await _parcoursLoadStops(a.ville); } catch (e) { console.warn(e); }
+    }
+
+    // ── Mode ville : charge les stops quand on tape une ville ─────────────────
+    let _parcoursVilleDebounce;
+    parcoursVilleInput.addEventListener("input", () => {
+      clearTimeout(_parcoursVilleDebounce);
+      _parcoursVilleDebounce = setTimeout(async () => {
+        const ville = parcoursVilleInput.value.trim();
+        if (!ville) { parcoursSlots.classList.add("hidden"); return; }
+        parcoursHint.classList.add("hidden");
+        parcoursSlots.classList.remove("hidden");
+        try { await _parcoursLoadStops(ville); } catch (e) { console.warn(e); }
+      }, 400);
+    });
+
+    // ── Réinitialise le formulaire (nouveau parcours) ─────────────────────────
+    function resetParcoursForm() {
+      _parcoursEditId = null;
+      _parcoursAnchor = null;
+      parcoursAnchorSearch.value = "";
+      parcoursAnchorResults.innerHTML = "";
+      parcoursAnchorSelected.classList.add("hidden");
+      parcoursAnchorSelected.innerHTML = "";
+      parcoursVilleInput.value = "";
+      parcoursTitleInput.value = "";
+      parcoursRadiusInput.value = "300";
+      parcoursActiveChk.checked = true;
+      parcoursSlots.classList.add("hidden");
+      parcoursHint.textContent = "Cherche un lieu-ancre, ou bascule sur « Par ville ».";
+      parcoursHint.classList.remove("hidden");
+    }
+    document.getElementById("parcours-new-btn").addEventListener("click", resetParcoursForm);
+
+    // ── Sauvegarde ────────────────────────────────────────────────────────────
     document.getElementById("parcours-save-btn").addEventListener("click", async () => {
-      const ville = parcoursVilleInput.value.trim();
-      if (!ville) { toast("Ville requise", false); return; }
       const parse = (sel) => {
         const v = sel.value;
         if (!v) return [null, null];
@@ -4708,21 +4826,122 @@
       const [ds, di] = parse(parcoursDinnerSel);
       const [bs, bi] = parse(parcoursBarSel);
       const [cs, ci] = parse(parcoursClubSel);
+      const args = {
+        p_title: parcoursTitleInput.value.trim(),
+        p_dinner_source: ds, p_dinner_id: di,
+        p_bar_source: bs, p_bar_id: bi,
+        p_club_source: cs, p_club_id: ci,
+        p_is_active: parcoursActiveChk.checked,
+      };
+      if (_parcoursMode === "anchor") {
+        if (!_parcoursAnchor) { toast("Choisis un lieu-ancre", false); return; }
+        args.p_ville = _parcoursAnchor.ville || "";
+        args.p_anchor_source = _parcoursAnchor.source;
+        args.p_anchor_id = _parcoursAnchor.id;
+        args.p_radius_m = parseInt(parcoursRadiusInput.value, 10) || 300;
+      } else {
+        const ville = parcoursVilleInput.value.trim();
+        if (!ville) { toast("Ville requise", false); return; }
+        args.p_ville = ville;
+      }
       try {
-        const { error } = await supabase.rpc("admin_set_parcours", {
-          p_ville: ville,
-          p_title: parcoursTitleInput.value.trim(),
-          p_dinner_source: ds, p_dinner_id: di,
-          p_bar_source: bs, p_bar_id: bi,
-          p_club_source: cs, p_club_id: ci,
-          p_is_active: parcoursActiveChk.checked,
-        });
+        const { error } = await supabase.rpc("admin_set_parcours", args);
         if (error) throw error;
-        toast(`🌙 Parcours « ${ville} » enregistré`);
+        const label = _parcoursMode === "anchor"
+          ? `📍 ${_parcoursAnchor.name}` : `🏙️ ${args.p_ville}`;
+        toast(`🌙 Parcours « ${label} » enregistré`);
+        loadParcoursList();
       } catch (e) {
         toast("Erreur : " + (e.message || e), false);
       }
     });
+
+    // ── Liste des parcours enregistrés ────────────────────────────────────────
+    async function loadParcoursList() {
+      if (!parcoursListEl) return;
+      parcoursListEl.textContent = "Chargement…";
+      try {
+        const { data, error } = await supabase.rpc("admin_list_parcours");
+        if (error) throw error;
+        const rows = data || [];
+        if (!rows.length) { parcoursListEl.innerHTML = "<em style='opacity:.6'>Aucun parcours pour l'instant.</em>"; return; }
+        parcoursListEl.innerHTML = rows.map(r => {
+          const isAnchor = r.anchor_id != null;
+          const title = isAnchor
+            ? `📍 ${escapeHtml(r.anchor_name || "(lieu)")} <span style="opacity:.5">· ${escapeHtml(r.ville || "")} · ${r.match_radius_m}m</span>`
+            : `🏙️ ${escapeHtml(r.ville || "")}`;
+          const slots = [r.has_dinner ? "🍽️" : "·", r.has_bar ? "🍸" : "·", r.has_club ? "🌙" : "·"].join(" ");
+          const off = r.is_active ? "" : ` <span style="color:#ef9a9a">(inactif)</span>`;
+          return `<div style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.06);">
+            <div style="flex:1;">${title}${off}<br><span style="opacity:.6; font-size:12px;">${slots}${r.title ? " · " + escapeHtml(r.title) : ""}</span></div>
+            <button type="button" class="gen-btn" data-parcours-edit="${r.id}">✏️</button>
+            <button type="button" class="gen-btn" data-parcours-del="${r.id}" style="border-color:#ef4444;color:#ef4444;">🗑</button>
+          </div>`;
+        }).join("");
+      } catch (e) {
+        parcoursListEl.innerHTML = `<span style="color:#ef9a9a">Erreur : ${escapeHtml(e.message || String(e))}</span>`;
+      }
+    }
+    document.getElementById("parcours-refresh-btn").addEventListener("click", loadParcoursList);
+
+    parcoursListEl.addEventListener("click", async (ev) => {
+      const editBtn = ev.target.closest("[data-parcours-edit]");
+      const delBtn = ev.target.closest("[data-parcours-del]");
+      if (editBtn) { editParcours(Number(editBtn.dataset.parcoursEdit)); return; }
+      if (delBtn) {
+        const id = Number(delBtn.dataset.parcoursDel);
+        if (!confirm("Supprimer ce parcours ?")) return;
+        try {
+          const { error } = await supabase.rpc("admin_delete_parcours", { p_id: id });
+          if (error) throw error;
+          toast("Parcours supprimé");
+          loadParcoursList();
+        } catch (e) { toast("Erreur : " + (e.message || e), false); }
+      }
+    });
+
+    // ── Édition d'un parcours existant ────────────────────────────────────────
+    async function editParcours(id) {
+      try {
+        const { data: cur, error } = await supabase.rpc("admin_get_parcours_by_id", { p_id: id });
+        if (error) throw error;
+        if (!cur) { toast("Parcours introuvable", false); return; }
+        _parcoursEditId = id;
+        parcoursTitleInput.value = cur.title || "";
+        parcoursActiveChk.checked = cur.is_active !== false;
+        const isAnchor = cur.anchor_id != null;
+        setParcoursMode(isAnchor ? "anchor" : "ville");
+        let ville;
+        if (isAnchor) {
+          _parcoursAnchor = {
+            source: cur.anchor_source, id: cur.anchor_id,
+            name: cur.anchor_name || "", ville: cur.ville || "",
+            lat: null, lng: null, // coords déjà stockées côté DB
+          };
+          parcoursAnchorSearch.value = cur.anchor_name || "";
+          parcoursAnchorSelected.classList.remove("hidden");
+          parcoursAnchorSelected.innerHTML = `📍 <strong>${escapeHtml(cur.anchor_name || "")}</strong> · ${escapeHtml(cur.ville || "")}`;
+          parcoursRadiusInput.value = cur.match_radius_m || 300;
+          ville = cur.ville;
+        } else {
+          _parcoursAnchor = null;
+          parcoursVilleInput.value = cur.ville || "";
+          ville = cur.ville;
+        }
+        parcoursSlots.classList.remove("hidden");
+        parcoursHint.classList.add("hidden");
+        await _parcoursLoadStops(ville);
+        _parcoursEnsure(parcoursDinnerSel,
+          cur.dinner_source && cur.dinner_id ? `${cur.dinner_source}:${cur.dinner_id}` : "", `#${cur.dinner_id}`);
+        _parcoursEnsure(parcoursBarSel,
+          cur.bar_source && cur.bar_id ? `${cur.bar_source}:${cur.bar_id}` : "", `#${cur.bar_id}`);
+        _parcoursEnsure(parcoursClubSel,
+          cur.club_source && cur.club_id ? `${cur.club_source}:${cur.club_id}` : "", `#${cur.club_id}`);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    }
 
     // ─── Onglet Lieux Famille (family_venues) ───────────────────────────────
     // Taxonomie miroir de family_category_data.dart (Dart). Si tu changes les
