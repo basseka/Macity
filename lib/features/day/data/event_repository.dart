@@ -183,6 +183,8 @@ class EventRepository {
       commune: oa.locationCity,
       manifestationGratuite: oa.isFree ? 'oui' : 'non',
       reservationUrl: oa.link,
+      latitude: oa.locationLatitude,
+      longitude: oa.locationLongitude,
     );
   }
 }

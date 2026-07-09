@@ -27,6 +27,12 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   bool _isRecording = false;
   String _selectedCategory = '';
 
+  // Zoom (pinch-to-zoom sur la preview)
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+  double _currentZoom = 1.0;
+  double _baseZoom = 1.0;
+
   // Animation du bouton d'enregistrement
   late AnimationController _recordAnimCtrl;
   late Animation<double> _recordScale;
@@ -92,10 +98,40 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
     );
     try {
       await _camCtrl!.initialize();
+      // Bornes de zoom du capteur (reset a chaque (re)setup / flip).
+      _currentZoom = 1.0;
+      _baseZoom = 1.0;
+      try {
+        _minZoom = await _camCtrl!.getMinZoomLevel();
+        _maxZoom = await _camCtrl!.getMaxZoomLevel();
+      } catch (_) {
+        _minZoom = 1.0;
+        _maxZoom = 1.0;
+      }
       if (mounted) setState(() => _isReady = true);
     } catch (e) {
       debugPrint('[SnapCamera] init failed: $e');
     }
+  }
+
+  // ── Pinch-to-zoom ──
+  void _onScaleStart(ScaleStartDetails details) {
+    _baseZoom = _currentZoom;
+  }
+
+  Future<void> _onScaleUpdate(ScaleUpdateDetails details) async {
+    if (_camCtrl == null || !_camCtrl!.value.isInitialized) return;
+    if (_maxZoom <= _minZoom) return; // zoom non supporte
+    final target = (_baseZoom * details.scale).clamp(_minZoom, _maxZoom);
+    if ((target - _currentZoom).abs() < 0.01) return;
+    _currentZoom = target;
+    try {
+      await _camCtrl!.setZoomLevel(_currentZoom);
+    } catch (e) {
+      debugPrint('[SnapCamera] setZoomLevel failed: $e');
+      return;
+    }
+    if (mounted) setState(() {});
   }
 
   void _flipCamera() {
@@ -181,10 +217,14 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Camera preview ──
+          // ── Camera preview (pinch-to-zoom) ──
           if (_isReady && _camCtrl != null)
-            Center(
-              child: CameraPreview(_camCtrl!),
+            GestureDetector(
+              onScaleStart: _onScaleStart,
+              onScaleUpdate: _onScaleUpdate,
+              child: Center(
+                child: CameraPreview(_camCtrl!),
+              ),
             )
           else
             const Center(
@@ -334,6 +374,31 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
               ),
             ),
           ),
+
+          // ── Indicateur de zoom (visible pendant le zoom) ──
+          if (_isReady && _maxZoom > _minZoom && _currentZoom > _minZoom + 0.05)
+            Positioned(
+              bottom: mq.padding.bottom + 150,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_currentZoom.toStringAsFixed(1)}x',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           // ── Capture button ──
           Positioned(

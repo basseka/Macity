@@ -9,10 +9,20 @@ import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
+import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
+import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 
 /// Provider qui recupere uniquement les events du user courant.
 final myPublicationsProvider = FutureProvider<List<UserEvent>>((ref) {
   return UserEventSupabaseService().fetchMyEvents();
+});
+
+/// Provider qui recupere les stories (reported_events) du user courant,
+/// tous statuts (expirees incluses), gardees 1 mois.
+/// autoDispose : refetch a chaque ouverture de la sheet (stories fraiches).
+final myStoriesProvider = FutureProvider.autoDispose<List<ReportedEvent>>((ref) {
+  return ReportedEventsService().fetchMyStories();
 });
 
 class MyPublicationsSheet extends ConsumerWidget {
@@ -33,6 +43,7 @@ class MyPublicationsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventsAsync = ref.watch(myPublicationsProvider);
+    final storiesAsync = ref.watch(myStoriesProvider);
 
     return Container(
       constraints: BoxConstraints(
@@ -74,67 +85,160 @@ class MyPublicationsSheet extends ConsumerWidget {
               ],
             ),
           ),
-          _buildHeader(eventsAsync.valueOrNull?.length ?? 0),
+          _buildHeader(
+            (eventsAsync.valueOrNull?.length ?? 0) +
+                (storiesAsync.valueOrNull?.length ?? 0),
+          ),
           const Divider(height: 1),
           Flexible(
-            child: eventsAsync.when(
-              loading: () => Padding(
-                padding: const EdgeInsets.all(48),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: CircularProgressIndicator(
-                        color: const Color(0xFF00B894),
-                        strokeWidth: 2.5,
-                        backgroundColor: const Color(0xFF00B894).withValues(alpha: 0.12),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      'Chargement...',
-                      style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
-                    ),
-                  ],
-                ),
-              ),
-              error: (_, __) => _buildEmpty(),
-              data: (events) => events.isEmpty
-                  ? _buildEmpty()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                      itemCount: events.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final event = events[index];
-                      return _PublicationCard(
-                        event: event,
-                        onBoost: () {
-                          Navigator.pop(context);
-                          Navigator.of(context, rootNavigator: true).push(
-                            MaterialPageRoute(
-                              builder: (_) => CreateEventPage(eventToEdit: event, initialStep: 2),
-                            ),
-                          );
-                        },
-                        onEdit: () {
-                          Navigator.pop(context);
-                          Navigator.of(context, rootNavigator: true).push(
-                            MaterialPageRoute(
-                              builder: (_) => CreateEventPage(eventToEdit: event),
-                            ),
-                          );
-                        },
-                        onDelete: () => _confirmDelete(context, ref, event),
-                      );
-                    },
-                  ),
-            ),
+            child: _buildBody(context, ref, eventsAsync, storiesAsync),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<UserEvent>> eventsAsync,
+    AsyncValue<List<ReportedEvent>> storiesAsync,
+  ) {
+    // Loader tant que les deux sources chargent (aucune donnee encore).
+    if (eventsAsync.isLoading &&
+        storiesAsync.isLoading &&
+        !eventsAsync.hasValue &&
+        !storiesAsync.hasValue) {
+      return Padding(
+        padding: const EdgeInsets.all(48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                color: const Color(0xFF00B894),
+                strokeWidth: 2.5,
+                backgroundColor: const Color(0xFF00B894).withValues(alpha: 0.12),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Chargement...',
+              style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final events = eventsAsync.valueOrNull ?? const [];
+    final stories = storiesAsync.valueOrNull ?? const [];
+
+    if (events.isEmpty && stories.isEmpty) return _buildEmpty();
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        // ── Section evenements ──
+        if (events.isNotEmpty) ...[
+          _sectionHeader(
+            'Mes evenements',
+            events.length,
+            Icons.calendar_today_rounded,
+            const Color(0xFF00B894),
+          ),
+          const SizedBox(height: 10),
+          for (final event in events) ...[
+            _PublicationCard(
+              event: event,
+              onBoost: () {
+                Navigator.pop(context);
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => CreateEventPage(eventToEdit: event, initialStep: 2),
+                  ),
+                );
+              },
+              onEdit: () {
+                Navigator.pop(context);
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => CreateEventPage(eventToEdit: event),
+                  ),
+                );
+              },
+              onDelete: () => _confirmDelete(context, ref, event),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ],
+
+        // ── Section stories ──
+        if (stories.isNotEmpty) ...[
+          if (events.isNotEmpty) const SizedBox(height: 12),
+          _sectionHeader(
+            'Mes stories',
+            stories.length,
+            Icons.auto_awesome_rounded,
+            const Color(0xFFE91E8C),
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8, left: 2),
+            child: Text(
+              'Conservees un temps limite. Supprimables a tout moment.',
+              style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textFaint),
+            ),
+          ),
+          for (final story in stories) ...[
+            _StoryCard(
+              story: story,
+              onOpen: () => ReportedEventsPagedSheet.open(
+                context,
+                events: [story],
+                initialIndex: 0,
+              ),
+              onDelete: () => _confirmDeleteStory(context, ref, story),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _sectionHeader(String label, int count, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 15, color: color),
+        const SizedBox(width: 7),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1A1A2E),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$count',
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -169,7 +273,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                 ),
                 if (count > 0)
                   Text(
-                    '$count evenement${count > 1 ? 's' : ''}',
+                    '$count publication${count > 1 ? 's' : ''}',
                     style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textFaint),
                   ),
               ],
@@ -245,6 +349,58 @@ class MyPublicationsSheet extends ConsumerWidget {
               Navigator.pop(ctx);
               ref.read(userEventsProvider.notifier).removeEvent(event.id);
               ref.invalidate(myPublicationsProvider);
+            },
+            child: Text(
+              'Supprimer',
+              style: GoogleFonts.poppins(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteStory(BuildContext context, WidgetRef ref, ReportedEvent story) {
+    final title = story.generated?.title ??
+        (story.rawTitle.isNotEmpty ? story.rawTitle : 'cette story');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Supprimer la story',
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          'Supprimer "$title" ? Cette action est definitive.',
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Annuler',
+              style: GoogleFonts.poppins(color: AppColors.textFaint),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final messenger = ScaffoldMessenger.of(context);
+              final ok = await ReportedEventsService().deleteMyStory(story.id);
+              if (ok) {
+                ref.invalidate(myStoriesProvider);
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Story supprimee')),
+                );
+              } else {
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Suppression impossible, reessaye')),
+                );
+              }
             },
             child: Text(
               'Supprimer',
@@ -431,6 +587,140 @@ class _PublicationCard extends StatelessWidget {
     return Container(
       color: const Color(0xFF00B894).withValues(alpha: 0.08),
       child: const Icon(Icons.event, color: Color(0xFF00B894), size: 22),
+    );
+  }
+}
+
+/// Carte d'une story (reported_event) dans « Mes publications ».
+class _StoryCard extends StatelessWidget {
+  final ReportedEvent story;
+  final VoidCallback onOpen;
+  final VoidCallback onDelete;
+
+  const _StoryCard({required this.story, required this.onOpen, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = story.generated?.title ??
+        (story.rawTitle.isNotEmpty ? story.rawTitle : story.category);
+    final dateStr = DateFormat('d MMM • HH:mm', 'fr_FR').format(story.createdAt.toLocal());
+    final expired = story.expiresAt.isBefore(DateTime.now());
+
+    return GestureDetector(
+      onTap: onOpen,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(width: 52, height: 52, child: _buildThumb()),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF1A1A2E),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.schedule, size: 10, color: AppColors.textFaint),
+                        const SizedBox(width: 3),
+                        Text(
+                          dateStr,
+                          style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textFaint),
+                        ),
+                        const SizedBox(width: 6),
+                        _statusBadge(expired),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.delete_outline, size: 16, color: Colors.red.shade400),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusBadge(bool expired) {
+    final generating = story.isGenerating;
+    final label = generating ? 'En cours' : (expired ? 'Expiree' : 'En ligne');
+    final color = generating
+        ? const Color(0xFF7B2D8E)
+        : (expired ? AppColors.textFaint : const Color(0xFF00B894));
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.poppins(
+          fontSize: 8,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumb() {
+    final photo = story.coverPhoto;
+    if (photo != null && photo.isNotEmpty && photo.startsWith('http')) {
+      return CachedNetworkImage(
+        imageUrl: photo,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => _thumbPlaceholder(),
+        errorWidget: (_, __, ___) => _thumbPlaceholder(),
+      );
+    }
+    return _thumbPlaceholder();
+  }
+
+  Widget _thumbPlaceholder() {
+    return Container(
+      color: const Color(0xFFE91E8C).withValues(alpha: 0.08),
+      child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFFE91E8C), size: 22),
     );
   }
 }

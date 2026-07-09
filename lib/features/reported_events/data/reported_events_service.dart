@@ -585,4 +585,31 @@ class ReportedEventsService {
     if (data.isEmpty) return null;
     return ReportedEvent.fromSupabaseJson(data.first as Map<String, dynamic>);
   }
+
+  /// Recupere TOUTES les stories du user courant (device UUID), tous statuts
+  /// (expirees incluses), sur 1 mois — pour l'ecran « Mes publications ».
+  /// Passe par le RPC get_my_stories (SECURITY DEFINER) qui bypasse la RLS.
+  Future<List<ReportedEvent>> fetchMyStories() async {
+    final userId = await UserIdentityService.getUserId();
+    final res = await _restDio.post(
+      'rpc/get_my_stories',
+      data: {'p_device_uuid': userId},
+    );
+    final data = res.data as List;
+    return data
+        .map((e) => ReportedEvent.fromSupabaseJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Supprime une story du user courant (row + medias Storage), meme si elle
+  /// vient d'etre creee. Le RPC verifie que reported_by = device UUID.
+  /// Retourne true si la suppression a eu lieu.
+  Future<bool> deleteMyStory(String id) async {
+    final userId = await UserIdentityService.getUserId();
+    final res = await _restDio.post(
+      'rpc/delete_my_story',
+      data: {'p_id': id, 'p_device_uuid': userId},
+    );
+    return res.data == true || res.data.toString() == 'true';
+  }
 }

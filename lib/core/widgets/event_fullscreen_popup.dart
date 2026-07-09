@@ -18,6 +18,7 @@ import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/engagement/domain/event_source_detector.dart';
 import 'package:pulz_app/features/engagement/presentation/event_engagement_sheet.dart';
 import 'package:pulz_app/features/engagement/state/event_engagement_provider.dart';
+import 'package:pulz_app/features/night_plan/presentation/night_plan_sheet.dart';
 
 /// Popup plein ecran affichant la pochette en fond avec les infos overlayees.
 class EventFullscreenPopup extends ConsumerWidget {
@@ -34,7 +35,8 @@ class EventFullscreenPopup extends ConsumerWidget {
     this.badge,
   });
 
-  static Future<void> show(BuildContext context, Event event, String fallbackAsset) {
+  static Future<void> show(
+      BuildContext context, Event event, String fallbackAsset) {
     return showDialog(
       context: context,
       useRootNavigator: true,
@@ -156,7 +158,8 @@ class EventFullscreenPopup extends ConsumerWidget {
                                 borderRadius:
                                     BorderRadius.circular(AppRadius.chip),
                                 border: Border.all(
-                                  color: AppColors.magenta.withValues(alpha: 0.6),
+                                  color:
+                                      AppColors.magenta.withValues(alpha: 0.6),
                                   width: 0.8,
                                 ),
                               ),
@@ -199,7 +202,8 @@ class EventFullscreenPopup extends ConsumerWidget {
                                 shape: BoxShape.circle,
                                 border: Border.all(color: AppColors.line),
                               ),
-                              child: const Icon(Icons.close, color: Colors.white, size: 18),
+                              child: const Icon(Icons.close,
+                                  color: Colors.white, size: 18),
                             ),
                           ),
                         ),
@@ -209,11 +213,14 @@ class EventFullscreenPopup extends ConsumerWidget {
                             top: badge != null ? 42 : 12,
                             left: 12,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 gradient: AppGradients.primary,
-                                borderRadius: BorderRadius.circular(AppRadius.chip),
-                                boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.chip),
+                                boxShadow: AppShadows.neon(AppColors.magenta,
+                                    blur: 8, y: 2),
                               ),
                               child: Text(
                                 'GRATUIT',
@@ -226,10 +233,68 @@ class EventFullscreenPopup extends ConsumerWidget {
                               ),
                             ),
                           ),
-                        // Titre sur la photo
+                        // Compose ta soirée : bouton sur la photo, en bas à
+                        // droite (au-dessus du titre). Ouvre l'itinéraire
+                        // dîner → event → bar → boîte autour du lieu.
+                        if (event.commune.isNotEmpty || event.latitude != 0)
+                          Positioned(
+                            right: 12,
+                            bottom: 10,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => NightPlanSheet.show(
+                                  context,
+                                  ville: event.commune,
+                                  eventTitle: event.titre,
+                                  eventCategoryEmoji: event.categoryEmoji,
+                                  anchorLat:
+                                      event.latitude != 0 ? event.latitude : null,
+                                  anchorLng: event.longitude != 0
+                                      ? event.longitude
+                                      : null,
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: AppGradients.primary,
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: AppShadows.neon(
+                                      AppColors.magenta,
+                                      blur: 10,
+                                      y: 2,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text('🌙',
+                                          style: TextStyle(fontSize: 14)),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Ma soirée',
+                                        style: GoogleFonts.geist(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // Titre sur la photo (rétréci à droite quand le bouton
+                        // « Ma soirée » est présent pour éviter le chevauchement)
                         Positioned(
                           left: 16,
-                          right: 16,
+                          right: event.commune.isNotEmpty ? 118 : 16,
                           bottom: 14,
                           child: Text(
                             event.categorie.toLowerCase().contains('opera')
@@ -241,7 +306,9 @@ class EventFullscreenPopup extends ConsumerWidget {
                               color: Colors.white,
                               height: 1.2,
                               letterSpacing: -0.3,
-                              shadows: const [Shadow(blurRadius: 6, color: Colors.black54)],
+                              shadows: const [
+                                Shadow(blurRadius: 6, color: Colors.black54)
+                              ],
                             ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
@@ -263,7 +330,8 @@ class EventFullscreenPopup extends ConsumerWidget {
                           if (event.dateDebut.isNotEmpty)
                             _infoRow(
                               Icons.calendar_today,
-                              event.dateFin.isNotEmpty && event.dateFin != event.dateDebut
+                              event.dateFin.isNotEmpty &&
+                                      event.dateFin != event.dateDebut
                                   ? '${_formatDate(event.dateDebut)} - ${_formatDate(event.dateFin)}'
                                   : _formatDate(event.dateDebut),
                             ),
@@ -293,8 +361,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                   ),
                                   const SizedBox(width: 6),
                                   InkWell(
-                                    onTap: () =>
-                                        _openInfoSheet(context),
+                                    onTap: () => _openInfoSheet(context),
                                     borderRadius: BorderRadius.circular(20),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
@@ -304,8 +371,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                       decoration: BoxDecoration(
                                         color: AppColors.magenta
                                             .withValues(alpha: 0.12),
-                                        borderRadius:
-                                            BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
                                           color: AppColors.magenta
                                               .withValues(alpha: 0.5),
@@ -352,7 +418,8 @@ class EventFullscreenPopup extends ConsumerWidget {
                                   Icon(
                                     Icons.verified,
                                     size: 15,
-                                    color: const Color(0xFFFBBF24).withValues(alpha: 0.9),
+                                    color: const Color(0xFFFBBF24)
+                                        .withValues(alpha: 0.9),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
@@ -413,14 +480,16 @@ class EventFullscreenPopup extends ConsumerWidget {
                         height: 38,
                         child: ElevatedButton.icon(
                           onPressed: () => _openUrl(event.reservationUrl),
-                          icon: const Icon(Icons.confirmation_number_outlined, size: 14),
+                          icon: const Icon(Icons.confirmation_number_outlined,
+                              size: 14),
                           label: const Text('Billetterie'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.magenta,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.iconBtn),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.iconBtn),
                             ),
                             elevation: 0,
                           ).copyWith(
@@ -488,7 +557,8 @@ class EventFullscreenPopup extends ConsumerWidget {
 
   /// Horaires sous forme de chips (pour les séances cinéma / multi-horaires).
   Widget _horairesChips(String raw) {
-    final times = raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    final times =
+        raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -512,22 +582,26 @@ class EventFullscreenPopup extends ConsumerWidget {
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: times.map((t) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.magenta.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(AppRadius.chip),
-                border: Border.all(color: AppColors.magenta.withValues(alpha: 0.35)),
-              ),
-              child: Text(
-                t,
-                style: GoogleFonts.geist(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.text,
-                ),
-              ),
-            )).toList(),
+            children: times
+                .map((t) => Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.magenta.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        border: Border.all(
+                            color: AppColors.magenta.withValues(alpha: 0.35)),
+                      ),
+                      child: Text(
+                        t,
+                        style: GoogleFonts.geist(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.text,
+                        ),
+                      ),
+                    ))
+                .toList(),
           ),
         ],
       ),
@@ -895,36 +969,36 @@ class _FullscreenVideoViewState extends State<_FullscreenVideoView> {
               child: !_ready
                   ? const CircularProgressIndicator(color: Color(0xFFE91E8C))
                   : AspectRatio(
-                aspectRatio: size.width > 0 && size.height > 0
-                    ? size.width / size.height
-                    : 16 / 9,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    if (_ctrl.value.isPlaying) {
-                      _ctrl.pause();
-                    } else {
-                      _ctrl.play();
-                    }
-                  },
-                  child: Stack(
-                    children: [
-                      VideoPlayer(_ctrl),
-                      if (!_ctrl.value.isPlaying)
-                        Container(
-                          color: Colors.black26,
-                          child: const Center(
-                            child: Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                              size: 64,
-                            ),
-                          ),
+                      aspectRatio: size.width > 0 && size.height > 0
+                          ? size.width / size.height
+                          : 16 / 9,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          if (_ctrl.value.isPlaying) {
+                            _ctrl.pause();
+                          } else {
+                            _ctrl.play();
+                          }
+                        },
+                        child: Stack(
+                          children: [
+                            VideoPlayer(_ctrl),
+                            if (!_ctrl.value.isPlaying)
+                              Container(
+                                color: Colors.black26,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.play_arrow,
+                                    color: Colors.white,
+                                    size: 64,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
-                ),
-              ),
+                      ),
+                    ),
             ),
             // Close button top-right
             Positioned(
@@ -1076,12 +1150,16 @@ class _PagedEventPopupState extends State<_PagedEventPopup>
                   children: [
                     Text(
                       '${_currentIndex + 1}',
-                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700),
                     ),
                     Container(width: 1, height: 8, color: Colors.white38),
                     Text(
                       '${widget.events.length}',
-                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 11),
                     ),
                   ],
                 ),
@@ -1160,37 +1238,37 @@ class _SwipeHint extends StatelessWidget {
     // plus haut qui utilise deja IgnorePointer pour la meme raison.
     return IgnorePointer(
       child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.18),
-          width: 0.8,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFA855F7).withValues(alpha: 0.32),
-            blurRadius: 12,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.18),
+            width: 0.8,
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.white),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              letterSpacing: -0.1,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFA855F7).withValues(alpha: 0.32),
+              blurRadius: 12,
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: Colors.white),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
