@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>MaCity — Plaquette de présentation — Mairie de Toulouse</title>
+<style>
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  :root {
+    --bg: #FFFFFF;
+    --bg-soft: #FAF7FF;
+    --bg-card: #FFFFFF;
+    --ink: #1A0F2E;
+    --ink-soft: #4A3D6B;
+    --ink-faint: #8579A3;
+    --line: #E8E0F5;
+    --line-strong: #D5C8ED;
+
+    --magenta: #FF3D8B;
+    --violet: #A855F7;
+    --purple-deep: #6B1FB3;
+    --cyan: #22D3EE;
+    --gold: #FBBF24;
+
+    --cat-night: #A855F7;
+    --cat-food: #FB923C;
+    --cat-cult: #0891B2;
+    --cat-sport: #16A34A;
+    --cat-fiesta: #DC2626;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .page {
+    width: 210mm;
+    height: 297mm;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    background: var(--bg);
+  }
+
+  .page:last-child { page-break-after: auto; }
+
+  /* ━━━━━━━━━━━━━━━ PAGE 1 — COUVERTURE ━━━━━━━━━━━━━━━ */
+
+  .cover { padding: 18mm 16mm 14mm 16mm; }
+
+  .cover-band {
+    height: 8px;
+    background: linear-gradient(90deg, var(--magenta) 0%, var(--violet) 50%, var(--cyan) 100%);
+    border-radius: 4px;
+    margin-bottom: 14mm;
+  }
+
+  .cover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16mm;
+  }
+
+  .logo-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--magenta) 0%, var(--violet) 60%, var(--purple-deep) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.02em;
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.25);
+  }
+
+  .logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .cover-tag {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 2.4px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    border: 1px solid var(--line-strong);
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+  }
+
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--magenta);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .cover-title {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+
+  .cover-title .accent {
+    color: var(--magenta);
+  }
+
+  .cover-subtitle {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 160mm;
+    margin-bottom: 12mm;
+  }
+  .cover-subtitle strong { color: var(--ink); font-weight: 600; }
+
+  .pitch-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--magenta);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 10mm;
+  }
+
+  .pitch-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2.4px;
+    color: var(--violet);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .pitch-text {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .pitch-text em { color: var(--magenta); font-style: normal; font-weight: 700; }
+
+  .cover-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 10mm;
+  }
+
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 14px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--magenta);
+    letter-spacing: -0.03em;
+  }
+
+  .stat-label {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 1.6px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .key-points {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10mm;
+  }
+
+  .key-point {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 14px;
+  }
+
+  .kp-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--magenta), var(--violet));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .kp-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .kp-desc {
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+
+  .cover-footer {
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .footer-left { font-size: 10.5px; color: var(--ink-soft); line-height: 1.55; }
+  .footer-left strong { color: var(--ink); font-weight: 700; }
+
+  .footer-link {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .footer-link span { color: var(--magenta); }
+
+  /* ━━━━━━━━━━━━━━━ PAGE 2 — FONCTIONNALITÉS ━━━━━━━━━━━━━━━ */
+
+  .features { padding: 16mm 16mm 14mm 16mm; }
+
+  .section-title {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+  .section-title span {
+    color: var(--magenta);
+  }
+
+  .section-intro {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 165mm;
+    margin-bottom: 8mm;
+  }
+  .section-intro strong { color: var(--ink); font-weight: 600; }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 6mm;
+  }
+
+  .feature {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 16px;
+    position: relative;
+  }
+
+  .feature-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .feature-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .feature-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .feature-desc {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .feature-desc strong { color: var(--ink); font-weight: 600; }
+
+  .feature-tag {
+    display: inline-block;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  .feature.f-events { --accent: var(--cat-cult); --accent-bg: rgba(8, 145, 178, 0.1); }
+  .feature.f-live { --accent: var(--cat-fiesta); --accent-bg: rgba(220, 38, 38, 0.1); }
+  .feature.f-private { --accent: var(--cat-night); --accent-bg: rgba(168, 85, 247, 0.12); }
+  .feature.f-offers { --accent: var(--cat-food); --accent-bg: rgba(251, 146, 60, 0.12); }
+  .feature.f-mairie { --accent: var(--magenta); --accent-bg: rgba(255, 61, 139, 0.1); }
+  .feature.f-tourism { --accent: var(--cat-sport); --accent-bg: rgba(22, 163, 74, 0.1); }
+
+  .legitimacy-banner {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.06), rgba(168, 85, 247, 0.06));
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .legit-icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .legit-text {
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .legit-text strong {
+    color: var(--ink);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 3px;
+    font-size: 12.5px;
+  }
+  .legit-text em { color: var(--cyan); font-style: normal; font-weight: 700; }
+
+  /* ━━━━━━━━━━━━━━━ PAGE 3 — PARTENARIAT ━━━━━━━━━━━━━━━ */
+
+  .partnership { padding: 16mm 16mm 14mm 16mm; }
+
+  .ptr-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .ptr-title {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .ptr-title span {
+    color: var(--magenta);
+  }
+
+  .ptr-lead {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 168mm;
+    margin-bottom: 7mm;
+  }
+  .ptr-lead strong { color: var(--ink); font-weight: 600; }
+
+  .ask-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 7mm;
+  }
+
+  .ask-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+
+  .ask-card.we-ask {
+    border-top: 4px solid var(--cyan);
+    background: linear-gradient(180deg, rgba(34, 211, 238, 0.05), transparent 40%);
+  }
+
+  .ask-card.we-dont-ask {
+    border-top: 4px solid var(--magenta);
+    background: linear-gradient(180deg, rgba(255, 61, 139, 0.05), transparent 40%);
+  }
+
+  .ask-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .ask-card.we-ask .ask-label { color: var(--cyan); }
+  .ask-card.we-dont-ask .ask-label { color: var(--magenta); }
+
+  .ask-list { list-style: none; padding: 0; }
+
+  .ask-list li {
+    font-size: 11.5px;
+    line-height: 1.5;
+    padding: 5px 0 5px 22px;
+    position: relative;
+    font-weight: 500;
+  }
+
+  .ask-card.we-ask .ask-list li {
+    color: var(--ink);
+  }
+
+  .ask-card.we-ask .ask-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    color: var(--cyan);
+    font-weight: 800;
+    font-size: 13px;
+  }
+
+  .ask-card.we-dont-ask .ask-list li {
+    color: var(--ink-faint);
+  }
+
+  .ask-card.we-dont-ask .ask-list li::before {
+    content: '✕';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    color: var(--magenta);
+    font-weight: 800;
+    font-size: 12px;
+  }
+
+  .why-toulouse {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.07) 0%, rgba(255, 61, 139, 0.05) 100%);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 7mm;
+  }
+
+  .why-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .why-title span { color: var(--magenta); }
+
+  .why-text {
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+  }
+  .why-text strong { color: var(--ink); font-weight: 600; }
+
+  .timeline {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 7mm;
+  }
+
+  .timeline-title {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2.4px;
+    color: var(--violet);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .timeline-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .tl-step {
+    border-left: 2px solid var(--violet);
+    padding-left: 12px;
+  }
+
+  .tl-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--violet);
+    letter-spacing: 1.2px;
+    margin-bottom: 4px;
+  }
+
+  .tl-text {
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .contact-bar {
+    background: linear-gradient(135deg, #1A0F2E 0%, #6B1FB3 100%);
+    border-radius: 16px;
+    padding: 22px 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+  }
+
+  .contact-left { display: flex; flex-direction: column; gap: 4px; }
+
+  .contact-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2.4px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+  }
+
+  .contact-link {
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.02em;
+  }
+  .contact-link span { color: var(--magenta); }
+
+  .contact-right { text-align: right; }
+
+  .contact-tagline {
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.5;
+  }
+  .contact-tagline strong {
+    color: white;
+    font-weight: 700;
+    display: block;
+    font-size: 12.5px;
+    margin-bottom: 2px;
+  }
+
+  .footnote {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+
+</style>
+</head>
+<body>
+
+  <!-- ━━━━━━━━━━━━━━━━━ PAGE 1 — COUVERTURE ━━━━━━━━━━━━━━━━━ -->
+  <div class="page cover">
+
+    <div class="cover-band"></div>
+
+    <div class="cover-header">
+      <div class="logo-block">
+        <div class="logo-mark">M</div>
+        <div class="logo-text">MaCity</div>
+      </div>
+      <div class="cover-tag">Plaquette de présentation · 2026</div>
+    </div>
+
+    <div class="eyebrow">Pour la Mairie de Toulouse</div>
+    <h1 class="cover-title">Toulouse,<br><span class="accent">en temps réel.</span></h1>
+    <p class="cover-subtitle">
+      MaCity est l'application qui connecte les habitants et les visiteurs à <strong>tout ce qui se passe à Toulouse</strong> : événements, sorties, bons plans, info mairie, tourisme. Le tout en redirigeant systématiquement vers les <strong>sources officielles</strong>.
+    </p>
+
+    <div class="pitch-card">
+      <div class="pitch-label">Notre démarche</div>
+      <p class="pitch-text">
+        Nous développons une application qui <em>met en valeur l'attractivité toulousaine</em>, sans se substituer aux acteurs en place. Office de tourisme, billetteries, salles, restaurants : nous renvoyons toujours vers leurs canaux officiels.
+      </p>
+    </div>
+
+    <div class="cover-stats">
+      <div class="stat">
+        <div class="stat-value">6</div>
+        <div class="stat-label">Univers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Gratuit</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">0€</div>
+        <div class="stat-label">Demandé à la Ville</div>
+      </div>
+    </div>
+
+    <div class="key-points">
+      <div class="key-point">
+        <div class="kp-icon">↗</div>
+        <div class="kp-title">Redirection officielle</div>
+        <div class="kp-desc">Tout lien renvoie vers le site officiel : office de tourisme, billetterie, établissement.</div>
+      </div>
+      <div class="key-point">
+        <div class="kp-icon">⚡</div>
+        <div class="kp-title">Temps réel</div>
+        <div class="kp-desc">MAP Live, notifications mairie, événements instantanés. La ville en direct.</div>
+      </div>
+      <div class="key-point">
+        <div class="kp-icon">♥</div>
+        <div class="kp-title">100% toulousain</div>
+        <div class="kp-desc">Conçu et développé localement, au service du territoire et de ses commerces.</div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <div class="footer-left">
+        <strong>Une initiative toulousaine, indépendante.</strong><br>
+        Conçue pour les habitants, ouverte aux visiteurs.
+      </div>
+      <div class="footer-link">macity<span>.app</span></div>
+    </div>
+
+  </div>
+
+  <!-- ━━━━━━━━━━━━━━━━━ PAGE 2 — FONCTIONNALITÉS ━━━━━━━━━━━━━━━━━ -->
+  <div class="page features">
+
+    <div class="cover-band"></div>
+
+    <div style="margin-top: 10mm;"></div>
+
+    <div class="eyebrow" style="color: var(--violet);">Ce que propose l'application</div>
+    <h2 class="section-title">Six manières de <span>vivre la ville</span>.</h2>
+    <p class="section-intro">
+      Une expérience pensée pour réunir, dans une seule application, ce qui est aujourd'hui dispersé entre dix sites, vingt comptes Instagram et autant d'affiches. Chaque fonctionnalité est conçue pour <strong>amener les utilisateurs vers les acteurs locaux</strong>, jamais pour les retenir.
+    </p>
+
+    <div class="features-grid">
+
+      <div class="feature f-events">
+        <div class="feature-head">
+          <div class="feature-icon">●</div>
+          <div class="feature-title">Événements officiels</div>
+        </div>
+        <p class="feature-desc">
+          Concerts, expositions, festivals, conférences. Agrégés depuis les billetteries et lieux culturels toulousains, avec <strong>lien direct vers la billetterie officielle</strong>.
+        </p>
+        <span class="feature-tag">Redirection billetterie</span>
+      </div>
+
+      <div class="feature f-live">
+        <div class="feature-head">
+          <div class="feature-icon">◉</div>
+          <div class="feature-title">MAP Live, temps réel</div>
+        </div>
+        <p class="feature-desc">
+          Une carte qui révèle <strong>en direct</strong> les lieux où ça bouge maintenant : DJ sets, animations, ambiances. Les organisateurs publient, les utilisateurs découvrent.
+        </p>
+        <span class="feature-tag">Géolocalisé · Instantané</span>
+      </div>
+
+      <div class="feature f-private">
+        <div class="feature-head">
+          <div class="feature-icon">◆</div>
+          <div class="feature-title">Événements privés</div>
+        </div>
+        <p class="feature-desc">
+          Mariages, anniversaires, soirées d'entreprise. Système de <strong>clé d'accès sécurisé</strong> : seuls les invités munis du code coffre voient l'événement.
+        </p>
+        <span class="feature-tag">Confidentialité garantie</span>
+      </div>
+
+      <div class="feature f-offers">
+        <div class="feature-head">
+          <div class="feature-icon">★</div>
+          <div class="feature-title">Offres partenaires</div>
+        </div>
+        <p class="feature-desc">
+          Bowling offert, coupe de cheveux, dégustation… Les <strong>commerces et établissements locaux</strong> gagnent en visibilité grâce à des cadeaux ciblés aux utilisateurs.
+        </p>
+        <span class="feature-tag">Soutien aux commerces</span>
+      </div>
+
+      <div class="feature f-mairie">
+        <div class="feature-head">
+          <div class="feature-icon">▲</div>
+          <div class="feature-title">Info Mairie</div>
+        </div>
+        <p class="feature-desc">
+          Un canal direct pour relayer les <strong>communications municipales</strong> : travaux, alertes, scrutins, événements officiels de la ville. Notification instantanée.
+        </p>
+        <span class="feature-tag">Canal officiel ville</span>
+      </div>
+
+      <div class="feature f-tourism">
+        <div class="feature-head">
+          <div class="feature-icon">◈</div>
+          <div class="feature-title">Tourisme, l'essentiel</div>
+        </div>
+        <p class="feature-desc">
+          Les incontournables toulousains, condensés. Pour les visiteurs comme pour les habitants. Toujours liés aux pages de l'<strong>Office de Tourisme</strong>.
+        </p>
+        <span class="feature-tag">Lien Office de Tourisme</span>
+      </div>
+
+    </div>
+
+    <div class="legitimacy-banner">
+      <div class="legit-icon">↗</div>
+      <div class="legit-text">
+        <strong>Une promesse simple : nous redirigeons toujours.</strong>
+        Office de tourisme, billetteries, sites des établissements, canaux municipaux : MaCity n'intercepte jamais le trafic. Nous sommes une <em>vitrine d'orientation</em>, pas un concurrent. Cette posture est inscrite dans notre conception.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ━━━━━━━━━━━━━━━━━ PAGE 3 — PARTENARIAT ━━━━━━━━━━━━━━━━━ -->
+  <div class="page partnership">
+
+    <div class="cover-band"></div>
+
+    <div style="margin-top: 10mm;"></div>
+
+    <div class="ptr-eyebrow">Notre demande à la Ville</div>
+    <h2 class="ptr-title">Un partenariat <span>simple, gratuit, légitime.</span></h2>
+
+    <p class="ptr-lead">
+      Nous portons un projet 100% toulousain, qui contribue à <strong>l'attractivité, la culture et la vie locale</strong>. Notre demande à la Ville de Toulouse n'est ni financière, ni technique. Nous sollicitons une chose : <strong>une caution morale</strong>, un soutien institutionnel qui nous permettra de gagner la confiance des établissements et des habitants.
+    </p>
+
+    <div class="ask-grid">
+
+      <div class="ask-card we-ask">
+        <div class="ask-label">Ce que nous demandons</div>
+        <ul class="ask-list">
+          <li>Un soutien officiel, sponsoring symbolique gratuit</li>
+          <li>Une mention de la Ville sur l'app comme partenaire</li>
+          <li>La possibilité de relayer les communications mairie</li>
+          <li>Une légitimité auprès des acteurs locaux toulousains</li>
+        </ul>
+      </div>
+
+      <div class="ask-card we-dont-ask">
+        <div class="ask-label">Ce que nous ne demandons pas</div>
+        <ul class="ask-list">
+          <li>De financement, de subvention, de budget</li>
+          <li>D'exclusivité commerciale ou de monopole</li>
+          <li>De ressources humaines ou techniques</li>
+          <li>D'engagement contractuel contraignant</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="why-toulouse">
+      <h3 class="why-title">Pourquoi <span>Toulouse a tout à y gagner</span> ?</h3>
+      <p class="why-text">
+        Une <strong>application moderne, gratuite</strong>, qui valorise les commerces locaux, oriente les visiteurs vers l'Office de Tourisme et amplifie les communications municipales. Nous offrons à la Ville un <strong>outil supplémentaire de rayonnement</strong>, sans qu'elle ait à investir le moindre euro. La Ville ne s'engage pas, elle approuve. Et cette approbation suffit à donner à notre projet la confiance nécessaire pour grandir, au bénéfice du territoire.
+      </p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-title">Comment cela fonctionne</div>
+      <div class="timeline-grid">
+        <div class="tl-step">
+          <div class="tl-num">01 · Approbation</div>
+          <div class="tl-text">La Ville nous accorde un soutien moral et un droit de mention.</div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-num">02 · Intégration</div>
+          <div class="tl-text">Nous affichons le partenariat et activons le canal info-mairie.</div>
+        </div>
+        <div class="tl-step">
+          <div class="tl-num">03 · Rayonnement</div>
+          <div class="tl-text">L'app gagne en confiance ; Toulouse en visibilité numérique.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-bar">
+      <div class="contact-left">
+        <div class="contact-label">Découvrir le projet</div>
+        <div class="contact-link">macity<span>.app</span></div>
+      </div>
+      <div class="contact-right">
+        <div class="contact-tagline">
+          <strong>Disponible iOS &amp; Android</strong>
+          Lancement Toulouse · 2026
+        </div>
+      </div>
+    </div>
+
+    <div class="footnote">MaCity · projet indépendant · conçu et développé à Toulouse</div>
+
+  </div>
+
+</body>
+</html>

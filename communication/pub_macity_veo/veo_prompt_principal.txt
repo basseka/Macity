@@ -1,0 +1,34 @@
+PROMPT VEO — CLIP PRINCIPAL (V1 rapide, 1 seul clip ~10 s, vertical 9:16)
+=========================================================================
+Colle ce prompt tel quel dans Gemini Veo. Génère 2-3 variantes, garde la
+meilleure. Ratio : 9:16 vertical.
+
+----------------------------------------------------------------------
+Vertical 9:16 cinematic lifestyle ad, about 10 seconds, energetic and
+aspirational. A fast, joyful montage of young adults (early-to-mid 20s)
+enjoying nightlife in a lively French city in summer, from golden hour into
+night.
+
+Beat 1 (~3s): a smiling young woman on a buzzing outdoor terrace, warm
+string lights bokeh behind her, candid and natural, looking up from her
+phone as if she just found something exciting.
+
+Beat 2 (~3s): quick energetic whip-pan to a group of friends laughing and
+clinking drinks on a rooftop bar, glowing magenta and pink neon reflections.
+
+Beat 3 (~4s): whip-pan into a packed live concert at night, crowd with hands
+in the air, vivid pink and violet stage lights pulsing, pure energy and joy.
+
+Style: handheld dynamic camera with smooth whip-pan transitions, shallow
+depth of field, cinematic color grade — deep dark-blue night with bright
+magenta and violet accents (neon vibe). Modern, premium, full of life.
+Upbeat electronic-pop music with real ambient laughter and crowd cheers.
+
+Negative / avoid: no on-screen text, no captions, no logos, no watermarks,
+no phone UI close-ups, no distorted faces or hands.
+----------------------------------------------------------------------
+
+Notes :
+- Pas de texte ni logo dans le clip : on les ajoute au montage par-dessus.
+- Si Veo galère sur les mains/visages, regénère ou rapproche-toi du plan
+  d'ambiance (foule, néons) plutôt que des gros plans.

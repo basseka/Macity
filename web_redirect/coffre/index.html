@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invitation privee - MaCity</title>
+  <meta name="robots" content="noindex">
+  <meta property="og:title" content="Tu as recu une invitation privee">
+  <meta property="og:description" content="Ouvre l'app MaCity et entre ton code pour decouvrir la soiree.">
+  <meta property="og:type" content="website">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1A0A2E; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    .logo { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #E91E8C; }
+    .card { background: rgba(255,255,255,.08); border-radius: 20px; padding: 28px 24px; max-width: 360px; width: 100%; text-align: center; }
+    .emoji { font-size: 44px; margin-bottom: 12px; }
+    h1 { font-size: 20px; margin-bottom: 8px; }
+    .info { color: rgba(255,255,255,.6); font-size: 14px; margin-bottom: 22px; line-height: 1.4; }
+    .btn { display: block; width: 100%; padding: 14px; border-radius: 14px; background: #E91E8C; color: #fff; text-decoration: none; font-weight: 700; font-size: 16px; margin-bottom: 10px; border: 0; cursor: pointer; }
+    .btn-secondary { background: rgba(255,255,255,.1); }
+    .err { color: #ff8095; font-size: 13px; margin-top: 8px; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <div class="logo">MaCity</div>
+  <div class="card">
+    <div class="emoji">🎉🔒</div>
+    <h1>Tu es invite(e) a une soiree privee</h1>
+    <div class="info">Ouvre l'app : le coffre se remplit tout seul, il te restera juste a taper ton code a 4 chiffres.</div>
+    <button class="btn" id="open-app">Ouvrir dans MaCity</button>
+    <a class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=com.macity.app">Telecharger l'app</a>
+    <div class="err" id="err"></div>
+  </div>
+  <script>
+    var PLAY_STORE = "https://play.google.com/store/apps/details?id=com.macity.app";
+    var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    function getToken() {
+      var p = new URLSearchParams(window.location.search);
+      var t = (p.get("t") || "").trim().toLowerCase();
+      return UUID_RE.test(t) ? t : null;
+    }
+
+    var token = getToken();
+
+    function tryOpen() {
+      if (!token) {
+        document.getElementById("err").textContent = "Lien invalide.";
+        return;
+      }
+      var customScheme = "pulzapp://coffre/" + token;
+      var intentUri = "intent://coffre/" + token +
+        "#Intent;scheme=pulzapp;package=com.macity.app;" +
+        "S.browser_fallback_url=" + encodeURIComponent(PLAY_STORE) + ";end";
+
+      // 1. Tentative custom scheme (iframe = pas de page d'erreur visible)
+      var iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = customScheme;
+      document.body.appendChild(iframe);
+
+      // 2. Android : Intent URI (gere le fallback Play Store nativement)
+      setTimeout(function () { window.location.href = intentUri; }, 600);
+
+      // 3. Nettoyage
+      setTimeout(function () {
+        try { document.body.removeChild(iframe); } catch (e) {}
+      }, 2500);
+    }
+
+    document.getElementById("open-app").addEventListener("click", tryOpen);
+
+    // Auto-tentative au chargement
+    setTimeout(tryOpen, 300);
+  </script>
+</body>
+</html>

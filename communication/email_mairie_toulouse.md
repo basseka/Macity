@@ -1,0 +1,21 @@
+# Email à la Mairie de Toulouse
+
+**Objet :** MaCity, lien de téléchargement et plaquette de présentation
+
+Bonjour,
+
+Suite à nos échanges, vous trouverez ci-dessous tout le nécessaire pour découvrir et tester l'application MaCity :
+
+• Téléchargement de l'application : [https://macity.app](https://macity.app)
+• Plaquette de présentation : en pièce jointe (PDF, 3 pages)
+
+Je reste à votre disposition pour tout retour ou échange complémentaire.
+
+Bien cordialement,
+
+**Carlos Basseka**
+Fondateur · MaCity
+basseka@yahoo.fr
+[https://macity.app](https://macity.app)
+
+*Pièce jointe : plaquette_mairie_toulouse.pdf*

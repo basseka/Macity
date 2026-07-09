@@ -1,0 +1,40 @@
+PROMPTS VEO — 3 SCÈNES MODULAIRES (à générer séparément, ~10 s chacune)
+=======================================================================
+Pour une pub montée de ~20-25 s : génère ces 3 clips, puis monte-les dans
+l'ordre HOOK → (capture app) → PAYOFF. Ratio : 9:16 vertical pour tous.
+
+
+SCÈNE 1 — HOOK « Ce soir, tu fais quoi ? » (~10 s)
+--------------------------------------------------
+Vertical 9:16, cinematic, ~10 seconds. A young man in his early 20s sitting
+alone on a couch in a dim apartment at dusk, slightly bored, idly scrolling
+his phone, soft cool light on his face. Subtle moment where he stops, eyes
+widening as if he just discovered something worth going out for. Slow push-in
+camera, shallow depth of field, moody cinematic grade, quiet ambient room
+tone, anticipation building. No text, no logos, no UI on the phone screen.
+
+
+SCÈNE 2 — AMBIANCE « la ville en direct » (~10 s)
+-------------------------------------------------
+Vertical 9:16, cinematic, ~10 seconds. Energetic montage of a French city
+coming alive at night: neon-lit streets, a busy food market with steam and
+warm lights, a cocktail bar with magenta and pink glow, people walking and
+laughing. Dynamic handheld camera with quick whip-pans, deep dark-blue night
+with bright magenta/violet accents, upbeat electronic music, lively ambient
+city sounds. No text, no logos, no watermarks.
+
+
+SCÈNE 3 — PAYOFF « vis ta ville à fond » (~10 s)
+------------------------------------------------
+Vertical 9:16, cinematic, ~10 seconds. A group of happy friends out at night
+in the city — clinking glasses on a rooftop, then dancing at a concert with
+hands in the air under pulsing pink and violet stage lights. Pure joy and
+connection, candid and natural, golden and neon highlights, premium
+aspirational mood, euphoric electronic-pop drop with crowd cheers. No text,
+no logos, no watermarks, no distorted faces or hands.
+
+
+ENTRE SCÈNE 2 ET 3 (optionnel mais recommandé) :
+Insère 8-10 s de CAPTURE D'ÉCRAN réelle de l'app MaCity (filme avec ton
+téléphone) : accueil « À la une », swipe des rubriques, Map Live, une Offre.
+Veo ne peut pas générer l'UI réelle — c'est cette capture qui montre l'app.

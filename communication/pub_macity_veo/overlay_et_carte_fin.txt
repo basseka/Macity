@@ -1,0 +1,43 @@
+SOUS-TITRES + CARTE DE FIN (à ajouter AU MONTAGE par-dessus les clips Veo)
+=========================================================================
+Timing pour une pub de ~15-18 s. Pas d'emoji. Typo grasse, gros corps,
+lisible son coupé. Couleur texte blanc, accents magenta (#E91E8C / #E91E63).
+
+TIMELINE
+--------
+0:00–0:03  (sur le hook)        →  « Ce soir, tu fais quoi ? »
+0:03–0:07  (sur l'ambiance/app) →  mots qui défilent :
+                                    « Concerts · Restos · Soirées · Bons plans »
+0:07–0:11  (sur l'ambiance/app) →  « Ta ville, en direct »
+0:11–0:14  (sur le payoff)      →  « Vis ta ville à fond »
+0:14–0:18  CARTE DE FIN (voir ci-dessous)
+
+
+CARTE DE FIN (3-4 s, fond dégradé sombre violet→noir)
+-----------------------------------------------------
+- Icône : l'icône MaCity (fichier `logo_macity_carre.png` fourni dans ce
+  dossier — le pin sur fond dégradé, comme sur le store), en carré arrondi
+  centré, avec un léger halo magenta autour.
+- Nom : MaCity
+- Accroche sous le nom : « Ma ville, mes sorties »
+- Bandeau bas : badge officiel Google Play + « Télécharge, c'est gratuit »
+- (Couleurs : fond #0D0618 → #4A1259 ; texte blanc ; accent #E91E8C)
+
+Le badge « Disponible sur Google Play » officiel se télécharge ici :
+https://play.google.com/intl/fr/badges/
+
+
+VOIX OFF (optionnelle, ~15 s) — si tu veux du son parlé
+------------------------------------------------------
+« Ce soir, tu fais quoi ?
+ Concerts, restos, soirées, bons plans…
+ MaCity te montre tout ce qui bouge dans ta ville, en direct.
+ Télécharge MaCity. C'est gratuit. »
+
+
+RÈGLES GOOGLE ADS (sinon refus)
+-------------------------------
+- Pas d'emoji dans le texte incrusté pub.
+- Pas de MAJUSCULES intégrales sur des phrases.
+- Pas de superlatif invérifiable (« le n°1 »).
+- Sous-titres obligatoires (90 % regardent sans le son).

@@ -1,0 +1,74 @@
+-- Complément migration publication payante (à coller dans Studio).
+-- Le bloc publication_prices a déjà été appliqué séparément.
+
+-- 1. Events publics en attente de paiement
+CREATE TABLE IF NOT EXISTS public.pending_public_events (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  payload           JSONB NOT NULL,
+  tier              TEXT NOT NULL,
+  duration_key      TEXT NOT NULL,
+  user_id           TEXT NOT NULL,
+  ville             TEXT,
+  status            TEXT NOT NULL DEFAULT 'pending_payment',
+  stripe_session_id TEXT,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.pending_public_events ENABLE ROW LEVEL SECURITY;
+
+-- 2. Fenêtre de visibilité du boost sur user_events
+ALTER TABLE public.user_events
+  ADD COLUMN IF NOT EXISTS boost_until TIMESTAMPTZ;
+
+-- 3. RPCs admin pour la grille de prix (onglet "Tarifs publi")
+CREATE OR REPLACE FUNCTION admin_get_publication_prices()
+RETURNS SETOF json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT is_admin_user() THEN
+    RAISE EXCEPTION 'Acces refuse : reserve aux admins';
+  END IF;
+  RETURN QUERY
+    SELECT row_to_json(t) FROM (
+      SELECT tier, duration_key, label, amount_cents, is_active, updated_at
+      FROM publication_prices
+      ORDER BY
+        CASE tier WHEN 'a_la_une' THEN 1 WHEN 'au_top' THEN 2 ELSE 3 END,
+        CASE duration_key WHEN 'semaine' THEN 1 WHEN 'mois' THEN 2 ELSE 3 END
+    ) t;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION admin_set_publication_price(
+  p_tier         TEXT,
+  p_duration_key TEXT,
+  p_amount_cents INTEGER,
+  p_is_active    BOOLEAN DEFAULT true
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT is_admin_user() THEN
+    RAISE EXCEPTION 'Acces refuse : reserve aux admins';
+  END IF;
+  IF p_amount_cents < 0 THEN
+    RAISE EXCEPTION 'Montant invalide';
+  END IF;
+  UPDATE publication_prices
+  SET amount_cents = p_amount_cents,
+      is_active    = p_is_active,
+      updated_at   = now()
+  WHERE tier = p_tier AND duration_key = p_duration_key;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Combinaison introuvable';
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION admin_get_publication_prices() TO authenticated;
+GRANT EXECUTE ON FUNCTION admin_set_publication_price(TEXT, TEXT, INTEGER, BOOLEAN) TO authenticated;

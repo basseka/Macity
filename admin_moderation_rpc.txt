@@ -1,0 +1,61 @@
+DROP FUNCTION IF EXISTS admin_list_pro_posts();
+DROP FUNCTION IF EXISTS admin_delete_pro_post(UUID);
+DROP FUNCTION IF EXISTS admin_delete_pro_post(TEXT);
+
+CREATE OR REPLACE FUNCTION admin_list_pro_posts()
+RETURNS SETOF json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT is_admin_user() THEN
+    RAISE EXCEPTION 'Acces refuse : reserve aux admins';
+  END IF;
+
+  RETURN QUERY
+    SELECT row_to_json(t)
+    FROM (
+      SELECT
+        ue.id,
+        ue.titre,
+        ue.categorie,
+        ue.rubrique,
+        ue.date        AS event_date,
+        ue.heure       AS event_heure,
+        ue.ville,
+        ue.lieu_nom,
+        ue.photo_url,
+        ue.created_at,
+        pp.nom         AS pro_nom,
+        pp.email       AS pro_email,
+        pp.type        AS pro_type,
+        pp.approved    AS pro_approved
+      FROM user_events ue
+      LEFT JOIN pro_profiles pp ON pp.user_id::TEXT = ue.user_id
+      ORDER BY ue.created_at DESC
+    ) t;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION admin_delete_pro_post(p_id TEXT)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT is_admin_user() THEN
+    RAISE EXCEPTION 'Acces refuse : reserve aux admins';
+  END IF;
+
+  DELETE FROM user_events WHERE id = p_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Post introuvable : %', p_id;
+  END IF;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION admin_list_pro_posts()        TO authenticated;
+GRANT EXECUTE ON FUNCTION admin_delete_pro_post(TEXT)   TO authenticated;
