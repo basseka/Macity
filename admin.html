@@ -676,6 +676,7 @@
     }
     .venue-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .venue-row-badge.sport_venues { background: rgba(6, 182, 212, 0.20); color: #7FD9E8; }
+    .venue-row-badge.family_venues { background: rgba(251, 146, 60, 0.20); color: #F9C591; }
     .photo-btn {
       padding: 6px 12px;
       border-radius: 8px;
@@ -690,6 +691,25 @@
     }
     .photo-btn:hover { border-color: var(--magenta); background: rgba(233, 30, 99, 0.1); }
     .photo-btn.open { border-color: var(--magenta); background: rgba(233, 30, 99, 0.14); }
+    .partner-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--text-faint);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .partner-btn:hover { border-color: #E0B341; color: #E0B341; }
+    .partner-btn.active {
+      border-color: #E0B341;
+      background: rgba(224, 179, 65, 0.16);
+      color: #E0B341;
+    }
+    .partner-btn:disabled { opacity: 0.5; cursor: default; }
     .venue-prio {
       display: flex;
       align-items: center;
@@ -983,6 +1003,7 @@
           <span class="nav-btn" id="goto-appversions-btn">🚀 MAJ App</span>
           <span class="nav-btn" id="goto-pubprices-btn">💶 Tarifs publi</span>
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
+          <span class="nav-btn" id="goto-parcours-btn">🌙 Parcours soirée</span>
           <span class="nav-btn" id="goto-userstats-btn">👥 Utilisateurs</span>
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
@@ -1348,6 +1369,83 @@
             </select>
           </div>
 
+          <div id="etab-family-type-wrap" class="hidden">
+            <label class="banner-field-label">Type Famille * <span style="opacity:.6;font-weight:400">— détermine la rubrique dans l'app</span></label>
+            <select class="banner-input" id="etab-family-type">
+              <optgroup label="🎢 Divertissements">
+                <option value="Parc d'attractions">Parc d'attractions</option>
+                <option value="Laser game">Laser game</option>
+                <option value="Escape game">Escape game</option>
+                <option value="Bowling">Bowling</option>
+                <option value="Cinema">Cinéma</option>
+                <option value="Patinoire">Patinoire</option>
+              </optgroup>
+              <optgroup label="🧒 Jeux d'enfants">
+                <option value="Aire de jeux">Aire de jeux</option>
+                <option value="Parc de loisirs">Parc de loisirs</option>
+              </optgroup>
+              <optgroup label="🦁 Animaux et Nature">
+                <option value="Parc animalier">Parc animalier</option>
+                <option value="Ferme pedagogique">Ferme pédagogique</option>
+                <option value="Aquarium">Aquarium</option>
+                <option value="Zoo">Zoo</option>
+                <option value="Jardin botanique">Jardin botanique</option>
+              </optgroup>
+              <optgroup label="🏊 Activité Aquatique">
+                <option value="Centre aquatique">Centre aquatique</option>
+                <option value="Piscine">Piscine</option>
+              </optgroup>
+              <optgroup label="🌳 Sortie en Plein Air">
+                <option value="Parcs">Parcs</option>
+                <option value="Balade familiale">Balade familiale</option>
+                <option value="Accrobranche">Accrobranche</option>
+                <option value="Mini golf">Mini golf</option>
+                <option value="Base de loisirs">Base de loisirs</option>
+              </optgroup>
+              <optgroup label="🔭 Découvrir">
+                <option value="Musee pour enfants">Musée pour enfants</option>
+                <option value="Planetarium">Planétarium</option>
+                <option value="Atelier creatif">Atelier créatif</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div id="etab-night-type-wrap" class="hidden">
+            <label class="banner-field-label">Type Nuit * <span style="opacity:.6;font-weight:400">— détermine la rubrique dans l'app</span></label>
+            <select class="banner-input" id="etab-night-type">
+              <optgroup label="🍸 Bars & vie nocturne">
+                <option value="Club Discotheque">Discothèque</option>
+                <option value="Bar de nuit">Bar de nuit</option>
+                <option value="Bar a cocktails">Bar à cocktails</option>
+                <option value="Bar a chicha">Bar à chicha</option>
+                <option value="Pub">Pub</option>
+                <option value="Spicy">Spicy</option>
+              </optgroup>
+              <optgroup label="🛒 Commerces ouverts la nuit">
+                <option value="SOS Apero">SOS Apéro</option>
+                <option value="Epicerie de nuit">Épicerie de nuit</option>
+                <option value="Tabac de nuit">Tabac de nuit</option>
+              </optgroup>
+              <optgroup label="🏨 Hébergement">
+                <option value="Hotel">Hôtel</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div id="etab-culture-type-wrap" class="hidden">
+            <label class="banner-field-label">Type Culture * <span style="opacity:.6;font-weight:400">— détermine la rubrique dans l'app</span></label>
+            <select class="banner-input" id="etab-culture-type">
+              <option value="Cinema">🎬 Cinéma</option>
+              <option value="Theatre">🎭 Théâtre</option>
+              <option value="Musee">🏛️ Musée</option>
+              <option value="Exposition">🖼️ Exposition</option>
+              <option value="Monument historique">🏰 Monument historique</option>
+              <option value="Bibliotheque">📚 Bibliothèque</option>
+              <option value="Visites guidees">🎪 Visites guidées</option>
+              <option value="Galerie d'art">🎨 Galerie d'art</option>
+            </select>
+          </div>
+
           <label class="banner-field-label">Nom *</label>
           <input type="text" class="banner-input" id="etab-nom" placeholder="La Trattoria Bella" />
 
@@ -1697,6 +1795,51 @@
             style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:14px; margin-bottom:14px;" />
           <button type="button" class="act act-success" id="storyttl-save-btn" style="width:100%;">💾 Enregistrer</button>
           <p style="font-size:11px; color:var(--text-faint); margin:12px 0 0; line-height:1.6;">Exemples : 18 = ~une soirée + nuit · 24 = une journée · 48 = un week-end. Au-delà, pense à élargir aussi la fenêtre de fusion des snaps (côté SQL).</p>
+        </div>
+
+        <h1 style="margin-top:34px;">🗄️ Conservation des stories</h1>
+        <p class="subtitle">Combien de temps une story reste <strong>consultable et supprimable</strong> par son auteur dans « Mes publications » après sa publication (indépendant de la durée d'affichage sur la carte ci-dessus). Au-delà, la story et ses médias sont purgés définitivement.</p>
+        <div id="storyret-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="storyret-card" class="hidden" style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:16px; padding:18px; max-width:480px; margin-top:8px;">
+          <div style="font-size:12px; color:var(--text-dim); line-height:1.8; margin-bottom:14px;">
+            Conservation actuelle : <strong id="storyret-current" style="color:var(--text);">—</strong>
+          </div>
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Durée en jours (1 à 365)</label>
+          <input type="number" id="storyret-input" min="1" max="365" step="1" placeholder="30"
+            style="width:100%; box-sizing:border-box; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.05); color:var(--text); font-size:14px; margin-bottom:14px;" />
+          <button type="button" class="act act-success" id="storyret-save-btn" style="width:100%;">💾 Enregistrer</button>
+          <p style="font-size:11px; color:var(--text-faint); margin:12px 0 0; line-height:1.6;">Exemples : 30 = un mois · 60 = deux mois · 7 = une semaine. Plus la durée est longue, plus le stockage des photos/vidéos grimpe.</p>
+        </div>
+      </div>
+
+      <!-- ═══ VUE PARCOURS SOIRÉE (soiree_parcours) ═══ -->
+      <div id="parcours-view" class="hidden">
+        <h1>🌙 Parcours soirée</h1>
+        <p class="subtitle">Compose l'itinéraire « Ma soirée » d'une ville : un <strong>dîner</strong>, un <strong>bar</strong>, une <strong>boîte</strong>. Un slot laissé sur « — auto — » sera choisi automatiquement par l'app (partenaire + priorité). Un slot rempli force cet établissement.</p>
+        <div class="banner-card" style="max-width:560px; margin-top:8px;">
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Ville</label>
+          <input type="text" class="banner-input" id="parcours-ville" list="cities-datalist" placeholder="Angers" />
+
+          <label style="display:block; font-size:12px; color:var(--text-dim); margin:12px 0 4px;">Titre affiché (optionnel)</label>
+          <input type="text" class="banner-input" id="parcours-title" placeholder="Ta soirée à Angers" />
+
+          <div id="parcours-slots" class="hidden">
+            <label style="display:block; font-size:12px; color:var(--text-dim); margin:14px 0 4px;">🍽️ Dîner</label>
+            <select class="banner-input" id="parcours-dinner"></select>
+
+            <label style="display:block; font-size:12px; color:var(--text-dim); margin:12px 0 4px;">🍸 Bar</label>
+            <select class="banner-input" id="parcours-bar"></select>
+
+            <label style="display:block; font-size:12px; color:var(--text-dim); margin:12px 0 4px;">🌙 Boîte</label>
+            <select class="banner-input" id="parcours-club"></select>
+
+            <label style="display:flex; align-items:center; gap:8px; margin:14px 0 0; font-size:13px; color:var(--text);">
+              <input type="checkbox" id="parcours-active" checked /> Parcours actif (visible dans l'app)
+            </label>
+
+            <button type="button" class="banner-save-btn" id="parcours-save-btn" style="width:100%; margin-top:16px;">💾 Enregistrer le parcours</button>
+          </div>
+          <div id="parcours-hint" style="font-size:12px; color:var(--text-faint); margin-top:14px;">Saisis une ville pour charger ses établissements.</div>
         </div>
       </div>
 
@@ -2095,6 +2238,7 @@
       loadVenues();
       loadEtabs();
       loadSportVenues();
+      loadFamilyUnified();
     }
     function showLogin() {
       loginArea.style.display = "block";
@@ -2783,7 +2927,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("venues")
-          .select("id, name, adresse, ville, mode, category, pro_claim_code, photo, photos, video_url, display_priority")
+          .select("id, name, adresse, ville, mode, category, pro_claim_code, photo, photos, video_url, display_priority, is_partner")
           .eq("is_active", true)
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
@@ -2812,7 +2956,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("etablissements")
-          .select("id, nom, adresse, ville, rubrique, categorie, theme, pro_claim_code, photo, photos, display_priority, priorities, video_url")
+          .select("id, nom, adresse, ville, rubrique, categorie, theme, pro_claim_code, photo, photos, display_priority, priorities, video_url, is_partner")
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
         if (error) {
@@ -2850,6 +2994,34 @@
         from += PAGE;
       }
       allSportVenues = all;
+      if (typeof refreshVenuesView === "function") refreshVenuesView();
+    }
+
+    // ─── Charge les lieux Famille (table family_venues, source lue par l'app)
+    // pour l'onglet Etablissements. L'app lit family_venues pour la rubrique
+    // Famille (pas etablissements), donc on les intègre à la liste unifiée. ───
+    let allFamily = [];
+    async function loadFamilyUnified() {
+      const PAGE = 1000;
+      let from = 0;
+      const all = [];
+      while (true) {
+        const { data, error } = await supabase
+          .from("family_venues")
+          .select("id, name, adresse, ville, category, photo, display_priority")
+          .eq("is_active", true)
+          .order("id", { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.warn("[family_venues unified]", error);
+          return;
+        }
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      allFamily = all;
       if (typeof refreshVenuesView === "function") refreshVenuesView();
     }
 
@@ -2985,6 +3157,8 @@
     const gotoSysmonBtn = document.getElementById("goto-sysmon-btn");
     const storyttlView = document.getElementById("storyttl-view");
     const gotoStoryttlBtn = document.getElementById("goto-storyttl-btn");
+    const parcoursView = document.getElementById("parcours-view");
+    const gotoParcoursBtn = document.getElementById("goto-parcours-btn");
     const chainsView = document.getElementById("chains-view");
     const gotoChainsBtn = document.getElementById("goto-chains-btn");
     const notifsView = document.getElementById("notifs-view");
@@ -3005,6 +3179,7 @@
       appversionsView.classList.add("hidden");
       pubpricesView.classList.add("hidden");
       storyttlView.classList.add("hidden");
+      parcoursView.classList.add("hidden");
       familyView.classList.add("hidden");
       userstatsView.classList.add("hidden");
       sysmonView.classList.add("hidden");
@@ -3023,6 +3198,7 @@
       gotoAppversionsBtn.style.display = "inline-flex";
       gotoPubpricesBtn.style.display = "inline-flex";
       gotoStoryttlBtn.style.display = "inline-flex";
+      gotoParcoursBtn.style.display = "inline-flex";
       gotoFamilyBtn.style.display = "inline-flex";
       gotoUserstatsBtn.style.display = "inline-flex";
       gotoSysmonBtn.style.display = "inline-flex";
@@ -3134,9 +3310,17 @@
       storyttlView.classList.remove("hidden");
       gotoStoryttlBtn.classList.add("active");
       refreshStoryttlView();
+      refreshStoryretView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoStoryttlBtn.addEventListener("click", showStoryttlView);
+    function showParcoursView() {
+      _hideAllViews();
+      parcoursView.classList.remove("hidden");
+      gotoParcoursBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoParcoursBtn.addEventListener("click", showParcoursView);
     function showFamilyView() {
       _hideAllViews();
       familyView.classList.remove("hidden");
@@ -4353,6 +4537,193 @@
       }
     });
 
+    // ─── Conservation stories (« Mes publications ») ─────────────────────────
+    const storyretLoading = document.getElementById("storyret-loading");
+    const storyretCard = document.getElementById("storyret-card");
+    const storyretInput = document.getElementById("storyret-input");
+    const storyretCurrent = document.getElementById("storyret-current");
+
+    async function refreshStoryretView() {
+      storyretLoading.classList.remove("hidden");
+      storyretCard.classList.add("hidden");
+      try {
+        const { data, error } = await supabase.rpc("admin_get_story_retention_days");
+        if (error) throw error;
+        const days = data ?? 30;
+        storyretCurrent.textContent = `${days} jour${days > 1 ? "s" : ""}`;
+        storyretInput.value = days;
+        storyretCard.classList.remove("hidden");
+      } catch (e) {
+        console.error("[Conservation stories] load failed", e);
+        toast("Erreur chargement : " + (e.message || e), false);
+      } finally {
+        storyretLoading.classList.add("hidden");
+      }
+    }
+
+    document.getElementById("storyret-save-btn")?.addEventListener("click", async () => {
+      const days = parseInt(storyretInput.value, 10);
+      if (!Number.isInteger(days) || days < 1 || days > 365) {
+        toast("Durée invalide (1 à 365 jours)", false);
+        return;
+      }
+      if (!confirm(`Les stories seront conservées ${days} jour(s). Confirmer ?`)) return;
+      try {
+        const { error } = await supabase.rpc("admin_set_story_retention_days", { p_days: days });
+        if (error) throw error;
+        toast(`🗄️ Conservation des stories → ${days} jour(s)`);
+        refreshStoryretView();
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    });
+
+    // ─── Parcours soirée (soiree_parcours) ───────────────────────────────────
+    const parcoursVilleInput = document.getElementById("parcours-ville");
+    const parcoursTitleInput = document.getElementById("parcours-title");
+    const parcoursSlots = document.getElementById("parcours-slots");
+    const parcoursHint = document.getElementById("parcours-hint");
+    const parcoursDinnerSel = document.getElementById("parcours-dinner");
+    const parcoursBarSel = document.getElementById("parcours-bar");
+    const parcoursClubSel = document.getElementById("parcours-club");
+    const parcoursActiveChk = document.getElementById("parcours-active");
+
+    // Miroir du classement Dart (night_plan_service.dart).
+    function _parcoursIsClub(c) {
+      c = (c || "").toLowerCase();
+      return c.includes("club") || c.includes("disco") ||
+        c.includes("boite") || c.includes("boîte");
+    }
+    function _parcoursIsBar(c) {
+      if (_parcoursIsClub(c)) return false;
+      c = (c || "").toLowerCase();
+      return c.includes("bar") || c.includes("pub") ||
+        c.includes("rooftop") || c.includes("lounge");
+    }
+
+    function _parcoursFill(sel, rows, valueFn, labelFn) {
+      const opts = ['<option value="">— auto (choisi par l\'app) —</option>'];
+      for (const r of rows) {
+        opts.push(`<option value="${valueFn(r)}">${escapeHtml(labelFn(r))}</option>`);
+      }
+      sel.innerHTML = opts.join("");
+    }
+
+    // Garantit qu'une valeur "source:id" sauvegardée reste sélectionnable même
+    // si l'établissement n'est plus dans la liste (inactif / filtre).
+    function _parcoursEnsure(sel, value, label) {
+      if (!value) { sel.value = ""; return; }
+      if (![...sel.options].some((o) => o.value === value)) {
+        const o = document.createElement("option");
+        o.value = value; o.textContent = label || value;
+        sel.appendChild(o);
+      }
+      sel.value = value;
+    }
+
+    let _parcoursToken = 0;
+    async function loadParcoursForVille(rawVille) {
+      const ville = (rawVille || "").trim();
+      if (!ville) {
+        parcoursSlots.classList.add("hidden");
+        parcoursHint.textContent = "Saisis une ville pour charger ses établissements.";
+        parcoursHint.classList.remove("hidden");
+        return;
+      }
+      const token = ++_parcoursToken;
+      parcoursHint.textContent = "Chargement…";
+      parcoursHint.classList.remove("hidden");
+      try {
+        const [venRes, etabRes, curRes] = await Promise.all([
+          supabase.from("venues")
+            .select("id,name,category,adresse")
+            .eq("mode", "night").eq("is_active", true)
+            .ilike("ville", ville + "%")
+            .order("display_priority", { ascending: false }).limit(600),
+          supabase.from("etablissements")
+            .select("id,nom,categorie,adresse")
+            .eq("rubrique", "food").eq("is_active", true)
+            .ilike("ville", ville)
+            .order("display_priority", { ascending: false }).limit(600),
+          supabase.rpc("admin_get_parcours", { p_ville: ville }),
+        ]);
+        if (token !== _parcoursToken) return; // ville changée entre-temps
+        if (venRes.error) throw venRes.error;
+        if (etabRes.error) throw etabRes.error;
+        const venues = venRes.data || [];
+        const etabs = etabRes.data || [];
+        const bars = venues.filter((v) => _parcoursIsBar(v.category));
+        const clubs = venues.filter((v) => _parcoursIsClub(v.category));
+
+        _parcoursFill(parcoursDinnerSel, etabs,
+          (r) => `etablissements:${r.id}`, (r) => `${r.nom} · ${r.categorie || ""}`);
+        _parcoursFill(parcoursBarSel, bars,
+          (r) => `venues:${r.id}`, (r) => `${r.name} · ${r.category || ""}`);
+        _parcoursFill(parcoursClubSel, clubs,
+          (r) => `venues:${r.id}`, (r) => `${r.name} · ${r.category || ""}`);
+
+        const cur = curRes.data;
+        parcoursTitleInput.value = (cur && cur.title) || "";
+        parcoursActiveChk.checked = cur ? cur.is_active !== false : true;
+        _parcoursEnsure(parcoursDinnerSel,
+          cur && cur.dinner_source && cur.dinner_id ? `${cur.dinner_source}:${cur.dinner_id}` : "",
+          cur ? `#${cur.dinner_id}` : "");
+        _parcoursEnsure(parcoursBarSel,
+          cur && cur.bar_source && cur.bar_id ? `${cur.bar_source}:${cur.bar_id}` : "",
+          cur ? `#${cur.bar_id}` : "");
+        _parcoursEnsure(parcoursClubSel,
+          cur && cur.club_source && cur.club_id ? `${cur.club_source}:${cur.club_id}` : "",
+          cur ? `#${cur.club_id}` : "");
+
+        parcoursSlots.classList.remove("hidden");
+        if (!etabs.length && !bars.length && !clubs.length) {
+          parcoursHint.textContent = `Aucun établissement night/food trouvé à « ${ville} ».`;
+          parcoursHint.classList.remove("hidden");
+        } else {
+          parcoursHint.classList.add("hidden");
+        }
+      } catch (e) {
+        console.error("[Parcours] load", e);
+        toast("Erreur chargement : " + (e.message || e), false);
+        parcoursHint.textContent = "Erreur de chargement.";
+      }
+    }
+
+    let _parcoursDebounce;
+    parcoursVilleInput.addEventListener("input", () => {
+      clearTimeout(_parcoursDebounce);
+      _parcoursDebounce = setTimeout(
+        () => loadParcoursForVille(parcoursVilleInput.value), 400);
+    });
+
+    document.getElementById("parcours-save-btn").addEventListener("click", async () => {
+      const ville = parcoursVilleInput.value.trim();
+      if (!ville) { toast("Ville requise", false); return; }
+      const parse = (sel) => {
+        const v = sel.value;
+        if (!v) return [null, null];
+        const i = v.indexOf(":");
+        return [v.slice(0, i), parseInt(v.slice(i + 1), 10)];
+      };
+      const [ds, di] = parse(parcoursDinnerSel);
+      const [bs, bi] = parse(parcoursBarSel);
+      const [cs, ci] = parse(parcoursClubSel);
+      try {
+        const { error } = await supabase.rpc("admin_set_parcours", {
+          p_ville: ville,
+          p_title: parcoursTitleInput.value.trim(),
+          p_dinner_source: ds, p_dinner_id: di,
+          p_bar_source: bs, p_bar_id: bi,
+          p_club_source: cs, p_club_id: ci,
+          p_is_active: parcoursActiveChk.checked,
+        });
+        if (error) throw error;
+        toast(`🌙 Parcours « ${ville} » enregistré`);
+      } catch (e) {
+        toast("Erreur : " + (e.message || e), false);
+      }
+    });
+
     // ─── Onglet Lieux Famille (family_venues) ───────────────────────────────
     // Taxonomie miroir de family_category_data.dart (Dart). Si tu changes les
     // types côté app, mets à jour cette liste pour garder le dropdown aligné.
@@ -5550,6 +5921,33 @@
     // Sous-categories par rubrique (clé `cat` = ce qu'on compare avec theme/
     // categorie cote DB, alignée sur food_category_data.dart côté app).
     // `catchAll: true` = ne filtre rien, sert juste de raccourci visuel.
+    // Rubrique Famille → types (searchTag = family_venues.category), en
+    // minuscules. Miroir de family_category_data.dart (browsableGroups). Une
+    // rubrique matche un lieu si sa category est dans l'ensemble.
+    const FAMILY_GROUP_TAGS = {
+      "Divertissements": new Set([
+        "parc d'attractions", "laser game", "escape game", "bowling",
+        "cinema", "patinoire",
+      ]),
+      "Jeux d'enfants": new Set([
+        "aire de jeux", "parc de loisirs",
+      ]),
+      "Animaux et Nature": new Set([
+        "parc animalier", "ferme pedagogique", "aquarium", "zoo",
+        "jardin botanique",
+      ]),
+      "Activite Aquatique": new Set([
+        "aquarium", "centre aquatique", "piscine",
+      ]),
+      "Sortie en Plein Air": new Set([
+        "parcs", "balade familiale", "accrobranche", "mini golf",
+        "base de loisirs",
+      ]),
+      "Decouvrir": new Set([
+        "musee pour enfants", "planetarium", "atelier creatif",
+      ]),
+    };
+
     const RUBRIQUE_SUBCATS = {
       food: [
         { label: "🍽️ Restaurant", cat: "Restaurant", catchAll: true },
@@ -5568,18 +5966,17 @@
         { label: "🆘 SOS Apero", cat: "SOS Apero" },
         { label: "🌃 Épicerie nuit", cat: "Epicerie de nuit" },
       ],
+      // Famille : les filtres de l'app sont les 6 RUBRIQUES (chips de la
+      // landing), pas les types individuels. Chaque chip regroupe tous les
+      // types de sa rubrique (cf. FAMILY_GROUP_TAGS + family_category_data.dart).
+      // `cat` = nom exact de la rubrique (family_screen.dart browsableGroups).
       famille: [
-        { label: "🎢 Parc d'attractions", cat: "Parc d'attractions" },
-        { label: "🧒 Aire de jeux", cat: "Aire de jeux" },
-        { label: "🦁 Parc animalier", cat: "Parc animalier" },
-        { label: "🐄 Ferme pédagogique", cat: "Ferme pedagogique" },
-        { label: "🎬 Cinéma", cat: "Cinema" },
-        { label: "🎳 Bowling", cat: "Bowling" },
-        { label: "🔫 Laser game", cat: "Laser game" },
-        { label: "🔐 Escape game", cat: "Escape game" },
-        { label: "⛸️ Patinoire", cat: "Patinoire" },
-        { label: "🐟 Aquarium", cat: "Aquarium" },
-        { label: "👨‍👩‍👧 Resto familial", cat: "Restaurant familial" },
+        { label: "🎢 Divertissements", cat: "Divertissements" },
+        { label: "🧒 Jeux d'enfants", cat: "Jeux d'enfants" },
+        { label: "🦁 Animaux et Nature", cat: "Animaux et Nature" },
+        { label: "🏊 Activité Aquatique", cat: "Activite Aquatique" },
+        { label: "🌳 Sortie en Plein Air", cat: "Sortie en Plein Air" },
+        { label: "🔭 Découvrir", cat: "Decouvrir" },
       ],
       culture: [
         { label: "🎬 Cinéma", cat: "Cinema" },
@@ -5679,6 +6076,7 @@
         priority: r.display_priority ?? 0,
         priorities: {},          // venues : pas d'override par categorie
         videoUrl: r.video_url || "",
+        isPartner: !!r.is_partner,
       }));
       // L'app ne lit `etablissements` QUE pour food. Pour night/culture/
       // famille elle lit `venues` (et sport → `sport_venues`), donc les
@@ -5703,6 +6101,7 @@
           priority: r.display_priority ?? 0,
           priorities: (r.priorities && typeof r.priorities === "object") ? r.priorities : {},
           videoUrl: r.video_url || "",
+          isPartner: !!r.is_partner,
         }));
       const s = allSportVenues.map(r => ({
         source: "sport_venues",
@@ -5719,7 +6118,26 @@
         priorities: {},
         videoUrl: r.video_url || "",
       }));
-      return v.concat(e).concat(s);
+      // L'app lit `family_venues` pour la rubrique Famille (PAS etablissements).
+      // On les affiche en lecture (filtre Famille + sous-catégories de l'app).
+      // L'édition reste dans l'onglet Famille dédié (bouton « Éditer »).
+      const fam = allFamily.map(r => ({
+        source: "family_venues",
+        id: r.id,
+        name: r.name || "",
+        ville: r.ville || "",
+        adresse: r.adresse || "",
+        type: r.category || "",
+        rubrique: "famille",
+        code: null,            // family_venues : pas de code de revendication
+        photo: r.photo || "",
+        photos: [],
+        priority: r.display_priority ?? 0,
+        priorities: {},
+        videoUrl: "",
+        isPartner: false,
+      }));
+      return v.concat(e).concat(s).concat(fam);
     }
 
     function normalizeCity(s) {
@@ -5739,6 +6157,7 @@
     // Libellé du badge selon la table source
     const VENUE_SOURCE_LABEL = {
       venues: "venue", etablissements: "etab", sport_venues: "sport",
+      family_venues: "famille",
     };
 
     // Vignettes de la galerie — reconstruites à chaque ajout / retrait / déplacement.
@@ -5844,7 +6263,18 @@
           ? `<button class="code-pill" data-action="copy" data-code="${escapeHtml(f.code)}" title="Cliquer pour copier"><span>${escapeHtml(f.code)}</span><span class="copy-icon">📋</span></button>`
           : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
       }
-      const photoBtn = `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
+      // family_venues : lecture seule ici (l'app lit cette table). L'édition
+      // — photo, catégorie, priorité — se fait dans l'onglet Famille dédié.
+      const isFamily = f.source === "family_venues";
+      const photoBtn = isFamily
+        ? `<button class="photo-btn" data-action="edit-in-family" data-id="${f.id}">✏️ Éditer dans Famille</button>`
+        : `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
+      // Partenaire : flag commercial (badge doré + carrousel dans l'app).
+      // Dispo pour les venues (Night) et les etablissements (Food) — pas sport.
+      const canPartner = f.source === "venues" || f.source === "etablissements";
+      const partnerBtn = canPartner
+        ? `<button class="partner-btn${f.isPartner ? " active" : ""}" data-action="toggle-partner" title="${f.isPartner ? "Partenaire — cliquer pour retirer le statut" : "Marquer comme partenaire (badge doré + carrousel dans l'app)"}">${f.isPartner ? "⭐ Partenaire" : "☆ Partenaire"}</button>`
+        : "";
       // Suppression : sport_venues, etablissements (Food) et venues. Sert
       // surtout à nettoyer les doublons. La source réelle est lue sur la
       // .venue-item parente (data-source) par le handler.
@@ -5906,7 +6336,7 @@
               <div class="venue-row-name">${badge}${escapeHtml(f.name)}</div>
               <div class="venue-row-meta">${meta}</div>
             </div>
-            <div class="venue-row-actions">${prioCtrl}${catPrioBtn}${codeAction}${photoBtn}${deleteBtn}</div>
+            <div class="venue-row-actions">${prioCtrl}${partnerBtn}${catPrioBtn}${codeAction}${photoBtn}${deleteBtn}</div>
           </div>
           ${catPanel}
           ${venuePhotoEditorHtml(f)}
@@ -5964,6 +6394,15 @@
         return (row.categorie || "").toLowerCase() === needle
           || (row.sport_type || "").toLowerCase() === needle;
       }
+      if (fiche.source === "family_venues") {
+        const row = allFamily.find(r => r.id === fiche.id);
+        if (!row) return false;
+        // cat = nom de rubrique → on teste si la category (searchTag) du lieu
+        // appartient à l'ensemble des types de cette rubrique.
+        const tags = FAMILY_GROUP_TAGS[cat];
+        if (!tags) return false;
+        return tags.has((row.category || "").toLowerCase());
+      }
       return false;
     }
 
@@ -6007,6 +6446,10 @@
         // orphelins jamais affiches par l'app) pour n'editer que la vraie table.
         if (currentRubriqueFilter === "sport") {
           filtered = filtered.filter(f => f.source === "sport_venues");
+        }
+        // Idem Famille : l'app ne lit que `family_venues`.
+        if (currentRubriqueFilter === "famille") {
+          filtered = filtered.filter(f => f.source === "family_venues");
         }
       }
       if (currentSubCatFilter) {
@@ -6078,6 +6521,16 @@
       const target = ev.target.closest("[data-action]");
       if (!target) return;
       const action = target.dataset.action;
+
+      // ── Fiche Famille : renvoie vers l'onglet Famille dédié ──
+      if (action === "edit-in-family") {
+        const q = document.getElementById("family-name-search");
+        const id = target.dataset.id;
+        const row = allFamily.find(r => String(r.id) === String(id));
+        if (q) q.value = row ? (row.name || "") : "";  // pré-filtre sur ce lieu
+        showFamilyView();        // déclenche refreshFamilyView (lit le filtre)
+        return;
+      }
 
       // ── Edition de la photo pochette ──
       if (action === "toggle-photo") {
@@ -6518,6 +6971,43 @@
       toast("Priorités catégorie enregistrées ✓", true);
     });
 
+    // Toggle "Partenaire" -> UPDATE {venues|etablissements} SET is_partner = ...
+    // Statut commercial : badge doré + carrousel dans l'app (Night / Food).
+    venuesList.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest('[data-action="toggle-partner"]');
+      if (!btn) return;
+      const item = btn.closest(".venue-item");
+      if (!item) return;
+      const source = item.dataset.source;
+      if (source !== "venues" && source !== "etablissements") return;
+      const id = Number(item.dataset.id);
+      const cache = source === "venues" ? allVenues : allEtabs;
+      const row = cache.find(r => r.id === id);
+      const next = !(row && row.is_partner);
+      btn.disabled = true;
+      const prev = btn.textContent;
+      btn.textContent = "…";
+      const { data, error } = await supabase
+        .from(source)
+        .update({ is_partner: next })
+        .eq("id", id)
+        .select("id, is_partner");
+      btn.disabled = false;
+      btn.textContent = prev;
+      if (error) {
+        console.warn("[partner]", error);
+        toast("Erreur : " + (error.message || "échec"), false);
+        return;
+      }
+      if (!data || data.length === 0) {
+        toast(`⚠️ 0 ligne modifiée (RLS) — vérifie la policy « admin_update_${source} ».`, false);
+        return;
+      }
+      if (row) row.is_partner = next;
+      toast(next ? "Marqué partenaire ⭐" : "Statut partenaire retiré", true);
+      renderVenuesList();
+    });
+
     // Édition de la priorité d'affichage (établissements + salles de sport)
     // — sauvegarde au blur. Si l'input porte data-cat (ex: Guinguette), on
     // patch priorities[cat] au lieu de display_priority (override par cat).
@@ -6698,12 +7188,22 @@
     const etabFoodFilters = $etab("etab-food-filters");
     const etabSportTypeWrap = $etab("etab-sport-type-wrap");
 
+    const etabFamilyTypeWrap = $etab("etab-family-type-wrap");
+    const etabNightTypeWrap = $etab("etab-night-type-wrap");
+    const etabCultureTypeWrap = $etab("etab-culture-type-wrap");
     function syncEtabRubrique() {
       const r = etabRubrique.value;
       etabFoodFilters.classList.toggle("hidden", r !== "food");
       etabSportTypeWrap.classList.toggle("hidden", r !== "sport");
+      etabFamilyTypeWrap.classList.toggle("hidden", r !== "famille");
+      etabNightTypeWrap.classList.toggle("hidden", r !== "nuit");
+      etabCultureTypeWrap.classList.toggle("hidden", r !== "culture");
       $etab("etab-submit").textContent =
-        r === "sport" ? "Créer la salle de sport" : "Créer l'établissement";
+        r === "sport" ? "Créer la salle de sport"
+          : r === "famille" ? "Créer le lieu famille"
+          : r === "nuit" ? "Créer le lieu nuit"
+          : r === "culture" ? "Créer le lieu culture"
+          : "Créer l'établissement";
     }
     syncEtabRubrique();
     etabRubrique.addEventListener("change", syncEtabRubrique);
@@ -6897,6 +7397,106 @@
         venuesCityFilter.value = ville;
         refreshVenuesView();
         toast(`« ${data.nom} » ajouté ✓`, true);
+        return;
+      }
+
+      // ── Rubrique Famille → INSERT dans `family_venues` (table lue par l'app
+      // pour la section Famille ; etablissements.rubrique=famille = orphelin) ──
+      if (rubrique === "famille") {
+        const slugify = (s) => (s || "")
+          .toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        const famPayload = {
+          slug: `${slugify(nom)}-${slugify(ville)}`.slice(0, 80),
+          name: nom,
+          category: $etab("etab-family-type").value,
+          groupe: "",
+          adresse: $etab("etab-adresse").value.trim(),
+          ville,
+          telephone: $etab("etab-telephone").value.trim(),
+          horaires: $etab("etab-horaires").value.trim(),
+          website_url: siteWeb,
+          ticket_url: "",
+          lien_maps: lienMaps,
+          photo,
+          latitude: parseFloat($etab("etab-lat").value) || 0,
+          longitude: parseFloat($etab("etab-lon").value) || 0,
+          display_priority: parseInt($etab("etab-priority").value, 10) || 0,
+          is_active: $etab("etab-active").checked,
+        };
+        btn.disabled = true;
+        btn.textContent = "…";
+        const { data, error } = await supabase
+          .from("family_venues")
+          .insert(famPayload)
+          .select()
+          .single();
+        btn.disabled = false;
+        syncEtabRubrique();
+        if (error) {
+          console.warn("[family_venue insert]", error);
+          toast("Erreur : " + (error.message || "création échouée"), false);
+          return;
+        }
+        allFamily.push(data);
+        resetEtabForm();
+        showEtabForm(false);
+        venuesNameSearch.value = "";
+        venuesCityFilter.value = ville;
+        refreshVenuesView();
+        toast(`« ${data.name} » ajouté ✓`, true);
+        return;
+      }
+
+      // ── Rubriques Nuit / Culture → INSERT dans `venues` (mode=night|culture ;
+      // l'app lit `venues` pour ces sections, pas etablissements → sinon
+      // orphelin invisible). Même schéma, seuls mode + category changent. ──
+      if (rubrique === "nuit" || rubrique === "culture") {
+        const slugify = (s) => (s || "")
+          .toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+        const venueMode = rubrique === "nuit" ? "night" : "culture";
+        const venueCategory = rubrique === "nuit"
+          ? $etab("etab-night-type").value
+          : $etab("etab-culture-type").value;
+        const venuePayload = {
+          slug: `${slugify(nom)}-${slugify(ville)}`.slice(0, 80),
+          name: nom,
+          mode: venueMode,
+          category: venueCategory,
+          adresse: $etab("etab-adresse").value.trim(),
+          ville,
+          telephone: $etab("etab-telephone").value.trim(),
+          horaires: $etab("etab-horaires").value.trim(),
+          website_url: siteWeb,
+          lien_maps: lienMaps,
+          photo,
+          latitude: parseFloat($etab("etab-lat").value) || 0,
+          longitude: parseFloat($etab("etab-lon").value) || 0,
+          display_priority: parseInt($etab("etab-priority").value, 10) || 0,
+          is_active: $etab("etab-active").checked,
+        };
+        btn.disabled = true;
+        btn.textContent = "…";
+        const { data, error } = await supabase
+          .from("venues")
+          .insert(venuePayload)
+          .select()
+          .single();
+        btn.disabled = false;
+        syncEtabRubrique();
+        if (error) {
+          console.warn(`[${venueMode} venue insert]`, error);
+          toast("Erreur : " + (error.message || "création échouée"), false);
+          return;
+        }
+        allVenues.push(data);
+        resetEtabForm();
+        showEtabForm(false);
+        venuesNameSearch.value = "";
+        venuesCityFilter.value = ville;
+        refreshVenuesView();
+        toast(`« ${data.name} » ajouté ✓`, true);
         return;
       }
 
