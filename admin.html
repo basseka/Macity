@@ -1827,8 +1827,11 @@
           <!-- Mode ANCRE : chercher le lieu de l'event -->
           <div id="parcours-anchor-block">
             <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Lieu-ancre <span style="opacity:.6">— salle de concert, théâtre, piscine, boîte… (le lieu où se passe l'event)</span></label>
-            <input type="text" class="banner-input" id="parcours-anchor-search" placeholder="Chercher un lieu par nom (ex : Le Bikini)…" autocomplete="off" />
-            <div id="parcours-anchor-results" style="margin-top:4px;"></div>
+            <div style="display:flex; gap:8px;">
+              <input type="text" class="banner-input" id="parcours-anchor-ville" list="cities-datalist" placeholder="Ville (ex : Toulouse)" autocomplete="off" style="max-width:200px;" />
+              <input type="text" class="banner-input" id="parcours-anchor-search" placeholder="…filtrer par nom OU type (ex : théâtre, cinéma, Le Bikini)" autocomplete="off" style="flex:1;" />
+            </div>
+            <div id="parcours-anchor-results" style="margin-top:4px; max-height:280px; overflow-y:auto;"></div>
             <div id="parcours-anchor-selected" class="hidden" style="margin-top:8px; padding:10px; border-radius:8px; background:rgba(255,255,255,.05); font-size:13px;"></div>
             <label style="display:block; font-size:12px; color:var(--text-dim); margin:12px 0 4px;">Rayon de correspondance (mètres)</label>
             <input type="number" class="banner-input" id="parcours-radius" value="300" step="50" min="50" style="max-width:160px;" />
@@ -4720,16 +4723,37 @@
     parcoursModeAnchorBtn.addEventListener("click", () => setParcoursMode("anchor"));
     parcoursModeVilleBtn.addEventListener("click", () => setParcoursMode("ville"));
 
-    // ── Recherche du lieu-ancre (4 tables, par nom) ───────────────────────────
+    // ── Recherche du lieu-ancre (4 tables) : par ville et/ou par nom ──────────
+    const parcoursAnchorVille = document.getElementById("parcours-anchor-ville");
     let _anchorSearchDebounce, _anchorSearchToken = 0;
-    async function _searchAnchor(q) {
-      const like = `%${q}%`;
+    async function _searchAnchor(q, ville) {
       const token = ++_anchorSearchToken;
+      const lim = q ? 60 : 200; // sans nom (parcours par ville) on remonte tout
+      // Version sans accents (les catégories sont stockées "Theatre", "Musee"…
+      // et ilike n'est pas insensible aux accents → "théâtre" ne matcherait pas).
+      const qn = (q || "").normalize("NFD").replace(/[̀-ͯ]/g, "");
+      // Applique les filtres nom/catégorie (si q) + ville (si ville).
+      const build = (tbl, nameCol) => {
+        const catCol = (tbl === "venues" || tbl === "family_venues") ? "category" : "categorie";
+        let query = supabase.from(tbl)
+          .select(`id,${nameCol},${catCol},ville,latitude,longitude`)
+          .eq("is_active", true);
+        // Le terme cherche à la fois le NOM et la CATÉGORIE : taper "théâtre"
+        // remonte tous les lieux de catégorie Theatre, pas seulement ceux dont
+        // le nom contient "théâtre". On teste aussi la variante sans accents.
+        if (q) {
+          const terms = [`${nameCol}.ilike.%${q}%`, `${catCol}.ilike.%${q}%`];
+          if (qn !== q) terms.push(`${nameCol}.ilike.%${qn}%`, `${catCol}.ilike.%${qn}%`);
+          query = query.or(terms.join(","));
+        }
+        if (ville) query = query.ilike("ville", `%${ville}%`);
+        return query.order(nameCol, { ascending: true }).limit(lim);
+      };
       const [v, e, s, f] = await Promise.all([
-        supabase.from("venues").select("id,name,category,ville,latitude,longitude").ilike("name", like).eq("is_active", true).limit(15),
-        supabase.from("etablissements").select("id,nom,categorie,ville,latitude,longitude").ilike("nom", like).eq("is_active", true).limit(15),
-        supabase.from("sport_venues").select("id,nom,categorie,ville,latitude,longitude").ilike("nom", like).eq("is_active", true).limit(15),
-        supabase.from("family_venues").select("id,name,category,ville,latitude,longitude").ilike("name", like).eq("is_active", true).limit(15),
+        build("venues", "name"),
+        build("etablissements", "nom"),
+        build("sport_venues", "nom"),
+        build("family_venues", "name"),
       ]);
       if (token !== _anchorSearchToken) return null;
       const rows = [];
@@ -4737,17 +4761,28 @@
       (e.data || []).forEach(r => rows.push({ source: "etablissements", id: r.id, name: r.nom, cat: r.categorie, ville: r.ville, lat: r.latitude, lng: r.longitude }));
       (s.data || []).forEach(r => rows.push({ source: "sport_venues", id: r.id, name: r.nom, cat: r.categorie, ville: r.ville, lat: r.latitude, lng: r.longitude }));
       (f.data || []).forEach(r => rows.push({ source: "family_venues", id: r.id, name: r.name, cat: r.category, ville: r.ville, lat: r.latitude, lng: r.longitude }));
+      rows.sort((a, b) => (a.name || "").localeCompare(b.name || "", "fr"));
       return rows;
     }
     const _ANCHOR_SRC_LABEL = { venues: "night/culture", etablissements: "food", sport_venues: "sport", family_venues: "famille" };
     function _renderAnchorResults(rows) {
-      if (!rows || !rows.length) { parcoursAnchorResults.innerHTML = ""; return; }
-      parcoursAnchorResults.innerHTML = rows.slice(0, 30).map((r, i) =>
+      if (!rows || !rows.length) {
+        parcoursAnchorResults.innerHTML = `<div style="padding:8px; opacity:.6; font-size:12px;">Aucun lieu trouvé.</div>`;
+        parcoursAnchorResults._rows = [];
+        return;
+      }
+      const CAP = 80;
+      const shown = rows.slice(0, CAP);
+      let html = shown.map((r, i) =>
         `<div class="anchor-result" data-idx="${i}" style="padding:7px 10px; border-radius:7px; cursor:pointer; background:rgba(255,255,255,.04); margin-bottom:3px;">
           <strong>${escapeHtml(r.name)}</strong>
           <span style="opacity:.6; font-size:12px;"> · ${escapeHtml(r.cat || "")} · ${escapeHtml(r.ville || "")} · <em>${_ANCHOR_SRC_LABEL[r.source] || r.source}</em></span>
         </div>`).join("");
-      parcoursAnchorResults._rows = rows;
+      if (rows.length > CAP) {
+        html += `<div style="padding:6px; opacity:.6; font-size:12px;">… ${rows.length - CAP} autres — affine par nom.</div>`;
+      }
+      parcoursAnchorResults.innerHTML = html;
+      parcoursAnchorResults._rows = shown;
     }
     parcoursAnchorResults.addEventListener("click", (ev) => {
       const el = ev.target.closest(".anchor-result");
@@ -4756,17 +4791,22 @@
       const r = rows[Number(el.dataset.idx)];
       if (r) selectParcoursAnchor(r);
     });
-    parcoursAnchorSearch.addEventListener("input", () => {
+    // Déclenche la recherche dès qu'on a une ville OU un nom (≥2 car.).
+    function _runAnchorSearch() {
       clearTimeout(_anchorSearchDebounce);
       const q = parcoursAnchorSearch.value.trim();
-      if (q.length < 2) { parcoursAnchorResults.innerHTML = ""; return; }
+      const ville = parcoursAnchorVille.value.trim();
+      if (!ville && q.length < 2) { parcoursAnchorResults.innerHTML = ""; return; }
+      parcoursAnchorResults.innerHTML = `<div style="padding:8px; opacity:.6; font-size:12px;">Recherche…</div>`;
       _anchorSearchDebounce = setTimeout(async () => {
         try {
-          const rows = await _searchAnchor(q);
+          const rows = await _searchAnchor(q, ville);
           if (rows) _renderAnchorResults(rows);
         } catch (e) { console.warn("[anchor search]", e); }
       }, 350);
-    });
+    }
+    parcoursAnchorSearch.addEventListener("input", _runAnchorSearch);
+    parcoursAnchorVille.addEventListener("input", _runAnchorSearch);
 
     async function selectParcoursAnchor(a) {
       _parcoursAnchor = a;
@@ -4802,6 +4842,7 @@
       _parcoursEditId = null;
       _parcoursAnchor = null;
       parcoursAnchorSearch.value = "";
+      if (parcoursAnchorVille) parcoursAnchorVille.value = "";
       parcoursAnchorResults.innerHTML = "";
       parcoursAnchorSelected.classList.add("hidden");
       parcoursAnchorSelected.innerHTML = "";
@@ -5316,6 +5357,79 @@
     // Objectif d'inscriptions à atteindre (aligné sur l'objectif téléchargements).
     const USERSTATS_OBJECTIF = 20000;
 
+    // Jalons de la trajectoire cible (fin de journée du jour indiqué).
+    const OBJECTIF_JALONS = [
+      { d: "2026-07-15", v: 500,   lbl: "15 juil" },
+      { d: "2026-08-15", v: 2000,  lbl: "15 août" },
+      { d: "2026-09-30", v: 5000,  lbl: "30 sept" },
+      { d: "2026-12-31", v: 20000, lbl: "31 déc" },
+    ];
+
+    // Courbe "Progression vers les objectifs" : trajectoire CIBLE (jalons, en
+    // pointillé) vs courbe RÉELLE cumulée (fenêtre par_jour) + point du jour.
+    // SVG pur, sans dépendance.
+    function _renderObjectiveCurve(total, parJour) {
+      const W = 720, H = 230, padL = 44, padR = 14, padT = 16, padB = 30;
+      const plotW = W - padL - padR, plotH = H - padT - padB;
+      const start = new Date("2026-07-01T00:00:00");
+      const end = new Date("2026-12-31T00:00:00");
+      const span = end - start;
+      const maxY = USERSTATS_OBJECTIF;
+      const X = (d) => padL + Math.max(0, Math.min(1, (d - start) / span)) * plotW;
+      const Y = (v) => padT + plotH - Math.max(0, Math.min(1, v / maxY)) * plotH;
+      const kfmt = (v) => v >= 1000 ? (v / 1000) + "k" : String(v);
+
+      const yTicks = [0, 5000, 10000, 15000, 20000].map(v => {
+        const y = Y(v);
+        return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)"/>
+          <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${kfmt(v)}</text>`;
+      }).join("");
+
+      const months = [["2026-07-01", "juil"], ["2026-08-01", "août"], ["2026-09-01", "sept"], ["2026-10-01", "oct"], ["2026-11-01", "nov"], ["2026-12-01", "déc"]];
+      const xLabels = months.map(([ds, lbl]) => {
+        const x = X(new Date(ds + "T00:00:00"));
+        return `<text x="${x.toFixed(1)}" y="${H - 10}" fill="#8a8a99" font-size="9" text-anchor="middle">${lbl}</text>`;
+      }).join("");
+
+      // Courbe CIBLE : (1er juil, 0) → jalons
+      const tgt = [{ x: X(start), y: Y(0) }].concat(
+        OBJECTIF_JALONS.map(m => ({ x: X(new Date(m.d + "T00:00:00")), y: Y(m.v) })));
+      const tgtPath = tgt.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+      const tgtDots = OBJECTIF_JALONS.map(m => {
+        const x = X(new Date(m.d + "T00:00:00")), y = Y(m.v);
+        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#7c3aed"/>
+          <text x="${x.toFixed(1)}" y="${(y - 7).toFixed(1)}" fill="#c9b8e8" font-size="9" text-anchor="middle">${kfmt(m.v)}</text>`;
+      }).join("");
+
+      // Courbe RÉELLE cumulée (baseline = total − somme fenêtre, puis cumul).
+      let realPath = "";
+      const rows = (parJour || []).filter(r => r.jour).slice()
+        .sort((a, b) => a.jour < b.jour ? -1 : 1);
+      if (rows.length) {
+        const sumWin = rows.reduce((s, r) => s + (r.n || 0), 0);
+        let cum = Math.max(0, total - sumWin);
+        const pts = rows.map(r => { cum += (r.n || 0); return { x: X(new Date(r.jour + "T00:00:00")), y: Y(cum) }; });
+        realPath = `<path d="${pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#22c55e" stroke-width="2"/>`;
+      }
+
+      // Point du jour (total actuel).
+      const today = new Date();
+      const tx = X(today), ty = Y(total);
+      const todayDot = `<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="4.5" fill="#22c55e" stroke="#0b0b12" stroke-width="1.5"/>
+        <text x="${tx.toFixed(1)}" y="${(ty - 9).toFixed(1)}" fill="#7ee2a3" font-size="9.5" text-anchor="middle" font-weight="700">${total.toLocaleString("fr-FR")}</text>`;
+
+      return `
+        <div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-dim); margin:16px 0 4px;">
+          <span><span style="display:inline-block;width:12px;height:0;border-top:2px dashed #7c3aed;vertical-align:middle;"></span> Objectif</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Réel</span>
+        </div>
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="Progression vers les objectifs">
+          ${yTicks}${xLabels}
+          <path d="${tgtPath}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
+          ${tgtDots}${realPath}${todayDot}
+        </svg>`;
+    }
+
     // Barre de progression vers l'objectif + cartes today / 7j / 30j.
     function _renderProgress(s, total) {
       const obj = USERSTATS_OBJECTIF;
@@ -5337,6 +5451,7 @@
             <span>Reste ${reste.toLocaleString("fr-FR")} inscriptions</span>
             <span>Objectif ${obj.toLocaleString("fr-FR")}</span>
           </div>
+          ${_renderObjectiveCurve(total, s.par_jour || [])}
           <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:16px;">
             ${_statCard("Aujourd'hui", (s.aujourdhui || 0), "nouvelles inscriptions")}
             ${_statCard("7 derniers jours", (s.total_7j || 0), `${((s.total_7j || 0) / 7).toFixed(1)} / jour en moy.`)}
