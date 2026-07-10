@@ -244,22 +244,6 @@ class AppBottomNavBar extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               _PublishOptionTile(
-                icon: Icons.event_outlined,
-                title: 'Publier un event',
-                subtitle: 'Concert, soirée, expo, atelier…',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF3D8B), Color(0xFFA855F7)],
-                ),
-                onTap: () {
-                  Navigator.of(sheetCtx).pop();
-                  // Delegue au gating pro : approved → choice sheet,
-                  // pendingApproval → ProPendingSheet, notConnected →
-                  // ProLoginSheet (qui propose pro ou soiree privee).
-                  showAddEvent(_navContext, ref);
-                },
-              ),
-              const SizedBox(height: 10),
-              _PublishOptionTile(
                 icon: Icons.camera_alt_outlined,
                 title: 'Story Map Live',
                 subtitle: 'Photo / vidéo d\'un évent en cours autour de toi',
@@ -277,6 +261,22 @@ class AppBottomNavBar extends ConsumerWidget {
                           const Duration(milliseconds: 200),
                     ),
                   );
+                },
+              ),
+              const SizedBox(height: 10),
+              _PublishOptionTile(
+                icon: Icons.event_outlined,
+                title: 'Publier un event',
+                subtitle: 'Concert, soirée, expo, atelier…',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF3D8B), Color(0xFFA855F7)],
+                ),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  // Delegue au gating pro : approved → choice sheet,
+                  // pendingApproval → ProPendingSheet, notConnected →
+                  // ProLoginSheet (qui propose pro ou soiree privee).
+                  showAddEvent(_navContext, ref);
                 },
               ),
             ],

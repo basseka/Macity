@@ -8,8 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
+import 'package:pulz_app/features/reported_events/data/partner_locations_provider.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
@@ -52,7 +54,26 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   bool _isLoading = true;
   bool _pageReady = false;
   List<ReportedEvent> _lastEvents = const [];
+  List<PartnerLocation> _partners = const [];
   String? _lastCity;
+
+  /// Rayon de tolérance (m) pour considérer qu'une story est faite CHEZ un
+  /// partenaire (dérive GPS + centroïde du POI).
+  static const double _partnerMatchMeters = 80;
+
+  /// Le plus proche partenaire à moins de [_partnerMatchMeters], sinon null.
+  String? _partnerNameAt(double lat, double lng) {
+    var best = _partnerMatchMeters;
+    String? name;
+    for (final p in _partners) {
+      final d = Haversine.distanceInMeters(lat, lng, p.lat, p.lng);
+      if (d <= best) {
+        best = d;
+        name = p.name;
+      }
+    }
+    return name;
+  }
 
   @override
   void initState() {
@@ -214,7 +235,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     if (center == null) {
       debugPrint('[PresentationMap] no center for $city — fallback Toulouse');
     }
-    final fallback = (lat: 43.6047, lng: 1.4442);
+    const fallback = (lat: 43.6047, lng: 1.4442);
     final cc = center ?? fallback;
     // Mix : fakes (presentation) + reals (signalements actifs si disponibles)
     final realEvents = ref.read(reportedEventsFeedProvider).valueOrNull ?? const [];
@@ -266,7 +287,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     // Petit delai pour s'assurer que la couche L.layerGroup est prête côté JS.
     await Future.delayed(const Duration(milliseconds: 250));
     debugPrint(
-        '[PresentationMap] injecting ${fakes.length} fake + ${realEvents.length} real markers around $city');
+        '[PresentationMap] injecting ${fakes.length} fake + ${realEvents.length} real markers around $city',);
     await _controller.runJavaScript('setPresentationReports($json); void 0;');
   }
 
@@ -288,7 +309,12 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       final photoCount = e.photos.length;
       final reportCount = e.reportCount;
       final category = e.category.replaceAll("'", "\\'");
-      return "{id:'${e.id}',lat:${e.lat},lng:${e.lng},emoji:'$emoji',title:'$title',photos:$photoCount,reports:$reportCount,category:'$category'}";
+      // Story faite chez un partenaire ? → pin rose foncé + nom sous la bulle.
+      final partnerName = _partnerNameAt(e.lat, e.lng);
+      final partnerJs = partnerName != null
+          ? ",is_partner:true,partner_name:'${partnerName.replaceAll("'", "\\'")}'"
+          : '';
+      return "{id:'${e.id}',lat:${e.lat},lng:${e.lng},emoji:'$emoji',title:'$title',photos:$photoCount,reports:$reportCount,category:'$category'$partnerJs}";
     }).join(',');
     await _controller.runJavaScript('setReports([$js]); void 0;');
   }
@@ -359,6 +385,20 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     .neon-pin.real .halo {
       animation: halopulse 1.6s ease-out infinite;
       opacity: 1;
+    }
+
+    /* Story faite chez un partenaire : nom sous la bulle (pastille rose foncé) */
+    .neon-pin .pin-label {
+      position: absolute;
+      top: 27px; left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 10px; font-weight: 700;
+      color: #fff; background: #C2185B;
+      padding: 1px 6px; border-radius: 7px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      pointer-events: none;
+      z-index: 2;
     }
 
     .user-dot {
@@ -488,14 +528,21 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       };
       reports.forEach(r => {
         const family = FAMILY_BY_CATEGORY[r.category] || 'general';
-        const fill = FAMILY_COLOR[family] || '#A855F7';
+        // Story chez un partenaire → rose foncé (au lieu de la couleur famille)
+        // + libellé du nom sous la bulle.
+        const isPartner = !!r.is_partner;
+        const PARTNER_COLOR = '#C2185B';
+        const fill = isPartner ? PARTNER_COLOR : (FAMILY_COLOR[family] || '#A855F7');
+        const label = (isPartner && r.partner_name)
+          ? '<div class="pin-label">' + r.partner_name + '</div>' : '';
         // Goutte SVG 24x26 + cœur sombre + halo radial pulsant.
-        const html = '<div class="neon-pin" title="' + r.title + '" style="--pin-color:' + fill + '99">'
+        const html = '<div class="neon-pin' + (isPartner ? ' partner' : '') + '" title="' + r.title + '" style="--pin-color:' + fill + '99">'
           + '<div class="halo"></div>'
           + '<svg width="24" height="26" viewBox="0 0 24 26" xmlns="http://www.w3.org/2000/svg">'
           + '<path d="M12 0 C18.6 0 24 5.4 24 12 C24 18.6 12 26 12 26 C12 26 0 18.6 0 12 C0 5.4 5.4 0 12 0 Z" fill="' + fill + '"/>'
           + '<circle cx="12" cy="10" r="3" fill="#0A0414"/>'
           + '</svg>'
+          + label
           + '</div>';
         const marker = L.marker([r.lat, r.lng], {
           icon: L.divIcon({
@@ -565,6 +612,17 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         }
       }
     }
+
+    // Lieux partenaires : dès qu'ils sont chargés (ou changent), on ré-injecte
+    // pour colorer en rose foncé + libeller les pins des stories chez eux.
+    ref.watch(partnerLocationsProvider).whenData((partners) {
+      if (partners.length != _partners.length) {
+        _partners = partners;
+        if (_pageReady && !widget.usePresentationMarkers) {
+          _injectMarkers(_lastEvents);
+        }
+      }
+    });
 
     // Abonnement realtime : actif aussi en mode présentation pour que les
     // vrais signalements apparaissent dynamiquement par-dessus les fakes.
