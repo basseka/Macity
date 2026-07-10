@@ -515,7 +515,8 @@
     .venue-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 10px 12px;
       padding: 12px 14px;
       background: var(--surface-hi);
       border: 1px solid var(--line);
@@ -583,15 +584,19 @@
       gap: 6px;
     }
     .venue-row:hover { border-color: var(--line-strong); }
-    .venue-row-info { flex: 1; min-width: 0; }
+    .venue-row-info { flex: 1 1 200px; min-width: 170px; }
     .venue-row-name {
       font-weight: 700;
-      font-size: 14px;
+      font-size: 14.5px;
       color: var(--text);
       line-height: 1.3;
-      white-space: nowrap;
+      /* Nom sur 2 lignes max (au lieu d'une ellipse qui masquait le nom quand
+         la rangée de boutons écrasait la colonne). */
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
+      overflow-wrap: anywhere;
     }
     .venue-row-meta {
       font-size: 11px;
@@ -611,7 +616,7 @@
     }
     .venue-row-badge.venues { background: rgba(142, 36, 170, 0.25); color: #D9B2EB; }
     .venue-row-badge.etablissements { background: rgba(233, 30, 99, 0.18); color: #F5A6C0; }
-    .venue-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .venue-row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
     .code-pill {
       display: inline-flex;
       align-items: center;
@@ -5369,26 +5374,38 @@
     // pointillé) vs courbe RÉELLE cumulée (fenêtre par_jour) + point du jour.
     // SVG pur, sans dépendance.
     function _renderObjectiveCurve(total, parJour) {
-      const W = 720, H = 230, padL = 44, padR = 14, padT = 16, padB = 30;
-      const plotW = W - padL - padR, plotH = H - padT - padB;
-      const start = new Date("2026-07-01T00:00:00");
-      const end = new Date("2026-12-31T00:00:00");
+      // Largeur par mois FIXE → ~3 mois visibles, scroll horizontal jusqu'à déc.
+      const monthW = 200, padL = 48, padR = 16, padT = 16, padB = 30, H = 320;
+      const months = [["2026-06-01", "juin"], ["2026-07-01", "juil"], ["2026-08-01", "août"], ["2026-09-01", "sept"], ["2026-10-01", "oct"], ["2026-11-01", "nov"], ["2026-12-01", "déc"]];
+      const plotW = monthW * months.length;    // 7 mois (juin → déc)
+      const W = padL + plotW + padR;
+      const plotH = H - padT - padB;
+      const start = new Date("2026-06-01T00:00:00");
+      const end = new Date("2027-01-01T00:00:00"); // déc inclus (borne = 1er janv)
       const span = end - start;
       const maxY = USERSTATS_OBJECTIF;
       const X = (d) => padL + Math.max(0, Math.min(1, (d - start) / span)) * plotW;
-      const Y = (v) => padT + plotH - Math.max(0, Math.min(1, v / maxY)) * plotH;
+      // Échelle Y LOGARITHMIQUE (1 → 20000) : rend lisibles à la fois les
+      // petites valeurs (unités / centaines) et l'objectif final 20k. Une
+      // échelle linéaire écraserait le réel actuel (quelques inscrits) sur 0.
+      const logMax = Math.log(maxY);
+      const Y = (v) => {
+        const c = Math.min(maxY, Math.max(1, v));
+        return padT + plotH - (Math.log(c) / logMax) * plotH;
+      };
       const kfmt = (v) => v >= 1000 ? (v / 1000) + "k" : String(v);
 
-      const yTicks = [0, 5000, 10000, 15000, 20000].map(v => {
+      const yTicks = [1, 10, 100, 500, 1000, 2000, 5000, 10000, 20000].map(v => {
         const y = Y(v);
         return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)"/>
           <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${kfmt(v)}</text>`;
       }).join("");
 
-      const months = [["2026-07-01", "juil"], ["2026-08-01", "août"], ["2026-09-01", "sept"], ["2026-10-01", "oct"], ["2026-11-01", "nov"], ["2026-12-01", "déc"]];
+      // Séparateurs verticaux de mois + libellés (repères pendant le scroll).
       const xLabels = months.map(([ds, lbl]) => {
         const x = X(new Date(ds + "T00:00:00"));
-        return `<text x="${x.toFixed(1)}" y="${H - 10}" fill="#8a8a99" font-size="9" text-anchor="middle">${lbl}</text>`;
+        return `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${(padT + plotH).toFixed(1)}" stroke="rgba(255,255,255,0.05)"/>
+          <text x="${x.toFixed(1)}" y="${H - 10}" fill="#8a8a99" font-size="9" text-anchor="middle">${lbl}</text>`;
       }).join("");
 
       // Courbe CIBLE : (1er juil, 0) → jalons
@@ -5422,12 +5439,16 @@
         <div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-dim); margin:16px 0 4px;">
           <span><span style="display:inline-block;width:12px;height:0;border-top:2px dashed #7c3aed;vertical-align:middle;"></span> Objectif</span>
           <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Réel</span>
+          <span style="color:var(--text-faint);">· échelle log</span>
+          <span style="margin-left:auto; color:var(--text-faint);">↔ glisse jusqu'à décembre</span>
         </div>
-        <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="Progression vers les objectifs">
-          ${yTicks}${xLabels}
-          <path d="${tgtPath}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
-          ${tgtDots}${realPath}${todayDot}
-        </svg>`;
+        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          <svg viewBox="0 0 ${W} ${H}" style="width:${W}px; height:auto; display:block;" role="img" aria-label="Progression vers les objectifs">
+            ${yTicks}${xLabels}
+            <path d="${tgtPath}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
+            ${tgtDots}${realPath}${todayDot}
+          </svg>
+        </div>`;
     }
 
     // Barre de progression vers l'objectif + cartes today / 7j / 30j.
