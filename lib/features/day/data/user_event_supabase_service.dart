@@ -255,6 +255,25 @@ class UserEventSupabaseService {
         .toList();
   }
 
+  /// Recupere des events user par leurs ids (pour resoudre les notifs
+  /// "A la une" qui peuvent pointer des user_events). Omet les introuvables.
+  Future<List<UserEvent>> fetchEventsByIds(List<String> ids) async {
+    final cleaned = ids.where((e) => e.trim().isNotEmpty).toList();
+    if (cleaned.isEmpty) return [];
+    final response = await _restDio.get(
+      'user_events',
+      queryParameters: {
+        'select': '*',
+        'id': 'in.(${cleaned.join(",")})',
+        'limit': '${cleaned.length}',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => UserEvent.fromSupabaseJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Recupere uniquement les evenements crees par l'utilisateur courant.
   Future<List<UserEvent>> fetchMyEvents() async {
     final userId = await UserIdentityService.getUserId();

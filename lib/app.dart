@@ -16,6 +16,8 @@ import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/widgets/app_bottom_nav_bar.dart';
 import 'package:pulz_app/core/widgets/force_update_screen.dart';
 import 'package:pulz_app/core/widgets/update_prompt_banner.dart';
+import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
+import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/day_events_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_provider.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
@@ -187,10 +189,26 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         return;
       }
 
-      // Notification "À la une" (digest featured 15h) → toujours ouvrir
-      // l'accueil, que l'app soit ouverte, en arriere-plan ou fermee.
+      // Notification "À la une" (digest featured) → ouvrir directement les
+      // affiches, comme le digest du soir. Les events peuvent venir de
+      // scraped_events OU user_events → resolus par _resolveFeaturedAndOpen.
+      // Payload : data.event_ids (liste separee par virgule) + data.event_id
+      // (fallback single / anciennes notifs).
       if (type == 'featured_digest') {
-        appRouter.go('/home');
+        final ids = (data['event_ids'] as String? ?? '')
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
+        if (ids.isEmpty) {
+          final single = data['event_id'] as String? ?? '';
+          if (single.isNotEmpty) ids.add(single);
+        }
+        if (ids.isEmpty) {
+          appRouter.go('/home');
+        } else {
+          _resolveFeaturedAndOpen(ids);
+        }
         return;
       }
 
@@ -483,5 +501,45 @@ class _AppShellState extends ConsumerState<_AppShell> {
         const AppBottomNavBar(),
       ],
     );
+  }
+}
+
+/// Résout des ids d'events « À la une » (scraped_events puis user_events pour
+/// les manquants) et ouvre l'affiche — carrousel plein écran si plusieurs,
+/// sinon popup simple — comme le digest du soir.
+Future<void> _resolveFeaturedAndOpen(List<String> ids) async {
+  final resolved = <String, Event>{};
+  try {
+    final scraped = await ScrapedEventsSupabaseService().fetchEventsByIds(ids);
+    for (final e in scraped) {
+      resolved[e.identifiant] = e;
+    }
+    final missing = ids.where((id) => !resolved.containsKey(id)).toList();
+    if (missing.isNotEmpty) {
+      final userEvents =
+          await UserEventSupabaseService().fetchEventsByIds(missing);
+      for (final u in userEvents) {
+        resolved[u.id] = u.toEvent();
+      }
+    }
+  } catch (e) {
+    debugPrint('[featured] resolve error: $e');
+  }
+
+  // Réordonne selon la liste reçue, omet les introuvables.
+  final ordered = [for (final id in ids) if (resolved[id] != null) resolved[id]!];
+  if (ordered.isEmpty) {
+    appRouter.go('/home');
+    return;
+  }
+
+  if (ordered.length > 1) {
+    deepLinkSetPendingDigest(ordered);
+    appRouter.go('/home');
+    // Cold start : FeedScreen peut être déjà monté → on déclenche aussi ici.
+    Future.delayed(const Duration(milliseconds: 800), deepLinkShowPending);
+  } else {
+    deepLinkSetPending(ordered.first);
+    appRouter.go('/home');
   }
 }
