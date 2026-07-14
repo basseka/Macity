@@ -20,6 +20,9 @@ class FamilyVenue {
   final String photo;
   final bool isVerified;
 
+  /// Âge minimum recommandé (années). Null = non renseigné / tous âges.
+  final int? ageMin;
+
   const FamilyVenue({
     required this.id,
     required this.slug,
@@ -39,6 +42,7 @@ class FamilyVenue {
     this.lienMaps = '',
     this.photo = '',
     this.isVerified = false,
+    this.ageMin,
   });
 
   factory FamilyVenue.fromJson(Map<String, dynamic> json) {
@@ -61,6 +65,7 @@ class FamilyVenue {
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: json['photo'] as String? ?? '',
       isVerified: json['is_verified'] as bool? ?? false,
+      ageMin: (json['age_min'] as num?)?.toInt(),
     );
   }
 }

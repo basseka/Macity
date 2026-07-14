@@ -70,6 +70,14 @@ class FamilyScreen extends ConsumerWidget {
       bannerSubtitle: 'Les meilleures sorties enfants vous attendent.',
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
+      // Filtre par âge (remplace « Voir tout ») : montre les lieux dont l'âge
+      // min recommandé <= au seuil choisi. « Pour tous » = aucun filtre.
+      ageFilters: const [
+        AgeFilterOption('0-3 ans', 3),
+        AgeFilterOption('Jusqu\'à 5 ans', 5),
+        AgeFilterOption('Jusqu\'à 12 ans', 12),
+        AgeFilterOption('Pour tous', null),
+      ],
       itemsBuilder: (ref, chipKey) {
         // chipKey = nom de la rubrique → venues de tous ses types.
         final async = ref.watch(familyGroupVenuesProvider(chipKey));
@@ -104,6 +112,7 @@ class FamilyScreen extends ConsumerWidget {
                 photoUrl: v.photo,
                 isVerified: v.isVerified,
                 commerce: commerce,
+                ageMin: v.ageMin,
                 onTap: (ctx) =>
                     CommerceRowCard.showDetailSheet(ctx, commerce),
               );

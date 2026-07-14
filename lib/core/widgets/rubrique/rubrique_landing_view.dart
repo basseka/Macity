@@ -140,6 +140,10 @@ class RubriqueItem {
   /// les items commerce de la liste ; sinon, [onTap] est utilisé.
   final CommerceModel? commerce;
 
+  /// Âge minimum recommandé (années). Utilisé par le filtre d'âge optionnel
+  /// (cf. [RubriqueConfig.ageFilters]). Null = tous âges (jamais masqué).
+  final int? ageMin;
+
   const RubriqueItem({
     required this.title,
     required this.subtitle,
@@ -148,6 +152,7 @@ class RubriqueItem {
     this.isVerified = false,
     this.isPartner = false,
     this.commerce,
+    this.ageMin,
   });
 }
 
@@ -156,6 +161,15 @@ class RubriqueChip {
   final IconData icon;
   final String key; // clé passée à itemsBuilder
   const RubriqueChip(this.label, this.icon, this.key);
+}
+
+/// Option du filtre d'âge (remplace « Voir tout » dans le header de section
+/// quand [RubriqueConfig.ageFilters] est fourni). [maxAge] null = « Pour tous »
+/// (aucun filtre). Sinon on garde les items dont ageMin <= maxAge.
+class AgeFilterOption {
+  final String label;
+  final int? maxAge;
+  const AgeFilterOption(this.label, this.maxAge);
 }
 
 class RubriqueConfig {
@@ -198,6 +212,11 @@ class RubriqueConfig {
   final AsyncValue<List<RubriqueItem>> Function(WidgetRef ref)? partnersBuilder;
   final String partnersTitle;
 
+  /// Filtre d'âge optionnel affiché dans le header de la section principale, à
+  /// la place de « Voir tout ». Si null, comportement inchangé (« Voir tout »).
+  /// Les items sont filtrés sur [RubriqueItem.ageMin] selon l'option choisie.
+  final List<AgeFilterOption>? ageFilters;
+
   const RubriqueConfig({
     required this.theme,
     required this.eyebrowLeft,
@@ -217,6 +236,7 @@ class RubriqueConfig {
     this.extraSectionsBottom,
     this.partnersBuilder,
     this.partnersTitle = 'Nos partenaires',
+    this.ageFilters,
   });
 }
 
@@ -232,6 +252,9 @@ class RubriqueLandingView extends ConsumerStatefulWidget {
 
 class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
   late String _activeChip = widget.config.chips.first.key;
+
+  /// Âge max sélectionné dans le filtre d'âge (null = « Pour tous », défaut).
+  int? _ageMax;
 
   VideoPlayerController? _video;
   String? _videoUrl;
@@ -311,13 +334,19 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             const SizedBox(height: 18),
             _chipsRow(cfg),
             ..._partnerRail(cfg, t),
-            _sectionHeader(cfg.sectionTitle, t),
+            _sectionHeader(cfg.sectionTitle, t,
+                showAction: cfg.ageFilters == null),
+            if (cfg.ageFilters != null) _ageFilterRow(cfg.ageFilters!, t),
             itemsAsync.when(
-              data: (items) {
+              data: (allItems) {
+                final items = _applyAgeFilter(allItems);
                 if (items.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    child: Text('Aucune adresse pour cette sélection.',
+                    child: Text(
+                        _ageMax != null
+                            ? 'Aucun lieu pour cet âge.'
+                            : 'Aucune adresse pour cette sélection.',
                         style: RubriqueTheme.body()),
                   );
                 }
@@ -452,6 +481,69 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
         ),
       ),
     ];
+  }
+
+  /// Filtre la liste selon l'âge sélectionné (null = « Pour tous » → tout).
+  /// Un item sans ageMin n'est jamais masqué.
+  List<RubriqueItem> _applyAgeFilter(List<RubriqueItem> items) {
+    if (_ageMax == null) return items;
+    return items
+        .where((it) => it.ageMin == null || it.ageMin! <= _ageMax!)
+        .toList();
+  }
+
+  /// Rangée de pills du filtre d'âge (remplace « Voir tout » côté Famille).
+  Widget _ageFilterRow(List<AgeFilterOption> options, RubriqueTheme t) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 8, 12),
+      child: SizedBox(
+        height: 30,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.only(right: 12),
+          itemCount: options.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 6),
+          itemBuilder: (_, i) {
+            final o = options[i];
+            final active = o.maxAge == _ageMax;
+            return GestureDetector(
+              onTap: () => setState(() => _ageMax = o.maxAge),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                curve: Curves.easeOut,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: active ? t.accent : RubriqueTheme.surface,
+                  borderRadius: BorderRadius.circular(RubriqueTheme.rPill),
+                  border: active
+                      ? null
+                      : Border.all(color: RubriqueTheme.stroke, width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.child_care_rounded,
+                      size: 12,
+                      color: active ? Colors.white : RubriqueTheme.ink,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      o.label,
+                      style: RubriqueTheme.chip(
+                          color: active ? Colors.white : RubriqueTheme.ink),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   Widget _sectionHeader(String title, RubriqueTheme t,
