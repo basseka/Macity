@@ -351,13 +351,19 @@ class UserEventSupabaseService {
   }
 
   /// Supprime un événement par son id.
-  Future<void> deleteEvent(String id) async {
-    final pro = await _proAuth();
-    await _restDio.delete(
-      'user_events',
-      queryParameters: {'id': 'eq.$id'},
-      options: Options(headers: _writeHeaders(pro.token)),
+  /// Suppression self d'un event du user courant (particulier).
+  ///
+  /// La RLS DELETE de user_events est pro-only (cf 20260430120000), donc un
+  /// DELETE REST en rôle anon ne supprime rien (0 ligne, sans erreur). On passe
+  /// par le RPC SECURITY DEFINER `delete_my_event` qui vérifie la propriété par
+  /// device UUID et bypasse la RLS. Renvoie true si la row a bien été supprimée.
+  Future<bool> deleteMyEvent(String id) async {
+    final userId = await UserIdentityService.getUserId();
+    final res = await _restDio.post(
+      'rpc/delete_my_event',
+      data: {'p_id': id, 'p_device_uuid': userId},
     );
+    return res.data == true || res.data.toString() == 'true';
   }
 
   /// Search user events by title, description, lieu, category, or city.

@@ -146,15 +146,24 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
   }
 
   /// Supprime un événement de Supabase et du state.
-  Future<void> removeEvent(String id) async {
+  /// Supprime un event du user. Passe par le RPC `delete_my_event` (self-service
+  /// par device UUID) car la RLS DELETE de user_events est pro-only. Ne retire
+  /// du state local QUE si la suppression distante a réellement eu lieu, sinon
+  /// l'item réapparaîtrait au prochain refetch (ancien bug « rien ne se passe »).
+  /// Renvoie true si supprimé.
+  Future<bool> removeEvent(String id) async {
+    bool ok;
     try {
-      await _supabase.deleteEvent(id);
+      ok = await _supabase.deleteMyEvent(id);
     } catch (_) {
-      // Suppression distante échouée : on supprime quand même localement
+      ok = false;
     }
 
-    state = state.where((e) => e.id != id).toList();
-    await _persistLocal();
+    if (ok) {
+      state = state.where((e) => e.id != id).toList();
+      await _persistLocal();
+    }
+    return ok;
   }
 
   /// Force une re-synchronisation depuis Supabase.

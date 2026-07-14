@@ -345,10 +345,19 @@ class MyPublicationsSheet extends ConsumerWidget {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ref.read(userEventsProvider.notifier).removeEvent(event.id);
+              final messenger = ScaffoldMessenger.of(context);
+              final ok =
+                  await ref.read(userEventsProvider.notifier).removeEvent(event.id);
               ref.invalidate(myPublicationsProvider);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ok ? 'Publication supprimee' : 'Suppression impossible, reessaye',
+                  ),
+                ),
+              );
             },
             child: Text(
               'Supprimer',
