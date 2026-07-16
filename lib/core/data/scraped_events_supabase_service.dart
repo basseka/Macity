@@ -5,6 +5,29 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 
+/// Event reduit a ce qu'il faut pour deriver les salles d'un filtre du feed.
+/// Cf. [ScrapedEventsSupabaseService.fetchEventFacets].
+class EventFacet {
+  final String lieuNom;
+  final String categorie;
+  final String type;
+  final String titre;
+
+  const EventFacet({
+    required this.lieuNom,
+    required this.categorie,
+    required this.type,
+    required this.titre,
+  });
+
+  factory EventFacet.fromJson(Map<String, dynamic> json) => EventFacet(
+        lieuNom: (json['lieu_nom'] as String? ?? '').trim(),
+        categorie: json['categorie_de_la_manifestation'] as String? ?? '',
+        type: json['type_de_manifestation'] as String? ?? '',
+        titre: json['nom_de_la_manifestation'] as String? ?? '',
+      );
+}
+
 /// Service qui lit les evenements scrapes depuis la table `scraped_events`
 /// de Supabase. Les scrapers s'executent cote serveur (Edge Functions + pg_cron)
 /// et l'app ne fait que lire les donnees.
@@ -17,6 +40,38 @@ class ScrapedEventsSupabaseService {
     final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
     dio.interceptors.add(SupabaseInterceptor());
     return dio;
+  }
+
+  /// Projection legere d'un event : juste de quoi construire la liste des
+  /// salles d'un filtre du feed (le lieu + les champs sur lesquels porte le
+  /// matching par mots-cles). Evite de rapatrier des events complets (photos,
+  /// descriptifs) pour ne lire qu'un nom de salle.
+  ///
+  /// Applique le MEME `photo_url != ''` que [fetchAllEvents] : sans ca, une
+  /// salle dont les events n'ont pas de photo apparaitrait dans les chips avec
+  /// un compteur > 0 mais renverrait une liste vide.
+  Future<List<EventFacet>> fetchEventFacets({
+    required List<String> rubriques,
+    required String ville,
+    required String dateGte,
+    int limit = 1000,
+  }) async {
+    final response = await _dio.get(
+      'scraped_events',
+      queryParameters: {
+        'select': 'lieu_nom,categorie_de_la_manifestation,'
+            'type_de_manifestation,nom_de_la_manifestation',
+        'rubrique': 'in.(${rubriques.join(",")})',
+        'ville': 'ilike.$ville',
+        'date_debut': 'gte.$dateGte',
+        'photo_url': 'neq.',
+        'limit': '$limit',
+      },
+    );
+    final data = response.data as List;
+    return data
+        .map((e) => EventFacet.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Fetch scraped events filtered by rubrique and optional source/date.

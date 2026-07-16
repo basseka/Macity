@@ -317,6 +317,23 @@ final nightVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref
   return venues;
 });
 
+/// TOUS les lieux night de la ville selectionnee, toutes categories confondues.
+/// Sert a la section "Affinez votre recherche" de la landing, qui balaie
+/// l'offre entiere independamment du chip actif et filtre sur l'heure de
+/// fermeture.
+final nightAllVenuesProvider =
+    FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  try {
+    return await VenuesSupabaseService().fetchVenues(
+      mode: 'night',
+      ville: city,
+    );
+  } catch (_) {
+    return const <CommerceModel>[];
+  }
+});
+
 /// Lieux partenaires Night pour la ville courante (badge doré + carrousel en
 /// tête de la landing Night). autoDispose : refetch au retour sur le hub.
 final nightPartnersProvider =

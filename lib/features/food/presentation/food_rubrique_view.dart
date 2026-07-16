@@ -11,12 +11,16 @@ import 'package:video_player/video_player.dart';
 
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/data/inspiration_service.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
 import 'package:pulz_app/features/food/presentation/food_design_tokens.dart';
 import 'package:pulz_app/features/food/presentation/food_restaurants_fullscreen_map.dart';
 import 'package:pulz_app/features/food/presentation/restaurant_detail_sheet.dart';
 import 'package:pulz_app/features/food/state/food_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/reported_events/data/city_centers.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/venues_map_view.dart';
 
 /// Écran "Rubrique Food" — refonte hi-fi (handoff mai 2026).
 /// Hero vidéo + chips de filtre + carrousel restaurants + inspirations
@@ -37,7 +41,14 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
     _Chip('Brunch', Icons.egg_alt_rounded, 'Brunch'),
   ];
 
+  /// Themes de `_chips` : ce sont des formats de sortie, pas des cuisines.
+  /// Exclus du filtre "Affinez votre recherche".
+  static const _nonCuisineThemes = {'guinguette', 'buffet', 'salon de the'};
+
   String _activeChip = 'Restaurants';
+
+  /// Cuisine selectionnee dans "Affinez votre recherche" (null = toutes).
+  String? _activeCuisine;
   final Set<String> _saved = {};
   Position? _userPosition;
 
@@ -259,6 +270,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
               error: (_, __) => _emptyCarousel(),
             ),
             ..._inspirationsSection(),
+            ..._cuisineSection(restaurantsAsync.valueOrNull ?? const []),
             _reservationBanner(),
           ],
         ),
@@ -513,6 +525,177 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
     final uri = Uri.tryParse(u);
     if (uri == null) return;
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  // ─── Affinez votre recherche ─────────────────────────────────────────
+  /// Chips de cuisine (Africain, Japonais, Italien...) + carrousel qui
+  /// reagit au chip actif. Les cuisines proposees sont deduites des donnees
+  /// (on n'affiche pas un filtre qui ne renverrait rien) et ordonnees selon
+  /// [RestaurantVenuesData.themes].
+  List<Widget> _cuisineSection(List<RestaurantVenue> all) {
+    final present = <String>{
+      for (final r in all)
+        if (r.theme.trim().isNotEmpty) r.theme.trim().toLowerCase(),
+    };
+    final cuisines = RestaurantVenuesData.themes
+        .where((t) =>
+            t != 'Tous' &&
+            !_nonCuisineThemes.contains(t.toLowerCase()) &&
+            present.contains(t.toLowerCase()))
+        .toList();
+    if (cuisines.isEmpty) return const [];
+
+    final selected = _activeCuisine;
+    // Chip actif = clé de `priorities` cote admin (panneau 🎯 Cat) : 'Tous'
+    // retombe sur l'override 'Restaurant', sinon la cuisine selectionnee.
+    final list = selected == null
+        ? sortRestaurantsForCategory(all, 'Restaurant')
+        : sortRestaurantsForCategory(
+            all.where((r) => r.matchesTheme(selected)).toList(),
+            selected,
+          );
+
+    return [
+      _sectionHeader('Affinez votre recherche',
+          showAction: false, onSeeAll: () {}),
+      SizedBox(
+        height: 40,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+          itemCount: cuisines.length + 1,
+          separatorBuilder: (_, __) => const SizedBox(width: 6),
+          itemBuilder: (_, i) {
+            if (i == 0) {
+              return _cuisineChip('Tous', selected == null,
+                  () => setState(() => _activeCuisine = null));
+            }
+            final c = cuisines[i - 1];
+            return _cuisineChip(c, selected == c,
+                () => setState(() => _activeCuisine = c));
+          },
+        ),
+      ),
+      const SizedBox(height: 14),
+      if (list.isEmpty)
+        _emptyCarousel()
+      else
+        SizedBox(
+          height: 212,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+            itemCount: list.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, i) => _RestaurantCard(
+              venue: list[i],
+              coupDeCoeur: false,
+              saved: _saved.contains(list[i].id),
+              onToggleSaved: () => setState(() {
+                final id = list[i].id;
+                _saved.contains(id) ? _saved.remove(id) : _saved.add(id);
+              }),
+              onTap: () => RestaurantDetailSheet.show(
+                context,
+                list[i],
+                siblings: list,
+                index: i,
+              ),
+            ),
+          ),
+        ),
+      _cuisineMap(all),
+    ];
+  }
+
+  /// Carte des restaurants sous "Affinez votre recherche". Points vert sapin,
+  /// masques/reaffiches selon le chip cuisine actif. Cadrage fixe sur le centre
+  /// de la ville selectionnee (jamais sur la position user) pour que la vue ne
+  /// saute pas d'un filtre a l'autre.
+  Widget _cuisineMap(List<RestaurantVenue> all) {
+    final city = ref.watch(selectedCityProvider);
+    final center = CityCenters.center(city) ?? (lat: 43.6047, lng: 1.4442);
+    // `categorie` porte la cuisine : elle s'affiche dans le popup du point.
+    final located =
+        all.where((r) => r.latitude != 0 && r.longitude != 0).toList();
+    if (located.isEmpty) return const SizedBox.shrink();
+    final cuisine = _activeCuisine;
+    final visible = cuisine == null
+        ? null
+        : [
+            for (var i = 0; i < located.length; i++)
+              if (located[i].matchesTheme(cuisine)) i,
+          ];
+    final points = [
+      for (final r in located)
+        CommerceModel(
+          nom: r.name,
+          adresse: r.adresse,
+          latitude: r.latitude,
+          longitude: r.longitude,
+          horaires: r.horaires,
+          categorie: r.theme.trim(),
+          lienMaps: r.lienMaps,
+          telephone: r.telephone,
+          photo: r.photo,
+          siteWeb: r.websiteUrl,
+          isVerified: r.isVerified,
+        ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(FoodTokens.rCard),
+        child: SizedBox(
+          height: 390,
+          child: VenuesMapView(
+            venues: points,
+            title: 'Restaurants',
+            accentColor: '#0F3D2E', // FoodTokens.forest
+            autoLocate: false,
+            showClosestPanel: false,
+            showLegend: false,
+            initialZoom: 13,
+            centerLat: center.lat,
+            centerLng: center.lng,
+            visibleIndices: visible,
+            onVenueTap: (c) {
+              final i = points.indexOf(c);
+              if (i < 0) return;
+              RestaurantDetailSheet.show(context, located[i],
+                  siblings: located, index: i);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _cuisineChip(String label, bool active, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active ? FoodTokens.forest : FoodTokens.surface,
+          borderRadius: BorderRadius.circular(FoodTokens.rPill),
+          border: active ? null : Border.all(color: FoodTokens.stroke, width: 1),
+        ),
+        child: Text(
+          label,
+          style: FoodTokens.chip(
+            color: active ? Colors.white : FoodTokens.ink,
+            w: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
   }
 
   // ─── Bannière réservation ────────────────────────────────────────────

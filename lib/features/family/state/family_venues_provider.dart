@@ -130,6 +130,25 @@ final familyGroupVenuesProvider =
   return service.fetchVenuesByCategories(tags, ville: city);
 });
 
+/// TOUS les lieux famille de la ville selectionnee, toutes rubriques
+/// confondues. Sert a la section "Affinez votre recherche" de la landing, qui
+/// balaie l'offre entiere independamment du chip actif.
+final familyAllVenuesProvider =
+    FutureProvider.autoDispose<List<FamilyVenue>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  final service = ref.read(_familyServiceProvider);
+  // Un type peut appartenir a 2 rubriques (ex: Aquarium) : on dedoublonne les
+  // tags avant la requete, et les lieux par id apres (une fiche = 1 point).
+  final tags = <String>{
+    for (final g in FamilyCategoryData.browsableGroups)
+      ...FamilyCategoryData.typeTagsForGroup(g.name),
+  }.toList();
+  if (tags.isEmpty) return [];
+  final venues = await service.fetchVenuesByCategories(tags, ville: city);
+  final seen = <int>{};
+  return venues.where((v) => seen.add(v.id)).toList();
+});
+
 /// Scraped events famille (rubrique='family') pour la ville selectionnee.
 final familyScrapedEventsProvider = FutureProvider<List<Event>>((ref) async {
   final city = ref.watch(selectedCityProvider);

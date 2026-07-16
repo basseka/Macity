@@ -20,6 +20,10 @@ class CommerceModel with _$CommerceModel {
     @Default('') String horaires,
     @Default(true) bool ouvert,
     @Default('') String categorie,
+    // Quartier (ex: Capitole, Saint-Cyprien). Rempli par reverse geocoding
+    // cote base ; vide = non renseigne (la fiche sort alors des filtres par
+    // quartier).
+    @Default('') String quartier,
     @Default('') String lienMaps,
     @Default('') String telephone,
     @Default('') String avis,

@@ -12,6 +12,8 @@ import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
+import 'package:pulz_app/features/night/data/closing_hour.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/refine_map_section.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/core/widgets/commerce_pager_view.dart';
 import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
@@ -21,6 +23,7 @@ import 'package:pulz_app/features/night/presentation/night_spicy_fullscreen_map.
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/day/presentation/widgets/day_subcategory_card.dart';
 import 'package:pulz_app/core/state/categories_provider.dart';
+import 'package:pulz_app/features/night/presentation/widgets/sos_apero_banner.dart';
 import 'package:pulz_app/features/night/state/night_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
@@ -103,6 +106,59 @@ class NightScreen extends ConsumerWidget {
       bannerSubtitle: 'Les meilleurs spots nocturnes vous attendent.',
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
+      // Section « Affinez votre recherche » : tous les lieux night de la ville
+      // (indépendant du chip du haut) + carte, filtrés sur l'heure de
+      // fermeture — la question qu'on se pose la nuit.
+      refineItemsBuilder: (ref) => ref.watch(nightAllVenuesProvider).whenData(
+            (venues) => venues
+                .map((c) => RubriqueItem(
+                      title: c.nom,
+                      subtitle: [
+                        if (c.categorie.isNotEmpty) c.categorie,
+                        if (c.horaires.isNotEmpty) c.horaires,
+                      ].join(' · '),
+                      photoUrl: c.photo,
+                      isVerified: c.isVerified,
+                      isPartner: c.isPartner,
+                      commerce: c,
+                      onTap: (ctx) => CommerceRowCard.showDetailSheet(ctx, c),
+                    ))
+                .toList(),
+          ),
+      // Filtre par heure de fermeture, du plus tôt au plus tard. Le 1er chip
+      // est celui sélectionné à l'ouverture de la section.
+      // Un lieu dont les horaires sont vides ou illisibles n'apparaît dans
+      // AUCUN chip — il n'y a pas de vue « tout » ici.
+      refineChipsBuilder: (_) => [
+        RefineChip(
+          'Jusqu\'à 2h',
+          (it) => closesUpTo(it.commerce?.horaires ?? '', 2),
+          icon: Icons.local_bar_rounded,
+        ),
+        RefineChip(
+          'Après 2h',
+          (it) => closesAfter(it.commerce?.horaires ?? '', 3),
+          icon: Icons.nightlife_rounded,
+        ),
+        RefineChip(
+          'Après 6h',
+          (it) => closesAfter(it.commerce?.horaires ?? '', 7),
+          icon: Icons.dark_mode_rounded,
+        ),
+        RefineChip(
+          '24h/24',
+          (it) => closingHour(it.commerce?.horaires ?? '') == 24,
+          icon: Icons.all_inclusive_rounded,
+        ),
+      ],
+      refineMapBuilder: (ctx, all, visible) => RefineMapSection(
+        all: all,
+        visible: visible,
+        accentColor: '#060B2D', // accent Night (bleu nuit)
+        title: 'Sortir ce soir',
+      ),
+      // Juste sous la carte : raccourci vers les livreurs d'apéro.
+      extraSections: (ctx) => const [SosAperoBanner()],
       partnersBuilder: (ref) => ref.watch(nightPartnersProvider).whenData(
             (list) => list
                 .asMap()

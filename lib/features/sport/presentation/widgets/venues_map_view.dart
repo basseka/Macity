@@ -37,6 +37,27 @@ class VenuesMapView extends StatefulWidget {
   final double? fallbackLat;
   final double? fallbackLng;
 
+  /// Centre IMPOSE (lat/lng). Contrairement a [fallbackLat]/[fallbackLng] qui
+  /// ne servent que si la liste est vide, ceci force le centre meme avec des
+  /// venues : pas de recadrage sur la moyenne des points ni de fitBounds.
+  /// Utile pour une carte "vue ville" stable dont les points changent avec un
+  /// filtre (ex: carte cuisines du hub Food) — sinon le cadrage saute a chaque
+  /// changement de filtre.
+  final double? centerLat;
+  final double? centerLng;
+
+  /// Indices (dans [venues]) des points a afficher. Null = tous. Le filtre est
+  /// applique en JS sur les marqueurs deja poses : changer la liste
+  /// masque/reaffiche les points sans recharger la webview. Le critere reste
+  /// cote Flutter, donc n'importe quel filtre marche (categorie, tranche
+  /// d'age, distance...).
+  final List<int>? visibleIndices;
+
+  /// Bandeau legende sous la carte. A desactiver quand les categories servent
+  /// juste de cle de filtre (ex: cuisines Food) : la legende listerait alors
+  /// une entree par cuisine.
+  final bool showLegend;
+
   const VenuesMapView({
     super.key,
     required this.venues,
@@ -51,6 +72,10 @@ class VenuesMapView extends StatefulWidget {
     this.showClosestPanel = true,
     this.fallbackLat,
     this.fallbackLng,
+    this.centerLat,
+    this.centerLng,
+    this.visibleIndices,
+    this.showLegend = true,
   });
 
   @override
@@ -82,6 +107,11 @@ class _VenuesMapViewState extends State<VenuesMapView> {
           onPageFinished: (_) {
             if (mounted) setState(() => _isLoading = false);
             _pageReady = true;
+            // Le filtre a pu changer pendant le chargement de la page : on
+            // reapplique la valeur courante plutot que celle figee dans le HTML.
+            _controller.runJavaScript(
+              'setVisibleIndices(${_visibleJs(widget.visibleIndices)}); void 0;',
+            );
             // Si la position a été obtenue avant que la page soit prête
             if (_pendingPosition != null) {
               _injectPosition(_pendingPosition!);
@@ -192,6 +222,11 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     }
   }
 
+  /// Litteral JS pour [VenuesMapView.visibleIndices] : `null` (tout visible)
+  /// ou `[0,3,7]`.
+  static String _visibleJs(List<int>? idx) =>
+      idx == null ? 'null' : '[${idx.join(',')}]';
+
   String _escapeJs(String s) => s
       .replaceAll('\\', '\\\\')
       .replaceAll("'", "\\'")
@@ -297,12 +332,12 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       <a class="info-panel-btn secondary" id="closestWebsite" href="#" target="_blank">Site web</a>
     </div>
   </div>
-  <div class="legend-wrapper">
+  ${widget.showLegend ? '''<div class="legend-wrapper">
     <div class="legend">
       $legendHtml
       <div class="legend-item"><span class="legend-dot" style="background:#4285F4"></span>Ma position</div>
     </div>
-  </div>
+  </div>''' : ''}
   <script>
     const VENUES = [$venuesJs];
     const ACCENT = '$accent';
@@ -315,9 +350,12 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     // Centre dynamique : moyenne des coordonnees des venues. Si aucun
     // venue, fallback sur le centre de la ville selectionnee (passe par
     // Flutter via fallbackLat/fallbackLng), sinon Toulouse.
-    let centerLat = ${widget.fallbackLat ?? 43.6047}, centerLng = ${widget.fallbackLng ?? 1.4442};
+    // FORCED_CENTER : centre impose par Flutter (centerLat/centerLng) — on
+    // ignore alors la moyenne des points ET le fitBounds plus bas.
+    const FORCED_CENTER = ${widget.centerLat != null && widget.centerLng != null};
+    let centerLat = ${widget.centerLat ?? widget.fallbackLat ?? 43.6047}, centerLng = ${widget.centerLng ?? widget.fallbackLng ?? 1.4442};
     let hasVenues = VENUES.length > 0;
-    if (hasVenues) {
+    if (hasVenues && !FORCED_CENTER) {
       centerLat = VENUES.reduce((s, v) => s + v.lat, 0) / VENUES.length;
       centerLng = VENUES.reduce((s, v) => s + v.lng, 0) / VENUES.length;
     }
@@ -365,8 +403,23 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       allMarkers.push({ ...v, marker });
     });
 
+    // Filtre : masque/reaffiche les marqueurs deja construits. Appele par
+    // Flutter (setVisibleIndices) quand le filtre de la page change.
+    // null = tous visibles.
+    let VISIBLE = ${_visibleJs(widget.visibleIndices)};
+    function setVisibleIndices(arr) {
+      VISIBLE = arr;
+      const keepSet = VISIBLE === null ? null : new Set(VISIBLE);
+      allMarkers.forEach(m => {
+        const keep = keepSet === null || keepSet.has(m.idx);
+        if (keep) { if (!map.hasLayer(m.marker)) m.marker.addTo(map); }
+        else if (map.hasLayer(m.marker)) { map.removeLayer(m.marker); }
+      });
+    }
+    setVisibleIndices(VISIBLE);
+
     const validVenues = VENUES.filter(v => v.lat && v.lng);
-    if (validVenues.length > 0 && !INIT_ZOOM) {
+    if (validVenues.length > 0 && !INIT_ZOOM && !FORCED_CENTER) {
       map.fitBounds(L.latLngBounds(validVenues.map(v => [v.lat, v.lng])), { padding: [30, 30], maxZoom: 15 });
     }
 
@@ -447,6 +500,32 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       .replaceAll('<', '&lt;')
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;');
+
+  /// Signature de la liste de points : sert a detecter un vrai changement de
+  /// contenu (ex: changement de ville) et non un simple rebuild qui recree des
+  /// CommerceModel identiques.
+  static String _venuesSignature(List<CommerceModel> venues) => venues
+      .map((v) => '${v.nom}|${v.latitude}|${v.longitude}')
+      .join(';');
+
+  @override
+  void didUpdateWidget(VenuesMapView old) {
+    super.didUpdateWidget(old);
+    // Contenu different (ex: autre ville) -> il faut reconstruire les marqueurs,
+    // donc recharger la page.
+    if (_venuesSignature(widget.venues) != _venuesSignature(old.venues)) {
+      _pageReady = false;
+      _loadHtml();
+      return;
+    }
+    // Sinon seul le filtre bouge : les marqueurs sont deja poses, on ne fait
+    // que les masquer/reafficher, sans rechargement.
+    if (!listEquals(widget.visibleIndices, old.visibleIndices) && _pageReady) {
+      _controller.runJavaScript(
+        'setVisibleIndices(${_visibleJs(widget.visibleIndices)}); void 0;',
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

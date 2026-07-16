@@ -15,6 +15,7 @@ import 'package:pulz_app/core/widgets/empty_state_widget.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
+import 'package:pulz_app/core/widgets/rubrique/refine_filters.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/culture/presentation/culture_hub_grid.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart' show MuseumVenue;
@@ -26,6 +27,7 @@ import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/presentation/widgets/event_row_card.dart';
 import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/refine_map_section.dart';
 import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 
@@ -59,6 +61,33 @@ class CultureScreen extends ConsumerWidget {
       bannerSubtitle: 'Musées, expos et patrimoine vous attendent.',
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
+      // Section « Affinez votre recherche » : tous les lieux culture de la
+      // ville (indépendant du chip du haut) + carte, filtrés par quartier.
+      refineItemsBuilder: (ref) =>
+          ref.watch(cultureAllVenuesProvider).whenData(
+                (venues) => venues
+                    .map((c) => RubriqueItem(
+                          title: c.nom,
+                          subtitle: [
+                            if (c.categorie.isNotEmpty) c.categorie,
+                            if (c.quartier.isNotEmpty) c.quartier,
+                          ].join(' · '),
+                          photoUrl: c.photo,
+                          isVerified: c.isVerified,
+                          isPartner: c.isPartner,
+                          commerce: c,
+                          onTap: (ctx) =>
+                              CommerceRowCard.showDetailSheet(ctx, c),
+                        ))
+                    .toList(),
+              ),
+      refineChipsBuilder: quartierChips,
+      refineMapBuilder: (ctx, all, visible) => RefineMapSection(
+        all: all,
+        visible: visible,
+        accentColor: '#FF2DAA', // accent Culture
+        title: 'Lieux culturels',
+      ),
       itemsBuilder: (ref, chipKey) {
         switch (chipKey) {
           case 'Musee':

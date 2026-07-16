@@ -100,6 +100,7 @@ class SportVenuesSupabaseService {
     return CommerceModel(
       nom: json['nom'] as String? ?? '',
       categorie: json['categorie'] as String? ?? '',
+      quartier: json['quartier'] as String? ?? '',
       adresse: json['adresse'] as String? ?? '',
       siteWeb: json['site_web'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',

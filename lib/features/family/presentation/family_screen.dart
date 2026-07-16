@@ -15,11 +15,13 @@ import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/family_category_data.dart';
+import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 import 'package:pulz_app/features/family/presentation/family_hub_grid.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/family/presentation/widgets/family_venue_row_card.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/refine_map_section.dart';
 
 
 class FamilyScreen extends ConsumerWidget {
@@ -50,6 +52,43 @@ class FamilyScreen extends ConsumerWidget {
     }
   }
 
+  /// Adapte un lieu famille en item de carrousel (carte + fiche détail).
+  /// Partagé par le carrousel principal et la section « Affinez ».
+  RubriqueItem _toItem(FamilyVenue v) {
+    final isHttp = v.photo.startsWith('http');
+    final description = [
+      if (v.description.isNotEmpty) v.description,
+      if (v.tarif.isNotEmpty) 'Tarif : ${v.tarif}',
+    ].join('\n\n');
+    final commerce = CommerceModel(
+      nom: v.name,
+      categorie: v.category,
+      adresse: v.adresse,
+      ville: v.ville,
+      horaires: v.horaires,
+      telephone: v.telephone,
+      siteWeb: v.ticketUrl.isNotEmpty ? v.ticketUrl : v.websiteUrl,
+      lienMaps: v.lienMaps,
+      latitude: v.latitude,
+      longitude: v.longitude,
+      photo: isHttp ? v.photo : '',
+      description: description,
+      isVerified: v.isVerified,
+    );
+    return RubriqueItem(
+      title: v.name,
+      subtitle: [
+        if (v.category.isNotEmpty) v.category,
+        if (v.ville.isNotEmpty) v.ville,
+      ].join(' · '),
+      photoUrl: v.photo,
+      isVerified: v.isVerified,
+      commerce: commerce,
+      ageMin: v.ageMin,
+      onTap: (ctx) => CommerceRowCard.showDetailSheet(ctx, commerce),
+    );
+  }
+
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {
     // Chips = les 6 rubriques (Divertissements, Jeux d'enfants, …). La clé
     // du chip = le nom de la rubrique ; le carrousel affiche tous les types
@@ -70,53 +109,33 @@ class FamilyScreen extends ConsumerWidget {
       bannerSubtitle: 'Les meilleures sorties enfants vous attendent.',
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
-      // Filtre par âge (remplace « Voir tout ») : montre les lieux dont l'âge
-      // min recommandé <= au seuil choisi. « Pour tous » = aucun filtre.
-      ageFilters: const [
-        AgeFilterOption('0-3 ans', 3),
-        AgeFilterOption('Jusqu\'à 5 ans', 5),
-        AgeFilterOption('Jusqu\'à 12 ans', 12),
-        AgeFilterOption('Pour tous', null),
+      // Section « Affinez votre recherche » : tous les lieux famille de la
+      // ville (indépendant du chip du haut) + carte, filtrés par tranche d'âge.
+      refineItemsBuilder: (ref) => ref
+          .watch(familyAllVenuesProvider)
+          .whenData((venues) => venues.map(_toItem).toList()),
+      refineMapBuilder: (ctx, all, visible) => RefineMapSection(
+        all: all,
+        visible: visible,
+        accentColor: '#F2A20C', // accent Famille
+        title: 'Lieux famille',
+      ),
+      // Filtre par âge : garde les lieux dont l'âge min recommandé <= au seuil
+      // choisi. Un lieu sans âge renseigné n'est jamais masqué.
+      refineChipsBuilder: (_) => [
+        RefineChip('Pour tous', (_) => true, icon: Icons.child_care_rounded),
+        for (final max in const [3, 5, 12])
+          RefineChip(
+            max == 3 ? '0-3 ans' : 'Jusqu\'à $max ans',
+            (it) => it.ageMin == null || it.ageMin! <= max,
+            icon: Icons.child_care_rounded,
+          ),
       ],
       itemsBuilder: (ref, chipKey) {
         // chipKey = nom de la rubrique → venues de tous ses types.
-        final async = ref.watch(familyGroupVenuesProvider(chipKey));
-        return async.whenData((venues) => venues.map((v) {
-              final isHttp = v.photo.startsWith('http');
-              final description = [
-                if (v.description.isNotEmpty) v.description,
-                if (v.tarif.isNotEmpty) 'Tarif : ${v.tarif}',
-              ].join('\n\n');
-              final commerce = CommerceModel(
-                nom: v.name,
-                categorie: v.category,
-                adresse: v.adresse,
-                ville: v.ville,
-                horaires: v.horaires,
-                telephone: v.telephone,
-                siteWeb:
-                    v.ticketUrl.isNotEmpty ? v.ticketUrl : v.websiteUrl,
-                lienMaps: v.lienMaps,
-                latitude: v.latitude,
-                longitude: v.longitude,
-                photo: isHttp ? v.photo : '',
-                description: description,
-                isVerified: v.isVerified,
-              );
-              return RubriqueItem(
-                title: v.name,
-                subtitle: [
-                  if (v.category.isNotEmpty) v.category,
-                  if (v.ville.isNotEmpty) v.ville,
-                ].join(' · '),
-                photoUrl: v.photo,
-                isVerified: v.isVerified,
-                commerce: commerce,
-                ageMin: v.ageMin,
-                onTap: (ctx) =>
-                    CommerceRowCard.showDetailSheet(ctx, commerce),
-              );
-            }).toList());
+        return ref
+            .watch(familyGroupVenuesProvider(chipKey))
+            .whenData((venues) => venues.map(_toItem).toList());
       },
     );
   }

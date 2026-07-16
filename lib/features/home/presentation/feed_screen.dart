@@ -103,6 +103,27 @@ final _cinemaScrapedProvider = FutureProvider.family<List<Event>, String>((ref, 
   }).toList();
 });
 
+/// Salles disponibles pour les filtres "par salle" du feed (Concerts,
+/// Spectacle, Cinéma). Requête légère et unique (4 colonnes texte) sur tous les
+/// events à venir de la ville : le feed principal est paginé, dériver les
+/// salles des events déjà chargés donnerait une liste incomplète qui s'allonge
+/// au scroll.
+final _feedFacetsProvider =
+    FutureProvider.family<List<EventFacet>, String>((ref, city) async {
+  final now = DateTime.now();
+  final today = '${now.year}-${now.month.toString().padLeft(2, '0')}'
+      '-${now.day.toString().padLeft(2, '0')}';
+  try {
+    return await ScrapedEventsSupabaseService().fetchEventFacets(
+      rubriques: const ['day', 'culture'],
+      ville: city,
+      dateGte: today,
+    );
+  } catch (_) {
+    return const <EventFacet>[];
+  }
+});
+
 class FeedScreen extends ConsumerStatefulWidget {
   const FeedScreen({super.key});
 
@@ -149,6 +170,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   String? _activeTab; // null = Tout
   String? _activeSub; // null = pas de sous-filtre
+
+  /// Sous-filtres qui proposent en plus un filtre par salle : ce sont ceux où
+  /// le lieu structure la programmation (on va « au Bikini », « à l'ABC »).
+  static const _subsWithSalles = {'Concerts', 'Spectacle', 'Cinéma'};
+
+  /// Salle sélectionnée dans la 3e rangée (null = toutes).
+  String? _activeSalle;
 
   /// Filtre de categorie pour la vue "Feed" (slot 1). Liste curatee
   /// affichee sous forme de chips subtils sous le header. null = Tout.
@@ -212,6 +240,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     setState(() {
       _activeTab = tab;
       _activeSub = null;
+      _activeSalle = null;
     });
   }
 
@@ -221,7 +250,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     _jumpFeedToTop();
     setState(() {
       _activeSub = sub;
+      // La rangée de salles disparaît ou change de contenu : sans ce reset, un
+      // filtre invisible resterait actif et le feed semblerait vide.
+      _activeSalle = null;
     });
+  }
+
+  void _switchSalle(String? salle) {
+    if (_activeSalle == salle) return;
+    _loadMoreScheduled = false;
+    _jumpFeedToTop();
+    setState(() => _activeSalle = salle);
   }
 
   /// Remet le ScrollController à 0 sans animation. Utilisé avant un changement
@@ -392,6 +431,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       children: [
         _buildHeader(),
         if (!_isSearching) _buildFilterBar(),
+        if (!_isSearching) _buildSalleBar(),
         // Chips de categorie : visibles uniquement dans la vue Feed (slot 1)
         // hors recherche. Style subtil, scroll horizontal sous le header.
         if (!_isSearching && _isFeedOnlyView) _buildFeedCategoryBar(),
@@ -1167,6 +1207,58 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 
+  /// Rangée « par salle », sous les sous-filtres, pour Concerts / Spectacle /
+  /// Cinéma. Les salles sont dérivées des events à venir de la ville qui
+  /// matchent le sous-filtre actif, classées par nombre d'events décroissant :
+  /// une salle qui programme 51 concerts passe avant celle qui en a un.
+  /// Masquée tant qu'il y a moins de 2 salles — filtrer n'aurait aucun sens.
+  Widget _buildSalleBar() {
+    if (_activeTab == null || !_subsWithSalles.contains(_activeSub)) {
+      return const SizedBox.shrink();
+    }
+    final city = ref.watch(selectedCityProvider);
+    final facets = ref.watch(_feedFacetsProvider(city)).valueOrNull;
+    if (facets == null) return const SizedBox.shrink();
+
+    final kws = _subKeywords[_activeSub]!;
+    final counts = <String, int>{};
+    for (final f in facets) {
+      if (f.lieuNom.isEmpty) continue;
+      final hay = '${f.categorie} ${f.type} ${f.titre}'.toLowerCase();
+      if (!kws.any(hay.contains)) continue;
+      counts[f.lieuNom] = (counts[f.lieuNom] ?? 0) + 1;
+    }
+    if (counts.length < 2) return const SizedBox.shrink();
+    final salles = counts.entries.toList()
+      ..sort((a, b) {
+        final byCount = b.value.compareTo(a.value);
+        return byCount != 0 ? byCount : a.key.compareTo(b.key);
+      });
+
+    return SizedBox(
+      height: 32,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        children: [
+          _buildChip(
+            label: 'Toutes les salles',
+            selected: _activeSalle == null,
+            isSubFilter: true,
+            onTap: () => _switchSalle(null),
+          ),
+          for (final s in salles)
+            _buildChip(
+              label: '${s.key} (${s.value})',
+              selected: _activeSalle == s.key,
+              isSubFilter: true,
+              onTap: () => _switchSalle(_activeSalle == s.key ? null : s.key),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildChip({
     required String label,
     required bool selected,
@@ -1256,6 +1348,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool _matchesFilter(Event e) {
     // Filtre categorie de la vue Feed (slot 1) — prioritaire si actif.
     if (_categoryFilter != null && !_matchesCategoryFilter(e)) return false;
+
+    // Filtre par salle (Concerts / Spectacle / Cinéma).
+    if (_activeSalle != null && e.lieuNom.trim() != _activeSalle) return false;
 
     if (_activeTab == null) return true;
 
@@ -1718,7 +1813,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
 
+    // Ce feed a son propre filtrage (il ne passe pas par _matchesFilter) : le
+    // filtre par salle doit donc être réappliqué ici, sinon il serait ignoré
+    // pour Cinéma.
     final filtered = events.where((e) {
+      if (_activeSalle != null && e.lieuNom.trim() != _activeSalle) {
+        return false;
+      }
       final d = DateTime.tryParse(e.dateDebut);
       if (d == null) return false;
       return !DateTime(d.year, d.month, d.day).isBefore(today);

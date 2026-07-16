@@ -583,6 +583,18 @@
       justify-content: flex-end;
       gap: 6px;
     }
+    /* Intertitre de groupe dans le panneau prio ("Formats", "Cuisines"). */
+    .venue-cat-prios .group-title {
+      grid-column: 1 / -1;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+      margin-top: 2px;
+    }
     .venue-row:hover { border-color: var(--line-strong); }
     .venue-row-info { flex: 1 1 200px; min-width: 170px; }
     .venue-row-name {
@@ -6304,12 +6316,30 @@
     };
 
     const RUBRIQUE_SUBCATS = {
+      // Formats (chips du haut de la rubrique Food dans l'app) puis cuisines
+      // (chips de la section "Affinez votre recherche"). `cat` = valeur exacte
+      // de `etablissements.theme` ET clé de `priorities` : selectionner un chip
+      // fait editer priorities[cat] par le champ PRIO de chaque ligne.
       food: [
         { label: "🍽️ Restaurant", cat: "Restaurant", catchAll: true },
         { label: "🌿 Guinguette", cat: "Guinguette" },
         { label: "🍱 Buffet", cat: "Buffet" },
         { label: "🫖 Salon de thé", cat: "Salon de the" },
         { label: "🥐 Brunch", cat: "Brunch" },
+        { label: "🥖 Français", cat: "Francais" },
+        { label: "🥢 Asiatique", cat: "Asiatique" },
+        { label: "🍣 Japonais", cat: "Japonais" },
+        { label: "🍝 Italien", cat: "Italien" },
+        { label: "🧆 Orientale", cat: "Orientale" },
+        { label: "🫒 Méditerranéen", cat: "Mediterraneen" },
+        { label: "🌮 Mexicain", cat: "Mexicain" },
+        { label: "🍲 Africain", cat: "Africain" },
+        { label: "🍛 Indien", cat: "Indien" },
+        { label: "🍜 Fusion", cat: "Fusion" },
+        { label: "🦆 Sud-Ouest", cat: "Sud-Ouest" },
+        { label: "🦞 Fruits de mer", cat: "Fruits de mer" },
+        { label: "🥗 Végétarien", cat: "Vegetarien" },
+        { label: "🌴 West Indies", cat: "West Indies" },
       ],
       nuit: [
         { label: "🎆 Discothèque", cat: "Club Discotheque" },
@@ -6603,6 +6633,35 @@
       `;
     }
 
+    // Clés de `etablissements.priorities` éditables dans le panneau "🎯 Cat".
+    // `key` DOIT correspondre exactement à la valeur `theme`/`categorie` lue
+    // par l'app (cf. RestaurantVenuesData.themes cote Flutter) — le libellé
+    // n'est qu'un affichage. Formats = chips du haut de la rubrique Food ;
+    // cuisines = chips de la section "Affinez votre recherche".
+    const FOOD_PRIO_FORMATS = [
+      { key: "Restaurant", label: "Restaurant" },
+      { key: "Guinguette", label: "Guinguette" },
+      { key: "Buffet", label: "Buffet" },
+      { key: "Salon de the", label: "Salon de thé" },
+      { key: "Brunch", label: "Brunch" },
+    ];
+    const FOOD_PRIO_CUISINES = [
+      { key: "Francais", label: "Français" },
+      { key: "Asiatique", label: "Asiatique" },
+      { key: "Japonais", label: "Japonais" },
+      { key: "Italien", label: "Italien" },
+      { key: "Orientale", label: "Orientale" },
+      { key: "Mediterraneen", label: "Méditerranéen" },
+      { key: "Mexicain", label: "Mexicain" },
+      { key: "Africain", label: "Africain" },
+      { key: "Indien", label: "Indien" },
+      { key: "Fusion", label: "Fusion" },
+      { key: "Sud-Ouest", label: "Sud-Ouest" },
+      { key: "Fruits de mer", label: "Fruits de mer" },
+      { key: "Vegetarien", label: "Végétarien" },
+      { key: "West Indies", label: "West Indies" },
+    ];
+
     // Une fiche = une ligne (badge + infos + actions) + son éditeur photo replié.
     function venueItemHtml(f) {
       const badge = `<span class="venue-row-badge ${f.source}">${VENUE_SOURCE_LABEL[f.source] || f.source}</span>`;
@@ -6667,17 +6726,19 @@
       // Pour les food etabs : bouton qui deplie les 5 inputs prio par cat.
       const isFoodEtab = f.source === "etablissements" && (f.rubrique || "").toLowerCase() === "food";
       const catPrioBtn = isFoodEtab
-        ? `<button class="photo-btn" data-action="toggle-cat-prio" title="Priorité par catégorie (Restaurant, Guinguette, Buffet, Salon de thé, Brunch)">🎯 Cat</button>`
+        ? `<button class="photo-btn" data-action="toggle-cat-prio" title="Priorité par catégorie : formats (Restaurant, Guinguette…) et cuisines (Japonais, Italien…)">🎯 Cat</button>`
         : "";
       const p = (f.priorities && typeof f.priorities === "object") ? f.priorities : {};
       const catVal = (cat) => (cat in p) ? String(p[cat]) : "";
+      const prioInputs = (list) => list.map((c) =>
+        `<div><label>${escapeHtml(c.label)}</label><input type="number" data-cat="${escapeHtml(c.key)}" value="${escapeHtml(catVal(c.key))}" placeholder="—" /></div>`
+      ).join("");
       const catPanel = isFoodEtab ? `
         <div class="venue-cat-prios" data-role="cat-prios">
-          <div><label>Restaurant</label><input type="number" data-cat="Restaurant" value="${escapeHtml(catVal('Restaurant'))}" placeholder="—" /></div>
-          <div><label>Guinguette</label><input type="number" data-cat="Guinguette" value="${escapeHtml(catVal('Guinguette'))}" placeholder="—" /></div>
-          <div><label>Buffet</label><input type="number" data-cat="Buffet" value="${escapeHtml(catVal('Buffet'))}" placeholder="—" /></div>
-          <div><label>Salon de thé</label><input type="number" data-cat="Salon de the" value="${escapeHtml(catVal('Salon de the'))}" placeholder="—" /></div>
-          <div><label>Brunch</label><input type="number" data-cat="Brunch" value="${escapeHtml(catVal('Brunch'))}" placeholder="—" /></div>
+          <div class="group-title">Formats</div>
+          ${prioInputs(FOOD_PRIO_FORMATS)}
+          <div class="group-title">Cuisines — section « Affinez votre recherche »</div>
+          ${prioInputs(FOOD_PRIO_CUISINES)}
           <div class="save-row">
             <span style="font-size:11px;color:var(--text-faint);margin-right:auto;align-self:center;">Laisse vide pour utiliser la priorité globale.</span>
             <button class="banner-save-btn" data-action="save-cat-prio">Enregistrer</button>

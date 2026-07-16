@@ -166,6 +166,23 @@ final galleryVenuesSupabaseProvider =
   }
 });
 
+/// TOUS les lieux culture de la ville selectionnee (musees, monuments,
+/// bibliotheques, galeries, theatres...). Sert a la section "Affinez votre
+/// recherche" de la landing, qui balaie l'offre entiere independamment du chip
+/// actif et filtre par quartier.
+final cultureAllVenuesProvider =
+    FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  try {
+    return await VenuesSupabaseService().fetchVenues(
+      mode: 'culture',
+      ville: city,
+    );
+  } catch (e) {
+    return <CommerceModel>[];
+  }
+});
+
 /// Library venues depuis la table `venues` de Supabase, filtrees par ville.
 final libraryVenuesSupabaseProvider =
     FutureProvider.autoDispose<List<LibraryVenue>>((ref) async {

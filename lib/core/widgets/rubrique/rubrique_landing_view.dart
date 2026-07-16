@@ -163,14 +163,31 @@ class RubriqueChip {
   const RubriqueChip(this.label, this.icon, this.key);
 }
 
-/// Option du filtre d'âge (remplace « Voir tout » dans le header de section
-/// quand [RubriqueConfig.ageFilters] est fourni). [maxAge] null = « Pour tous »
-/// (aucun filtre). Sinon on garde les items dont ageMin <= maxAge.
-class AgeFilterOption {
+/// Pill de la section « Affinez votre recherche » : un libellé et le test qui
+/// décide si un item reste affiché. Le critère vit donc côté feature (tranche
+/// d'âge, quartier, prix…) et cette vue ne fait que l'appliquer.
+class RefineChip {
   final String label;
-  final int? maxAge;
-  const AgeFilterOption(this.label, this.maxAge);
+  final IconData? icon;
+  final bool Function(RubriqueItem item) test;
+  const RefineChip(this.label, this.test, {this.icon});
 }
+
+/// Construit les pills à partir de TOUS les items chargés — ce qui permet de
+/// les dériver des données (ex: les quartiers réellement présents) plutôt que
+/// de les figer. La première pill est celle sélectionnée au départ : mettre le
+/// « Tous » en tête.
+typedef RefineChipsBuilder = List<RefineChip> Function(List<RubriqueItem> all);
+
+/// Construit la carte de la section « Affinez votre recherche ». [all] = tous
+/// les points de la section (les marqueurs sont posés une fois), [visible] =
+/// ceux que le filtre courant laisse voir. Ce builder vit côté feature : il
+/// évite d'importer la carte (features/sport) depuis ce widget `core`.
+typedef RefineMapBuilder = Widget Function(
+  BuildContext context,
+  List<RubriqueItem> all,
+  List<RubriqueItem> visible,
+);
 
 class RubriqueConfig {
   final RubriqueTheme theme;
@@ -212,10 +229,20 @@ class RubriqueConfig {
   final AsyncValue<List<RubriqueItem>> Function(WidgetRef ref)? partnersBuilder;
   final String partnersTitle;
 
-  /// Filtre d'âge optionnel affiché dans le header de la section principale, à
-  /// la place de « Voir tout ». Si null, comportement inchangé (« Voir tout »).
-  /// Les items sont filtrés sur [RubriqueItem.ageMin] selon l'option choisie.
-  final List<AgeFilterOption>? ageFilters;
+  /// Section « Affinez votre recherche », insérée après « Inspirations » : ses
+  /// propres items (typiquement TOUS les lieux de la ville, indépendamment du
+  /// chip du haut), filtrés par [ageFilters], avec un carrousel et une carte
+  /// optionnelle. Si null, la section entière est masquée (rubriques non
+  /// équipées : Sport, Culture, Night).
+  final AsyncValue<List<RubriqueItem>> Function(WidgetRef ref)?
+      refineItemsBuilder;
+  final String refineTitle;
+
+  /// Pills de filtre de la section « Affinez ». Null = carrousel non filtré.
+  final RefineChipsBuilder? refineChipsBuilder;
+
+  /// Carte de la section « Affinez », sous le carrousel. Null = pas de carte.
+  final RefineMapBuilder? refineMapBuilder;
 
   const RubriqueConfig({
     required this.theme,
@@ -236,7 +263,10 @@ class RubriqueConfig {
     this.extraSectionsBottom,
     this.partnersBuilder,
     this.partnersTitle = 'Nos partenaires',
-    this.ageFilters,
+    this.refineItemsBuilder,
+    this.refineTitle = 'Affinez votre recherche',
+    this.refineChipsBuilder,
+    this.refineMapBuilder,
   });
 }
 
@@ -254,7 +284,9 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
   late String _activeChip = widget.config.chips.first.key;
 
   /// Âge max sélectionné dans le filtre d'âge (null = « Pour tous », défaut).
-  int? _ageMax;
+  /// Index de la pill active dans la section « Affinez » (0 = premiere pill,
+  /// par convention le « Tous »).
+  int _refineIdx = 0;
 
   VideoPlayerController? _video;
   String? _videoUrl;
@@ -334,19 +366,13 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             const SizedBox(height: 18),
             _chipsRow(cfg),
             ..._partnerRail(cfg, t),
-            _sectionHeader(cfg.sectionTitle, t,
-                showAction: cfg.ageFilters == null),
-            if (cfg.ageFilters != null) _ageFilterRow(cfg.ageFilters!, t),
+            _sectionHeader(cfg.sectionTitle, t),
             itemsAsync.when(
-              data: (allItems) {
-                final items = _applyAgeFilter(allItems);
+              data: (items) {
                 if (items.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    child: Text(
-                        _ageMax != null
-                            ? 'Aucun lieu pour cet âge.'
-                            : 'Aucune adresse pour cette sélection.',
+                    child: Text('Aucune adresse pour cette sélection.',
                         style: RubriqueTheme.body()),
                   );
                 }
@@ -387,6 +413,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
               ),
             ),
             ..._inspirationsSection(cfg, t),
+            ..._refineSection(cfg, t),
             ...(cfg.extraSections?.call(context) ?? const <Widget>[]),
             _banner(cfg),
             ...(cfg.extraSectionsBottom?.call(context) ?? const <Widget>[]),
@@ -483,17 +510,54 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     ];
   }
 
-  /// Filtre la liste selon l'âge sélectionné (null = « Pour tous » → tout).
-  /// Un item sans ageMin n'est jamais masqué.
-  List<RubriqueItem> _applyAgeFilter(List<RubriqueItem> items) {
-    if (_ageMax == null) return items;
-    return items
-        .where((it) => it.ageMin == null || it.ageMin! <= _ageMax!)
-        .toList();
+  /// Section « Affinez votre recherche » : pills de filtre + carrousel de TOUS
+  /// les lieux de la rubrique (indépendant du chip du haut) + carte optionnelle
+  /// dont les points suivent le filtre. Masquée tant qu'il n'y a aucun lieu.
+  List<Widget> _refineSection(RubriqueConfig cfg, RubriqueTheme t) {
+    final builder = cfg.refineItemsBuilder;
+    if (builder == null) return const [];
+    final all = builder(ref).valueOrNull ?? const <RubriqueItem>[];
+    if (all.isEmpty) return const [];
+    final chips = cfg.refineChipsBuilder?.call(all) ?? const <RefineChip>[];
+    // Le chip actif peut disparaitre quand les donnees changent (autre ville,
+    // donc autres quartiers) : on retombe alors sur le premier (= « Tous »).
+    final idx = _refineIdx < chips.length ? _refineIdx : 0;
+    final items =
+        chips.isEmpty ? all : all.where(chips[idx].test).toList();
+    return [
+      _sectionHeader(cfg.refineTitle, t, showAction: false),
+      if (chips.isNotEmpty) _refineChipRow(chips, idx, t),
+      if (items.isEmpty)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          child: Text('Aucun lieu pour ce filtre.',
+              style: RubriqueTheme.body()),
+        )
+      else
+        SizedBox(
+          height: 212,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, i) => _ItemCard(
+              item: items[i],
+              theme: t,
+              coupDeCoeur: false,
+              onOpen: (ctx) => _openItem(ctx, items, i),
+            ),
+          ),
+        ),
+      if (cfg.refineMapBuilder != null)
+        cfg.refineMapBuilder!(context, all, items),
+    ];
   }
 
-  /// Rangée de pills du filtre d'âge (remplace « Voir tout » côté Famille).
-  Widget _ageFilterRow(List<AgeFilterOption> options, RubriqueTheme t) {
+  /// Rangée de pills de la section « Affinez ».
+  Widget _refineChipRow(List<RefineChip> options, int activeIdx,
+      RubriqueTheme t) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 8, 12),
       child: SizedBox(
@@ -506,9 +570,9 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
           separatorBuilder: (_, __) => const SizedBox(width: 6),
           itemBuilder: (_, i) {
             final o = options[i];
-            final active = o.maxAge == _ageMax;
+            final active = i == activeIdx;
             return GestureDetector(
-              onTap: () => setState(() => _ageMax = o.maxAge),
+              onTap: () => setState(() => _refineIdx = i),
               behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
@@ -525,12 +589,14 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.child_care_rounded,
-                      size: 12,
-                      color: active ? Colors.white : RubriqueTheme.ink,
-                    ),
-                    const SizedBox(width: 5),
+                    if (o.icon != null) ...[
+                      Icon(
+                        o.icon,
+                        size: 12,
+                        color: active ? Colors.white : RubriqueTheme.ink,
+                      ),
+                      const SizedBox(width: 5),
+                    ],
                     Text(
                       o.label,
                       style: RubriqueTheme.chip(

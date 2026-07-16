@@ -304,6 +304,7 @@ class VenuesSupabaseService {
     return CommerceModel(
       nom: json['name'] as String? ?? '',
       categorie: json['category'] as String? ?? '',
+      quartier: json['quartier'] as String? ?? '',
       adresse: json['adresse'] as String? ?? '',
       ville: json['ville'] as String? ?? 'Toulouse',
       telephone: json['telephone'] as String? ?? '',

@@ -6,6 +6,7 @@ import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_masthead.dart';
+import 'package:pulz_app/core/widgets/rubrique/refine_filters.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
@@ -23,6 +24,7 @@ import 'package:pulz_app/features/sport/presentation/sport_fullscreen_map.dart';
 import 'package:pulz_app/features/sport/presentation/sport_home_matches_section.dart';
 import 'package:pulz_app/features/sport/presentation/sport_news_section.dart';
 import 'package:pulz_app/features/sport/presentation/sport_hub_grid.dart';
+import 'package:pulz_app/features/sport/presentation/widgets/refine_map_section.dart';
 import 'package:pulz_app/features/sport/presentation/sport_matches_list.dart';
 import 'package:pulz_app/features/sport/presentation/sport_venues_list.dart';
 
@@ -89,6 +91,32 @@ class SportScreen extends ConsumerWidget {
       bannerSubtitle: 'Les meilleurs spots sportifs vous attendent.',
       bannerCta: 'Découvrir',
       onBack: () => context.go('/home'),
+      // Section « Affinez votre recherche » : tous les lieux sport de la ville
+      // (indépendant du chip du haut) + carte, filtrés par quartier.
+      refineItemsBuilder: (ref) =>
+          ref.watch(sportAllVenuesProvider).whenData(
+                (venues) => venues
+                    .map((c) => RubriqueItem(
+                          title: c.nom,
+                          subtitle: [
+                            if (c.categorie.isNotEmpty) c.categorie,
+                            if (c.quartier.isNotEmpty) c.quartier,
+                          ].join(' · '),
+                          photoUrl: c.photo,
+                          isVerified: c.isVerified,
+                          commerce: c,
+                          onTap: (ctx) =>
+                              CommerceRowCard.showDetailSheet(ctx, c),
+                        ))
+                    .toList(),
+              ),
+      refineChipsBuilder: quartierChips,
+      refineMapBuilder: (ctx, all, visible) => RefineMapSection(
+        all: all,
+        visible: visible,
+        accentColor: '#A020F0', // accent Sport
+        title: 'Lieux de sport',
+      ),
       extraSections: (ctx) => const [SportHomeMatchesSection()],
       extraSectionsBottom: (ctx) => const [SportNewsSection()],
       itemsBuilder: (ref, chipKey) {

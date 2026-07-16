@@ -66,6 +66,20 @@ final sportVenuesProvider =
   return venues;
 });
 
+/// TOUS les lieux sport de la ville selectionnee, tous sports confondus. Sert
+/// a la section "Affinez votre recherche" de la landing, qui balaie l'offre
+/// entiere independamment du chip actif et filtre par quartier.
+final sportAllVenuesProvider =
+    FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
+  final city = ref.watch(selectedCityProvider);
+  try {
+    return await SportVenuesSupabaseService().fetchVenues(ville: city);
+  } catch (e) {
+    debugPrint('[sportAllVenuesProvider] $e');
+    return const <CommerceModel>[];
+  }
+});
+
 /// Combine toutes les venues raquette (5 sous-types).
 final racketAllVenuesProvider =
     FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
