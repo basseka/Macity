@@ -171,9 +171,23 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   String? _activeTab; // null = Tout
   String? _activeSub; // null = pas de sous-filtre
 
-  /// Sous-filtres qui proposent en plus un filtre par salle : ce sont ceux où
-  /// le lieu structure la programmation (on va « au Bikini », « à l'ABC »).
+  /// Filtres qui proposent en plus un filtre par salle : ceux où le lieu
+  /// structure la programmation (on va « au Bikini », « à l'ABC »). Accessibles
+  /// par DEUX chemins — les chips de la vue Feed ([_categoryFilter]) et les
+  /// sous-filtres de la nav ([_activeSub]) — qui n'ont pas les mêmes mots-clés.
   static const _subsWithSalles = {'Concerts', 'Spectacle', 'Cinéma'};
+
+  /// Mots-clés des chips de la vue Feed, pour les catégories qui ont un filtre
+  /// par salle. Source unique : sert au filtrage des events ET à la
+  /// construction de la liste des salles, qui sinon divergeraient.
+  static const _feedCategoryKeywords = <String, List<String>>{
+    'Concerts': ['concert', 'musique', 'festival', 'live', 'showcase'],
+    'Spectacle': [
+      'spectacle', 'theatre', 'théâtre', 'humour', 'stand', 'one-man',
+      'danse', 'opera', 'comédie', 'comedie',
+    ],
+    'Cinéma': ['cinema', 'cinéma', 'film', 'projection'],
+  };
 
   /// Salle sélectionnée dans la 3e rangée (null = toutes).
   String? _activeSalle;
@@ -431,10 +445,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       children: [
         _buildHeader(),
         if (!_isSearching) _buildFilterBar(),
-        if (!_isSearching) _buildSalleBar(),
         // Chips de categorie : visibles uniquement dans la vue Feed (slot 1)
         // hors recherche. Style subtil, scroll horizontal sous le header.
         if (!_isSearching && _isFeedOnlyView) _buildFeedCategoryBar(),
+        // Rangée « par salle » : sous les chips qu'elle affine.
+        if (!_isSearching) _buildSalleBar(),
         if (!_isSearching) const SizedBox(height: 10),
         Expanded(
           child: _isSearching
@@ -617,9 +632,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               (isAll && _categoryFilter == null) || _categoryFilter == cat;
           return GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => setState(
-              () => _categoryFilter = isAll ? null : cat,
-            ),
+            onTap: () => setState(() {
+              _categoryFilter = isAll ? null : cat;
+              // La rangée de salles change de contenu ou disparaît : sans ce
+              // reset, un filtre invisible resterait actif.
+              _activeSalle = null;
+            }),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 140),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
@@ -1213,14 +1231,22 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   /// une salle qui programme 51 concerts passe avant celle qui en a un.
   /// Masquée tant qu'il y a moins de 2 salles — filtrer n'aurait aucun sens.
   Widget _buildSalleBar() {
-    if (_activeTab == null || !_subsWithSalles.contains(_activeSub)) {
-      return const SizedBox.shrink();
+    // Deux chemins mènent à « Concerts » : les chips de la vue Feed et les
+    // sous-filtres de la nav. Chacun a ses propres mots-clés, on prend ceux du
+    // filtre réellement actif pour que les chips collent au feed affiché.
+    final List<String>? kws;
+    if (_categoryFilter != null && _subsWithSalles.contains(_categoryFilter)) {
+      kws = _feedCategoryKeywords[_categoryFilter];
+    } else if (_activeTab != null && _subsWithSalles.contains(_activeSub)) {
+      kws = _subKeywords[_activeSub];
+    } else {
+      kws = null;
     }
+    if (kws == null) return const SizedBox.shrink();
+
     final city = ref.watch(selectedCityProvider);
     final facets = ref.watch(_feedFacetsProvider(city)).valueOrNull;
     if (facets == null) return const SizedBox.shrink();
-
-    final kws = _subKeywords[_activeSub]!;
     final counts = <String, int>{};
     for (final f in facets) {
       if (f.lieuNom.isEmpty) continue;
@@ -1235,26 +1261,31 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         return byCount != 0 ? byCount : a.key.compareTo(b.key);
       });
 
-    return SizedBox(
-      height: 32,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        children: [
-          _buildChip(
-            label: 'Toutes les salles',
-            selected: _activeSalle == null,
-            isSubFilter: true,
-            onTap: () => _switchSalle(null),
-          ),
-          for (final s in salles)
+    // Le padding vertical est porté par la rangée elle-même : quand elle est
+    // masquée, l'espace disparaît avec, sans laisser de trou.
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: SizedBox(
+        height: 32,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          children: [
             _buildChip(
-              label: '${s.key} (${s.value})',
-              selected: _activeSalle == s.key,
+              label: 'Toutes les salles',
+              selected: _activeSalle == null,
               isSubFilter: true,
-              onTap: () => _switchSalle(_activeSalle == s.key ? null : s.key),
+              onTap: () => _switchSalle(null),
             ),
-        ],
+            for (final s in salles)
+              _buildChip(
+                label: '${s.key} (${s.value})',
+                selected: _activeSalle == s.key,
+                isSubFilter: true,
+                onTap: () => _switchSalle(_activeSalle == s.key ? null : s.key),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1325,15 +1356,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         );
     switch (f) {
       case 'Concerts':
-        return any(['concert', 'musique', 'festival', 'live', 'showcase']);
+        return any(_feedCategoryKeywords['Concerts']!);
       case 'Soirée':
         return rub == 'night' || any(['soir', 'club', 'disco', 'dj', 'party', 'bar', 'after']);
       case 'Spectacle':
-        return any(['spectacle', 'theatre', 'théâtre', 'humour', 'stand', 'one-man', 'danse', 'opera', 'comédie', 'comedie']);
+        return any(_feedCategoryKeywords['Spectacle']!);
       case 'Danse':
         return any(['danse', 'ballet', 'kizomba', 'salsa', 'bachata', 'tango', 'bal ', 'dancefloor', 'choré', 'chore']);
       case 'Cinéma':
-        return any(['cinema', 'cinéma', 'film', 'projection']);
+        return any(_feedCategoryKeywords['Cinéma']!);
       case 'Food':
         return rub == 'food' || any(['food', 'gastr', 'brunch', 'degustation', 'restaurant']);
       case 'Sport':
