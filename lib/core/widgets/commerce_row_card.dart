@@ -617,6 +617,10 @@ class CommerceRowCard extends ConsumerWidget {
 
     final cat = _normalizeForMatch(commerce.categorie);
 
+    // Évasion (domaines / gîtes) : aucune vidéo générique — on n'affiche que
+    // la vidéo éventuellement uploadée en admin (sinon pas de teaser vidéo).
+    if (cat.contains('evasion')) return null;
+
     // Night : clubs / discotheques (les autres categories "de nuit"
     // — bar, pub, tabac, epicerie — retombent sur le fallback day.mp4).
     if (cat.contains('club') || cat.contains('discotheque')) {
