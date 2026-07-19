@@ -8226,6 +8226,16 @@
               <button type="button" class="paste-browse" data-action="gal-add" data-id="${v.id}">📂 Explorer le PC</button>
             </div>
           </div>
+          <div style="margin-top:10px;">
+            <label class="banner-field-label">🎬 Vidéo <span style="opacity:.6;font-weight:400">— teaser en haut de la fiche détail (optionnel)</span></label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;">
+              <input type="url" data-f="video" class="banner-input" style="flex:1;min-width:240px;margin:0;" value="${escapeHtml(v.video_url || '')}" placeholder="URL .mp4 — ou importe une vidéo →" />
+              <button class="gen-btn" data-action="video" data-id="${v.id}">📂 Importer</button>
+              ${(v.video_url || '').startsWith('http') ? `<a class="banner-link-btn" href="${escapeHtml(v.video_url)}" target="_blank" rel="noopener">👁 Voir</a>` : ''}
+              <button class="gen-btn" data-action="video-remove" data-id="${v.id}" style="border-color:#ef4444;color:#ef4444;">✕ Retirer</button>
+              <span data-role="ev-video-status" data-id="${v.id}" style="font-size:12px;color:var(--text-faint);"></span>
+            </div>
+          </div>
         </div>`;
       }).join("");
     }
@@ -8240,6 +8250,7 @@
       v.display_priority = parseInt(card.querySelector('[data-f="prio"]').value, 10) || 0;
       v.is_partner = card.querySelector('[data-f="partner"]').checked;
       v.hub_ville = card.querySelector('[data-f="hub"]').value.trim() || "Toulouse";
+      v.video_url = card.querySelector('[data-f="video"]').value.trim();
     }
 
     async function _evasionUpdate(id, patch) {
@@ -8279,7 +8290,7 @@
         const ok = await _evasionUpdate(id, {
           description: v.description, travel_time_h: v.travel_time_h,
           display_priority: v.display_priority, is_partner: v.is_partner,
-          hub_ville: v.hub_ville,
+          hub_ville: v.hub_ville, video_url: v.video_url || null,
         });
         btn.disabled = false; btn.textContent = t;
         if (ok) toast("Enregistré ✓", true);
@@ -8290,6 +8301,29 @@
       } else if (action === "cover-remove") {
         _evasionSyncRow(id);
         if (await _evasionUpdate(id, { photo: "" })) { renderEvasionList(); toast("Pochette retirée", true); }
+      } else if (action === "video") {
+        _evasionSyncRow(id);
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "video/*";
+        inp.onchange = async () => {
+          const f = inp.files && inp.files[0];
+          if (!f) return;
+          const sizeMo = f.size / (1024 * 1024);
+          if (sizeMo > 100) { toast(`Vidéo trop lourde (${sizeMo.toFixed(0)} Mo) — max 100 Mo`, false); return; }
+          const status = evasionListEl.querySelector(`.banner-card[data-id="${id}"] [data-role="ev-video-status"]`);
+          if (status) status.textContent = `⏳ Upload… (${sizeMo.toFixed(1)} Mo)`;
+          try {
+            const url = await uploadVideoToBucket(f, "evasion");
+            if (await _evasionUpdate(id, { video_url: url })) { renderEvasionList(); toast("Vidéo importée ✓", true); }
+          } catch (err) {
+            if (status) status.textContent = "✕ " + (err.message || err);
+            toast("Erreur upload vidéo : " + (err.message || err), false);
+          }
+        };
+        inp.click();
+      } else if (action === "video-remove") {
+        _evasionSyncRow(id);
+        if (await _evasionUpdate(id, { video_url: null })) { renderEvasionList(); toast("Vidéo retirée", true); }
       } else if (action === "gal-add") {
         _evasionSyncRow(id);
         const url = await _pickImage(); if (!url) return;

@@ -30,6 +30,9 @@ class EvasionVenue {
   final bool isPartner;
   final int displayPriority;
 
+  /// Vidéo teaser affichée en haut de la fiche détail (optionnel).
+  final String videoUrl;
+
   const EvasionVenue({
     required this.id,
     required this.nom,
@@ -46,6 +49,7 @@ class EvasionVenue {
     this.photos = const [],
     this.isPartner = false,
     this.displayPriority = 0,
+    this.videoUrl = '',
   });
 
   factory EvasionVenue.fromJson(Map<String, dynamic> json) => EvasionVenue(
@@ -69,6 +73,7 @@ class EvasionVenue {
         photo: json['photo'] as String? ?? '',
         isPartner: json['is_partner'] as bool? ?? false,
         displayPriority: (json['display_priority'] as num?)?.toInt() ?? 0,
+        videoUrl: json['video_url'] as String? ?? '',
       );
 
   /// Pont vers le modèle générique consommé par la fiche détail.
@@ -84,6 +89,7 @@ class EvasionVenue {
         description: description,
         photo: photo,
         photos: photos,
+        videoUrl: videoUrl,
         isPartner: isPartner,
       );
 }
