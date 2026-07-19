@@ -28,10 +28,15 @@ class ReportedEventsMap extends ConsumerStatefulWidget {
   /// fictifs autour du centre ville pour la presentation home.
   final bool usePresentationMarkers;
 
+  /// Page MapLive plein écran : affiche le bouton « Me localiser » et
+  /// démarre cadré sur la ville (tous les points) plutôt que sur le GPS.
+  final bool fullscreen;
+
   const ReportedEventsMap({
     super.key,
     this.height = 180,
     this.usePresentationMarkers = false,
+    this.fullscreen = false,
   });
 
   @override
@@ -53,6 +58,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   late final WebViewController _controller;
   bool _isLoading = true;
   bool _pageReady = false;
+  bool _locating = false;
   List<ReportedEvent> _lastEvents = const [];
   List<PartnerLocation> _partners = const [];
   String? _lastCity;
@@ -91,7 +97,6 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           if (_lastCity != null) _centerOnCity(_lastCity!);
-          _autoLocateUserPin();
           if (widget.usePresentationMarkers) {
             _injectPresentationMarkersForCurrentCity();
           } else if (_lastEvents.isNotEmpty) {
@@ -121,7 +126,6 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
             if (mounted) setState(() => _isLoading = false);
             _pageReady = true;
             if (_lastCity != null) _centerOnCity(_lastCity!);
-            _autoLocateUserPin();
             if (widget.usePresentationMarkers) {
               _injectPresentationMarkersForCurrentCity();
             } else if (_lastEvents.isNotEmpty) {
@@ -144,21 +148,23 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     super.dispose();
   }
 
-  /// Recentre la map sur le centre de la ville donnee.
+  /// Recentre la map sur le centre de la ville (zoom 12, ~niveau métropole).
   Future<void> _centerOnCity(String city) async {
     if (!_pageReady) return;
     final center = CityCenters.center(city);
     if (center == null) return;
-    debugPrint('[ReportedEventsMap] center on city $city: ${center.lat}, ${center.lng}');
+    debugPrint('[ReportedEventsMap] center on city $city');
     await _controller.runJavaScript(
       'centerOnCity(${center.lat}, ${center.lng}); void 0;',
     );
   }
 
-  /// Affiche un pin "Ma position". Tente d'abord lastKnownPosition (rapide),
-  /// puis getCurrentPosition (fix GPS frais) en fallback. Centre la map sur
-  /// l'utilisateur quand on est sur la page dynamique (MapLive).
-  Future<void> _autoLocateUserPin() async {
+  /// Géolocalisation À LA DEMANDE (bouton « Me localiser ») : affiche le pin
+  /// « Ma position » puis recentre la map sur l'utilisateur au zoom rapproché.
+  /// N'est jamais appelée au chargement — la carte démarre cadrée sur la ville.
+  Future<void> _centerOnUser() async {
+    if (_locating) return;
+    setState(() => _locating = true);
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -175,8 +181,6 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         return;
       }
 
-      // Fix GPS frais uniquement (high accuracy ~10m). On évite
-      // getLastKnownPosition qui retourne souvent un cache stale (km off).
       Position? pos;
       try {
         pos = await Geolocator.getCurrentPosition(
@@ -185,36 +189,26 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         );
       } catch (e) {
         debugPrint('[Map] getCurrentPosition failed: $e');
-        // Fallback last-known SEULEMENT s'il est récent (<5 min)
         final last = await Geolocator.getLastKnownPosition();
-        if (last != null) {
-          final age = DateTime.now().difference(last.timestamp);
-          if (age.inMinutes < 5) {
-            pos = last;
-            debugPrint('[Map] using last known (age=${age.inSeconds}s)');
-          } else {
-            debugPrint('[Map] last known too old (age=${age.inMinutes}min)');
-          }
+        if (last != null &&
+            DateTime.now().difference(last.timestamp).inMinutes < 5) {
+          pos = last;
         }
       }
 
       if (pos != null && _pageReady) {
         debugPrint('[Map] user pos: ${pos.latitude}, ${pos.longitude}');
         await _controller.runJavaScript(
-          'showUserPin(${pos.latitude}, ${pos.longitude}); void 0;',
+          'showUserPin(${pos.latitude}, ${pos.longitude}); '
+          'map.setView([${pos.latitude}, ${pos.longitude}], 15); void 0;',
         );
-        // Sur la page MapLive (mode dynamique), recentre sur le user à
-        // zoom rapproché. Sur la home (presentation), garde le centre ville.
-        if (!widget.usePresentationMarkers) {
-          await _controller.runJavaScript(
-            'map.setView([${pos.latitude}, ${pos.longitude}], 14); void 0;',
-          );
-        }
       } else {
         debugPrint('[Map] no GPS position available');
       }
     } catch (e) {
-      debugPrint('[Map] _autoLocateUserPin error: $e');
+      debugPrint('[Map] _centerOnUser error: $e');
+    } finally {
+      if (mounted) setState(() => _locating = false);
     }
   }
 
@@ -446,10 +440,10 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       attributionControl: true,
     }).setView([46.6, 2.4], 6);
 
-    // Tile layer claire (CartoDB Positron NoLabels) — pas de filter CSS,
-    // pas de hue-rotate : tuiles natives gris/beige clair pour s'aligner
-    // avec le light theme de l'app.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    // Tile layer claire (CartoDB Voyager) — AVEC labels (quartiers, rues,
+    // villes) pour situer les événements. Pas de filter CSS ni hue-rotate :
+    // tuiles natives claires qui s'alignent avec le light theme de l'app.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
       attribution: '&copy; CartoDB &copy; OSM',
       subdomains: 'abcd',
@@ -679,6 +673,35 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     color: Color(0xFFC77DFF),
+                  ),
+                ),
+              ),
+            // Bouton « Me localiser » (géoloc à la demande) — MapLive seulement.
+            if (widget.fullscreen)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: Material(
+                  color: Colors.white,
+                  elevation: 4,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _locating ? null : _centerOnUser,
+                    child: SizedBox(
+                      width: 46,
+                      height: 46,
+                      child: _locating
+                          ? const Padding(
+                              padding: EdgeInsets.all(13),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFFC77DFF),
+                              ),
+                            )
+                          : const Icon(Icons.my_location,
+                              color: Color(0xFF7B2D8E), size: 24),
+                    ),
                   ),
                 ),
               ),

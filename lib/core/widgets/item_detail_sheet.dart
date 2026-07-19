@@ -34,6 +34,8 @@ class ItemDetailSheet extends ConsumerWidget {
   final double imageHeightFraction;
   final bool isVerified;
   final bool isPartner;
+  /// Libellé du badge partenaire (adapté à la rubrique). Défaut restaurant.
+  final String partnerLabel;
   final List<String> photoGallery;
   final ReviewsTarget? reviewsTarget;
   /// Description multi-paragraphes affichee sous la gallery (au-dessus des
@@ -62,6 +64,7 @@ class ItemDetailSheet extends ConsumerWidget {
     this.imageHeightFraction = 1.0,
     this.isVerified = false,
     this.isPartner = false,
+    this.partnerLabel = 'Restaurant partenaire',
     this.photoGallery = const [],
     this.reviewsTarget,
     this.description = '',
@@ -264,14 +267,14 @@ class ItemDetailSheet extends ConsumerWidget {
                                 color: const Color(0xFFC79A3E),
                                 borderRadius: BorderRadius.circular(999),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.star,
+                                  const Icon(Icons.star,
                                       size: 13, color: Color(0xFF2A1E06)),
-                                  SizedBox(width: 5),
-                                  Text('Restaurant partenaire',
-                                      style: TextStyle(
+                                  const SizedBox(width: 5),
+                                  Text(partnerLabel,
+                                      style: const TextStyle(
                                         fontSize: 11,
                                         color: Color(0xFF2A1E06),
                                         fontWeight: FontWeight.w800,

@@ -1009,6 +1009,8 @@
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
           <span class="nav-btn" id="goto-family-btn">👨‍👩‍👧 Lieux Famille</span>
+          <span class="nav-btn" id="goto-evasion-btn">🏰 Évasion</span>
+          <span class="nav-btn" id="goto-fakestory-btn">📸 Fausses stories</span>
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
           <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
           <span class="nav-btn" id="goto-sportnews-btn">📰 Actu sport</span>
@@ -1619,6 +1621,138 @@
         </div>
       </div>
 
+      <!-- ═══ VUE "ÉVASION" (table evasion_venues) ═══ -->
+      <div id="evasion-view" class="hidden">
+        <h1>🏰 Évasion</h1>
+        <p class="subtitle">Domaines / châteaux de séjour affichés dans le hub Évasion. Édite le teaser, le temps de trajet, le statut partenaire, la priorité et les photos (pochette + galerie).</p>
+        <div class="city-filter-row">
+          <input type="text" id="evasion-city-filter" placeholder="Filtrer par ville hub (ex: Toulouse)" list="cities-datalist" autocomplete="off" />
+          <input type="text" id="evasion-name-search" placeholder="Rechercher un domaine…" autocomplete="off" />
+          <button class="banner-save-btn" id="evasion-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
+        </div>
+
+        <div style="margin:6px 0 14px;">
+          <button class="banner-save-btn" id="evasion-add-toggle">+ Ajouter un domaine</button>
+        </div>
+        <div id="evasion-add-form" class="banner-card hidden" style="margin-bottom:16px;">
+          <div class="banner-card-head"><span class="banner-mode-pill">Nouveau domaine</span></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+              <label class="banner-field-label">Nom *</label>
+              <input type="text" id="ev-new-nom" class="banner-input" placeholder="Ex : Château de Drudas" />
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <label class="banner-field-label">Commune</label>
+              <input type="text" id="ev-new-ville" class="banner-input" placeholder="Ex : Drudas" />
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <label class="banner-field-label">Ville hub</label>
+              <input type="text" id="ev-new-hub" class="banner-input" list="cities-datalist" value="Toulouse" />
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <label class="banner-field-label">Adresse (pour géocoder)</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <input type="text" id="ev-new-adresse" class="banner-input" style="flex:1;min-width:240px;" placeholder="Ex : Domaine de Drudas, 31480 Drudas" />
+              <button class="gen-btn" id="ev-new-geocode">📍 Géocoder</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+            <div style="flex:1;min-width:130px;">
+              <label class="banner-field-label">Latitude *</label>
+              <input type="number" id="ev-new-lat" class="banner-input" step="any" placeholder="43.6045" />
+            </div>
+            <div style="flex:1;min-width:130px;">
+              <label class="banner-field-label">Longitude *</label>
+              <input type="number" id="ev-new-lng" class="banner-input" step="any" placeholder="1.2" />
+            </div>
+            <div style="min-width:110px;">
+              <label class="banner-field-label">Trajet</label>
+              <select id="ev-new-travel" class="banner-input" style="margin:0;">
+                <option value="1">À 1h</option><option value="2">À 2h</option><option value="3" selected>À 3h</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <label class="banner-field-label">Site web</label>
+            <input type="url" id="ev-new-site" class="banner-input" placeholder="https://…" />
+          </div>
+          <div style="margin-top:8px;">
+            <label class="banner-field-label">Teaser</label>
+            <textarea id="ev-new-teaser" class="banner-input" rows="2" style="width:100%;resize:vertical;" placeholder="Court descriptif affiché sur la carte."></textarea>
+          </div>
+          <div class="banner-actions-row" style="gap:10px;margin-top:10px;">
+            <button class="banner-save-btn" id="ev-new-save">＋ Créer le domaine</button>
+            <button class="gen-btn" id="ev-new-cancel">Annuler</button>
+            <span id="ev-new-status" style="font-size:12px;color:var(--text-faint);align-self:center;"></span>
+          </div>
+        </div>
+
+        <div id="evasion-loading" class="hidden" style="padding:20px; color:var(--text-faint);">Chargement…</div>
+        <div id="evasion-empty" class="hidden" style="padding:20px; color:var(--text-faint);">Aucun domaine. Applique la migration <code>evasion_venues</code>.</div>
+        <div id="evasion-list"></div>
+      </div>
+
+      <!-- ═══ VUE "FAUSSES STORIES MAP LIVE" (reported_events) ═══ -->
+      <div id="fakestory-view" class="hidden">
+        <h1>📸 Fausses stories Map Live</h1>
+        <p class="subtitle">Génère une story affichée dans « En direct autour de vous » et sur la Map Live. Choisis un établissement partenaire pour que la bulle passe en couleur partenaire (dérivée de la position). Les vidéos s'enchaînent dans le viewer.</p>
+
+        <div class="banner-card" style="margin-bottom:18px;">
+          <div class="banner-card-head"><span class="banner-mode-pill">Nouvelle story</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label class="banner-field-label">Nom de l'utilisateur</label>
+              <input type="text" id="fs-user" class="banner-input" placeholder="Ex : Enzo" />
+            </div>
+            <div>
+              <label class="banner-field-label">Titre de la story</label>
+              <input type="text" id="fs-title" class="banner-input" placeholder="Ex : Soirée à L'Étoile" />
+            </div>
+            <div>
+              <label class="banner-field-label">Établissement</label>
+              <select id="fs-venue" class="banner-input"></select>
+            </div>
+            <div>
+              <label class="banner-field-label">Catégorie</label>
+              <select id="fs-category" class="banner-input">
+                <option value="soiree">Soirée</option>
+                <option value="concert">Concert</option>
+                <option value="food">Food</option>
+                <option value="culture">Culture</option>
+                <option value="sport">Sport</option>
+                <option value="live">Autre / Live</option>
+              </select>
+            </div>
+            <div id="fs-manual" class="hidden" style="grid-column:1/-1;display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;">
+              <div><label class="banner-field-label">Nom du lieu (libre)</label><input type="text" id="fs-loc" class="banner-input" placeholder="Nom affiché" /></div>
+              <div><label class="banner-field-label">Latitude</label><input type="number" step="any" id="fs-lat" class="banner-input" placeholder="43.6047" /></div>
+              <div><label class="banner-field-label">Longitude</label><input type="number" step="any" id="fs-lng" class="banner-input" placeholder="1.4442" /></div>
+            </div>
+            <div>
+              <label class="banner-field-label">Date / heure de la story</label>
+              <input type="datetime-local" id="fs-datetime" class="banner-input" />
+            </div>
+            <div>
+              <label class="banner-field-label">Médias — vidéos (enchaînées) et/ou photo</label>
+              <input type="file" id="fs-files" class="banner-input" accept="image/*,video/*" multiple />
+            </div>
+          </div>
+          <div style="margin-top:10px;padding:9px 12px;border-radius:8px;background:rgba(245,158,11,0.10);border:1px solid rgba(245,158,11,0.35);font-size:12px;line-height:1.5;color:#F5C97A;">
+            ⚠️ <strong>Compresse les vidéos AVANT de les charger</strong> — elles sont envoyées telles quelles (pas de compression ici). Une vidéo brute de téléphone est lourde et met du temps à s'ouvrir dans le viewer.
+            Recommandé : 720p max, <code>+faststart</code>. Ex : <code>ffmpeg -i in.mp4 -vf scale=-2:720 -crf 28 -movflags +faststart out.mp4</code>
+          </div>
+          <div id="fs-files-preview" style="font-size:12px;color:var(--text-faint);margin-top:8px;"></div>
+          <div class="banner-actions-row" style="margin-top:12px;">
+            <button class="banner-save-btn" id="fs-generate">✨ Générer la story</button>
+            <span id="fs-status" style="font-size:12px;color:var(--text-faint);align-self:center;"></span>
+          </div>
+        </div>
+
+        <h3 style="font-size:14px;margin:18px 0 8px;">Fausses stories existantes</h3>
+        <div id="fakestory-list"></div>
+      </div>
+
       <!-- ═══ VUE "BANNIÈRES VIDÉO PAR VILLE" ═══ -->
       <div id="banners-view" class="hidden">
         <h1>🎬 Bannières vidéo</h1>
@@ -1645,6 +1779,7 @@
             <option value="sport">🏃 Sport</option>
             <option value="culture">🎭 Culture</option>
             <option value="night">🌙 Night</option>
+            <option value="evasion">🏰 Évasion</option>
           </select>
           <select id="insp-city-filter" disabled>
             <option value="" disabled selected>— Choisir une ville —</option>
@@ -2447,6 +2582,8 @@
       if (cv && !cv.classList.contains("hidden")) return;
       const flv = document.getElementById("family-view");
       if (flv && !flv.classList.contains("hidden")) return;
+      const efv = document.getElementById("evasion-view");
+      if (efv && !efv.classList.contains("hidden")) return;
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of items) {
@@ -3189,6 +3326,10 @@
     const eventsCountBadge = document.getElementById("events-count-badge");
     const bannersView = document.getElementById("banners-view");
     const gotoBannersBtn = document.getElementById("goto-banners-btn");
+    const evasionView = document.getElementById("evasion-view");
+    const gotoEvasionBtn = document.getElementById("goto-evasion-btn");
+    const fakestoryView = document.getElementById("fakestory-view");
+    const gotoFakestoryBtn = document.getElementById("goto-fakestory-btn");
     const inspirationsView = document.getElementById("inspirations-view");
     const gotoInspirationsBtn = document.getElementById("goto-inspirations-btn");
     const sportnewsView = document.getElementById("sportnews-view");
@@ -3223,6 +3364,8 @@
       eventsView.classList.add("hidden");
       venuesView.classList.add("hidden");
       bannersView.classList.add("hidden");
+      evasionView.classList.add("hidden");
+      fakestoryView.classList.add("hidden");
       inspirationsView.classList.add("hidden");
       sportnewsView.classList.add("hidden");
       prosView.classList.add("hidden");
@@ -3242,6 +3385,8 @@
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
       gotoBannersBtn.style.display = "inline-flex";
+      gotoEvasionBtn.style.display = "inline-flex";
+      gotoFakestoryBtn.style.display = "inline-flex";
       gotoInspirationsBtn.style.display = "inline-flex";
       gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
@@ -3290,6 +3435,22 @@
       refreshBannersView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
+    function showEvasionView() {
+      _hideAllViews();
+      evasionView.classList.remove("hidden");
+      gotoEvasionBtn.classList.add("active");
+      refreshEvasionView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoEvasionBtn.addEventListener("click", showEvasionView);
+    function showFakestoryView() {
+      _hideAllViews();
+      fakestoryView.classList.remove("hidden");
+      gotoFakestoryBtn.classList.add("active");
+      refreshFakestory();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoFakestoryBtn.addEventListener("click", showFakestoryView);
     function showInspirationsView() {
       _hideAllViews();
       inspirationsView.classList.remove("hidden");
@@ -7961,10 +8122,518 @@
     });
 
     // ─── Onglet Bannières : edition video_url + link_url + is_active par ville ───
-    const BANNER_MODES = ['day','sport','culture','family','food','gaming','night','tourisme'];
+    // ═══ Onglet Évasion (table evasion_venues) ═══════════════════════════
+    let _allEvasion = [];
+    const evasionListEl = document.getElementById("evasion-list");
+    const evasionLoadingEl = document.getElementById("evasion-loading");
+    const evasionEmptyEl = document.getElementById("evasion-empty");
+
+    async function refreshEvasionView() {
+      evasionLoadingEl.classList.remove("hidden");
+      evasionEmptyEl.classList.add("hidden");
+      evasionListEl.innerHTML = "";
+      try {
+        const { data, error } = await supabase
+          .from("evasion_venues")
+          .select("*")
+          .order("display_priority", { ascending: false })
+          .order("nom", { ascending: true });
+        if (error) throw error;
+        _allEvasion = data || [];
+        renderEvasionList();
+      } catch (e) {
+        console.error("[Évasion] load", e);
+        toast("Erreur chargement Évasion : " + (e.message || e), false);
+      } finally {
+        evasionLoadingEl.classList.add("hidden");
+      }
+    }
+
+    function _evasionPhotos(v) {
+      return Array.isArray(v.photos) ? v.photos : [];
+    }
+
+    function renderEvasionList() {
+      const q = normalizeCity(document.getElementById("evasion-name-search").value);
+      const cityQ = normalizeCity(document.getElementById("evasion-city-filter").value);
+      let list = _allEvasion;
+      if (cityQ) list = list.filter(v => normalizeCity(v.hub_ville || "").includes(cityQ));
+      if (q) list = list.filter(v => normalizeCity(v.nom).includes(q));
+      if (list.length === 0) {
+        evasionListEl.innerHTML = "";
+        evasionEmptyEl.textContent = (_allEvasion.length === 0)
+          ? "Aucun domaine. Applique la migration evasion_venues."
+          : "Aucun domaine ne correspond au filtre.";
+        evasionEmptyEl.classList.remove("hidden");
+        return;
+      }
+      evasionEmptyEl.classList.add("hidden");
+      evasionListEl.innerHTML = list.map(v => {
+        const hasCover = (v.photo || "").startsWith("http");
+        const gallery = _evasionPhotos(v).map((p, i) => `
+          <div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;flex:0 0 auto;">
+            <img src="${escapeHtml(p)}" style="width:100%;height:100%;object-fit:cover;"/>
+            <button data-action="gal-remove" data-id="${v.id}" data-idx="${i}" title="Retirer" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:18px;height:18px;line-height:1;cursor:pointer;font-size:12px;">×</button>
+          </div>`).join("");
+        const travelOpts = [1,2,3].map(h =>
+          `<option value="${h}"${(Number(v.travel_time_h)||3)===h?" selected":""}>À ${h}h</option>`).join("");
+        return `
+        <div class="banner-card" data-id="${v.id}">
+          <div class="banner-card-head">
+            <span class="banner-mode-pill">${escapeHtml(v.nom)}</span>
+            <span style="font-size:12px;color:var(--text-faint);">${escapeHtml(v.ville || "")}</span>
+            <label class="banner-field-label" style="display:flex;align-items:center;gap:6px;margin-left:auto;">Ville hub
+              <input type="text" data-f="hub" class="banner-input" style="width:130px;margin:0;" value="${escapeHtml(v.hub_ville || "Toulouse")}" /></label>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div style="width:220px;">
+              <div class="vp-section-label">📌 Pochette</div>
+              <div class="paste-zone insp-paste-zone ${hasCover ? "has-image" : ""}" tabindex="0" data-drop="cover" data-id="${v.id}">
+                <div data-role="cover-empty" class="${hasCover ? "hidden" : ""}">
+                  <div class="paste-icon">🖼️</div>
+                  <div class="paste-hint">Clique ici puis <strong>Ctrl+V</strong>, glisse une image, ou…</div>
+                  <button type="button" class="paste-browse" data-action="cover" data-id="${v.id}">📂 Explorer le PC</button>
+                </div>
+                <div data-role="cover-filled" class="${hasCover ? "" : "hidden"}">
+                  <img class="paste-preview" src="${hasCover ? escapeHtml(v.photo) : ""}" onerror="this.style.opacity=0.3"/>
+                  <div style="margin-top:8px;">
+                    <button type="button" class="paste-browse" data-action="cover" data-id="${v.id}">📂 Remplacer</button>
+                    <button type="button" class="paste-remove" data-action="cover-remove" data-id="${v.id}">× Retirer</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:240px;">
+              <label class="banner-field-label">Teaser</label>
+              <textarea data-f="teaser" class="banner-input" rows="2" style="width:100%;resize:vertical;">${escapeHtml(v.description || "")}</textarea>
+              <div class="banner-actions-row" style="flex-wrap:wrap;gap:10px;margin-top:8px;">
+                <label class="banner-field-label" style="display:flex;align-items:center;gap:6px;">Trajet
+                  <select data-f="travel" class="banner-input" style="width:auto;margin:0;">${travelOpts}</select></label>
+                <label class="banner-field-label" style="display:flex;align-items:center;gap:6px;">Prio
+                  <input type="number" data-f="prio" class="banner-input" style="width:70px;margin:0;" value="${Number(v.display_priority)||0}" step="1"/></label>
+                <label class="banner-toggle"><input type="checkbox" data-f="partner"${v.is_partner?" checked":""}/> Partenaire</label>
+                <button class="banner-save-btn" data-action="save" data-id="${v.id}">💾 Enregistrer</button>
+                <button class="gen-btn" data-action="delete" data-id="${v.id}" style="border-color:#ef4444;color:#ef4444;">🗑</button>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="vp-section-label">🖼️ Galerie <span>— photos de la fiche détail</span></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px;">${gallery}</div>
+            <div class="paste-zone insp-paste-zone" tabindex="0" data-drop="gallery" data-id="${v.id}">
+              <div class="paste-icon">➕</div>
+              <div class="paste-hint">Ajoute une photo : clique ici puis <strong>Ctrl+V</strong>, glisse une image, ou…</div>
+              <button type="button" class="paste-browse" data-action="gal-add" data-id="${v.id}">📂 Explorer le PC</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    // Lit les champs édités d'une carte dans le cache (évite de les perdre au re-render).
+    function _evasionSyncRow(id) {
+      const card = evasionListEl.querySelector(`.banner-card[data-id="${id}"]`);
+      const v = _allEvasion.find(x => x.id === id);
+      if (!card || !v) return;
+      v.description = card.querySelector('[data-f="teaser"]').value;
+      v.travel_time_h = parseInt(card.querySelector('[data-f="travel"]').value, 10) || 3;
+      v.display_priority = parseInt(card.querySelector('[data-f="prio"]').value, 10) || 0;
+      v.is_partner = card.querySelector('[data-f="partner"]').checked;
+      v.hub_ville = card.querySelector('[data-f="hub"]').value.trim() || "Toulouse";
+    }
+
+    async function _evasionUpdate(id, patch) {
+      const { error } = await supabase.from("evasion_venues").update(patch).eq("id", id);
+      if (error) { toast("Erreur : " + (error.message || "échec (RLS ?)"), false); return false; }
+      const v = _allEvasion.find(x => x.id === id);
+      if (v) Object.assign(v, patch);
+      return true;
+    }
+
+    // Sélecteur de fichier image réutilisable → renvoie l'URL publique uploadée.
+    function _pickImage() {
+      return new Promise(resolve => {
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "image/*";
+        inp.onchange = async () => {
+          const f = inp.files && inp.files[0];
+          if (!f) return resolve(null);
+          try { resolve(await uploadImage(f)); }
+          catch (e) { toast("Upload échoué : " + (e.message || e), false); resolve(null); }
+        };
+        inp.click();
+      });
+    }
+
+    evasionListEl.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-action]");
+      if (!btn) return;
+      const id = Number(btn.dataset.id);
+      const action = btn.dataset.action;
+      const v = _allEvasion.find(x => x.id === id);
+      if (!v) return;
+
+      if (action === "save") {
+        _evasionSyncRow(id);
+        btn.disabled = true; const t = btn.textContent; btn.textContent = "…";
+        const ok = await _evasionUpdate(id, {
+          description: v.description, travel_time_h: v.travel_time_h,
+          display_priority: v.display_priority, is_partner: v.is_partner,
+          hub_ville: v.hub_ville,
+        });
+        btn.disabled = false; btn.textContent = t;
+        if (ok) toast("Enregistré ✓", true);
+      } else if (action === "cover") {
+        _evasionSyncRow(id);
+        const url = await _pickImage(); if (!url) return;
+        if (await _evasionUpdate(id, { photo: url })) { renderEvasionList(); toast("Pochette mise à jour ✓", true); }
+      } else if (action === "cover-remove") {
+        _evasionSyncRow(id);
+        if (await _evasionUpdate(id, { photo: "" })) { renderEvasionList(); toast("Pochette retirée", true); }
+      } else if (action === "gal-add") {
+        _evasionSyncRow(id);
+        const url = await _pickImage(); if (!url) return;
+        const photos = [..._evasionPhotos(v), url];
+        if (await _evasionUpdate(id, { photos })) renderEvasionList();
+      } else if (action === "gal-remove") {
+        _evasionSyncRow(id);
+        const idx = Number(btn.dataset.idx);
+        const photos = _evasionPhotos(v).filter((_, i) => i !== idx);
+        if (await _evasionUpdate(id, { photos })) renderEvasionList();
+      } else if (action === "delete") {
+        if (!confirm(`Supprimer « ${v.nom} » ?`)) return;
+        const { error } = await supabase.from("evasion_venues").delete().eq("id", id);
+        if (error) { toast("Erreur suppression (RLS ?) : " + (error.message || ""), false); return; }
+        _allEvasion = _allEvasion.filter(x => x.id !== id);
+        renderEvasionList();
+        toast("Supprimé", true);
+      }
+    });
+
+    // ─── Ajout d'un nouveau domaine ───────────────────────────────────────
+    const evAddForm = document.getElementById("evasion-add-form");
+    document.getElementById("evasion-add-toggle").addEventListener("click", () => {
+      evAddForm.classList.toggle("hidden");
+      if (!evAddForm.classList.contains("hidden")) document.getElementById("ev-new-nom").focus();
+    });
+    document.getElementById("ev-new-cancel").addEventListener("click", () => {
+      evAddForm.classList.add("hidden");
+    });
+
+    // Géocodage adresse → lat/lng via Nominatim (OSM, gratuit, sans clé).
+    document.getElementById("ev-new-geocode").addEventListener("click", async () => {
+      const q = document.getElementById("ev-new-adresse").value.trim()
+        || document.getElementById("ev-new-nom").value.trim();
+      if (!q) { toast("Renseigne une adresse (ou un nom) à géocoder", false); return; }
+      const statusEl = document.getElementById("ev-new-status");
+      statusEl.textContent = "Géocodage…";
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+          { headers: { "Accept": "application/json" } });
+        const arr = await res.json();
+        if (!arr.length) { statusEl.textContent = ""; toast("Adresse introuvable", false); return; }
+        document.getElementById("ev-new-lat").value = Number(arr[0].lat).toFixed(6);
+        document.getElementById("ev-new-lng").value = Number(arr[0].lon).toFixed(6);
+        statusEl.textContent = "✓ coordonnées trouvées";
+      } catch (e) {
+        statusEl.textContent = "";
+        toast("Géocodage échoué : " + (e.message || e), false);
+      }
+    });
+
+    document.getElementById("ev-new-save").addEventListener("click", async (ev) => {
+      const btn = ev.currentTarget;
+      const nom = document.getElementById("ev-new-nom").value.trim();
+      const lat = parseFloat(document.getElementById("ev-new-lat").value);
+      const lng = parseFloat(document.getElementById("ev-new-lng").value);
+      if (!nom) { toast("Le nom est requis", false); return; }
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        toast("Latitude/longitude requises (utilise 📍 Géocoder)", false); return;
+      }
+      const site = document.getElementById("ev-new-site").value.trim();
+      if (site && !/^https?:\/\//.test(site)) { toast("Le site doit commencer par http(s)://", false); return; }
+      const row = {
+        nom,
+        ville: document.getElementById("ev-new-ville").value.trim(),
+        hub_ville: document.getElementById("ev-new-hub").value.trim() || "Toulouse",
+        adresse: document.getElementById("ev-new-adresse").value.trim(),
+        latitude: lat, longitude: lng,
+        travel_time_h: parseInt(document.getElementById("ev-new-travel").value, 10) || 3,
+        site_web: site,
+        description: document.getElementById("ev-new-teaser").value.trim(),
+        is_partner: false, display_priority: 0,
+      };
+      btn.disabled = true; const t = btn.textContent; btn.textContent = "…";
+      const { error } = await supabase.from("evasion_venues").insert([row]);
+      btn.disabled = false; btn.textContent = t;
+      if (error) { toast("Erreur création (RLS ?) : " + (error.message || ""), false); return; }
+      toast("Domaine créé ✓", true);
+      ["nom","ville","adresse","lat","lng","site","teaser"].forEach(k =>
+        document.getElementById("ev-new-" + k).value = "");
+      document.getElementById("ev-new-hub").value = "Toulouse";
+      document.getElementById("ev-new-status").textContent = "";
+      evAddForm.classList.add("hidden");
+      refreshEvasionView();
+    });
+
+    document.getElementById("evasion-name-search").addEventListener("input", renderEvasionList);
+    document.getElementById("evasion-city-filter").addEventListener("input", renderEvasionList);
+    document.getElementById("evasion-refresh-btn").addEventListener("click", refreshEvasionView);
+
+    // ─── Pochette + galerie : glisser-déposer & coller (Ctrl+V) ───────────
+    function _evasionImageFiles(fileList) {
+      return [...(fileList || [])].filter(f => f.type && f.type.startsWith("image/"));
+    }
+
+    async function _evasionApplyCover(id, file) {
+      if (!file) return;
+      const v = _allEvasion.find(x => x.id === id); if (!v) return;
+      _evasionSyncRow(id);
+      let url;
+      try { url = await uploadImage(file); }
+      catch (e) { toast("Upload échoué : " + (e.message || e), false); return; }
+      if (await _evasionUpdate(id, { photo: url })) { renderEvasionList(); toast("Pochette mise à jour ✓", true); }
+    }
+
+    async function _evasionApplyGallery(id, fileList) {
+      const imgs = _evasionImageFiles(fileList); if (!imgs.length) return;
+      const v = _allEvasion.find(x => x.id === id); if (!v) return;
+      _evasionSyncRow(id);
+      const urls = [];
+      for (const f of imgs) {
+        try { urls.push(await uploadImage(f)); }
+        catch (e) { toast("Upload échoué : " + (e.message || e), false); }
+      }
+      if (!urls.length) return;
+      const photos = [..._evasionPhotos(v), ...urls];
+      if (await _evasionUpdate(id, { photos })) { renderEvasionList(); toast(`${urls.length} photo(s) ajoutée(s) ✓`, true); }
+    }
+
+    // Drag & drop + coller, calqué sur les fiches venues (zones focusables).
+    const EV_ZONES = '[data-drop="cover"],[data-drop="gallery"]';
+    evasionListEl.addEventListener("focusin", (e) => {
+      const z = e.target.closest(EV_ZONES); if (z) z.classList.add("focus");
+    });
+    evasionListEl.addEventListener("focusout", (e) => {
+      const z = e.target.closest(EV_ZONES); if (z) z.classList.remove("focus");
+    });
+    evasionListEl.addEventListener("dragover", (e) => {
+      const z = e.target.closest(EV_ZONES); if (!z) return;
+      e.preventDefault(); z.classList.add("focus");
+    });
+    evasionListEl.addEventListener("dragleave", (e) => {
+      const z = e.target.closest(EV_ZONES); if (z) z.classList.remove("focus");
+    });
+    evasionListEl.addEventListener("drop", async (e) => {
+      const z = e.target.closest(EV_ZONES); if (!z) return;
+      e.preventDefault(); z.classList.remove("focus");
+      const id = Number(z.dataset.id);
+      const files = e.dataTransfer?.files;
+      if (!files || !files.length) return;
+      if (z.dataset.drop === "gallery") await _evasionApplyGallery(id, files);
+      else await _evasionApplyCover(id, _evasionImageFiles(files)[0]);
+    });
+    // Coller (Ctrl+V) : cible la zone qui a le focus (cliquée), comme venues.
+    document.addEventListener("paste", async (e) => {
+      if (evasionView.classList.contains("hidden")) return;
+      const ae = document.activeElement;
+      const zone = ae && ae.closest ? ae.closest(EV_ZONES) : null;
+      if (!zone) return;
+      const items = e.clipboardData?.items; if (!items) return;
+      const files = [];
+      for (const it of items) {
+        if (it.type.startsWith("image/")) { const b = it.getAsFile(); if (b) files.push(b); }
+      }
+      if (!files.length) return;
+      e.preventDefault();
+      const id = Number(zone.dataset.id);
+      if (zone.dataset.drop === "gallery") await _evasionApplyGallery(id, files);
+      else await _evasionApplyCover(id, files[0]);
+    });
+
+    // ═══ Onglet Fausses stories (table reported_events) ═════════════════
+    // Toutes les stories générées ici portent ce reported_by (sentinelle) pour
+    // pouvoir les lister et les supprimer sans toucher aux vraies stories user.
+    const FAKE_STORY_UUID = "fa4e0000-0000-4000-8000-000000000000";
+    let _fsPartners = [];  // { name, lat, lng }
+
+    // Génère un UUID v4 (crypto).
+    function _uuid() {
+      return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+    }
+
+    // Charge les partenaires (venues Night + etablissements Food, is_partner)
+    // avec coordonnées — pour que la story hérite de la couleur partenaire.
+    async function _loadFakePartners() {
+      try {
+        const [v, e] = await Promise.all([
+          supabase.from("venues").select("name, latitude, longitude").eq("is_partner", true).not("latitude", "is", null),
+          supabase.from("etablissements").select("nom, latitude, longitude").eq("is_partner", true).not("latitude", "is", null),
+        ]);
+        const out = [];
+        (v.data || []).forEach(r => r.name && out.push({ name: r.name, lat: r.latitude, lng: r.longitude }));
+        (e.data || []).forEach(r => r.nom && out.push({ name: r.nom, lat: r.latitude, lng: r.longitude }));
+        out.sort((a, b) => a.name.localeCompare(b.name, "fr"));
+        _fsPartners = out;
+      } catch (err) { console.warn("[fakestory partners]", err); _fsPartners = []; }
+      const sel = document.getElementById("fs-venue");
+      sel.innerHTML = `<option value="">— Lieu libre (saisir coordonnées) —</option>` +
+        _fsPartners.map((p, i) => `<option value="${i}">⭐ ${escapeHtml(p.name)}</option>`).join("");
+    }
+
+    document.getElementById("fs-venue").addEventListener("change", (ev) => {
+      document.getElementById("fs-manual").classList.toggle("hidden", ev.target.value !== "");
+    });
+    document.getElementById("fs-files").addEventListener("change", (ev) => {
+      const files = [...(ev.target.files || [])];
+      document.getElementById("fs-files-preview").textContent = files.length
+        ? files.map(f => `${f.type.startsWith("video") ? "🎬" : "🖼️"} ${f.name}`).join("  ·  ")
+        : "";
+    });
+
+    // Extrait une vignette (1re frame) d'un fichier vidéo LOCAL (pas de CORS).
+    function _videoThumb(file) {
+      return new Promise((resolve) => {
+        const url = URL.createObjectURL(file);
+        const vid = document.createElement("video");
+        vid.muted = true; vid.playsInline = true; vid.src = url;
+        vid.onloadeddata = () => { try { vid.currentTime = Math.min(0.5, vid.duration || 0.5); } catch { resolve(null); } };
+        vid.onseeked = () => {
+          const cv = document.createElement("canvas");
+          cv.width = vid.videoWidth; cv.height = vid.videoHeight;
+          cv.getContext("2d").drawImage(vid, 0, 0);
+          cv.toBlob(b => { URL.revokeObjectURL(url); resolve(b); }, "image/jpeg", 0.82);
+        };
+        vid.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      });
+    }
+
+    document.getElementById("fs-generate").addEventListener("click", async () => {
+      const statusEl = document.getElementById("fs-status");
+      const user = document.getElementById("fs-user").value.trim();
+      const title = document.getElementById("fs-title").value.trim();
+      const category = document.getElementById("fs-category").value;
+      const files = [...(document.getElementById("fs-files").files || [])];
+      if (!user) return toast("Nom d'utilisateur requis", false);
+      if (files.length === 0) return toast("Ajoute au moins une vidéo ou une photo", false);
+
+      // Lieu + coordonnées
+      let locName = "", lat = null, lng = null;
+      const vsel = document.getElementById("fs-venue").value;
+      if (vsel !== "") {
+        const p = _fsPartners[Number(vsel)];
+        locName = p.name; lat = p.lat; lng = p.lng;
+      } else {
+        locName = document.getElementById("fs-loc").value.trim();
+        lat = parseFloat(document.getElementById("fs-lat").value);
+        lng = parseFloat(document.getElementById("fs-lng").value);
+        if (Number.isNaN(lat) || Number.isNaN(lng)) return toast("Coordonnées manquantes (ou choisis un établissement)", false);
+      }
+
+      // Date
+      const dtVal = document.getElementById("fs-datetime").value;
+      const createdAt = dtVal ? new Date(dtVal).toISOString() : new Date().toISOString();
+
+      const btn = document.getElementById("fs-generate");
+      btn.disabled = true; const prev = btn.textContent; btn.textContent = "…";
+      try {
+        // Upload des médias dans l'ordre → media[] (source de vérité du viewer).
+        const media = [], videos = [], photos = [];
+        let cover = null;
+        for (let i = 0; i < files.length; i++) {
+          const f = files[i];
+          statusEl.textContent = `Upload ${i + 1}/${files.length}…`;
+          if (f.type.startsWith("video")) {
+            const url = await uploadVideo(f);
+            media.push({ ts: Date.now() + i, url, type: "video" });
+            videos.push(url);
+            if (!cover) { const t = await _videoThumb(f); if (t) cover = await uploadImage(t); }
+          } else {
+            const url = await uploadImage(f);
+            media.push({ ts: Date.now() + i, url, type: "photo" });
+            photos.push(url);
+            if (!cover) cover = url;
+          }
+        }
+        statusEl.textContent = "Création de la story…";
+        const row = {
+          id: _uuid(), reported_by: FAKE_STORY_UUID,
+          raw_title: title || locName || "Story", category,
+          lat, lng, ville: "Toulouse", location_name: locName,
+          photos, photo_url: photos[0] || null, cover_url: cover,
+          videos, video_url: "", media,
+          report_count: 1, reporter_prenom: user, reporter_ids: [],
+          is_private: false, status: "published",
+          starts_at: createdAt, created_at: createdAt,
+          expires_at: "2099-12-31T00:00:00+00:00",
+          generated: title ? { title, description: "", emoji: "🎉", timeLabel: "LIVE", categoryInferred: category } : null,
+        };
+        const { error } = await supabase.from("reported_events").insert([row]);
+        if (error) throw error;
+        toast("Story générée ✓", true);
+        statusEl.textContent = "";
+        document.getElementById("fs-files").value = "";
+        document.getElementById("fs-files-preview").textContent = "";
+        refreshFakestory();
+      } catch (e) {
+        console.error("[fakestory]", e);
+        toast("Erreur : " + (e.message || e), false);
+        statusEl.textContent = "";
+      } finally {
+        btn.disabled = false; btn.textContent = prev;
+      }
+    });
+
+    async function refreshFakestory() {
+      await _loadFakePartners();
+      if (!document.getElementById("fs-datetime").value) {
+        // Défaut : maintenant, au format datetime-local (heure locale).
+        const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+        document.getElementById("fs-datetime").value = d.toISOString().slice(0, 16);
+      }
+      const listEl = document.getElementById("fakestory-list");
+      listEl.innerHTML = "<div style='color:var(--text-faint);'>Chargement…</div>";
+      const { data, error } = await supabase
+        .from("reported_events")
+        .select("id, raw_title, reporter_prenom, location_name, created_at, cover_url, media")
+        .eq("reported_by", FAKE_STORY_UUID)
+        .order("created_at", { ascending: false });
+      if (error) { listEl.innerHTML = `<div style='color:#ef4444;'>Erreur : ${escapeHtml(error.message)}</div>`; return; }
+      if (!data || data.length === 0) { listEl.innerHTML = "<div style='color:var(--text-faint);'>Aucune fausse story.</div>"; return; }
+      listEl.innerHTML = data.map(s => {
+        const nMedia = Array.isArray(s.media) ? s.media.length : 0;
+        const thumb = (s.cover_url || "").startsWith("http")
+          ? `<img src="${escapeHtml(s.cover_url)}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;"/>`
+          : `<div style="width:44px;height:44px;border-radius:8px;background:var(--surface-hi);display:flex;align-items:center;justify-content:center;">📸</div>`;
+        return `
+        <div class="venue-item" style="display:flex;align-items:center;gap:12px;padding:10px 12px;">
+          ${thumb}
+          <div style="flex:1;">
+            <div class="venue-row-name">${escapeHtml(s.reporter_prenom || "?")} — ${escapeHtml(s.raw_title || "")}</div>
+            <div class="venue-row-meta">${escapeHtml(s.location_name || "")} · ${nMedia} média(s) · ${new Date(s.created_at).toLocaleString("fr-FR")}</div>
+          </div>
+          <button class="gen-btn" data-fsdel="${s.id}" style="border-color:#ef4444;color:#ef4444;">🗑</button>
+        </div>`;
+      }).join("");
+    }
+
+    document.getElementById("fakestory-list").addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-fsdel]");
+      if (!btn) return;
+      if (!confirm("Supprimer cette fausse story ?")) return;
+      const { error } = await supabase.from("reported_events").delete().eq("id", btn.dataset.fsdel);
+      if (error) { toast("Erreur suppression : " + error.message, false); return; }
+      toast("Supprimée", true);
+      refreshFakestory();
+    });
+
+    const BANNER_MODES = ['day','sport','culture','family','food','gaming','night','tourisme','evasion'];
     const BANNER_MODE_LABELS = {
       day: 'Day', sport: 'Sport', culture: 'Culture', family: 'Family',
       food: 'Food', gaming: 'Gaming', night: 'Night', tourisme: 'Tourisme',
+      evasion: 'Évasion',
     };
     const bannersCityFilter = document.getElementById("banners-city-filter");
     const bannersList = document.getElementById("banners-list");
@@ -8243,6 +8912,7 @@
       sport: "🏃 Sport",
       culture: "🎭 Culture",
       night: "🌙 Night",
+      evasion: "🏰 Évasion",
     };
     // Suggestions de thèmes par rubrique. Doivent matcher EXACTEMENT les
     // `RubriqueChip.key` des écrans Flutter pour que le tap filtre bien

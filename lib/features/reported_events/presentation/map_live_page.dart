@@ -93,7 +93,7 @@ class MapLivePage extends ConsumerWidget {
               // Map grande
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ReportedEventsMap(height: mapHeight),
+                child: ReportedEventsMap(height: mapHeight, fullscreen: true),
               ),
               const SizedBox(height: 10),
               // Legende

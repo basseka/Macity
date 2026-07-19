@@ -9,7 +9,7 @@ import 'package:pulz_app/features/mode/state/mode_provider.dart';
 ///
 /// Chaque tab pointe vers une des pages "mode" (routes /mode/xxx) qui sont
 /// egalement accessibles depuis l'Explorer.
-enum HomeNavTab { food, famille, sport, culture, night }
+enum HomeNavTab { food, famille, sport, culture, night, evasion }
 
 /// Couleurs pastel par catégorie : fond clair + icône saturée.
 class _TileColors {
@@ -24,6 +24,8 @@ const _tileColorsByTab = <HomeNavTab, _TileColors>{
   HomeNavTab.sport: _TileColors(Color(0xFFF1E4FF), Color(0xFFA020F0)),
   HomeNavTab.culture: _TileColors(Color(0xFFFFE1F1), Color(0xFFFF2DAA)),
   HomeNavTab.night: _TileColors(Color(0xFFDCE0EC), Color(0xFF060B2B)),
+  // Ambre (= accent Tourisme/Évasion), distinct du jaune Famille.
+  HomeNavTab.evasion: _TileColors(Color(0xFFF7E6D0), Color(0xFFB45309)),
 };
 
 /// Rangée de 5 tuiles catégories pastel (carré arrondi + label dessous).
@@ -39,7 +41,7 @@ class HomeNavTabs extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          const slots = 5;
+          const slots = 6;
           final slotWidth = constraints.maxWidth / slots;
           final tile = (slotWidth * 0.66).clamp(46.0, 58.0);
           return Row(
@@ -55,6 +57,8 @@ class HomeNavTabs extends ConsumerWidget {
                   Icons.sports_soccer_rounded, 'Sport', tile),
               _btn(context, ref, HomeNavTab.night,
                   Icons.nightlife_rounded, 'Night', tile),
+              _btn(context, ref, HomeNavTab.evasion,
+                  Icons.flight_takeoff_rounded, 'Évasion', tile),
             ],
           );
         },
@@ -115,6 +119,12 @@ class HomeNavTabs extends ConsumerWidget {
   }
 
   void _navigate(BuildContext context, WidgetRef ref, HomeNavTab tab) {
+    // Évasion : écran autonome (hors ShellRoute), route dédiée. Il amorce
+    // lui-même le mode (tourisme) pour le bandeau vidéo.
+    if (tab == HomeNavTab.evasion) {
+      context.go('/evasion');
+      return;
+    }
     // On synchronise aussi le currentMode (utilise par AppShell, back button,
     // etc.) pour que la nav bar du bas et le pop route sachent ou on est.
     final mode = switch (tab) {
@@ -123,6 +133,7 @@ class HomeNavTabs extends ConsumerWidget {
       HomeNavTab.sport   => 'sport',
       HomeNavTab.culture => 'culture',
       HomeNavTab.night   => 'night',
+      HomeNavTab.evasion => 'tourisme', // inatteignable (traité ci-dessus)
     };
     ref.read(currentModeProvider.notifier).setMode(mode);
     context.go('/mode/$mode');

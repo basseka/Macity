@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
+import 'package:pulz_app/features/reported_events/data/partner_locations_provider.dart';
 import 'package:pulz_app/features/reported_events/data/permanent_fake_stories.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
@@ -72,7 +74,7 @@ class ReportedEventsLiveStripe extends ConsumerWidget {
               ),
             ),
             SizedBox(
-              height: 116,
+              height: 140,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // Padding horizontal centre quand le contenu rentre dans
@@ -213,9 +215,27 @@ class _LiveCard extends ConsumerWidget {
   static const _cardWidth = 116.0;
   static const _photoSize = 112.0;
 
+  /// Nom du partenaire si la story est faite CHEZ un partenaire (< 80 m d'un
+  /// lieu partenaire), sinon null. Même logique que la bulle sur la Map Live.
+  String? _partnerName(List<PartnerLocation> partners) {
+    var best = 80.0;
+    String? name;
+    for (final p in partners) {
+      final d = Haversine.distanceInMeters(event.lat, event.lng, p.lat, p.lng);
+      if (d <= best) {
+        best = d;
+        name = p.name;
+      }
+    }
+    return name;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSeen = ref.watch(seenStoriesProvider).contains(event.id);
+    final partners =
+        ref.watch(partnerLocationsProvider).valueOrNull ?? const [];
+    final partnerName = _partnerName(partners);
     final cover = event.coverPhoto;
     final hasPhoto = cover != null && cover.isNotEmpty;
     final title = event.generated?.title.isNotEmpty == true
@@ -362,23 +382,60 @@ class _LiveCard extends ConsumerWidget {
         );
       },
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: _cardWidth,
-        height: _cardWidth,
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          // Ring degrade orange/rouge sur les stories non vues, transparent
-          // (donc plat) une fois la story ouverte.
-          gradient: isSeen
-              ? null
-              : const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFFF6B2C), Color(0xFFEF4444)],
-                ),
-        ),
-        child: card,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: _cardWidth,
+            height: _cardWidth,
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              // Ring degrade orange/rouge sur les stories non vues, transparent
+              // (donc plat) une fois la story ouverte.
+              gradient: isSeen
+                  ? null
+                  : const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFF6B2C), Color(0xFFEF4444)],
+                    ),
+            ),
+            child: card,
+          ),
+          // Nom du partenaire sous la bulle (si story faite chez un partenaire).
+          SizedBox(
+            width: _cardWidth,
+            height: 20,
+            child: partnerName == null
+                ? null
+                : Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.star,
+                            size: 9, color: Color(0xFFC2185B)),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            partnerName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.geist(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFC2185B),
+                              height: 1.0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }

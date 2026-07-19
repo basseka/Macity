@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
+import 'package:pulz_app/features/evasion/presentation/evasion_screen.dart';
 import 'package:pulz_app/features/explorer/presentation/explorer_screen.dart';
 import 'package:pulz_app/features/home/presentation/feed_screen.dart';
 import 'package:pulz_app/features/mode/presentation/mode_shell.dart';
@@ -88,6 +89,10 @@ late final appRouter = GoRouter(
     GoRoute(
       path: '/explorer',
       builder: (context, state) => const ExplorerScreen(),
+    ),
+    GoRoute(
+      path: '/evasion',
+      builder: (context, state) => const EvasionScreen(),
     ),
     ShellRoute(
       navigatorKey: _shellNavigatorKey,

@@ -83,6 +83,9 @@ class CommerceRowCard extends ConsumerWidget {
 
   static String? _categoryFallbackAsset(String category) {
     final cat = _normalize(category);
+    // Évasion : domaines/châteaux de séjour. Pochette château-hôtel (à
+    // remplacer par pochette_evasion si un visuel dédié est ajouté).
+    if (cat.contains('evasion')) return 'assets/images/pochette_hotel.webp';
     if (cat.contains('coquin')) return 'assets/images/pochette_coquin.webp';
     if (cat.contains('strip')) return 'assets/images/pochette_strip.webp';
     if (cat.contains('spicy')) return 'assets/images/pochette_spicy.webp';
@@ -387,6 +390,9 @@ class CommerceRowCard extends ConsumerWidget {
         likeId: 'night_${commerce.nom}',
         isVerified: commerce.isVerified,
         isPartner: commerce.isPartner,
+        partnerLabel: commerce.categorie == 'Évasion'
+            ? 'Domaine partenaire'
+            : 'Restaurant partenaire',
         claimSourceTable: _claimSourceTableFromSingular(commerce.sourceTable),
         claimSourceId: commerce.sourceId,
         photoGallery: _buildPhotoGalleryFor(commerce),
