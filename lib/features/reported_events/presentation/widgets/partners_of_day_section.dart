@@ -10,7 +10,7 @@ import 'package:pulz_app/features/reported_events/data/partners_of_day_service.d
 
 /// Sous « En direct autour de vous » : 6 encarts « du jour », un par rubrique,
 /// chacun mettant en avant UN partenaire. S'il y en a plusieurs, ils tournent
-/// toutes les 3 min (temps d'antenne égal, rotation déterministe sur l'horloge
+/// toutes les 10 s (temps d'antenne égal, rotation déterministe sur l'horloge
 /// → tous les utilisateurs voient le même au même moment). Encart masqué si la
 /// rubrique n'a aucun partenaire dans la ville sélectionnée.
 class PartnersOfDaySection extends ConsumerStatefulWidget {
@@ -22,13 +22,13 @@ class PartnersOfDaySection extends ConsumerStatefulWidget {
 }
 
 class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
-  static const _rotation = Duration(minutes: 3);
+  static const _rotation = Duration(seconds: 10);
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    // Rafraîchit l'affichage à chaque créneau de 3 min pour faire tourner les
+    // Rafraîchit l'affichage à chaque créneau de 10 s pour faire tourner les
     // partenaires. L'index affiché est calculé sur l'horloge (déterministe).
     _timer = Timer.periodic(_rotation, (_) {
       if (mounted) setState(() {});
