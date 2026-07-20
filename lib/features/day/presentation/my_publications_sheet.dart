@@ -12,6 +12,7 @@ import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
+import 'package:pulz_app/features/rewards/presentation/city_miles_card.dart';
 
 /// Provider qui recupere uniquement les events du user courant.
 final myPublicationsProvider = FutureProvider<List<UserEvent>>((ref) {
@@ -89,6 +90,7 @@ class MyPublicationsSheet extends ConsumerWidget {
             (eventsAsync.valueOrNull?.length ?? 0) +
                 (storiesAsync.valueOrNull?.length ?? 0),
           ),
+          const CityMilesCard(),
           const Divider(height: 1),
           Flexible(
             child: _buildBody(context, ref, eventsAsync, storiesAsync),

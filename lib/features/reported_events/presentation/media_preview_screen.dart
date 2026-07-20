@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/features/reported_events/state/report_form_provider.dart';
+import 'package:pulz_app/features/rewards/data/story_rewards_service.dart';
+import 'package:pulz_app/features/rewards/state/rewards_provider.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 
 /// Ecran preview plein ecran style Snapchat.
@@ -142,6 +144,11 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
       // Refresh supplementaire a ~8s (securite)
       Future.delayed(const Duration(seconds: 8), () {
         container.invalidate(reportedEventsFeedProvider);
+        // City-Miles : la story est publiée → crée le coupon si un palier de 40
+        // est franchi (déclenche aussi la notif), puis rafraîchit la carte.
+        StoryRewardsService().check().then((_) {
+          container.invalidate(cityMilesProvider);
+        }).catchError((_) {});
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -1026,7 +1026,41 @@
           <span class="nav-btn" id="goto-userstats-btn">👥 Utilisateurs</span>
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
+          <span class="nav-btn" id="goto-gifts-btn">🎁 Cadeaux</span>
         </div>
+      </div>
+
+      <!-- ═══ VUE "CADEAUX" (table gifts — récompenses stories) ═══ -->
+      <div id="gifts-view" class="hidden">
+        <h1>🎁 Cadeaux</h1>
+        <p class="subtitle">Cadeaux tirés au sort quand un utilisateur ouvre un coupon (débloqué tous les 40 City-Miles = 40 stories publiées). Active/désactive un cadeau pour l'inclure ou non dans le tirage.</p>
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div class="banner-card-head"><span class="banner-mode-pill">Nouveau cadeau</span></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+            <div style="width:200px;">
+              <div class="vp-section-label">🖼️ Visuel</div>
+              <div class="paste-zone insp-paste-zone" tabindex="0" data-role="gift-zone">
+                <div class="paste-icon">🖼️</div>
+                <div class="paste-hint">Clique puis <strong>Ctrl+V</strong>, glisse une image, ou…</div>
+                <button type="button" class="paste-browse" id="gift-new-browse">📂 Explorer le PC</button>
+              </div>
+              <input type="hidden" id="gift-new-image" />
+            </div>
+            <div style="flex:1;min-width:240px;">
+              <label class="banner-field-label">Nom *</label>
+              <input type="text" id="gift-new-nom" class="banner-input" placeholder="Ex : Une place de ciné offerte" />
+              <label class="banner-field-label">Description</label>
+              <textarea id="gift-new-desc" class="banner-input" rows="2" style="width:100%;resize:vertical;" placeholder="Détail du cadeau, conditions…"></textarea>
+              <div class="banner-actions-row" style="gap:10px;margin-top:8px;">
+                <button class="banner-save-btn" id="gift-new-save">＋ Ajouter le cadeau</button>
+                <span id="gift-new-status" style="font-size:12px;color:var(--text-faint);align-self:center;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="gifts-loading" class="hidden" style="padding:20px; color:var(--text-faint);">Chargement…</div>
+        <div id="gifts-empty" class="hidden" style="padding:20px; color:var(--text-faint);">Aucun cadeau. Ajoute-en un ci-dessus.</div>
+        <div id="gifts-list"></div>
       </div>
 
       <!-- ═══ VUE FORMULAIRE ═══ -->
@@ -3358,6 +3392,8 @@
     const gotoNotifsBtn = document.getElementById("goto-notifs-btn");
     const prospectView = document.getElementById("prospect-view");
     const gotoProspectBtn = document.getElementById("goto-prospect-btn");
+    const giftsView = document.getElementById("gifts-view");
+    const gotoGiftsBtn = document.getElementById("goto-gifts-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -3381,6 +3417,7 @@
       chainsView.classList.add("hidden");
       notifsView.classList.add("hidden");
       prospectView.classList.add("hidden");
+      giftsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -3402,6 +3439,7 @@
       gotoChainsBtn.style.display = "inline-flex";
       gotoNotifsBtn.style.display = "inline-flex";
       gotoProspectBtn.style.display = "inline-flex";
+      gotoGiftsBtn.style.display = "inline-flex";
       // Retire la surbrillance de tous les onglets (le bouton actif sera
       // re-surligne par la fonction showXView appelante).
       document
@@ -3443,6 +3481,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoEvasionBtn.addEventListener("click", showEvasionView);
+    function showGiftsView() {
+      _hideAllViews();
+      giftsView.classList.remove("hidden");
+      gotoGiftsBtn.classList.add("active");
+      refreshGiftsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoGiftsBtn.addEventListener("click", showGiftsView);
     function showFakestoryView() {
       _hideAllViews();
       fakestoryView.classList.remove("hidden");
@@ -8490,6 +8536,159 @@
       const id = Number(zone.dataset.id);
       if (zone.dataset.drop === "gallery") await _evasionApplyGallery(id, files);
       else await _evasionApplyCover(id, files[0]);
+    });
+
+    // ═══ Onglet Cadeaux (table gifts — récompenses stories) ═════════════
+    let _allGifts = [];
+    const giftsListEl = document.getElementById("gifts-list");
+    const giftsLoadingEl = document.getElementById("gifts-loading");
+    const giftsEmptyEl = document.getElementById("gifts-empty");
+
+    async function refreshGiftsView() {
+      giftsLoadingEl.classList.remove("hidden");
+      giftsEmptyEl.classList.add("hidden");
+      giftsListEl.innerHTML = "";
+      try {
+        const { data, error } = await supabase
+          .from("gifts").select("*").order("id", { ascending: false });
+        if (error) throw error;
+        _allGifts = data || [];
+        renderGiftsList();
+      } catch (e) {
+        console.error("[Cadeaux] load", e);
+        toast("Erreur chargement cadeaux : " + (e.message || e), false);
+      } finally {
+        giftsLoadingEl.classList.add("hidden");
+      }
+    }
+
+    function renderGiftsList() {
+      if (_allGifts.length === 0) {
+        giftsListEl.innerHTML = "";
+        giftsEmptyEl.classList.remove("hidden");
+        return;
+      }
+      giftsEmptyEl.classList.add("hidden");
+      giftsListEl.innerHTML = _allGifts.map(g => {
+        const img = (g.image_url || "").startsWith("http")
+          ? `<img src="${escapeHtml(g.image_url)}" style="width:100%;height:100%;object-fit:cover;"/>`
+          : `<span style="font-size:26px;">🎁</span>`;
+        return `
+        <div class="banner-card" data-id="${g.id}" style="${g.is_active ? "" : "opacity:.55;"}">
+          <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div style="width:88px;height:88px;border-radius:12px;overflow:hidden;background:var(--surface-hi);display:flex;align-items:center;justify-content:center;">${img}</div>
+            <div style="flex:1;min-width:240px;">
+              <label class="banner-field-label">Nom</label>
+              <input type="text" data-f="nom" class="banner-input" style="width:100%;margin:0 0 6px;" value="${escapeHtml(g.nom || "")}" />
+              <label class="banner-field-label">Description</label>
+              <textarea data-f="desc" class="banner-input" rows="2" style="width:100%;resize:vertical;">${escapeHtml(g.description || "")}</textarea>
+              <div class="banner-actions-row" style="gap:10px;margin-top:8px;flex-wrap:wrap;">
+                <label class="banner-toggle"><input type="checkbox" data-f="active"${g.is_active ? " checked" : ""}/> Actif (dans le tirage)</label>
+                <button class="gen-btn" data-action="gift-photo" data-id="${g.id}">📷 Visuel</button>
+                <button class="banner-save-btn" data-action="gift-save" data-id="${g.id}">💾 Enregistrer</button>
+                <button class="gen-btn" data-action="gift-delete" data-id="${g.id}" style="border-color:#ef4444;color:#ef4444;">🗑</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    async function _giftUpdate(id, patch) {
+      const { error } = await supabase.from("gifts").update(patch).eq("id", id);
+      if (error) { toast("Erreur : " + (error.message || "échec (RLS ?)"), false); return false; }
+      const g = _allGifts.find(x => x.id === id);
+      if (g) Object.assign(g, patch);
+      return true;
+    }
+
+    giftsListEl.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-action]");
+      if (!btn) return;
+      const id = Number(btn.dataset.id);
+      const card = giftsListEl.querySelector(`.banner-card[data-id="${id}"]`);
+      const action = btn.dataset.action;
+      if (action === "gift-save") {
+        const patch = {
+          nom: card.querySelector('[data-f="nom"]').value.trim(),
+          description: card.querySelector('[data-f="desc"]').value.trim(),
+          is_active: card.querySelector('[data-f="active"]').checked,
+        };
+        if (!patch.nom) { toast("Le nom est requis", false); return; }
+        btn.disabled = true; const t = btn.textContent; btn.textContent = "…";
+        const ok = await _giftUpdate(id, patch);
+        btn.disabled = false; btn.textContent = t;
+        if (ok) { renderGiftsList(); toast("Enregistré ✓", true); }
+      } else if (action === "gift-photo") {
+        const url = await _pickImage(); if (!url) return;
+        if (await _giftUpdate(id, { image_url: url })) { renderGiftsList(); toast("Visuel mis à jour ✓", true); }
+      } else if (action === "gift-delete") {
+        const g = _allGifts.find(x => x.id === id);
+        if (!confirm(`Supprimer le cadeau « ${g ? g.nom : id} » ?`)) return;
+        const { error } = await supabase.from("gifts").delete().eq("id", id);
+        if (error) { toast("Erreur suppression (RLS ?) : " + (error.message || ""), false); return; }
+        _allGifts = _allGifts.filter(x => x.id !== id);
+        renderGiftsList();
+        toast("Supprimé", true);
+      }
+    });
+
+    // Ajout d'un cadeau
+    async function _giftSetNewImage(url) {
+      document.getElementById("gift-new-image").value = url;
+      const zone = document.querySelector('[data-role="gift-zone"]');
+      if (zone) zone.innerHTML = `<img src="${escapeHtml(url)}" style="max-height:120px;border-radius:10px;"/><div style="margin-top:8px;"><button type="button" class="paste-browse" id="gift-new-browse">📂 Remplacer</button></div>`;
+    }
+    document.getElementById("gift-new-save").addEventListener("click", async (ev) => {
+      const btn = ev.currentTarget;
+      const nom = document.getElementById("gift-new-nom").value.trim();
+      if (!nom) { toast("Le nom est requis", false); return; }
+      const row = {
+        nom,
+        description: document.getElementById("gift-new-desc").value.trim(),
+        image_url: document.getElementById("gift-new-image").value.trim(),
+        is_active: true,
+      };
+      btn.disabled = true; const t = btn.textContent; btn.textContent = "…";
+      const { error } = await supabase.from("gifts").insert([row]);
+      btn.disabled = false; btn.textContent = t;
+      if (error) { toast("Erreur création (RLS ?) : " + (error.message || ""), false); return; }
+      toast("Cadeau ajouté ✓", true);
+      document.getElementById("gift-new-nom").value = "";
+      document.getElementById("gift-new-desc").value = "";
+      document.getElementById("gift-new-image").value = "";
+      document.getElementById("gift-new-status").textContent = "";
+      refreshGiftsView();
+    });
+    // Zone visuel du formulaire d'ajout (browse + drag + coller)
+    giftsView.addEventListener("click", async (ev) => {
+      if (!ev.target.closest("#gift-new-browse")) return;
+      const url = await _pickImage(); if (url) _giftSetNewImage(url);
+    });
+    giftsView.addEventListener("dragover", (e) => {
+      if (e.target.closest('[data-role="gift-zone"]')) { e.preventDefault(); }
+    });
+    giftsView.addEventListener("drop", async (e) => {
+      const z = e.target.closest('[data-role="gift-zone"]'); if (!z) return;
+      e.preventDefault();
+      const f = [...(e.dataTransfer?.files || [])].find(x => x.type.startsWith("image/"));
+      if (!f) return;
+      try { _giftSetNewImage(await uploadImage(f)); } catch (err) { toast("Upload échoué : " + (err.message || err), false); }
+    });
+    document.addEventListener("paste", async (e) => {
+      if (giftsView.classList.contains("hidden")) return;
+      const z = document.activeElement && document.activeElement.closest
+        ? document.activeElement.closest('[data-role="gift-zone"]') : null;
+      if (!z) return;
+      const items = e.clipboardData?.items; if (!items) return;
+      for (const it of items) {
+        if (it.type.startsWith("image/")) {
+          const b = it.getAsFile(); if (!b) continue;
+          e.preventDefault();
+          try { _giftSetNewImage(await uploadImage(b)); } catch (err) { toast("Upload échoué", false); }
+          return;
+        }
+      }
     });
 
     // ═══ Onglet Fausses stories (table reported_events) ═════════════════
