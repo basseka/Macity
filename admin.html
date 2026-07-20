@@ -3170,7 +3170,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("sport_venues")
-          .select("id, nom, adresse, ville, sport_type, categorie, photo, photos, display_priority, video_url")
+          .select("id, nom, adresse, ville, sport_type, categorie, photo, photos, display_priority, video_url, is_partner")
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
         if (error) {
@@ -3197,7 +3197,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("family_venues")
-          .select("id, name, adresse, ville, category, photo, display_priority")
+          .select("id, name, adresse, ville, category, photo, display_priority, is_partner")
           .eq("is_active", true)
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
@@ -6663,6 +6663,7 @@
         priority: r.display_priority ?? 0,
         priorities: {},
         videoUrl: r.video_url || "",
+        isPartner: !!r.is_partner,
       }));
       // L'app lit `family_venues` pour la rubrique Famille (PAS etablissements).
       // On les affiche en lecture (filtre Famille + sous-catégories de l'app).
@@ -6681,7 +6682,7 @@
         priority: r.display_priority ?? 0,
         priorities: {},
         videoUrl: "",
-        isPartner: false,
+        isPartner: !!r.is_partner,
       }));
       return v.concat(e).concat(s).concat(fam);
     }
@@ -6845,8 +6846,9 @@
         ? `<button class="photo-btn" data-action="edit-in-family" data-id="${f.id}">✏️ Éditer dans Famille</button>`
         : `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
       // Partenaire : flag commercial (badge doré + carrousel dans l'app).
-      // Dispo pour les venues (Night) et les etablissements (Food) — pas sport.
-      const canPartner = f.source === "venues" || f.source === "etablissements";
+      // Dispo pour venues, etablissements, sport_venues et family_venues.
+      const canPartner = f.source === "venues" || f.source === "etablissements"
+        || f.source === "sport_venues" || f.source === "family_venues";
       const partnerBtn = canPartner
         ? `<button class="partner-btn${f.isPartner ? " active" : ""}" data-action="toggle-partner" title="${f.isPartner ? "Partenaire — cliquer pour retirer le statut" : "Marquer comme partenaire (badge doré + carrousel dans l'app)"}">${f.isPartner ? "⭐ Partenaire" : "☆ Partenaire"}</button>`
         : "";
@@ -7556,9 +7558,13 @@
       const item = btn.closest(".venue-item");
       if (!item) return;
       const source = item.dataset.source;
-      if (source !== "venues" && source !== "etablissements") return;
+      const PARTNER_SOURCES = ["venues", "etablissements", "sport_venues", "family_venues"];
+      if (!PARTNER_SOURCES.includes(source)) return;
       const id = Number(item.dataset.id);
-      const cache = source === "venues" ? allVenues : allEtabs;
+      const cache = source === "venues" ? allVenues
+        : source === "etablissements" ? allEtabs
+        : source === "sport_venues" ? allSportVenues
+        : allFamily;
       const row = cache.find(r => r.id === id);
       const next = !(row && row.is_partner);
       btn.disabled = true;

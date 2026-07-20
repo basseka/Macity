@@ -60,6 +60,7 @@ import 'package:pulz_app/core/widgets/home_quick_pills.dart';
 import 'package:pulz_app/features/home/state/feed_filter_intent_provider.dart';
 import 'package:pulz_app/features/home/state/feed_mode_provider.dart';
 import 'package:pulz_app/features/home/state/search_intent_provider.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/partners_of_day_section.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_live_stripe.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
@@ -2094,6 +2095,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           if (showLiveStripe) ...[
             const SliverToBoxAdapter(child: ReportedEventsLiveStripe()),
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            const SliverToBoxAdapter(child: PartnersOfDaySection()),
           ],
           for (final day in sortedDays) ...[
             SliverToBoxAdapter(
