@@ -76,7 +76,7 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
                   child: Text(
                     r.title,
                     style: GoogleFonts.geist(
-                      fontSize: 16,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: const Color(0xFF1A0F2E),
                     ),
@@ -127,7 +127,7 @@ class _PartnerCard extends StatelessWidget {
       onTap: () => CommerceRowCard.openDetail(context, commerce),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        height: 172,
+        height: 240,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
@@ -188,7 +188,7 @@ class _PartnerCard extends StatelessWidget {
                     Text(
                       'PARTENAIRE',
                       style: GoogleFonts.geist(
-                        fontSize: 9,
+                        fontSize: 8,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                         color: const Color(0xFF2A1E06),
@@ -212,7 +212,7 @@ class _PartnerCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.geist(
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                       shadows: const [Shadow(blurRadius: 6, color: Colors.black87)],
@@ -227,7 +227,7 @@ class _PartnerCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.geist(
-                      fontSize: 12,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w500,
                       color: Colors.white.withValues(alpha: 0.85),
                     ),

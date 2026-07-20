@@ -70,10 +70,10 @@ final partnersOfDayProvider =
       : const [];
 
   final results = await Future.wait([
-    // Food → etablissements (rubrique food)
+    // Food → etablissements (rubrique food) — pas de colonne `description`.
     q('etablissements', {
       'select':
-          'id,nom,adresse,ville,categorie,photo,photos,video_url,latitude,longitude,description,site_web,telephone',
+          'id,nom,adresse,ville,categorie,photo,photos,video_url,latitude,longitude,site_web,telephone',
       'rubrique': 'eq.food',
     }, (e) => CommerceModel(
           nom: s(e['nom']),
@@ -85,7 +85,6 @@ final partnersOfDayProvider =
           videoUrl: s(e['video_url']),
           latitude: d(e['latitude']),
           longitude: d(e['longitude']),
-          description: s(e['description']),
           siteWeb: s(e['site_web']),
           telephone: s(e['telephone']),
           isPartner: true,

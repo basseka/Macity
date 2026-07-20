@@ -847,6 +847,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         if (showNavTabs) const HomeNavTabs(),
         const SizedBox(height: 14),
         const ReportedEventsLiveStripe(),
+        const SizedBox(height: 8),
+        const PartnersOfDaySection(),
         const SizedBox(height: 90),
       ],
       ),
