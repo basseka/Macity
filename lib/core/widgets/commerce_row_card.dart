@@ -610,6 +610,17 @@ class CommerceRowCard extends ConsumerWidget {
   static String? _defaultVideoUrlFor(CommerceModel commerce) {
     if (commerce.isVerified) return null;
 
+    // Une PHOTO existe → on l'affiche plutôt qu'une vidéo générique, quelle que
+    // soit la rubrique (en attendant que le lieu ajoute sa propre vidéo).
+    // La vidéo perso reste prioritaire : buildDetailSheet passe commerce.videoUrl
+    // AVANT d'appeler cette méthode. Robuste aux catégories mal saisies
+    // (ex. « Expériences uniques » pour un restaurant).
+    final hasPhoto = commerce.photo.startsWith('http') ||
+        commerce.photos.any((p) => p.startsWith('http'));
+    if (hasPhoto) return null;
+
+    // ── À partir d'ici : lieux SANS photo → vidéo générique par rubrique ──
+
     // Sport : table dediee, prioritaire sur le matching par categorie.
     if (commerce.sourceTable == 'sport_venues') {
       return _defaultSportVideo;
@@ -617,8 +628,7 @@ class CommerceRowCard extends ConsumerWidget {
 
     final cat = _normalizeForMatch(commerce.categorie);
 
-    // Évasion (domaines / gîtes) : aucune vidéo générique — on n'affiche que
-    // la vidéo éventuellement uploadée en admin (sinon pas de teaser vidéo).
+    // Évasion (domaines / gîtes) : aucune vidéo générique.
     if (cat.contains('evasion')) return null;
 
     // Night : clubs / discotheques (les autres categories "de nuit"
@@ -685,7 +695,7 @@ class CommerceRowCard extends ConsumerWidget {
       return _defaultCultureVideo;
     }
 
-    // Food
+    // Food : restaurant sans vidéo perso → photo si dispo.
     if (cat.contains('restaurant') ||
         cat.contains('brasserie') ||
         cat.contains('pizzeria') ||

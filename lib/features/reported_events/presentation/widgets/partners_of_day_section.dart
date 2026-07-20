@@ -58,7 +58,34 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
         for (final r in rubriques) _rubriqueBlock(r),
         // ─── 3 bulles fixes (style stripe), après « Le moment évasion » ───
         _bubblesRow(),
+        _feedHint(),
       ],
+    );
+  }
+
+  /// Phrase d'invite + flèche pointant vers le bouton « Feed » de la nav bar.
+  Widget _feedHint() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Column(
+        children: [
+          Text(
+            'Plus de recherche ? Regarde le feed',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.geist(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF6A6480),
+            ),
+          ),
+          const SizedBox(height: 2),
+          // Flèche animée alignée sous le 2e onglet (Feed) : x ≈ 30 % largeur.
+          const Align(
+            alignment: Alignment(-0.44, 0),
+            child: _BouncingArrow(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -399,4 +426,43 @@ class _PartnerCard extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// Flèche « ⇊ » qui rebondit verticalement en boucle (invite vers le Feed).
+class _BouncingArrow extends StatefulWidget {
+  const _BouncingArrow();
+
+  @override
+  State<_BouncingArrow> createState() => _BouncingArrowState();
+}
+
+class _BouncingArrowState extends State<_BouncingArrow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+  )..repeat(reverse: true);
+  late final Animation<double> _a = Tween<double>(begin: 0, end: 6).animate(
+    CurvedAnimation(parent: _c, curve: Curves.easeInOut),
+  );
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _a,
+      builder: (_, child) =>
+          Transform.translate(offset: Offset(0, _a.value), child: child),
+      child: const Icon(
+        Icons.keyboard_double_arrow_down_rounded,
+        color: Color(0xFFE91E8C),
+        size: 30,
+      ),
+    );
+  }
 }
