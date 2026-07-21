@@ -1027,7 +1027,58 @@
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-gifts-btn">🎁 Cadeaux</span>
+          <span class="nav-btn" id="goto-citymedia-btn">📰 Médias ville</span>
         </div>
+      </div>
+
+      <!-- ═══ VUE "MÉDIAS VILLE" (table city_media — journal + radio par ville) ═══ -->
+      <div id="citymedia-view" class="hidden">
+        <h1>📰 Médias ville</h1>
+        <p class="subtitle">Journal local + radio locale mis en avant sous « En direct autour de vous », par ville hub. Une bulle avec logo + lien vers le site. Si une ville n'a aucun média actif, la bulle n'apparaît pas.</p>
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div class="banner-card-head"><span class="banner-mode-pill">Nouveau média</span></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+            <div style="width:180px;">
+              <div class="vp-section-label">🖼️ Logo</div>
+              <div class="paste-zone insp-paste-zone" tabindex="0" data-role="cmedia-zone">
+                <div class="paste-icon">🖼️</div>
+                <div class="paste-hint">Clique puis <strong>Ctrl+V</strong>, glisse, ou…</div>
+                <button type="button" class="paste-browse" id="cmedia-new-browse">📂 Explorer</button>
+              </div>
+              <input type="hidden" id="cmedia-new-logo" />
+            </div>
+            <div style="flex:1;min-width:240px;">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:150px;">
+                  <label class="banner-field-label">Ville hub *</label>
+                  <input type="text" id="cmedia-new-ville" class="banner-input" list="cities-datalist" placeholder="Toulouse" value="Toulouse" />
+                </div>
+                <div style="min-width:120px;">
+                  <label class="banner-field-label">Type</label>
+                  <select id="cmedia-new-type" class="banner-input" style="margin:0;">
+                    <option value="journal">📰 Journal</option>
+                    <option value="radio">📻 Radio</option>
+                  </select>
+                </div>
+              </div>
+              <label class="banner-field-label">Nom *</label>
+              <input type="text" id="cmedia-new-nom" class="banner-input" placeholder="Ex : La Dépêche du Midi" />
+              <label class="banner-field-label">Lien du site</label>
+              <input type="url" id="cmedia-new-url" class="banner-input" placeholder="https://www.ladepeche.fr" />
+              <label class="banner-field-label">Couleur de fond (optionnel, #hex)</label>
+              <input type="text" id="cmedia-new-bg" class="banner-input" placeholder="#ED1C24 (vide = blanc)" />
+              <div class="banner-actions-row" style="gap:10px;margin-top:8px;">
+                <button class="banner-save-btn" id="cmedia-new-save">＋ Ajouter le média</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <input type="text" id="cmedia-city-filter" class="banner-input" style="max-width:280px;" list="cities-datalist" placeholder="Filtrer par ville…" />
+        </div>
+        <div id="citymedia-loading" class="hidden" style="padding:20px; color:var(--text-faint);">Chargement…</div>
+        <div id="citymedia-empty" class="hidden" style="padding:20px; color:var(--text-faint);">Aucun média. Ajoute-en un ci-dessus.</div>
+        <div id="citymedia-list"></div>
       </div>
 
       <!-- ═══ VUE "CADEAUX" (table gifts — récompenses stories) ═══ -->
@@ -3394,6 +3445,8 @@
     const gotoProspectBtn = document.getElementById("goto-prospect-btn");
     const giftsView = document.getElementById("gifts-view");
     const gotoGiftsBtn = document.getElementById("goto-gifts-btn");
+    const citymediaView = document.getElementById("citymedia-view");
+    const gotoCitymediaBtn = document.getElementById("goto-citymedia-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -3418,6 +3471,7 @@
       notifsView.classList.add("hidden");
       prospectView.classList.add("hidden");
       giftsView.classList.add("hidden");
+      citymediaView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -3440,6 +3494,7 @@
       gotoNotifsBtn.style.display = "inline-flex";
       gotoProspectBtn.style.display = "inline-flex";
       gotoGiftsBtn.style.display = "inline-flex";
+      gotoCitymediaBtn.style.display = "inline-flex";
       // Retire la surbrillance de tous les onglets (le bouton actif sera
       // re-surligne par la fonction showXView appelante).
       document
@@ -3489,6 +3544,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoGiftsBtn.addEventListener("click", showGiftsView);
+    function showCitymediaView() {
+      _hideAllViews();
+      citymediaView.classList.remove("hidden");
+      gotoCitymediaBtn.classList.add("active");
+      refreshCitymediaView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoCitymediaBtn.addEventListener("click", showCitymediaView);
     function showFakestoryView() {
       _hideAllViews();
       fakestoryView.classList.remove("hidden");
@@ -8686,6 +8749,186 @@
           const b = it.getAsFile(); if (!b) continue;
           e.preventDefault();
           try { _giftSetNewImage(await uploadImage(b)); } catch (err) { toast("Upload échoué", false); }
+          return;
+        }
+      }
+    });
+
+    // ═══ Onglet Médias ville (table city_media) ═════════════════════════
+    let _allCitymedia = [];
+    const citymediaListEl = document.getElementById("citymedia-list");
+    const citymediaLoadingEl = document.getElementById("citymedia-loading");
+    const citymediaEmptyEl = document.getElementById("citymedia-empty");
+
+    async function refreshCitymediaView() {
+      citymediaLoadingEl.classList.remove("hidden");
+      citymediaEmptyEl.classList.add("hidden");
+      citymediaListEl.innerHTML = "";
+      try {
+        const { data, error } = await supabase
+          .from("city_media").select("*")
+          .order("ville", { ascending: true }).order("type", { ascending: true });
+        if (error) throw error;
+        _allCitymedia = data || [];
+        renderCitymediaList();
+      } catch (e) {
+        console.error("[Médias ville] load", e);
+        toast("Erreur chargement médias : " + (e.message || e), false);
+      } finally {
+        citymediaLoadingEl.classList.add("hidden");
+      }
+    }
+
+    function renderCitymediaList() {
+      const q = normalizeCity(document.getElementById("cmedia-city-filter").value);
+      let list = _allCitymedia;
+      if (q) list = list.filter(m => normalizeCity(m.ville || "").includes(q));
+      if (list.length === 0) {
+        citymediaListEl.innerHTML = "";
+        citymediaEmptyEl.textContent = _allCitymedia.length === 0
+          ? "Aucun média. Ajoute-en un ci-dessus." : "Aucun média pour ce filtre.";
+        citymediaEmptyEl.classList.remove("hidden");
+        return;
+      }
+      citymediaEmptyEl.classList.add("hidden");
+      citymediaListEl.innerHTML = list.map(m => {
+        const bg = (m.bg_color || "").match(/^#[0-9a-fA-F]{3,8}$/) ? m.bg_color : "#ffffff";
+        const logo = (m.logo_url || "").startsWith("http")
+          ? `<img src="${escapeHtml(m.logo_url)}" style="width:100%;height:100%;object-fit:cover;"/>`
+          : `<span style="font-size:22px;">${m.type === "radio" ? "📻" : "📰"}</span>`;
+        return `
+        <div class="banner-card" data-id="${m.id}" style="${m.is_active ? "" : "opacity:.55;"}">
+          <div class="banner-card-head">
+            <span class="banner-mode-pill">${m.type === "radio" ? "📻 Radio" : "📰 Journal"}</span>
+            <span style="font-size:12px;color:var(--text-faint);">${escapeHtml(m.ville || "")}</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;background:${escapeHtml(bg)};display:flex;align-items:center;justify-content:center;" title="Aperçu de la bulle dans l'app">${logo}</div>
+            <div style="flex:1;min-width:240px;">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:130px;"><label class="banner-field-label">Ville</label>
+                  <input type="text" data-f="ville" class="banner-input" style="width:100%;margin:0;" value="${escapeHtml(m.ville || "")}" list="cities-datalist" /></div>
+                <div style="min-width:110px;"><label class="banner-field-label">Type</label>
+                  <select data-f="type" class="banner-input" style="margin:0;"><option value="journal"${m.type !== "radio" ? " selected" : ""}>📰 Journal</option><option value="radio"${m.type === "radio" ? " selected" : ""}>📻 Radio</option></select></div>
+              </div>
+              <label class="banner-field-label">Nom</label>
+              <input type="text" data-f="nom" class="banner-input" style="width:100%;margin:0 0 6px;" value="${escapeHtml(m.nom || "")}" />
+              <label class="banner-field-label">Lien du site</label>
+              <input type="url" data-f="url" class="banner-input" style="width:100%;margin:0 0 6px;" value="${escapeHtml(m.url || "")}" />
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <div style="min-width:150px;"><label class="banner-field-label">Couleur fond</label>
+                  <input type="text" data-f="bg" class="banner-input" style="margin:0;" value="${escapeHtml(m.bg_color || "")}" placeholder="#ED1C24" /></div>
+                <label class="banner-toggle" style="margin-top:14px;"><input type="checkbox" data-f="active"${m.is_active ? " checked" : ""}/> Actif</label>
+              </div>
+              <div class="banner-actions-row" style="gap:10px;margin-top:8px;flex-wrap:wrap;">
+                <button class="gen-btn" data-action="cmedia-logo" data-id="${m.id}">📷 Logo</button>
+                <button class="banner-save-btn" data-action="cmedia-save" data-id="${m.id}">💾 Enregistrer</button>
+                <button class="gen-btn" data-action="cmedia-delete" data-id="${m.id}" style="border-color:#ef4444;color:#ef4444;">🗑</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    async function _cmediaUpdate(id, patch) {
+      const { error } = await supabase.from("city_media").update(patch).eq("id", id);
+      if (error) { toast("Erreur : " + (error.message || "échec (RLS ?)"), false); return false; }
+      const m = _allCitymedia.find(x => x.id === id);
+      if (m) Object.assign(m, patch);
+      return true;
+    }
+
+    citymediaListEl.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-action]");
+      if (!btn) return;
+      const id = Number(btn.dataset.id);
+      const card = citymediaListEl.querySelector(`.banner-card[data-id="${id}"]`);
+      const action = btn.dataset.action;
+      if (action === "cmedia-save") {
+        const url = card.querySelector('[data-f="url"]').value.trim();
+        if (url && !/^https?:\/\//.test(url)) { toast("Le lien doit commencer par http(s)://", false); return; }
+        const patch = {
+          ville: card.querySelector('[data-f="ville"]').value.trim(),
+          type: card.querySelector('[data-f="type"]').value,
+          nom: card.querySelector('[data-f="nom"]').value.trim(),
+          url,
+          bg_color: card.querySelector('[data-f="bg"]').value.trim(),
+          is_active: card.querySelector('[data-f="active"]').checked,
+        };
+        if (!patch.ville || !patch.nom) { toast("Ville et nom requis", false); return; }
+        btn.disabled = true; const t = btn.textContent; btn.textContent = "…";
+        const ok = await _cmediaUpdate(id, patch);
+        btn.disabled = false; btn.textContent = t;
+        if (ok) { renderCitymediaList(); toast("Enregistré ✓", true); }
+      } else if (action === "cmedia-logo") {
+        const url = await _pickImage(); if (!url) return;
+        if (await _cmediaUpdate(id, { logo_url: url })) { renderCitymediaList(); toast("Logo mis à jour ✓", true); }
+      } else if (action === "cmedia-delete") {
+        const m = _allCitymedia.find(x => x.id === id);
+        if (!confirm(`Supprimer « ${m ? m.nom : id} » ?`)) return;
+        const { error } = await supabase.from("city_media").delete().eq("id", id);
+        if (error) { toast("Erreur suppression (RLS ?) : " + (error.message || ""), false); return; }
+        _allCitymedia = _allCitymedia.filter(x => x.id !== id);
+        renderCitymediaList();
+        toast("Supprimé", true);
+      }
+    });
+
+    document.getElementById("cmedia-city-filter").addEventListener("input", renderCitymediaList);
+
+    // Ajout d'un média
+    function _cmediaSetNewLogo(url) {
+      document.getElementById("cmedia-new-logo").value = url;
+      const zone = document.querySelector('[data-role="cmedia-zone"]');
+      if (zone) zone.innerHTML = `<img src="${escapeHtml(url)}" style="max-height:100px;border-radius:10px;"/><div style="margin-top:8px;"><button type="button" class="paste-browse" id="cmedia-new-browse">📂 Remplacer</button></div>`;
+    }
+    document.getElementById("cmedia-new-save").addEventListener("click", async (ev) => {
+      const btn = ev.currentTarget;
+      const ville = document.getElementById("cmedia-new-ville").value.trim();
+      const nom = document.getElementById("cmedia-new-nom").value.trim();
+      if (!ville || !nom) { toast("Ville et nom requis", false); return; }
+      const url = document.getElementById("cmedia-new-url").value.trim();
+      if (url && !/^https?:\/\//.test(url)) { toast("Le lien doit commencer par http(s)://", false); return; }
+      const row = {
+        ville, nom, url,
+        type: document.getElementById("cmedia-new-type").value,
+        logo_url: document.getElementById("cmedia-new-logo").value.trim(),
+        bg_color: document.getElementById("cmedia-new-bg").value.trim(),
+        is_active: true,
+      };
+      btn.disabled = true; const t = btn.textContent; btn.textContent = "…";
+      const { error } = await supabase.from("city_media").insert([row]);
+      btn.disabled = false; btn.textContent = t;
+      if (error) { toast("Erreur création (RLS ?) : " + (error.message || ""), false); return; }
+      toast("Média ajouté ✓", true);
+      ["nom", "url", "bg", "logo"].forEach(k => document.getElementById("cmedia-new-" + k).value = "");
+      refreshCitymediaView();
+    });
+    // Zone logo du formulaire (browse + drag + coller)
+    citymediaView.addEventListener("click", async (ev) => {
+      if (!ev.target.closest("#cmedia-new-browse")) return;
+      const url = await _pickImage(); if (url) _cmediaSetNewLogo(url);
+    });
+    citymediaView.addEventListener("dragover", (e) => { if (e.target.closest('[data-role="cmedia-zone"]')) e.preventDefault(); });
+    citymediaView.addEventListener("drop", async (e) => {
+      const z = e.target.closest('[data-role="cmedia-zone"]'); if (!z) return;
+      e.preventDefault();
+      const f = [...(e.dataTransfer?.files || [])].find(x => x.type.startsWith("image/"));
+      if (!f) return;
+      try { _cmediaSetNewLogo(await uploadImage(f)); } catch (err) { toast("Upload échoué : " + (err.message || err), false); }
+    });
+    document.addEventListener("paste", async (e) => {
+      if (citymediaView.classList.contains("hidden")) return;
+      const z = document.activeElement && document.activeElement.closest
+        ? document.activeElement.closest('[data-role="cmedia-zone"]') : null;
+      if (!z) return;
+      const items = e.clipboardData?.items; if (!items) return;
+      for (const it of items) {
+        if (it.type.startsWith("image/")) {
+          const b = it.getAsFile(); if (!b) continue;
+          e.preventDefault();
+          try { _cmediaSetNewLogo(await uploadImage(b)); } catch (err) { toast("Upload échoué", false); }
           return;
         }
       }

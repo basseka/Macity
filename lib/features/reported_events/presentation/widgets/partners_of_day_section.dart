@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/features/reported_events/data/city_media_service.dart';
 import 'package:pulz_app/features/reported_events/data/partners_of_day_service.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/tonight_events_sheet.dart';
 
@@ -51,13 +52,16 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
   Widget build(BuildContext context) {
     final async = ref.watch(partnersOfDayProvider);
     final rubriques = async.valueOrNull ?? const [];
+    // Médias locaux (journal + radio) de la ville sélectionnée.
+    final media = ref.watch(cityMediaProvider).valueOrNull ?? const <CityMedia>[];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final r in rubriques) _rubriqueBlock(r),
-        // ─── 3 bulles fixes (style stripe), après « Le moment évasion » ───
-        _bubblesRow(),
+        // ─── Bulles fixes (style stripe), après « Le moment évasion » :
+        //     « Quoi faire ce soir » + les médias locaux de la ville. ───
+        _bubblesRow(media),
         _feedHint(),
       ],
     );
@@ -89,8 +93,10 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
     );
   }
 
-  /// Rangée de 3 bulles fixes, dans le style des stories du bandeau.
-  Widget _bubblesRow() {
+  /// Rangée de bulles (style stories) : « Quoi faire ce soir » + les médias
+  /// locaux (journal / radio) de la ville sélectionnée. Une ville sans média
+  /// n'affiche que la 1re bulle.
+  Widget _bubblesRow(List<CityMedia> media) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
       child: Row(
@@ -113,34 +119,40 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
               ),
             ),
           ),
-          _bubble(
-            label: 'La Dépêche du Midi',
-            external: true,
-            onTap: () => _openUrl('https://www.ladepeche.fr'),
-            child: ColoredBox(
-              color: const Color(0xFFED1C24),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Image.asset('assets/images/depeche-midi.png', fit: BoxFit.contain),
-              ),
-            ),
-          ),
-          _bubble(
-            label: 'Toulouse FM',
-            external: true,
-            onTap: () => _openUrl('https://www.toulousefm.fr'),
-            child: ColoredBox(
-              color: const Color(0xFFEE0F8B),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Image.asset('assets/images/toulouse-fm.png', fit: BoxFit.contain),
-              ),
-            ),
-          ),
+          for (final m in media) _mediaBubble(m),
         ],
       ),
     );
   }
+
+  /// Bulle d'un média local (journal/radio) : logo sur son fond + lien externe.
+  Widget _mediaBubble(CityMedia m) {
+    final hasLogo = m.logoUrl.startsWith('http');
+    return _bubble(
+      label: m.nom,
+      external: m.url.isNotEmpty,
+      onTap: () {
+        if (m.url.isNotEmpty) _openUrl(m.url);
+      },
+      child: ColoredBox(
+        color: m.bgColor,
+        child: hasLogo
+            ? CachedNetworkImage(
+                imageUrl: m.logoUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorWidget: (_, __, ___) => _mediaFallback(m),
+              )
+            : _mediaFallback(m),
+      ),
+    );
+  }
+
+  Widget _mediaFallback(CityMedia m) => Center(
+        child: Text(m.type == 'radio' ? '📻' : '📰',
+            style: const TextStyle(fontSize: 30)),
+      );
 
   /// Une bulle carrée arrondie + libellé dessous (comme les stories du bandeau).
   Widget _bubble({
