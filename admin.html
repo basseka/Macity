@@ -1051,7 +1051,7 @@
               <div style="display:flex;gap:10px;flex-wrap:wrap;">
                 <div style="flex:1;min-width:150px;">
                   <label class="banner-field-label">Ville hub *</label>
-                  <input type="text" id="cmedia-new-ville" class="banner-input" list="cities-datalist" placeholder="Toulouse" value="Toulouse" />
+                  <select id="cmedia-new-ville" class="banner-input" style="width:100%;margin:0;"></select>
                 </div>
                 <div style="min-width:120px;">
                   <label class="banner-field-label">Type</label>
@@ -1074,7 +1074,7 @@
           </div>
         </div>
         <div style="margin-bottom:10px;">
-          <input type="text" id="cmedia-city-filter" class="banner-input" style="max-width:280px;" list="cities-datalist" placeholder="Filtrer par ville…" />
+          <select id="cmedia-city-filter" class="banner-input" style="max-width:280px;"></select>
         </div>
         <div id="citymedia-loading" class="hidden" style="padding:20px; color:var(--text-faint);">Chargement…</div>
         <div id="citymedia-empty" class="hidden" style="padding:20px; color:var(--text-faint);">Aucun média. Ajoute-en un ci-dessus.</div>
@@ -8760,6 +8760,30 @@
     const citymediaLoadingEl = document.getElementById("citymedia-loading");
     const citymediaEmptyEl = document.getElementById("citymedia-empty");
 
+    // Liste des villes hub (mêmes que le sélecteur de l'app / Inspirations).
+    const HUB_CITIES = [
+      "Aix-en-Provence", "Amiens", "Angers", "Annecy", "Avignon", "Bayonne",
+      "Besancon", "Blois", "Bordeaux", "Brest", "Carcassonne", "Chartres",
+      "Clermont-Ferrand", "Colmar", "Dijon", "Geneve", "Grenoble", "Le Havre",
+      "Le Mans", "Lille", "Lyon", "Marseille", "Metz", "Montpellier", "Nancy",
+      "Nantes", "Nice", "Nimes", "Paris", "Reims", "Rennes", "Rouen",
+      "Saint-Etienne", "Strasbourg", "Toulon", "Toulouse",
+      "Fort-de-France", "Pointe-a-Pitre", "Cayenne", "Saint-Denis", "Mamoudzou",
+    ];
+    // Options <select> ville (ajoute la valeur courante si hors liste).
+    function _hubCityOptions(selected) {
+      const cur = selected || "";
+      const list = (cur && !HUB_CITIES.includes(cur)) ? [cur, ...HUB_CITIES] : HUB_CITIES;
+      return list.map(c =>
+        `<option value="${escapeHtml(c)}"${c === cur ? " selected" : ""}>${escapeHtml(c)}</option>`).join("");
+    }
+    (function fillCmediaCitySelects() {
+      const add = document.getElementById("cmedia-new-ville");
+      if (add) add.innerHTML = _hubCityOptions("Toulouse");
+      const flt = document.getElementById("cmedia-city-filter");
+      if (flt) flt.innerHTML = `<option value="">— Toutes les villes —</option>` + _hubCityOptions("");
+    })();
+
     async function refreshCitymediaView() {
       citymediaLoadingEl.classList.remove("hidden");
       citymediaEmptyEl.classList.add("hidden");
@@ -8807,7 +8831,7 @@
             <div style="flex:1;min-width:240px;">
               <div style="display:flex;gap:10px;flex-wrap:wrap;">
                 <div style="flex:1;min-width:130px;"><label class="banner-field-label">Ville</label>
-                  <input type="text" data-f="ville" class="banner-input" style="width:100%;margin:0;" value="${escapeHtml(m.ville || "")}" list="cities-datalist" /></div>
+                  <select data-f="ville" class="banner-input" style="width:100%;margin:0;">${_hubCityOptions(m.ville)}</select></div>
                 <div style="min-width:110px;"><label class="banner-field-label">Type</label>
                   <select data-f="type" class="banner-input" style="margin:0;"><option value="journal"${m.type !== "radio" ? " selected" : ""}>📰 Journal</option><option value="radio"${m.type === "radio" ? " selected" : ""}>📻 Radio</option></select></div>
               </div>
