@@ -29,6 +29,12 @@ class ReportFormState {
   final bool isLocating;
   final bool isSubmitting;
   final String? error;
+  /// Precision (rayon en metres) de la derniere fix GPS retenue. null tant
+  /// qu'aucune position. Sert a afficher un cercle/indicateur de precision.
+  final double? accuracy;
+  /// true tant que le GPS continue d'affiner la position en arriere-plan
+  /// (le pin peut encore bouger vers un fix plus precis).
+  final bool isRefining;
   /// Story marquee privee : visible uniquement par moi (device UUID).
   /// Utilise pour valider le comportement sans polluer le feed des autres.
   final bool isPrivate;
@@ -45,6 +51,8 @@ class ReportFormState {
     this.isLocating = false,
     this.isSubmitting = false,
     this.error,
+    this.accuracy,
+    this.isRefining = false,
     this.isPrivate = false,
   });
 
@@ -66,6 +74,8 @@ class ReportFormState {
     bool? isLocating,
     bool? isSubmitting,
     String? error,
+    double? accuracy,
+    bool? isRefining,
     bool? isPrivate,
     bool clearError = false,
     bool clearOsmId = false,
@@ -82,6 +92,8 @@ class ReportFormState {
       isLocating: isLocating ?? this.isLocating,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       error: clearError ? null : (error ?? this.error),
+      accuracy: accuracy ?? this.accuracy,
+      isRefining: isRefining ?? this.isRefining,
       isPrivate: isPrivate ?? this.isPrivate,
     );
   }
@@ -91,6 +103,17 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
   ReportFormNotifier(this._svc) : super(const ReportFormState());
 
   final ReportedEventsService _svc;
+
+  /// Flux GPS d'affinage en cours (converge vers le fix satellite le plus
+  /// precis, puis se coupe tout seul). Conserve pour annulation propre.
+  StreamSubscription<Position>? _locSub;
+  Timer? _refineTimer;
+  Timer? _noFixTimer;
+  double _bestAccuracy = double.infinity;
+
+  /// Precision cible (m) : en dessous, on considere le fix satellite atteint
+  /// et on coupe le GPS pour economiser la batterie.
+  static const double _targetAccuracy = 20;
 
   /// Recupere la position GPS courante (auto-locate au open de la modal).
   ///
@@ -132,127 +155,86 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         return;
       }
 
-      // Strategie : on utilise le Fused Provider Android (rapide) mais on
-      // FILTRE les fixes par precision pour eliminer la triangulation
-      // wifi/cellulaire qui peut placer l'user a la derniere position wifi
-      // connue de Google (ex: "rue de Dakar Toulouse" alors que l'user est
-      // a Beaupuy). Une vraie fix GPS satellite est < 50m ; une fix
-      // wifi/cell typique est 200-2000m.
-      // `high` (pas `best`) : un fix arrive beaucoup plus vite, precision
-      // largement suffisante pour situer un lieu (le user ajuste au besoin
-      // avec le pin draggable).
+      // Strategie « affiche vite, affine ensuite » : on montre immediatement
+      // une position approximative (lastKnown / 1er fix) pour ne pas bloquer
+      // l'UI, MAIS on garde le flux GPS ouvert et on met le pin a jour a
+      // chaque fix PLUS PRECIS, jusqu'a atteindre le fix satellite (<20m) ou
+      // 22s max. C'est la cle de la precision : avant, on coupait au 1er fix
+      // <120m (souvent un fix wifi/cell a 60-120m) et on ne voyait jamais le
+      // vrai fix satellite qui arrive 3-8s plus tard.
       const settings = LocationSettings(
-        accuracy: LocationAccuracy.high,
+        accuracy: LocationAccuracy.best,
         distanceFilter: 0,
       );
 
-      // PRIORITE 1 : seed UI avec lastKnown s'il a moins de 5 min.
-      // On accepte meme une fix imprecise (wifi/cell ~500m) car la
-      // localisation grossiere est mieux que rien : le user peut
-      // ajuster avec le pin draggable, et le stream/refine continuent
-      // d'affiner en background. Refus uniquement si TROP vieux (>30min)
-      // ou totalement aberrant (>10km de precision).
-      Position? seed;
+      _bestAccuracy = double.infinity;
+
+      // Seed UI avec lastKnown (age <30min, acc <10km) : localisation grossiere
+      // immediate, mieux que "Localisation en cours...". Le flux l'affinera.
       try {
         final lk = await Geolocator.getLastKnownPosition();
         if (lk != null) {
-          final ageSec = DateTime.now()
-              .difference(lk.timestamp.toLocal())
-              .inSeconds;
+          final ageSec =
+              DateTime.now().difference(lk.timestamp.toLocal()).inSeconds;
           if (ageSec < 1800 && lk.accuracy < 10000) {
-            seed = lk;
-            debugPrint('[ReportForm] seed lastKnown: ${lk.latitude},${lk.longitude} (age=${ageSec}s, acc=${lk.accuracy}m)');
-            // On affiche immediatement la position seed pour que l'UI
-            // ne reste pas bloquee sur "Localisation en cours..." pendant
-            // que le stream cherche un fix plus precis.
+            _bestAccuracy = lk.accuracy;
+            debugPrint('[ReportForm] seed lastKnown acc=${lk.accuracy}m age=${ageSec}s');
             state = state.copyWith(
               lat: lk.latitude,
               lng: lk.longitude,
+              accuracy: lk.accuracy,
               isLocating: false,
+              isRefining: true,
             );
             _reverseGeocode(lk.latitude, lk.longitude);
-          } else {
-            debugPrint('[ReportForm] lastKnown rejete (age=${ageSec}s, acc=${lk.accuracy}m)');
           }
         }
       } catch (e) {
         debugPrint('[ReportForm] lastKnown failed: $e');
       }
 
-      // PRIORITE 2 : stream, premiere fix < 120m gagne (assez precis pour un
-      // lieu, et atteignable en interieur — un fix < 50m n'arrive quasi
-      // jamais en intra muros et faisait timeout a chaque fois).
-      Position? bestFix = seed;
-      final completer = Completer<Position>();
-      late StreamSubscription<Position> sub;
-      sub = Geolocator.getPositionStream(locationSettings: settings).listen((pos) {
-        debugPrint('[ReportForm] stream fix: ${pos.latitude},${pos.longitude} (acc=${pos.accuracy}m)');
-        if (bestFix == null || pos.accuracy < bestFix!.accuracy) {
-          bestFix = pos;
-        }
-        if (pos.accuracy < 120 && !completer.isCompleted) {
-          completer.complete(pos);
-        }
-      }, onError: (e) {
-        debugPrint('[ReportForm] stream error: $e');
-      },);
-
-      try {
-        final fix = await completer.future
-            .timeout(const Duration(seconds: 6));
-        await sub.cancel();
-        debugPrint('[ReportForm] fix accepte: ${fix.latitude},${fix.longitude} (acc=${fix.accuracy}m)');
-        state = state.copyWith(
-          lat: fix.latitude,
-          lng: fix.longitude,
-          isLocating: false,
-        );
-        _reverseGeocode(fix.latitude, fix.longitude);
-        return;
-      } on TimeoutException {
-        await sub.cancel();
-        // Pas de fix < 120m en 6s. On garde la meilleure recue MEME si
-        // imprecise (mieux que "GPS indisponible"). User peut bouger le
-        // pin manuellement dans le draggable map.
-        if (bestFix != null) {
-          debugPrint('[ReportForm] timeout, best fix gardee: acc=${bestFix!.accuracy}m');
+      // Flux convergent : chaque fix strictement plus precis remplace le pin.
+      await _locSub?.cancel();
+      _locSub = Geolocator.getPositionStream(locationSettings: settings).listen(
+        (pos) {
+          if (pos.accuracy >= _bestAccuracy) return; // fix moins bon : ignore
+          _bestAccuracy = pos.accuracy;
+          _noFixTimer?.cancel();
+          debugPrint('[ReportForm] fix affine acc=${pos.accuracy}m');
           state = state.copyWith(
-            lat: bestFix!.latitude,
-            lng: bestFix!.longitude,
+            lat: pos.latitude,
+            lng: pos.longitude,
+            accuracy: pos.accuracy,
             isLocating: false,
+            isRefining: true,
           );
-          _reverseGeocode(bestFix!.latitude, bestFix!.longitude);
-          _refinePosition();
-          return;
-        }
-      }
-
-      // PRIORITE 3 (ultime fallback) : getCurrentPosition direct.
-      // Si meme le stream n'a rien delivre, on tente un dernier appel
-      // synchrone avec accuracy reduite. Mieux que "GPS indisponible".
-      try {
-        final pos = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-            timeLimit: Duration(seconds: 10),
-          ),
-        );
-        debugPrint('[ReportForm] fallback getCurrent: ${pos.latitude},${pos.longitude} (acc=${pos.accuracy}m)');
-        state = state.copyWith(
-          lat: pos.latitude,
-          lng: pos.longitude,
-          isLocating: false,
-        );
-        _reverseGeocode(pos.latitude, pos.longitude);
-        return;
-      } catch (e) {
-        debugPrint('[ReportForm] fallback getCurrent failed: $e');
-      }
-
-      state = state.copyWith(
-        isLocating: false,
-        error: 'GPS indisponible. Sors a l\'exterieur et reessaie.',
+          // Fix satellite atteint : inutile de continuer a drainer le GPS.
+          if (pos.accuracy <= _targetAccuracy) {
+            _stopRefine(geocode: true);
+          }
+        },
+        onError: (e) => debugPrint('[ReportForm] stream error: $e'),
       );
+
+      // Garde-fou batterie : on coupe l'affinage apres 22s quoi qu'il arrive
+      // (on garde alors la meilleure fix recue).
+      _refineTimer?.cancel();
+      _refineTimer = Timer(const Duration(seconds: 22), () {
+        debugPrint('[ReportForm] refine timeout, best acc=${_bestAccuracy}m');
+        _stopRefine(geocode: true);
+      });
+
+      // Si AUCUNE fix n'arrive en 12s ET pas de seed : message d'erreur.
+      _noFixTimer?.cancel();
+      _noFixTimer = Timer(const Duration(seconds: 12), () {
+        if (state.lat == null) {
+          _stopRefine(geocode: false);
+          state = state.copyWith(
+            isLocating: false,
+            error: 'GPS indisponible. Sors a l\'exterieur et reessaie.',
+          );
+        }
+      });
     } catch (e) {
       debugPrint('[ReportForm] location error: $e');
       state = state.copyWith(
@@ -262,18 +244,29 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
     }
   }
 
-  /// Affine la position en background (non-bloquant).
-  Future<void> _refinePosition() async {
-    try {
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 8),
-        ),
-      );
-      state = state.copyWith(lat: pos.latitude, lng: pos.longitude);
-      _reverseGeocode(pos.latitude, pos.longitude);
-    } catch (_) {}
+  /// Coupe le flux d'affinage GPS (fix satellite atteint, timeout, submit,
+  /// pin deplace manuellement ou dispose). Idempotent.
+  void _stopRefine({bool geocode = false}) {
+    _refineTimer?.cancel();
+    _refineTimer = null;
+    _noFixTimer?.cancel();
+    _noFixTimer = null;
+    _locSub?.cancel();
+    _locSub = null;
+    if (state.isRefining) {
+      state = state.copyWith(isRefining: false);
+      if (geocode && state.lat != null && state.lng != null) {
+        _reverseGeocode(state.lat!, state.lng!);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _locSub?.cancel();
+    _refineTimer?.cancel();
+    _noFixTimer?.cancel();
+    super.dispose();
   }
 
   void setCategory(String c) => state = state.copyWith(category: c);
@@ -281,8 +274,12 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
   void setLocationName(String n) => state = state.copyWith(locationName: n);
   void setVideo(String path) => state = state.copyWith(localVideoPath: path);
   void setIsPrivate(bool v) => state = state.copyWith(isPrivate: v);
-  void setPin(double lat, double lng) =>
-      state = state.copyWith(lat: lat, lng: lng);
+  void setPin(double lat, double lng) {
+    // L'user positionne le pin a la main : il prend le controle, on arrete
+    // l'affinage auto pour ne pas ecraser son choix avec une fix suivante.
+    _stopRefine();
+    state = state.copyWith(lat: lat, lng: lng, accuracy: 0, isRefining: false);
+  }
 
   /// Reverse geocode via Nominatim (OSM, gratuit, sans cle API).
   /// Retourne le nom du lieu le plus proche (bar, rue, place, etc.).
@@ -385,6 +382,9 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
       state = state.copyWith(error: 'GPS pas encore pret, patiente...');
       return null;
     }
+    // Fige la position soumise : on coupe l'affinage pour ne pas publier une
+    // coordonnee differente de celle que l'user voit a l'ecran.
+    _stopRefine();
     state = state.copyWith(isSubmitting: true, clearError: true);
     // Defaults : l'UI Story Map Live n'expose plus titre ni categorie, mais
     // l'edge function `generate-event-poster` les attend non vides
