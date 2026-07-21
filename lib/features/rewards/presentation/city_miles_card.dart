@@ -99,6 +99,24 @@ class CityMilesCard extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+              decoration: BoxDecoration(
+                color: const Color(0x0FE91E8C),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '📸 1 story publiée = 1 City-Mile',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.geist(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _ink.withValues(alpha: 0.75),
+                ),
+              ),
+            ),
             for (final c in s.unopened) ...[
               const SizedBox(height: 12),
               _couponButton(context, ref, c),

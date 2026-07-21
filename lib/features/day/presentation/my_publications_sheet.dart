@@ -401,17 +401,20 @@ class MyPublicationsSheet extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(ctx);
               final messenger = ScaffoldMessenger.of(context);
-              final ok = await ReportedEventsService().deleteMyStory(story.id);
-              if (ok) {
-                ref.invalidate(myStoriesProvider);
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('Story supprimee')),
-                );
-              } else {
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('Suppression impossible, reessaye')),
-                );
+              bool ok = false;
+              try {
+                ok = await ReportedEventsService().deleteMyStory(story.id);
+              } catch (_) {
+                ok = false;
               }
+              ref.invalidate(myStoriesProvider);
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ok ? 'Story supprimee' : 'Suppression impossible, reessaye',
+                  ),
+                ),
+              );
             },
             child: Text(
               'Supprimer',
