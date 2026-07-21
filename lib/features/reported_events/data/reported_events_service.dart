@@ -22,7 +22,14 @@ import 'package:pulz_app/features/reported_events/domain/models/reported_event.d
 class ReportSubmitResult {
   final String id;
   final int photoFailures;
-  const ReportSubmitResult({required this.id, this.photoFailures = 0});
+  /// true = la story n'a PAS ete envoyee tout de suite (hors reseau) : elle a
+  /// ete mise en file d'attente et partira automatiquement au retour du reseau.
+  final bool queued;
+  const ReportSubmitResult({
+    required this.id,
+    this.photoFailures = 0,
+    this.queued = false,
+  });
 }
 
 /// Levee quand aucun media n'a pu etre uploade (reseau/compression/timeout).

@@ -11,6 +11,7 @@ import 'package:pulz_app/features/day/presentation/create_event/create_event_pag
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
+import 'package:pulz_app/features/reported_events/state/story_outbox_provider.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 import 'package:pulz_app/features/rewards/presentation/city_miles_card.dart';
 
@@ -91,6 +92,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                 (storiesAsync.valueOrNull?.length ?? 0),
           ),
           const CityMilesCard(),
+          _buildPendingBanner(context, ref),
           const Divider(height: 1),
           Flexible(
             child: _buildBody(context, ref, eventsAsync, storiesAsync),
@@ -321,6 +323,59 @@ class MyPublicationsSheet extends ConsumerWidget {
             style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Banniere « stories en attente d'envoi » (buffer offline). Masquee si la
+  /// file est vide. Bouton pour forcer une tentative d'envoi immediate.
+  Widget _buildPendingBanner(BuildContext context, WidgetRef ref) {
+    final pending = ref.watch(storyOutboxProvider);
+    if (pending.isEmpty) return const SizedBox.shrink();
+    final n = pending.length;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0x142D6A8E),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0x332D6A8E)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_upload_outlined,
+                size: 18, color: Color(0xFF2D6A8E)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                n == 1
+                    ? '1 story en attente de reseau'
+                    : '$n stories en attente de reseau',
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A2E),
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () =>
+                  ref.read(storyOutboxProvider.notifier).flushNow(),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF2D6A8E),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                minimumSize: const Size(0, 32),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Envoyer',
+                style: GoogleFonts.poppins(
+                    fontSize: 12.5, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

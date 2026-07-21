@@ -105,6 +105,26 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
     final result = await notifier.submit();
     if (!mounted) return;
     if (result != null) {
+      final messenger = ScaffoldMessenger.of(context);
+
+      // Hors-ligne : la story est en file d'attente, rien a rafraichir dans le
+      // feed (elle partira au retour du reseau).
+      if (result.queued) {
+        Navigator.of(context).pop();
+        messenger.showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFF2D6A8E),
+            content: Text(
+              '📥 Pas de reseau : ta story partira des qu\'il revient',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+
       // Invalide le feed pour recharger apres ~3s (le temps que l'edge function finisse)
       Future.delayed(const Duration(seconds: 3), () {
         ref.invalidate(reportedEventsFeedProvider);
@@ -112,7 +132,6 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
       // Et un refresh immediat aussi pour voir le placeholder shimmer
       ref.invalidate(reportedEventsFeedProvider);
       Navigator.of(context).pop();
-      final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFF7B2D8E),

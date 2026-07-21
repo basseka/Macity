@@ -4,8 +4,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:pulz_app/core/network/network_info.dart';
 import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
+import 'package:pulz_app/features/reported_events/state/story_outbox_provider.dart';
 
 /// Nombre max de photos par signalement. Au-dela, l'UX devient lourde et
 /// les uploads mobiles prennent trop de temps.
@@ -100,9 +102,10 @@ class ReportFormState {
 }
 
 class ReportFormNotifier extends StateNotifier<ReportFormState> {
-  ReportFormNotifier(this._svc) : super(const ReportFormState());
+  ReportFormNotifier(this._svc, this._ref) : super(const ReportFormState());
 
   final ReportedEventsService _svc;
+  final Ref _ref;
 
   /// Flux GPS d'affinage en cours (converge vers le fix satellite le plus
   /// precis, puis se coupe tout seul). Conserve pour annulation propre.
@@ -402,6 +405,14 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
         'category="$category" title="$rawTitle" '
         'photos=${state.localPhotoPaths.length} '
         'video=${state.localVideoPath != null}');
+
+    // Hors-ligne : on met directement en file d'attente (pas d'upload voue a
+    // l'echec). La story partira automatiquement au retour du reseau.
+    final online = await NetworkInfo().isConnected;
+    if (!online) {
+      return _enqueueOffline(category, rawTitle);
+    }
+
     try {
       final result = await _svc.reportEvent(
         category: category,
@@ -419,14 +430,44 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
       // On reset apres succes
       state = const ReportFormState();
       return result;
+    } on NoMediaUploadedException {
+      // Reseau redevenu KO en plein upload : plutot que d'echouer, on bascule
+      // en file d'attente pour un envoi automatique plus tard.
+      debugPrint('[ReportForm] upload KO -> mise en file d\'attente');
+      return _enqueueOffline(category, rawTitle);
     } catch (e) {
       debugPrint('[ReportForm] submit error: $e');
-      final isMediaFail = e is NoMediaUploadedException;
       state = state.copyWith(
         isSubmitting: false,
-        error: isMediaFail
-            ? "Echec de l'envoi du media, verifie ta connexion et reessaie"
-            : 'Echec du signalement, reessaie',
+        error: 'Echec du signalement, reessaie',
+      );
+      return null;
+    }
+  }
+
+  /// Met la story courante en file d'attente offline et reset le formulaire.
+  /// Renvoie un [ReportSubmitResult] avec `queued: true`.
+  Future<ReportSubmitResult?> _enqueueOffline(
+      String category, String rawTitle) async {
+    try {
+      final pending = await _ref.read(storyOutboxProvider.notifier).enqueue(
+            category: category,
+            rawTitle: rawTitle,
+            lat: state.lat!,
+            lng: state.lng!,
+            localPhotoPaths: state.localPhotoPaths,
+            localVideoPath: state.localVideoPath,
+            locationName: state.locationName.trim(),
+            osmId: state.osmId,
+            isPrivate: state.isPrivate,
+          );
+      state = const ReportFormState();
+      return ReportSubmitResult(id: pending.id, queued: true);
+    } catch (e) {
+      debugPrint('[ReportForm] enqueue offline failed: $e');
+      state = state.copyWith(
+        isSubmitting: false,
+        error: 'Impossible de mettre la story en attente, reessaie',
       );
       return null;
     }
@@ -435,5 +476,5 @@ class ReportFormNotifier extends StateNotifier<ReportFormState> {
 
 final reportFormProvider =
     StateNotifierProvider.autoDispose<ReportFormNotifier, ReportFormState>(
-  (ref) => ReportFormNotifier(ref.read(reportedEventsServiceProvider)),
+  (ref) => ReportFormNotifier(ref.read(reportedEventsServiceProvider), ref),
 );

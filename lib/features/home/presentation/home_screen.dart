@@ -16,6 +16,7 @@ import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/home/presentation/widgets/discovery_buttons.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
+import 'package:pulz_app/features/reported_events/state/story_outbox_provider.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_legend.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
@@ -49,6 +50,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // Lazy: ne precharger les banners que quand on les affiche
     ref.watch(activeBannersProvider);
+
+    // Garde la file d'attente des stories offline vivante : elle ecoute le
+    // retour du reseau / la reprise de l'app pour envoyer automatiquement.
+    ref.watch(storyOutboxProvider);
 
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
     return PopScope(
