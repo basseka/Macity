@@ -108,6 +108,17 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
         _minZoom = 1.0;
         _maxZoom = 1.0;
       }
+      // Stabilisation video native (EIS) : reduit le tremblement/tangage des
+      // stories filmees a la main. allowFallback (defaut) applique le MEILLEUR
+      // mode supporte par l'appareil, et no-op si aucun -> sans risque.
+      // iOS = AVCaptureConnection.preferredVideoStabilizationMode ;
+      // Android = CameraX video stabilization. Non supporte par certaines
+      // cameras frontales : le fallback gere ce cas silencieusement.
+      try {
+        await _camCtrl!.setVideoStabilizationMode(VideoStabilizationMode.level3);
+      } catch (e) {
+        debugPrint('[SnapCamera] stabilisation video non dispo: $e');
+      }
       if (mounted) setState(() => _isReady = true);
     } catch (e) {
       debugPrint('[SnapCamera] init failed: $e');
