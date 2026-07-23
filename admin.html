@@ -5755,9 +5755,10 @@
             <span>Objectif ${obj.toLocaleString("fr-FR")}</span>
           </div>
           ${_renderObjectiveCurve(total, s.par_jour || [])}
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:16px;">
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-top:16px;">
             ${_statCard("Aujourd'hui", (s.aujourdhui || 0), "nouvelles inscriptions")}
-            ${_statCard("7 derniers jours", (s.total_7j || 0), `${((s.total_7j || 0) / 7).toFixed(1)} / jour en moy.`)}
+            ${_statCard("10 derniers jours", (s.total_10j || 0), `${((s.total_10j || 0) / 10).toFixed(1)} / jour en moy.`)}
+            ${_statCard("20 derniers jours", (s.total_20j || 0), `${((s.total_20j || 0) / 20).toFixed(1)} / jour en moy.`)}
             ${_statCard("30 derniers jours", (s.total_30j || 0), `${((s.total_30j || 0) / 30).toFixed(1)} / jour en moy.`)}
           </div>
         </div>`;
