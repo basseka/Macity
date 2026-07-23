@@ -319,7 +319,7 @@
     }
     .cat-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
     .cat {
@@ -364,14 +364,48 @@
       z-index: 1;
       text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
     }
-    .cat-concert  { background-image: url('assets/images/pochette_concert.png'); }
-    .cat-sport    { background-image: url('assets/images/home_bg_sport.jpg'); }
-    .cat-culture  { background-image: url('assets/images/pochette_culture_art.png'); }
-    .cat-nuit     { background-image: url('assets/images/home_bg_night.jpg'); }
-    .cat-food     { background-image: url('assets/images/pochette_food.png'); }
+    .cat-food     { background-image: url('assets/images/site_food.webp'); }
     .cat-famille  { background-image: url('assets/images/pochette_enfamille.jpg'); }
-    .cat-gaming   { background-image: url('assets/images/pochette_gaming.jpg'); }
-    .cat-tourisme { background-image: url('assets/images/pochette_tourime.png'); }
+    .cat-culture  { background-image: url('assets/images/site_culture.webp'); }
+    .cat-sport    { background-image: url('assets/images/home_bg_sport.jpg'); }
+    .cat-night    { background-image: url('assets/images/site_night.webp'); }
+    .cat-evasion  { background-image: url('assets/images/site_evasion.webp'); }
+
+    /* ===== OFFRES PARTENAIRES ===== */
+    .offres-banner {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 20px;
+      padding: 24px 28px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #FFF6DA 0%, #FFE3F1 100%);
+      border: 1px solid rgba(255, 213, 79, 0.5);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .offres-banner:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(233, 30, 99, 0.14);
+    }
+    .offres-icon {
+      width: 60px;
+      height: 60px;
+      flex-shrink: 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--yellow) 0%, #FFB300 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      box-shadow: 0 8px 20px rgba(255, 179, 0, 0.35);
+    }
+    .offres-text h3 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
+    .offres-text p { color: var(--muted); font-size: 15px; }
+    .offres-arrow { margin-left: auto; font-size: 24px; color: var(--pink); font-weight: 800; flex-shrink: 0; }
+    @media (max-width: 600px) {
+      .offres-arrow { display: none; }
+      .offres-banner { gap: 16px; padding: 20px; }
+    }
 
     /* ===== MAP LIVE ===== */
     .maplive {
@@ -500,6 +534,134 @@
     footer a { color: var(--muted); }
     footer a:hover { color: var(--purple); }
 
+    /* ===== BADGES STORES ===== */
+    .store-badges {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      background: #111;
+      color: #fff;
+      border-radius: 13px;
+      padding: 11px 20px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+    .store-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+    }
+    .store-btn svg { width: 26px; height: 26px; flex-shrink: 0; }
+    .store-btn span { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+    .store-btn small { font-size: 11px; opacity: 0.82; font-weight: 500; letter-spacing: 0.2px; }
+    .store-btn strong { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+
+    /* ===== SOCIAL PROOF ===== */
+    .social-proof {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      background: rgba(142, 36, 170, 0.06);
+      border: 1px solid rgba(142, 36, 170, 0.12);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+    .social-proof .stars { color: #FFB300; letter-spacing: 1px; font-size: 13px; }
+    .social-proof strong { color: var(--purple-dark); font-weight: 800; }
+
+    /* ===== TRUST ===== */
+    .hero-trust {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+    .hero-trust span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .hero-trust span::before {
+      content: '✓';
+      color: var(--pink);
+      font-weight: 900;
+      font-size: 15px;
+    }
+
+    /* ===== STATS STRIP ===== */
+    .stats {
+      background: #fff;
+      border-top: 1px solid rgba(142, 36, 170, 0.06);
+      border-bottom: 1px solid rgba(142, 36, 170, 0.06);
+      padding: 40px 24px;
+    }
+    .stats-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 900;
+      letter-spacing: -1px;
+      background: linear-gradient(90deg, var(--purple) 0%, var(--pink) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+    .stat-label {
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ===== MOBILE STICKY BAR ===== */
+    .mobile-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 60;
+      display: none;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-top: 1px solid rgba(142, 36, 170, 0.12);
+      box-shadow: 0 -8px 28px rgba(142, 36, 170, 0.14);
+    }
+    .mobile-bar a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 15px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+      box-shadow: 0 8px 22px rgba(142, 36, 170, 0.38);
+    }
+
     /* ===== RESPONSIVE ===== */
     @media (max-width: 900px) {
       .hero-inner { grid-template-columns: 1fr; gap: 40px; }
@@ -509,13 +671,20 @@
       .cat-grid { grid-template-columns: repeat(2, 1fr); }
       .maplive-body { grid-template-columns: 1fr; gap: 40px; }
       .maplive-body img { max-width: 280px; margin: 0 auto; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); gap: 28px 16px; }
       section { padding: 60px 24px; }
       .hero { padding: 60px 24px 40px; }
+      .mobile-bar { display: block; }
+      body { padding-bottom: 80px; }
+      .store-badges { justify-content: center; }
+      .hero-trust { justify-content: center; }
     }
     @media (max-width: 480px) {
       .nav-cta { padding: 8px 14px; font-size: 13px; }
       .hero-ctas { flex-direction: column; align-items: stretch; }
       .hero-ctas .btn { justify-content: center; }
+      .store-badges { flex-direction: column; align-items: stretch; }
+      .store-btn { justify-content: center; }
     }
   </style>
 </head>
@@ -544,9 +713,24 @@
         <p class="hero-sub">
           Concerts, sport, resto, sorties nocturnes, expos, bons plans… MaCity rassemble tous les événements et lieux qui font vibrer ta ville, dans une seule app.
         </p>
-        <div class="hero-ctas">
-          <a href="download.html" class="btn btn-primary">Télécharger l'app</a>
-          <a href="#philo" class="btn btn-ghost">Découvrir →</a>
+        <div class="store-badges">
+          <a class="store-btn" href="https://apps.apple.com/app/macity-app/id6778110272" aria-label="Télécharger sur l'App Store">
+            <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+            <span><small>Télécharger sur</small><strong>App Store</strong></span>
+          </a>
+          <a class="store-btn" href="https://play.google.com/store/apps/details?id=com.macity.app" aria-label="Disponible sur Google Play">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00E0FF" d="M3.9 2.6c-.3.3-.4.7-.4 1.3v16.2c0 .6.2 1 .5 1.3l.1.1L13 12.1v-.2L4.1 2.5z"/><path fill="#FFCE00" d="M16 15.1l-3-3v-.2l3-3 .1.1 3.5 2c1 .6 1 1.5 0 2.1l-3.6 2z"/><path fill="#FF3A44" d="M16.1 15L13 11.9 3.9 21.4c.4.4 1 .4 1.6.1L16.1 15z"/><path fill="#00C853" d="M16.1 9L5.5 2.5c-.6-.3-1.2-.3-1.6.1L13 11.9 16.1 9z"/></svg>
+            <span><small>Disponible sur</small><strong>Google Play</strong></span>
+          </a>
+        </div>
+        <div class="social-proof">
+          <span class="stars">★★★★★</span>
+          <span>Déjà <strong>5 000 téléchargements</strong></span>
+        </div>
+        <div class="hero-trust">
+          <span>Gratuit</span>
+          <span>Sans pub intrusive</span>
+          <span>Sans inscription obligatoire</span>
         </div>
       </div>
       <div class="phone-wrap">
@@ -557,6 +741,28 @@
       </div>
     </div>
   </header>
+
+  <!-- ===== STATS ===== -->
+  <section class="stats">
+    <div class="stats-inner">
+      <div>
+        <div class="stat-num">6</div>
+        <div class="stat-label">rubriques de sorties</div>
+      </div>
+      <div>
+        <div class="stat-num">Live</div>
+        <div class="stat-label">la Map en temps réel</div>
+      </div>
+      <div>
+        <div class="stat-num">🎁</div>
+        <div class="stat-label">offres partenaires exclusives</div>
+      </div>
+      <div>
+        <div class="stat-num">5 000+</div>
+        <div class="stat-label">téléchargements déjà</div>
+      </div>
+    </div>
+  </section>
 
   <!-- ===== PHILO ===== -->
   <section class="philo" id="philo">
@@ -597,39 +803,41 @@
       </div>
 
       <div class="cat-grid">
-        <div class="cat cat-concert">
-          <h3>Concert</h3>
-          <p>Scènes, festivals, spectacles</p>
-        </div>
-        <div class="cat cat-sport">
-          <h3>Sport</h3>
-          <p>Matchs, salles, événements</p>
-        </div>
-        <div class="cat cat-culture">
-          <h3>Culture</h3>
-          <p>Musées, théâtre, expos</p>
-        </div>
-        <div class="cat cat-nuit">
-          <h3>Nuit</h3>
-          <p>Bars, clubs, soirées</p>
-        </div>
         <div class="cat cat-food">
           <h3>Food</h3>
           <p>Restos, brunchs, bonnes tables</p>
         </div>
         <div class="cat cat-famille">
           <h3>Famille</h3>
-          <p>Parcs, cinéma, jeux</p>
+          <p>Parcs, activités, sorties enfants</p>
         </div>
-        <div class="cat cat-gaming">
-          <h3>Gaming</h3>
-          <p>Arcade, VR, mangas</p>
+        <div class="cat cat-culture">
+          <h3>Culture</h3>
+          <p>Musées, théâtre, expos</p>
         </div>
-        <div class="cat cat-tourisme">
-          <h3>Tourisme</h3>
-          <p>Visites, balades, découvertes</p>
+        <div class="cat cat-sport">
+          <h3>Sport</h3>
+          <p>Matchs, salles, événements</p>
+        </div>
+        <div class="cat cat-night">
+          <h3>Night</h3>
+          <p>Bars, clubs, soirées</p>
+        </div>
+        <div class="cat cat-evasion">
+          <h3>Évasion</h3>
+          <p>Visites, balades, escapades</p>
         </div>
       </div>
+
+      <!-- Offres partenaires -->
+      <a class="offres-banner" href="download.html">
+        <div class="offres-icon">🎁</div>
+        <div class="offres-text">
+          <h3>Offres partenaires</h3>
+          <p>Les commerces de ta ville partagent leurs bons plans et réductions exclusives directement dans l'app. Profites-en avant tout le monde.</p>
+        </div>
+        <span class="offres-arrow">→</span>
+      </a>
     </div>
   </section>
 
@@ -683,7 +891,16 @@
     <div class="section-inner cta-inner">
       <h2>Prêt à kiffer ta ville ?</h2>
       <p>Télécharge MaCity, choisis ta ville, et laisse-toi guider. C'est gratuit, et ça commence maintenant.</p>
-      <a href="download.html" class="btn btn-primary">Télécharger l'app</a>
+      <div class="store-badges" style="justify-content:center;">
+        <a class="store-btn" href="https://apps.apple.com/app/macity-app/id6778110272" aria-label="Télécharger sur l'App Store">
+          <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+          <span><small>Télécharger sur</small><strong>App Store</strong></span>
+        </a>
+        <a class="store-btn" href="https://play.google.com/store/apps/details?id=com.macity.app" aria-label="Disponible sur Google Play">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00E0FF" d="M3.9 2.6c-.3.3-.4.7-.4 1.3v16.2c0 .6.2 1 .5 1.3l.1.1L13 12.1v-.2L4.1 2.5z"/><path fill="#FFCE00" d="M16 15.1l-3-3v-.2l3-3 .1.1 3.5 2c1 .6 1 1.5 0 2.1l-3.6 2z"/><path fill="#FF3A44" d="M16.1 15L13 11.9 3.9 21.4c.4.4 1 .4 1.6.1L16.1 15z"/><path fill="#00C853" d="M16.1 9L5.5 2.5c-.6-.3-1.2-.3-1.6.1L13 11.9 16.1 9z"/></svg>
+          <span><small>Disponible sur</small><strong>Google Play</strong></span>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -695,6 +912,11 @@
     </div>
     <p><a href="https://macity.app">macity.app</a> · <a href="mailto:contact@macity.app">contact@macity.app</a></p>
   </footer>
+
+  <!-- ===== BARRE TÉLÉCHARGEMENT MOBILE (collante) ===== -->
+  <div class="mobile-bar">
+    <a href="download.html">⬇ Télécharger MaCity — c'est gratuit</a>
+  </div>
 
 </body>
 </html>
