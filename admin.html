@@ -2216,7 +2216,7 @@
       <!-- ═══ VUE STATS UTILISATEURS ═══ -->
       <div id="userstats-view" class="hidden">
         <h1>👥 Utilisateurs</h1>
-        <p class="subtitle">Statistiques agrégées des profils (<code>user_profiles</code>) : volume, complétion, répartition par ville et centres d'intérêt. Aucune donnée perso affichée.</p>
+        <p class="subtitle">Statistiques agrégées des profils (<code>user_profiles</code>) + utilisateurs anonymes « Explorer sans compte » (<code>app_entries</code>) : volume total, complétion, répartition par ville et centres d'intérêt. Aucune donnée perso affichée.</p>
         <div style="display:flex; gap:8px; margin:16px 0;">
           <button type="button" class="banner-save-btn" id="userstats-refresh-btn" style="background:rgba(255,255,255,0.08); color:var(--text);">↺ Rafraîchir</button>
         </div>
@@ -2229,8 +2229,8 @@
 
           <!-- Inscriptions par jour (30 derniers jours) -->
           <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
-            <h2 style="font-size:15px; margin:0 0 4px;">📈 Inscriptions par jour</h2>
-            <p class="subtitle" style="margin:0 0 12px;">30 derniers jours (<code>user_profiles.created_at</code>, fuseau Paris).</p>
+            <h2 style="font-size:15px; margin:0 0 4px;">📈 Entrées par jour</h2>
+            <p class="subtitle" style="margin:0 0 12px;">30 derniers jours, fuseau Paris. Barres empilées : inscrits (<code>user_profiles.created_at</code>) + anonymes (<code>app_entries.entered_at</code>).</p>
             <div id="userstats-daily"></div>
           </div>
 
@@ -5780,29 +5780,42 @@
         </div>`;
     }
 
-    // Graphe en barres des inscriptions par jour (SVG, sans dépendance).
-    function _renderDaily(rows) {
-      if (!rows || rows.length === 0)
+    // Graphe en barres EMPILÉES par jour (SVG) : inscrits (magenta) + anonymes
+    // (violet clair). regRows/anonRows = mêmes 30 jours alignés par index.
+    function _renderDaily(regRows, anonRows) {
+      regRows = regRows || [];
+      anonRows = anonRows || [];
+      if (regRows.length === 0)
         return `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée.</div>`;
-      const W = 720, H = 200, padL = 34, padB = 26, padT = 10;
-      const n = rows.length;
-      const maxN = Math.max(1, ...rows.map(r => r.n || 0));
+      const W = 720, H = 210, padL = 34, padB = 26, padT = 10;
+      const n = regRows.length;
+      const anonAt = (i) => (anonRows[i] && (anonRows[i].n || 0)) || 0;
+      const maxN = Math.max(1, ...regRows.map((r, i) => (r.n || 0) + anonAt(i)));
       const plotW = W - padL - 8, plotH = H - padT - padB;
       const bw = plotW / n;
-      const bars = rows.map((r, i) => {
+      const baseY = padT + plotH;
+      const bars = regRows.map((r, i) => {
         const x = padL + i * bw;
-        const h = (r.n || 0) / maxN * plotH;
-        const y = padT + plotH - h;
-        const d = r.jour ? r.jour.slice(8, 10) : "";
-        // Étiquette de date 1 jour sur 5 (lisibilité).
+        const reg = r.n || 0, anon = anonAt(i), tot = reg + anon;
+        const hReg = reg / maxN * plotH;
+        const hAnon = anon / maxN * plotH;
+        const yReg = baseY - hReg;
+        const yAnon = yReg - hAnon;
+        const rw = Math.max(1, bw - 2).toFixed(1);
+        const xr = (x + 1).toFixed(1);
+        const regRect = reg > 0
+          ? `<rect x="${xr}" y="${yReg.toFixed(1)}" width="${rw}" height="${hReg.toFixed(1)}" rx="2" fill="#E91E8C"><title>${r.jour} · inscrits : ${reg}</title></rect>`
+          : "";
+        const anonRect = anon > 0
+          ? `<rect x="${xr}" y="${yAnon.toFixed(1)}" width="${rw}" height="${hAnon.toFixed(1)}" rx="2" fill="#b794f6"><title>${r.jour} · anonymes : ${anon}</title></rect>`
+          : "";
         const lbl = (i % 5 === 0 || i === n - 1)
           ? `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 8}" fill="#8a8a99" font-size="9" text-anchor="middle">${r.jour ? r.jour.slice(5) : ""}</text>`
           : "";
-        const cnt = (r.n || 0) > 0
-          ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(y - 3).toFixed(1)}" fill="#c9b8e8" font-size="8.5" text-anchor="middle">${r.n}</text>`
+        const cnt = tot > 0
+          ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(yAnon - 3).toFixed(1)}" fill="#c9b8e8" font-size="8.5" text-anchor="middle">${tot}</text>`
           : "";
-        return `<rect x="${(x + 1).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1, bw - 2).toFixed(1)}" height="${h.toFixed(1)}" rx="2"
-                  fill="url(#usDailyGrad)"><title>${r.jour} : ${r.n}</title></rect>${cnt}${lbl}`;
+        return `${regRect}${anonRect}${cnt}${lbl}`;
       }).join("");
       // Lignes de repère + libellés d'axe Y (0, max/2, max).
       const yTicks = [0, Math.round(maxN / 2), maxN].map(v => {
@@ -5810,10 +5823,11 @@
         return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - 8}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" />
                 <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${v}</text>`;
       }).join("");
-      return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="Inscriptions par jour">
-        <defs><linearGradient id="usDailyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#E91E8C"/><stop offset="1" stop-color="#7c3aed"/>
-        </linearGradient></defs>
+      const legend = `<div style="display:flex; gap:16px; font-size:11px; color:var(--text-dim); margin-bottom:6px;">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#E91E8C;vertical-align:middle;"></span> Inscrits</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#b794f6;vertical-align:middle;"></span> Anonymes</span>
+      </div>`;
+      return `${legend}<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="Entrées par jour (inscrits + anonymes)">
         ${yTicks}${bars}
       </svg>`;
     }
@@ -5826,16 +5840,20 @@
         if (error) throw error;
         const s = data || {};
         const total = s.total || 0;
+        const anonymes = s.anonymes || 0;
+        const totalUsers = s.total_utilisateurs ?? (total + anonymes);
         const pct = (n) => total > 0 ? Math.round((n / total) * 100) : 0;
         document.getElementById("userstats-cards").innerHTML = [
-          _statCard("Profils au total", total, ""),
+          _statCard("Utilisateurs totaux", totalUsers, `${total} inscrits + ${anonymes} anonymes`),
+          _statCard("Profils inscrits", total, ""),
+          _statCard("Anonymes (sans compte)", anonymes, "ont exploré sans s'inscrire"),
           _statCard("Avec prénom", s.avec_prenom || 0, `${pct(s.avec_prenom || 0)}%`),
           _statCard("Avec email", s.avec_email || 0, `${pct(s.avec_email || 0)}%`),
           _statCard("Avec avatar", s.avec_avatar || 0, `${pct(s.avec_avatar || 0)}%`),
           _statCard("Avec bio", s.avec_bio || 0, `${pct(s.avec_bio || 0)}%`),
         ].join("");
         document.getElementById("userstats-progress").innerHTML = _renderProgress(s, total);
-        document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || []);
+        document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || [], s.par_jour_anonymes || []);
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
         userstatsContent.classList.remove("hidden");

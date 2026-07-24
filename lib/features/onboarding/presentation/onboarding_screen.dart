@@ -8,12 +8,12 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
-import 'package:pulz_app/core/data/detailed_interests.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
-import 'package:pulz_app/features/onboarding/data/email_verification_service.dart';
-import 'package:pulz_app/features/onboarding/presentation/email_verification_sheet.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+// NB : vérification email par code mise en STAND-BY (juillet 2026). Pour la
+// réactiver, réimporter email_verification_service.dart + email_verification_sheet.dart
+// et rétablir le bloc dans _submitSignUp (voir commentaire "STAND-BY").
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -29,11 +29,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _prenomController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _villeController = TextEditingController();
   final _selectedModes = <String>{};
-  final _selectedDetailed = <String>{};
-  final _expandedCategories = <String>{};
+  String? _selectedTranche;
   bool _submitting = false;
   String? _avatarPath;
   String _selectedVille = '';
@@ -44,12 +42,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   static const _accentColor = Color(0xFFE91E8C);
 
+  // Les 6 rubriques principales (mode DB, libellé, icône).
+  static const List<(String, String, IconData)> _rubriques = [
+    ('food', 'Food', Icons.restaurant),
+    ('night', 'Night', Icons.nightlife),
+    ('culture', 'Culture', Icons.palette),
+    ('family', 'Famille', Icons.family_restroom),
+    ('sport', 'Sport', Icons.sports_soccer),
+    ('tourisme', 'Évasion', Icons.flight_takeoff),
+  ];
+
+  // Tranches d'âge (stockées telles quelles dans user_profiles.tranche_age).
+  static const List<String> _tranches = [
+    'Moins de 18 ans',
+    '18-24 ans',
+    '25-34 ans',
+    '35-44 ans',
+    '45-54 ans',
+    '55 ans et +',
+  ];
+
   @override
   void dispose() {
     _villeDebounce?.cancel();
     _prenomController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _villeController.dispose();
     super.dispose();
   }
@@ -57,48 +74,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // ── Sign Up ──
   Future<void> _submitSignUp() async {
     if (!_formKey.currentState!.validate()) return;
+    // Tranche d'âge obligatoire (pas un champ de formulaire → check manuel).
+    if (_selectedTranche == null) {
+      setState(() => _loginError = 'Choisis ta tranche d\'âge');
+      return;
+    }
     setState(() {
       _submitting = true;
       _loginError = null;
     });
 
     try {
-      final email = _emailController.text.trim();
-      final prenom = _prenomController.text.trim();
-
-      // 1. Confirmation email : envoyer le code puis le faire saisir AVANT de
-      //    créer le profil. Tant que l'email n'est pas vérifié, pas d'inscription.
-      try {
-        await EmailVerificationService().requestCode(email: email, prenom: prenom);
-      } catch (_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Impossible d\'envoyer le code, reessayez')),
-          );
-          setState(() => _submitting = false);
-        }
-        return;
-      }
-      if (!mounted) return;
-      final verified = await EmailVerificationSheet.show(
-        context,
-        email: email,
-        prenom: prenom,
-      );
-      if (verified != true) {
-        // Annulé ou non vérifié : on reste sur le formulaire.
-        if (mounted) setState(() => _submitting = false);
-        return;
-      }
-
-      // 2. Email confirmé -> création du profil.
-      // Deduire les modes principaux depuis les sous-interets
-      final modesFromDetailed = <String>{};
-      for (final key in _selectedDetailed) {
-        modesFromDetailed.add(key.split(':').first);
-      }
-      final allModes = {..._selectedModes, ...modesFromDetailed};
+      // STAND-BY : la vérification email par code (EmailVerificationService +
+      // EmailVerificationSheet) est désactivée. On crée le profil directement.
+      // Pour la réactiver, remettre le bloc requestCode + EmailVerificationSheet
+      // ici avant l'upsert (cf. imports commentés en tête de fichier).
 
       final svc = UserProfileService();
       String? avatarUrl;
@@ -112,14 +102,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await svc.upsert(
         prenom: _prenomController.text.trim(),
         email: _emailController.text.trim(),
-        telephone: _phoneController.text.trim(),
         ville: _selectedVille,
-        preferences: allModes.toList(),
+        preferences: _selectedModes.toList(),
+        trancheAge: _selectedTranche,
         avatarUrl: avatarUrl,
       );
-      if (_selectedDetailed.isNotEmpty) {
-        await svc.updateDetailedPreferences(_selectedDetailed.toList());
-      }
       await markOnboardingDone();
       await markRegistered();
       markRegisteredComplete();
@@ -144,14 +131,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
 
     try {
-      final profile = await UserProfileService().findByCredentials(
+      final profile = await UserProfileService().findByEmail(
         email: _emailController.text.trim(),
-        telephone: _phoneController.text.trim(),
       );
 
       if (profile == null) {
         setState(() {
-          _loginError = 'Aucun compte trouve avec ces identifiants';
+          _loginError = 'Aucun compte trouve avec cet email';
           _submitting = false;
         });
         return;
@@ -173,6 +159,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         });
       }
     }
+  }
+
+  // ── Explorer sans compte (skip) ──
+  Future<void> _skipOnboarding() async {
+    setState(() => _submitting = true);
+    // Journalise l'entrée anonyme (best-effort, ne bloque jamais l'accès).
+    await UserProfileService().logAnonymousEntry();
+    await markSkipped();
+    markSkippedComplete();
+    if (mounted) context.go('/home');
   }
 
   Future<void> _pickAvatar() async {
@@ -411,6 +407,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
 
                   const SizedBox(height: 16),
+
+                  // Explorer sans compte (Apple 5.1.1(v) : login optionnel)
+                  Center(
+                    child: TextButton(
+                      onPressed: _submitting ? null : _skipOnboarding,
+                      child: Text(
+                        'Explorer sans compte',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white60,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.white38,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -519,27 +534,58 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
       const SizedBox(height: 14),
 
-      // Telephone
-      _buildField(
-        controller: _phoneController,
-        label: 'Telephone',
-        icon: Icons.phone_outlined,
-        keyboardType: TextInputType.phone,
-        validator: (v) {
-          if (v == null || v.trim().isEmpty) return 'Entrez votre numero';
-          if (v.trim().length < 10) return 'Numero trop court';
-          return null;
-        },
-      ),
-      const SizedBox(height: 14),
-
       // Ville
       _buildVilleField(),
       const SizedBox(height: 24),
 
-      // Preferences detaillees
+      // Tranche d'âge
       Text(
-        'Quelles activites t\'interessent ?',
+        'Ton âge',
+        style: GoogleFonts.poppins(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      const SizedBox(height: 10),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _tranches.map((t) {
+          final selected = _selectedTranche == t;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedTranche = t),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: BoxDecoration(
+                color: selected
+                    ? _accentColor
+                    : Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selected
+                      ? _accentColor
+                      : Colors.white.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Text(
+                t,
+                style: GoogleFonts.poppins(
+                  fontSize: 12.5,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: selected ? Colors.white : Colors.white70,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+      const SizedBox(height: 24),
+
+      // 6 rubriques principales
+      Text(
+        'Ce qui t\'intéresse',
         style: GoogleFonts.poppins(
           fontSize: 15,
           fontWeight: FontWeight.w600,
@@ -548,178 +594,61 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
       const SizedBox(height: 4),
       Text(
-        'Selectionne tes centres d\'interet pour des notifications pertinentes. '
-        'Appuie sur une categorie pour affiner.',
-        style: GoogleFonts.poppins(
-          fontSize: 11,
-          color: Colors.white54,
-        ),
+        'Choisis tes rubriques pour des notifications pertinentes.',
+        style: GoogleFonts.poppins(fontSize: 11, color: Colors.white54),
       ),
       const SizedBox(height: 12),
-
-      ...kDetailedInterests.map((cat) {
-        final modeSelected = _selectedModes.contains(cat.mode);
-        final isExpanded = _expandedCategories.contains(cat.mode);
-        final count = _selectedDetailed.where((k) => k.startsWith('${cat.mode}:')).length;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Category header
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (_expandedCategories.contains(cat.mode)) {
-                    _expandedCategories.remove(cat.mode);
-                  } else {
-                    _expandedCategories.add(cat.mode);
-                  }
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: modeSelected
-                      ? _accentColor.withValues(alpha: 0.15)
-                      : Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: modeSelected
-                        ? _accentColor.withValues(alpha: 0.4)
-                        : Colors.white12,
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _rubriques.map((r) {
+          final mode = r.$1;
+          final label = r.$2;
+          final icon = r.$3;
+          final selected = _selectedModes.contains(mode);
+          return GestureDetector(
+            onTap: () => setState(() {
+              if (selected) {
+                _selectedModes.remove(mode);
+              } else {
+                _selectedModes.add(mode);
+              }
+            }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: selected
+                    ? _accentColor
+                    : Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selected
+                      ? _accentColor
+                      : Colors.white.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon,
+                      size: 15,
+                      color: selected ? Colors.white : Colors.white60),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color: selected ? Colors.white : Colors.white70,
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    // Mode checkbox
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (modeSelected) {
-                            _selectedModes.remove(cat.mode);
-                            _selectedDetailed.removeWhere((k) => k.startsWith('${cat.mode}:'));
-                          } else {
-                            _selectedModes.add(cat.mode);
-                          }
-                        });
-                      },
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: modeSelected ? _accentColor : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: modeSelected ? _accentColor : Colors.white38,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: modeSelected
-                            ? const Icon(Icons.check, size: 15, color: Colors.white)
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Icon(cat.icon, size: 18, color: modeSelected ? _accentColor : Colors.white60),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        cat.label,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: modeSelected ? Colors.white : Colors.white70,
-                        ),
-                      ),
-                    ),
-                    if (count > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _accentColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      size: 20,
-                      color: Colors.white38,
-                    ),
-                  ],
-                ),
+                ],
               ),
             ),
-            // Sub-interests
-            if (isExpanded)
-              Padding(
-                padding: const EdgeInsets.only(left: 8, bottom: 8),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: cat.items.map((item) {
-                    final key = item.key(cat.mode);
-                    final selected = _selectedDetailed.contains(key);
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (selected) {
-                            _selectedDetailed.remove(key);
-                          } else {
-                            _selectedDetailed.add(key);
-                            _selectedModes.add(cat.mode);
-                          }
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? _accentColor
-                              : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: selected ? _accentColor : Colors.white.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              item.icon,
-                              size: 13,
-                              color: selected ? Colors.white : Colors.white60,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              item.label,
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                                color: selected ? Colors.white : Colors.white60,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-          ],
-        );
-      }),
+          );
+        }).toList(),
+      ),
     ];
   }
 
@@ -744,7 +673,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Entre ton email et numero de telephone\npour retrouver ton compte',
+              'Entre ton email pour retrouver ton compte',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
@@ -765,20 +694,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         validator: (v) {
           if (v == null || v.trim().isEmpty) return 'Entrez votre email';
           if (!v.contains('@') || !v.contains('.')) return 'Email invalide';
-          return null;
-        },
-      ),
-      const SizedBox(height: 14),
-
-      // Telephone
-      _buildField(
-        controller: _phoneController,
-        label: 'Telephone',
-        icon: Icons.phone_outlined,
-        keyboardType: TextInputType.phone,
-        validator: (v) {
-          if (v == null || v.trim().isEmpty) return 'Entrez votre numero';
-          if (v.trim().length < 10) return 'Numero trop court';
           return null;
         },
       ),

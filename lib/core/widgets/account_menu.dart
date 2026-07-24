@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/day/presentation/my_publications_sheet.dart';
@@ -58,6 +58,9 @@ class AccountMenu {
     final proState = ref.read(proAuthProvider);
     final isProConnected = proState.status == ProAuthStatus.approved ||
         proState.status == ProAuthStatus.pendingApproval;
+    // Anonyme ("Explorer sans compte") : pas de compte inscrit, pas pro.
+    // On lui propose de créer son compte (conversion).
+    final showCreateAccount = !isProConnected && !isDeviceRegistered();
 
     showModalBottomSheet(
       context: context,
@@ -120,6 +123,20 @@ class AccountMenu {
                   ),
                 ],
                 const SizedBox(height: 12),
+                if (showCreateAccount) ...[
+                  _menuItem(
+                    ctx: ctx,
+                    icon: Icons.person_add_alt_1_rounded,
+                    label: 'Créer mon compte',
+                    subtitle: 'Débloque stories, favoris et récompenses',
+                    gradientColors: const [Color(0xFFE91E8C), Color(0xFF7B2D8E)],
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      appRouter.go('/onboarding');
+                    },
+                  ),
+                  const SizedBox(height: 5),
+                ],
                 ..._buildProActions(ctx, context, ref),
                 const SizedBox(height: 5),
                 _menuItem(
