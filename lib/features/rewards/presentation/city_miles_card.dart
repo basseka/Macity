@@ -45,7 +45,7 @@ class CityMilesCard extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _totem(s.inCycle),
+                _totem(s.inCycle, s.threshold),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -78,7 +78,7 @@ class CityMilesCard extends ConsumerWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: LinearProgressIndicator(
-                          value: s.inCycle / 40,
+                          value: s.threshold > 0 ? s.inCycle / s.threshold : 0,
                           minHeight: 8,
                           backgroundColor: const Color(0x22E91E8C),
                           valueColor: const AlwaysStoppedAnimation(_gold),
@@ -127,10 +127,12 @@ class CityMilesCard extends ConsumerWidget {
     );
   }
 
-  /// Totem : 8 blocs empilés qui se remplissent (1 bloc = 5 City-Miles).
-  Widget _totem(int inCycle) {
+  /// Totem : 8 blocs empilés qui se remplissent proportionnellement au palier.
+  Widget _totem(int inCycle, int threshold) {
     const n = 8;
-    final filled = (inCycle / 5).ceil().clamp(0, n);
+    final filled = threshold > 0
+        ? (inCycle / threshold * n).ceil().clamp(0, n)
+        : 0;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

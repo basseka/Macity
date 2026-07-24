@@ -1084,7 +1084,23 @@
       <!-- ═══ VUE "CADEAUX" (table gifts — récompenses stories) ═══ -->
       <div id="gifts-view" class="hidden">
         <h1>🎁 Cadeaux</h1>
-        <p class="subtitle">Cadeaux tirés au sort quand un utilisateur ouvre un coupon (débloqué tous les 40 City-Miles = 40 stories publiées). Active/désactive un cadeau pour l'inclure ou non dans le tirage.</p>
+        <p class="subtitle">Cadeaux tirés au sort quand un utilisateur ouvre un coupon (débloqué à chaque palier de City-Miles = stories publiées). Active/désactive un cadeau pour l'inclure ou non dans le tirage.</p>
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div class="banner-card-head"><span class="banner-mode-pill">Palier de récompense</span></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:240px;">
+              <label class="banner-field-label">City-Miles par cadeau (1 story publiée = 1 City-Mile)</label>
+              <input type="number" id="reward-threshold-input" class="banner-input" min="1" step="1" style="width:120px;" placeholder="40" />
+              <div style="font-size:11.5px;color:var(--text-faint);margin-top:6px;line-height:1.4;">
+                ⚠️ <strong>Baisser</strong> ce nombre est rétroactif : les gros contributeurs débloquent d'un coup les paliers dus (et reçoivent autant de notifications).
+              </div>
+            </div>
+            <div class="banner-actions-row" style="gap:10px;">
+              <button class="banner-save-btn" id="reward-threshold-save">💾 Enregistrer le palier</button>
+              <span id="reward-threshold-status" style="font-size:12px;color:var(--text-faint);align-self:center;"></span>
+            </div>
+          </div>
+        </div>
         <div class="banner-card" style="margin-bottom:16px;">
           <div class="banner-card-head"><span class="banner-mode-pill">Nouveau cadeau</span></div>
           <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
@@ -8612,6 +8628,7 @@
       giftsLoadingEl.classList.remove("hidden");
       giftsEmptyEl.classList.add("hidden");
       giftsListEl.innerHTML = "";
+      loadRewardThreshold();
       try {
         const { data, error } = await supabase
           .from("gifts").select("*").order("id", { ascending: false });
@@ -8625,6 +8642,46 @@
         giftsLoadingEl.classList.add("hidden");
       }
     }
+
+    // ── Palier de récompense (app_config.story_reward_threshold) ──
+    const rewardThresholdInput = document.getElementById("reward-threshold-input");
+    const rewardThresholdSave = document.getElementById("reward-threshold-save");
+    const rewardThresholdStatus = document.getElementById("reward-threshold-status");
+
+    async function loadRewardThreshold() {
+      try {
+        const { data, error } = await supabase
+          .from("app_config").select("value")
+          .eq("key", "story_reward_threshold").maybeSingle();
+        if (error) throw error;
+        rewardThresholdInput.value = data ? data.value : "40";
+      } catch (e) {
+        console.error("[Palier] load", e);
+        rewardThresholdInput.placeholder = "40";
+      }
+    }
+
+    rewardThresholdSave.addEventListener("click", async () => {
+      const n = parseInt(rewardThresholdInput.value, 10);
+      if (!Number.isFinite(n) || n < 1) { toast("Entre un nombre ≥ 1", false); return; }
+      rewardThresholdSave.disabled = true;
+      rewardThresholdStatus.textContent = "…";
+      const { error } = await supabase.from("app_config")
+        .upsert({
+          key: "story_reward_threshold",
+          value: String(n),
+          description: "Nombre de City-Miles (stories publiées) par palier de récompense",
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "key" });
+      rewardThresholdSave.disabled = false;
+      if (error) {
+        rewardThresholdStatus.textContent = "";
+        toast("Erreur (RLS ?) : " + (error.message || ""), false);
+        return;
+      }
+      rewardThresholdStatus.textContent = "Enregistré ✓";
+      toast(`Palier réglé sur ${n} City-Miles ✓`, true);
+    });
 
     function renderGiftsList() {
       if (_allGifts.length === 0) {

@@ -4,7 +4,7 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 
-/// Un coupon récompense (débloqué à chaque palier de 40 City-Miles).
+/// Un coupon récompense (débloqué à chaque palier de City-Miles, seuil DB).
 class RewardCoupon {
   final int id;
   final int palier;
@@ -34,22 +34,24 @@ class RewardCoupon {
 /// État City-Miles de l'utilisateur.
 class CityMilesState {
   final int cityMiles;
-  final int nextAt; // palier suivant (multiple de 40)
+  final int nextAt; // palier suivant (multiple du seuil)
+  final int threshold; // taille d'un palier, piloté par la DB (app_config)
   final int newCount; // coupons créés lors de ce check
   final List<RewardCoupon> coupons;
 
   const CityMilesState({
     required this.cityMiles,
     required this.nextAt,
+    required this.threshold,
     required this.newCount,
     required this.coupons,
   });
 
   /// City-Miles restants avant le prochain cadeau.
-  int get toNext => (nextAt - cityMiles).clamp(0, 40);
+  int get toNext => (nextAt - cityMiles).clamp(0, threshold);
 
-  /// Progression dans le palier courant (0..40).
-  int get inCycle => cityMiles % 40;
+  /// Progression dans le palier courant (0..threshold).
+  int get inCycle => threshold > 0 ? cityMiles % threshold : 0;
 
   List<RewardCoupon> get unopened =>
       coupons.where((c) => c.isUnopened).toList();
@@ -57,6 +59,7 @@ class CityMilesState {
   factory CityMilesState.fromJson(Map<String, dynamic> j) => CityMilesState(
         cityMiles: (j['city_miles'] as num?)?.toInt() ?? 0,
         nextAt: (j['next_at'] as num?)?.toInt() ?? 40,
+        threshold: (j['threshold'] as num?)?.toInt() ?? 40,
         newCount: (j['new'] as num?)?.toInt() ?? 0,
         coupons: (j['coupons'] is List)
             ? (j['coupons'] as List)
@@ -110,7 +113,8 @@ class StoryRewardsService {
     );
     final data = res.data;
     if (data is Map) return CityMilesState.fromJson(data.cast<String, dynamic>());
-    return const CityMilesState(cityMiles: 0, nextAt: 40, newCount: 0, coupons: []);
+    return const CityMilesState(
+        cityMiles: 0, nextAt: 40, threshold: 40, newCount: 0, coupons: []);
   }
 
   /// Ouvre un coupon → tire un cadeau actif au hasard et le fige.
