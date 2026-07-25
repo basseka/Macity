@@ -136,14 +136,6 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         'food', 'gaming', 'night', 'tourisme',
       };
 
-      // Relance "inscris-toi" (edge fn send-signup-reminder) → ouvrir
-      // l'onboarding pour convertir l'anonyme / non-inscrit. /onboarding est
-      // toujours accessible même si le device a "skippé" (gate le laisse passer).
-      if (type == 'signup_reminder') {
-        appRouter.go('/onboarding');
-        return;
-      }
-
       // Notification chat → ouvrir le detail sheet du signalement
       if (type == 'chat_message') {
         final eventId = data['event_id'] as String? ?? '';

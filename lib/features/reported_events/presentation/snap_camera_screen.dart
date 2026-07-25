@@ -2,8 +2,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pulz_app/core/router/app_router.dart';
-import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/reported_events/presentation/media_preview_screen.dart';
 
 /// Ecran camera plein ecran style Snapchat.
@@ -78,21 +76,6 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
         _stopVideo();
       }
     });
-
-    // Garde-fou : poster une story/live réclame un compte inscrit. Un anonyme
-    // ("Explorer sans compte") est renvoyé vers l'invitation à créer un compte,
-    // sans démarrer la caméra. Choke point unique pour tous les points d'entrée.
-    if (!isDeviceRegistered()) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).maybePop();
-        final rootCtx = rootNavigatorKey.currentContext;
-        if (rootCtx != null) {
-          AccountGate.requirePublish(rootCtx, action: 'poster une story');
-        }
-      });
-      return;
-    }
 
     _initCamera();
   }

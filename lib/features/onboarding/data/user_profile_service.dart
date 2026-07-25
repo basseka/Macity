@@ -45,24 +45,6 @@ class UserProfileService {
     return data.first as Map<String, dynamic>;
   }
 
-  /// Journalise l'entrée "Explorer sans compte" (device anonyme) dans
-  /// `app_entries`, pour quantifier les skips. Best-effort, non bloquant :
-  /// ignore les doublons (même device) et toute erreur réseau/RLS.
-  Future<void> logAnonymousEntry() async {
-    try {
-      final userId = await UserIdentityService.getUserId();
-      await _dio.post(
-        'app_entries',
-        data: {'user_id': userId},
-        options: Options(
-          headers: {'Prefer': 'resolution=ignore-duplicates,return=minimal'},
-        ),
-      );
-    } catch (_) {
-      // Non bloquant : ne jamais empêcher l'entrée dans l'app.
-    }
-  }
-
   Future<void> updatePreferences(List<String> preferences) async {
     final userId = await UserIdentityService.getUserId();
     await _dio.patch(
@@ -102,11 +84,10 @@ class UserProfileService {
 
   Future<void> upsert({
     required String email,
+    required String telephone,
     required String prenom,
     required String ville,
     required List<String> preferences,
-    String telephone = '',
-    String? trancheAge,
     String? avatarUrl,
     String? bio,
   }) async {
@@ -116,11 +97,10 @@ class UserProfileService {
       data: {
         'user_id': userId,
         'email': email,
-        if (telephone.trim().isNotEmpty) 'telephone': normalizePhone(telephone),
+        'telephone': normalizePhone(telephone),
         'prenom': prenom,
         'ville': ville,
         'preferences': preferences,
-        if (trancheAge != null && trancheAge.isNotEmpty) 'tranche_age': trancheAge,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
         if (bio != null) 'bio': bio,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
@@ -230,23 +210,6 @@ class UserProfileService {
         'email': 'eq.$email',
         'telephone': 'eq.${normalizePhone(telephone)}',
         'select': '*',
-      },
-    );
-    final data = response.data as List;
-    if (data.isEmpty) return null;
-    return data.first as Map<String, dynamic>;
-  }
-
-  /// Connexion par email seul (onboarding simplifié, plus de téléphone).
-  /// En cas de doublons d'email, renvoie le profil le plus récemment mis à jour.
-  Future<Map<String, dynamic>?> findByEmail({required String email}) async {
-    final response = await _dio.get(
-      'user_profiles',
-      queryParameters: {
-        'email': 'eq.${email.trim()}',
-        'select': '*',
-        'order': 'updated_at.desc',
-        'limit': '1',
       },
     );
     final data = response.data as List;

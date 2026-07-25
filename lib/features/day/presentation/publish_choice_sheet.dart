@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:pulz_app/core/theme/design_tokens.dart';
-import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
 import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
@@ -17,10 +16,6 @@ class PublishChoiceSheet extends ConsumerStatefulWidget {
   const PublishChoiceSheet({super.key});
 
   static Future<void> show(BuildContext context) {
-    // Garde-fou : publier réclame un compte inscrit (bloque les anonymes).
-    if (!AccountGate.requirePublish(context, action: 'publier un event')) {
-      return Future<void>.value();
-    }
     return showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
