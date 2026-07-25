@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/add_event_bottom_sheet.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
@@ -317,6 +318,11 @@ class AppBottomNavBar extends ConsumerWidget {
   }
 
   Future<void> showAddEvent(BuildContext context, WidgetRef ref) async {
+    // Garde-fou : publier réclame un compte inscrit (bloque les anonymes
+    // "Explorer sans compte" → invitation à créer un compte).
+    if (!AccountGate.requirePublish(context, action: 'publier un event')) {
+      return;
+    }
     var status = ref.read(proAuthProvider).status;
 
     if (status == ProAuthStatus.loading) {

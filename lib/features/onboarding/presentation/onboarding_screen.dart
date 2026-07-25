@@ -9,8 +9,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
-import 'package:pulz_app/features/onboarding/data/email_verification_service.dart';
-import 'package:pulz_app/features/onboarding/presentation/email_verification_sheet.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 
@@ -70,36 +68,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
 
     try {
-      final email = _emailController.text.trim();
-      final prenom = _prenomController.text.trim();
-
-      // 1. Confirmation email : envoyer le code puis le faire saisir AVANT de
-      //    créer le profil. Tant que l'email n'est pas vérifié, pas d'inscription.
-      try {
-        await EmailVerificationService().requestCode(email: email, prenom: prenom);
-      } catch (_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Impossible d\'envoyer le code, reessayez')),
-          );
-          setState(() => _submitting = false);
-        }
-        return;
-      }
-      if (!mounted) return;
-      final verified = await EmailVerificationSheet.show(
-        context,
-        email: email,
-        prenom: prenom,
-      );
-      if (verified != true) {
-        // Annulé ou non vérifié : on reste sur le formulaire.
-        if (mounted) setState(() => _submitting = false);
-        return;
-      }
-
-      // 2. Email confirmé -> création du profil.
+      // Création du profil directement (plus de code de confirmation email).
       final svc = UserProfileService();
       String? avatarUrl;
       if (_avatarPath != null) {
