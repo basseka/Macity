@@ -9,13 +9,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
-import 'package:pulz_app/features/onboarding/data/email_verification_service.dart';
-import 'package:pulz_app/features/onboarding/presentation/email_verification_sheet.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
-// Vérification email par code : demandée UNIQUEMENT quand l'email existe déjà
-// (connexion, ou inscription sur un email déjà pris) → prouve la possession de
-// la boîte mail avant de lier l'appareil au compte. Nouveaux emails = frictionless.
+// NB : vérification email par code mise en STAND-BY (juillet 2026). Pour la
+// réactiver, réimporter email_verification_service.dart + email_verification_sheet.dart
+// et rétablir le bloc dans _submitSignUp (voir commentaire "STAND-BY").
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -87,33 +85,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
 
     try {
+      // STAND-BY : la vérification email par code (EmailVerificationService +
+      // EmailVerificationSheet) est désactivée. On crée le profil directement.
+      // Pour la réactiver, remettre le bloc requestCode + EmailVerificationSheet
+      // ici avant l'upsert (cf. imports commentés en tête de fichier).
+
       final svc = UserProfileService();
-      final email = _emailController.text.trim();
-
-      // Email déjà pris : on NE crée PAS de doublon. On exige le code envoyé à
-      // cette boîte (preuve de possession), puis on RATTACHE l'appareil au
-      // compte existant. Empêche vol de compte + doublons (ex. toto/tony).
-      // Exception : si l'appareil est DÉJÀ sur ce compte → aucun code (no-op).
-      final existing = await svc.findByEmail(email: email);
-      if (existing != null) {
-        final existingUserId = existing['user_id'] as String;
-        final currentUid = await UserIdentityService.getUserId();
-        if (existingUserId != currentUid) {
-          final owns = await _verifyEmailOwnership(email);
-          if (!owns) {
-            if (mounted) setState(() => _submitting = false);
-            return;
-          }
-          await UserIdentityService.setUserId(existingUserId);
-        }
-        await markOnboardingDone();
-        await markRegistered();
-        markRegisteredComplete();
-        if (mounted) context.go('/home');
-        return;
-      }
-
-      // Email nouveau : inscription directe (frictionless, pas de code).
       String? avatarUrl;
       if (_avatarPath != null) {
         try {
@@ -124,7 +101,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       }
       await svc.upsert(
         prenom: _prenomController.text.trim(),
-        email: email,
+        email: _emailController.text.trim(),
         ville: _selectedVille,
         preferences: _selectedModes.toList(),
         trancheAge: _selectedTranche,
@@ -145,29 +122,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  /// Envoie un code à [email] et ouvre la feuille de saisie. Retourne true si
-  /// le code a été validé (= la personne possède bien cette boîte mail).
-  Future<bool> _verifyEmailOwnership(String email) async {
-    try {
-      await EmailVerificationService()
-          .requestCode(email: email, prenom: _prenomController.text.trim());
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible d\'envoyer le code, reessayez')),
-        );
-      }
-      return false;
-    }
-    if (!mounted) return false;
-    final verified = await EmailVerificationSheet.show(
-      context,
-      email: email,
-      prenom: _prenomController.text.trim(),
-    );
-    return verified == true;
-  }
-
   // ── Login ──
   Future<void> _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
@@ -177,8 +131,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
 
     try {
-      final email = _emailController.text.trim();
-      final profile = await UserProfileService().findByEmail(email: email);
+      final profile = await UserProfileService().findByEmail(
+        email: _emailController.text.trim(),
+      );
 
       if (profile == null) {
         setState(() {
@@ -188,20 +143,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         return;
       }
 
+      // Link this device to the existing profile
       final existingUserId = profile['user_id'] as String;
-      final currentUid = await UserIdentityService.getUserId();
-
-      // Preuve de possession de l'email AVANT de lier un appareil DIFFÉRENT :
-      // empêche de se connecter au compte d'autrui juste avec son email. Si
-      // l'appareil est déjà sur ce compte → pas de code (rien ne change).
-      if (existingUserId != currentUid) {
-        final owns = await _verifyEmailOwnership(email);
-        if (!owns) {
-          if (mounted) setState(() => _submitting = false);
-          return;
-        }
-        await UserIdentityService.setUserId(existingUserId);
-      }
+      await UserIdentityService.setUserId(existingUserId);
 
       await markOnboardingDone();
       await markRegistered();
