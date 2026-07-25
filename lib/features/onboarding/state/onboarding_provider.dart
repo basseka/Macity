@@ -37,6 +37,15 @@ Future<void> markSkipped() async {
   await prefs.setBool(_onboardingSkippedKey, true);
 }
 
+/// Réinitialise l'état d'onboarding (après suppression de compte) : l'app
+/// re-verrouille sur l'onboarding, l'utilisateur repart de zéro.
+Future<void> resetRegistration() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_userRegisteredKey, false);
+  await prefs.setBool(_onboardingSkippedKey, false);
+  await prefs.setBool(_onboardingDoneKey, false);
+}
+
 final userProfileServiceProvider = Provider((_) => UserProfileService());
 
 /// Preferences d'activites de l'utilisateur (depuis Supabase).

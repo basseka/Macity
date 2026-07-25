@@ -10,6 +10,7 @@ import 'package:pulz_app/features/likes/presentation/liked_places_bottom_sheet.d
 import 'package:pulz_app/features/notifications/presentation/notification_prefs_sheet.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 import 'package:pulz_app/features/offers/presentation/my_offers_screen.dart';
+import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/private_events/presentation/my_invitations_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
@@ -243,6 +244,9 @@ class AccountMenu {
                 if (isProConnected) ...[
                   const SizedBox(height: 5),
                   _buildDeleteAccountButton(ctx, context, ref),
+                ] else if (isDeviceRegistered()) ...[
+                  const SizedBox(height: 5),
+                  _buildDeleteNormalAccountButton(ctx, context, ref),
                 ],
                 const SizedBox(height: 16),
               ],
@@ -444,6 +448,78 @@ class AccountMenu {
     Navigator.pop(ctx);
     try {
       await ref.read(proAuthProvider.notifier).deleteAccount();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Compte supprime')),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Echec de la suppression — reessayez')),
+      );
+    }
+  }
+
+  /// Bouton "Supprimer mon compte" pour un utilisateur NORMAL inscrit (RGPD +
+  /// exigence stores). Distinct du flux pro.
+  static Widget _buildDeleteNormalAccountButton(
+    BuildContext ctx,
+    BuildContext rootContext,
+    WidgetRef ref,
+  ) {
+    return _menuItem(
+      ctx: ctx,
+      icon: Icons.delete_forever_rounded,
+      label: 'Supprimer mon compte',
+      subtitle: 'Action definitive et irreversible',
+      gradientColors: const [Color(0xFF8B0000), Color(0xFFB91C1C)],
+      onTap: () => _confirmDeleteNormalAccount(ctx, rootContext),
+    );
+  }
+
+  static Future<void> _confirmDeleteNormalAccount(
+    BuildContext ctx,
+    BuildContext rootContext,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Supprimer votre compte ?',
+          style: TextStyle(color: AppColors.text, fontSize: 16),
+        ),
+        content: Text(
+          'Cette action est definitive. Ton profil, tes publications, tes '
+          'stories et tes City-Miles seront supprimes. Tu pourras creer un '
+          'nouveau compte plus tard si besoin.',
+          style: TextStyle(color: AppColors.textDim, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text(
+              'Supprimer',
+              style: TextStyle(
+                  color: Color(0xFFE91E8C), fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final messenger = ScaffoldMessenger.of(rootContext);
+    Navigator.pop(ctx);
+    try {
+      await UserProfileService().deleteMyAccount();
+      // Re-verrouille l'app sur l'onboarding et repart de zéro.
+      await resetRegistration();
+      resetOnboardingCache();
+      appRouter.go('/onboarding');
       messenger.showSnackBar(
         const SnackBar(content: Text('Compte supprime')),
       );

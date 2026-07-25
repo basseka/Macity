@@ -59,6 +59,13 @@ void markSkippedComplete() {
 /// (bloquer les anonymes « Explorer sans compte »).
 bool isDeviceRegistered() => _userRegistered == true;
 
+/// Réinitialise le cache mémoire du verrou (après suppression de compte) :
+/// l'app re-verrouille sur l'onboarding.
+void resetOnboardingCache() {
+  _userRegistered = false;
+  _onboardingSkipped = false;
+}
+
 late final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/splash',

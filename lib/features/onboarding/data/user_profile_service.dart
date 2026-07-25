@@ -45,6 +45,17 @@ class UserProfileService {
     return data.first as Map<String, dynamic>;
   }
 
+  /// Supprime le compte de l'utilisateur normal (device UUID) : profil +
+  /// publications + stories + City-Miles + likes + activité, via la RPC
+  /// `delete_my_account`. Exigence stores + RGPD. Lève si l'appel échoue.
+  Future<void> deleteMyAccount() async {
+    final userId = await UserIdentityService.getUserId();
+    await _dio.post<dynamic>(
+      'rpc/delete_my_account',
+      data: {'p_user_id': userId},
+    );
+  }
+
   /// Journalise l'entrée "Explorer sans compte" (device anonyme) dans
   /// `app_entries`, pour quantifier les skips. Best-effort, non bloquant :
   /// ignore les doublons (même device) et toute erreur réseau/RLS.
