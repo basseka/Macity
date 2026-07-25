@@ -8,6 +8,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:pulz_app/app.dart';
 import 'package:pulz_app/core/config/supabase_config.dart';
 import 'package:pulz_app/core/router/app_router.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/core/services/fcm_service.dart';
 import 'package:pulz_app/firebase_options.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -79,6 +80,8 @@ void main() {
         await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform,
         );
+        // Analytics : active la collecte (MAU/DAU/sessions auto) dès l'init.
+        await AnalyticsService.init();
         FirebaseMessaging.onBackgroundMessage(
           _firebaseMessagingBackgroundHandler,
         );

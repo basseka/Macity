@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/fullscreen_image_viewer.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -37,6 +38,7 @@ class EventFullscreenPopup extends ConsumerWidget {
 
   static Future<void> show(
       BuildContext context, Event event, String fallbackAsset) {
+    AnalyticsService.eventViewed(event.identifiant, source: 'popup');
     return showDialog(
       context: context,
       useRootNavigator: true,

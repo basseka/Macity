@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
@@ -89,6 +90,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await markOnboardingDone();
       await markRegistered();
       markRegisteredComplete();
+      AnalyticsService.signupCompleted();
       if (mounted) context.go('/home');
     } catch (e) {
       if (mounted) {
@@ -148,6 +150,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await UserProfileService().logAnonymousEntry();
     await markSkipped();
     markSkippedComplete();
+    AnalyticsService.exploreNoAccount();
     if (mounted) context.go('/home');
   }
 

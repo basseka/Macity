@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/features/reported_events/state/report_form_provider.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/features/rewards/data/story_rewards_service.dart';
 import 'package:pulz_app/features/rewards/state/rewards_provider.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
@@ -132,6 +133,7 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
     final result = await notifier.submit();
     if (!mounted) return;
     if (result != null) {
+      AnalyticsService.storyPublished();
       // Garder une ref au container avant le pop
       final container = ProviderScope.containerOf(context);
       Navigator.of(context).pop();
