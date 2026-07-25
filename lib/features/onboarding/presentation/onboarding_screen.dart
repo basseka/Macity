@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
-import 'package:pulz_app/core/data/detailed_interests.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/features/onboarding/data/email_verification_service.dart';
 import 'package:pulz_app/features/onboarding/presentation/email_verification_sheet.dart';
@@ -32,8 +31,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _phoneController = TextEditingController();
   final _villeController = TextEditingController();
   final _selectedModes = <String>{};
-  final _selectedDetailed = <String>{};
-  final _expandedCategories = <String>{};
   bool _submitting = false;
   String? _avatarPath;
   String _selectedVille = '';
@@ -43,6 +40,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String? _loginError;
 
   static const _accentColor = Color(0xFFE91E8C);
+
+  // Les 6 rubriques principales (mode DB, libellé, icône).
+  static const List<(String, String, IconData)> _rubriques = [
+    ('food', 'Food', Icons.restaurant),
+    ('culture', 'Culture', Icons.palette),
+    ('family', 'Famille', Icons.family_restroom),
+    ('night', 'Night', Icons.nightlife),
+    ('sport', 'Sport', Icons.sports_soccer),
+    ('tourisme', 'Évasion', Icons.flight_takeoff),
+  ];
 
   @override
   void dispose() {
@@ -93,13 +100,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       }
 
       // 2. Email confirmé -> création du profil.
-      // Deduire les modes principaux depuis les sous-interets
-      final modesFromDetailed = <String>{};
-      for (final key in _selectedDetailed) {
-        modesFromDetailed.add(key.split(':').first);
-      }
-      final allModes = {..._selectedModes, ...modesFromDetailed};
-
       final svc = UserProfileService();
       String? avatarUrl;
       if (_avatarPath != null) {
@@ -114,12 +114,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         email: _emailController.text.trim(),
         telephone: _phoneController.text.trim(),
         ville: _selectedVille,
-        preferences: allModes.toList(),
+        preferences: _selectedModes.toList(),
         avatarUrl: avatarUrl,
       );
-      if (_selectedDetailed.isNotEmpty) {
-        await svc.updateDetailedPreferences(_selectedDetailed.toList());
-      }
       await markOnboardingDone();
       await markRegistered();
       markRegisteredComplete();
@@ -173,6 +170,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         });
       }
     }
+  }
+
+  // ── Explorer sans compte (skip) ──
+  Future<void> _skipOnboarding() async {
+    setState(() => _submitting = true);
+    // Journalise l'entrée anonyme (best-effort, ne bloque jamais l'accès).
+    await UserProfileService().logAnonymousEntry();
+    await markSkipped();
+    markSkippedComplete();
+    if (mounted) context.go('/home');
   }
 
   Future<void> _pickAvatar() async {
@@ -271,7 +278,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
+                  // Explorer sans compte — accès rapide anonyme, en haut
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _submitting ? null : _skipOnboarding,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                      ),
+                      child: Text(
+                        'Explorer sans compte  →',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   // Logo
                   Center(
                     child: ClipRRect(
@@ -537,7 +563,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _buildVilleField(),
       const SizedBox(height: 24),
 
-      // Preferences detaillees
+      // Rubriques principales (6) — pour des notifications pertinentes.
       Text(
         'Quelles activites t\'interessent ?',
         style: GoogleFonts.poppins(
@@ -548,178 +574,64 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
       const SizedBox(height: 4),
       Text(
-        'Selectionne tes centres d\'interet pour des notifications pertinentes. '
-        'Appuie sur une categorie pour affiner.',
+        'Selectionne tes rubriques pour des notifications pertinentes.',
         style: GoogleFonts.poppins(
           fontSize: 11,
           color: Colors.white54,
         ),
       ),
       const SizedBox(height: 12),
-
-      ...kDetailedInterests.map((cat) {
-        final modeSelected = _selectedModes.contains(cat.mode);
-        final isExpanded = _expandedCategories.contains(cat.mode);
-        final count = _selectedDetailed.where((k) => k.startsWith('${cat.mode}:')).length;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Category header
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (_expandedCategories.contains(cat.mode)) {
-                    _expandedCategories.remove(cat.mode);
-                  } else {
-                    _expandedCategories.add(cat.mode);
-                  }
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: modeSelected
-                      ? _accentColor.withValues(alpha: 0.15)
-                      : Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: modeSelected
-                        ? _accentColor.withValues(alpha: 0.4)
-                        : Colors.white12,
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _rubriques.map((r) {
+          final mode = r.$1;
+          final label = r.$2;
+          final icon = r.$3;
+          final selected = _selectedModes.contains(mode);
+          return GestureDetector(
+            onTap: () => setState(() {
+              if (selected) {
+                _selectedModes.remove(mode);
+              } else {
+                _selectedModes.add(mode);
+              }
+            }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: selected
+                    ? _accentColor
+                    : Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selected
+                      ? _accentColor
+                      : Colors.white.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon,
+                      size: 15,
+                      color: selected ? Colors.white : Colors.white60),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color: selected ? Colors.white : Colors.white70,
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    // Mode checkbox
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (modeSelected) {
-                            _selectedModes.remove(cat.mode);
-                            _selectedDetailed.removeWhere((k) => k.startsWith('${cat.mode}:'));
-                          } else {
-                            _selectedModes.add(cat.mode);
-                          }
-                        });
-                      },
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          color: modeSelected ? _accentColor : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: modeSelected ? _accentColor : Colors.white38,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: modeSelected
-                            ? const Icon(Icons.check, size: 15, color: Colors.white)
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Icon(cat.icon, size: 18, color: modeSelected ? _accentColor : Colors.white60),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        cat.label,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: modeSelected ? Colors.white : Colors.white70,
-                        ),
-                      ),
-                    ),
-                    if (count > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _accentColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      size: 20,
-                      color: Colors.white38,
-                    ),
-                  ],
-                ),
+                ],
               ),
             ),
-            // Sub-interests
-            if (isExpanded)
-              Padding(
-                padding: const EdgeInsets.only(left: 8, bottom: 8),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: cat.items.map((item) {
-                    final key = item.key(cat.mode);
-                    final selected = _selectedDetailed.contains(key);
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          if (selected) {
-                            _selectedDetailed.remove(key);
-                          } else {
-                            _selectedDetailed.add(key);
-                            _selectedModes.add(cat.mode);
-                          }
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? _accentColor
-                              : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: selected ? _accentColor : Colors.white.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              item.icon,
-                              size: 13,
-                              color: selected ? Colors.white : Colors.white60,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              item.label,
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                                color: selected ? Colors.white : Colors.white60,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-          ],
-        );
-      }),
+          );
+        }).toList(),
+      ),
     ];
   }
 

@@ -27,6 +27,16 @@ Future<void> markRegistered() async {
   await prefs.setBool(_userRegisteredKey, true);
 }
 
+/// Clé « Explorer sans compte » : entre en anonyme sans s'inscrire. Distinct de
+/// `user_registered` pour pouvoir reconvertir plus tard.
+const _onboardingSkippedKey = 'onboarding_skipped';
+
+/// Marque l'utilisateur comme ayant choisi d'explorer sans compte.
+Future<void> markSkipped() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_onboardingSkippedKey, true);
+}
+
 final userProfileServiceProvider = Provider((_) => UserProfileService());
 
 /// Preferences d'activites de l'utilisateur (depuis Supabase).

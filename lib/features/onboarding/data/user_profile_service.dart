@@ -45,6 +45,24 @@ class UserProfileService {
     return data.first as Map<String, dynamic>;
   }
 
+  /// Journalise l'entrée "Explorer sans compte" (device anonyme) dans
+  /// `app_entries`, pour quantifier les skips. Best-effort, non bloquant :
+  /// ignore les doublons (même device) et toute erreur réseau/RLS.
+  Future<void> logAnonymousEntry() async {
+    try {
+      final userId = await UserIdentityService.getUserId();
+      await _dio.post(
+        'app_entries',
+        data: {'user_id': userId},
+        options: Options(
+          headers: {'Prefer': 'resolution=ignore-duplicates,return=minimal'},
+        ),
+      );
+    } catch (_) {
+      // Non bloquant : ne jamais empêcher l'entrée dans l'app.
+    }
+  }
+
   Future<void> updatePreferences(List<String> preferences) async {
     final userId = await UserIdentityService.getUserId();
     await _dio.patch(

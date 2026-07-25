@@ -33,17 +33,31 @@ final GlobalKey<NavigatorState> _shellNavigatorKey =
 /// /onboarding.
 bool? _userRegistered;
 
+/// Cache mémoire du choix « Explorer sans compte » : laisse entrer en anonyme
+/// sans inscription. Distinct de `_userRegistered`.
+bool? _onboardingSkipped;
+
 Future<void> initOnboardingState() async {
   // Partager la clé root navigator avec le deep link service
   deepLinkNavigatorKey = rootNavigatorKey;
   final prefs = await SharedPreferences.getInstance();
   _userRegistered = prefs.getBool('user_registered') ?? false;
+  _onboardingSkipped = prefs.getBool('onboarding_skipped') ?? false;
 }
 
 /// Met à jour le cache mémoire du verrou après une inscription/connexion.
 void markRegisteredComplete() {
   _userRegistered = true;
 }
+
+/// Met à jour le cache mémoire après « Explorer sans compte ».
+void markSkippedComplete() {
+  _onboardingSkipped = true;
+}
+
+/// True si le device a un compte inscrit. Sert aux garde-fous de publication
+/// (bloquer les anonymes « Explorer sans compte »).
+bool isDeviceRegistered() => _userRegistered == true;
 
 late final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
@@ -67,6 +81,7 @@ late final appRouter = GoRouter(
     // onboarding/splash. Remplace l'ancien gating sur `onboarding_done`
     // (contournable via le bouton « Passer », désormais supprimé).
     if (_userRegistered != true &&
+        _onboardingSkipped != true &&
         state.matchedLocation != '/onboarding' &&
         state.matchedLocation != '/splash') {
       return '/onboarding';
