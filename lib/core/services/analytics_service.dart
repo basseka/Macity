@@ -9,12 +9,9 @@ import 'package:flutter/foundation.dart';
 /// annonceurs). Tous les appels sont best-effort : ils n'interrompent jamais
 /// l'app en cas d'erreur.
 class AnalyticsService {
-  static final FirebaseAnalytics instance = FirebaseAnalytics.instance;
-
-  /// Observer de navigation à brancher sur le routeur → events `screen_view`
-  /// automatiques (engagement, écrans les plus vus).
-  static FirebaseAnalyticsObserver observer() =>
-      FirebaseAnalyticsObserver(analytics: instance);
+  /// Getter paresseux : `FirebaseAnalytics.instance` n'est résolu qu'à l'appel
+  /// (jamais avant Firebase.initializeApp, sinon crash → écran blanc).
+  static FirebaseAnalytics get instance => FirebaseAnalytics.instance;
 
   /// À appeler une fois après Firebase.initializeApp().
   static Future<void> init() async {

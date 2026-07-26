@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/features/evasion/presentation/evasion_screen.dart';
 import 'package:pulz_app/features/explorer/presentation/explorer_screen.dart';
@@ -70,8 +69,6 @@ void resetOnboardingCache() {
 late final appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: '/splash',
-  // Analytics : events `screen_view` automatiques (écrans les plus vus).
-  observers: [AnalyticsService.observer()],
   redirect: (context, state) {
     // Deep link custom-scheme (pulzapp://coffre/{token}, pulzapp://event/{id})
     // delivre par la plateforme au demarrage a froid : go_router ne sait pas
