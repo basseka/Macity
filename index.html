@@ -677,6 +677,8 @@
         grid-template-areas: "copy" "phone" "meta";
         gap: 32px;
       }
+      /* Accroche centrée sur mobile. */
+      .hero-copy h1 { text-align: center; }
       .phone { transform: rotate(0); width: 220px; }
       .philo-grid { grid-template-columns: 1fr; }
       .cat-grid { grid-template-columns: repeat(2, 1fr); }
@@ -716,7 +718,6 @@
   <header class="hero">
     <div class="hero-inner">
       <div class="hero-copy">
-        <span class="hero-eyebrow">Ce qui se passe autour de toi, en temps réel</span>
         <h1>
           Ne rate plus rien<br />
           <span class="accent">de ta ville.</span>
@@ -742,6 +743,7 @@
         </div>
       </div>
       <div class="hero-meta">
+        <span class="hero-eyebrow">Ce qui se passe autour de toi, en temps réel</span>
         <div class="social-proof">
           <span class="stars">★★★★★</span>
           <span>Déjà <strong>5 000 téléchargements</strong></span>
