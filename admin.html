@@ -984,6 +984,14 @@
       color: var(--text-faint);
       margin-top: 4px;
     }
+
+    /* Export PDF du Media Kit : on isole #mediakit-sheet à l'impression. */
+    @media print {
+      body * { visibility: hidden; }
+      #mediakit-sheet, #mediakit-sheet * { visibility: visible; }
+      #mediakit-sheet { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+      @page { margin: 12mm; }
+    }
   </style>
 </head>
 <body>
@@ -1024,6 +1032,7 @@
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
           <span class="nav-btn" id="goto-parcours-btn">🌙 Parcours soirée</span>
           <span class="nav-btn" id="goto-userstats-btn">👥 Utilisateurs</span>
+          <span class="nav-btn" id="goto-mediakit-btn">📊 Media Kit</span>
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-gifts-btn">🎁 Cadeaux</span>
@@ -2247,6 +2256,19 @@
         </div>
       </div>
 
+      <!-- ═══ VUE MEDIA KIT ═══ -->
+      <div id="mediakit-view" class="hidden">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <div>
+            <h1 style="margin:0;">📊 Media Kit</h1>
+            <p class="subtitle" style="margin:4px 0 0;">Fiche 1 page pour les annonceurs. Chiffres auto (Supabase) + audience active (MAU/DAU) à compléter depuis Firebase (sauvegardée automatiquement).</p>
+          </div>
+          <button class="banner-save-btn" id="mediakit-print-btn">🖨️ Exporter en PDF</button>
+        </div>
+        <div id="mediakit-loading" class="hidden" style="padding:20px; color:var(--text-faint);">Chargement…</div>
+        <div id="mediakit-sheet"></div>
+      </div>
+
       <!-- ═══ VUE SYSTÈME (monitoring base + IA) ═══ -->
       <div id="sysmon-view" class="hidden">
         <h1>🩺 Système</h1>
@@ -3463,6 +3485,8 @@
     const gotoGiftsBtn = document.getElementById("goto-gifts-btn");
     const citymediaView = document.getElementById("citymedia-view");
     const gotoCitymediaBtn = document.getElementById("goto-citymedia-btn");
+    const mediakitView = document.getElementById("mediakit-view");
+    const gotoMediakitBtn = document.getElementById("goto-mediakit-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -3488,6 +3512,7 @@
       prospectView.classList.add("hidden");
       giftsView.classList.add("hidden");
       citymediaView.classList.add("hidden");
+      mediakitView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -3511,6 +3536,7 @@
       gotoProspectBtn.style.display = "inline-flex";
       gotoGiftsBtn.style.display = "inline-flex";
       gotoCitymediaBtn.style.display = "inline-flex";
+      gotoMediakitBtn.style.display = "inline-flex";
       // Retire la surbrillance de tous les onglets (le bouton actif sera
       // re-surligne par la fonction showXView appelante).
       document
@@ -3678,6 +3704,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoUserstatsBtn.addEventListener("click", showUserstatsView);
+    function showMediakitView() {
+      _hideAllViews();
+      mediakitView.classList.remove("hidden");
+      gotoMediakitBtn.classList.add("active");
+      refreshMediakitView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoMediakitBtn.addEventListener("click", showMediakitView);
     function showSysmonView() {
       _hideAllViews();
       sysmonView.classList.remove("hidden");
@@ -5863,6 +5897,135 @@
       }
     }
     document.getElementById("userstats-refresh-btn").addEventListener("click", refreshUserstatsView);
+
+    // ─── Onglet Media Kit ────────────────────────────────────────────────────
+    const mediakitLoading = document.getElementById("mediakit-loading");
+    const mediakitSheet = document.getElementById("mediakit-sheet");
+    const _rubLabels = { food:"Food", night:"Night", culture:"Culture", family:"Famille", sport:"Sport", tourisme:"Évasion", day:"Concerts", gaming:"Gaming" };
+
+    async function refreshMediakitView() {
+      mediakitLoading.classList.remove("hidden");
+      mediakitSheet.innerHTML = "";
+      try {
+        const { data, error } = await supabase.rpc("admin_user_stats");
+        if (error) throw error;
+        const s = data || {};
+        let stories = 0;
+        try {
+          const r = await supabase.from("reported_events").select("id", { count: "exact", head: true }).eq("status", "published");
+          stories = r.count || 0;
+        } catch (_) {}
+        renderMediakit(s, stories);
+      } catch (e) {
+        console.error("[MediaKit] load", e);
+        toast("Erreur media kit : " + (e.message || e), false);
+      } finally {
+        mediakitLoading.classList.add("hidden");
+      }
+    }
+
+    function _mkBars(rows, total, labelMap) {
+      if (!rows || rows.length === 0) return `<div style="color:#999; font-size:12px;">—</div>`;
+      const top = rows.slice(0, 5);
+      const max = Math.max(...top.map(r => r.n || 0));
+      return top.map(r => {
+        const raw = String(r.ville ?? r.interet ?? "—");
+        const label = (labelMap && labelMap[raw]) ? labelMap[raw] : raw;
+        const pct = max > 0 ? Math.round(((r.n || 0) / max) * 100) : 0;
+        const share = total > 0 ? Math.round(((r.n || 0) / total) * 100) : 0;
+        return `<div style="margin-bottom:9px;">
+          <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:3px; color:#190A2E;">
+            <span style="font-weight:600;">${escapeHtml(label)}</span><span style="color:#8E24AA;">${r.n} · ${share}%</span>
+          </div>
+          <div style="height:8px; background:#f0e6f5; border-radius:5px; overflow:hidden;">
+            <div style="height:100%; width:${pct}%; background:linear-gradient(90deg,#8E24AA,#E91E63); border-radius:5px;"></div>
+          </div></div>`;
+      }).join("");
+    }
+
+    function _mkCard(num, label, sub) {
+      return `<div style="flex:1; min-width:130px; background:#fff; border:1px solid #eadff0; border-radius:14px; padding:16px 14px;">
+        <div style="font-size:30px; font-weight:900; background:linear-gradient(135deg,#8E24AA,#E91E63); -webkit-background-clip:text; background-clip:text; color:transparent;">${num}</div>
+        <div style="font-size:13px; font-weight:700; color:#190A2E; margin-top:2px;">${label}</div>
+        ${sub ? `<div style="font-size:11px; color:#888; margin-top:2px;">${sub}</div>` : ""}
+      </div>`;
+    }
+
+    function renderMediakit(s, stories) {
+      const total = s.total || 0;
+      const anonymes = s.anonymes || 0;
+      const totalUsers = s.total_utilisateurs ?? (total + anonymes);
+      const villes = (s.par_ville || []).filter(v => v.ville && v.ville !== "(non renseigné)");
+      const nbVilles = villes.length;
+      const croiss30 = s.total_30j || 0;
+      const today = new Date().toLocaleDateString("fr-FR", { day:"numeric", month:"long", year:"numeric" });
+      const mau = localStorage.getItem("mk_mau") || "";
+      const dau = localStorage.getItem("mk_dau") || "";
+      const split = localStorage.getItem("mk_split") || "";
+
+      mediakitSheet.innerHTML = `
+      <div style="max-width:900px; margin:0 auto; background:#FCF4FA; border-radius:18px; overflow:hidden; border:1px solid #eadff0; color:#190A2E;">
+        <div style="background:linear-gradient(135deg,#8E24AA,#E91E63); color:#fff; padding:26px 30px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="font-size:38px;">📍</div>
+            <div>
+              <div style="font-size:26px; font-weight:900; line-height:1;">MaCity</div>
+              <div style="font-size:12px; letter-spacing:2px; opacity:.9; margin-top:3px;">L'APP DE TA VILLE — MEDIA KIT</div>
+            </div>
+          </div>
+          <div style="text-align:right; font-size:12px; opacity:.9;">Toulouse &amp; alentours<br/>${today}</div>
+        </div>
+        <div style="padding:24px 30px;">
+          <div style="font-size:13px; font-weight:800; letter-spacing:1px; color:#8E24AA; margin-bottom:12px;">CHIFFRES CLÉS</div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px;">
+            ${_mkCard(totalUsers.toLocaleString("fr-FR"), "Utilisateurs", `${total} inscrits + ${anonymes} anonymes`)}
+            ${_mkCard(nbVilles, "Villes couvertes", "audience locale")}
+            ${_mkCard(stories.toLocaleString("fr-FR"), "Stories publiées", "contenu local temps réel")}
+            ${_mkCard("+" + croiss30, "Croissance / 30j", "nouveaux inscrits")}
+          </div>
+          <div style="font-size:13px; font-weight:800; letter-spacing:1px; color:#8E24AA; margin-bottom:6px;">AUDIENCE ACTIVE <span style="font-weight:500; color:#888; letter-spacing:0;">(Firebase Analytics — à renseigner)</span></div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px;">
+            <div style="flex:1; min-width:140px; background:#fff; border:1px dashed #d3bcd8; border-radius:14px; padding:14px;">
+              <div style="font-size:11px; color:#888; font-weight:700;">MAU (actifs / mois)</div>
+              <input id="mk-mau" value="${escapeHtml(mau)}" placeholder="—" style="width:100%; border:none; outline:none; font-size:26px; font-weight:900; color:#190A2E; background:transparent;" />
+            </div>
+            <div style="flex:1; min-width:140px; background:#fff; border:1px dashed #d3bcd8; border-radius:14px; padding:14px;">
+              <div style="font-size:11px; color:#888; font-weight:700;">DAU (actifs / jour)</div>
+              <input id="mk-dau" value="${escapeHtml(dau)}" placeholder="—" style="width:100%; border:none; outline:none; font-size:26px; font-weight:900; color:#190A2E; background:transparent;" />
+            </div>
+            <div style="flex:1; min-width:160px; background:#fff; border:1px dashed #d3bcd8; border-radius:14px; padding:14px;">
+              <div style="font-size:11px; color:#888; font-weight:700;">Répartition iOS / Android</div>
+              <input id="mk-split" value="${escapeHtml(split)}" placeholder="ex : 55% iOS / 45% Android" style="width:100%; border:none; outline:none; font-size:15px; font-weight:700; color:#190A2E; background:transparent; margin-top:8px;" />
+            </div>
+          </div>
+          <div style="display:flex; gap:26px; flex-wrap:wrap; margin-bottom:22px;">
+            <div style="flex:1; min-width:240px;">
+              <div style="font-size:13px; font-weight:800; letter-spacing:1px; color:#8E24AA; margin-bottom:10px;">TOP VILLES</div>
+              ${_mkBars(villes, total)}
+            </div>
+            <div style="flex:1; min-width:240px;">
+              <div style="font-size:13px; font-weight:800; letter-spacing:1px; color:#8E24AA; margin-bottom:10px;">CENTRES D'INTÉRÊT</div>
+              ${_mkBars(s.par_interet || [], total, _rubLabels)}
+            </div>
+          </div>
+          <div style="background:#190A2E; color:#fff; border-radius:14px; padding:18px 20px; font-size:14px; line-height:1.5;">
+            <strong style="color:#FF6BAA;">Pourquoi MaCity ?</strong><br/>
+            Une audience <strong>locale et engagée</strong> qui sort, en temps réel via la Story Map Live.
+            Ton établissement mis en avant sur la map, devant des gens de ta ville, ciblables par
+            centre d'intérêt et par quartier.
+          </div>
+          <div style="text-align:center; font-size:11px; color:#999; margin-top:16px;">macity.app · contact@macity.app</div>
+        </div>
+      </div>`;
+
+      const bind = (id, key) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", () => localStorage.setItem(key, el.value));
+      };
+      bind("mk-mau", "mk_mau"); bind("mk-dau", "mk_dau"); bind("mk-split", "mk_split");
+    }
+
+    document.getElementById("mediakit-print-btn").addEventListener("click", () => window.print());
 
     // ─── Onglet Système (monitoring base) ───────────────────────────────────
     const sysmonLoading = document.getElementById("sysmon-loading");
