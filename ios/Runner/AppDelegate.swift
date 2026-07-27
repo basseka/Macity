@@ -15,10 +15,12 @@ import AVFoundation
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // NE PAS appeler FirebaseApp.configure() ici : sans GoogleService-Info.plist,
-    // cet appel natif crashe l'app au lancement (rejet App Store 2.1(a)).
-    // Firebase est initialise cote Dart via DefaultFirebaseOptions (firebase_options.dart),
-    // qui n'a pas besoin du fichier .plist.
+    // Firebase configure nativement des le lancement (necessite le
+    // GoogleService-Info.plist ajoute a la cible Runner). Demarre Analytics tot
+    // ET rend Firebase pret immediatement -> plus de race sur l'APNs token,
+    // debloque le token FCM iOS. Valeurs du plist == firebase_options.dart
+    // (meme app com.macity.app) -> l'init Dart (main.dart) reutilise cette app.
+    FirebaseApp.configure()
 
     // Enregistrement APNs pour les push notifications
     UNUserNotificationCenter.current().delegate = self
