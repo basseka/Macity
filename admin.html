@@ -2088,6 +2088,7 @@
             <button type="button" class="rub-pill" data-subrub="famille">👨‍👩‍👧 Famille</button>
             <button type="button" class="rub-pill" data-subrub="culture">🎭 Culture</button>
             <button type="button" class="rub-pill" data-subrub="sport">⚽ Sport</button>
+            <button type="button" class="rub-pill" data-subrub="evasion">🏰 Évasion</button>
           </div>
           <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
             <input type="text" id="subs-city-filter" class="banner-input" list="cities-datalist"
@@ -4921,6 +4922,7 @@
       { key: "culture", label: "🎭 Culture" },
       { key: "sport",   label: "⚽ Sport" },
       { key: "famille", label: "👨‍👩‍👧 Famille" },
+      { key: "evasion", label: "🏰 Évasion" },
     ];
     const SUBS_TIER_META = {
       classique: { label: "🔹 Classique", color: "#38BDF8" },
@@ -4966,6 +4968,9 @@
       subsLoading.classList.remove("hidden");
       subsGroupsEl.innerHTML = "";
       try {
+        // _allEvasion n'est peuplé qu'à l'ouverture de l'onglet Évasion : sans
+        // ça les domaines seraient absents du sélecteur.
+        if (_allEvasion.length === 0) await refreshEvasionView();
         const [subsRes, pricesRes] = await Promise.all([
           supabase.rpc("admin_list_venue_subscriptions"),
           supabase.rpc("admin_get_subscription_prices"),
@@ -7795,7 +7800,25 @@
         videoUrl: "",
         isPartner: !!r.is_partner,
       }));
-      return v.concat(e).concat(s).concat(fam);
+      // L'app lit `evasion_venues` pour la rubrique Évasion. Sans ce bloc, un
+      // domaine n'apparaissait dans AUCUN sélecteur — donc impossible à abonner.
+      const eva = _allEvasion.map(r => ({
+        source: "evasion_venues",
+        id: r.id,
+        name: r.nom || "",
+        ville: r.ville || "",
+        adresse: r.adresse || "",
+        type: r.hub_ville || "",
+        rubrique: "evasion",
+        code: null,            // evasion_venues : pas de code de revendication
+        photo: r.photo || "",
+        photos: Array.isArray(r.photos) ? r.photos : [],
+        priority: r.display_priority ?? 0,
+        priorities: {},
+        videoUrl: r.video_url || "",
+        isPartner: !!r.is_partner,
+      }));
+      return v.concat(e).concat(s).concat(fam).concat(eva);
     }
 
     function normalizeCity(s) {
@@ -7815,7 +7838,7 @@
     // Libellé du badge selon la table source
     const VENUE_SOURCE_LABEL = {
       venues: "venue", etablissements: "etab", sport_venues: "sport",
-      family_venues: "famille",
+      family_venues: "famille", evasion_venues: "évasion",
     };
 
     // Vignettes de la galerie — reconstruites à chaque ajout / retrait / déplacement.
