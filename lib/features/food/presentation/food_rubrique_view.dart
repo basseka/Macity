@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -11,6 +12,8 @@ import 'package:video_player/video_player.dart';
 
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/data/inspiration_service.dart';
+import 'package:pulz_app/core/data/premium_banner_service.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
@@ -80,10 +83,28 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   void _disposeVideo() {
     _video?.dispose();
     _video = null;
+    _videoUrl = null;
+  }
+
+  /// Rotation de la bannière Premium. Le curseur est partagé (provider
+  /// non-autoDispose) : il survit à la navigation, donc revenir sur Food
+  /// montre un AUTRE restaurant.
+  Timer? _bannerTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(bannerCursorProvider.notifier).advance();
+    });
+    _bannerTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted) ref.read(bannerCursorProvider.notifier).advance();
+    });
   }
 
   @override
   void dispose() {
+    _bannerTimer?.cancel();
     _disposeVideo();
     super.dispose();
   }
@@ -438,11 +459,17 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   List<Widget> _partnerSection(List<RestaurantVenue> all) {
     final partners = all.where((r) => r.isPartner).toList();
     if (partners.isEmpty) return const [];
-    // Melange stable sur la journee (seed = jour) : pas de re-tri a chaque
-    // rebuild, mais un ordre different chaque jour.
-    final seed = DateTime.now().difference(DateTime(2020, 1, 1)).inDays;
+    // Mélange HORAIRE (et non quotidien) : la graine est l'heure écoulée depuis
+    // epoch. Stable pendant l'heure — donc pas de re-tri à chaque rebuild — et
+    // identique sur tous les appareils.
+    //
+    // Plus de `take(10)` : le rail défile, donc plafonner excluait 22 des 32
+    // partenaires pendant une journée entière. Tout le monde est présent ;
+    // c'est l'ordre qui tourne, et donc qui occupe les 2 premières places
+    // réellement visibles.
+    final seed = DateTime.now().millisecondsSinceEpoch ~/ 3600000;
     partners.shuffle(math.Random(seed));
-    final list = partners.take(10).toList();
+    final list = partners;
     return [
       _sectionHeader('Nos restaurants partenaires',
           showAction: false, onSeeAll: () {}),
@@ -480,7 +507,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   /// inclus — tant qu'il n'y a aucune carte active pour la ville.
   List<Widget> _inspirationsSection() {
     final items =
-        ref.watch(inspirationsProvider('food')).valueOrNull ?? const [];
+        ref.watch(inspirationsWithPartnersProvider('food')).valueOrNull ??
+            const [];
     if (items.isEmpty) return const [];
     return [
       _sectionHeader('Inspirations du moment',
@@ -506,6 +534,11 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   /// Tap carte : si le thème correspond à un chip Food on bascule le
   /// filtre dessus ; sinon, à défaut, on ouvre le site s'il y en a un.
   void _onInspirationTap(Inspiration insp) {
+    // Carte partenaire (Gold) : le tap ouvre SA fiche, pas un filtre.
+    if (insp.isPartnerCard) {
+      _openInspirationFiche(insp);
+      return;
+    }
     final theme = insp.theme.trim();
     if (theme.isNotEmpty) {
       final match = _chips.where((c) =>
@@ -517,6 +550,18 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
       }
     }
     _openSite(insp.siteUrl);
+  }
+
+  /// Ouvre la fiche rattachée à une carte Inspirations vendue à un partenaire.
+  Future<void> _openInspirationFiche(Inspiration insp) async {
+    final commerce =
+        await fetchCommerceBySource(insp.sourceTable!, insp.sourceId!);
+    if (!mounted) return;
+    if (commerce != null) {
+      CommerceRowCard.showDetailSheet(context, commerce);
+    } else if (insp.siteUrl.trim().isNotEmpty) {
+      _openSite(insp.siteUrl);
+    }
   }
 
   Future<void> _openSite(String url) async {
@@ -803,17 +848,36 @@ class _Hero extends StatelessWidget {
     final topPad = MediaQuery.of(context).padding.top;
     return Consumer(
       builder: (context, ref, _) {
+        // Priorité aux restaurants Premium : leur vidéo, ou leur photo à
+        // défaut (ils ont payé la place, ils l'occupent). `mode_banners` n'est
+        // plus que le repli quand aucun Premium n'a de média dans cette ville.
+        final pool = ref.watch(premiumBannerPoolProvider('food')).asData?.value
+            ?? const <PremiumBannerSlot>[];
+        final slot = slotAt(pool, ref.watch(bannerCursorProvider));
+
         final bannerAsync = ref.watch(modeBannerVideoProvider);
         final banner = bannerAsync.asData?.value;
-        if (banner != null && currentVideoUrl != banner.videoUrl) {
+
+        final wantedVideo = slot?.videoUrl.isNotEmpty == true
+            ? slot!.videoUrl
+            : (slot == null ? banner?.videoUrl : null);
+        if (wantedVideo != null && currentVideoUrl != wantedVideo) {
           onDisposeVideo();
-          onInitVideo(banner.videoUrl);
+          onInitVideo(wantedVideo);
         }
+        // NE PAS détruire le contrôleur ici quand le slot n'a pas de vidéo :
+        // `video` est un paramètre capturé au build, il garderait une référence
+        // vers un contrôleur détruit et lire `c.value` donnait un écran gris.
+        // On se contente de ne pas l'afficher ; il sera libéré au prochain
+        // chargement ou au dispose du parent.
         final c = video;
         final ready = c != null &&
+            wantedVideo != null &&
+            currentVideoUrl == wantedVideo &&
             c.value.isInitialized &&
             !videoError &&
             c.value.size.width > 0;
+        final slotPhoto = (slot != null && !slot.hasVideo) ? slot.photoUrl : '';
 
         return SizedBox(
           height: 260,
@@ -823,12 +887,32 @@ class _Hero extends StatelessWidget {
             children: [
               // Vidéo / poster fallback
               if (ready)
-                FittedBox(
+                // ClipRect indispensable : FittedBox ne découpe pas
+                // (clipBehavior = Clip.none). Une vidéo portrait mise en
+                // BoxFit.cover sur une bannière large déborde sinon en hauteur.
+                ClipRect(
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: c.value.size.width,
+                      height: c.value.size.height,
+                      child: VideoPlayer(c),
+                    ),
+                  ),
+                )
+              else if (slotPhoto.isNotEmpty)
+                // Premium sans vidéo : sa photo occupe la place payée.
+                Image.network(
+                  slotPhoto,
                   fit: BoxFit.cover,
-                  child: SizedBox(
-                    width: c.value.size.width,
-                    height: c.value.size.height,
-                    child: VideoPlayer(c),
+                  errorBuilder: (_, __, ___) => const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF3A1F14), Color(0xFF7A3B22)],
+                      ),
+                    ),
                   ),
                 )
               else
@@ -883,6 +967,57 @@ class _Hero extends StatelessWidget {
                 ),
               ),
 
+              // Identification du partenaire : relie la vidéo au restaurant.
+              // Placée sous la barre du haut pour ne pas gêner Map Live.
+              if (slot != null)
+                Positioned(
+                  top: topPad + 52,
+                  right: 18,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () =>
+                        CommerceRowCard.showDetailSheet(context, slot.commerce),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 11, vertical: 6),
+                          constraints: const BoxConstraints(maxWidth: 230),
+                          decoration: BoxDecoration(
+                            color: const Color(0xC70B1410),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                                color: const Color(0xFFC79A3E)
+                                    .withValues(alpha: 0.55),
+                                width: 1),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.star_rounded,
+                                  size: 13, color: Color(0xFFC79A3E)),
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  slot.nom,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               // Top row : back + Map Live
               Positioned(
                 top: topPad + 8,
@@ -939,8 +1074,13 @@ class _Hero extends StatelessWidget {
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
-                              if (banner?.linkUrl != null) {
-                                onOpenLink(banner!.linkUrl!);
+                              // Priorité au site du Premium affiché : c'est SON
+                              // emplacement, pas celui de la ville.
+                              final target = (slot?.siteUrl.isNotEmpty == true)
+                                  ? slot!.siteUrl
+                                  : banner?.linkUrl;
+                              if (target != null && target.isNotEmpty) {
+                                onOpenLink(target);
                               }
                             },
                             child: ClipRRect(
@@ -1405,20 +1545,44 @@ class _InspirationCard extends StatelessWidget {
           children: [
             SizedBox(
               height: 62,
-              child: data.photoUrl.trim().isEmpty
-                  ? const DecoratedBox(
-                      decoration: BoxDecoration(gradient: _imgGradient),
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: data.photoUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => const DecoratedBox(
-                        decoration: BoxDecoration(gradient: _imgGradient),
-                      ),
-                      errorWidget: (_, __, ___) => const DecoratedBox(
-                        decoration: BoxDecoration(gradient: _imgGradient),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  data.photoUrl.trim().isEmpty
+                      ? const DecoratedBox(
+                          decoration: BoxDecoration(gradient: _imgGradient),
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: data.photoUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => const DecoratedBox(
+                            decoration: BoxDecoration(gradient: _imgGradient),
+                          ),
+                          errorWidget: (_, __, ___) => const DecoratedBox(
+                            decoration: BoxDecoration(gradient: _imgGradient),
+                          ),
+                        ),
+                  // Carte vendue à un partenaire : marqueur doré discret.
+                  if (data.isPartnerCard)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xC70B1410),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: const Color(0xFFC79A3E)
+                                  .withValues(alpha: 0.7),
+                              width: 0.8),
+                        ),
+                        child: const Icon(Icons.star_rounded,
+                            size: 10, color: Color(0xFFC79A3E)),
                       ),
                     ),
+                ],
+              ),
             ),
             Expanded(
               child: Padding(

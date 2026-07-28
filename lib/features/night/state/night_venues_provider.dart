@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
@@ -341,5 +342,13 @@ final nightPartnersProvider =
   final city = ref.watch(selectedCityProvider);
   final venues =
       await VenuesSupabaseService().fetchVenues(mode: 'night', ville: city);
-  return venues.where((v) => v.isPartner).toList();
+  final partners = venues.where((v) => v.isPartner).toList();
+  // Sans mélange, le tri `display_priority.desc` laissait toujours les mêmes
+  // partenaires en tête — et seuls les 2 premiers sont réellement visibles
+  // avant de faire défiler. Graine horaire : stable pendant l'heure, identique
+  // sur tous les appareils, et chacun passe devant à son tour.
+  if (partners.length > 1) {
+    partners.shuffle(math.Random(DateTime.now().millisecondsSinceEpoch ~/ 3600000));
+  }
+  return partners;
 });

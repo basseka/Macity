@@ -74,6 +74,7 @@ class FamilyScreen extends ConsumerWidget {
       photo: isHttp ? v.photo : '',
       description: description,
       isVerified: v.isVerified,
+      isPartner: v.isPartner,
     );
     return RubriqueItem(
       title: v.name,
@@ -83,6 +84,7 @@ class FamilyScreen extends ConsumerWidget {
       ].join(' · '),
       photoUrl: v.photo,
       isVerified: v.isVerified,
+      isPartner: v.isPartner,
       commerce: commerce,
       ageMin: v.ageMin,
       onTap: (ctx) => CommerceRowCard.showDetailSheet(ctx, commerce),

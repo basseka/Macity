@@ -47,6 +47,11 @@ final partnersOfDayProvider =
       final res = await dio.get<dynamic>(table, queryParameters: {
         'is_partner': 'eq.true',
         'is_active': 'eq.true',
+        // Les 6 blocs « du jour » de l'accueil sont RÉSERVÉS aux Premium :
+        // c'est la seule présence commerçante de cet écran, et donc le levier
+        // de montée en gamme pour un Gold. `partner_tier` est dénormalisé
+        // depuis venue_subscriptions par un trigger, donc pas de jointure ici.
+        'partner_tier': 'eq.premium',
         cityCol: 'ilike.$like',
         'order': 'display_priority.desc',
         ...filters,

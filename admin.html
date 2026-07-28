@@ -235,14 +235,16 @@
     }
     .logout:hover { color: var(--magenta); }
 
-    /* ─── Top toolbar (logout left, nav right) ─── */
+    /* ─── Top toolbar (logout centré tout en haut, nav en dessous) ─── */
     .top-toolbar {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 12px;
       margin-bottom: 16px;
     }
+    /* align-self plutôt que align-items:center sur le parent : la grille de
+       navigation garde ainsi sa largeur pleine et son alignement à droite. */
+    .top-toolbar .logout { align-self: center; }
     .top-toolbar .nav-btn {
       display: inline-flex;
       align-items: center;
@@ -1009,18 +1011,23 @@
 
     <!-- ═══ FORMULAIRE EVENT ═══ -->
     <div id="admin-area">
-      <!-- ═══ Top toolbar : logout (gauche) + nav (droite) ═══ -->
+      <!-- ═══ Top toolbar : logout (centré, tout en haut) + nav (dessous) ═══ -->
       <div class="top-toolbar">
         <span class="logout" id="logout-btn" style="margin-bottom: 0;">← Se déconnecter</span>
-        <div style="display:grid; grid-template-columns:repeat(4, max-content); gap:8px; justify-content:end;">
+        <div style="display:grid; grid-template-columns:repeat(4, max-content); gap:8px; justify-content:center;">
           <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
+          <span class="nav-btn" id="goto-eventedit-btn">✏️ Éditer un event</span>
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
           <span class="nav-btn" id="goto-family-btn">👨‍👩‍👧 Lieux Famille</span>
           <span class="nav-btn" id="goto-evasion-btn">🏰 Évasion</span>
           <span class="nav-btn" id="goto-fakestory-btn">📸 Fausses stories</span>
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
-          <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
+          <!-- Onglet retiré 2026-07-28 : le carrousel « Inspirations » de l'app
+               n'affiche plus que les partenaires Gold, générés depuis leur fiche.
+               La table `inspirations` et tout le code ci-dessous restent en place
+               (le JS les lit au chargement) — seul l'accès est masqué. -->
+          <span class="nav-btn" id="goto-inspirations-btn" style="display:none;">🌟 Inspirations</span>
           <span class="nav-btn" id="goto-sportnews-btn">📰 Actu sport</span>
           <span class="nav-btn" id="goto-chains-btn">🏋️ Chaînes fitness</span>
           <span class="nav-btn" id="goto-notifs-btn">🔔 Notifications push</span>
@@ -1037,6 +1044,7 @@
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-gifts-btn">🎁 Cadeaux</span>
           <span class="nav-btn" id="goto-citymedia-btn">📰 Médias ville</span>
+          <span class="nav-btn" id="goto-subs-btn">💳 Abonnements</span>
         </div>
       </div>
 
@@ -1449,11 +1457,32 @@
       <!-- ═══ VUE GRILLE "MES EVENTS" ═══ -->
       <div id="events-view" class="hidden">
         <h1>📋 Mes events <span id="history-count" style="color: var(--text-faint); font-weight: 400; font-size: 16px;"></span></h1>
-        <p class="subtitle">Triés par date, les plus proches en haut. Clique sur ✏️ pour modifier ou 🗑️ pour supprimer.</p>
+        <p class="subtitle">Events <b>à venir</b> d'une ville : tes events manuels + ceux des users (les scrapers auto ne sont pas listés ici). Triés par date. ✏️ pour éditer (photo/vidéo/champs), 🗑️ pour supprimer un des tiens.</p>
+        <div class="banner-card" style="margin-bottom:14px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <select id="history-city" class="banner-input" style="flex:1; min-width:220px; margin:0;"></select>
+            <button class="banner-save-btn" id="history-city-btn">🔍 Charger</button>
+          </div>
+        </div>
         <div id="history-list"></div>
         <div id="history-empty" class="events-empty hidden">
-          Aucun event créé pour l'instant — clique sur « + Nouveau » pour en ajouter un.
+          Aucun event <b>à venir</b> pour cette ville (tes events manuels + ceux des users). Essaie une autre ville ou clique sur « + Nouveau ».
         </div>
+      </div>
+
+      <!-- ═══ VUE "ÉDITER UN EVENT" (user_events + scraped_events) ═══ -->
+      <div id="eventedit-view" class="hidden">
+        <h1>✏️ Éditer un event</h1>
+        <p class="subtitle">Cherche un event par titre (créé par un user OU par un scraper), édite ses champs, remplace la photo ou la vidéo.</p>
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="eventedit-search" class="banner-input" placeholder="Titre de l'event…" style="flex:1; min-width:240px; margin:0;" />
+            <button class="banner-save-btn" id="eventedit-search-btn">🔍 Chercher</button>
+          </div>
+        </div>
+        <div id="eventedit-loading" class="hidden" style="padding:16px; color:var(--text-faint);">Recherche…</div>
+        <div id="eventedit-results"></div>
+        <div id="eventedit-form"></div>
       </div>
 
       <!-- ═══ VUE "ETABLISSEMENTS PAR VILLE" ═══ -->
@@ -2043,6 +2072,99 @@
         </div>
       </div>
 
+      <!-- ═══ VUE "ABONNEMENTS" (venue_subscriptions) ═══ -->
+      <div id="subs-view" class="hidden">
+        <h1>💳 Abonnements</h1>
+        <p class="subtitle">Affecte une formule à un établissement et suis les prélèvements. Un abonnement <strong>actif</strong> allume le badge Partenaire du lieu. <strong>Gold</strong> et <strong>Premium</strong> appliquent en plus le palier au compte pro rattaché — ses events remontent « au top » / « à la une ». <strong>Classique</strong> ne touche pas au classement des events.</p>
+
+        <div id="subs-kpis" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin:16px 0 22px;"></div>
+
+        <!-- ─── Filtres : rubrique + ville + nom ─── -->
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+            <button type="button" class="rub-pill active" data-subrub="">Tous</button>
+            <button type="button" class="rub-pill" data-subrub="food">🍴 Food</button>
+            <button type="button" class="rub-pill" data-subrub="nuit">🌙 Night</button>
+            <button type="button" class="rub-pill" data-subrub="famille">👨‍👩‍👧 Famille</button>
+            <button type="button" class="rub-pill" data-subrub="culture">🎭 Culture</button>
+            <button type="button" class="rub-pill" data-subrub="sport">⚽ Sport</button>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="subs-city-filter" class="banner-input" list="cities-datalist"
+              placeholder="Filtrer par ville (ex : Toulouse)" autocomplete="off"
+              style="flex:1; min-width:200px; margin:0;" />
+            <input type="text" id="subs-name-filter" class="banner-input"
+              placeholder="…ou par nom d'établissement" autocomplete="off"
+              style="flex:1; min-width:200px; margin:0;" />
+            <button type="button" class="rub-pill" id="subs-only-subscribed">✅ Abonnés seulement</button>
+          </div>
+          <div id="subs-filter-hint" style="font-size:11px; color:var(--text-faint); margin-top:8px;"></div>
+        </div>
+
+        <div id="subs-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="subs-groups"></div>
+
+        <!-- ─── Éditeur d'abonnement (rempli au clic sur un lieu) ─── -->
+        <div id="subs-editor" class="banner-card hidden" style="margin-top:20px; max-width:640px;">
+          <div id="subs-editor-title" style="font-size:15px; font-weight:700; margin-bottom:4px;"></div>
+          <div id="subs-editor-sub" style="font-size:12px; color:var(--text-dim); margin-bottom:14px;"></div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Formule</label>
+              <select id="subs-f-tier" class="banner-input" style="width:100%; margin:0;">
+                <option value="classique">🔹 Classique — badge Partenaire</option>
+                <option value="gold">🥇 Gold — events au top</option>
+                <option value="premium">💎 Premium — events à la une</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Montant <strong>HT</strong> (€)</label>
+              <input type="number" id="subs-f-amount" class="banner-input" min="0" step="0.01" style="width:100%; margin:0;" />
+              <div id="subs-f-ttc" style="font-size:11px; color:var(--text-faint); margin-top:4px;"></div>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Période</label>
+              <select id="subs-f-period" class="banner-input" style="width:100%; margin:0;">
+                <option value="mensuel">Mensuel</option>
+                <option value="annuel">Annuel</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Début</label>
+              <input type="date" id="subs-f-start" class="banner-input" style="width:100%; margin:0;" />
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Fin d'engagement <span style="opacity:.6">— vide = tacite</span></label>
+              <input type="date" id="subs-f-end" class="banner-input" style="width:100%; margin:0;" />
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Notes</label>
+              <input type="text" id="subs-f-notes" class="banner-input" placeholder="Remise, contact…" style="width:100%; margin:0;" />
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+            <button type="button" class="act act-success" id="subs-save-btn">💾 Enregistrer l'abonnement</button>
+            <button type="button" class="banner-save-btn" id="subs-pay-btn">💰 Encaisser</button>
+            <button type="button" class="banner-save-btn" id="subs-cancel-btn" style="background:#7f1d1d;">🚫 Résilier</button>
+            <button type="button" class="banner-save-btn" id="subs-stripe-btn" disabled
+              title="Prélèvement automatique Stripe — pas encore déployé"
+              style="opacity:.45; cursor:not-allowed;">💳 Créer l'abonnement Stripe</button>
+            <button type="button" class="banner-save-btn" id="subs-close-btn" style="background:transparent; border:1px solid var(--line);">Fermer</button>
+          </div>
+
+          <div id="subs-payments" style="margin-top:18px;"></div>
+        </div>
+
+        <!-- ─── Grille tarifaire ─── -->
+        <details style="margin-top:28px;">
+          <summary style="cursor:pointer; font-size:15px; font-weight:700;">⚙️ Formules &amp; tarifs de référence</summary>
+          <p class="subtitle" style="margin-top:8px;">Sert à pré-remplir le montant du formulaire. Modifier un tarif ici <strong>ne change pas</strong> les abonnements déjà en cours — leur montant est figé à la souscription.</p>
+          <div id="subs-prices" style="overflow-x:auto;"></div>
+        </details>
+      </div>
+
       <!-- ═══ VUE DURÉE STORIES (TTL) ═══ -->
       <div id="storyttl-view" class="hidden">
         <h1>⏱️ Durée des stories</h1>
@@ -2440,6 +2562,17 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal éditeur d'event (réutilisée par « Mes events » + « Éditer un event ») -->
+  <div id="eventedit-modal" style="display:none; position:fixed; inset:0; z-index:9500; background:rgba(0,0,0,0.75); overflow:auto; padding:20px;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="max-width:760px; margin:16px auto; background:var(--bg, #12121a); border:1px solid var(--line, #333); border-radius:16px; padding:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong style="font-size:15px;">✏️ Éditer l'event</strong>
+        <button id="eventedit-modal-close" class="gen-btn">✕ Fermer</button>
+      </div>
+      <div id="eventedit-modal-body"></div>
     </div>
   </div>
 
@@ -3487,6 +3620,10 @@
     const gotoCitymediaBtn = document.getElementById("goto-citymedia-btn");
     const mediakitView = document.getElementById("mediakit-view");
     const gotoMediakitBtn = document.getElementById("goto-mediakit-btn");
+    const eventeditView = document.getElementById("eventedit-view");
+    const gotoEventeditBtn = document.getElementById("goto-eventedit-btn");
+    const subsView = document.getElementById("subs-view");
+    const gotoSubsBtn = document.getElementById("goto-subs-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -3513,13 +3650,15 @@
       giftsView.classList.add("hidden");
       citymediaView.classList.add("hidden");
       mediakitView.classList.add("hidden");
+      eventeditView.classList.add("hidden");
+      subsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
       gotoBannersBtn.style.display = "inline-flex";
       gotoEvasionBtn.style.display = "inline-flex";
       gotoFakestoryBtn.style.display = "inline-flex";
-      gotoInspirationsBtn.style.display = "inline-flex";
+      // Volontairement pas de re-affichage : onglet retiré (voir le bouton).
       gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
       gotoModerationBtn.style.display = "inline-flex";
@@ -3537,6 +3676,8 @@
       gotoGiftsBtn.style.display = "inline-flex";
       gotoCitymediaBtn.style.display = "inline-flex";
       gotoMediakitBtn.style.display = "inline-flex";
+      gotoEventeditBtn.style.display = "inline-flex";
+      gotoSubsBtn.style.display = "inline-flex";
       // Retire la surbrillance de tous les onglets (le bouton actif sera
       // re-surligne par la fonction showXView appelante).
       document
@@ -3712,6 +3853,21 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoMediakitBtn.addEventListener("click", showMediakitView);
+    function showEventeditView() {
+      _hideAllViews();
+      eventeditView.classList.remove("hidden");
+      gotoEventeditBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoEventeditBtn.addEventListener("click", showEventeditView);
+    function showSubsView() {
+      _hideAllViews();
+      subsView.classList.remove("hidden");
+      gotoSubsBtn.classList.add("active");
+      refreshSubsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoSubsBtn.addEventListener("click", showSubsView);
     function showSysmonView() {
       _hideAllViews();
       sysmonView.classList.remove("hidden");
@@ -4753,6 +4909,422 @@
     // ─── Onglet MAJ App (versions) ──────────────────────────────────────────
     const appversionsLoading = document.getElementById("appversions-loading");
     const appversionsCards = document.getElementById("appversions-cards");
+
+    // ─── Onglet Abonnements (venue_subscriptions) ───────────────────────────
+    // Le passage au prélèvement Stripe récurrent se fait en basculant ce flag,
+    // une fois l'edge function create-subscription-checkout déployée.
+    const SUBS_STRIPE_ENABLED = false;
+
+    const SUBS_GROUPS = [
+      { key: "food",    label: "🍴 Food" },
+      { key: "nuit",    label: "🌙 Night" },
+      { key: "culture", label: "🎭 Culture" },
+      { key: "sport",   label: "⚽ Sport" },
+      { key: "famille", label: "👨‍👩‍👧 Famille" },
+    ];
+    const SUBS_TIER_META = {
+      classique: { label: "🔹 Classique", color: "#38BDF8" },
+      gold:      { label: "🥇 Gold",      color: "#C79A3E" },
+      premium:   { label: "💎 Premium",   color: "#8E24AA" },
+    };
+    const SUBS_STATUS_META = {
+      active:    { label: "Actif",   color: "#16a34a" },
+      past_due:  { label: "Impayé",  color: "#f59e0b" },
+      cancelled: { label: "Résilié", color: "#6b7280" },
+    };
+
+    // Abonnements indexés par "table#id", pour recoller avec unifiedFiches().
+    let _subsByKey = new Map();
+    let _subsPrices = [];
+    let _subsRubFilter = "";
+    // false par defaut : le geste principal de l'onglet est « je filtre une
+    // ville / une rubrique et j'abonne », pas « je relis mon portefeuille ».
+    // Les KPI en haut restent calcules sur TOUS les abonnements, donc la vue
+    // d'ensemble n'est jamais perdue quand on filtre.
+    let _subsOnlySubscribed = false;
+    let _subsCurrent = null;   // { source, id, name, ville, rubrique, sub }
+
+    // Tous les montants stockés sont HORS TAXES ; le TTC (ce que Stripe
+    // prélève réellement) est dérivé du taux figé sur chaque abonnement.
+    const SUBS_DEFAULT_VAT_BPS = 2000;   // 20,00 %
+    const subsTtc = (cents, bps) => Math.round(Number(cents || 0) * (1 + (bps ?? SUBS_DEFAULT_VAT_BPS) / 10000));
+
+    const subsKey = (source, id) => `${source}#${id}`;
+    const subsEuros = (cents) => (Number(cents || 0) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+    // Ramène tout au mois pour que le MRR reste comparable entre formules.
+    const subsMonthly = (s) => s.billing_period === "annuel" ? Math.round(s.amount_cents / 12) : s.amount_cents;
+
+    const subsLoading   = document.getElementById("subs-loading");
+    const subsGroupsEl  = document.getElementById("subs-groups");
+    const subsKpisEl    = document.getElementById("subs-kpis");
+    const subsEditor    = document.getElementById("subs-editor");
+    const subsCityInput = document.getElementById("subs-city-filter");
+    const subsNameInput = document.getElementById("subs-name-filter");
+    const subsHint      = document.getElementById("subs-filter-hint");
+
+    async function refreshSubsView() {
+      subsLoading.classList.remove("hidden");
+      subsGroupsEl.innerHTML = "";
+      try {
+        const [subsRes, pricesRes] = await Promise.all([
+          supabase.rpc("admin_list_venue_subscriptions"),
+          supabase.rpc("admin_get_subscription_prices"),
+        ]);
+        if (subsRes.error) throw subsRes.error;
+        if (pricesRes.error) throw pricesRes.error;
+
+        _subsByKey = new Map((subsRes.data || []).map(s => [subsKey(s.source_table, s.source_id), s]));
+        _subsPrices = pricesRes.data || [];
+        renderSubsKpis();
+        renderSubsPrices();
+        renderSubsGroups();
+      } catch (e) {
+        console.error("[Abonnements] load failed", e);
+        subsGroupsEl.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur chargement : ${escapeHtml(e.message)}</div>`;
+      } finally {
+        subsLoading.classList.add("hidden");
+      }
+    }
+
+    function renderSubsKpis() {
+      const all = [..._subsByKey.values()];
+      const active = all.filter(s => s.status === "active");
+      const late = all.filter(s => s.status === "past_due");
+      const mrr = active.reduce((n, s) => n + subsMonthly(s), 0);
+      const encaisse = all.reduce((n, s) => n + Number(s.paid_total_cents || 0), 0);
+      const card = (label, value, color) => `
+        <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px;">${label}</div>
+          <div style="font-size:22px; font-weight:800; margin-top:4px; color:${color};">${value}</div>
+        </div>`;
+      const mrrTtc = active.reduce((n, s) => n + subsTtc(subsMonthly(s), s.vat_rate_bps), 0);
+      subsKpisEl.innerHTML =
+        card("MRR (HT)", subsEuros(mrr), "#16a34a") +
+        card("Prélevé / mois (TTC)", subsEuros(mrrTtc), "var(--text-dim)") +
+        card("Abonnés actifs", active.length, "var(--text)") +
+        card("Impayés", late.length, late.length ? "#f59e0b" : "var(--text-dim)") +
+        card("Encaissé HT (total)", subsEuros(encaisse), "var(--text)");
+    }
+
+    function renderSubsPrices() {
+      const rows = _subsPrices.map(p => `
+        <tr>
+          <td style="padding:8px 10px;">${SUBS_TIER_META[p.tier]?.label || escapeHtml(p.tier)}</td>
+          <td style="padding:8px 10px; color:var(--text-dim); font-size:12px;">${escapeHtml(p.description || "")}</td>
+          <td style="padding:8px 10px;">
+            <input type="number" min="0" step="0.01" value="${(p.amount_cents / 100).toFixed(2)}"
+              data-price-tier="${escapeHtml(p.tier)}" class="banner-input"
+              style="width:110px; margin:0; padding:6px 8px;" /> € <strong>HT</strong> / mois
+            <span style="color:var(--text-faint); font-size:11px;">(${subsEuros(subsTtc(p.amount_cents, SUBS_DEFAULT_VAT_BPS))} TTC)</span>
+          </td>
+          <td style="padding:8px 10px;">
+            <button type="button" class="act act-success" data-price-save="${escapeHtml(p.tier)}">💾</button>
+          </td>
+        </tr>`).join("");
+      document.getElementById("subs-prices").innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;">
+          <thead><tr style="color:var(--text-dim); font-size:11px; text-transform:uppercase;">
+            <th style="text-align:left; padding:6px 10px;">Formule</th>
+            <th style="text-align:left; padding:6px 10px;">Description</th>
+            <th style="text-align:left; padding:6px 10px;">Tarif de référence (HT)</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    // Liste unifiée des fiches, filtrée puis regroupée par rubrique.
+    function subsFilteredFiches() {
+      const city = normalizeCity(subsCityInput.value);
+      const name = (subsNameInput.value || "").trim().toLowerCase();
+      return unifiedFiches().filter(f => {
+        if (!f.name) return false;
+        const sub = _subsByKey.get(subsKey(f.source, f.id));
+        if (_subsOnlySubscribed && !sub) return false;
+        if (_subsRubFilter && f.rubrique !== _subsRubFilter) return false;
+        if (city && normalizeCity(f.ville) !== city) return false;
+        if (name && !f.name.toLowerCase().includes(name)) return false;
+        return true;
+      });
+    }
+
+    function renderSubsGroups() {
+      // Les 16k fiches ne doivent pas partir au DOM sans filtre. N'IMPORTE
+      // lequel des trois suffit (rubrique, ville ou nom) — chaque groupe reste
+      // par ailleurs plafonne a 300 lignes.
+      const hasFilter = _subsRubFilter || subsCityInput.value.trim() || subsNameInput.value.trim();
+      if (!_subsOnlySubscribed && !hasFilter) {
+        subsHint.textContent = "Choisis une rubrique, une ville ou tape un nom pour lister les établissements à abonner.";
+        subsGroupsEl.innerHTML = "";
+        return;
+      }
+
+      const fiches = subsFilteredFiches();
+      const nbSub = fiches.filter(f => _subsByKey.has(subsKey(f.source, f.id))).length;
+      subsHint.textContent = `${fiches.length} fiche(s) — ${nbSub} abonnée(s), ${fiches.length - nbSub} à abonner.`;
+
+      const html = SUBS_GROUPS.map(g => {
+        const list = fiches.filter(f => f.rubrique === g.key);
+        if (!list.length) return "";
+        const subbed = list.filter(f => _subsByKey.has(subsKey(f.source, f.id)));
+        const groupMrr = subbed
+          .map(f => _subsByKey.get(subsKey(f.source, f.id)))
+          .filter(s => s.status === "active")
+          .reduce((n, s) => n + subsMonthly(s), 0);
+
+        // Abonnes en tete, puis ordre alphabetique : le portefeuille reste
+        // visible meme quand on parcourt une grande liste a abonner, et il ne
+        // se fait pas evincer par le plafond de 300.
+        const ordered = [...list].sort((a, b) => {
+          const sa = _subsByKey.has(subsKey(a.source, a.id)) ? 0 : 1;
+          const sb = _subsByKey.has(subsKey(b.source, b.id)) ? 0 : 1;
+          return sa !== sb ? sa - sb : a.name.localeCompare(b.name, "fr");
+        });
+
+        const rows = ordered.slice(0, 300).map(f => {
+          const sub = _subsByKey.get(subsKey(f.source, f.id));
+          const tier = sub ? (SUBS_TIER_META[sub.tier] || { label: sub.tier, color: "var(--text-dim)" }) : null;
+          const st = sub ? (SUBS_STATUS_META[sub.status] || { label: sub.status, color: "var(--text-dim)" }) : null;
+          return `
+            <div style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-top:1px solid var(--line);">
+              <div style="flex:1; min-width:0;">
+                <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(f.name)}</div>
+                <div style="font-size:11px; color:var(--text-faint);">${escapeHtml(f.ville || "—")} · ${escapeHtml(VENUE_SOURCE_LABEL[f.source] || f.source)}</div>
+              </div>
+              ${sub ? `
+                <span style="font-size:11px; font-weight:700; color:${tier.color};">${tier.label}</span>
+                <span style="font-size:11px; color:${st.color};">● ${st.label}</span>
+                <span style="font-size:12px; font-weight:600;" title="${subsEuros(subsTtc(sub.amount_cents, sub.vat_rate_bps))} TTC">${subsEuros(sub.amount_cents)} HT${sub.billing_period === "annuel" ? "/an" : "/mois"}</span>
+              ` : `<span style="font-size:11px; color:var(--text-faint);">pas d'abonnement</span>`}
+              <button type="button" class="banner-save-btn" style="padding:5px 12px; font-size:12px;"
+                data-sub-manage="${escapeHtml(f.source)}" data-sub-id="${f.id}">${sub ? "Gérer" : "Abonner"}</button>
+            </div>`;
+        }).join("");
+
+        const capped = list.length > 300 ? `<div style="padding:8px 12px; font-size:11px; color:var(--text-faint);">… ${list.length - 300} fiche(s) non affichée(s) — affine le filtre.</div>` : "";
+
+        return `
+          <section style="margin-bottom:20px; border:1px solid var(--line); border-radius:14px; overflow:hidden;">
+            <div style="display:flex; align-items:center; gap:10px; padding:11px 12px; background:rgba(255,255,255,0.04);">
+              <span style="font-weight:700;">${g.label}</span>
+              <span style="font-size:11px; color:var(--text-dim);">${list.length} fiche(s) · ${subbed.length} abonnée(s)</span>
+              ${groupMrr ? `<span style="margin-left:auto; font-size:12px; font-weight:700; color:#16a34a;">${subsEuros(groupMrr)}/mois</span>` : ""}
+            </div>
+            ${rows}${capped}
+          </section>`;
+      }).join("");
+
+      subsGroupsEl.innerHTML = html || `<div style="padding:20px; color:var(--text-dim);">Aucune fiche pour ces filtres.</div>`;
+    }
+
+    async function openSubsEditor(source, id) {
+      const fiche = unifiedFiches().find(f => f.source === source && String(f.id) === String(id));
+      if (!fiche) { toast("Fiche introuvable", false); return; }
+      const sub = _subsByKey.get(subsKey(source, id)) || null;
+      _subsCurrent = { ...fiche, sub };
+
+      document.getElementById("subs-editor-title").textContent = fiche.name;
+      document.getElementById("subs-editor-sub").innerHTML =
+        `${escapeHtml(fiche.ville || "—")} · ${escapeHtml(VENUE_SOURCE_LABEL[source] || source)} · ${escapeHtml(fiche.rubrique || "—")}`
+        + (sub?.pro_nom ? ` · pro : <strong>${escapeHtml(sub.pro_nom)}</strong>` : ` · <span style="color:var(--text-faint);">aucun compte pro rattaché</span>`);
+
+      const tier = sub?.tier || "classique";
+      document.getElementById("subs-f-tier").value = tier;
+      document.getElementById("subs-f-amount").value = sub
+        ? (sub.amount_cents / 100).toFixed(2)
+        : (subsDefaultAmount(tier) / 100).toFixed(2);
+      document.getElementById("subs-f-period").value = sub?.billing_period || "mensuel";
+      document.getElementById("subs-f-start").value = sub?.started_on || new Date().toISOString().slice(0, 10);
+      document.getElementById("subs-f-end").value = sub?.ends_on || "";
+      document.getElementById("subs-f-notes").value = sub?.notes || "";
+
+      document.getElementById("subs-pay-btn").style.display = sub ? "" : "none";
+      document.getElementById("subs-cancel-btn").style.display = sub && sub.status !== "cancelled" ? "" : "none";
+      const stripeBtn = document.getElementById("subs-stripe-btn");
+      stripeBtn.disabled = !SUBS_STRIPE_ENABLED || !sub;
+      stripeBtn.style.opacity = stripeBtn.disabled ? ".45" : "1";
+      stripeBtn.style.cursor = stripeBtn.disabled ? "not-allowed" : "pointer";
+
+      refreshSubsTtcHint();
+      subsEditor.classList.remove("hidden");
+      subsEditor.scrollIntoView({ behavior: "smooth", block: "center" });
+      renderSubsPayments(sub);
+    }
+
+    function subsDefaultAmount(tier) {
+      return _subsPrices.find(p => p.tier === tier)?.amount_cents || 0;
+    }
+
+    // Rappelle sous le champ ce que Stripe prélèvera réellement.
+    function refreshSubsTtcHint() {
+      const euros = parseFloat(document.getElementById("subs-f-amount").value);
+      const bps = _subsCurrent?.sub?.vat_rate_bps ?? SUBS_DEFAULT_VAT_BPS;
+      document.getElementById("subs-f-ttc").textContent = isFinite(euros)
+        ? `= ${subsEuros(subsTtc(Math.round(euros * 100), bps))} TTC prélevés (TVA ${(bps / 100).toFixed(0)} %)`
+        : "";
+    }
+
+    async function renderSubsPayments(sub) {
+      const box = document.getElementById("subs-payments");
+      if (!sub) { box.innerHTML = ""; return; }
+      box.innerHTML = `<div style="font-size:12px; color:var(--text-dim);">Chargement de l'historique…</div>`;
+      try {
+        const { data, error } = await supabase.rpc("admin_list_subscription_payments", { p_subscription_id: sub.id });
+        if (error) throw error;
+        const rows = (data || []).map(p => `
+          <tr>
+            <td style="padding:6px 8px;">${escapeHtml(p.period_start || "—")}</td>
+            <td style="padding:6px 8px;">${subsEuros(p.amount_cents)}</td>
+            <td style="padding:6px 8px;">${escapeHtml(p.method)}</td>
+            <td style="padding:6px 8px; color:${p.status === "paid" ? "#16a34a" : "#f59e0b"};">${escapeHtml(p.status)}</td>
+            <td style="padding:6px 8px;"><button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#7f1d1d;" data-pay-del="${escapeHtml(p.id)}">🗑</button></td>
+          </tr>`).join("");
+        box.innerHTML = `
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Historique des paiements</div>
+          ${rows ? `<table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead><tr style="color:var(--text-dim); font-size:11px;">
+              <th style="text-align:left; padding:4px 8px;">Période</th>
+              <th style="text-align:left; padding:4px 8px;">Montant</th>
+              <th style="text-align:left; padding:4px 8px;">Moyen</th>
+              <th style="text-align:left; padding:4px 8px;">Statut</th><th></th>
+            </tr></thead><tbody>${rows}</tbody></table>`
+            : `<div style="font-size:12px; color:var(--text-faint);">Aucun paiement enregistré.</div>`}`;
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function saveSubsSubscription() {
+      if (!_subsCurrent) return;
+      const f = _subsCurrent;
+      const euros = parseFloat(document.getElementById("subs-f-amount").value);
+      if (!isFinite(euros) || euros < 0) { toast("Montant invalide", false); return; }
+      try {
+        const { error } = await supabase.rpc("admin_upsert_venue_subscription", {
+          p_source_table:   f.source,
+          p_source_id:      f.id,
+          p_tier:           document.getElementById("subs-f-tier").value,
+          p_amount_cents:   Math.round(euros * 100),
+          p_billing_period: document.getElementById("subs-f-period").value,
+          p_started_on:     document.getElementById("subs-f-start").value || null,
+          p_ends_on:        document.getElementById("subs-f-end").value || null,
+          p_notes:          document.getElementById("subs-f-notes").value || "",
+          p_venue_name:     f.name,
+          p_ville:          f.ville || "",
+          p_rubrique:       f.rubrique || "",
+        });
+        if (error) throw error;
+        toast("Abonnement enregistré");
+        subsEditor.classList.add("hidden");
+        // is_partner a bougé côté DB : on recharge les caches de fiches.
+        await Promise.all([loadVenues(), loadEtabs(), loadSportVenues(), loadFamilyUnified()]);
+        await refreshSubsView();
+      } catch (e) {
+        toast("Erreur : " + e.message, false);
+      }
+    }
+
+    (function setupSubs() {
+      subsGroupsEl.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-sub-manage]");
+        if (!btn) return;
+        openSubsEditor(btn.dataset.subManage, btn.dataset.subId);
+      });
+
+      document.querySelectorAll("[data-subrub]").forEach(pill => {
+        pill.addEventListener("click", () => {
+          document.querySelectorAll("[data-subrub]").forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+          _subsRubFilter = pill.dataset.subrub;
+          renderSubsGroups();
+        });
+      });
+
+      document.getElementById("subs-only-subscribed").addEventListener("click", (ev) => {
+        _subsOnlySubscribed = !_subsOnlySubscribed;
+        ev.currentTarget.classList.toggle("active", _subsOnlySubscribed);
+        renderSubsGroups();
+      });
+
+      let subsDebounce;
+      const onFilter = () => { clearTimeout(subsDebounce); subsDebounce = setTimeout(renderSubsGroups, 200); };
+      subsCityInput.addEventListener("input", onFilter);
+      subsNameInput.addEventListener("input", onFilter);
+
+      document.getElementById("subs-f-tier").addEventListener("change", (ev) => {
+        // Pas d'écrasement d'un montant négocié sur un abonnement existant.
+        if (_subsCurrent?.sub) return;
+        document.getElementById("subs-f-amount").value = (subsDefaultAmount(ev.target.value) / 100).toFixed(2);
+        refreshSubsTtcHint();
+      });
+      document.getElementById("subs-f-amount").addEventListener("input", refreshSubsTtcHint);
+
+      document.getElementById("subs-save-btn").addEventListener("click", saveSubsSubscription);
+      document.getElementById("subs-close-btn").addEventListener("click", () => subsEditor.classList.add("hidden"));
+
+      document.getElementById("subs-cancel-btn").addEventListener("click", async () => {
+        const sub = _subsCurrent?.sub;
+        if (!sub) return;
+        if (!confirm(`Résilier l'abonnement de « ${_subsCurrent.name} » ?\n\nLe badge Partenaire sera retiré (sauf s'il avait été posé à la main) et le palier du compte pro recalculé.`)) return;
+        try {
+          const { error } = await supabase.rpc("admin_cancel_venue_subscription", { p_id: sub.id });
+          if (error) throw error;
+          toast("Abonnement résilié");
+          subsEditor.classList.add("hidden");
+          await Promise.all([loadVenues(), loadEtabs(), loadSportVenues(), loadFamilyUnified()]);
+          await refreshSubsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("subs-pay-btn").addEventListener("click", async () => {
+        const sub = _subsCurrent?.sub;
+        if (!sub) return;
+        const today = new Date().toISOString().slice(0, 10);
+        const period = prompt("Début de la période encaissée (AAAA-MM-JJ) :", today);
+        if (!period) return;
+        try {
+          const { error } = await supabase.rpc("admin_record_subscription_payment", {
+            p_subscription_id: sub.id,
+            p_period_start:    period,
+            p_method:          "manuel",
+            p_status:          "paid",
+          });
+          if (error) throw error;
+          toast("Paiement enregistré");
+          await refreshSubsView();
+          _subsCurrent.sub = _subsByKey.get(subsKey(_subsCurrent.source, _subsCurrent.id)) || null;
+          renderSubsPayments(_subsCurrent.sub);
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("subs-payments").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-pay-del]");
+        if (!btn || !confirm("Supprimer cette ligne de paiement ?")) return;
+        try {
+          const { error } = await supabase.rpc("admin_delete_subscription_payment", { p_id: btn.dataset.payDel });
+          if (error) throw error;
+          toast("Paiement supprimé");
+          await refreshSubsView();
+          renderSubsPayments(_subsByKey.get(subsKey(_subsCurrent.source, _subsCurrent.id)) || null);
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("subs-prices").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-price-save]");
+        if (!btn) return;
+        const tier = btn.dataset.priceSave;
+        const euros = parseFloat(document.querySelector(`[data-price-tier="${tier}"]`).value);
+        if (!isFinite(euros) || euros < 0) { toast("Montant invalide", false); return; }
+        try {
+          const { error } = await supabase.rpc("admin_set_subscription_price", {
+            p_tier: tier, p_amount_cents: Math.round(euros * 100), p_is_active: true,
+          });
+          if (error) throw error;
+          toast("Tarif enregistré");
+          await refreshSubsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+    })();
 
     const APP_STORE_DEFAULTS = {
       android: "https://play.google.com/store/apps/details?id=com.macity.app",
@@ -5997,6 +6569,11 @@
               <div style="font-size:11px; color:#888; font-weight:700;">Répartition iOS / Android</div>
               <input id="mk-split" value="${escapeHtml(split)}" placeholder="ex : 55% iOS / 45% Android" style="width:100%; border:none; outline:none; font-size:15px; font-weight:700; color:#190A2E; background:transparent; margin-top:8px;" />
             </div>
+            <div style="flex:1; min-width:140px; background:#fff; border:1px solid #eadff0; border-radius:14px; padding:14px;">
+              <div style="font-size:11px; color:#888; font-weight:700;">% base active / mois</div>
+              <div id="mk-ratio" style="font-size:26px; font-weight:900; background:linear-gradient(135deg,#8E24AA,#E91E63); -webkit-background-clip:text; background-clip:text; color:transparent; margin-top:4px;">—</div>
+              <div style="font-size:10px; color:#aaa; margin-top:2px;">MAU ÷ utilisateurs</div>
+            </div>
           </div>
           <div style="display:flex; gap:26px; flex-wrap:wrap; margin-bottom:22px;">
             <div style="flex:1; min-width:240px;">
@@ -6018,14 +6595,235 @@
         </div>
       </div>`;
 
+      // Ratio % base active/mois = MAU ÷ utilisateurs totaux (recalculé live).
+      const _mkNum = (v) => parseInt(String(v || "").replace(/[^\d]/g, ""), 10) || 0;
+      const updateRatio = () => {
+        const el = document.getElementById("mk-ratio");
+        if (!el) return;
+        const mauN = _mkNum(document.getElementById("mk-mau").value);
+        el.textContent = (totalUsers > 0 && mauN > 0) ? Math.round((mauN / totalUsers) * 100) + "%" : "—";
+      };
       const bind = (id, key) => {
         const el = document.getElementById(id);
-        if (el) el.addEventListener("input", () => localStorage.setItem(key, el.value));
+        if (el) el.addEventListener("input", () => {
+          localStorage.setItem(key, el.value);
+          if (id === "mk-mau") updateRatio();
+        });
       };
       bind("mk-mau", "mk_mau"); bind("mk-dau", "mk_dau"); bind("mk-split", "mk_split");
+      updateRatio();
     }
 
     document.getElementById("mediakit-print-btn").addEventListener("click", () => window.print());
+
+    // ─── Onglet Éditer un event (user_events + scraped_events) ───────────────
+    const eventeditLoading = document.getElementById("eventedit-loading");
+    const eventeditResults = document.getElementById("eventedit-results");
+    const eventeditSearch = document.getElementById("eventedit-search");
+    const eventeditModal = document.getElementById("eventedit-modal");
+    const eventeditModalBody = document.getElementById("eventedit-modal-body");
+    let _eventeditReload = null; // callback pour rafraîchir la liste sous-jacente
+    document.getElementById("eventedit-modal-close").addEventListener("click", () => { eventeditModal.style.display = "none"; });
+
+    const _evLabels = {
+      titre:"Titre", nom_de_la_manifestation:"Titre",
+      date:"Date", date_debut:"Date début", date_fin:"Date fin",
+      heure:"Heure", heure_fin:"Heure fin", horaires:"Horaires", dates_affichage_horaires:"Affichage horaires",
+      description:"Description", description_courte:"Description courte", description_longue:"Description longue",
+      descriptif_court:"Descriptif court", descriptif_long:"Descriptif long",
+      lieu:"Lieu", lieu_nom:"Lieu", lieu_adresse_2:"Adresse", adresse:"Adresse",
+      ville:"Ville", commune:"Commune", code_postal:"Code postal", pays:"Pays",
+      type:"Type", type_de_manifestation:"Type", categorie:"Catégorie",
+      categorie_de_la_manifestation:"Catégorie", theme_de_la_manifestation:"Thème",
+      format:"Format", rubrique:"Rubrique",
+      image_url:"Photo", photo_url:"Photo", cover_url:"Cover", video_url:"Vidéo",
+      organisateur_nom:"Organisateur", organisateur_email:"Email organisateur",
+      organisateur_telephone:"Tél organisateur", organisateur_site:"Site organisateur",
+      reservation_site_internet:"Site réservation", reservation_telephone:"Tél réservation",
+      lien_billetterie:"Lien billetterie", business_url:"Lien business",
+      tarif_normal:"Tarif", prix:"Prix", est_gratuit:"Gratuit", manifestation_gratuite:"Gratuit",
+      station_metro_tram_a_proximite:"Métro/Tram proche", public_cible:"Public cible", niveau:"Niveau",
+    };
+    const _evSkip = new Set([
+      "id","identifiant","source","user_id","reported_by","created_at","updated_at",
+      "scraped_at","priority","boost_until","recurrence","programme","accessibilite",
+      "regles","gallery_urls","tags","status","reviewed_at",
+    ]);
+    const _evMedia = new Set(["image_url","photo_url","cover_url","video_url"]);
+
+    async function _eventeditRun() {
+      const q = eventeditSearch.value.trim();
+      if (q.length < 2) { toast("Tape au moins 2 caractères", false); return; }
+      eventeditLoading.classList.remove("hidden");
+      eventeditResults.innerHTML = "";
+      try {
+        const [ue, se] = await Promise.all([
+          supabase.from("user_events").select("id, titre, date, ville, image_url, video_url").ilike("titre", `%${q}%`).limit(25),
+          supabase.from("scraped_events").select("id, nom_de_la_manifestation, date_debut, commune, photo_url, video_url").ilike("nom_de_la_manifestation", `%${q}%`).limit(25),
+        ]);
+        const rows = [];
+        (ue.data || []).forEach(e => rows.push({ table:"user_events", source:"user", id:e.id, titre:e.titre, date:e.date, ville:e.ville, hasPhoto:!!e.image_url, hasVideo:!!e.video_url }));
+        (se.data || []).forEach(e => rows.push({ table:"scraped_events", source:"scraper", id:e.id, titre:e.nom_de_la_manifestation, date:e.date_debut, ville:e.commune, hasPhoto:!!e.photo_url, hasVideo:!!e.video_url }));
+        if (rows.length === 0) { eventeditResults.innerHTML = `<div style="padding:14px; color:var(--text-faint);">Aucun event trouvé pour « ${escapeHtml(q)} ».</div>`; return; }
+        eventeditResults.innerHTML = rows.map(r => `
+          <div class="banner-card" style="display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap; margin-bottom:8px;">
+            <div>
+              <div style="font-weight:700;">${escapeHtml(r.titre || "(sans titre)")}</div>
+              <div style="font-size:12px; color:var(--text-faint);">
+                <span style="background:${r.source==='user'?'#7B2D8E':'#0891B2'}; color:#fff; border-radius:6px; padding:1px 7px; font-size:10px; font-weight:700;">${r.source==='user'?'USER':'SCRAPER'}</span>
+                ${r.ville ? " · " + escapeHtml(r.ville) : ""}${r.date ? " · " + escapeHtml(String(r.date)) : ""}
+                ${r.hasPhoto ? " · 📷" : ""}${r.hasVideo ? " · 🎬" : ""}
+              </div>
+            </div>
+            <button class="banner-save-btn" data-edit-table="${r.table}" data-edit-id="${r.id}">✏️ Éditer</button>
+          </div>`).join("");
+      } catch (e) {
+        console.error("[EventEdit] search", e);
+        toast("Erreur recherche : " + (e.message || e), false);
+      } finally {
+        eventeditLoading.classList.add("hidden");
+      }
+    }
+
+    async function _eventeditOpen(table, id, reload) {
+      if (reload !== undefined) _eventeditReload = reload;
+      eventeditModalBody.innerHTML = `<div style="padding:14px; color:var(--text-faint);">Chargement…</div>`;
+      eventeditModal.style.display = "block";
+      try {
+        const { data, error } = await supabase.from(table).select("*").eq("id", id).single();
+        if (error) throw error;
+        _eventeditRenderForm(table, data);
+      } catch (e) {
+        eventeditModalBody.innerHTML = `<div style="padding:14px; color:#ef4444;">Erreur : ${escapeHtml(e.message || String(e))}</div>`;
+      }
+    }
+
+    function _eventeditRenderForm(table, row) {
+      const title = row.titre || row.nom_de_la_manifestation || "(sans titre)";
+      const cols = Object.keys(row).filter(k => !_evSkip.has(k));
+      const media = cols.filter(k => _evMedia.has(k));
+      const fields = cols.filter(k => !_evMedia.has(k) && typeof row[k] !== "object");
+      const label = (k) => _evLabels[k] || k;
+      const isVideo = (k) => k === "video_url";
+
+      const mediaHtml = media.map(k => {
+        const v = row[k] || "";
+        const preview = v
+          ? (isVideo(k)
+              ? `<video src="${escapeHtml(v)}" style="max-height:150px; border-radius:10px;" muted controls></video>`
+              : `<img src="${escapeHtml(v)}" style="max-height:150px; border-radius:10px;"/>`)
+          : `<div style="color:var(--text-faint); font-size:12px;">Aucun${isVideo(k)?"e vidéo":"e photo"}</div>`;
+        return `<div style="flex:1; min-width:220px;">
+          <label class="banner-field-label">${label(k)}</label>
+          <div style="margin:6px 0;">${preview}</div>
+          <button class="gen-btn" data-media-col="${k}" data-media-video="${isVideo(k)?1:0}">${isVideo(k)?"🎬 Remplacer la vidéo":"📷 Remplacer la photo"}</button>
+          ${v ? `<button class="gen-btn" data-media-clear="${k}" style="border-color:#ef4444; color:#ef4444;">× Retirer</button>` : ""}
+        </div>`;
+      }).join("");
+
+      const fieldsHtml = fields.map(k => {
+        const v = row[k];
+        if (typeof v === "boolean") {
+          return `<label class="banner-toggle" style="display:block; margin:8px 0;"><input type="checkbox" data-f="${k}"${v?" checked":""}/> ${label(k)}</label>`;
+        }
+        const numAttr = (typeof v === "number") ? ' data-num="1"' : "";
+        const long = /desc|adresse/i.test(k) || String(v || "").length > 60;
+        if (long) {
+          return `<div style="margin-bottom:10px;"><label class="banner-field-label">${label(k)}</label>
+            <textarea data-f="${k}" class="banner-input" rows="2" style="width:100%; resize:vertical;">${escapeHtml(String(v ?? ""))}</textarea></div>`;
+        }
+        return `<div style="margin-bottom:10px;"><label class="banner-field-label">${label(k)}</label>
+          <input type="text" data-f="${k}"${numAttr} class="banner-input" style="width:100%;" value="${escapeHtml(String(v ?? ""))}"/></div>`;
+      }).join("");
+
+      eventeditModalBody.innerHTML = `
+        <div class="banner-card" data-edit-table="${table}" data-edit-id="${row.id}" style="margin-top:8px;">
+          <div class="banner-card-head"><span class="banner-mode-pill">${table === "user_events" ? "USER" : "SCRAPER"} · #${row.id}</span> <strong style="margin-left:8px;">${escapeHtml(title)}</strong></div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap; margin:14px 0;">${mediaHtml || '<div style="color:var(--text-faint);">Pas de champ média.</div>'}</div>
+          <hr style="border:none; border-top:1px solid var(--line); margin:8px 0 14px;"/>
+          ${fieldsHtml}
+          <div class="banner-actions-row" style="gap:10px; margin-top:8px;">
+            <button class="banner-save-btn" id="eventedit-save">💾 Enregistrer</button>
+            <span id="eventedit-status" style="font-size:12px; color:var(--text-faint); align-self:center;"></span>
+          </div>
+        </div>`;
+    }
+
+    function _pickVideoFile() {
+      return new Promise((resolve) => {
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "video/*";
+        inp.onchange = () => resolve(inp.files && inp.files[0] ? inp.files[0] : null);
+        inp.click();
+      });
+    }
+
+    document.getElementById("eventedit-search-btn").addEventListener("click", _eventeditRun);
+    eventeditSearch.addEventListener("keydown", (e) => { if (e.key === "Enter") _eventeditRun(); });
+    eventeditResults.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-edit-table]");
+      if (!btn) return;
+      _eventeditOpen(btn.dataset.editTable, Number(btn.dataset.editId), _eventeditRun);
+    });
+    eventeditModalBody.addEventListener("click", async (e) => {
+      const card = eventeditModalBody.querySelector(".banner-card[data-edit-table]");
+      if (!card) return;
+      const table = card.dataset.editTable;
+      const id = Number(card.dataset.editId);
+
+      const mbtn = e.target.closest("[data-media-col]");
+      if (mbtn) {
+        const col = mbtn.dataset.mediaCol;
+        const isVid = mbtn.dataset.mediaVideo === "1";
+        try {
+          let url;
+          if (isVid) {
+            const f = await _pickVideoFile();
+            if (!f) return;
+            mbtn.disabled = true; const t = mbtn.textContent; mbtn.textContent = "…";
+            url = await uploadVideo(f);
+            mbtn.disabled = false; mbtn.textContent = t;
+          } else {
+            url = await _pickImage();
+            if (!url) return;
+          }
+          const { error } = await supabase.from(table).update({ [col]: url }).eq("id", id);
+          if (error) throw error;
+          toast("Média mis à jour ✓", true);
+          _eventeditOpen(table, id);
+          if (_eventeditReload) _eventeditReload();
+        } catch (err) { toast("Échec média : " + (err.message || err), false); }
+        return;
+      }
+      const cbtn = e.target.closest("[data-media-clear]");
+      if (cbtn) {
+        const col = cbtn.dataset.mediaClear;
+        if (!confirm("Retirer ce média ?")) return;
+        const { error } = await supabase.from(table).update({ [col]: "" }).eq("id", id);
+        if (error) { toast("Échec : " + (error.message || ""), false); return; }
+        toast("Retiré ✓", true);
+        _eventeditOpen(table, id);
+        if (_eventeditReload) _eventeditReload();
+        return;
+      }
+      if (e.target.id === "eventedit-save") {
+        const patch = {};
+        card.querySelectorAll("[data-f]").forEach(el => {
+          const k = el.dataset.f;
+          if (el.type === "checkbox") patch[k] = el.checked;
+          else if (el.dataset.num === "1") patch[k] = el.value === "" ? null : Number(el.value);
+          else patch[k] = el.value;
+        });
+        const btn = e.target; btn.disabled = true;
+        document.getElementById("eventedit-status").textContent = "…";
+        const { error } = await supabase.from(table).update(patch).eq("id", id);
+        btn.disabled = false;
+        if (error) { document.getElementById("eventedit-status").textContent = ""; toast("Échec (RLS ?) : " + (error.message || ""), false); return; }
+        document.getElementById("eventedit-status").textContent = "Enregistré ✓";
+        toast("Event mis à jour ✓", true);
+        if (_eventeditReload) _eventeditReload();
+      }
+    });
 
     // ─── Onglet Système (monitoring base) ───────────────────────────────────
     const sysmonLoading = document.getElementById("sysmon-loading");
@@ -6913,7 +7711,15 @@
 
     // Liste unifiee venues + etablissements pour l'affichage admin.
     function unifiedFiches() {
-      const v = allVenues.map(r => ({
+      // Symétrique du filtre ETAB_ORPHAN_RUBRIQUES ci-dessous : l'app lit
+      // `etablissements` pour Food, donc les lignes venues mode='food' sont
+      // des doublons orphelins que l'app n'affiche jamais. Les masquer évite
+      // d'éditer dans le vide — sans ça, la migration des 2 559 restaurants
+      // de venues vers etablissements ferait apparaître chaque fiche en
+      // double (même bug que L'Étoile, à grande échelle).
+      // Le sélecteur de lieu du formulaire event n'est pas concerné : il lit
+      // `allVenues` directement, pas unifiedFiches().
+      const v = allVenues.filter(r => (r.mode || "").toLowerCase().trim() !== "food").map(r => ({
         source: "venues",
         id: r.id,
         name: r.name || "",
@@ -9760,6 +10566,17 @@
             value="${escapeHtml(site)}"
             placeholder="https://exemple.com" />
 
+          <label class="banner-field-label">🥇 Établissement partenaire — emplacement Gold
+            <span style="opacity:.6; font-weight:400;">(vide = carte éditoriale)</span></label>
+          <input type="hidden" data-field="source_table" value="${escapeHtml(row?.source_table || '')}" />
+          <input type="hidden" data-field="source_id" value="${row?.source_id ?? ''}" />
+          <input type="text" class="banner-input" data-role="insp-partner-search"
+            placeholder="Tape un nom d'établissement…" autocomplete="off" />
+          <div data-role="insp-partner-results" style="max-height:180px; overflow-y:auto;"></div>
+          <div data-role="insp-partner-current" style="font-size:12px; margin-top:4px; color:var(--text-dim);">
+            ${row?.source_id ? `🥇 lié à <strong style="color:var(--text);">${escapeHtml(inspPartnerLabel(row.source_table, row.source_id))}</strong> — <span data-role="insp-partner-clear" style="color:var(--err); cursor:pointer; text-decoration:underline;">retirer</span>` : 'Aucun — carte éditoriale'}
+          </div>
+
           <label class="banner-field-label">Thème (filtre au tap — voir les suggestions de la rubrique)</label>
           <input type="text" class="banner-input" data-field="theme"
             list="insp-themes-datalist"
@@ -9912,6 +10729,10 @@
           theme: theme || null,
           sort_order: sortOrder,
           is_active: isActive,
+          // Lien vers l'établissement : les deux colonnes vont par paire
+          // (contrainte SQL), d'où le null des deux côtés si rien n'est choisi.
+          source_table: card.querySelector('[data-field="source_table"]').value || null,
+          source_id: Number(card.querySelector('[data-field="source_id"]').value) || null,
         };
 
         let resp;
@@ -9945,6 +10766,56 @@
 
         renderInspirationsList(ville);
         toast(`Carte ${existing ? 'mise à jour' : 'créée'}`, true);
+      }
+    });
+
+    // ─── Inspirations : rattacher un établissement (emplacement Gold) ───
+    // Réutilise unifiedFiches() : mêmes fiches que l'onglet Établissements,
+    // donc on ne peut lier que ce que l'app affiche réellement.
+    function inspPartnerLabel(table, id) {
+      const f = unifiedFiches().find(
+        x => x.source === table && String(x.id) === String(id));
+      return f ? `${f.name}${f.ville ? " · " + f.ville : ""}` : `${table}#${id}`;
+    }
+
+    document.addEventListener("input", (ev) => {
+      const input = ev.target.closest('[data-role="insp-partner-search"]');
+      if (!input) return;
+      const card = input.closest(".banner-card") || input.parentElement;
+      const box = card.querySelector('[data-role="insp-partner-results"]');
+      const q = input.value.trim().toLowerCase();
+      if (q.length < 2) { box.innerHTML = ""; return; }
+      const hits = unifiedFiches()
+        .filter(f => f.name && f.name.toLowerCase().includes(q))
+        .slice(0, 8);
+      box.innerHTML = hits.length
+        ? hits.map(f => `<div data-pick-table="${escapeHtml(f.source)}" data-pick-id="${f.id}"
+             style="padding:7px 9px; cursor:pointer; border-bottom:1px solid var(--line); font-size:13px;">
+             ${escapeHtml(f.name)} <span style="color:var(--text-faint);">· ${escapeHtml(f.ville || "")} · ${escapeHtml(VENUE_SOURCE_LABEL[f.source] || f.source)}</span>
+           </div>`).join("")
+        : `<div style="padding:7px 9px; color:var(--text-faint); font-size:12px;">Aucun résultat</div>`;
+    });
+
+    document.addEventListener("click", (ev) => {
+      const pick = ev.target.closest("[data-pick-table]");
+      if (pick) {
+        const card = pick.closest(".banner-card") || pick.parentElement.parentElement;
+        card.querySelector('[data-field="source_table"]').value = pick.dataset.pickTable;
+        card.querySelector('[data-field="source_id"]').value = pick.dataset.pickId;
+        card.querySelector('[data-role="insp-partner-results"]').innerHTML = "";
+        card.querySelector('[data-role="insp-partner-search"]').value = "";
+        card.querySelector('[data-role="insp-partner-current"]').innerHTML =
+          `🥇 lié à <strong style="color:var(--text);">${escapeHtml(inspPartnerLabel(pick.dataset.pickTable, pick.dataset.pickId))}</strong> — <span data-role="insp-partner-clear" style="color:var(--err); cursor:pointer; text-decoration:underline;">retirer</span>`;
+        toast("Établissement rattaché — pense à enregistrer");
+        return;
+      }
+      const clear = ev.target.closest('[data-role="insp-partner-clear"]');
+      if (clear) {
+        const card = clear.closest(".banner-card") || clear.parentElement.parentElement;
+        card.querySelector('[data-field="source_table"]').value = "";
+        card.querySelector('[data-field="source_id"]').value = "";
+        card.querySelector('[data-role="insp-partner-current"]').textContent =
+          "Aucun — carte éditoriale";
       }
     });
 
@@ -10108,114 +10979,160 @@
     }
 
     function renderTile(ev) {
-      const dateLabel = formatFrenchDate(ev.date_debut);
-      const dateFinLabel = ev.date_fin && ev.date_fin !== ev.date_debut
-        ? ` → ${formatFrenchDate(ev.date_fin)}` : "";
-      const lieu = ev.lieu_nom || ev.commune || ev.ville || "";
-      const isEditing = editingEvent && editingEvent.id === ev.id;
+      // ev = objet normalisé (voir loadHistory) : _table, _id, _source, title, date, dateFin, time, place, photo, hasVideo
+      const dateFinLabel = ev.dateFin && ev.dateFin !== ev.date
+        ? ` → ${formatFrenchDate(ev.dateFin)}` : "";
+      const badgeStyle = "font-size:10px; padding:2px 6px; border-radius:6px; color:#fff; vertical-align:middle; margin-left:6px;";
+      const badge = ev._source === "user"
+        ? `<span style="${badgeStyle} background:#2563eb;">👤 user</span>`
+        : ev._source === "manuel"
+        ? `<span style="${badgeStyle} background:#16a34a;">✍️ manuel</span>`
+        : `<span style="${badgeStyle} background:#6b7280;">🤖 scraper</span>`;
+      const key = `${ev._table}:${ev._id}`;
       return `
-        <div class="event-tile ${isEditing ? "editing" : ""}" data-id="${ev.id}">
-          ${ev.photo_url
-            ? `<img src="${escapeHtml(ev.photo_url)}" class="event-tile-img" alt="" loading="lazy" />`
-            : `<div class="event-tile-img-empty">📅</div>`}
+        <div class="event-tile" data-key="${key}">
+          ${ev.photo
+            ? `<img src="${escapeHtml(ev.photo)}" class="event-tile-img" alt="" loading="lazy" />`
+            : `<div class="event-tile-img-empty">${ev.hasVideo ? "🎬" : "📅"}</div>`}
           <div class="event-tile-body">
-            <div class="event-tile-title">${escapeHtml(ev.nom_de_la_manifestation)}</div>
-            ${ev.horaires ? `<div class="event-tile-meta">🕒 ${escapeHtml(ev.horaires)}${escapeHtml(dateFinLabel)}</div>` : (dateFinLabel ? `<div class="event-tile-meta">📅${escapeHtml(dateFinLabel)}</div>` : "")}
-            ${lieu ? `<div class="event-tile-meta">📍 ${escapeHtml(lieu)}</div>` : ""}
+            <div class="event-tile-title">${escapeHtml(ev.title)}${badge}</div>
+            ${ev._ongoing ? `<div class="event-tile-meta" style="color:#f59e0b;">🔴 en cours${ev.dateFin ? ` · jusqu'au ${escapeHtml(formatFrenchDate(ev.dateFin))}` : ""}</div>` : ""}
+            ${ev.time ? `<div class="event-tile-meta">🕒 ${escapeHtml(ev.time)}${escapeHtml(dateFinLabel)}</div>` : (dateFinLabel ? `<div class="event-tile-meta">📅${escapeHtml(dateFinLabel)}</div>` : "")}
+            ${ev.place ? `<div class="event-tile-meta">📍 ${escapeHtml(ev.place)}</div>` : ""}
+            ${ev.hasVideo ? `<div class="event-tile-meta">🎬 vidéo</div>` : ""}
             <div class="event-tile-actions">
-              <button type="button" class="event-tile-btn" data-action="edit" data-id="${ev.id}">✏️ Modifier</button>
-              <button type="button" class="event-tile-btn delete" data-action="delete" data-id="${ev.id}">🗑️</button>
+              <button type="button" class="event-tile-btn" data-action="edit" data-key="${key}">✏️ Éditer</button>
+              ${ev._source === "manuel"
+                ? `<button type="button" class="event-tile-btn delete" data-action="delete" data-key="${key}">🗑️</button>`
+                : ""}
             </div>
           </div>
         </div>`;
     }
 
+    function _isCinemaEvent(cat, src) {
+      const c = (cat || "").toLowerCase();
+      const s = (src || "").toLowerCase();
+      return c.includes("cinéma") || c.includes("cinema")
+          || s.includes("cinema") || s.includes("allocine");
+    }
+
     async function loadHistory() {
-      if (!currentUserEmail) return;
-      historyList.innerHTML = '<div class="helper" style="text-align:center; padding: 20px;">Chargement…</div>';
+      const cityInput = document.getElementById("history-city");
+      const city = (cityInput ? cityInput.value : "").trim();
       historyEmpty.classList.add("hidden");
-
-      const { data, error } = await supabase
-        .from("scraped_events")
-        .select("*")
-        .eq("source", "manual_admin")
-        .eq("created_by_email", currentUserEmail)
-        .order("date_debut", { ascending: true })
-        .limit(100);
-
-      if (error) {
-        historyList.innerHTML = `<div class="helper" style="color:var(--err); text-align:center; padding: 20px;">Erreur : ${escapeHtml(error.message)}</div>`;
+      if (!city) {
+        historyMap = {};
         historyCount.textContent = "";
         eventsCountBadge.textContent = "";
+        historyList.innerHTML = `<div class="helper" style="text-align:center; padding: 26px;">👆 Choisis une ville pour voir ses events <b>à venir</b> : tes events manuels + ceux des users. <br><small>(Les events scrapés automatiquement ne sont pas listés ici — édite-les via l'onglet « ✏️ Éditer un event » en cherchant par nom.)</small></div>`;
+        return;
+      }
+      historyList.innerHTML = '<div class="helper" style="text-align:center; padding: 20px;">Chargement…</div>';
+
+      const _n = new Date();
+      const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const today = fmt(_n);
+
+      const [ue, se] = await Promise.all([
+        // events créés par les users
+        supabase.from("user_events")
+          .select("id, titre, date, ville, image_url, video_url")
+          .ilike("ville", city)
+          .gte("date", today)
+          .order("date", { ascending: true })
+          .limit(500),
+        // UNIQUEMENT tes events manuels (pas la masse des events scrapés auto)
+        supabase.from("scraped_events")
+          .select("id, nom_de_la_manifestation, date_debut, date_fin, horaires, lieu_nom, commune, ville, photo_url, video_url, source")
+          .eq("source", "manual_admin")
+          .or(`commune.ilike.${city},ville.ilike.${city}`)
+          .or(`date_debut.gte.${today},date_fin.gte.${today}`)
+          .order("date_debut", { ascending: true })
+          .limit(500),
+      ]);
+
+      if (ue.error && se.error) {
+        historyList.innerHTML = `<div class="helper" style="color:var(--err); text-align:center; padding: 20px;">Erreur : ${escapeHtml(ue.error.message || se.error.message)}</div>`;
+        historyCount.textContent = ""; eventsCountBadge.textContent = "";
         return;
       }
 
+      const norm = [];
+      (ue.data || []).forEach(ev => {
+        norm.push({
+          _table: "user_events", _id: ev.id, _source: "user",
+          title: ev.titre || "(sans titre)",
+          date: ev.date || "", dateFin: "",
+          time: "", place: ev.ville || "",
+          photo: ev.image_url || "", hasVideo: !!ev.video_url,
+        });
+      });
+      (se.data || []).forEach(ev => {
+        norm.push({
+          _table: "scraped_events", _id: ev.id, _source: "manuel",
+          title: ev.nom_de_la_manifestation || "(sans titre)",
+          date: ev.date_debut || "", dateFin: ev.date_fin || "",
+          time: ev.horaires || "", place: ev.lieu_nom || ev.commune || ev.ville || "",
+          photo: ev.photo_url || "", hasVideo: !!ev.video_url,
+        });
+      });
+
       historyMap = {};
-      (data || []).forEach(ev => { historyMap[ev.id] = ev; });
-      const count = data ? data.length : 0;
+      norm.forEach(ev => { historyMap[`${ev._table}:${ev._id}`] = ev; });
+      const count = norm.length;
       historyCount.textContent = count ? `(${count})` : "";
       eventsCountBadge.textContent = count ? `(${count})` : "";
 
-      if (!data || data.length === 0) {
+      if (!count) {
         historyList.innerHTML = "";
         historyEmpty.classList.remove("hidden");
         return;
       }
 
-      // Groupement : date_debut -> categorie -> [events]
+      // Groupement par date, tri chronologique (sans date -> à la fin).
+      // Events "en cours" (commencés avant aujourd'hui mais pas finis) : on les
+      // range sous AUJOURD'HUI (pas sous leur date de début passée) + badge.
       const byDate = new Map();
-      data.forEach(ev => {
-        const date = ev.date_debut || "";
-        const cat = (ev.categorie_de_la_manifestation || "").trim() || "Sans catégorie";
-        if (!byDate.has(date)) byDate.set(date, new Map());
-        const byCat = byDate.get(date);
-        if (!byCat.has(cat)) byCat.set(cat, []);
-        byCat.get(cat).push(ev);
+      norm.forEach(ev => {
+        ev._ongoing = !!(ev.date && ev.date < today);
+        const gdate = ev._ongoing ? today : (ev.date || "");
+        if (!byDate.has(gdate)) byDate.set(gdate, []);
+        byDate.get(gdate).push(ev);
       });
-
-      // Tri : dates ascendantes, categories alphabetiques
-      const sortedDates = [...byDate.keys()].sort();
+      const sortedDates = [...byDate.keys()].sort((a, b) => (a || "9999").localeCompare(b || "9999"));
 
       const html = sortedDates.map(date => {
-        const byCat = byDate.get(date);
-        const sortedCats = [...byCat.keys()].sort((a, b) => a.localeCompare(b, "fr"));
-        const totalForDate = sortedCats.reduce((acc, c) => acc + byCat.get(c).length, 0);
-
-        const themeBlocks = sortedCats.map(cat => {
-          const evs = byCat.get(cat);
-          const tiles = evs.map(renderTile).join("");
-          return `
-            <div class="events-theme-section">
-              <div class="events-theme-header">${escapeHtml(cat)} <span class="count">(${evs.length})</span></div>
-              <div class="events-grid">${tiles}</div>
-            </div>`;
-        }).join("");
-
+        const evs = byDate.get(date);
+        const tiles = evs.map(renderTile).join("");
         return `
           <div class="events-date-section">
-            <h3 class="events-date-header">📅 ${escapeHtml(formatFrenchDateLong(date))} <span class="count">${totalForDate} event${totalForDate > 1 ? "s" : ""} ajouté${totalForDate > 1 ? "s" : ""}</span></h3>
-            ${themeBlocks}
+            <h3 class="events-date-header">📅 ${escapeHtml(formatFrenchDateLong(date))} <span class="count">${evs.length} event${evs.length > 1 ? "s" : ""}</span></h3>
+            <div class="events-grid">${tiles}</div>
           </div>`;
       }).join("");
 
       historyList.innerHTML = html;
     }
 
+    // Remplit la liste déroulante des villes + charge au changement / au bouton
+    const _histCitySel = document.getElementById("history-city");
+    _histCitySel.innerHTML = `<option value="">— Choisis une ville —</option>` + _hubCityOptions("");
+    _histCitySel.addEventListener("change", loadHistory);
+    document.getElementById("history-city-btn").addEventListener("click", loadHistory);
+
     historyList.addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-action]");
       if (!btn) return;
-      const id = parseInt(btn.dataset.id, 10);
-      const ev = historyMap[id];
+      const ev = historyMap[btn.dataset.key];
       if (!ev) return;
 
       if (btn.dataset.action === "edit") {
-        enterEditMode(ev);
+        _eventeditOpen(ev._table, ev._id, loadHistory);
       } else if (btn.dataset.action === "delete") {
-        if (!confirm(`Supprimer définitivement « ${ev.nom_de_la_manifestation} » ?`)) return;
-        const { error } = await supabase.from("scraped_events").delete().eq("id", id);
+        if (!confirm(`Supprimer définitivement « ${ev.title} » ?`)) return;
+        const { error } = await supabase.from(ev._table).delete().eq("id", ev._id);
         if (error) return toast("Erreur suppression : " + error.message, false);
-        // Si on etait en train d'editer cet event, on sort du mode edition
-        if (editingEvent && editingEvent.id === id) exitEditMode();
         toast("Event supprimé");
         loadHistory();
       }
@@ -10518,6 +11435,9 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
       btn.disabled = false;
       btn.textContent = "✨ Créer l'event";
+      // Pré-remplit le filtre ville de "Mes events" pour que le refresh montre l'event créé
+      const histCityInput = document.getElementById("history-city");
+      if (histCityInput && ville) histCityInput.value = ville;
       loadHistory();               // rafraichit la liste avec le nouveau / mis a jour
     });
   </script>

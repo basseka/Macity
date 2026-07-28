@@ -112,7 +112,8 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
   // ─── Inspirations du moment ───────────────────────────────────────────
   List<Widget> _inspirationsSection() {
     final items =
-        ref.watch(inspirationsProvider('evasion')).valueOrNull ?? const [];
+        ref.watch(inspirationsWithPartnersProvider('evasion')).valueOrNull ??
+            const [];
     if (items.isEmpty) return const [];
     return [
       _sectionHeader('Inspirations du moment'),
