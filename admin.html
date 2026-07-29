@@ -2102,6 +2102,10 @@
           <div id="subs-filter-hint" style="font-size:11px; color:var(--text-faint); margin-top:8px;"></div>
         </div>
 
+        <!-- Répartition Premium / Gold / Classique par ville — visible quand
+             le filtre « Abonnés seulement » est actif. -->
+        <div id="subs-tier-breakdown" class="hidden" style="margin-bottom:16px;"></div>
+
         <div id="subs-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="subs-groups"></div>
 
@@ -5053,6 +5057,131 @@
       });
     }
 
+    // ─── Répartition des paliers par ville ──────────────────────────────
+    // Alimentée par _subsByKey (tous les abonnements), pas par la liste filtrée
+    // à l'écran : on veut le portefeuille réel, pas ce qui est visible.
+    // Ne compte que les abonnements ACTIFS — un résilié ou un impayé ne pèse
+    // rien dans la répartition commerciale.
+    function renderSubsTierBreakdown() {
+      const box = document.getElementById("subs-tier-breakdown");
+      // Affichée en permanence : c'est une vue d'ensemble du portefeuille, elle
+      // n'a pas à dépendre du filtre « Abonnés seulement ». Masquée seulement
+      // s'il n'y a aucun abonnement actif à montrer.
+
+      // Volontairement INDÉPENDANT du filtre ville : ce tableau sert à comparer
+      // les villes entre elles d'un coup d'œil. C'est la liste du dessous que
+      // le filtre pilote, pas cette vue d'ensemble.
+      const parVille = new Map();
+      const cle0 = (brut) => normalizeCity(brut) || "—";
+      const creer = () => ({ premium: 0, gold: 0, classique: 0, ca: 0, fiches: 0, libelles: new Map() });
+
+      // D'abord TOUTES les villes où l'on a des fiches, même sans un seul
+      // abonné : une ville à zéro avec 400 établissements est un gisement,
+      // pas une ligne à masquer.
+      for (const f of unifiedFiches()) {
+        if (!f.ville) continue;
+        if (_subsRubFilter && f.rubrique !== _subsRubFilter) continue;
+        const c = cle0(f.ville);
+        if (c === "—") continue;
+        if (!parVille.has(c)) parVille.set(c, creer());
+        const e = parVille.get(c);
+        e.fiches++;
+        e.libelles.set(f.ville.trim(), (e.libelles.get(f.ville.trim()) || 0) + 1);
+      }
+
+      for (const s of _subsByKey.values()) {
+        if (s.status !== "active") continue;
+        if (_subsRubFilter && s.rubrique !== _subsRubFilter) continue;
+        const brut = (s.ville || "—").trim();
+        // Clé NORMALISÉE : la base contient « Toulouse » et « TOULOUSE », qui
+        // sont la même ville. Grouper sur la chaîne brute les séparait en deux
+        // lignes et faussait les proportions.
+        const cle = cle0(brut);
+        if (!parVille.has(cle)) parVille.set(cle, creer());
+        const e = parVille.get(cle);
+        if (e[s.tier] !== undefined) e[s.tier]++;
+        e.ca += subsMonthly(s);
+        // On affiche la graphie la plus fréquente, pour garder accents et
+        // casse d'origine (« Nîmes » plutôt que « nimes »).
+        e.libelles.set(brut, (e.libelles.get(brut) || 0) + 1);
+      }
+      if (parVille.size === 0) { box.classList.add("hidden"); return; }
+
+      const lignes = [...parVille.entries()]
+        // Les villes qui rapportent d'abord ; à égalité (souvent 0 €), les plus
+        // gros viviers remontent — ce sont les prochaines à démarcher.
+        .sort((a, b) => (b[1].ca - a[1].ca) || (b[1].fiches - a[1].fiches))
+        .map(([, e]) => {
+          const ville = [...e.libelles.entries()]
+            .sort((a, b) => b[1] - a[1])[0][0];
+          const tot = e.premium + e.gold + e.classique;
+          const pct = n => tot ? Math.round(n * 100 / tot) : 0;
+          // Barre de proportion : lecture immédiate du déséquilibre.
+          const barre = [
+            e.premium   ? `<div style="width:${pct(e.premium)}%; background:${SUBS_TIER_META.premium.color};"></div>` : "",
+            e.gold      ? `<div style="width:${pct(e.gold)}%; background:${SUBS_TIER_META.gold.color};"></div>` : "",
+            e.classique ? `<div style="width:${pct(e.classique)}%; background:${SUBS_TIER_META.classique.color};"></div>` : "",
+          ].join("");
+          const vide = tot === 0;
+          return `<tr${vide ? ' style="opacity:.55;"' : ''}>
+            <td style="padding:8px 10px 8px 0; font-weight:600;">${escapeHtml(ville)}</td>
+            <td style="padding:8px 10px; text-align:right; color:${SUBS_TIER_META.premium.color}; font-weight:700;">${e.premium}</td>
+            <td style="padding:8px 10px; text-align:right; color:${SUBS_TIER_META.gold.color}; font-weight:700;">${e.gold}</td>
+            <td style="padding:8px 10px; text-align:right; color:${SUBS_TIER_META.classique.color}; font-weight:700;">${e.classique}</td>
+            <td style="padding:8px 10px; text-align:right;">${tot}</td>
+            <td style="padding:8px 10px; text-align:right; color:var(--text-faint);">${e.fiches}</td>
+            <td style="padding:8px 10px; text-align:right; color:${vide ? 'var(--text-faint)' : '#16a34a'}; font-weight:600;">${subsEuros(e.ca)}</td>
+            <td style="padding:8px 0 8px 10px; width:120px;">
+              <div style="display:flex; height:7px; border-radius:4px; overflow:hidden; background:rgba(255,255,255,.07);">${barre}</div>
+              <div style="font-size:10px; color:var(--text-faint); margin-top:3px;">${pct(e.premium)}% / ${pct(e.gold)}% / ${pct(e.classique)}%</div>
+            </td>
+          </tr>`;
+        }).join("");
+
+      const t = [...parVille.values()].reduce((a, e) => ({
+        premium: a.premium + e.premium, gold: a.gold + e.gold,
+        classique: a.classique + e.classique, ca: a.ca + e.ca,
+      }), { premium: 0, gold: 0, classique: 0, ca: 0 });
+      const totGen = t.premium + t.gold + t.classique;
+
+      box.classList.remove("hidden");
+      box.innerHTML = `
+        <div class="banner-card" style="padding:14px 16px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:2px;">Répartition des paliers par ville</div>
+          <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px;">
+            <strong>Toutes les villes couvertes</strong>, y compris celles sans aucun abonné —
+            triées par revenu décroissant, puis par taille du vivier. Indépendant du
+            filtre ville ci-dessus${_subsRubFilter ? `, mais limité à la rubrique « ${escapeHtml(_subsRubFilter)} »` : ""}.
+            Abonnements <strong>actifs</strong> uniquement : résiliés et impayés exclus.
+          </div>
+          <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums;">
+            <thead><tr style="color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.08em;">
+              <th style="text-align:left; padding:0 10px 8px 0;">Ville</th>
+              <th style="text-align:right; padding:0 10px 8px;">💎 Premium</th>
+              <th style="text-align:right; padding:0 10px 8px;">🥇 Gold</th>
+              <th style="text-align:right; padding:0 10px 8px;">🔹 Classique</th>
+              <th style="text-align:right; padding:0 10px 8px;">Abonnés</th>
+              <th style="text-align:right; padding:0 10px 8px;">Fiches</th>
+              <th style="text-align:right; padding:0 10px 8px;">MRR</th>
+              <th style="text-align:left; padding:0 0 8px 10px;">Proportion</th>
+            </tr></thead>
+            <tbody>${lignes}</tbody>
+            <tfoot><tr style="border-top:1px solid var(--line-strong);">
+              <td style="padding:9px 10px 0 0; font-weight:700;">Toutes villes</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${t.premium}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${t.gold}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${t.classique}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${totGen}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700; color:var(--text-faint);">${[...parVille.values()].reduce((a, e) => a + e.fiches, 0)}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700; color:#16a34a;">${subsEuros(t.ca)}</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+          </div>
+        </div>`;
+    }
+
     function renderSubsGroups() {
       // Les 16k fiches ne doivent pas partir au DOM sans filtre. N'IMPORTE
       // lequel des trois suffit (rubrique, ville ou nom) — chaque groupe reste
@@ -5061,8 +5190,11 @@
       if (!_subsOnlySubscribed && !hasFilter) {
         subsHint.textContent = "Choisis une rubrique, une ville ou tape un nom pour lister les établissements à abonner.";
         subsGroupsEl.innerHTML = "";
+        renderSubsTierBreakdown();
         return;
       }
+
+      renderSubsTierBreakdown();
 
       const fiches = subsFilteredFiches();
       const nbSub = fiches.filter(f => _subsByKey.has(subsKey(f.source, f.id))).length;
