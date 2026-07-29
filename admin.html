@@ -2099,11 +2099,14 @@
               style="flex:1; min-width:200px; margin:0;" />
             <button type="button" class="rub-pill" id="subs-only-subscribed">✅ Abonnés seulement</button>
           </div>
+          <div style="margin-top:10px;">
+            <button type="button" class="rub-pill" id="subs-toggle-breakdown">📊 Vue par ville</button>
+          </div>
           <div id="subs-filter-hint" style="font-size:11px; color:var(--text-faint); margin-top:8px;"></div>
         </div>
 
-        <!-- Répartition Premium / Gold / Classique par ville — visible quand
-             le filtre « Abonnés seulement » est actif. -->
+        <!-- Répartition Premium / Gold / Classique sur les 41 villes hub.
+             Repliée par défaut, dépliée par le bouton « 📊 Vue par ville ». -->
         <div id="subs-tier-breakdown" class="hidden" style="margin-bottom:16px;"></div>
 
         <div id="subs-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
@@ -4949,6 +4952,8 @@
     // d'ensemble n'est jamais perdue quand on filtre.
     let _subsOnlySubscribed = false;
     let _subsCurrent = null;   // { source, id, name, ville, rubrique, sub }
+    /// Vue par ville : repliée par défaut, 41 lignes prennent de la place.
+    let _subsShowBreakdown = false;
 
     // Tous les montants stockés sont HORS TAXES ; le TTC (ce que Stripe
     // prélève réellement) est dérivé du taux figé sur chaque abonnement.
@@ -5057,6 +5062,22 @@
       });
     }
 
+    // Les 41 villes hub — reprises telles quelles de `city_coordinates.dart`
+    // et `city_search_provider.dart` (listes identiques, vérifié 2026-07-29).
+    // C'est le référentiel commercial : sans lui le tableau listait les 66
+    // valeurs distinctes de `ville` présentes en base, communes de banlieue et
+    // villages du Tarn compris.
+    const VILLES_HUB = [
+      "Aix-en-Provence", "Amiens", "Angers", "Annecy", "Avignon", "Bayonne",
+      "Besancon", "Blois", "Bordeaux", "Brest", "Carcassonne", "Chartres",
+      "Clermont-Ferrand", "Colmar", "Dijon", "Geneve", "Grenoble", "Le Havre",
+      "Le Mans", "Lille", "Lyon", "Marseille", "Metz", "Montpellier", "Nancy",
+      "Nantes", "Nice", "Nimes", "Paris", "Reims", "Rennes", "Rouen",
+      "Saint-Etienne", "Strasbourg", "Toulon", "Toulouse",
+      "Fort-de-France", "Pointe-a-Pitre", "Cayenne", "Saint-Denis", "Mamoudzou",
+    ];
+    const _hubParCle = new Map(VILLES_HUB.map(v => [normalizeCity(v), v]));
+
     // ─── Répartition des paliers par ville ──────────────────────────────
     // Alimentée par _subsByKey (tous les abonnements), pas par la liste filtrée
     // à l'écran : on veut le portefeuille réel, pas ce qui est visible.
@@ -5064,9 +5085,9 @@
     // rien dans la répartition commerciale.
     function renderSubsTierBreakdown() {
       const box = document.getElementById("subs-tier-breakdown");
-      // Affichée en permanence : c'est une vue d'ensemble du portefeuille, elle
-      // n'a pas à dépendre du filtre « Abonnés seulement ». Masquée seulement
-      // s'il n'y a aucun abonnement actif à montrer.
+      // Dépliée à la demande : indépendante des filtres, mais 41 lignes
+      // repousseraient la liste des établissements hors de l'écran.
+      if (!_subsShowBreakdown) { box.classList.add("hidden"); return; }
 
       // Volontairement INDÉPENDANT du filtre ville : ce tableau sert à comparer
       // les villes entre elles d'un coup d'œil. C'est la liste du dessous que
@@ -5075,6 +5096,14 @@
       const cle0 = (brut) => normalizeCity(brut) || "—";
       const creer = () => ({ premium: 0, gold: 0, classique: 0, ca: 0, fiches: 0, libelles: new Map() });
 
+      // On amorce avec les 41 hubs : une ville hub sans la moindre fiche doit
+      // apparaître, c'est justement l'information la plus actionnable.
+      for (const [cle, libelle] of _hubParCle) {
+        const e = creer();
+        e.libelles.set(libelle, 1);
+        parVille.set(cle, e);
+      }
+
       // D'abord TOUTES les villes où l'on a des fiches, même sans un seul
       // abonné : une ville à zéro avec 400 établissements est un gisement,
       // pas une ligne à masquer.
@@ -5082,8 +5111,8 @@
         if (!f.ville) continue;
         if (_subsRubFilter && f.rubrique !== _subsRubFilter) continue;
         const c = cle0(f.ville);
-        if (c === "—") continue;
-        if (!parVille.has(c)) parVille.set(c, creer());
+        // Hors hub (communes de métropole, villages…) : ignoré.
+        if (!parVille.has(c)) continue;
         const e = parVille.get(c);
         e.fiches++;
         e.libelles.set(f.ville.trim(), (e.libelles.get(f.ville.trim()) || 0) + 1);
@@ -5097,7 +5126,7 @@
         // sont la même ville. Grouper sur la chaîne brute les séparait en deux
         // lignes et faussait les proportions.
         const cle = cle0(brut);
-        if (!parVille.has(cle)) parVille.set(cle, creer());
+        if (!parVille.has(cle)) continue;   // abonnement hors ville hub
         const e = parVille.get(cle);
         if (e[s.tier] !== undefined) e[s.tier]++;
         e.ca += subsMonthly(s);
@@ -5149,7 +5178,7 @@
         <div class="banner-card" style="padding:14px 16px;">
           <div style="font-size:13px; font-weight:700; margin-bottom:2px;">Répartition des paliers par ville</div>
           <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px;">
-            <strong>Toutes les villes couvertes</strong>, y compris celles sans aucun abonné —
+            Les <strong>41 villes hub</strong>, y compris celles sans aucun abonné —
             triées par revenu décroissant, puis par taille du vivier. Indépendant du
             filtre ville ci-dessus${_subsRubFilter ? `, mais limité à la rubrique « ${escapeHtml(_subsRubFilter)} »` : ""}.
             Abonnements <strong>actifs</strong> uniquement : résiliés et impayés exclus.
@@ -5198,7 +5227,20 @@
 
       const fiches = subsFilteredFiches();
       const nbSub = fiches.filter(f => _subsByKey.has(subsKey(f.source, f.id))).length;
-      subsHint.textContent = `${fiches.length} fiche(s) — ${nbSub} abonnée(s), ${fiches.length - nbSub} à abonner.`;
+
+      // Une liste vide est presque toujours due au filtre « Abonnés seulement »
+      // resté actif : il masque tout dans une rubrique sans aucun abonné, ce
+      // qui se lit facilement comme un bug de données.
+      if (fiches.length === 0 && _subsOnlySubscribed) {
+        subsHint.innerHTML =
+          `Aucun abonné ici. Le filtre <strong>« ✅ Abonnés seulement »</strong> est actif — ` +
+          `clique dessus pour voir les établissements à abonner.`;
+      } else if (fiches.length === 0) {
+        subsHint.textContent = "Aucun établissement pour ces filtres.";
+      } else {
+        subsHint.textContent =
+          `${fiches.length} fiche(s) — ${nbSub} abonnée(s), ${fiches.length - nbSub} à abonner.`;
+      }
 
       const html = SUBS_GROUPS.map(g => {
         const list = fiches.filter(f => f.rubrique === g.key);
@@ -5251,7 +5293,14 @@
           </section>`;
       }).join("");
 
-      subsGroupsEl.innerHTML = html || `<div style="padding:20px; color:var(--text-dim);">Aucune fiche pour ces filtres.</div>`;
+      subsGroupsEl.innerHTML = html || (_subsOnlySubscribed
+        ? `<div style="padding:20px; color:var(--text-dim);">
+             Aucun abonné dans cette sélection.<br />
+             <span style="font-size:12px; color:var(--text-faint);">
+               Le filtre « ✅ Abonnés seulement » masque les établissements sans abonnement.
+             </span>
+           </div>`
+        : `<div style="padding:20px; color:var(--text-dim);">Aucune fiche pour ces filtres.</div>`);
     }
 
     async function openSubsEditor(source, id) {
@@ -5375,6 +5424,12 @@
           _subsRubFilter = pill.dataset.subrub;
           renderSubsGroups();
         });
+      });
+
+      document.getElementById("subs-toggle-breakdown").addEventListener("click", (ev) => {
+        _subsShowBreakdown = !_subsShowBreakdown;
+        ev.currentTarget.classList.toggle("active", _subsShowBreakdown);
+        renderSubsTierBreakdown();
       });
 
       document.getElementById("subs-only-subscribed").addEventListener("click", (ev) => {
@@ -7938,9 +7993,14 @@
         source: "evasion_venues",
         id: r.id,
         name: r.nom || "",
-        ville: r.ville || "",
-        adresse: r.adresse || "",
-        type: r.hub_ville || "",
+        // `hub_ville` et NON `ville` : un domaine d'évasion est rattaché à une
+        // ville hub (Toulouse) mais physiquement dans un village (Lempaut,
+        // Drudas…). C'est le rattachement que l'app filtre, et le seul qui ait
+        // un sens commercial. Sur `ville`, les 10 domaines tombaient sous des
+        // communes absentes de la liste des hubs.
+        ville: r.hub_ville || r.ville || "",
+        adresse: [r.ville, r.adresse].filter(Boolean).join(" · "),
+        type: "évasion",
         rubrique: "evasion",
         code: null,            // evasion_venues : pas de code de revendication
         photo: r.photo || "",

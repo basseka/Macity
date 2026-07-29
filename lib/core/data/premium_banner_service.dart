@@ -50,13 +50,15 @@ class PremiumBannerSlot {
 /// Table + colonnes par rubrique. Même correspondance que
 /// `partners_of_day_service.dart` : chaque rubrique lit la table que l'app
 /// affiche réellement pour elle.
-const _sources = <String, ({String table, String nameCol, String siteCol, String? filterKey, String? filterVal})>{
-  'food': (table: 'etablissements', nameCol: 'nom', siteCol: 'site_web', filterKey: 'rubrique', filterVal: 'eq.food'),
-  'night': (table: 'venues', nameCol: 'name', siteCol: 'website_url', filterKey: 'mode', filterVal: 'eq.night'),
-  'culture': (table: 'venues', nameCol: 'name', siteCol: 'website_url', filterKey: 'mode', filterVal: 'eq.culture'),
-  'sport': (table: 'sport_venues', nameCol: 'nom', siteCol: 'site_web', filterKey: null, filterVal: null),
-  'family': (table: 'family_venues', nameCol: 'name', siteCol: 'website_url', filterKey: null, filterVal: null),
-  'evasion': (table: 'evasion_venues', nameCol: 'nom', siteCol: 'site_web', filterKey: null, filterVal: null),
+/// `cityCol` : Évasion se filtre sur `hub_ville` (ville de rattachement) et
+/// non sur `ville`, qui contient le village où se trouve le domaine.
+const _sources = <String, ({String table, String nameCol, String siteCol, String cityCol, String? filterKey, String? filterVal})>{
+  'food': (table: 'etablissements', nameCol: 'nom', siteCol: 'site_web', cityCol: 'ville', filterKey: 'rubrique', filterVal: 'eq.food'),
+  'night': (table: 'venues', nameCol: 'name', siteCol: 'website_url', cityCol: 'ville', filterKey: 'mode', filterVal: 'eq.night'),
+  'culture': (table: 'venues', nameCol: 'name', siteCol: 'website_url', cityCol: 'ville', filterKey: 'mode', filterVal: 'eq.culture'),
+  'sport': (table: 'sport_venues', nameCol: 'nom', siteCol: 'site_web', cityCol: 'ville', filterKey: null, filterVal: null),
+  'family': (table: 'family_venues', nameCol: 'name', siteCol: 'website_url', cityCol: 'ville', filterKey: null, filterVal: null),
+  'evasion': (table: 'evasion_venues', nameCol: 'nom', siteCol: 'site_web', cityCol: 'hub_ville', filterKey: null, filterVal: null),
 };
 
 /// Les partenaires d'un palier donné, dans une rubrique et la ville
@@ -79,13 +81,14 @@ final partnerPoolProvider = FutureProvider.family<List<PremiumBannerSlot>,
 
   try {
     final params = <String, String>{
-      'select': 'id,${src.nameCol},${src.siteCol},ville,photo,video_url,adresse,latitude,longitude',
+      'select':
+          'id,${src.nameCol},${src.siteCol},${src.cityCol},photo,video_url,adresse,latitude,longitude',
       'is_partner': 'eq.true',
       'is_active': 'eq.true',
       // Réservé au palier Premium — dénormalisé depuis venue_subscriptions
       // par trigger, donc aucune jointure ici.
       'partner_tier': 'eq.${key.tier}',
-      'ville': 'ilike.$like',
+      src.cityCol: 'ilike.$like',
       'order': 'display_priority.desc',
     };
     if (src.filterKey != null) params[src.filterKey!] = src.filterVal!;
@@ -102,7 +105,7 @@ final partnerPoolProvider = FutureProvider.family<List<PremiumBannerSlot>,
           return PremiumBannerSlot(
             commerce: CommerceModel(
               nom: s(e[src.nameCol]),
-              ville: s(e['ville']),
+              ville: s(e[src.cityCol]),
               adresse: s(e['adresse']),
               photo: s(e['photo']),
               videoUrl: s(e['video_url']),
@@ -187,7 +190,7 @@ Future<CommerceModel?> fetchCommerceBySource(String sourceTable, int sourceId) a
   try {
     final res = await dio.get<dynamic>(sourceTable, queryParameters: {
       'select':
-          'id,${cols.nameCol},${cols.siteCol},ville,adresse,photo,photos,video_url,telephone,horaires,latitude,longitude,is_partner',
+          'id,${cols.nameCol},${cols.siteCol},${cols.cityCol},adresse,photo,photos,video_url,telephone,horaires,latitude,longitude,is_partner',
       'id': 'eq.$sourceId',
       'limit': '1',
     });
@@ -197,7 +200,7 @@ Future<CommerceModel?> fetchCommerceBySource(String sourceTable, int sourceId) a
     String s(dynamic v) => (v as String?)?.trim() ?? '';
     return CommerceModel(
       nom: s(e[cols.nameCol]),
-      ville: s(e['ville']),
+      ville: s(e[cols.cityCol]),
       adresse: s(e['adresse']),
       photo: s(e['photo']),
       photos: (e['photos'] is List)
