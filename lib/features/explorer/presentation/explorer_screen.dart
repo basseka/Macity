@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/features/offers/presentation/widgets/locked_offers_carousel.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_city_header.dart';
@@ -89,6 +90,15 @@ class ExplorerScreen extends ConsumerWidget {
             ),
             // Grille des offres
             ..._buildOffersSlivers(context, ref, offersAsync),
+            // Carrousel « réservé aux abonnés », sous la grille : des cartes
+            // volontairement génériques (catégorie seule, aucun commerçant ni
+            // remise chiffrée) qui mènent à la vidéo puis à l'abonnement.
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: EditorialSpacing.lg),
+                child: LockedOffersCarousel(),
+              ),
+            ),
             const SliverToBoxAdapter(
               child: SizedBox(height: EditorialSpacing.xxl),
             ),

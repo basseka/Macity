@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:pulz_app/core/utils/image_url.dart';
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/data/inspiration_service.dart';
 import 'package:pulz_app/core/data/premium_banner_service.dart';
@@ -862,7 +863,8 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
           else if (slotPhoto.isNotEmpty)
             // Premium sans vidéo : sa photo occupe la place qu'il a payée.
             Image.network(
-              slotPhoto,
+              // PNG de 400-500 ko à l'origine : servi en webp redimensionné.
+              optimizedImageUrl(slotPhoto, width: 900),
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => DecoratedBox(
                 decoration: BoxDecoration(
@@ -1293,7 +1295,8 @@ class _RubriqueInspirationCard extends StatelessWidget {
                   data.photoUrl.trim().isEmpty
                       ? DecoratedBox(decoration: BoxDecoration(gradient: gradient))
                       : CachedNetworkImage(
-                          imageUrl: data.photoUrl,
+                          // Vignette de 124x62 : 300 px suffit, en webp.
+                          imageUrl: optimizedImageUrl(data.photoUrl, width: 300),
                           fit: BoxFit.cover,
                           placeholder: (_, __) => DecoratedBox(
                               decoration: BoxDecoration(gradient: gradient)),

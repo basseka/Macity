@@ -1,3 +1,4 @@
+import 'package:pulz_app/core/utils/image_url.dart';
 import 'package:pulz_app/core/data/premium_banner_service.dart';
 import 'dart:async';
 import 'dart:ui';
@@ -540,7 +541,8 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
             )
           else if (slotPhoto.isNotEmpty)
             Image.network(
-              slotPhoto,
+              // PNG de 400-500 ko à l'origine : servi en webp redimensionné.
+              optimizedImageUrl(slotPhoto, width: 900),
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const DecoratedBox(
                 decoration: BoxDecoration(

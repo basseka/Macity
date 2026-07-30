@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/core/utils/image_url.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/reported_events/data/city_media_service.dart';
 import 'package:pulz_app/features/reported_events/data/partners_of_day_service.dart';
@@ -333,10 +334,21 @@ class _PartnerCard extends StatelessWidget {
           children: [
             if (hasPhoto)
               CachedNetworkImage(
-                imageUrl: commerce.photo,
+                // Version webp redimensionnée : les photos sont stockées en PNG
+                // de 400 à 500 ko, ce qui laissait le placeholder à l'écran
+                // plusieurs secondes sur connexion faible. La carte fait toute
+                // la largeur, d'où 900 px pour couvrir les écrans à forte densité.
+                imageUrl: optimizedImageUrl(commerce.photo, width: 900),
                 fit: BoxFit.cover,
                 placeholder: (_, __) => const ColoredBox(color: Color(0xFF2A1546)),
-                errorWidget: (_, __, ___) => _fallback(),
+                // Repli sur l'original si la transformation échoue : mieux vaut
+                // une image lente qu'un bloc vide pour un partenaire payant.
+                errorWidget: (_, __, ___) => CachedNetworkImage(
+                  imageUrl: commerce.photo,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => const ColoredBox(color: Color(0xFF2A1546)),
+                  errorWidget: (_, __, ___) => _fallback(),
+                ),
               )
             else
               _fallback(),

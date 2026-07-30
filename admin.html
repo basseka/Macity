@@ -1011,6 +1011,19 @@
 
     <!-- ═══ FORMULAIRE EVENT ═══ -->
     <div id="admin-area">
+      <!-- ═══ Logo MaCity ═══
+           Servi depuis le storage public (branding/macity_logo.png), la même
+           source que les e-mails transactionnels — un seul fichier à changer
+           le jour d'une refonte. Rayon de 22 % : proportion d'une icône d'app. -->
+      <div style="display:flex; justify-content:center; padding:14px 0 26px;">
+        <img src="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/branding/macity_logo.png"
+             alt="MaCity"
+             width="132" height="132"
+             style="width:132px; height:132px; border-radius:29px; display:block;
+                    box-shadow:0 10px 30px -8px rgba(233,30,99,.45), 0 0 0 1px rgba(255,255,255,.08);"
+             onerror="this.style.display='none'" />
+      </div>
+
       <!-- ═══ Top toolbar : logout (centré, tout en haut) + nav (dessous) ═══ -->
       <div class="top-toolbar">
         <span class="logout" id="logout-btn" style="margin-bottom: 0;">← Se déconnecter</span>
@@ -1045,6 +1058,7 @@
           <span class="nav-btn" id="goto-gifts-btn">🎁 Cadeaux</span>
           <span class="nav-btn" id="goto-citymedia-btn">📰 Médias ville</span>
           <span class="nav-btn" id="goto-subs-btn">💳 Abonnements</span>
+          <span class="nav-btn" id="goto-clients-btn">🧾 Clients</span>
         </div>
       </div>
 
@@ -2150,6 +2164,10 @@
               <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Notes</label>
               <input type="text" id="subs-f-notes" class="banner-input" placeholder="Remise, contact…" style="width:100%; margin:0;" />
             </div>
+            <div style="grid-column:1/-1;">
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">🧾 Client qui paie <span style="opacity:.6">— coordonnées et IBAN dans l'onglet Clients</span></label>
+              <select id="subs-f-client" class="banner-input" style="width:100%; margin:0;"></select>
+            </div>
           </div>
 
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
@@ -2171,6 +2189,133 @@
           <p class="subtitle" style="margin-top:8px;">Sert à pré-remplir le montant du formulaire. Modifier un tarif ici <strong>ne change pas</strong> les abonnements déjà en cours — leur montant est figé à la souscription.</p>
           <div id="subs-prices" style="overflow-x:auto;"></div>
         </details>
+      </div>
+
+      <!-- ═══ VUE "CLIENTS" (partner_clients) ═══ -->
+      <div id="clients-view" class="hidden">
+        <h1>🧾 Clients</h1>
+        <p class="subtitle">L'entité juridique qui paie, distincte de l'établissement — un même client peut détenir plusieurs abonnements. Coordonnées de facturation, interlocuteur, moyen de règlement et mandat SEPA.</p>
+
+        <div id="clients-outbox" class="hidden" style="margin:16px 0 0;"></div>
+        <div id="clients-kpis" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin:16px 0 20px;"></div>
+
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="clients-search" class="banner-input" placeholder="Chercher par raison sociale, enseigne, contact…" autocomplete="off" style="flex:1; min-width:240px; margin:0;" />
+            <select id="clients-statut-filter" class="banner-input" style="max-width:180px; margin:0;">
+              <option value="">Tous les statuts</option>
+              <option value="prospect">Prospect</option>
+              <option value="actif">Actif</option>
+              <option value="suspendu">Suspendu</option>
+              <option value="perdu">Perdu</option>
+            </select>
+            <button type="button" class="act act-success" id="clients-new-btn">+ Nouveau client</button>
+          </div>
+        </div>
+
+        <div id="clients-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="clients-list" style="overflow-x:auto;"></div>
+
+        <!-- ─── Fiche client ─── -->
+        <div id="client-form" class="banner-card hidden" style="margin-top:20px; max-width:900px;">
+          <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+            <div id="client-form-title" style="font-size:16px; font-weight:800;"></div>
+            <span id="client-form-id" style="font-size:11px; color:var(--text-faint);"></span>
+          </div>
+          <input type="hidden" data-cf="id" />
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:4px 0 8px;">Identité juridique</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Raison sociale *
+              <input type="text" data-cf="raison_sociale" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Enseigne <span style="opacity:.6">(nom commercial)</span>
+              <input type="text" data-cf="enseigne" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Forme juridique
+              <input type="text" data-cf="forme_juridique" class="banner-input" placeholder="SARL, SAS, EI…" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">SIRET <span style="opacity:.6">(14 chiffres)</span>
+              <input type="text" data-cf="siret" class="banner-input" inputmode="numeric" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">TVA intracommunautaire
+              <input type="text" data-cf="tva_intracom" class="banner-input" placeholder="FR…" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">RCS (ville)
+              <input type="text" data-cf="rcs_ville" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Adresse de facturation</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim); grid-column:1/-1;">Adresse
+              <input type="text" data-cf="adresse" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Code postal
+              <input type="text" data-cf="code_postal" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Ville
+              <input type="text" data-cf="ville" class="banner-input" list="cities-datalist" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Pays
+              <input type="text" data-cf="pays" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Interlocuteur</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Prénom
+              <input type="text" data-cf="contact_prenom" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Nom
+              <input type="text" data-cf="contact_nom" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Fonction
+              <input type="text" data-cf="contact_fonction" class="banner-input" placeholder="Gérant, responsable com…" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">E-mail
+              <input type="email" data-cf="contact_email" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Téléphone
+              <input type="tel" data-cf="contact_tel" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">E-mail de facturation <span style="opacity:.6">si différent</span>
+              <input type="email" data-cf="email_facturation" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Règlement</div>
+          <div style="font-size:11px; color:#f59e0b; margin-bottom:8px;">
+            ⚠️ Coordonnées bancaires : la table est fermée à tout rôle sauf <code>service_role</code>, l'accès passe uniquement par les RPC admin. Ne jamais y ajouter de policy de lecture.
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Moyen de paiement
+              <select data-cf="moyen_paiement" class="banner-input" style="width:100%; margin:4px 0 0;">
+                <option value="virement">Virement</option>
+                <option value="prelevement_sepa">Prélèvement SEPA</option>
+                <option value="carte">Carte bancaire</option>
+                <option value="cheque">Chèque</option>
+                <option value="especes">Espèces</option>
+              </select></label>
+            <label style="font-size:12px; color:var(--text-dim);">Titulaire du compte
+              <input type="text" data-cf="titulaire_compte" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim); grid-column:1/-1;">IBAN
+              <input type="text" data-cf="iban" class="banner-input" placeholder="FR76 3000 6000 0112 3456 7890 189" style="width:100%; margin:4px 0 0; font-variant-numeric:tabular-nums;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">BIC
+              <input type="text" data-cf="bic" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Référence de mandat
+              <input type="text" data-cf="mandat_ref" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Mandat signé le
+              <input type="date" data-cf="mandat_signe_le" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Suivi</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Statut
+              <select data-cf="statut" class="banner-input" style="width:100%; margin:4px 0 0;">
+                <option value="prospect">Prospect</option>
+                <option value="actif">Actif</option>
+                <option value="suspendu">Suspendu</option>
+                <option value="perdu">Perdu</option>
+              </select></label>
+            <label style="font-size:12px; color:var(--text-dim);">Client depuis
+              <input type="date" data-cf="entre_le" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim); grid-column:1/-1;">Notes
+              <input type="text" data-cf="notes" class="banner-input" placeholder="Historique, remise négociée, contact préféré…" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
+            <button type="button" class="act act-success" id="client-save-btn">💾 Enregistrer</button>
+            <button type="button" class="banner-save-btn" id="client-delete-btn" style="background:#7f1d1d;">🗑 Supprimer</button>
+            <button type="button" class="banner-save-btn" id="client-close-btn" style="background:transparent; border:1px solid var(--line);">Fermer</button>
+          </div>
+
+          <div id="client-subs" style="margin-top:22px;"></div>
+        </div>
       </div>
 
       <!-- ═══ VUE DURÉE STORIES (TTL) ═══ -->
@@ -3632,6 +3777,8 @@
     const gotoEventeditBtn = document.getElementById("goto-eventedit-btn");
     const subsView = document.getElementById("subs-view");
     const gotoSubsBtn = document.getElementById("goto-subs-btn");
+    const clientsView = document.getElementById("clients-view");
+    const gotoClientsBtn = document.getElementById("goto-clients-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -3660,6 +3807,7 @@
       mediakitView.classList.add("hidden");
       eventeditView.classList.add("hidden");
       subsView.classList.add("hidden");
+      clientsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -3686,6 +3834,7 @@
       gotoMediakitBtn.style.display = "inline-flex";
       gotoEventeditBtn.style.display = "inline-flex";
       gotoSubsBtn.style.display = "inline-flex";
+      gotoClientsBtn.style.display = "inline-flex";
       // Retire la surbrillance de tous les onglets (le bouton actif sera
       // re-surligne par la fonction showXView appelante).
       document
@@ -3876,6 +4025,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoSubsBtn.addEventListener("click", showSubsView);
+    function showClientsView() {
+      _hideAllViews();
+      clientsView.classList.remove("hidden");
+      gotoClientsBtn.classList.add("active");
+      refreshClientsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoClientsBtn.addEventListener("click", showClientsView);
     function showSysmonView() {
       _hideAllViews();
       sysmonView.classList.remove("hidden");
@@ -5331,6 +5488,19 @@
       stripeBtn.style.opacity = stripeBtn.disabled ? ".45" : "1";
       stripeBtn.style.cursor = stripeBtn.disabled ? "not-allowed" : "pointer";
 
+      // Liste des clients : chargée depuis l'onglet Clients, qui peut ne pas
+      // avoir encore été ouvert — d'où le fetch à la demande.
+      try {
+        if (_clients.length === 0) {
+          const { data } = await supabase.rpc("admin_list_clients");
+          _clients = data || [];
+        }
+        const sel = document.getElementById("subs-f-client");
+        sel.innerHTML = `<option value="">— aucun client rattaché —</option>` +
+          _clients.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.raison_sociale)}${c.ville ? " · " + escapeHtml(c.ville) : ""}</option>`).join("");
+        sel.value = sub?.client_id || "";
+      } catch (_) { /* non bloquant : la formule reste modifiable sans client */ }
+
       refreshSubsTtcHint();
       subsEditor.classList.remove("hidden");
       subsEditor.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -5400,6 +5570,18 @@
           p_rubrique:       f.rubrique || "",
         });
         if (error) throw error;
+        // Le rattachement client est un appel distinct : admin_upsert_venue_subscription
+        // ne connaît pas client_id, et je préfère ne pas élargir sa signature.
+        const clientId = document.getElementById("subs-f-client").value;
+        const subId = _subsByKey.get(subsKey(f.source, f.id))?.id;
+        if (subId || clientId) {
+          const cible = subId || null;
+          if (cible) {
+            const { error: lErr } = await supabase.rpc("admin_link_subscription_client",
+              { p_subscription_id: cible, p_client_id: clientId || null });
+            if (lErr) console.warn("[subs] rattachement client", lErr);
+          }
+        }
         toast("Abonnement enregistré");
         subsEditor.classList.add("hidden");
         // is_partner a bougé côté DB : on recharge les caches de fiches.
@@ -5515,6 +5697,455 @@
           toast("Tarif enregistré");
           await refreshSubsView();
         } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+    })();
+
+    // ─── File d'attente hors ligne pour les fiches clients ──────────────
+    // Cas d'usage : prospection sur le terrain, sans réseau. La fiche est
+    // gardée en local puis envoyée au retour de connexion.
+    //
+    // ⚠️ Les CHAMPS BANCAIRES sont volontairement EXCLUS de la file :
+    // localStorage est en clair sur le disque, sans chiffrement, lisible par
+    // tout script de la même origine — moins protégé que la base, où la table
+    // est fermée à tout rôle sauf service_role. En premier rendez-vous on n'a
+    // de toute façon pas le RIB : il arrive avec le mandat signé.
+    const CLIENTS_OUTBOX_KEY = "macity_clients_outbox_v1";
+    const CHAMPS_BANCAIRES = ["iban", "bic", "titulaire_compte", "mandat_ref", "mandat_signe_le"];
+
+    function outboxLire() {
+      try { return JSON.parse(localStorage.getItem(CLIENTS_OUTBOX_KEY) || "[]"); }
+      catch { return []; }
+    }
+    function outboxEcrire(list) {
+      try { localStorage.setItem(CLIENTS_OUTBOX_KEY, JSON.stringify(list)); }
+      catch (e) { console.warn("[outbox] écriture impossible", e); }
+    }
+    function outboxAjouter(payload) {
+      const propre = { ...payload };
+      for (const k of CHAMPS_BANCAIRES) delete propre[k];
+      const list = outboxLire();
+      list.push({ _local: crypto.randomUUID(), _le: new Date().toISOString(), payload: propre });
+      outboxEcrire(list);
+      return propre;
+    }
+
+    /// Panne réseau, par opposition à un refus du serveur : une erreur de
+    /// validation ne doit PAS être mise en file, elle se reproduirait à chaque
+    /// tentative.
+    function estPanneReseau(e) {
+      if (!navigator.onLine) return true;
+      const m = (e?.message || "").toLowerCase();
+      return /failed to fetch|networkerror|network request|timeout|load failed/.test(m);
+    }
+
+    async function outboxVider({ silencieux = false } = {}) {
+      const list = outboxLire();
+      if (list.length === 0) return { envoyes: 0, restants: 0 };
+      if (!navigator.onLine) return { envoyes: 0, restants: list.length };
+      const restants = [];
+      let envoyes = 0;
+      for (const item of list) {
+        try {
+          const { error } = await supabase.rpc("admin_upsert_client", { p: item.payload });
+          if (error) throw error;
+          envoyes++;
+        } catch (e) {
+          // Panne réseau : on garde pour plus tard. Refus du serveur : on garde
+          // aussi, mais en marquant l'erreur — sinon la fiche disparaîtrait
+          // silencieusement et le client serait perdu.
+          item._erreur = estPanneReseau(e) ? null : (e.message || String(e));
+          restants.push(item);
+        }
+      }
+      outboxEcrire(restants);
+      if (!silencieux && envoyes > 0) toast(`${envoyes} fiche(s) client envoyée(s)`);
+      return { envoyes, restants: restants.length };
+    }
+
+    function renderOutboxBanner() {
+      const box = document.getElementById("clients-outbox");
+      const list = outboxLire();
+      if (list.length === 0) { box.classList.add("hidden"); return; }
+      const enErreur = list.filter(i => i._erreur);
+      box.classList.remove("hidden");
+      box.innerHTML = `
+        <div class="banner-card" style="border-left:3px solid #f59e0b; padding:14px 16px;">
+          <div style="font-size:13px; font-weight:700;">
+            ${list.length} fiche(s) en attente d'envoi
+            ${navigator.onLine ? "" : `<span style="color:#f59e0b; font-weight:400;"> · hors ligne</span>`}
+          </div>
+          <div style="font-size:11px; color:var(--text-faint); margin-top:4px;">
+            Enregistrées sur cet ordinateur, pas encore en base. Les coordonnées bancaires
+            ne sont jamais mises en attente : à compléter une fois la fiche envoyée.
+          </div>
+          ${enErreur.length ? `<div style="font-size:11px; color:var(--err); margin-top:6px;">
+            ${enErreur.length} refusée(s) par le serveur : ${escapeHtml(enErreur[0]._erreur)}
+          </div>` : ""}
+          <ul style="margin:8px 0 0; padding-left:18px; font-size:12px; color:var(--text-dim);">
+            ${list.slice(0, 6).map(i => `<li>${escapeHtml(i.payload.raison_sociale || "(sans nom)")}
+              <span style="color:var(--text-faint);">· ${i._le.slice(0, 10)}</span></li>`).join("")}
+          </ul>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button type="button" class="act act-success" id="outbox-send-btn"${navigator.onLine ? "" : " disabled style=\"opacity:.45; cursor:not-allowed;\""}>📤 Envoyer maintenant</button>
+            <button type="button" class="banner-save-btn" id="outbox-clear-btn" style="background:#7f1d1d;">Vider la file</button>
+          </div>
+        </div>`;
+    }
+
+    // Envoi automatique au retour du réseau : c'est le comportement attendu,
+    // sans quoi il faudrait penser à revenir sur l'onglet.
+    window.addEventListener("online", async () => {
+      const r = await outboxVider();
+      renderOutboxBanner();
+      if (r.envoyes > 0 && !clientsView.classList.contains("hidden")) refreshClientsView();
+    });
+    window.addEventListener("offline", renderOutboxBanner);
+
+    // ─── Onglet Clients (partner_clients) ───────────────────────────────
+    const CLIENT_STATUTS = {
+      prospect:  { label: "Prospect",  color: "#f59e0b" },
+      actif:     { label: "Actif",     color: "#16a34a" },
+      suspendu:  { label: "Suspendu",  color: "#f59e0b" },
+      perdu:     { label: "Perdu",     color: "#6b7280" },
+    };
+    const MOYENS = {
+      virement: "Virement", prelevement_sepa: "Prélèvement SEPA",
+      carte: "Carte", cheque: "Chèque", especes: "Espèces",
+    };
+    let _clients = [];
+    let _clientCur = null;   // fiche ouverte (objet complet, IBAN inclus)
+
+    const clientsLoading = document.getElementById("clients-loading");
+    const clientsListEl  = document.getElementById("clients-list");
+    const clientForm     = document.getElementById("client-form");
+    const $cf = (k) => clientForm.querySelector(`[data-cf="${k}"]`);
+
+    async function refreshClientsView() {
+      clientsLoading.classList.remove("hidden");
+      clientsListEl.innerHTML = "";
+      try {
+        // Tentative d'envoi silencieuse à chaque ouverture : le retour réseau a
+        // pu se produire pendant que l'onglet était fermé.
+        await outboxVider({ silencieux: true });
+        renderOutboxBanner();
+        const { data, error } = await supabase.rpc("admin_list_clients");
+        if (error) throw error;
+        _clients = data || [];
+        renderClientsKpis();
+        renderClientsList();
+      } catch (e) {
+        console.error("[Clients] load", e);
+        clientsListEl.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
+      } finally {
+        clientsLoading.classList.add("hidden");
+      }
+    }
+
+    function renderClientsKpis() {
+      const n = (st) => _clients.filter(c => c.statut === st).length;
+      const mrr = _clients.reduce((a, c) => a + Number(c.mrr_cents || 0), 0);
+      // Un mandat manquant bloque tout prélèvement : c'est un indicateur, pas
+      // un détail administratif.
+      const sansMandat = _clients.filter(
+        c => c.moyen_paiement === "prelevement_sepa" && !c.mandat_ok).length;
+      const card = (l, v, c, sub) => `
+        <div style="background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px;">${l}</div>
+          <div style="font-size:22px; font-weight:800; margin-top:4px; color:${c};">${v}</div>
+          ${sub ? `<div style="font-size:11px; color:var(--text-faint); margin-top:2px;">${sub}</div>` : ""}
+        </div>`;
+      document.getElementById("clients-kpis").innerHTML =
+        card("Clients actifs", n("actif"), "#16a34a") +
+        card("Prospects", n("prospect"), "#f59e0b") +
+        card("MRR client (HT)", subsEuros(mrr), "var(--text)") +
+        card("Mandat SEPA manquant", sansMandat, sansMandat ? "#ef4444" : "var(--text-dim)",
+             sansMandat ? "prélèvement impossible" : "");
+    }
+
+    function renderClientsList() {
+      const q = (document.getElementById("clients-search").value || "").trim().toLowerCase();
+      const st = document.getElementById("clients-statut-filter").value;
+      // Les fiches en file sont montrées avec les autres, mais marquées : sans
+      // ça on croirait qu'elles sont enregistrées.
+      const enAttente = outboxLire().map(i => ({
+        id: "_local_" + i._local,
+        raison_sociale: i.payload.raison_sociale || "(sans nom)",
+        enseigne: i.payload.enseigne || "",
+        ville: i.payload.ville || "",
+        statut: i.payload.statut || "prospect",
+        moyen_paiement: i.payload.moyen_paiement || "virement",
+        contact_nom: [i.payload.contact_prenom, i.payload.contact_nom].filter(Boolean).join(" "),
+        contact_email: i.payload.contact_email || "",
+        iban_4: "", mandat_ok: false, nb_abonnements: 0, mrr_cents: 0,
+        _enAttente: true,
+      }));
+      const list = [...enAttente, ..._clients].filter(c => {
+        if (st && c.statut !== st) return false;
+        if (!q) return true;
+        return [c.raison_sociale, c.enseigne, c.contact_nom, c.contact_email, c.ville]
+          .filter(Boolean).some(x => x.toLowerCase().includes(q));
+      });
+      if (list.length === 0) {
+        clientsListEl.innerHTML = `<div style="padding:20px; color:var(--text-dim);">${
+          _clients.length === 0 ? "Aucun client. Clique sur « + Nouveau client »." : "Aucun client pour ces filtres."
+        }</div>`;
+        return;
+      }
+      const rows = list.map(c => {
+        const s = CLIENT_STATUTS[c.statut] || { label: c.statut, color: "var(--text-dim)" };
+        const sepa = c.moyen_paiement === "prelevement_sepa";
+        return `<tr${c._enAttente ? ' style="opacity:.7;"' : ''}>
+          <td style="padding:10px 12px 10px 0;">
+            <div style="font-weight:600;">${escapeHtml(c.raison_sociale)}
+              ${c._enAttente ? `<span style="font-size:10px; font-weight:700; color:#f59e0b; border:1px solid #f59e0b; border-radius:3px; padding:1px 5px; margin-left:6px;">EN ATTENTE</span>` : ""}
+            </div>
+            ${c.enseigne ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(c.enseigne)}</div>` : ""}
+          </td>
+          <td style="padding:10px 12px; font-size:12px;">${escapeHtml(c.ville || "—")}</td>
+          <td style="padding:10px 12px; font-size:12px;">
+            ${escapeHtml(c.contact_nom || "—")}
+            ${c.contact_email ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(c.contact_email)}</div>` : ""}
+          </td>
+          <td style="padding:10px 12px; font-size:12px;">
+            ${escapeHtml(MOYENS[c.moyen_paiement] || c.moyen_paiement)}
+            ${sepa ? (c.mandat_ok
+                ? `<div style="font-size:11px; color:#16a34a;">mandat ✓${c.iban_4 ? " ····" + escapeHtml(c.iban_4) : ""}</div>`
+                : `<div style="font-size:11px; color:#ef4444;">mandat manquant</div>`) : ""}
+          </td>
+          <td style="padding:10px 12px; text-align:center; font-variant-numeric:tabular-nums;">${c.nb_abonnements}</td>
+          <td style="padding:10px 12px; text-align:right; font-variant-numeric:tabular-nums; color:#16a34a; font-weight:600;">${subsEuros(c.mrr_cents)}</td>
+          <td style="padding:10px 12px; font-size:11px; color:${s.color}; white-space:nowrap;">● ${s.label}</td>
+          <td style="padding:10px 0 10px 12px;">
+            ${c._enAttente
+              ? `<span style="font-size:11px; color:var(--text-faint);">local</span>`
+              : `<button type="button" class="banner-save-btn" style="padding:5px 12px; font-size:12px;" data-client-open="${escapeHtml(c.id)}">Ouvrir</button>`}
+          </td>
+        </tr>`;
+      }).join("");
+      clientsListEl.innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead><tr style="color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.08em;">
+            <th style="text-align:left; padding:0 12px 8px 0;">Client</th>
+            <th style="text-align:left; padding:0 12px 8px;">Ville</th>
+            <th style="text-align:left; padding:0 12px 8px;">Contact</th>
+            <th style="text-align:left; padding:0 12px 8px;">Règlement</th>
+            <th style="text-align:center; padding:0 12px 8px;">Abos</th>
+            <th style="text-align:right; padding:0 12px 8px;">MRR</th>
+            <th style="text-align:left; padding:0 12px 8px;">Statut</th><th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    const CF_KEYS = ["raison_sociale","enseigne","forme_juridique","siret","tva_intracom",
+      "rcs_ville","adresse","code_postal","ville","pays","contact_nom","contact_prenom",
+      "contact_fonction","contact_email","contact_tel","email_facturation",
+      "moyen_paiement","iban","bic","titulaire_compte","mandat_ref","mandat_signe_le",
+      "statut","entre_le","notes"];
+
+    function openClientForm(client) {
+      _clientCur = client;
+      $cf("id").value = client?.id || "";
+      for (const k of CF_KEYS) {
+        const el = $cf(k);
+        if (el) el.value = client?.[k] ?? "";
+      }
+      if (!client) {
+        $cf("pays").value = "France";
+        $cf("statut").value = "prospect";
+        $cf("moyen_paiement").value = "virement";
+        $cf("entre_le").value = new Date().toISOString().slice(0, 10);
+      }
+      document.getElementById("client-form-title").textContent =
+        client ? client.raison_sociale : "Nouveau client";
+      document.getElementById("client-form-id").textContent =
+        client ? `créé le ${(client.created_at || "").slice(0, 10)}` : "";
+      document.getElementById("client-delete-btn").style.display = client ? "" : "none";
+      clientForm.classList.remove("hidden");
+      clientForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      renderClientSubsAndOffers(client?.id || null);
+    }
+
+    async function renderClientSubsAndOffers(clientId) {
+      const box = document.getElementById("client-subs");
+      if (!clientId) {
+        box.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">Enregistre la fiche pour y rattacher des abonnements et des offres.</div>`;
+        return;
+      }
+      box.innerHTML = `<div style="font-size:12px; color:var(--text-dim);">Chargement…</div>`;
+      try {
+        const [subs, offres] = await Promise.all([
+          supabase.rpc("admin_client_subscriptions", { p_client_id: clientId }),
+          supabase.rpc("admin_client_offers", { p_client_id: clientId }),
+        ]);
+        if (subs.error) throw subs.error;
+        if (offres.error) throw offres.error;
+
+        const sRows = (subs.data || []).map(v => {
+          const t = SUBS_TIER_META[v.tier] || { label: v.tier, color: "var(--text-dim)" };
+          return `<tr>
+            <td style="padding:6px 10px 6px 0;">${escapeHtml(v.venue_name)}</td>
+            <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(v.ville)} · ${escapeHtml(v.rubrique)}</td>
+            <td style="padding:6px 10px; color:${t.color}; font-weight:700; font-size:11px;">${t.label}</td>
+            <td style="padding:6px 10px; text-align:right;">${subsEuros(v.amount_cents)}${v.billing_period === "annuel" ? "/an" : "/mois"}</td>
+            <td style="padding:6px 0 6px 10px; font-size:11px;">${escapeHtml(v.status)}</td>
+          </tr>`;
+        }).join("");
+
+        const oRows = (offres.data || []).map(o => `<tr>
+            <td style="padding:6px 10px 6px 0;">${escapeHtml(o.emoji || "🎁")} ${escapeHtml(o.title)}</td>
+            <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(o.description || "")}</td>
+            <td style="padding:6px 10px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
+            <td style="padding:6px 10px; font-size:11px; color:${o.is_active ? "#16a34a" : "var(--text-faint)"};">${o.is_active ? "active" : "inactive"}</td>
+            <td style="padding:6px 0 6px 10px;">
+              <button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#7f1d1d;" data-offer-del="${o.id}">🗑</button>
+            </td>
+          </tr>`).join("");
+
+        box.innerHTML = `
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Abonnements rattachés</div>
+          ${sRows ? `<table style="width:100%; border-collapse:collapse; font-size:12px;"><tbody>${sRows}</tbody></table>`
+                  : `<div style="font-size:12px; color:var(--text-faint);">Aucun abonnement rattaché. Depuis l'onglet Abonnements, ouvre une fiche et choisis ce client.</div>`}
+
+          <div style="font-size:13px; font-weight:700; margin:20px 0 4px;">Offres proposées</div>
+          <div style="font-size:11px; color:var(--text-faint); margin-bottom:8px;">
+            Ce que le client offre aux utilisateurs. Publiées dans « Toutes les offres » de l'app — un client peut en proposer plusieurs.
+          </div>
+          ${oRows ? `<table style="width:100%; border-collapse:collapse; font-size:12px;"><tbody>${oRows}</tbody></table>` : ""}
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center;">
+            <input type="text" id="offer-emoji" class="banner-input" value="🎁" style="width:56px; text-align:center; margin:0;" />
+            <input type="text" id="offer-title" class="banner-input" placeholder="Titre — ex : 1 dessert offert" style="flex:1; min-width:180px; margin:0;" />
+            <input type="text" id="offer-desc" class="banner-input" placeholder="Conditions" style="flex:1; min-width:160px; margin:0;" />
+            <input type="number" id="offer-spots" class="banner-input" placeholder="Places" min="0" style="width:90px; margin:0;" />
+            <input type="date" id="offer-expires" class="banner-input" style="width:150px; margin:0;" />
+            <button type="button" class="act act-success" id="offer-add-btn">+ Ajouter l'offre</button>
+          </div>`;
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    (function setupClients() {
+      document.getElementById("clients-new-btn").addEventListener("click", () => openClientForm(null));
+      document.getElementById("client-close-btn").addEventListener("click", () => clientForm.classList.add("hidden"));
+
+      let deb;
+      const onFilter = () => { clearTimeout(deb); deb = setTimeout(renderClientsList, 180); };
+      document.getElementById("clients-search").addEventListener("input", onFilter);
+      document.getElementById("clients-statut-filter").addEventListener("change", renderClientsList);
+
+      clientsListEl.addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-client-open]");
+        if (!btn) return;
+        try {
+          const { data, error } = await supabase.rpc("admin_get_client", { p_id: btn.dataset.clientOpen });
+          if (error) throw error;
+          openClientForm(data);
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("client-save-btn").addEventListener("click", async () => {
+        const payload = { id: $cf("id").value || null };
+        for (const k of CF_KEYS) {
+          const el = $cf(k);
+          if (el) payload[k] = el.value.trim();
+        }
+        if (!payload.raison_sociale) { toast("La raison sociale est obligatoire", false); return; }
+        // Le SIRET est contraint à 14 chiffres en base : on prévient ici plutôt
+        // que de laisser remonter une erreur SQL brute.
+        const siret = payload.siret.replace(/\s/g, "");
+        if (siret && !/^[0-9]{14}$/.test(siret)) {
+          toast("Le SIRET doit faire 14 chiffres", false); return;
+        }
+        try {
+          if (!navigator.onLine) throw new Error("hors ligne");
+          const { data, error } = await supabase.rpc("admin_upsert_client", { p: payload });
+          if (error) throw error;
+          toast("Client enregistré");
+          await refreshClientsView();
+          const { data: fresh } = await supabase.rpc("admin_get_client", { p_id: data });
+          if (fresh) openClientForm(fresh);
+        } catch (e) {
+          if (estPanneReseau(e) || e.message === "hors ligne") {
+            const propre = outboxAjouter(payload);
+            const perdus = CHAMPS_BANCAIRES.filter(k => payload[k]);
+            toast(perdus.length
+              ? `Fiche gardée en local — les coordonnées bancaires ne sont pas mises en attente, à ressaisir une fois en ligne`
+              : "Pas de réseau — fiche gardée en local, envoyée automatiquement au retour", true);
+            clientForm.classList.add("hidden");
+            renderOutboxBanner();
+            renderClientsList();
+          } else {
+            toast("Erreur : " + e.message, false);
+          }
+        }
+      });
+
+      document.getElementById("clients-outbox").addEventListener("click", async (ev) => {
+        if (ev.target.closest("#outbox-send-btn")) {
+          const r = await outboxVider();
+          renderOutboxBanner();
+          if (r.envoyes > 0) await refreshClientsView();
+          if (r.restants > 0 && r.envoyes === 0) toast("Envoi impossible pour l'instant", false);
+          return;
+        }
+        if (ev.target.closest("#outbox-clear-btn")) {
+          const n = outboxLire().length;
+          if (!confirm(`Vider la file de ${n} fiche(s) ?\n\nElles seront PERDUES : elles ne sont pas en base.`)) return;
+          outboxEcrire([]);
+          renderOutboxBanner();
+          renderClientsList();
+        }
+      });
+
+      document.getElementById("client-delete-btn").addEventListener("click", async () => {
+        const id = $cf("id").value;
+        if (!id) return;
+        if (!confirm(`Supprimer « ${$cf("raison_sociale").value} » ?\n\nLes abonnements ne sont PAS supprimés : ils perdent simplement leur rattachement client.`)) return;
+        try {
+          const { error } = await supabase.rpc("admin_delete_client", { p_id: id });
+          if (error) throw error;
+          toast("Client supprimé");
+          clientForm.classList.add("hidden");
+          await refreshClientsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      // Offres : ajout et suppression, délégués sur le conteneur qui est
+      // reconstruit à chaque ouverture de fiche.
+      document.getElementById("client-subs").addEventListener("click", async (ev) => {
+        const add = ev.target.closest("#offer-add-btn");
+        if (add) {
+          const clientId = $cf("id").value;
+          if (!clientId) { toast("Enregistre d'abord la fiche client", false); return; }
+          const title = document.getElementById("offer-title").value.trim();
+          if (!title) { toast("Le titre de l'offre est obligatoire", false); return; }
+          try {
+            const { error } = await supabase.rpc("admin_upsert_client_offer", {
+              p: {
+                client_id: clientId, title,
+                description: document.getElementById("offer-desc").value.trim(),
+                emoji: document.getElementById("offer-emoji").value.trim() || "🎁",
+                total_spots: document.getElementById("offer-spots").value || "0",
+                expires_at: document.getElementById("offer-expires").value || "",
+                is_active: true,
+              },
+            });
+            if (error) throw error;
+            toast("Offre ajoutée");
+            renderClientSubsAndOffers(clientId);
+          } catch (e) { toast("Erreur : " + e.message, false); }
+          return;
+        }
+        const del = ev.target.closest("[data-offer-del]");
+        if (del && confirm("Supprimer cette offre ?")) {
+          try {
+            const { error } = await supabase.rpc("admin_delete_client_offer", { p_id: Number(del.dataset.offerDel) });
+            if (error) throw error;
+            toast("Offre supprimée");
+            renderClientSubsAndOffers($cf("id").value);
+          } catch (e) { toast("Erreur : " + e.message, false); }
+        }
       });
     })();
 

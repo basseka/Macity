@@ -68,16 +68,28 @@ class OfferSupabaseService {
   }
 
   /// Recupere les offres actives et non expirees.
+  ///
+  /// Une offre SANS date d'expiration est permanente, pas invisible : le filtre
+  /// `expires_at >= maintenant` écartait les NULL (toute comparaison SQL avec
+  /// NULL est fausse), alors que le champ est facultatif dans l'admin. Une
+  /// offre créée sans date n'apparaissait donc jamais, sans le moindre signal.
   Future<List<Offer>> fetchActiveOffers({String? city}) async {
+    final maintenant = DateTime.now().toUtc().toIso8601String();
     final params = <String, dynamic>{
       'select': '*',
       'is_active': 'eq.true',
-      'expires_at': 'gte.${DateTime.now().toUtc().toIso8601String()}',
+      'or': '(expires_at.is.null,expires_at.gte.$maintenant)',
       'order': 'created_at.desc',
-      'limit': '10',
+      // Pas de limite : au-delà de 10 offres, les plus anciennes
+      // disparaissaient sans avertissement — un client pouvait payer pour une
+      // offre que personne ne voyait. La grille défile, elle absorbe le volume.
     };
     if (city != null) {
-      params['city'] = 'eq.$city';
+      // `ilike` et non `eq` : le reste de l'app compare les villes sans tenir
+      // compte de la casse, et `offers.city` n'était pas dans la normalisation
+      // (sa colonne s'appelle `city`, pas `ville`). Un « TOULOUSE » saisi à la
+      // main faisait disparaître l'offre.
+      params['city'] = 'ilike.$city';
     }
 
     final response = await _restDio.get(

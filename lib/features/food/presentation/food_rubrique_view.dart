@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:pulz_app/core/utils/image_url.dart';
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/data/inspiration_service.dart';
 import 'package:pulz_app/core/data/premium_banner_service.dart';
@@ -903,7 +904,8 @@ class _Hero extends StatelessWidget {
               else if (slotPhoto.isNotEmpty)
                 // Premium sans vidéo : sa photo occupe la place payée.
                 Image.network(
-                  slotPhoto,
+                  // PNG de 400-500 ko à l'origine : servi en webp redimensionné.
+                  optimizedImageUrl(slotPhoto, width: 900),
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => const DecoratedBox(
                     decoration: BoxDecoration(
@@ -1553,7 +1555,8 @@ class _InspirationCard extends StatelessWidget {
                           decoration: BoxDecoration(gradient: _imgGradient),
                         )
                       : CachedNetworkImage(
-                          imageUrl: data.photoUrl,
+                          // Vignette de 124x62 : 300 px suffit, en webp.
+                          imageUrl: optimizedImageUrl(data.photoUrl, width: 300),
                           fit: BoxFit.cover,
                           placeholder: (_, __) => const DecoratedBox(
                             decoration: BoxDecoration(gradient: _imgGradient),
