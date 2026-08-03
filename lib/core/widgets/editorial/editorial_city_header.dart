@@ -7,9 +7,10 @@ import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dar
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 
-/// Brand row partagee entre Home et Explorer — clone exact de la row utilisee
-/// dans `feed_screen.dart::_buildBrandRow` (logo + TA VILLE + ville + prenom +
-/// avatar). Maintenue identique pixel a pixel entre les deux ecrans.
+/// Brand row de l'ecran Explorer (les offres) : logo + TA VILLE + ville +
+/// prenom + avatar. Reprise de `feed_screen.dart::_buildBrandRow`, dont elle
+/// ne differe plus que par le logo : MaCity ici, BeThere sur Home. Si les deux
+/// doivent afficher la meme marque, c'est `_buildBrandRow` qu'il faut aligner.
 class EditorialCityHeader extends ConsumerWidget {
   const EditorialCityHeader({super.key});
 
@@ -24,11 +25,14 @@ class EditorialCityHeader extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.brand),
             child: Image.asset(
-              'assets/images/bethere-icon.png',
+              'assets/icon/play_store_icon_512.png',
               width: 32,
               height: 32,
               fit: BoxFit.cover,
-              cacheWidth: 300,
+              // Source 512x512 pour une vignette de 32 : sans plafond, Flutter
+              // decode l'image pleine taille en memoire. 96 = 32 x 3, la
+              // densite des ecrans les plus fins.
+              cacheWidth: 96,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
           ),

@@ -98,9 +98,13 @@ class LockedOffersCarousel extends ConsumerWidget {
           ),
         ),
         SizedBox(
-          // 168 -> 128 : ce carrousel est un teaser d'abonnement, il ne doit pas
-          // peser plus que la grille des offres réelles qui le suit.
-          height: 128,
+          // 168 -> 128 -> 100 : ce carrousel est un teaser d'abonnement, il ne
+          // doit pas peser plus que la grille des offres réelles qui le suit.
+          //
+          // Plancher : 80. En dessous, le cadenas (haut, ~32px avec sa marge)
+          // et le bloc de texte (bas, ~42px avec sa marge) se chevauchent, en
+          // retirant les 6px de padding bas de la ListView.
+          height: 100,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
