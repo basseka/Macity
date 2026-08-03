@@ -155,7 +155,33 @@ class OfferSupabaseService {
     );
   }
 
+  /// Reclame une place et retourne le justificatif a afficher en QR.
+  ///
+  /// Passe par la RPC `claim_offer`, qui verrouille la ligne d'offre : c'est
+  /// elle qui garantit le compteur quand deux personnes cliquent en meme
+  /// temps, ce que l'ancien lire-puis-ecrire de [claimSpot] ne faisait pas.
+  /// La RPC est idempotente par device : rouvrir la popup renvoie le meme
+  /// code au lieu de consommer une seconde place.
+  ///
+  /// Leve une [OfferClaimException] avec un message lisible quand l'offre est
+  /// pleine, expiree ou desactivee.
+  Future<OfferClaim> claimOffer(String offerId, String deviceId) async {
+    try {
+      final res = await _restDio.post(
+        'rpc/claim_offer',
+        data: {'p_offer_id': offerId, 'p_device_id': deviceId},
+      );
+      return OfferClaim.fromJson(res.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      // PostgREST remonte le RAISE EXCEPTION de la RPC dans `message`.
+      final data = e.response?.data;
+      final msg = data is Map ? data['message'] as String? : null;
+      throw OfferClaimException(msg ?? 'La reclamation a echoue');
+    }
+  }
+
   /// Incremente claimed_spots pour une offre.
+  @Deprecated('Utiliser claimOffer : incrementation non atomique, sans trace.')
   Future<void> claimSpot(String offerId) async {
     // Utilise RPC ou PATCH avec un header special pour incrementer
     // PostgREST ne supporte pas l'increment natif, on lit puis ecrit.
@@ -179,4 +205,50 @@ class OfferSupabaseService {
       ),
     );
   }
+}
+
+/// Justificatif d'une place reclamee. `code` est ce qui est encode dans le QR
+/// et affiche en clair dessous, pour la saisie manuelle si le scan echoue.
+class OfferClaim {
+  final String id;
+  final String code;
+  final String offerTitle;
+  final String businessName;
+  final DateTime? redeemedAt;
+
+  /// Vrai quand ce device avait deja reclame l'offre : on lui reaffiche son
+  /// code existant, aucune place supplementaire n'a ete consommee.
+  final bool alreadyClaimed;
+
+  const OfferClaim({
+    required this.id,
+    required this.code,
+    this.offerTitle = '',
+    this.businessName = '',
+    this.redeemedAt,
+    this.alreadyClaimed = false,
+  });
+
+  /// Deja presente au commercant : le code ne vaut plus rien.
+  bool get isRedeemed => redeemedAt != null;
+
+  factory OfferClaim.fromJson(Map<String, dynamic> json) => OfferClaim(
+        id: json['id'] as String,
+        code: json['code'] as String,
+        offerTitle: json['offer_title'] as String? ?? '',
+        businessName: json['business_name'] as String? ?? '',
+        redeemedAt: json['redeemed_at'] != null
+            ? DateTime.tryParse(json['redeemed_at'] as String)
+            : null,
+        alreadyClaimed: json['already_claimed'] as bool? ?? false,
+      );
+}
+
+/// Refus metier renvoye par `claim_offer` (offre pleine, expiree, inactive).
+/// Le message est deja redige pour etre montre a l'utilisateur.
+class OfferClaimException implements Exception {
+  final String message;
+  const OfferClaimException(this.message);
+  @override
+  String toString() => message;
 }

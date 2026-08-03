@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/services/partner_metrics_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -17,6 +18,8 @@ import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/offers/domain/models/offer.dart';
+import 'package:pulz_app/features/offers/state/offers_provider.dart';
 import 'package:pulz_app/features/pro_auth/data/pro_venue_service.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
@@ -192,6 +195,13 @@ class CommerceRowCard extends ConsumerWidget {
     final summaryKey = hasReviewTarget
         ? '${commerce.sourceTable}:${commerce.sourceId}'
         : '';
+
+    // Pastille « offre en cours » : le commerce porte-t-il une offre active
+    // dans la ville courante ? Lecture d'un Set deja calcule, aucune requete.
+    final offerKey =
+        Offer.venueKeyFor(commerce.sourceTable, commerce.sourceId);
+    final hasOffer = offerKey != null &&
+        ref.watch(offerVenueKeysProvider).contains(offerKey);
     final summary = hasReviewTarget
         ? ref.watch(
             commerceSummariesProvider.select((m) => m[summaryKey]),
@@ -262,6 +272,23 @@ class CommerceRowCard extends ConsumerWidget {
                             ),
                             child: const Icon(Icons.star,
                                 size: 11, color: Color(0xFF2A1E06)),
+                          ),
+                        ),
+                      // Coin haut-droite : le seul encore libre (verifie en
+                      // bas-droite, partenaire en haut-gauche).
+                      if (hasOffer)
+                        Positioned(
+                          top: -3,
+                          right: -3,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE91E63),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                            ),
+                            child: const Icon(Icons.local_offer,
+                                size: 10, color: Colors.white),
                           ),
                         ),
                     ],
@@ -412,6 +439,13 @@ class CommerceRowCard extends ConsumerWidget {
                 icon: commerce.siteWeb.contains('instagram') ? Icons.camera_alt : Icons.language,
                 label: commerce.siteWeb.contains('instagram') ? 'Instagram' : 'Site web',
                 url: commerce.siteWeb,
+                // « Clic sur le lien du partenaire » du relevé mensuel. Seule
+                // cette action est comptée : Maps et Appeler sont des
+                // secondaryActions et n'entrent pas dans le chiffre facturé.
+                onLaunched: () => PartnerMetricsService.lienClique(
+                  commerce.sourceTable,
+                  commerce.sourceId,
+                ),
               )
             : null,
         secondaryActions: [
@@ -446,6 +480,11 @@ class CommerceRowCard extends ConsumerWidget {
     CommerceModel commerce, {
     String? imageAsset,
   }) {
+    // KPI partenaire compté ICI et non dans `buildDetailSheet` : ce dernier est
+    // appelé depuis un `PageView.builder` (CommercePagerView), donc rejoué à
+    // chaque rebuild : la vue serait comptée plusieurs fois pour une seule
+    // consultation. Le pager compte de son côté, sur changement de page.
+    PartnerMetricsService.ficheVue(commerce.sourceTable, commerce.sourceId);
     ItemDetailSheet.show(
       context,
       buildDetailSheet(commerce, imageAsset: imageAsset),
@@ -501,33 +540,14 @@ class CommerceRowCard extends ConsumerWidget {
     'assets/images/plat-06.png',
   ];
 
-  /// Photos generiques pour les salles de sport non revendiquees.
-  /// 6 images a uploader dans le bucket public `photos`, dossier
-  /// `sport_venues/`, nommees default_1.jpg ... default_6.jpg.
-  static const _sportPhotosBase =
-      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/sport_venues';
-  static const _defaultSportPhotos = [
-    '$_sportPhotosBase/default_1.jpg',
-    '$_sportPhotosBase/default_2.jpg',
-    '$_sportPhotosBase/default_3.jpg',
-    '$_sportPhotosBase/default_4.jpg',
-    '$_sportPhotosBase/default_5.jpg',
-    '$_sportPhotosBase/default_6.jpg',
-  ];
-
-  /// Photos generiques — repli universel pour toute fiche sans media
-  /// (Culture, Famille, etc.). 6 images a uploader dans le bucket public
-  /// `photos`, dossier `defaults/`, nommees default_1.jpg ... default_6.jpg.
-  static const _genericPhotosBase =
-      'https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/defaults';
-  static const _defaultGenericPhotos = [
-    '$_genericPhotosBase/default_1.jpg',
-    '$_genericPhotosBase/default_2.jpg',
-    '$_genericPhotosBase/default_3.jpg',
-    '$_genericPhotosBase/default_4.jpg',
-    '$_genericPhotosBase/default_5.jpg',
-    '$_genericPhotosBase/default_6.jpg',
-  ];
+  // Sport / Culture / Famille n'ont PAS de jeu de photos par defaut. Les deux
+  // listes qui existaient ici pointaient vers `photos/sport_venues/default_N.jpg`
+  // et `photos/defaults/default_N.jpg`, jamais uploadees : les 12 URLs
+  // repondaient 404, donc la galerie affichait 1 vraie photo suivie de 5 cases
+  // cassees. Le repli visuel de ces rubriques est la VIDEO generique
+  // (_defaultSportVideo, _defaultCultureVideo, _defaultFamilyVideo), qui elle
+  // existe bien en storage. Ne pas reintroduire de defaut photo sans avoir
+  // d'abord verifie que les fichiers repondent 200.
 
   /// Construit la galerie photo pour le detail.
   /// Priorite : photos[] uploadees par le pro > photo principale > defaults
@@ -547,16 +567,16 @@ class CommerceRowCard extends ConsumerWidget {
 
     if (!commerce.isVerified && photos.length < 6) {
       final cat = commerce.categorie.toLowerCase();
+      // Seules les rubriques qui ont un vrai jeu d'assets locaux completent la
+      // galerie. Les autres restent avec leur seule photo reelle (ou aucune) :
+      // mieux vaut une galerie courte que des vignettes cassees.
       final List<String> defaults;
       if (cat.contains('club') || cat.contains('discotheque')) {
         defaults = _defaultClubPhotos;
       } else if (cat.contains('restaurant') || cat.contains('food') || cat.contains('brunch') || cat.contains('salon de the') || cat.contains('buffet') || cat.contains('guinguette')) {
         defaults = _defaultRestaurantPhotos;
-      } else if (commerce.sourceTable == 'sport_venues') {
-        defaults = _defaultSportPhotos;
       } else {
-        // Repli universel (Culture, Famille, fiches sans categorie connue).
-        defaults = _defaultGenericPhotos;
+        defaults = const [];
       }
       for (final p in defaults) {
         if (photos.length >= 6) break;

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
+import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/features/offers/presentation/teaser_video_screen.dart';
@@ -66,18 +67,24 @@ class LockedOffersCarousel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Couleurs EN DUR, volontairement. Explorer est toujours un écran clair
+        // (fond crème #FAFAF7), mais deux pièges rendaient le texte invisible :
+        //   • `Theme.of(context)` hérite du thème global, qui est SOMBRE
+        //     -> texte blanc sur fond crème ;
+        //   • `EditorialColors.text` dépend de `AppColors.isLightTheme`, un
+        //     drapeau global MUTABLE qu'un autre écran peut laisser à false.
+        // Et `EditorialColors.ink` est un alias hérité qui vaut le FOND, pas
+        // l'encre — le nommage est inversé.
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 4, 18, 2),
           child: Row(
             children: [
-              const Icon(Icons.lock_rounded, size: 16, color: Color(0xFFC79A3E)),
+              const Icon(Icons.lock_rounded, size: 18, color: Color(0xFFB8860B)),
               const SizedBox(width: 7),
               Text(
                 'Réservé aux abonnés',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                    ),
+                style: EditorialText.cardTitle(color: const Color(0xFF1A0F2E))
+                    .copyWith(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -86,19 +93,20 @@ class LockedOffersCarousel extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
           child: Text(
             'Des offres supplémentaires chaque mois, à débloquer avec l\'abonnement.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                ),
+            style: EditorialText.body(color: const Color(0xFF4A4063))
+                .copyWith(fontSize: 12.5),
           ),
         ),
         SizedBox(
-          height: 168,
+          // 168 -> 128 : ce carrousel est un teaser d'abonnement, il ne doit pas
+          // peser plus que la grille des offres réelles qui le suit.
+          height: 128,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 6),
             itemCount: n,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (_, i) => _CarteVerrouillee(
               categorie: _categories[i % _categories.length],
               onTap: () => TeaserVideoScreen.ouvrir(context, videoUrl: videoUrl),
@@ -121,7 +129,9 @@ class _CarteVerrouillee extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: 138,
+        // 138 -> 112. Pas moins : « Bars & clubs » est le libellé le plus long
+        // et il tient tout juste sur une ligne à 13pt avec les marges internes.
+        width: 112,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           gradient: LinearGradient(
@@ -142,7 +152,7 @@ class _CarteVerrouillee extends StatelessWidget {
             ),
             Center(
               child: Icon(categorie.icone,
-                  size: 44, color: Colors.white.withValues(alpha: 0.30)),
+                  size: 34, color: Colors.white.withValues(alpha: 0.30)),
             ),
             Positioned.fill(
               child: DecoratedBox(
@@ -160,10 +170,10 @@ class _CarteVerrouillee extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 10,
-              right: 10,
+              top: 8,
+              right: 8,
               child: Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.45),
                   shape: BoxShape.circle,
@@ -172,13 +182,13 @@ class _CarteVerrouillee extends StatelessWidget {
                       width: 1),
                 ),
                 child: const Icon(Icons.lock_rounded,
-                    size: 13, color: Color(0xFFC79A3E)),
+                    size: 12, color: Color(0xFFC79A3E)),
               ),
             ),
             Positioned(
-              left: 12,
-              right: 12,
-              bottom: 12,
+              left: 10,
+              right: 10,
+              bottom: 10,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -189,16 +199,16 @@ class _CarteVerrouillee extends StatelessWidget {
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
-                      fontSize: 14,
+                      fontSize: 13,
                       letterSpacing: -0.2,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 1),
                   Text(
                     'Offre réservée',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 11.5,
+                      fontSize: 10.5,
                     ),
                   ),
                 ],

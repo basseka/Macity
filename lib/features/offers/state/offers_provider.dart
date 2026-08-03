@@ -15,6 +15,37 @@ final activeOffersProvider = FutureProvider<List<Offer>>((ref) async {
   }
 });
 
+/// Offre active par commerce, indexee sur `sourceTable#sourceId`. Sert a la
+/// fois a badger la pochette et a afficher l'offre dans la fiche detail, sans
+/// requete supplementaire : on reutilise la liste deja chargee par
+/// [activeOffersProvider], qui applique deja les filtres ville / actif / non
+/// expiree. Vide tant que les offres chargent, donc l'affichage apparait quand
+/// la donnee arrive plutot que de faire clignoter un etat faux.
+///
+/// Si plusieurs offres visent le meme commerce, la premiere gagne :
+/// `fetchActiveOffers` trie par `created_at desc`, c'est donc la plus recente.
+final offerByVenueProvider = Provider<Map<String, Offer>>((ref) {
+  final offers = ref.watch(activeOffersProvider);
+  return offers.maybeWhen(
+    data: (list) {
+      final map = <String, Offer>{};
+      for (final o in list) {
+        final key = o.venueKey;
+        if (key != null) map.putIfAbsent(key, () => o);
+      }
+      return map;
+    },
+    orElse: () => const <String, Offer>{},
+  );
+});
+
+/// Cles des commerces qui portent une offre active. Derive de
+/// [offerByVenueProvider] pour qu'il n'existe qu'une seule definition de ce
+/// qu'est « un commerce avec une offre ».
+final offerVenueKeysProvider = Provider<Set<String>>((ref) {
+  return ref.watch(offerByVenueProvider).keys.toSet();
+});
+
 /// Toutes les offres du pro connecte (actives + expirees + inactives).
 /// Vide si pas de pro connecte. Utilise par l'ecran "Mes offres".
 final myOffersProvider = FutureProvider<List<Offer>>((ref) async {

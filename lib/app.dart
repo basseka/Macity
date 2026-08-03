@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/core/services/app_update_service.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/services/fcm_service.dart';
@@ -46,6 +47,13 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _appLinks = AppLinks();
     _initDeepLinks();
+    // Écrans de premier niveau (/home, /explorer, /mode/*, deep links…).
+    // On écoute le routerDelegate plutôt que de brancher un
+    // FirebaseAnalyticsObserver : celui-ci exige une instance FirebaseAnalytics
+    // dans son constructeur, donc évaluée avant Firebase.initializeApp — c'est
+    // exactement ce qui provoquait l'écran blanc du 26/07 (commit 2d3da0e).
+    appRouter.routerDelegate.addListener(_logRouteCourante);
+    _logRouteCourante();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ShareIntentService.init(ref);
       _setupNotificationTapHandler();
@@ -54,6 +62,26 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       FcmService.resetBadge();
       _checkAppUpdate();
     });
+  }
+
+  void _logRouteCourante() {
+    // `path` et pas `toString()` : les query params ne doivent pas entrer dans
+    // le nom d'écran.
+    final path = appRouter.routerDelegate.currentConfiguration.uri.path;
+    AnalyticsService.logScreenView(_normaliserRoute(path));
+  }
+
+  /// Remplace les paramètres de route par leur motif.
+  ///
+  /// `/event/abc123` et `/event/def456` sont le même écran : sans ça, chaque
+  /// event partagé créerait sa propre ligne dans le rapport GA4 et la dimension
+  /// screen_name partirait en milliers de valeurs uniques (GA4 tronque au-delà,
+  /// et on perdrait le total réel des ouvertures par deep link).
+  static String _normaliserRoute(String path) {
+    if (path.startsWith('/event/')) return '/event/:id';
+    if (path.startsWith('/coffre/')) return '/coffre/:token';
+    if (path.startsWith('/lieu/')) return '/lieu/:table/:id';
+    return path;
   }
 
   Future<void> _checkAppUpdate() async {
@@ -120,6 +148,7 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
   @override
   void dispose() {
     ShareIntentService.dispose();
+    appRouter.routerDelegate.removeListener(_logRouteCourante);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

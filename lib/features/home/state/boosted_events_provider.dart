@@ -52,7 +52,9 @@ Future<List<UserEvent>> _fetchByPriority(String city, String priority, int limit
       'priority': 'eq.$priority',
       'date': 'gte.${_today()}',
       'order': 'date.asc',
-      'limit': '$limit',
+      // limit <= 0 = illimite (convention partagee avec app_config) : on
+      // n'envoie alors aucun `limit`, PostgREST renvoie tout.
+      if (limit > 0) 'limit': '$limit',
     };
     if (dept != null) {
       params['and'] = '(or($orClause),or(dept.eq.$dept,dept.is.null),$boostClause)';
@@ -209,13 +211,28 @@ Future<List<UserEvent>> _fetchAdminPinnedEvents(String pinType, String city) asy
   }
 }
 
+/// Plafond d'affichage d'une priorite, lu dans `app_config`. **0 = illimite.**
+///
+/// Relu en base et non code en dur : les deux valeurs avaient divergé (base 10
+/// / client 6 pour P2), donc des pros payaient un « Au top » que l'app
+/// n'affichait pas. Une seule source de verite, et les plafonds redeviennent
+/// modifiables depuis l'admin sans release.
+///
+/// Pas `autoDispose` : un `FutureProvider.family` garde son resultat pour la
+/// session, donc la requete part une seule fois par cle et non a chaque
+/// ouverture du home — c'est ce cout (~300ms) qui avait motive le passage en
+/// dur a l'origine.
+final boostCapProvider = FutureProvider.family<int, String>((ref, key) async {
+  // Defaut 0 : en cas de reseau coupe ou de cle absente, mieux vaut tout
+  // afficher que masquer des emplacements payes.
+  return _getConfigInt(key, 0);
+});
+
 /// Events boostés P1 "A la une" + pins admin (featured).
 /// Les pins s'ajoutent EN TETE de la liste (admin au-dessus des P1).
 final boostedEventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  // Limites hardcodees (etaient en DB via app_config) — economise un
-  // round-trip HTTP a chaque ouverture du home (~300ms).
-  const max = 5;
+  final max = await ref.watch(boostCapProvider('boosted_p1_max').future);
   final results = await Future.wait([
     _fetchByPriority(city, 'P1', max),
     _fetchAdminPinnedEvents('featured', city),
@@ -231,7 +248,7 @@ final boostedEventsProvider = FutureProvider<List<UserEvent>>((ref) async {
 /// Events boostés P2 "Au top" + pins admin (top).
 final boostedP2EventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  const max = 6;
+  final max = await ref.watch(boostCapProvider('boosted_p2_max').future);
   final results = await Future.wait([
     _fetchByPriority(city, 'P2', max),
     _fetchAdminPinnedEvents('top', city),

@@ -17,6 +17,31 @@ class Offer {
   final String city;
   final DateTime createdAt;
 
+  /// Commerce mis en avant par l'offre, au format canonique du projet :
+  /// `sourceTable` vaut 'etablissements' | 'venues' | 'sport_venues' |
+  /// 'family_venues', `sourceId` est l'id dans cette table. Les deux sont
+  /// vides/nuls ensemble quand l'offre n'est rattachee a aucune pochette.
+  final String sourceTable;
+  final int? sourceId;
+
+  /// Cle de rapprochement avec une pochette de commerce. `null` si l'offre
+  /// n'est rattachee a rien : elle reste visible dans la rubrique Offres.
+  String? get venueKey => venueKeyFor(sourceTable, sourceId);
+
+  /// Construit la cle de rapprochement, en normalisant le nom de table.
+  ///
+  /// `CommerceModel.sourceTable` n'a jamais ete uniformise : selon le service
+  /// qui l'alimente il vaut le SINGULIER ('etablissement', 'venue',
+  /// 'family_venue' : reviews et claims) ou le PLURIEL ('etablissements',
+  /// 'venues', 'sport_venues' : partners_of_day, sport_venues_service). Cote
+  /// offre, la RPC admin ne stocke que le pluriel. Comparer les deux
+  /// directement raterait donc silencieusement la moitie des pochettes.
+  static String? venueKeyFor(String? table, int? id) {
+    if (table == null || table.isEmpty || id == null) return null;
+    final plural = table.endsWith('s') ? table : '${table}s';
+    return '$plural#$id';
+  }
+
   Offer({
     required this.id,
     required this.proProfileId,
@@ -35,6 +60,8 @@ class Offer {
     this.isActive = true,
     this.city = 'Toulouse',
     required this.createdAt,
+    this.sourceTable = '',
+    this.sourceId,
   });
 
   // ─────────────────────────────────────────
@@ -124,7 +151,11 @@ class Offer {
 
   factory Offer.fromSupabaseJson(Map<String, dynamic> json) => Offer(
         id: json['id'] as String,
-        proProfileId: json['pro_profile_id'] as String,
+        // Null pour les offres saisies dans l'admin : elles appartiennent a un
+        // client de `partner_clients`, pas a un compte pro. Un cast direct
+        // faisait planter le parsing de TOUTE la rubrique Offres des qu'une
+        // seule ligne de ce type existait.
+        proProfileId: json['pro_profile_id'] as String? ?? '',
         businessName: json['business_name'] as String,
         businessAddress: json['business_address'] as String? ?? '',
         title: json['title'] as String,
@@ -145,5 +176,7 @@ class Offer {
         createdAt: json['created_at'] != null
             ? DateTime.parse(json['created_at'] as String)
             : DateTime.now(),
+        sourceTable: json['source_table'] as String? ?? '',
+        sourceId: (json['source_id'] as num?)?.toInt(),
       );
 }
