@@ -1016,7 +1016,7 @@
            source que les e-mails transactionnels — un seul fichier à changer
            le jour d'une refonte. Rayon de 22 % : proportion d'une icône d'app. -->
       <div style="display:flex; justify-content:center; padding:14px 0 26px;">
-        <img src="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/branding/macity_logo.png"
+        <img src="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/branding/macity_logo_v2.png"
              alt="MaCity"
              width="132" height="132"
              style="width:132px; height:132px; border-radius:29px; display:block;
@@ -2215,6 +2215,12 @@
 
         <div id="clients-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
         <div id="clients-list" style="overflow-x:auto;"></div>
+
+        <!-- Toutes les offres, rattachées ou non. Celles créées avant la
+             colonne client_id n'apparaissaient nulle part. -->
+        <h2 style="font-size:18px; margin:30px 0 4px;">🎁 Toutes les offres</h2>
+        <p class="subtitle" style="margin-top:0;">Ce que les commerçants offrent aux utilisateurs. Une offre sans client rattaché fonctionne, mais tu ne sauras pas qui la finance.</p>
+        <div id="offers-all" style="overflow-x:auto;"></div>
 
         <!-- ─── Fiche client ─── -->
         <div id="client-form" class="banner-card hidden" style="margin-top:20px; max-width:900px;">
@@ -5833,6 +5839,7 @@
         _clients = data || [];
         renderClientsKpis();
         renderClientsList();
+        renderAllOffers();
       } catch (e) {
         console.error("[Clients] load", e);
         clientsListEl.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
@@ -5937,6 +5944,49 @@
         </table>`;
     }
 
+    async function renderAllOffers() {
+      const box = document.getElementById("offers-all");
+      try {
+        const { data, error } = await supabase.rpc("admin_list_all_offers");
+        if (error) throw error;
+        const list = data || [];
+        if (list.length === 0) {
+          box.innerHTML = `<div style="padding:16px; color:var(--text-dim);">Aucune offre. Ajoute-en une depuis la fiche d'un client.</div>`;
+          return;
+        }
+        const opts = (sel) => `<option value="">— non rattachée —</option>` +
+          _clients.map(c => `<option value="${escapeHtml(c.id)}"${sel === c.id ? " selected" : ""}>${escapeHtml(c.raison_sociale)}</option>`).join("");
+        box.innerHTML = `
+          <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead><tr style="color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.08em;">
+              <th style="text-align:left; padding:0 12px 8px 0;">Offre</th>
+              <th style="text-align:left; padding:0 12px 8px;">Enseigne · ville</th>
+              <th style="text-align:center; padding:0 12px 8px;">Places</th>
+              <th style="text-align:left; padding:0 12px 8px;">Expire</th>
+              <th style="text-align:left; padding:0 12px 8px;">Dans l'app</th>
+              <th style="text-align:left; padding:0 12px 8px;">Client</th><th></th>
+            </tr></thead>
+            <tbody>${list.map(o => `
+              <tr${o.visible_app ? "" : ' style="opacity:.55;"'}>
+                <td style="padding:9px 12px 9px 0;">${escapeHtml(o.emoji || "🎁")} ${escapeHtml(o.title)}
+                  ${o.description ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(o.description)}</div>` : ""}</td>
+                <td style="padding:9px 12px; font-size:12px;">${escapeHtml(o.business_name || "—")}<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(o.city || "—")}</div></td>
+                <td style="padding:9px 12px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
+                <td style="padding:9px 12px; font-size:12px;">${o.expires_at ? escapeHtml(o.expires_at.slice(0,10)) : "permanente"}</td>
+                <td style="padding:9px 12px; font-size:11px; color:${o.visible_app ? "#16a34a" : "#f59e0b"};">${o.visible_app ? "● visible" : "○ masquée"}</td>
+                <td style="padding:9px 12px;">
+                  <select data-offer-link="${escapeHtml(o.id)}" class="banner-input" style="margin:0; padding:4px 6px; font-size:12px; max-width:170px;">${opts(o.client_id)}</select>
+                </td>
+                <td style="padding:9px 0 9px 12px; white-space:nowrap;">
+                  <button type="button" class="banner-save-btn" style="padding:4px 9px; font-size:11px;" data-offer-toggle="${escapeHtml(o.id)}" data-active="${o.is_active}">${o.is_active ? "Désactiver" : "Activer"}</button>
+                </td>
+              </tr>`).join("")}</tbody>
+          </table>`;
+      } catch (e) {
+        box.innerHTML = `<div style="padding:16px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
     const CF_KEYS = ["raison_sociale","enseigne","forme_juridique","siret","tva_intracom",
       "rcs_ville","adresse","code_postal","ville","pays","contact_nom","contact_prenom",
       "contact_fonction","contact_email","contact_tel","email_facturation",
@@ -6009,7 +6059,7 @@
 
           <div style="font-size:13px; font-weight:700; margin:20px 0 4px;">Offres proposées</div>
           <div style="font-size:11px; color:var(--text-faint); margin-bottom:8px;">
-            Ce que le client offre aux utilisateurs. Publiées dans « Toutes les offres » de l'app — un client peut en proposer plusieurs.
+            Ce que le client offre aux utilisateurs. Publiées dans « Les offres premium » de l'app — un client peut en proposer plusieurs.
           </div>
           ${oRows ? `<table style="width:100%; border-collapse:collapse; font-size:12px;"><tbody>${oRows}</tbody></table>` : ""}
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:center;">
@@ -6081,6 +6131,30 @@
         }
       });
 
+      document.getElementById("offers-all").addEventListener("change", async (ev) => {
+        const sel = ev.target.closest("[data-offer-link]");
+        if (!sel) return;
+        try {
+          const { error } = await supabase.rpc("admin_link_offer_client",
+            { p_offer_id: sel.dataset.offerLink, p_client_id: sel.value || null });
+          if (error) throw error;
+          toast("Offre rattachée");
+          await refreshClientsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("offers-all").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-offer-toggle]");
+        if (!btn) return;
+        try {
+          const { error } = await supabase.rpc("admin_toggle_offer",
+            { p_offer_id: btn.dataset.offerToggle, p_active: btn.dataset.active !== "true" });
+          if (error) throw error;
+          toast("Offre mise à jour");
+          renderAllOffers();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
       document.getElementById("clients-outbox").addEventListener("click", async (ev) => {
         if (ev.target.closest("#outbox-send-btn")) {
           const r = await outboxVider();
@@ -6140,7 +6214,7 @@
         const del = ev.target.closest("[data-offer-del]");
         if (del && confirm("Supprimer cette offre ?")) {
           try {
-            const { error } = await supabase.rpc("admin_delete_client_offer", { p_id: Number(del.dataset.offerDel) });
+            const { error } = await supabase.rpc("admin_delete_client_offer", { p_id: del.dataset.offerDel });
             if (error) throw error;
             toast("Offre supprimée");
             renderClientSubsAndOffers($cf("id").value);
