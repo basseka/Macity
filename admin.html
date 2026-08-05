@@ -7351,9 +7351,9 @@
     // Courbe "Progression vers les objectifs" : trajectoire CIBLE (jalons, en
     // pointillé) vs courbe RÉELLE cumulée (fenêtre par_jour) + point du jour.
     // SVG pur, sans dépendance.
-    function _renderObjectiveCurve(total, parJour) {
+    function _renderObjectiveCurve(total, parJour, installs, actifs) {
       // Largeur par mois FIXE → ~3 mois visibles, scroll horizontal jusqu'à déc.
-      const monthW = 200, padL = 48, padR = 16, padT = 16, padB = 30, H = 320;
+      const monthW = 200, padL = 48, padR = 16, padT = 16, padB = 30, H = 440;
       const months = [["2026-06-01", "juin"], ["2026-07-01", "juil"], ["2026-08-01", "août"], ["2026-09-01", "sept"], ["2026-10-01", "oct"], ["2026-11-01", "nov"], ["2026-12-01", "déc"]];
       const plotW = monthW * months.length;    // 7 mois (juin → déc)
       const W = padL + plotW + padR;
@@ -7363,17 +7363,21 @@
       const span = end - start;
       const maxY = USERSTATS_OBJECTIF;
       const X = (d) => padL + Math.max(0, Math.min(1, (d - start) / span)) * plotW;
-      // Échelle Y LOGARITHMIQUE (1 → 20000) : rend lisibles à la fois les
-      // petites valeurs (unités / centaines) et l'objectif final 20k. Une
-      // échelle linéaire écraserait le réel actuel (quelques inscrits) sur 0.
-      const logMax = Math.log(maxY);
+      // Échelle Y LOGARITHMIQUE bornée de 100 à 20000. Le plancher était à 1,
+      // ce qui gaspillait la moitié basse du graphe sur des valeurs devenues
+      // sans intérêt : la zone utile 500-5000 n'occupait que 23 % de la
+      // hauteur, contre 43 % désormais.
+      // ⚠️ Toute valeur sous 100 est ramenée au plancher : le début des
+      // courbes est donc aplati, c'est voulu.
+      const FLOOR = 100;
+      const logSpan = Math.log(maxY / FLOOR);
       const Y = (v) => {
-        const c = Math.min(maxY, Math.max(1, v));
-        return padT + plotH - (Math.log(c) / logMax) * plotH;
+        const c = Math.min(maxY, Math.max(FLOOR, v));
+        return padT + plotH - (Math.log(c / FLOOR) / logSpan) * plotH;
       };
       const kfmt = (v) => v >= 1000 ? (v / 1000) + "k" : String(v);
 
-      const yTicks = [1, 10, 100, 500, 1000, 2000, 5000, 10000, 20000].map(v => {
+      const yTicks = [100, 200, 300, 500, 750, 1000, 1500, 2000, 3000, 5000, 10000, 20000].map(v => {
         const y = Y(v);
         return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)"/>
           <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${kfmt(v)}</text>`;
@@ -7407,30 +7411,65 @@
         realPath = `<path d="${pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#22c55e" stroke-width="2"/>`;
       }
 
+      // Courbe TELECHARGEMENTS cumules. Contrairement aux inscriptions, on
+      // dispose de l'historique complet en base : le cumul part donc de zero
+      // et n'a pas besoin d'une ligne de base reconstituee.
+      let dlPath = "";
+      const dlRows = (installs || []).filter(r => r.jour).slice()
+        .sort((a, b) => a.jour < b.jour ? -1 : 1);
+      if (dlRows.length) {
+        let cumDl = 0;
+        const pts = dlRows.map(r => {
+          cumDl += (r.total || 0);
+          return { x: X(new Date(r.jour + "T00:00:00")), y: Y(cumDl) };
+        });
+        dlPath = `<path d="${pts.map((pt, i) => `${i ? "L" : "M"}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#3b82f6" stroke-width="2"/>`
+          + `<circle cx="${pts[pts.length - 1].x.toFixed(1)}" cy="${pts[pts.length - 1].y.toFixed(1)}" r="4" fill="#3b82f6" stroke="#0b0b12" stroke-width="1.5"/>`
+          + `<text x="${pts[pts.length - 1].x.toFixed(1)}" y="${(pts[pts.length - 1].y - 9).toFixed(1)}" fill="#93c5fd" font-size="9.5" text-anchor="middle" font-weight="700">${cumDl.toLocaleString("fr-FR")}</text>`;
+      }
+
+      // Courbe ACTIFS MENSUELS. Ce n'est PAS un cumul : c'est un niveau, le
+      // nombre de personnes actives dans le mois. On la place au 15 du mois
+      // pour qu'elle tombe au milieu de sa colonne et non sur la separation.
+      let auPath = "";
+      const auRows = (actifs || []).filter(r => r.mois).slice()
+        .sort((a, b) => a.mois < b.mois ? -1 : 1);
+      if (auRows.length) {
+        const pts = auRows.map(r => {
+          const d = new Date(r.mois + "T00:00:00"); d.setDate(15);
+          return { x: X(d), y: Y(r.actifs || 0), v: r.actifs || 0 };
+        });
+        auPath = `<path d="${pts.map((pt, i) => `${i ? "L" : "M"}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#eab308" stroke-width="2"/>`
+          + pts.map(pt => `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3" fill="#eab308"/>`).join("")
+          + `<text x="${pts[pts.length - 1].x.toFixed(1)}" y="${(pts[pts.length - 1].y - 9).toFixed(1)}" fill="#fde68a" font-size="9.5" text-anchor="middle" font-weight="700">${pts[pts.length - 1].v.toLocaleString("fr-FR")}</text>`;
+      }
+
       // Point du jour (total actuel).
       const today = new Date();
       const tx = X(today), ty = Y(total);
       const todayDot = `<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="4.5" fill="#22c55e" stroke="#0b0b12" stroke-width="1.5"/>
-        <text x="${tx.toFixed(1)}" y="${(ty - 9).toFixed(1)}" fill="#7ee2a3" font-size="9.5" text-anchor="middle" font-weight="700">${total.toLocaleString("fr-FR")}</text>`;
+        <text x="${tx.toFixed(1)}" y="${(ty + 15).toFixed(1)}" fill="#7ee2a3" font-size="9.5" text-anchor="middle" font-weight="700">${total.toLocaleString("fr-FR")}</text>`;
 
       return `
         <div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-dim); margin:16px 0 4px;">
           <span><span style="display:inline-block;width:12px;height:0;border-top:2px dashed #7c3aed;vertical-align:middle;"></span> Objectif</span>
-          <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Réel</span>
-          <span style="color:var(--text-faint);">· échelle log</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Inscriptions</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#3b82f6;vertical-align:middle;"></span> Téléchargements</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#eab308;vertical-align:middle;"></span> Actifs / mois</span>
+          <span style="color:var(--text-faint);">· échelle log 100 à 20k</span>
           <span style="margin-left:auto; color:var(--text-faint);">↔ glisse jusqu'à décembre</span>
         </div>
         <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
           <svg viewBox="0 0 ${W} ${H}" style="width:${W}px; height:auto; display:block;" role="img" aria-label="Progression vers les objectifs">
             ${yTicks}${xLabels}
             <path d="${tgtPath}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
-            ${tgtDots}${realPath}${todayDot}
+            ${tgtDots}${dlPath}${auPath}${realPath}${todayDot}
           </svg>
         </div>`;
     }
 
     // Barre de progression vers l'objectif + cartes today / 7j / 30j.
-    function _renderProgress(s, total) {
+    function _renderProgress(s, total, installs, actifs) {
       const obj = USERSTATS_OBJECTIF;
       const pctObj = obj > 0 ? Math.min(100, (total / obj) * 100) : 0;
       const reste = Math.max(0, obj - total);
@@ -7450,7 +7489,7 @@
             <span>Reste ${reste.toLocaleString("fr-FR")} inscriptions</span>
             <span>Objectif ${obj.toLocaleString("fr-FR")}</span>
           </div>
-          ${_renderObjectiveCurve(total, s.par_jour || [])}
+          ${_renderObjectiveCurve(total, s.par_jour || [], installs || [], actifs || [])}
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-top:16px;">
             ${_statCard("Aujourd'hui", (s.aujourdhui || 0), "nouvelles inscriptions")}
             ${_statCard("10 derniers jours", (s.total_10j || 0), `${((s.total_10j || 0) / 10).toFixed(1)} / jour en moy.`)}
@@ -7530,7 +7569,11 @@
           _statCard("Avec avatar", s.avec_avatar || 0, `${pct(s.avec_avatar || 0)}%`),
           _statCard("Avec bio", s.avec_bio || 0, `${pct(s.avec_bio || 0)}%`),
         ].join("");
-        document.getElementById("userstats-progress").innerHTML = _renderProgress(s, total);
+        const [installsJour, actifsMois] = await Promise.all([
+          _fetchInstallsDaily(), _fetchActiveUsers(),
+        ]);
+        document.getElementById("userstats-progress").innerHTML =
+          _renderProgress(s, total, installsJour, actifsMois);
         document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || [], s.par_jour_anonymes || []);
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
@@ -7549,6 +7592,23 @@
     document.getElementById("userstats-refresh-btn").addEventListener("click", refreshUserstatsView);
 
     // ─── Téléchargements Play Store / App Store ─────────────────────────────
+    async function _fetchInstallsDaily() {
+      // 400 jours : la courbe d'objectif court de juin a decembre, une fenetre
+      // de 30 jours n'en couvrirait qu'un fragment. Echec silencieux, la
+      // courbe bleue disparait mais le reste de l'onglet fonctionne.
+      try {
+        const { data, error } = await supabase.rpc("admin_store_installs", { p_days: 400 });
+        return error ? [] : (data || []);
+      } catch { return []; }
+    }
+
+    async function _fetchActiveUsers() {
+      try {
+        const { data, error } = await supabase.rpc("admin_active_users", { p_mois: 24 });
+        return error ? [] : (data || []);
+      } catch { return []; }
+    }
+
     async function _refreshInstalls() {
       const box = document.getElementById("installs-cards");
       try {
