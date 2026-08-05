@@ -2524,6 +2524,30 @@
             <div id="userstats-daily"></div>
           </div>
 
+          <!-- Téléchargements Play Store / App Store -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
+            <h2 style="font-size:15px; margin:0 0 4px;">📲 Téléchargements</h2>
+            <p class="subtitle" style="margin:0 0 12px;">
+              Cumul depuis le lancement. Ni Firebase ni Meta ne mesurent les téléchargements : les chiffres viennent
+              de la <strong>Play Console</strong> (Acquisition d'utilisateurs) et d'<strong>App Store Connect</strong> (App Analytics, métrique Unités).
+            </p>
+            <div id="installs-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px; margin-bottom:12px;">
+              <div style="color:var(--text-dim); font-size:12px;">Chargement…</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding-top:10px; border-top:1px solid var(--line);">
+              <input type="date" id="inst-jour" class="banner-input" style="width:150px; margin:0;" />
+              <select id="inst-platform" class="banner-input" style="width:130px; margin:0;">
+                <option value="android">🤖 Android</option>
+                <option value="ios">🍎 iOS</option>
+              </select>
+              <input type="number" id="inst-nb" class="banner-input" placeholder="Nombre" min="0" style="width:110px; margin:0;" />
+              <button type="button" class="act act-success" id="inst-save-btn">Enregistrer</button>
+              <span style="font-size:11px; color:var(--text-faint);">
+                Pour amorcer : saisis le total actuel de chaque store, daté du jour du lancement. Ensuite, un chiffre par jour.
+              </span>
+            </div>
+          </div>
+
           <!-- City-Miles : qui publie des stories et qui approche du cadeau -->
           <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
             <h2 style="font-size:15px; margin:0 0 4px;">🏅 City-Miles : proches du cadeau</h2>
@@ -7514,6 +7538,7 @@
         // Chargé après l'affichage : une RPC lente ou absente (migration pas
         // encore appliquée) ne doit pas priver l'onglet de ses statistiques.
         _refreshCityMiles();
+        _refreshInstalls();
       } catch (e) {
         console.error("[Utilisateurs] load", e);
         toast("Erreur chargement : " + (e.message || e), false);
@@ -7522,6 +7547,46 @@
       }
     }
     document.getElementById("userstats-refresh-btn").addEventListener("click", refreshUserstatsView);
+
+    // ─── Téléchargements Play Store / App Store ─────────────────────────────
+    async function _refreshInstalls() {
+      const box = document.getElementById("installs-cards");
+      try {
+        const { data, error } = await supabase.rpc("admin_store_installs_total");
+        if (error) throw error;
+        const t = data || {};
+        const nb = (n) => (n || 0).toLocaleString("fr-FR");
+        // `depuis` est la date de la plus ancienne ligne saisie, pas celle du
+        // lancement réel : sans ligne de reprise, le cumul démarre au premier
+        // jour renseigné. On l'affiche pour que le chiffre reste lisible.
+        const periode = t.depuis
+          ? `depuis le ${t.depuis}`
+          : "aucune donnée saisie";
+        document.getElementById("installs-cards").innerHTML = [
+          _statCard("Téléchargements", nb(t.total), periode),
+          _statCard("🤖 Android", nb(t.android), "Play Console"),
+          _statCard("🍎 iOS", nb(t.ios), "App Store Connect"),
+        ].join("");
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message || String(e))}</div>`;
+      }
+    }
+    document.getElementById("inst-save-btn").addEventListener("click", async () => {
+      const jour = document.getElementById("inst-jour").value;
+      const platform = document.getElementById("inst-platform").value;
+      const nb = document.getElementById("inst-nb").value;
+      if (!jour) { toast("La date est obligatoire", false); return; }
+      if (nb === "") { toast("Le nombre est obligatoire", false); return; }
+      try {
+        const { error } = await supabase.rpc("admin_upsert_store_installs", {
+          p: [{ jour, platform, installs: Number(nb) }],
+        });
+        if (error) throw error;
+        toast("Enregistré ✓", true);
+        document.getElementById("inst-nb").value = "";
+        _refreshInstalls();
+      } catch (e) { toast("Erreur : " + (e.message || e), false); }
+    });
 
     // ─── City-Miles : contributeurs stories et distance au palier ───────────
     async function _refreshCityMiles() {
