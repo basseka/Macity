@@ -951,5 +951,49 @@
     <a href="download.html">⬇ Télécharger MaCity — c'est gratuit</a>
   </div>
 
+  <!-- ═══ Report des UTM de campagne vers les stores ═══
+       Une pub Meta amène ici, pas sur le store : sans ce script, le lien
+       d'installation est nu et Google Play n'attribue l'installation à aucune
+       campagne. On recopie donc les utm_* entrants dans le paramètre
+       `referrer` de Play, seul canal d'attribution gratuit, et on les
+       propage aux liens internes pour qu'ils survivent au passage par
+       download.html. Aucune dépendance, aucun cookie. -->
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var CLES = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+      var utm = CLES.filter(function (k) { return q.get(k); })
+                    .map(function (k) { return k + '=' + encodeURIComponent(q.get(k)); });
+      if (!utm.length) return;
+
+      // Google Play attend UN seul paramètre `referrer`, lui-même encodé.
+      // Le découper en paramètres séparés casse l'attribution.
+      var referrer = encodeURIComponent(utm.join('&'));
+      document.querySelectorAll('a[href*="play.google.com"]').forEach(function (a) {
+        if (a.href.indexOf('referrer=') === -1) a.href += '&referrer=' + referrer;
+      });
+
+      // App Store : la campagne tient dans `ct`, 40 caractères maximum.
+      // ⚠️ Apple ignore `ct` sans le jeton fournisseur `pt`, à récupérer dans
+      // App Store Connect puis à renseigner ci-dessous. Tant qu'il est vide,
+      // seule l'attribution Android fonctionne.
+      var PT = '';
+      var ct = (q.get('utm_campaign') || 'meta') + (q.get('utm_content') ? '_' + q.get('utm_content') : '');
+      if (PT) {
+        document.querySelectorAll('a[href*="apps.apple.com"]').forEach(function (a) {
+          a.href = a.href.split('?')[0] + '?pt=' + PT + '&ct=' + encodeURIComponent(ct.slice(0, 40)) + '&mt=8';
+        });
+      }
+
+      // Les liens internes gardent la query, sinon tout est perdu dès que
+      // l'utilisateur passe par la page de téléchargement.
+      document.querySelectorAll('a[href^="download.html"]').forEach(function (a) {
+        if (a.href.indexOf('utm_') === -1) {
+          a.href += (a.href.indexOf('?') === -1 ? '?' : '&') + location.search.slice(1);
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>

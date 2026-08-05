@@ -22,10 +22,31 @@
         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       var isAndroid = /android/i.test(ua);
 
+      // Report des UTM de campagne dans le paramètre `referrer` de Google Play :
+      // c'est la seule attribution d'installation dont on dispose, et cette page
+      // redirige avant que quoi que ce soit d'autre s'exécute. Sans ce report,
+      // une installation venue d'une pub Meta est indiscernable d'une organique.
+      var q = new URLSearchParams(location.search);
+      var utm = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+        .filter(function (k) { return q.get(k); })
+        .map(function (k) { return k + '=' + encodeURIComponent(q.get(k)); });
+      var play = 'https://play.google.com/store/apps/details?id=com.macity.app'
+        + (utm.length ? '&referrer=' + encodeURIComponent(utm.join('&')) : '');
+
       if (isAndroid) {
-        window.location.replace('https://play.google.com/store/apps/details?id=com.macity.app');
+        window.location.replace(play);
       } else if (isIOS) {
         window.location.replace('https://apps.apple.com/app/macity-app/id6778110272');
+      }
+
+      // Les liens manuels de la page suivent la même règle (visiteurs desktop
+      // qui cliquent au lieu d'être redirigés).
+      if (utm.length) {
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('a[href*="play.google.com"]').forEach(function (a) {
+            if (a.href.indexOf('referrer=') === -1) a.href = play;
+          });
+        });
       }
       document.documentElement.classList.add(isIOS ? 'is-ios' : (isAndroid ? 'is-android' : 'is-desktop'));
     })();
