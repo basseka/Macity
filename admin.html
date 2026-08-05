@@ -2524,6 +2524,16 @@
             <div id="userstats-daily"></div>
           </div>
 
+          <!-- City-Miles : qui publie des stories et qui approche du cadeau -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
+            <h2 style="font-size:15px; margin:0 0 4px;">🏅 City-Miles : proches du cadeau</h2>
+            <p class="subtitle" style="margin:0 0 12px;">
+              Contributeurs de stories, les plus proches du palier en premier. Le comptage est celui de l'app :
+              story publiée, non privée. Seuil courant modifiable dans <code>app_config.story_reward_threshold</code>.
+            </p>
+            <div id="userstats-miles">Chargement…</div>
+          </div>
+
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:22px;">
             <div>
               <h2 style="font-size:15px; margin:0 0 10px;">🏙️ Par ville</h2>
@@ -7501,6 +7511,9 @@
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
         userstatsContent.classList.remove("hidden");
+        // Chargé après l'affichage : une RPC lente ou absente (migration pas
+        // encore appliquée) ne doit pas priver l'onglet de ses statistiques.
+        _refreshCityMiles();
       } catch (e) {
         console.error("[Utilisateurs] load", e);
         toast("Erreur chargement : " + (e.message || e), false);
@@ -7509,6 +7522,67 @@
       }
     }
     document.getElementById("userstats-refresh-btn").addEventListener("click", refreshUserstatsView);
+
+    // ─── City-Miles : contributeurs stories et distance au palier ───────────
+    async function _refreshCityMiles() {
+      const box = document.getElementById("userstats-miles");
+      box.textContent = "Chargement…";
+      let rows;
+      try {
+        const { data, error } = await supabase.rpc("admin_story_contributors");
+        if (error) throw error;
+        rows = data || [];
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message || String(e))}</div>`;
+        return;
+      }
+      if (!rows.length) {
+        box.innerHTML = `<div style="color:var(--text-faint); font-size:12px;">Aucune story publiée pour l'instant.</div>`;
+        return;
+      }
+      const seuil = rows[0].threshold;
+      const trs = rows.map(r => {
+        // Proche = il reste au plus un quart du palier. Repere visuel, aucune
+        // conséquence métier : c'est le seuil DB qui débloque le cadeau.
+        const proche = r.restants <= Math.max(1, Math.round(seuil / 4));
+        const pct = Math.min(100, Math.round((r.stories % seuil) / seuil * 100));
+        return `<tr style="border-top:1px solid var(--line);">
+          <td style="padding:7px 10px 7px 0;">
+            ${escapeHtml(r.prenom)}
+            ${r.inscrit ? "" : `<span style="color:var(--text-faint); font-size:11px;"> · anonyme</span>`}
+            <div style="color:var(--text-faint); font-size:10px; font-family:monospace;">${escapeHtml(String(r.user_id).slice(0, 8))}…</div>
+          </td>
+          <td style="padding:7px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(r.ville || "n.c.")}</td>
+          <td style="padding:7px 10px; text-align:center; font-variant-numeric:tabular-nums; font-weight:700;">${r.stories}</td>
+          <td style="padding:7px 10px; min-width:120px;">
+            <div style="background:rgba(255,255,255,0.08); border-radius:999px; height:6px; overflow:hidden;">
+              <div style="width:${pct}%; height:100%; background:${proche ? "#16a34a" : "var(--magenta)"};"></div>
+            </div>
+          </td>
+          <td style="padding:7px 10px; text-align:right; font-variant-numeric:tabular-nums; color:${proche ? "#16a34a" : "var(--text)"}; font-weight:${proche ? 700 : 400};">
+            ${r.restants} avant ${r.next_at}
+          </td>
+          <td style="padding:7px 0 7px 10px; text-align:right; font-size:11px; color:var(--text-faint);">
+            ${r.paliers ? `🎁 ${r.paliers}` : "0"}${r.coupons_utilises ? ` (${r.coupons_utilises} utilisé${r.coupons_utilises > 1 ? "s" : ""})` : ""}
+          </td>
+        </tr>`;
+      }).join("");
+      box.innerHTML = `
+        <div style="font-size:11px; color:var(--text-faint); margin-bottom:8px;">
+          Seuil actuel : <strong>${seuil}</strong> stories par cadeau · ${rows.length} contributeur${rows.length > 1 ? "s" : ""}
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead><tr style="color:var(--text-faint); font-size:11px; text-align:left;">
+            <th style="padding:0 10px 6px 0;">Utilisateur</th>
+            <th style="padding:0 10px 6px;">Ville</th>
+            <th style="padding:0 10px 6px; text-align:center;">Stories</th>
+            <th style="padding:0 10px 6px;">Palier en cours</th>
+            <th style="padding:0 10px 6px; text-align:right;">Reste</th>
+            <th style="padding:0 0 6px 10px; text-align:right;">Cadeaux</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>`;
+    }
 
     // ─── Onglet Media Kit ────────────────────────────────────────────────────
     const mediakitLoading = document.getElementById("mediakit-loading");
