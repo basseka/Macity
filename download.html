@@ -33,10 +33,19 @@
       var play = 'https://play.google.com/store/apps/details?id=com.macity.app'
         + (utm.length ? '&referrer=' + encodeURIComponent(utm.join('&')) : '');
 
+      // Apple n'utilise pas le format UTM : la campagne tient dans `ct`, 40
+      // caractères maximum, et Apple ignore `ct` sans le jeton fournisseur
+      // `pt`, identique pour toutes les campagnes du compte.
+      var PT = '128978584';
+      var ct = ((q.get('utm_campaign') || 'meta')
+        + (q.get('utm_content') ? '_' + q.get('utm_content') : '')).slice(0, 40);
+      var apple = 'https://apps.apple.com/app/macity-app/id6778110272'
+        + (utm.length ? '?pt=' + PT + '&ct=' + encodeURIComponent(ct) + '&mt=8' : '');
+
       if (isAndroid) {
         window.location.replace(play);
       } else if (isIOS) {
-        window.location.replace('https://apps.apple.com/app/macity-app/id6778110272');
+        window.location.replace(apple);
       }
 
       // Les liens manuels de la page suivent la même règle (visiteurs desktop
@@ -45,6 +54,9 @@
         document.addEventListener('DOMContentLoaded', function () {
           document.querySelectorAll('a[href*="play.google.com"]').forEach(function (a) {
             if (a.href.indexOf('referrer=') === -1) a.href = play;
+          });
+          document.querySelectorAll('a[href*="apps.apple.com"]').forEach(function (a) {
+            if (a.href.indexOf('pt=') === -1) a.href = apple;
           });
         });
       }

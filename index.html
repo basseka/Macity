@@ -974,10 +974,9 @@
       });
 
       // App Store : la campagne tient dans `ct`, 40 caractères maximum.
-      // ⚠️ Apple ignore `ct` sans le jeton fournisseur `pt`, à récupérer dans
-      // App Store Connect puis à renseigner ci-dessous. Tant qu'il est vide,
-      // seule l'attribution Android fonctionne.
-      var PT = '';
+      // `pt` est le jeton fournisseur du compte App Store Connect, identique
+      // pour toutes les campagnes. Apple ignore `ct` sans lui.
+      var PT = '128978584';
       var ct = (q.get('utm_campaign') || 'meta') + (q.get('utm_content') ? '_' + q.get('utm_content') : '');
       if (PT) {
         document.querySelectorAll('a[href*="apps.apple.com"]').forEach(function (a) {
