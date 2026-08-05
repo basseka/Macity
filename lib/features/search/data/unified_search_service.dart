@@ -137,6 +137,14 @@ class UnifiedSearchService {
       final params = <String, String>{
         'select': 'id,nom,categorie,adresse,ville,horaires,telephone,site_web,lien_maps,photo,photos,video_url,latitude,longitude',
         'is_active': 'eq.true',
+        // Doublons orphelins : l'app sert Night depuis `venues`, Famille depuis
+        // `family_venues` et Culture depuis sa propre table. Les lignes
+        // correspondantes d'`etablissements` ne sont affichees NULLE PART, sauf
+        // ici. Elles portent des photos generiques (les cinq bowlings pointaient
+        // tous sur default_famille.jpg, une photo d'enfant) et masquaient les
+        // vraies fiches. Meme liste que ETAB_ORPHAN_RUBRIQUES dans admin.html :
+        // garder les deux synchronises.
+        'rubrique': 'not.in.(nuit,night,culture,famille,family)',
         // `theme` = classement Food (Salon de the, Guinguette, Brunch, cuisines…) :
         // sans lui, taper "salon de the" ne trouvait que les noms contenant le texte.
         'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,theme.ilike.*$query*,adresse.ilike.*$query*)',
@@ -239,7 +247,9 @@ class UnifiedSearchService {
   Future<List<VenueResult>> _searchSportVenues(String query, {String? ville, int limit = 20}) async {
     try {
       final params = <String, String>{
-        'select': 'id,nom,categorie,sport_type,adresse,ville,horaires,telephone,site_web,lien_maps,photo,latitude,longitude',
+        // `photos` + `video_url` : sans eux la fiche ouverte depuis la recherche
+        // retombait sur les medias par defaut, alors que la table les porte.
+        'select': 'id,nom,categorie,sport_type,adresse,ville,horaires,telephone,site_web,lien_maps,photo,photos,video_url,latitude,longitude',
         'is_active': 'eq.true',
         'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,sport_type.ilike.*$query*,adresse.ilike.*$query*)',
         'order': 'nom.asc',
@@ -259,6 +269,10 @@ class UnifiedSearchService {
         final relevance = name.toLowerCase().contains(q) ? 0
             : (cat.toLowerCase().contains(q) || sportType.toLowerCase().contains(q)) ? 1
             : 2;
+        final photosRaw = j['photos'];
+        final photos = photosRaw is List
+            ? photosRaw.whereType<String>().where((s) => s.isNotEmpty).toList()
+            : <String>[];
         return VenueResult(
           id: '${j['id'] ?? name}',
           name: name,
@@ -270,6 +284,8 @@ class UnifiedSearchService {
           siteWeb: j['site_web'] as String? ?? '',
           lienMaps: j['lien_maps'] as String? ?? '',
           photo: j['photo'] as String? ?? '',
+          photos: photos,
+          videoUrl: j['video_url'] as String? ?? '',
           latitude: (j['latitude'] as num?)?.toDouble() ?? 0,
           longitude: (j['longitude'] as num?)?.toDouble() ?? 0,
           sourceTable: 'sport_venues',

@@ -140,7 +140,21 @@
       box-shadow: 0 0 10px var(--pink);
     }
     .hero h1 {
-      font-size: clamp(38px, 6vw, 60px);
+      /* Taille calee sur la ligne la plus longue de l'accroche
+         (« Ton plan trouve »), largeurs mesurees dans ce rendu :
+           40px -> 281px   60px -> 430px   70px -> 505px   76px -> 549px
+         soit environ 7,2px de large par pixel de police.
+
+         La colonne de texte ne suit PAS le viewport de facon lineaire : au-dela
+         de 900px la grille passe a deux colonnes et la colonne vaut
+         (min(1120, vw - 48) - 60) x 0,524, soit seulement 415px a 901px de
+         large contre 555px a partir de 1180px. Le coefficient 6,3vw est cale
+         sur cette bande, ou le plafond seul ne suffit pas : la police y doit
+         suivre la colonne, sinon l'accroche casse en quatre lignes vers 1000px.
+
+         Toute reformulation de l'accroche invalide ces valeurs. Remesurer la
+         ligne la plus longue avant de les changer, ne pas les deviner. */
+      font-size: clamp(40px, 6.3vw, 72px);
       font-weight: 900;
       letter-spacing: -1.2px;
       line-height: 1.05;
@@ -693,6 +707,10 @@
       .hero-trust { justify-content: center; }
     }
     @media (max-width: 480px) {
+      /* Sous 480px la colonne descend a ~272px sur les plus petits ecrans
+         (320px de large) : 36px tient (253px mesures), le minimum de 40px du
+         clamp non. */
+      .hero h1 { font-size: 36px; }
       .nav-cta { padding: 8px 14px; font-size: 13px; }
       .hero-ctas { flex-direction: column; align-items: stretch; }
       .hero-ctas .btn { justify-content: center; }
@@ -719,11 +737,11 @@
     <div class="hero-inner">
       <div class="hero-copy">
         <h1>
-          Ne rate plus rien<br />
-          <span class="accent">de ta ville.</span>
+          Ton plan trouvé<br />
+          <span class="accent">en 10 secondes</span>
         </h1>
         <p class="hero-sub">
-          Concerts, sport, resto, sorties nocturnes, expos, bons plans… MaCity rassemble tous les événements et lieux qui font vibrer ta ville, dans une seule app.
+          MaCity te montre en un coup d'œil ce qui se passe autour de toi, maintenant. Concerts, sport, resto, bons plans : tu choisis, tu sors !
         </p>
         <div class="store-badges">
           <a class="store-btn" href="https://apps.apple.com/app/macity-app/id6778110272" aria-label="Télécharger sur l'App Store">
@@ -783,26 +801,26 @@
   <section class="philo" id="philo">
     <div class="section-inner">
       <div class="section-head">
-        <span class="section-eyebrow">Notre philosophie</span>
-        <h2>L'app <em>de ta ville</em>, par ceux qui la vivent.</h2>
-        <p>MaCity, c'est l'info locale qui te sert vraiment : ce qui se passe ce soir, ce week-end, près de chez toi. Sans bullshit, sans pub intrusive.</p>
+        <span class="section-eyebrow">Sortir à plusieurs</span>
+        <h2>La flemme d'organiser ? <em>On s'en charge.</em></h2>
+        <p>Trouver un plan, c'est une chose. Caler tout le monde en même temps, c'en est une autre. MaCity te montre ce qui bouge en temps réel : tu repères, tu mets en favori, tout le monde suit.</p>
       </div>
 
       <div class="philo-grid">
         <div class="philo-card">
-          <div class="philo-icon">📍</div>
-          <h3>100% local</h3>
-          <p>Chaque ville a sa version. Ici tu vois ce qui se passe autour de toi, pas à l'autre bout du pays.</p>
+          <div class="philo-icon">🗺️</div>
+          <h3>Tout, en direct</h3>
+          <p>Les événements en cours s'allument sur la carte. Plus besoin de dix conversations de groupe pour savoir où aller, tu vois tout de suite où ça se passe.</p>
         </div>
         <div class="philo-card">
-          <div class="philo-icon">⚡</div>
-          <h3>En temps réel</h3>
-          <p>La Map Live te montre ce qui se passe <strong>maintenant</strong>, là où c'est chaud. Concerts, soirées, matchs… tout d'un coup d'œil.</p>
+          <div class="philo-icon">🔔</div>
+          <h3>Plus de plans annulés</h3>
+          <p>Un tap sur un événement, et fin des plans qui tombent à l'eau parce que quelqu'un a zappé.</p>
         </div>
         <div class="philo-card">
           <div class="philo-icon">💜</div>
-          <h3>Pensé pour toi</h3>
-          <p>Tu choisis ce qui t'intéresse, on ne t'impose rien. Mets en favori, active les rappels, c'est ta ville à ta sauce.</p>
+          <h3>Chacun sa ville, à sa sauce</h3>
+          <p>Toi et tes potes choisissez chacun ce qui vous plaît, MaCity suit.</p>
         </div>
       </div>
     </div>
@@ -861,8 +879,8 @@
     <div class="section-inner">
       <div class="section-head">
         <span class="section-eyebrow">Map Live</span>
-        <h2>Ce qui bouge, <em>maintenant</em>.</h2>
-        <p>La carte en direct, pour voir d'un coup d'œil là où ça vibre autour de toi.</p>
+        <h2>Ta ville a des bons plans, tout le monde peut les rater... Mais pas toi !</h2>
+        <p>Les commerces de ta ville partagent leurs réductions et offres exclusives direct dans l'app. Pas besoin de suivre 12 comptes Instagram pour tomber dessus au bon moment : c'est là, à jour, avant tout le monde.</p>
       </div>
 
       <div class="maplive-body">
@@ -904,8 +922,8 @@
   <!-- ===== CTA ===== -->
   <section class="cta">
     <div class="section-inner cta-inner">
-      <h2>Prêt à kiffer ta ville ?</h2>
-      <p>Télécharge MaCity, choisis ta ville, et laisse-toi guider. C'est gratuit, et ça commence maintenant.</p>
+      <h2>Prêt à arrêter de chercher et à sortir ?</h2>
+      <p>Télécharge MaCity, choisis ta ville. C'est gratuit, et ça commence maintenant.</p>
       <div class="store-badges" style="justify-content:center;">
         <a class="store-btn" href="https://apps.apple.com/app/macity-app/id6778110272" aria-label="Télécharger sur l'App Store">
           <svg viewBox="0 0 384 512" fill="currentColor" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
@@ -932,6 +950,49 @@
   <div class="mobile-bar">
     <a href="download.html">⬇ Télécharger MaCity — c'est gratuit</a>
   </div>
+
+  <!-- ═══ Report des UTM de campagne vers les stores ═══
+       Une pub Meta amène ici, pas sur le store : sans ce script, le lien
+       d'installation est nu et Google Play n'attribue l'installation à aucune
+       campagne. On recopie donc les utm_* entrants dans le paramètre
+       `referrer` de Play, seul canal d'attribution gratuit, et on les
+       propage aux liens internes pour qu'ils survivent au passage par
+       download.html. Aucune dépendance, aucun cookie. -->
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var CLES = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+      var utm = CLES.filter(function (k) { return q.get(k); })
+                    .map(function (k) { return k + '=' + encodeURIComponent(q.get(k)); });
+      if (!utm.length) return;
+
+      // Google Play attend UN seul paramètre `referrer`, lui-même encodé.
+      // Le découper en paramètres séparés casse l'attribution.
+      var referrer = encodeURIComponent(utm.join('&'));
+      document.querySelectorAll('a[href*="play.google.com"]').forEach(function (a) {
+        if (a.href.indexOf('referrer=') === -1) a.href += '&referrer=' + referrer;
+      });
+
+      // App Store : la campagne tient dans `ct`, 40 caractères maximum.
+      // `pt` est le jeton fournisseur du compte App Store Connect, identique
+      // pour toutes les campagnes. Apple ignore `ct` sans lui.
+      var PT = '128978584';
+      var ct = (q.get('utm_campaign') || 'meta') + (q.get('utm_content') ? '_' + q.get('utm_content') : '');
+      if (PT) {
+        document.querySelectorAll('a[href*="apps.apple.com"]').forEach(function (a) {
+          a.href = a.href.split('?')[0] + '?pt=' + PT + '&ct=' + encodeURIComponent(ct.slice(0, 40)) + '&mt=8';
+        });
+      }
+
+      // Les liens internes gardent la query, sinon tout est perdu dès que
+      // l'utilisateur passe par la page de téléchargement.
+      document.querySelectorAll('a[href^="download.html"]').forEach(function (a) {
+        if (a.href.indexOf('utm_') === -1) {
+          a.href += (a.href.indexOf('?') === -1 ? '?' : '&') + location.search.slice(1);
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>

@@ -1,12 +1,18 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/offers/data/offer_supabase_service.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
-/// Popup glamour qui affiche un code a 6 chiffres apres avoir claim une place.
+/// Popup qui reclame une place et affiche le QR a presenter au commercant.
+///
+/// Le code encode dans le QR est genere et stocke EN BASE (`offer_claims`) :
+/// c'est ce qui permet au commercant de refuser un QR fabrique. La version
+/// precedente tirait 6 chiffres au hasard sur le telephone, sans les
+/// enregistrer nulle part, donc sans aucune valeur de preuve.
 class OfferCodePopup extends StatefulWidget {
   final Offer offer;
 
@@ -28,6 +34,7 @@ class OfferCodePopup extends StatefulWidget {
 class _OfferCodePopupState extends State<OfferCodePopup>
     with SingleTickerProviderStateMixin {
   String? _code;
+  OfferClaim? _claim;
   bool _loading = true;
   String? _error;
   bool _copied = false;
@@ -51,11 +58,25 @@ class _OfferCodePopupState extends State<OfferCodePopup>
 
   Future<void> _claimAndGenerateCode() async {
     try {
-      await OfferSupabaseService().claimSpot(widget.offer.id);
-      final code = _generateCode();
+      // Le code vient de la base, pas du telephone : c'est ce qui permet au
+      // commercant de refuser un QR invente. La RPC est idempotente par
+      // device, rouvrir la popup ne consomme pas de place supplementaire.
+      final deviceId = await UserIdentityService.getUserId();
+      final claim =
+          await OfferSupabaseService().claimOffer(widget.offer.id, deviceId);
       if (mounted) {
         setState(() {
-          _code = code;
+          _claim = claim;
+          _code = claim.code;
+          _loading = false;
+        });
+      }
+    } on OfferClaimException catch (e) {
+      // Refus metier (offre pleine, expiree, desactivee) : le message vient
+      // de la RPC et est deja redige pour l'utilisateur.
+      if (mounted) {
+        setState(() {
+          _error = e.message;
           _loading = false;
         });
       }
@@ -67,11 +88,6 @@ class _OfferCodePopupState extends State<OfferCodePopup>
         });
       }
     }
-  }
-
-  String _generateCode() {
-    final rng = Random();
-    return List.generate(6, (_) => rng.nextInt(10)).join();
   }
 
   void _copyCode() {
@@ -233,14 +249,46 @@ class _OfferCodePopupState extends State<OfferCodePopup>
                           ] else ...[
                             // Label
                             Text(
-                              'VOTRE CODE',
+                              _claim?.isRedeemed == true
+                                  ? 'DEJA UTILISE'
+                                  : 'A PRESENTER AU COMMERCANT',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white.withValues(alpha: 0.4),
+                                color: _claim?.isRedeemed == true
+                                    ? Colors.orange.shade200
+                                    : Colors.white.withValues(alpha: 0.4),
                                 letterSpacing: 2,
                               ),
+                              textAlign: TextAlign.center,
                             ),
+                            const SizedBox(height: 12),
+
+                            // QR : fond blanc impose, un lecteur a besoin du
+                            // contraste clair/sombre pour accrocher la trame.
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Opacity(
+                                // Grise quand la place a deja ete consommee :
+                                // le code reste lisible, mais on ne laisse pas
+                                // croire qu'il vaut encore quelque chose.
+                                opacity: _claim?.isRedeemed == true ? 0.35 : 1,
+                                child: QrImageView(
+                                  data: _code!,
+                                  version: QrVersions.auto,
+                                  size: 148,
+                                  gapless: true,
+                                  padding: EdgeInsets.zero,
+                                  backgroundColor: Colors.white,
+                                  errorCorrectionLevel: QrErrorCorrectLevel.M,
+                                ),
+                              ),
+                            ),
+
                             const SizedBox(height: 12),
 
                             // Code display
@@ -265,9 +313,9 @@ class _OfferCodePopupState extends State<OfferCodePopup>
                                       child: FittedBox(
                                         fit: BoxFit.scaleDown,
                                         child: Text(
-                                          _code!.split('').join('  '),
+                                          _code!.split('').join(' '),
                                           style: const TextStyle(
-                                            fontSize: 26,
+                                            fontSize: 20,
                                             fontWeight: FontWeight.w800,
                                             color: Colors.white,
                                             fontFeatures: [FontFeature.tabularFigures()],

@@ -57,17 +57,27 @@ class UserProfileService {
   }
 
   /// Journalise l'entrée "Explorer sans compte" (device anonyme) dans
-  /// `app_entries`, pour quantifier les skips. Best-effort, non bloquant :
-  /// ignore les doublons (même device) et toute erreur réseau/RLS.
+  /// `app_entries`, pour quantifier les skips. Best-effort, non bloquant.
+  ///
+  /// ⚠️ PAS de `resolution=ignore-duplicates` : cet en-tête fait passer
+  /// PostgREST par `ON CONFLICT`, qui exige une policy UPDATE en plus de la
+  /// policy INSERT. Sans elle, Postgres rejette avec un 42501 trompeur
+  /// (« new row violates row-level security policy ») alors que la policy
+  /// INSERT est correcte. Diagnostiqué le 2026-07-29 : le compteur d'anonymes
+  /// est resté à 0 pendant des semaines à cause de ça, l'erreur étant avalée
+  /// par le catch ci-dessous.
+  ///
+  /// Un second appel sur le même device renvoie un 409 (clé primaire déjà
+  /// prise) : c'est inoffensif, la ligne existe déjà, et le catch l'absorbe.
+  /// Ouvrir une policy UPDATE à `anon` juste pour l'idempotence serait
+  /// disproportionné.
   Future<void> logAnonymousEntry() async {
     try {
       final userId = await UserIdentityService.getUserId();
       await _dio.post(
         'app_entries',
         data: {'user_id': userId},
-        options: Options(
-          headers: {'Prefer': 'resolution=ignore-duplicates,return=minimal'},
-        ),
+        options: Options(headers: {'Prefer': 'return=minimal'}),
       );
     } catch (_) {
       // Non bloquant : ne jamais empêcher l'entrée dans l'app.

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/features/offers/presentation/widgets/locked_offers_carousel.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_city_header.dart';
@@ -13,7 +14,7 @@ import 'package:pulz_app/features/offers/state/offers_provider.dart';
 ///
 /// Layout :
 ///  1. CityHeader (logo + Ta ville + ville + avatar)
-///  2. Header "Toutes les *offres*"
+///  2. Header "Les offres *premium* par [logo BeThere]"
 ///  3. Grille 2 colonnes des offres actives (tap -> OfferCodePopup)
 class ExplorerScreen extends ConsumerWidget {
   const ExplorerScreen({super.key});
@@ -31,14 +32,18 @@ class ExplorerScreen extends ConsumerWidget {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: EditorialCityHeader()),
-            // Header "Toutes les offres"
+            // Header "Les offres premium par [logo BeThere]"
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
                   EditorialSpacing.screen,
-                  EditorialSpacing.lg,
+                  // Titre remonté au contact du CityHeader (lg -> xs) : le logo
+                  // BeThere fait 60px de haut dans une ligne de texte 18pt, il
+                  // apporte donc déjà sa propre respiration verticale. Un
+                  // padding lg par-dessus creusait un blanc inutile.
+                  EditorialSpacing.xs,
                   EditorialSpacing.screen,
-                  EditorialSpacing.md,
+                  EditorialSpacing.sm,
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -57,7 +62,7 @@ class ExplorerScreen extends ConsumerWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: 'Toutes les offres par ',
+                              text: 'Les offres premium par ',
                               style: EditorialText.displayTitle()
                                   .copyWith(fontSize: 18),
                             ),
@@ -87,6 +92,20 @@ class ExplorerScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            // Carrousel « réservé aux abonnés », juste sous le titre et AVANT
+            // la grille : cartes volontairement génériques (catégorie seule,
+            // aucun commerçant ni remise chiffrée) qui mènent à la vidéo puis
+            // à l'abonnement.
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: EditorialSpacing.sm),
+                child: LockedOffersCarousel(),
+              ),
+            ),
+            // Sépare le teaser « réservé aux abonnés » de ce qui est réellement
+            // disponible : sans ce titre, la grille se lisait comme la suite du
+            // carrousel, donc comme du contenu verrouillé lui aussi.
+            const SliverToBoxAdapter(child: _TitreOffresMaCity()),
             // Grille des offres
             ..._buildOffersSlivers(context, ref, offersAsync),
             const SliverToBoxAdapter(
@@ -180,6 +199,46 @@ class ExplorerScreen extends ConsumerWidget {
           ),
         ];
       },
+    );
+  }
+}
+
+/// Titre de section au-dessus de la grille, pendant de « Réservé aux abonnés »
+/// du carrousel : même corps et même graisse, pour que les deux blocs se lisent
+/// comme deux rayons du même écran plutôt que comme un seul bloc continu.
+///
+/// Couleurs EN DUR, comme dans `LockedOffersCarousel` et pour les mêmes
+/// raisons : `Theme.of(context)` hérite du thème global, qui est SOMBRE (texte
+/// blanc sur fond crème = invisible), et `EditorialColors.text` dépend de
+/// `AppColors.isLightTheme`, un drapeau global MUTABLE qu'un autre écran peut
+/// laisser à false.
+class _TitreOffresMaCity extends StatelessWidget {
+  const _TitreOffresMaCity();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        EditorialSpacing.screen,
+        EditorialSpacing.sm,
+        EditorialSpacing.screen,
+        EditorialSpacing.md,
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.local_offer_rounded,
+            size: 17,
+            color: EditorialColors.magenta,
+          ),
+          const SizedBox(width: 7),
+          Text(
+            'Les offres MaCity',
+            style: EditorialText.cardTitle(color: const Color(0xFF1A0F2E))
+                .copyWith(fontSize: 16, fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
     );
   }
 }

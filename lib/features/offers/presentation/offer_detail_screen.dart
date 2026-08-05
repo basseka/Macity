@@ -4,12 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/features/offers/data/subscription_interest_service.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
-import 'package:pulz_app/features/offers/presentation/subscription_screen.dart';
+import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
 
 /// Detail plein ecran d'une offre. S'ouvre quand l'utilisateur tap une carte
-/// dans l'ExplorerScreen. Le CTA "J'en profite" est un placeholder dont le
-/// comportement sera defini ulterieurement (loterie, validation directe,
-/// etc.).
+/// dans l'ExplorerScreen. Le CTA "J'en profite" reclame une place et ouvre
+/// [OfferCodePopup], qui affiche le QR a presenter au commercant.
 class OfferDetailScreen extends StatelessWidget {
   final Offer offer;
 
@@ -181,16 +180,10 @@ class OfferDetailScreen extends StatelessWidget {
                   offerTitle: offer.title,
                   ville: offer.city,
                 );
-                // "J'en profite" -> proposition d'abonnement BeThere
-                // Premium 5 EUR/mois pour debloquer toutes les offres.
-                // Toujours actif (meme sur offre complete) : l'abonnement
-                // ne concerne pas une offre specifique mais l'acces global.
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    fullscreenDialog: true,
-                    builder: (_) => const SubscriptionScreen(),
-                  ),
-                );
+                // "J'en profite" reclame la place et affiche le QR a
+                // presenter au commercant. Le popup gere lui-meme les refus
+                // (offre pleine, expiree) et le cas du code deja obtenu.
+                OfferCodePopup.show(context, offer);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: EditorialColors.gold,

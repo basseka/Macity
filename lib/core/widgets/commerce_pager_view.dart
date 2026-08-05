@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/services/partner_metrics_service.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 
@@ -50,6 +51,17 @@ class _CommercePagerViewState extends State<CommercePagerView> {
   void initState() {
     super.initState();
     _ctrl = PageController(initialPage: widget.initialIndex);
+    // Le pager contourne `showDetailSheet` (il appelle `buildDetailSheet`
+    // directement) : sans ce comptage, toutes les fiches ouvertes par swipe
+    // échappaient au relevé partenaire. La première page compte ici, les
+    // suivantes dans `onPageChanged`.
+    _compterVue(widget.initialIndex);
+  }
+
+  void _compterVue(int i) {
+    if (i < 0 || i >= widget.commerces.length) return;
+    final c = widget.commerces[i];
+    PartnerMetricsService.ficheVue(c.sourceTable, c.sourceId);
   }
 
   @override
@@ -65,6 +77,7 @@ class _CommercePagerViewState extends State<CommercePagerView> {
       body: PageView.builder(
         controller: _ctrl,
         itemCount: widget.commerces.length,
+        onPageChanged: _compterVue,
         // PageView consomme les drags horizontaux : le swipe gauche-droite
         // passe d'une fiche à l'autre. Les drags verticaux (scroll dans
         // l'ItemDetailSheet) restent gérés par le contenu.

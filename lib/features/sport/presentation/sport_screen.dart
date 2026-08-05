@@ -104,6 +104,7 @@ class SportScreen extends ConsumerWidget {
                           ].join(' · '),
                           photoUrl: c.photo,
                           isVerified: c.isVerified,
+                          isPartner: c.isPartner,
                           commerce: c,
                           onTap: (ctx) =>
                               CommerceRowCard.showDetailSheet(ctx, c),
@@ -129,6 +130,7 @@ class SportScreen extends ConsumerWidget {
                 ].join(' · '),
                 photoUrl: c.photo,
                 isVerified: c.isVerified,
+                isPartner: c.isPartner,
                 commerce: c,
                 onTap: (ctx) => CommerceRowCard.showDetailSheet(ctx, c),
               );

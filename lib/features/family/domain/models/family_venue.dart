@@ -20,6 +20,11 @@ class FamilyVenue {
   final String photo;
   final bool isVerified;
 
+  /// Lieu partenaire (abonné) : badge doré, rail « Nos partenaires », pastille
+  /// sur la fiche. Le champ existait en base mais n'était pas lu, ce qui
+  /// rendait tout partenaire Famille invisible.
+  final bool isPartner;
+
   /// Âge minimum recommandé (années). Null = non renseigné / tous âges.
   final int? ageMin;
 
@@ -42,6 +47,7 @@ class FamilyVenue {
     this.lienMaps = '',
     this.photo = '',
     this.isVerified = false,
+    this.isPartner = false,
     this.ageMin,
   });
 
@@ -65,6 +71,7 @@ class FamilyVenue {
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: json['photo'] as String? ?? '',
       isVerified: json['is_verified'] as bool? ?? false,
+      isPartner: json['is_partner'] as bool? ?? false,
       ageMin: (json['age_min'] as num?)?.toInt(),
     );
   }

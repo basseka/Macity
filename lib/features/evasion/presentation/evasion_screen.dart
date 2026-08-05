@@ -1,3 +1,6 @@
+import 'package:pulz_app/core/utils/image_url.dart';
+import 'package:pulz_app/core/data/premium_banner_service.dart';
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -40,6 +43,9 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
   String? _videoUrl;
   bool _videoError = false;
 
+  /// Partenaire Premium affiché dans la bannière au build courant.
+  PremiumBannerSlot? _slot;
+
   /// Temps de trajet max sélectionné (1/2/3), null = tous. 2e tap = désélection.
   int? _maxHours;
 
@@ -60,8 +66,23 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
     });
   }
 
+  /// Rotation de la bannière Premium (curseur partagé, survit à la navigation).
+  Timer? _bannerTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(bannerCursorProvider.notifier).advance();
+    });
+    _bannerTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted) ref.read(bannerCursorProvider.notifier).advance();
+    });
+  }
+
   @override
   void dispose() {
+    _bannerTimer?.cancel();
     _video?.dispose();
     super.dispose();
   }
@@ -69,10 +90,17 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
   @override
   Widget build(BuildContext context) {
     final banner = ref.watch(evasionBannerVideoProvider).asData?.value;
-    if (banner != null && _videoUrl != banner.videoUrl) {
+    // Priorité aux Premium de la rubrique ; sinon la bannière générique.
+    final pool = ref.watch(premiumBannerPoolProvider('evasion')).asData?.value
+        ?? const <PremiumBannerSlot>[];
+    _slot = slotAt(pool, ref.watch(bannerCursorProvider));
+    final wantedVideo = _slot?.videoUrl.isNotEmpty == true
+        ? _slot!.videoUrl
+        : (_slot == null ? banner?.videoUrl : null);
+    if (wantedVideo != null && _videoUrl != wantedVideo) {
       _video?.dispose();
       _video = null;
-      _initVideo(banner.videoUrl);
+      _initVideo(wantedVideo);
     }
 
     final all = ref.watch(evasionVenuesProvider).valueOrNull;
@@ -112,7 +140,8 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
   // ─── Inspirations du moment ───────────────────────────────────────────
   List<Widget> _inspirationsSection() {
     final items =
-        ref.watch(inspirationsProvider('evasion')).valueOrNull ?? const [];
+        ref.watch(inspirationsWithPartnersProvider('evasion')).valueOrNull ??
+            const [];
     if (items.isEmpty) return const [];
     return [
       _sectionHeader('Inspirations du moment'),
@@ -479,10 +508,17 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
   Widget _hero() {
     final topPad = MediaQuery.of(context).padding.top;
     final c = _video;
+    // `ready` exige que la vidéo chargée soit celle du slot courant, sinon un
+    // slot photo réutiliserait le contrôleur du slot vidéo précédent.
+    final wanted = _slot?.videoUrl.isNotEmpty == true ? _slot!.videoUrl : null;
     final ready = c != null &&
+        (_slot == null || wanted != null) &&
+        (_slot == null || _videoUrl == wanted) &&
         c.value.isInitialized &&
         !_videoError &&
         c.value.size.width > 0;
+    final slotPhoto =
+        (_slot != null && !_slot!.hasVideo) ? _slot!.photoUrl : '';
 
     return SizedBox(
       height: 260,
@@ -491,12 +527,31 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
         fit: StackFit.expand,
         children: [
           if (ready)
-            FittedBox(
+            // ClipRect : FittedBox ne découpe pas, une vidéo portrait
+            // déborderait des 260 px.
+            ClipRect(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: c.value.size.width,
+                  height: c.value.size.height,
+                  child: VideoPlayer(c),
+                ),
+              ),
+            )
+          else if (slotPhoto.isNotEmpty)
+            Image.network(
+              // PNG de 400-500 ko à l'origine : servi en webp redimensionné.
+              optimizedImageUrl(slotPhoto, width: 900),
               fit: BoxFit.cover,
-              child: SizedBox(
-                width: c.value.size.width,
-                height: c.value.size.height,
-                child: VideoPlayer(c),
+              errorBuilder: (_, __, ___) => const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF92400E), Color(0xFFD97706)],
+                  ),
+                ),
               ),
             )
           else
@@ -530,6 +585,56 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
               ),
             ),
           ),
+          // Identification du partenaire : relie la vidéo à l'établissement.
+          if (_slot != null)
+            Positioned(
+              top: topPad + 10,
+              right: 18,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => CommerceRowCard.showDetailSheet(
+                    context, _slot!.commerce),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 11, vertical: 6),
+                      constraints: const BoxConstraints(maxWidth: 230),
+                      decoration: BoxDecoration(
+                        color: const Color(0xC70B1410),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                            color: const Color(0xFFC79A3E)
+                                .withValues(alpha: 0.55),
+                            width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded,
+                              size: 13, color: Color(0xFFC79A3E)),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              _slot!.nom,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             top: topPad + 8,
             left: 18,

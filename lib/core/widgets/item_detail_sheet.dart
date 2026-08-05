@@ -12,6 +12,9 @@ import 'package:pulz_app/core/widgets/verified_badge.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart' show ClaimVenueSheet;
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/features/offers/domain/models/offer.dart';
+import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
+import 'package:pulz_app/features/offers/state/offers_provider.dart';
 import 'package:pulz_app/features/reviews/presentation/reviews_section.dart';
 
 /// Fiche detail generique ouverte au tap sur une carte (commerce, event, match, venue).
@@ -89,6 +92,24 @@ class ItemDetailSheet extends ConsumerWidget {
     final isLiked =
         likeId != null ? ref.watch(likesProvider).contains(likeId) : false;
     final screenHeight = MediaQuery.of(context).size.height;
+    // Offre active de ce commerce, s'il en porte une. Lecture d'une map deja
+    // calculee a partir des offres de la ville : aucune requete ici.
+    final offerKey = Offer.venueKeyFor(claimSourceTable, claimSourceId);
+    final offre =
+        offerKey != null ? ref.watch(offerByVenueProvider)[offerKey] : null;
+
+    // Raccourci « fleche » vers le site du commerce. On reutilise l'action
+    // principale plutot que d'ajouter un champ : c'est deja elle qui porte
+    // l'URL et le comptage du clic sortant. Ecarte les actions internes
+    // (onTap sans URL) et les CTA desactives.
+    final pa = primaryAction;
+    final siteRaccourci = (pa != null &&
+            !pa.disabled &&
+            pa.onTap == null &&
+            pa.url.startsWith('http'))
+        ? pa
+        : null;
+
     final hasVideo = videoUrl != null && videoUrl!.isNotEmpty;
     final hasImage = hasVideo ||
         (imageAsset != null && imageAsset!.isNotEmpty) ||
@@ -220,7 +241,11 @@ class ItemDetailSheet extends ConsumerWidget {
                               const SizedBox(width: 8),
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
-                                child: isVerified
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    isVerified
                                     ? const VerifiedBadge()
                                     : GestureDetector(
                                         onTap: () => ClaimVenueSheet.show(
@@ -254,6 +279,37 @@ class ItemDetailSheet extends ConsumerWidget {
                                           ),
                                         ),
                                       ),
+
+                                    // Raccourci vers le site du commerce,
+                                    // juste sous le badge. Passe par
+                                    // _declencher pour que le clic sortant
+                                    // soit compte comme depuis le bouton
+                                    // principal (KPI partenaire).
+                                    if (siteRaccourci != null) ...[
+                                      const SizedBox(height: 6),
+                                      GestureDetector(
+                                        onTap: () => _declencher(siteRaccourci),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.12),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.25),
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.arrow_outward_rounded,
+                                            size: 15,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -281,6 +337,53 @@ class ItemDetailSheet extends ConsumerWidget {
                                         letterSpacing: 0.3,
                                       )),
                                 ],
+                              ),
+                            ),
+                          ],
+
+                          // Offre en cours du commerce, juste sous le badge
+                          // partenaire. Tap : ouvre la reclamation (QR).
+                          if (offre != null) ...[
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () => OfferCodePopup.show(context, offre),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE91E63)
+                                      .withValues(alpha: 0.16),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFE91E63)
+                                        .withValues(alpha: 0.55),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      offre.emoji.isNotEmpty ? offre.emoji : '🏷️',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        offre.title,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.chevron_right,
+                                        size: 16, color: Color(0xFFE8A0BF)),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -397,9 +500,7 @@ class ItemDetailSheet extends ConsumerWidget {
                               child: ElevatedButton.icon(
                                 onPressed: primaryAction!.disabled
                                     ? null
-                                    : () => primaryAction!.onTap != null
-                                        ? primaryAction!.onTap!()
-                                        : _openUrl(primaryAction!.url),
+                                    : () => _declencher(primaryAction!),
                                 icon: Icon(primaryAction!.icon, size: 18),
                                 label: Text(
                                   primaryAction!.label,
@@ -498,9 +599,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                   icon: action.icon,
                                   label: action.label,
                                   color: Colors.white,
-                                  onTap: () => action.onTap != null
-                                      ? action.onTap!()
-                                      : _openUrl(action.url),
+                                  onTap: () => _declencher(action),
                                 ),
                               ),
                             ];
@@ -732,6 +831,23 @@ class ItemDetailSheet extends ConsumerWidget {
       }
     }
   }
+
+  /// Point d'entrée unique du tap sur une [DetailAction], primaire ou
+  /// secondaire. Centralisé pour que `onLaunched` (comptage des clics sortants)
+  /// ne puisse pas être oublié d'un côté ou de l'autre.
+  void _declencher(DetailAction action) {
+    if (action.onTap != null) {
+      // Action interne (ouvre une sheet) : aucune URL lancée, donc rien à
+      // compter comme clic sortant.
+      action.onTap!();
+      return;
+    }
+    // `onLaunched` est notifié sans attendre `_openUrl` : le comptage porte sur
+    // l'intention de l'utilisateur, pas sur le succès d'ouverture du navigateur
+    // (le channel natif peut échouer sur certains appareils).
+    action.onLaunched?.call();
+    _openUrl(action.url);
+  }
 }
 
 class DetailInfoItem {
@@ -751,12 +867,18 @@ class DetailAction {
   /// Si true, le bouton est rendu grise et non-cliquable. Utile pour
   /// les CTAs conditionnels (ex: "Reserver" si le resto n'a pas de claim).
   final bool disabled;
+  /// Appele juste apres l'ouverture de [url]. Sert a compter les clics sortants
+  /// (KPI partenaires) sans dupliquer la logique de lancement, qui gere un
+  /// channel natif et deux modes de repli. Ignore si [onTap] est fourni, puisque
+  /// dans ce cas aucune URL n'est lancee.
+  final VoidCallback? onLaunched;
   const DetailAction({
     required this.icon,
     required this.label,
     this.url = '',
     this.onTap,
     this.disabled = false,
+    this.onLaunched,
   });
 }
 

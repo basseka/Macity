@@ -112,6 +112,9 @@ class SportVenuesSupabaseService {
       horaires: json['horaires'] as String? ?? '',
       telephone: json['telephone'] as String? ?? '',
       photos: photos,
+      // Sans ce champ, un partenaire Sport était invisible partout : ni badge
+      // doré, ni rail « Nos partenaires », ni pastille sur la fiche.
+      isPartner: json['is_partner'] as bool? ?? false,
       sourceId: (json['id'] as num?)?.toInt(),
       sourceTable: 'sport_venues',
     );

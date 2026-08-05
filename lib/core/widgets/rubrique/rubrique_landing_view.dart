@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -7,9 +8,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:pulz_app/core/utils/image_url.dart';
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/data/inspiration_service.dart';
+import 'package:pulz_app/core/data/premium_banner_service.dart';
 import 'package:pulz_app/core/widgets/commerce_pager_view.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 
 /// Palette + typo paramétrables d'une rubrique (réutilise le design Food
@@ -314,8 +318,28 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     _video = null;
   }
 
+  /// Rotation de la bannière Premium. Le curseur vit dans un provider partagé
+  /// (non-autoDispose) : il survit à la navigation, donc sortir de la rubrique
+  /// et y revenir montre un AUTRE partenaire.
+  Timer? _bannerTimer;
+  static const _bannerRotation = Duration(seconds: 10);
+
+  @override
+  void initState() {
+    super.initState();
+    // Avance dès le montage : c'est ce qui garantit qu'un retour sur l'écran
+    // ne rejoue pas la même vidéo.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(bannerCursorProvider.notifier).advance();
+    });
+    _bannerTimer = Timer.periodic(_bannerRotation, (_) {
+      if (mounted) ref.read(bannerCursorProvider.notifier).advance();
+    });
+  }
+
   @override
   void dispose() {
+    _bannerTimer?.cancel();
     _disposeVideo();
     super.dispose();
   }
@@ -645,7 +669,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
   /// entièrement masquée (titre inclus) quand il n'y a aucune carte.
   List<Widget> _inspirationsSection(RubriqueConfig cfg, RubriqueTheme t) {
     final items =
-        ref.watch(inspirationsProvider(cfg.rubriqueKey)).valueOrNull ??
+        ref.watch(inspirationsWithPartnersProvider(cfg.rubriqueKey)).valueOrNull ??
             const <Inspiration>[];
     if (items.isEmpty) return const [];
     return [
@@ -672,6 +696,12 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
   /// Tap carte : bascule sur le chip dont la clé matche `insp.theme`
   /// (insensible à la casse) si la rubrique en a un, sinon ouvre le site.
   void _onInspirationTap(RubriqueConfig cfg, Inspiration insp) {
+    // Carte partenaire (Gold) : le tap ouvre SA fiche. Il a payé pour être
+    // découvert, pas pour renvoyer vers un filtre de catégorie.
+    if (insp.isPartnerCard) {
+      _openInspirationFiche(insp);
+      return;
+    }
     final theme = insp.theme.trim();
     if (theme.isNotEmpty) {
       final match = cfg.chips.where(
@@ -683,6 +713,22 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
       }
     }
     if (insp.siteUrl.trim().isNotEmpty) {
+      _openLink(insp.siteUrl);
+    }
+  }
+
+  /// Ouvre la fiche de l'établissement rattaché à une carte Inspirations.
+  /// On relit la fiche par (source_table, source_id) : la carte ne porte que
+  /// le lien, pas les données du commerce.
+  Future<void> _openInspirationFiche(Inspiration insp) async {
+    final commerce = await fetchCommerceBySource(
+      insp.sourceTable!,
+      insp.sourceId!,
+    );
+    if (!mounted) return;
+    if (commerce != null) {
+      CommerceRowCard.showDetailSheet(context, commerce);
+    } else if (insp.siteUrl.trim().isNotEmpty) {
       _openLink(insp.siteUrl);
     }
   }
@@ -762,17 +808,37 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
   Widget _hero(RubriqueConfig cfg) {
     final t = cfg.theme;
     final topPad = MediaQuery.of(context).padding.top;
+    // Priorité aux partenaires Premium de la rubrique : leur vidéo (ou, à
+    // défaut, leur photo — ils ont payé la place, ils l'occupent). `mode_banners`
+    // n'est plus que le repli quand aucun Premium n'a de média ici.
+    final pool = ref.watch(premiumBannerPoolProvider(cfg.rubriqueKey)).asData?.value
+        ?? const <PremiumBannerSlot>[];
+    final slot = slotAt(pool, ref.watch(bannerCursorProvider));
+
     final bannerAsync = ref.watch(modeBannerVideoProvider);
     final banner = bannerAsync.asData?.value;
-    if (banner != null && _videoUrl != banner.videoUrl) {
+
+    // Vidéo à jouer : celle du Premium courant, sinon celle de la ville.
+    final wantedVideo = slot?.videoUrl.isNotEmpty == true
+        ? slot!.videoUrl
+        : (slot == null ? banner?.videoUrl : null);
+    if (wantedVideo != null && _videoUrl != wantedVideo) {
       _disposeVideo();
-      _initVideo(banner.videoUrl);
+      _initVideo(wantedVideo);
     }
+
+    // `ready` exige que la vidéo chargée soit bien celle du slot courant.
+    // Sans ce garde-fou, un slot photo réutilisait le contrôleur du slot
+    // vidéo précédent.
     final c = _video;
     final ready = c != null &&
+        wantedVideo != null &&
+        _videoUrl == wantedVideo &&
         c.value.isInitialized &&
         !_videoError &&
         c.value.size.width > 0;
+    // Photo de repli du Premium sans vidéo.
+    final slotPhoto = (slot != null && !slot.hasVideo) ? slot.photoUrl : '';
 
     return SizedBox(
       height: 260,
@@ -781,12 +847,33 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
         fit: StackFit.expand,
         children: [
           if (ready)
-            FittedBox(
+            // ClipRect indispensable : FittedBox ne découpe pas
+            // (clipBehavior = Clip.none). Une vidéo portrait mise en
+            // BoxFit.cover sur une bannière large déborde sinon en hauteur.
+            ClipRect(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: c.value.size.width,
+                  height: c.value.size.height,
+                  child: VideoPlayer(c),
+                ),
+              ),
+            )
+          else if (slotPhoto.isNotEmpty)
+            // Premium sans vidéo : sa photo occupe la place qu'il a payée.
+            Image.network(
+              // PNG de 400-500 ko à l'origine : servi en webp redimensionné.
+              optimizedImageUrl(slotPhoto, width: 900),
               fit: BoxFit.cover,
-              child: SizedBox(
-                width: c.value.size.width,
-                height: c.value.size.height,
-                child: VideoPlayer(c),
+              errorBuilder: (_, __, ___) => DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [t.accent, t.accent2],
+                  ),
+                ),
               ),
             )
           else
@@ -836,6 +923,58 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
               ),
             ),
           ),
+          // Identification du partenaire : c'est ce qui relie la vidéo à
+          // l'établissement. Tap → sa fiche.
+          if (slot != null)
+            Positioned(
+              top: topPad + 10,
+              right: 18,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () =>
+                    CommerceRowCard.showDetailSheet(context, slot.commerce),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(RubriqueTheme.rPill),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 11, vertical: 6),
+                      constraints: const BoxConstraints(maxWidth: 230),
+                      decoration: BoxDecoration(
+                        color: const Color(0xC70B1410),
+                        borderRadius:
+                            BorderRadius.circular(RubriqueTheme.rPill),
+                        border: Border.all(
+                            color: const Color(0xFFC79A3E)
+                                .withValues(alpha: 0.55),
+                            width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded,
+                              size: 13, color: Color(0xFFC79A3E)),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              slot.nom,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             top: topPad + 8,
             left: 18,
@@ -898,12 +1037,18 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    if (banner?.linkUrl != null)
+                    // Le CTA ouvre le site du Premium affiché ; à défaut le
+                    // lien générique de la ville. Masqué si ni l'un ni l'autre.
+                    if ((slot?.siteUrl.isNotEmpty ?? false) ||
+                        banner?.linkUrl != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () => _openLink(banner!.linkUrl!),
+                          onTap: () => _openLink(
+                              (slot?.siteUrl.isNotEmpty ?? false)
+                                  ? slot!.siteUrl
+                                  : banner!.linkUrl!),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(
                                 RubriqueTheme.rPill),
@@ -1144,16 +1289,42 @@ class _RubriqueInspirationCard extends StatelessWidget {
           children: [
             SizedBox(
               height: 62,
-              child: data.photoUrl.trim().isEmpty
-                  ? DecoratedBox(decoration: BoxDecoration(gradient: gradient))
-                  : CachedNetworkImage(
-                      imageUrl: data.photoUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => DecoratedBox(
-                          decoration: BoxDecoration(gradient: gradient)),
-                      errorWidget: (_, __, ___) => DecoratedBox(
-                          decoration: BoxDecoration(gradient: gradient)),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  data.photoUrl.trim().isEmpty
+                      ? DecoratedBox(decoration: BoxDecoration(gradient: gradient))
+                      : CachedNetworkImage(
+                          // Vignette de 124x62 : 300 px suffit, en webp.
+                          imageUrl: optimizedImageUrl(data.photoUrl, width: 300),
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => DecoratedBox(
+                              decoration: BoxDecoration(gradient: gradient)),
+                          errorWidget: (_, __, ___) => DecoratedBox(
+                              decoration: BoxDecoration(gradient: gradient)),
+                        ),
+                  // Carte vendue à un partenaire : marqueur doré discret, pour
+                  // que l'éditorial et le sponsorisé restent distinguables.
+                  if (data.isPartnerCard)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xC70B1410),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: const Color(0xFFC79A3E)
+                                  .withValues(alpha: 0.7),
+                              width: 0.8),
+                        ),
+                        child: const Icon(Icons.star_rounded,
+                            size: 10, color: Color(0xFFC79A3E)),
+                      ),
                     ),
+                ],
+              ),
             ),
             Expanded(
               child: Padding(

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Gere la sous-categorie selectionnee pour chaque mode (day, sport, culture, …).
 /// Pas de persistence : on repart toujours de la grille au demarrage.
@@ -7,6 +8,16 @@ class ModeSubcategoriesNotifier extends StateNotifier<Map<String, String?>> {
 
   void select(String mode, String? subcategory) {
     state = {...state, mode: subcategory};
+    // Ici et pas dans les écrans : la navigation par sous-rubrique est
+    // state-based (aucun Navigator.push), donc un observer de routeur ne
+    // verrait rien. `select` est le point de passage obligé des ~40 appelants.
+    // Format aligné sur les routes pour que la déduplication fonctionne avec
+    // le signalement du routeur (un retour émet `/mode/food` des deux côtés).
+    AnalyticsService.logScreenView(
+      subcategory == null || subcategory.isEmpty
+          ? '/mode/$mode'
+          : '/mode/$mode/$subcategory',
+    );
   }
 }
 

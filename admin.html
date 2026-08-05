@@ -235,14 +235,16 @@
     }
     .logout:hover { color: var(--magenta); }
 
-    /* ─── Top toolbar (logout left, nav right) ─── */
+    /* ─── Top toolbar (logout centré tout en haut, nav en dessous) ─── */
     .top-toolbar {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 12px;
       margin-bottom: 16px;
     }
+    /* align-self plutôt que align-items:center sur le parent : la grille de
+       navigation garde ainsi sa largeur pleine et son alignement à droite. */
+    .top-toolbar .logout { align-self: center; }
     .top-toolbar .nav-btn {
       display: inline-flex;
       align-items: center;
@@ -1009,18 +1011,36 @@
 
     <!-- ═══ FORMULAIRE EVENT ═══ -->
     <div id="admin-area">
-      <!-- ═══ Top toolbar : logout (gauche) + nav (droite) ═══ -->
+      <!-- ═══ Logo MaCity ═══
+           Servi depuis le storage public (branding/macity_logo.png), la même
+           source que les e-mails transactionnels — un seul fichier à changer
+           le jour d'une refonte. Rayon de 22 % : proportion d'une icône d'app. -->
+      <div style="display:flex; justify-content:center; padding:14px 0 26px;">
+        <img src="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/branding/macity_logo_v2.png"
+             alt="MaCity"
+             width="132" height="132"
+             style="width:132px; height:132px; border-radius:29px; display:block;
+                    box-shadow:0 10px 30px -8px rgba(233,30,99,.45), 0 0 0 1px rgba(255,255,255,.08);"
+             onerror="this.style.display='none'" />
+      </div>
+
+      <!-- ═══ Top toolbar : logout (centré, tout en haut) + nav (dessous) ═══ -->
       <div class="top-toolbar">
         <span class="logout" id="logout-btn" style="margin-bottom: 0;">← Se déconnecter</span>
-        <div style="display:grid; grid-template-columns:repeat(4, max-content); gap:8px; justify-content:end;">
+        <div style="display:grid; grid-template-columns:repeat(4, max-content); gap:8px; justify-content:center;">
           <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
+          <span class="nav-btn" id="goto-eventedit-btn">✏️ Éditer un event</span>
           <span class="nav-btn" id="goto-venues-btn">🏢 Établissements</span>
           <span class="nav-btn" id="goto-family-btn">👨‍👩‍👧 Lieux Famille</span>
           <span class="nav-btn" id="goto-evasion-btn">🏰 Évasion</span>
           <span class="nav-btn" id="goto-fakestory-btn">📸 Fausses stories</span>
           <span class="nav-btn" id="goto-banners-btn">🎬 Bannières</span>
-          <span class="nav-btn" id="goto-inspirations-btn">🌟 Inspirations</span>
+          <!-- Onglet retiré 2026-07-28 : le carrousel « Inspirations » de l'app
+               n'affiche plus que les partenaires Gold, générés depuis leur fiche.
+               La table `inspirations` et tout le code ci-dessous restent en place
+               (le JS les lit au chargement) — seul l'accès est masqué. -->
+          <span class="nav-btn" id="goto-inspirations-btn" style="display:none;">🌟 Inspirations</span>
           <span class="nav-btn" id="goto-sportnews-btn">📰 Actu sport</span>
           <span class="nav-btn" id="goto-chains-btn">🏋️ Chaînes fitness</span>
           <span class="nav-btn" id="goto-notifs-btn">🔔 Notifications push</span>
@@ -1037,6 +1057,8 @@
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-gifts-btn">🎁 Cadeaux</span>
           <span class="nav-btn" id="goto-citymedia-btn">📰 Médias ville</span>
+          <span class="nav-btn" id="goto-subs-btn">💳 Abonnements</span>
+          <span class="nav-btn" id="goto-clients-btn">🧾 Clients</span>
         </div>
       </div>
 
@@ -1449,11 +1471,32 @@
       <!-- ═══ VUE GRILLE "MES EVENTS" ═══ -->
       <div id="events-view" class="hidden">
         <h1>📋 Mes events <span id="history-count" style="color: var(--text-faint); font-weight: 400; font-size: 16px;"></span></h1>
-        <p class="subtitle">Triés par date, les plus proches en haut. Clique sur ✏️ pour modifier ou 🗑️ pour supprimer.</p>
+        <p class="subtitle">Events <b>à venir</b> d'une ville : tes events manuels + ceux des users (les scrapers auto ne sont pas listés ici). Triés par date. ✏️ pour éditer (photo/vidéo/champs), 🗑️ pour supprimer un des tiens.</p>
+        <div class="banner-card" style="margin-bottom:14px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <select id="history-city" class="banner-input" style="flex:1; min-width:220px; margin:0;"></select>
+            <button class="banner-save-btn" id="history-city-btn">🔍 Charger</button>
+          </div>
+        </div>
         <div id="history-list"></div>
         <div id="history-empty" class="events-empty hidden">
-          Aucun event créé pour l'instant — clique sur « + Nouveau » pour en ajouter un.
+          Aucun event <b>à venir</b> pour cette ville (tes events manuels + ceux des users). Essaie une autre ville ou clique sur « + Nouveau ».
         </div>
+      </div>
+
+      <!-- ═══ VUE "ÉDITER UN EVENT" (user_events + scraped_events) ═══ -->
+      <div id="eventedit-view" class="hidden">
+        <h1>✏️ Éditer un event</h1>
+        <p class="subtitle">Cherche un event par titre (créé par un user OU par un scraper), édite ses champs, remplace la photo ou la vidéo.</p>
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="eventedit-search" class="banner-input" placeholder="Titre de l'event…" style="flex:1; min-width:240px; margin:0;" />
+            <button class="banner-save-btn" id="eventedit-search-btn">🔍 Chercher</button>
+          </div>
+        </div>
+        <div id="eventedit-loading" class="hidden" style="padding:16px; color:var(--text-faint);">Recherche…</div>
+        <div id="eventedit-results"></div>
+        <div id="eventedit-form"></div>
       </div>
 
       <!-- ═══ VUE "ETABLISSEMENTS PAR VILLE" ═══ -->
@@ -2043,6 +2086,244 @@
         </div>
       </div>
 
+      <!-- ═══ VUE "ABONNEMENTS" (venue_subscriptions) ═══ -->
+      <div id="subs-view" class="hidden">
+        <h1>💳 Abonnements</h1>
+        <p class="subtitle">Affecte une formule à un établissement et suis les prélèvements. Un abonnement <strong>actif</strong> allume le badge Partenaire du lieu. <strong>Gold</strong> et <strong>Premium</strong> appliquent en plus le palier au compte pro rattaché — ses events remontent « au top » / « à la une ». <strong>Classique</strong> ne touche pas au classement des events.</p>
+
+        <div id="subs-kpis" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin:16px 0 22px;"></div>
+
+        <!-- ─── Filtres : rubrique + ville + nom ─── -->
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+            <button type="button" class="rub-pill active" data-subrub="">Tous</button>
+            <button type="button" class="rub-pill" data-subrub="food">🍴 Food</button>
+            <button type="button" class="rub-pill" data-subrub="nuit">🌙 Night</button>
+            <button type="button" class="rub-pill" data-subrub="famille">👨‍👩‍👧 Famille</button>
+            <button type="button" class="rub-pill" data-subrub="culture">🎭 Culture</button>
+            <button type="button" class="rub-pill" data-subrub="sport">⚽ Sport</button>
+            <button type="button" class="rub-pill" data-subrub="evasion">🏰 Évasion</button>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="subs-city-filter" class="banner-input" list="cities-datalist"
+              placeholder="Filtrer par ville (ex : Toulouse)" autocomplete="off"
+              style="flex:1; min-width:200px; margin:0;" />
+            <input type="text" id="subs-name-filter" class="banner-input"
+              placeholder="…ou par nom d'établissement" autocomplete="off"
+              style="flex:1; min-width:200px; margin:0;" />
+            <button type="button" class="rub-pill" id="subs-only-subscribed">✅ Abonnés seulement</button>
+          </div>
+          <div style="margin-top:10px;">
+            <button type="button" class="rub-pill" id="subs-toggle-breakdown">📊 Vue par ville</button>
+          </div>
+          <div id="subs-filter-hint" style="font-size:11px; color:var(--text-faint); margin-top:8px;"></div>
+        </div>
+
+        <!-- Répartition Premium / Gold / Classique sur les 41 villes hub.
+             Repliée par défaut, dépliée par le bouton « 📊 Vue par ville ». -->
+        <div id="subs-tier-breakdown" class="hidden" style="margin-bottom:16px;"></div>
+
+        <div id="subs-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="subs-groups"></div>
+
+        <!-- ─── Éditeur d'abonnement (rempli au clic sur un lieu) ─── -->
+        <div id="subs-editor" class="banner-card hidden" style="margin-top:20px; max-width:640px;">
+          <div id="subs-editor-title" style="font-size:15px; font-weight:700; margin-bottom:4px;"></div>
+          <div id="subs-editor-sub" style="font-size:12px; color:var(--text-dim); margin-bottom:14px;"></div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Formule</label>
+              <select id="subs-f-tier" class="banner-input" style="width:100%; margin:0;">
+                <option value="classique">🔹 Classique — badge Partenaire</option>
+                <option value="gold">🥇 Gold — events au top</option>
+                <option value="premium">💎 Premium — events à la une</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Montant <strong>HT</strong> (€)</label>
+              <input type="number" id="subs-f-amount" class="banner-input" min="0" step="0.01" style="width:100%; margin:0;" />
+              <div id="subs-f-ttc" style="font-size:11px; color:var(--text-faint); margin-top:4px;"></div>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Période</label>
+              <select id="subs-f-period" class="banner-input" style="width:100%; margin:0;">
+                <option value="mensuel">Mensuel</option>
+                <option value="annuel">Annuel</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Début</label>
+              <input type="date" id="subs-f-start" class="banner-input" style="width:100%; margin:0;" />
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Fin d'engagement <span style="opacity:.6">— vide = tacite</span></label>
+              <input type="date" id="subs-f-end" class="banner-input" style="width:100%; margin:0;" />
+            </div>
+            <div>
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Notes</label>
+              <input type="text" id="subs-f-notes" class="banner-input" placeholder="Remise, contact…" style="width:100%; margin:0;" />
+            </div>
+            <div style="grid-column:1/-1;">
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">🧾 Client qui paie <span style="opacity:.6">— coordonnées et IBAN dans l'onglet Clients</span></label>
+              <select id="subs-f-client" class="banner-input" style="width:100%; margin:0;"></select>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+            <button type="button" class="act act-success" id="subs-save-btn">💾 Enregistrer l'abonnement</button>
+            <button type="button" class="banner-save-btn" id="subs-pay-btn">💰 Encaisser</button>
+            <button type="button" class="banner-save-btn" id="subs-cancel-btn" style="background:#7f1d1d;">🚫 Résilier</button>
+            <button type="button" class="banner-save-btn" id="subs-stripe-btn" disabled
+              title="Prélèvement automatique Stripe — pas encore déployé"
+              style="opacity:.45; cursor:not-allowed;">💳 Créer l'abonnement Stripe</button>
+            <button type="button" class="banner-save-btn" id="subs-close-btn" style="background:transparent; border:1px solid var(--line);">Fermer</button>
+          </div>
+
+          <div id="subs-payments" style="margin-top:18px;"></div>
+        </div>
+
+        <!-- ─── Grille tarifaire ─── -->
+        <details style="margin-top:28px;">
+          <summary style="cursor:pointer; font-size:15px; font-weight:700;">⚙️ Formules &amp; tarifs de référence</summary>
+          <p class="subtitle" style="margin-top:8px;">Sert à pré-remplir le montant du formulaire. Modifier un tarif ici <strong>ne change pas</strong> les abonnements déjà en cours — leur montant est figé à la souscription.</p>
+          <div id="subs-prices" style="overflow-x:auto;"></div>
+        </details>
+      </div>
+
+      <!-- ═══ VUE "CLIENTS" (partner_clients) ═══ -->
+      <div id="clients-view" class="hidden">
+        <h1>🧾 Clients</h1>
+        <p class="subtitle">L'entité juridique qui paie, distincte de l'établissement — un même client peut détenir plusieurs abonnements. Coordonnées de facturation, interlocuteur, moyen de règlement et mandat SEPA.</p>
+
+        <div id="clients-outbox" class="hidden" style="margin:16px 0 0;"></div>
+        <div id="clients-kpis" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin:16px 0 20px;"></div>
+
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="clients-search" class="banner-input" placeholder="Chercher par raison sociale, enseigne, contact…" autocomplete="off" style="flex:1; min-width:240px; margin:0;" />
+            <select id="clients-statut-filter" class="banner-input" style="max-width:180px; margin:0;">
+              <option value="">Tous les statuts</option>
+              <option value="prospect">Prospect</option>
+              <option value="actif">Actif</option>
+              <option value="suspendu">Suspendu</option>
+              <option value="perdu">Perdu</option>
+            </select>
+            <button type="button" class="act act-success" id="clients-new-btn">+ Nouveau client</button>
+          </div>
+        </div>
+
+        <div id="clients-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="clients-list" style="overflow-x:auto;"></div>
+
+        <!-- Toutes les offres, rattachées ou non. Celles créées avant la
+             colonne client_id n'apparaissaient nulle part. -->
+        <h2 style="font-size:18px; margin:30px 0 4px;">🎁 Toutes les offres</h2>
+        <p class="subtitle" style="margin-top:0;">Ce que les commerçants offrent aux utilisateurs. Une offre sans client rattaché fonctionne, mais tu ne sauras pas qui la finance.</p>
+        <div id="offers-all" style="overflow-x:auto;"></div>
+
+        <!-- ─── Fiche client ─── -->
+        <div id="client-form" class="banner-card hidden" style="margin-top:20px; max-width:900px;">
+          <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+            <div id="client-form-title" style="font-size:16px; font-weight:800;"></div>
+            <span id="client-form-id" style="font-size:11px; color:var(--text-faint);"></span>
+          </div>
+          <input type="hidden" data-cf="id" />
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:4px 0 8px;">Identité juridique</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Raison sociale *
+              <input type="text" data-cf="raison_sociale" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Enseigne <span style="opacity:.6">(nom commercial)</span>
+              <input type="text" data-cf="enseigne" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Forme juridique
+              <input type="text" data-cf="forme_juridique" class="banner-input" placeholder="SARL, SAS, EI…" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">SIRET <span style="opacity:.6">(14 chiffres)</span>
+              <input type="text" data-cf="siret" class="banner-input" inputmode="numeric" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">TVA intracommunautaire
+              <input type="text" data-cf="tva_intracom" class="banner-input" placeholder="FR…" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">RCS (ville)
+              <input type="text" data-cf="rcs_ville" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Adresse de facturation</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim); grid-column:1/-1;">Adresse
+              <input type="text" data-cf="adresse" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Code postal
+              <input type="text" data-cf="code_postal" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Ville
+              <input type="text" data-cf="ville" class="banner-input" list="cities-datalist" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Pays
+              <input type="text" data-cf="pays" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Interlocuteur</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Prénom
+              <input type="text" data-cf="contact_prenom" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Nom
+              <input type="text" data-cf="contact_nom" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Fonction
+              <input type="text" data-cf="contact_fonction" class="banner-input" placeholder="Gérant, responsable com…" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">E-mail
+              <input type="email" data-cf="contact_email" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Téléphone
+              <input type="tel" data-cf="contact_tel" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">E-mail de facturation <span style="opacity:.6">si différent</span>
+              <input type="email" data-cf="email_facturation" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Règlement</div>
+          <div style="font-size:11px; color:#f59e0b; margin-bottom:8px;">
+            ⚠️ Coordonnées bancaires : la table est fermée à tout rôle sauf <code>service_role</code>, l'accès passe uniquement par les RPC admin. Ne jamais y ajouter de policy de lecture.
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Moyen de paiement
+              <select data-cf="moyen_paiement" class="banner-input" style="width:100%; margin:4px 0 0;">
+                <option value="virement">Virement</option>
+                <option value="prelevement_sepa">Prélèvement SEPA</option>
+                <option value="carte">Carte bancaire</option>
+                <option value="cheque">Chèque</option>
+                <option value="especes">Espèces</option>
+              </select></label>
+            <label style="font-size:12px; color:var(--text-dim);">Titulaire du compte
+              <input type="text" data-cf="titulaire_compte" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim); grid-column:1/-1;">IBAN
+              <input type="text" data-cf="iban" class="banner-input" placeholder="FR76 3000 6000 0112 3456 7890 189" style="width:100%; margin:4px 0 0; font-variant-numeric:tabular-nums;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">BIC
+              <input type="text" data-cf="bic" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Référence de mandat
+              <input type="text" data-cf="mandat_ref" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim);">Mandat signé le
+              <input type="date" data-cf="mandat_signe_le" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="font-size:12px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px;">Suivi</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:12px;">
+            <label style="font-size:12px; color:var(--text-dim);">Statut
+              <select data-cf="statut" class="banner-input" style="width:100%; margin:4px 0 0;">
+                <option value="prospect">Prospect</option>
+                <option value="actif">Actif</option>
+                <option value="suspendu">Suspendu</option>
+                <option value="perdu">Perdu</option>
+              </select></label>
+            <label style="font-size:12px; color:var(--text-dim);">Client depuis
+              <input type="date" data-cf="entre_le" class="banner-input" style="width:100%; margin:4px 0 0;" /></label>
+            <label style="font-size:12px; color:var(--text-dim); grid-column:1/-1;">Notes
+              <input type="text" data-cf="notes" class="banner-input" placeholder="Historique, remise négociée, contact préféré…" style="width:100%; margin:4px 0 0;" /></label>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px;">
+            <button type="button" class="act act-success" id="client-save-btn">💾 Enregistrer</button>
+            <button type="button" class="banner-save-btn" id="client-delete-btn" style="background:#7f1d1d;">🗑 Supprimer</button>
+            <button type="button" class="banner-save-btn" id="client-close-btn" style="background:transparent; border:1px solid var(--line);">Fermer</button>
+          </div>
+
+          <div id="client-subs" style="margin-top:22px;"></div>
+        </div>
+      </div>
+
       <!-- ═══ VUE DURÉE STORIES (TTL) ═══ -->
       <div id="storyttl-view" class="hidden">
         <h1>⏱️ Durée des stories</h1>
@@ -2243,6 +2524,40 @@
             <div id="userstats-daily"></div>
           </div>
 
+          <!-- Téléchargements Play Store / App Store -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
+            <h2 style="font-size:15px; margin:0 0 4px;">📲 Téléchargements</h2>
+            <p class="subtitle" style="margin:0 0 12px;">
+              Cumul depuis le lancement. Ni Firebase ni Meta ne mesurent les téléchargements : les chiffres viennent
+              de la <strong>Play Console</strong> (Acquisition d'utilisateurs) et d'<strong>App Store Connect</strong> (App Analytics, métrique Unités).
+            </p>
+            <div id="installs-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px; margin-bottom:12px;">
+              <div style="color:var(--text-dim); font-size:12px;">Chargement…</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding-top:10px; border-top:1px solid var(--line);">
+              <input type="date" id="inst-jour" class="banner-input" style="width:150px; margin:0;" />
+              <select id="inst-platform" class="banner-input" style="width:130px; margin:0;">
+                <option value="android">🤖 Android</option>
+                <option value="ios">🍎 iOS</option>
+              </select>
+              <input type="number" id="inst-nb" class="banner-input" placeholder="Nombre" min="0" style="width:110px; margin:0;" />
+              <button type="button" class="act act-success" id="inst-save-btn">Enregistrer</button>
+              <span style="font-size:11px; color:var(--text-faint);">
+                Pour amorcer : saisis le total actuel de chaque store, daté du jour du lancement. Ensuite, un chiffre par jour.
+              </span>
+            </div>
+          </div>
+
+          <!-- City-Miles : qui publie des stories et qui approche du cadeau -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
+            <h2 style="font-size:15px; margin:0 0 4px;">🏅 City-Miles : proches du cadeau</h2>
+            <p class="subtitle" style="margin:0 0 12px;">
+              Contributeurs de stories, les plus proches du palier en premier. Le comptage est celui de l'app :
+              story publiée, non privée. Seuil courant modifiable dans <code>app_config.story_reward_threshold</code>.
+            </p>
+            <div id="userstats-miles">Chargement…</div>
+          </div>
+
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:22px;">
             <div>
               <h2 style="font-size:15px; margin:0 0 10px;">🏙️ Par ville</h2>
@@ -2440,6 +2755,17 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal éditeur d'event (réutilisée par « Mes events » + « Éditer un event ») -->
+  <div id="eventedit-modal" style="display:none; position:fixed; inset:0; z-index:9500; background:rgba(0,0,0,0.75); overflow:auto; padding:20px;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="max-width:760px; margin:16px auto; background:var(--bg, #12121a); border:1px solid var(--line, #333); border-radius:16px; padding:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong style="font-size:15px;">✏️ Éditer l'event</strong>
+        <button id="eventedit-modal-close" class="gen-btn">✕ Fermer</button>
+      </div>
+      <div id="eventedit-modal-body"></div>
     </div>
   </div>
 
@@ -3487,6 +3813,12 @@
     const gotoCitymediaBtn = document.getElementById("goto-citymedia-btn");
     const mediakitView = document.getElementById("mediakit-view");
     const gotoMediakitBtn = document.getElementById("goto-mediakit-btn");
+    const eventeditView = document.getElementById("eventedit-view");
+    const gotoEventeditBtn = document.getElementById("goto-eventedit-btn");
+    const subsView = document.getElementById("subs-view");
+    const gotoSubsBtn = document.getElementById("goto-subs-btn");
+    const clientsView = document.getElementById("clients-view");
+    const gotoClientsBtn = document.getElementById("goto-clients-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -3513,13 +3845,16 @@
       giftsView.classList.add("hidden");
       citymediaView.classList.add("hidden");
       mediakitView.classList.add("hidden");
+      eventeditView.classList.add("hidden");
+      subsView.classList.add("hidden");
+      clientsView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
       gotoBannersBtn.style.display = "inline-flex";
       gotoEvasionBtn.style.display = "inline-flex";
       gotoFakestoryBtn.style.display = "inline-flex";
-      gotoInspirationsBtn.style.display = "inline-flex";
+      // Volontairement pas de re-affichage : onglet retiré (voir le bouton).
       gotoSportnewsBtn.style.display = "inline-flex";
       gotoProsBtn.style.display = "inline-flex";
       gotoModerationBtn.style.display = "inline-flex";
@@ -3537,6 +3872,9 @@
       gotoGiftsBtn.style.display = "inline-flex";
       gotoCitymediaBtn.style.display = "inline-flex";
       gotoMediakitBtn.style.display = "inline-flex";
+      gotoEventeditBtn.style.display = "inline-flex";
+      gotoSubsBtn.style.display = "inline-flex";
+      gotoClientsBtn.style.display = "inline-flex";
       // Retire la surbrillance de tous les onglets (le bouton actif sera
       // re-surligne par la fonction showXView appelante).
       document
@@ -3712,6 +4050,29 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoMediakitBtn.addEventListener("click", showMediakitView);
+    function showEventeditView() {
+      _hideAllViews();
+      eventeditView.classList.remove("hidden");
+      gotoEventeditBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoEventeditBtn.addEventListener("click", showEventeditView);
+    function showSubsView() {
+      _hideAllViews();
+      subsView.classList.remove("hidden");
+      gotoSubsBtn.classList.add("active");
+      refreshSubsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoSubsBtn.addEventListener("click", showSubsView);
+    function showClientsView() {
+      _hideAllViews();
+      clientsView.classList.remove("hidden");
+      gotoClientsBtn.classList.add("active");
+      refreshClientsView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoClientsBtn.addEventListener("click", showClientsView);
     function showSysmonView() {
       _hideAllViews();
       sysmonView.classList.remove("hidden");
@@ -4754,6 +5115,1291 @@
     const appversionsLoading = document.getElementById("appversions-loading");
     const appversionsCards = document.getElementById("appversions-cards");
 
+    // ─── Onglet Abonnements (venue_subscriptions) ───────────────────────────
+    // Le passage au prélèvement Stripe récurrent se fait en basculant ce flag,
+    // une fois l'edge function create-subscription-checkout déployée.
+    const SUBS_STRIPE_ENABLED = false;
+
+    const SUBS_GROUPS = [
+      { key: "food",    label: "🍴 Food" },
+      { key: "nuit",    label: "🌙 Night" },
+      { key: "culture", label: "🎭 Culture" },
+      { key: "sport",   label: "⚽ Sport" },
+      { key: "famille", label: "👨‍👩‍👧 Famille" },
+      { key: "evasion", label: "🏰 Évasion" },
+    ];
+    const SUBS_TIER_META = {
+      classique: { label: "🔹 Classique", color: "#38BDF8" },
+      gold:      { label: "🥇 Gold",      color: "#C79A3E" },
+      premium:   { label: "💎 Premium",   color: "#8E24AA" },
+    };
+    const SUBS_STATUS_META = {
+      active:    { label: "Actif",   color: "#16a34a" },
+      past_due:  { label: "Impayé",  color: "#f59e0b" },
+      cancelled: { label: "Résilié", color: "#6b7280" },
+    };
+
+    // Abonnements indexés par "table#id", pour recoller avec unifiedFiches().
+    let _subsByKey = new Map();
+    let _subsPrices = [];
+    let _subsRubFilter = "";
+    // false par defaut : le geste principal de l'onglet est « je filtre une
+    // ville / une rubrique et j'abonne », pas « je relis mon portefeuille ».
+    // Les KPI en haut restent calcules sur TOUS les abonnements, donc la vue
+    // d'ensemble n'est jamais perdue quand on filtre.
+    let _subsOnlySubscribed = false;
+    let _subsCurrent = null;   // { source, id, name, ville, rubrique, sub }
+    /// Vue par ville : repliée par défaut, 41 lignes prennent de la place.
+    let _subsShowBreakdown = false;
+
+    // Tous les montants stockés sont HORS TAXES ; le TTC (ce que Stripe
+    // prélève réellement) est dérivé du taux figé sur chaque abonnement.
+    const SUBS_DEFAULT_VAT_BPS = 2000;   // 20,00 %
+    const subsTtc = (cents, bps) => Math.round(Number(cents || 0) * (1 + (bps ?? SUBS_DEFAULT_VAT_BPS) / 10000));
+
+    const subsKey = (source, id) => `${source}#${id}`;
+    const subsEuros = (cents) => (Number(cents || 0) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+    // Ramène tout au mois pour que le MRR reste comparable entre formules.
+    const subsMonthly = (s) => s.billing_period === "annuel" ? Math.round(s.amount_cents / 12) : s.amount_cents;
+
+    const subsLoading   = document.getElementById("subs-loading");
+    const subsGroupsEl  = document.getElementById("subs-groups");
+    const subsKpisEl    = document.getElementById("subs-kpis");
+    const subsEditor    = document.getElementById("subs-editor");
+    const subsCityInput = document.getElementById("subs-city-filter");
+    const subsNameInput = document.getElementById("subs-name-filter");
+    const subsHint      = document.getElementById("subs-filter-hint");
+
+    async function refreshSubsView() {
+      subsLoading.classList.remove("hidden");
+      subsGroupsEl.innerHTML = "";
+      try {
+        // _allEvasion n'est peuplé qu'à l'ouverture de l'onglet Évasion : sans
+        // ça les domaines seraient absents du sélecteur.
+        if (_allEvasion.length === 0) await refreshEvasionView();
+        const [subsRes, pricesRes] = await Promise.all([
+          supabase.rpc("admin_list_venue_subscriptions"),
+          supabase.rpc("admin_get_subscription_prices"),
+        ]);
+        if (subsRes.error) throw subsRes.error;
+        if (pricesRes.error) throw pricesRes.error;
+
+        _subsByKey = new Map((subsRes.data || []).map(s => [subsKey(s.source_table, s.source_id), s]));
+        _subsPrices = pricesRes.data || [];
+        renderSubsKpis();
+        renderSubsPrices();
+        renderSubsGroups();
+      } catch (e) {
+        console.error("[Abonnements] load failed", e);
+        subsGroupsEl.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur chargement : ${escapeHtml(e.message)}</div>`;
+      } finally {
+        subsLoading.classList.add("hidden");
+      }
+    }
+
+    function renderSubsKpis() {
+      const all = [..._subsByKey.values()];
+      const active = all.filter(s => s.status === "active");
+      const late = all.filter(s => s.status === "past_due");
+      const mrr = active.reduce((n, s) => n + subsMonthly(s), 0);
+      const encaisse = all.reduce((n, s) => n + Number(s.paid_total_cents || 0), 0);
+      const card = (label, value, color) => `
+        <div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px;">${label}</div>
+          <div style="font-size:22px; font-weight:800; margin-top:4px; color:${color};">${value}</div>
+        </div>`;
+      const mrrTtc = active.reduce((n, s) => n + subsTtc(subsMonthly(s), s.vat_rate_bps), 0);
+      subsKpisEl.innerHTML =
+        card("MRR (HT)", subsEuros(mrr), "#16a34a") +
+        card("Prélevé / mois (TTC)", subsEuros(mrrTtc), "var(--text-dim)") +
+        card("Abonnés actifs", active.length, "var(--text)") +
+        card("Impayés", late.length, late.length ? "#f59e0b" : "var(--text-dim)") +
+        card("Encaissé HT (total)", subsEuros(encaisse), "var(--text)");
+    }
+
+    function renderSubsPrices() {
+      const rows = _subsPrices.map(p => `
+        <tr>
+          <td style="padding:8px 10px;">${SUBS_TIER_META[p.tier]?.label || escapeHtml(p.tier)}</td>
+          <td style="padding:8px 10px; color:var(--text-dim); font-size:12px;">${escapeHtml(p.description || "")}</td>
+          <td style="padding:8px 10px;">
+            <input type="number" min="0" step="0.01" value="${(p.amount_cents / 100).toFixed(2)}"
+              data-price-tier="${escapeHtml(p.tier)}" class="banner-input"
+              style="width:110px; margin:0; padding:6px 8px;" /> € <strong>HT</strong> / mois
+            <span style="color:var(--text-faint); font-size:11px;">(${subsEuros(subsTtc(p.amount_cents, SUBS_DEFAULT_VAT_BPS))} TTC)</span>
+          </td>
+          <td style="padding:8px 10px;">
+            <button type="button" class="act act-success" data-price-save="${escapeHtml(p.tier)}">💾</button>
+          </td>
+        </tr>`).join("");
+      document.getElementById("subs-prices").innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;">
+          <thead><tr style="color:var(--text-dim); font-size:11px; text-transform:uppercase;">
+            <th style="text-align:left; padding:6px 10px;">Formule</th>
+            <th style="text-align:left; padding:6px 10px;">Description</th>
+            <th style="text-align:left; padding:6px 10px;">Tarif de référence (HT)</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    // Liste unifiée des fiches, filtrée puis regroupée par rubrique.
+    function subsFilteredFiches() {
+      const city = normalizeCity(subsCityInput.value);
+      const name = (subsNameInput.value || "").trim().toLowerCase();
+      return unifiedFiches().filter(f => {
+        if (!f.name) return false;
+        const sub = _subsByKey.get(subsKey(f.source, f.id));
+        if (_subsOnlySubscribed && !sub) return false;
+        if (_subsRubFilter && f.rubrique !== _subsRubFilter) return false;
+        if (city && normalizeCity(f.ville) !== city) return false;
+        if (name && !f.name.toLowerCase().includes(name)) return false;
+        return true;
+      });
+    }
+
+    // Les 41 villes hub — reprises telles quelles de `city_coordinates.dart`
+    // et `city_search_provider.dart` (listes identiques, vérifié 2026-07-29).
+    // C'est le référentiel commercial : sans lui le tableau listait les 66
+    // valeurs distinctes de `ville` présentes en base, communes de banlieue et
+    // villages du Tarn compris.
+    const VILLES_HUB = [
+      "Aix-en-Provence", "Amiens", "Angers", "Annecy", "Avignon", "Bayonne",
+      "Besancon", "Blois", "Bordeaux", "Brest", "Carcassonne", "Chartres",
+      "Clermont-Ferrand", "Colmar", "Dijon", "Geneve", "Grenoble", "Le Havre",
+      "Le Mans", "Lille", "Lyon", "Marseille", "Metz", "Montpellier", "Nancy",
+      "Nantes", "Nice", "Nimes", "Paris", "Reims", "Rennes", "Rouen",
+      "Saint-Etienne", "Strasbourg", "Toulon", "Toulouse",
+      "Fort-de-France", "Pointe-a-Pitre", "Cayenne", "Saint-Denis", "Mamoudzou",
+    ];
+    const _hubParCle = new Map(VILLES_HUB.map(v => [normalizeCity(v), v]));
+
+    // ─── Répartition des paliers par ville ──────────────────────────────
+    // Alimentée par _subsByKey (tous les abonnements), pas par la liste filtrée
+    // à l'écran : on veut le portefeuille réel, pas ce qui est visible.
+    // Ne compte que les abonnements ACTIFS — un résilié ou un impayé ne pèse
+    // rien dans la répartition commerciale.
+    function renderSubsTierBreakdown() {
+      const box = document.getElementById("subs-tier-breakdown");
+      // Dépliée à la demande : indépendante des filtres, mais 41 lignes
+      // repousseraient la liste des établissements hors de l'écran.
+      if (!_subsShowBreakdown) { box.classList.add("hidden"); return; }
+
+      // Volontairement INDÉPENDANT du filtre ville : ce tableau sert à comparer
+      // les villes entre elles d'un coup d'œil. C'est la liste du dessous que
+      // le filtre pilote, pas cette vue d'ensemble.
+      const parVille = new Map();
+      const cle0 = (brut) => normalizeCity(brut) || "—";
+      const creer = () => ({ premium: 0, gold: 0, classique: 0, ca: 0, fiches: 0, libelles: new Map() });
+
+      // On amorce avec les 41 hubs : une ville hub sans la moindre fiche doit
+      // apparaître, c'est justement l'information la plus actionnable.
+      for (const [cle, libelle] of _hubParCle) {
+        const e = creer();
+        e.libelles.set(libelle, 1);
+        parVille.set(cle, e);
+      }
+
+      // D'abord TOUTES les villes où l'on a des fiches, même sans un seul
+      // abonné : une ville à zéro avec 400 établissements est un gisement,
+      // pas une ligne à masquer.
+      for (const f of unifiedFiches()) {
+        if (!f.ville) continue;
+        if (_subsRubFilter && f.rubrique !== _subsRubFilter) continue;
+        const c = cle0(f.ville);
+        // Hors hub (communes de métropole, villages…) : ignoré.
+        if (!parVille.has(c)) continue;
+        const e = parVille.get(c);
+        e.fiches++;
+        e.libelles.set(f.ville.trim(), (e.libelles.get(f.ville.trim()) || 0) + 1);
+      }
+
+      for (const s of _subsByKey.values()) {
+        if (s.status !== "active") continue;
+        if (_subsRubFilter && s.rubrique !== _subsRubFilter) continue;
+        const brut = (s.ville || "—").trim();
+        // Clé NORMALISÉE : la base contient « Toulouse » et « TOULOUSE », qui
+        // sont la même ville. Grouper sur la chaîne brute les séparait en deux
+        // lignes et faussait les proportions.
+        const cle = cle0(brut);
+        if (!parVille.has(cle)) continue;   // abonnement hors ville hub
+        const e = parVille.get(cle);
+        if (e[s.tier] !== undefined) e[s.tier]++;
+        e.ca += subsMonthly(s);
+        // On affiche la graphie la plus fréquente, pour garder accents et
+        // casse d'origine (« Nîmes » plutôt que « nimes »).
+        e.libelles.set(brut, (e.libelles.get(brut) || 0) + 1);
+      }
+      if (parVille.size === 0) { box.classList.add("hidden"); return; }
+
+      const lignes = [...parVille.entries()]
+        // Les villes qui rapportent d'abord ; à égalité (souvent 0 €), les plus
+        // gros viviers remontent — ce sont les prochaines à démarcher.
+        .sort((a, b) => (b[1].ca - a[1].ca) || (b[1].fiches - a[1].fiches))
+        .map(([, e]) => {
+          const ville = [...e.libelles.entries()]
+            .sort((a, b) => b[1] - a[1])[0][0];
+          const tot = e.premium + e.gold + e.classique;
+          const pct = n => tot ? Math.round(n * 100 / tot) : 0;
+          // Barre de proportion : lecture immédiate du déséquilibre.
+          const barre = [
+            e.premium   ? `<div style="width:${pct(e.premium)}%; background:${SUBS_TIER_META.premium.color};"></div>` : "",
+            e.gold      ? `<div style="width:${pct(e.gold)}%; background:${SUBS_TIER_META.gold.color};"></div>` : "",
+            e.classique ? `<div style="width:${pct(e.classique)}%; background:${SUBS_TIER_META.classique.color};"></div>` : "",
+          ].join("");
+          const vide = tot === 0;
+          return `<tr${vide ? ' style="opacity:.55;"' : ''}>
+            <td style="padding:8px 10px 8px 0; font-weight:600;">${escapeHtml(ville)}</td>
+            <td style="padding:8px 10px; text-align:right; color:${SUBS_TIER_META.premium.color}; font-weight:700;">${e.premium}</td>
+            <td style="padding:8px 10px; text-align:right; color:${SUBS_TIER_META.gold.color}; font-weight:700;">${e.gold}</td>
+            <td style="padding:8px 10px; text-align:right; color:${SUBS_TIER_META.classique.color}; font-weight:700;">${e.classique}</td>
+            <td style="padding:8px 10px; text-align:right;">${tot}</td>
+            <td style="padding:8px 10px; text-align:right; color:var(--text-faint);">${e.fiches}</td>
+            <td style="padding:8px 10px; text-align:right; color:${vide ? 'var(--text-faint)' : '#16a34a'}; font-weight:600;">${subsEuros(e.ca)}</td>
+            <td style="padding:8px 0 8px 10px; width:120px;">
+              <div style="display:flex; height:7px; border-radius:4px; overflow:hidden; background:rgba(255,255,255,.07);">${barre}</div>
+              <div style="font-size:10px; color:var(--text-faint); margin-top:3px;">${pct(e.premium)}% / ${pct(e.gold)}% / ${pct(e.classique)}%</div>
+            </td>
+          </tr>`;
+        }).join("");
+
+      const t = [...parVille.values()].reduce((a, e) => ({
+        premium: a.premium + e.premium, gold: a.gold + e.gold,
+        classique: a.classique + e.classique, ca: a.ca + e.ca,
+      }), { premium: 0, gold: 0, classique: 0, ca: 0 });
+      const totGen = t.premium + t.gold + t.classique;
+
+      box.classList.remove("hidden");
+      box.innerHTML = `
+        <div class="banner-card" style="padding:14px 16px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:2px;">Répartition des paliers par ville</div>
+          <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px;">
+            Les <strong>41 villes hub</strong>, y compris celles sans aucun abonné —
+            triées par revenu décroissant, puis par taille du vivier. Indépendant du
+            filtre ville ci-dessus${_subsRubFilter ? `, mais limité à la rubrique « ${escapeHtml(_subsRubFilter)} »` : ""}.
+            Abonnements <strong>actifs</strong> uniquement : résiliés et impayés exclus.
+          </div>
+          <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums;">
+            <thead><tr style="color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.08em;">
+              <th style="text-align:left; padding:0 10px 8px 0;">Ville</th>
+              <th style="text-align:right; padding:0 10px 8px;">💎 Premium</th>
+              <th style="text-align:right; padding:0 10px 8px;">🥇 Gold</th>
+              <th style="text-align:right; padding:0 10px 8px;">🔹 Classique</th>
+              <th style="text-align:right; padding:0 10px 8px;">Abonnés</th>
+              <th style="text-align:right; padding:0 10px 8px;">Fiches</th>
+              <th style="text-align:right; padding:0 10px 8px;">MRR</th>
+              <th style="text-align:left; padding:0 0 8px 10px;">Proportion</th>
+            </tr></thead>
+            <tbody>${lignes}</tbody>
+            <tfoot><tr style="border-top:1px solid var(--line-strong);">
+              <td style="padding:9px 10px 0 0; font-weight:700;">Toutes villes</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${t.premium}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${t.gold}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${t.classique}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700;">${totGen}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700; color:var(--text-faint);">${[...parVille.values()].reduce((a, e) => a + e.fiches, 0)}</td>
+              <td style="padding:9px 10px 0; text-align:right; font-weight:700; color:#16a34a;">${subsEuros(t.ca)}</td>
+              <td></td>
+            </tr></tfoot>
+          </table>
+          </div>
+        </div>`;
+    }
+
+    function renderSubsGroups() {
+      // Les 16k fiches ne doivent pas partir au DOM sans filtre. N'IMPORTE
+      // lequel des trois suffit (rubrique, ville ou nom) — chaque groupe reste
+      // par ailleurs plafonne a 300 lignes.
+      const hasFilter = _subsRubFilter || subsCityInput.value.trim() || subsNameInput.value.trim();
+      if (!_subsOnlySubscribed && !hasFilter) {
+        subsHint.textContent = "Choisis une rubrique, une ville ou tape un nom pour lister les établissements à abonner.";
+        subsGroupsEl.innerHTML = "";
+        renderSubsTierBreakdown();
+        return;
+      }
+
+      renderSubsTierBreakdown();
+
+      const fiches = subsFilteredFiches();
+      const nbSub = fiches.filter(f => _subsByKey.has(subsKey(f.source, f.id))).length;
+
+      // Une liste vide est presque toujours due au filtre « Abonnés seulement »
+      // resté actif : il masque tout dans une rubrique sans aucun abonné, ce
+      // qui se lit facilement comme un bug de données.
+      if (fiches.length === 0 && _subsOnlySubscribed) {
+        subsHint.innerHTML =
+          `Aucun abonné ici. Le filtre <strong>« ✅ Abonnés seulement »</strong> est actif — ` +
+          `clique dessus pour voir les établissements à abonner.`;
+      } else if (fiches.length === 0) {
+        subsHint.textContent = "Aucun établissement pour ces filtres.";
+      } else {
+        subsHint.textContent =
+          `${fiches.length} fiche(s) — ${nbSub} abonnée(s), ${fiches.length - nbSub} à abonner.`;
+      }
+
+      const html = SUBS_GROUPS.map(g => {
+        const list = fiches.filter(f => f.rubrique === g.key);
+        if (!list.length) return "";
+        const subbed = list.filter(f => _subsByKey.has(subsKey(f.source, f.id)));
+        const groupMrr = subbed
+          .map(f => _subsByKey.get(subsKey(f.source, f.id)))
+          .filter(s => s.status === "active")
+          .reduce((n, s) => n + subsMonthly(s), 0);
+
+        // Abonnes en tete, puis ordre alphabetique : le portefeuille reste
+        // visible meme quand on parcourt une grande liste a abonner, et il ne
+        // se fait pas evincer par le plafond de 300.
+        const ordered = [...list].sort((a, b) => {
+          const sa = _subsByKey.has(subsKey(a.source, a.id)) ? 0 : 1;
+          const sb = _subsByKey.has(subsKey(b.source, b.id)) ? 0 : 1;
+          return sa !== sb ? sa - sb : a.name.localeCompare(b.name, "fr");
+        });
+
+        const rows = ordered.slice(0, 300).map(f => {
+          const sub = _subsByKey.get(subsKey(f.source, f.id));
+          const tier = sub ? (SUBS_TIER_META[sub.tier] || { label: sub.tier, color: "var(--text-dim)" }) : null;
+          const st = sub ? (SUBS_STATUS_META[sub.status] || { label: sub.status, color: "var(--text-dim)" }) : null;
+          return `
+            <div style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-top:1px solid var(--line);">
+              <div style="flex:1; min-width:0;">
+                <div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(f.name)}</div>
+                <div style="font-size:11px; color:var(--text-faint);">${escapeHtml(f.ville || "—")} · ${escapeHtml(VENUE_SOURCE_LABEL[f.source] || f.source)}</div>
+              </div>
+              ${sub ? `
+                <span style="font-size:11px; font-weight:700; color:${tier.color};">${tier.label}</span>
+                <span style="font-size:11px; color:${st.color};">● ${st.label}</span>
+                <span style="font-size:12px; font-weight:600;" title="${subsEuros(subsTtc(sub.amount_cents, sub.vat_rate_bps))} TTC">${subsEuros(sub.amount_cents)} HT${sub.billing_period === "annuel" ? "/an" : "/mois"}</span>
+              ` : `<span style="font-size:11px; color:var(--text-faint);">pas d'abonnement</span>`}
+              <button type="button" class="banner-save-btn" style="padding:5px 12px; font-size:12px;"
+                data-sub-manage="${escapeHtml(f.source)}" data-sub-id="${f.id}">${sub ? "Gérer" : "Abonner"}</button>
+            </div>`;
+        }).join("");
+
+        const capped = list.length > 300 ? `<div style="padding:8px 12px; font-size:11px; color:var(--text-faint);">… ${list.length - 300} fiche(s) non affichée(s) — affine le filtre.</div>` : "";
+
+        return `
+          <section style="margin-bottom:20px; border:1px solid var(--line); border-radius:14px; overflow:hidden;">
+            <div style="display:flex; align-items:center; gap:10px; padding:11px 12px; background:rgba(255,255,255,0.04);">
+              <span style="font-weight:700;">${g.label}</span>
+              <span style="font-size:11px; color:var(--text-dim);">${list.length} fiche(s) · ${subbed.length} abonnée(s)</span>
+              ${groupMrr ? `<span style="margin-left:auto; font-size:12px; font-weight:700; color:#16a34a;">${subsEuros(groupMrr)}/mois</span>` : ""}
+            </div>
+            ${rows}${capped}
+          </section>`;
+      }).join("");
+
+      subsGroupsEl.innerHTML = html || (_subsOnlySubscribed
+        ? `<div style="padding:20px; color:var(--text-dim);">
+             Aucun abonné dans cette sélection.<br />
+             <span style="font-size:12px; color:var(--text-faint);">
+               Le filtre « ✅ Abonnés seulement » masque les établissements sans abonnement.
+             </span>
+           </div>`
+        : `<div style="padding:20px; color:var(--text-dim);">Aucune fiche pour ces filtres.</div>`);
+    }
+
+    async function openSubsEditor(source, id) {
+      const fiche = unifiedFiches().find(f => f.source === source && String(f.id) === String(id));
+      if (!fiche) { toast("Fiche introuvable", false); return; }
+      const sub = _subsByKey.get(subsKey(source, id)) || null;
+      _subsCurrent = { ...fiche, sub };
+
+      document.getElementById("subs-editor-title").textContent = fiche.name;
+      document.getElementById("subs-editor-sub").innerHTML =
+        `${escapeHtml(fiche.ville || "—")} · ${escapeHtml(VENUE_SOURCE_LABEL[source] || source)} · ${escapeHtml(fiche.rubrique || "—")}`
+        + (sub?.pro_nom ? ` · pro : <strong>${escapeHtml(sub.pro_nom)}</strong>` : ` · <span style="color:var(--text-faint);">aucun compte pro rattaché</span>`);
+
+      const tier = sub?.tier || "classique";
+      document.getElementById("subs-f-tier").value = tier;
+      document.getElementById("subs-f-amount").value = sub
+        ? (sub.amount_cents / 100).toFixed(2)
+        : (subsDefaultAmount(tier) / 100).toFixed(2);
+      document.getElementById("subs-f-period").value = sub?.billing_period || "mensuel";
+      document.getElementById("subs-f-start").value = sub?.started_on || new Date().toISOString().slice(0, 10);
+      document.getElementById("subs-f-end").value = sub?.ends_on || "";
+      document.getElementById("subs-f-notes").value = sub?.notes || "";
+
+      document.getElementById("subs-pay-btn").style.display = sub ? "" : "none";
+      document.getElementById("subs-cancel-btn").style.display = sub && sub.status !== "cancelled" ? "" : "none";
+      const stripeBtn = document.getElementById("subs-stripe-btn");
+      stripeBtn.disabled = !SUBS_STRIPE_ENABLED || !sub;
+      stripeBtn.style.opacity = stripeBtn.disabled ? ".45" : "1";
+      stripeBtn.style.cursor = stripeBtn.disabled ? "not-allowed" : "pointer";
+
+      // Liste des clients : chargée depuis l'onglet Clients, qui peut ne pas
+      // avoir encore été ouvert — d'où le fetch à la demande.
+      try {
+        if (_clients.length === 0) {
+          const { data } = await supabase.rpc("admin_list_clients");
+          _clients = data || [];
+        }
+        const sel = document.getElementById("subs-f-client");
+        sel.innerHTML = `<option value="">— aucun client rattaché —</option>` +
+          _clients.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.raison_sociale)}${c.ville ? " · " + escapeHtml(c.ville) : ""}</option>`).join("");
+        sel.value = sub?.client_id || "";
+      } catch (_) { /* non bloquant : la formule reste modifiable sans client */ }
+
+      refreshSubsTtcHint();
+      subsEditor.classList.remove("hidden");
+      subsEditor.scrollIntoView({ behavior: "smooth", block: "center" });
+      renderSubsPayments(sub);
+    }
+
+    function subsDefaultAmount(tier) {
+      return _subsPrices.find(p => p.tier === tier)?.amount_cents || 0;
+    }
+
+    // Rappelle sous le champ ce que Stripe prélèvera réellement.
+    function refreshSubsTtcHint() {
+      const euros = parseFloat(document.getElementById("subs-f-amount").value);
+      const bps = _subsCurrent?.sub?.vat_rate_bps ?? SUBS_DEFAULT_VAT_BPS;
+      document.getElementById("subs-f-ttc").textContent = isFinite(euros)
+        ? `= ${subsEuros(subsTtc(Math.round(euros * 100), bps))} TTC prélevés (TVA ${(bps / 100).toFixed(0)} %)`
+        : "";
+    }
+
+    async function renderSubsPayments(sub) {
+      const box = document.getElementById("subs-payments");
+      if (!sub) { box.innerHTML = ""; return; }
+      box.innerHTML = `<div style="font-size:12px; color:var(--text-dim);">Chargement de l'historique…</div>`;
+      try {
+        const { data, error } = await supabase.rpc("admin_list_subscription_payments", { p_subscription_id: sub.id });
+        if (error) throw error;
+        const rows = (data || []).map(p => `
+          <tr>
+            <td style="padding:6px 8px;">${escapeHtml(p.period_start || "—")}</td>
+            <td style="padding:6px 8px;">${subsEuros(p.amount_cents)}</td>
+            <td style="padding:6px 8px;">${escapeHtml(p.method)}</td>
+            <td style="padding:6px 8px; color:${p.status === "paid" ? "#16a34a" : "#f59e0b"};">${escapeHtml(p.status)}</td>
+            <td style="padding:6px 8px;"><button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#7f1d1d;" data-pay-del="${escapeHtml(p.id)}">🗑</button></td>
+          </tr>`).join("");
+        box.innerHTML = `
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Historique des paiements</div>
+          ${rows ? `<table style="width:100%; border-collapse:collapse; font-size:12px;">
+            <thead><tr style="color:var(--text-dim); font-size:11px;">
+              <th style="text-align:left; padding:4px 8px;">Période</th>
+              <th style="text-align:left; padding:4px 8px;">Montant</th>
+              <th style="text-align:left; padding:4px 8px;">Moyen</th>
+              <th style="text-align:left; padding:4px 8px;">Statut</th><th></th>
+            </tr></thead><tbody>${rows}</tbody></table>`
+            : `<div style="font-size:12px; color:var(--text-faint);">Aucun paiement enregistré.</div>`}`;
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function saveSubsSubscription() {
+      if (!_subsCurrent) return;
+      const f = _subsCurrent;
+      const euros = parseFloat(document.getElementById("subs-f-amount").value);
+      if (!isFinite(euros) || euros < 0) { toast("Montant invalide", false); return; }
+      try {
+        const { error } = await supabase.rpc("admin_upsert_venue_subscription", {
+          p_source_table:   f.source,
+          p_source_id:      f.id,
+          p_tier:           document.getElementById("subs-f-tier").value,
+          p_amount_cents:   Math.round(euros * 100),
+          p_billing_period: document.getElementById("subs-f-period").value,
+          p_started_on:     document.getElementById("subs-f-start").value || null,
+          p_ends_on:        document.getElementById("subs-f-end").value || null,
+          p_notes:          document.getElementById("subs-f-notes").value || "",
+          p_venue_name:     f.name,
+          p_ville:          f.ville || "",
+          p_rubrique:       f.rubrique || "",
+        });
+        if (error) throw error;
+        // Le rattachement client est un appel distinct : admin_upsert_venue_subscription
+        // ne connaît pas client_id, et je préfère ne pas élargir sa signature.
+        const clientId = document.getElementById("subs-f-client").value;
+        const subId = _subsByKey.get(subsKey(f.source, f.id))?.id;
+        if (subId || clientId) {
+          const cible = subId || null;
+          if (cible) {
+            const { error: lErr } = await supabase.rpc("admin_link_subscription_client",
+              { p_subscription_id: cible, p_client_id: clientId || null });
+            if (lErr) console.warn("[subs] rattachement client", lErr);
+          }
+        }
+        toast("Abonnement enregistré");
+        subsEditor.classList.add("hidden");
+        // is_partner a bougé côté DB : on recharge les caches de fiches.
+        await Promise.all([loadVenues(), loadEtabs(), loadSportVenues(), loadFamilyUnified()]);
+        await refreshSubsView();
+      } catch (e) {
+        toast("Erreur : " + e.message, false);
+      }
+    }
+
+    (function setupSubs() {
+      subsGroupsEl.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-sub-manage]");
+        if (!btn) return;
+        openSubsEditor(btn.dataset.subManage, btn.dataset.subId);
+      });
+
+      document.querySelectorAll("[data-subrub]").forEach(pill => {
+        pill.addEventListener("click", () => {
+          document.querySelectorAll("[data-subrub]").forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+          _subsRubFilter = pill.dataset.subrub;
+          renderSubsGroups();
+        });
+      });
+
+      document.getElementById("subs-toggle-breakdown").addEventListener("click", (ev) => {
+        _subsShowBreakdown = !_subsShowBreakdown;
+        ev.currentTarget.classList.toggle("active", _subsShowBreakdown);
+        renderSubsTierBreakdown();
+      });
+
+      document.getElementById("subs-only-subscribed").addEventListener("click", (ev) => {
+        _subsOnlySubscribed = !_subsOnlySubscribed;
+        ev.currentTarget.classList.toggle("active", _subsOnlySubscribed);
+        renderSubsGroups();
+      });
+
+      let subsDebounce;
+      const onFilter = () => { clearTimeout(subsDebounce); subsDebounce = setTimeout(renderSubsGroups, 200); };
+      subsCityInput.addEventListener("input", onFilter);
+      subsNameInput.addEventListener("input", onFilter);
+
+      document.getElementById("subs-f-tier").addEventListener("change", (ev) => {
+        // Pas d'écrasement d'un montant négocié sur un abonnement existant.
+        if (_subsCurrent?.sub) return;
+        document.getElementById("subs-f-amount").value = (subsDefaultAmount(ev.target.value) / 100).toFixed(2);
+        refreshSubsTtcHint();
+      });
+      document.getElementById("subs-f-amount").addEventListener("input", refreshSubsTtcHint);
+
+      document.getElementById("subs-save-btn").addEventListener("click", saveSubsSubscription);
+      document.getElementById("subs-close-btn").addEventListener("click", () => subsEditor.classList.add("hidden"));
+
+      document.getElementById("subs-cancel-btn").addEventListener("click", async () => {
+        const sub = _subsCurrent?.sub;
+        if (!sub) return;
+        if (!confirm(`Résilier l'abonnement de « ${_subsCurrent.name} » ?\n\nLe badge Partenaire sera retiré (sauf s'il avait été posé à la main) et le palier du compte pro recalculé.`)) return;
+        try {
+          const { error } = await supabase.rpc("admin_cancel_venue_subscription", { p_id: sub.id });
+          if (error) throw error;
+          toast("Abonnement résilié");
+          subsEditor.classList.add("hidden");
+          await Promise.all([loadVenues(), loadEtabs(), loadSportVenues(), loadFamilyUnified()]);
+          await refreshSubsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("subs-pay-btn").addEventListener("click", async () => {
+        const sub = _subsCurrent?.sub;
+        if (!sub) return;
+        const today = new Date().toISOString().slice(0, 10);
+        const period = prompt("Début de la période encaissée (AAAA-MM-JJ) :", today);
+        if (!period) return;
+        try {
+          const { error } = await supabase.rpc("admin_record_subscription_payment", {
+            p_subscription_id: sub.id,
+            p_period_start:    period,
+            p_method:          "manuel",
+            p_status:          "paid",
+          });
+          if (error) throw error;
+          toast("Paiement enregistré");
+          await refreshSubsView();
+          _subsCurrent.sub = _subsByKey.get(subsKey(_subsCurrent.source, _subsCurrent.id)) || null;
+          renderSubsPayments(_subsCurrent.sub);
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("subs-payments").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-pay-del]");
+        if (!btn || !confirm("Supprimer cette ligne de paiement ?")) return;
+        try {
+          const { error } = await supabase.rpc("admin_delete_subscription_payment", { p_id: btn.dataset.payDel });
+          if (error) throw error;
+          toast("Paiement supprimé");
+          await refreshSubsView();
+          renderSubsPayments(_subsByKey.get(subsKey(_subsCurrent.source, _subsCurrent.id)) || null);
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("subs-prices").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-price-save]");
+        if (!btn) return;
+        const tier = btn.dataset.priceSave;
+        const euros = parseFloat(document.querySelector(`[data-price-tier="${tier}"]`).value);
+        if (!isFinite(euros) || euros < 0) { toast("Montant invalide", false); return; }
+        try {
+          const { error } = await supabase.rpc("admin_set_subscription_price", {
+            p_tier: tier, p_amount_cents: Math.round(euros * 100), p_is_active: true,
+          });
+          if (error) throw error;
+          toast("Tarif enregistré");
+          await refreshSubsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+    })();
+
+    // ─── File d'attente hors ligne pour les fiches clients ──────────────
+    // Cas d'usage : prospection sur le terrain, sans réseau. La fiche est
+    // gardée en local puis envoyée au retour de connexion.
+    //
+    // ⚠️ Les CHAMPS BANCAIRES sont volontairement EXCLUS de la file :
+    // localStorage est en clair sur le disque, sans chiffrement, lisible par
+    // tout script de la même origine — moins protégé que la base, où la table
+    // est fermée à tout rôle sauf service_role. En premier rendez-vous on n'a
+    // de toute façon pas le RIB : il arrive avec le mandat signé.
+    const CLIENTS_OUTBOX_KEY = "macity_clients_outbox_v1";
+    const CHAMPS_BANCAIRES = ["iban", "bic", "titulaire_compte", "mandat_ref", "mandat_signe_le"];
+
+    function outboxLire() {
+      try { return JSON.parse(localStorage.getItem(CLIENTS_OUTBOX_KEY) || "[]"); }
+      catch { return []; }
+    }
+    function outboxEcrire(list) {
+      try { localStorage.setItem(CLIENTS_OUTBOX_KEY, JSON.stringify(list)); }
+      catch (e) { console.warn("[outbox] écriture impossible", e); }
+    }
+    function outboxAjouter(payload) {
+      const propre = { ...payload };
+      for (const k of CHAMPS_BANCAIRES) delete propre[k];
+      const list = outboxLire();
+      list.push({ _local: crypto.randomUUID(), _le: new Date().toISOString(), payload: propre });
+      outboxEcrire(list);
+      return propre;
+    }
+
+    /// Panne réseau, par opposition à un refus du serveur : une erreur de
+    /// validation ne doit PAS être mise en file, elle se reproduirait à chaque
+    /// tentative.
+    function estPanneReseau(e) {
+      if (!navigator.onLine) return true;
+      const m = (e?.message || "").toLowerCase();
+      return /failed to fetch|networkerror|network request|timeout|load failed/.test(m);
+    }
+
+    async function outboxVider({ silencieux = false } = {}) {
+      const list = outboxLire();
+      if (list.length === 0) return { envoyes: 0, restants: 0 };
+      if (!navigator.onLine) return { envoyes: 0, restants: list.length };
+      const restants = [];
+      let envoyes = 0;
+      for (const item of list) {
+        try {
+          const { error } = await supabase.rpc("admin_upsert_client", { p: item.payload });
+          if (error) throw error;
+          envoyes++;
+        } catch (e) {
+          // Panne réseau : on garde pour plus tard. Refus du serveur : on garde
+          // aussi, mais en marquant l'erreur — sinon la fiche disparaîtrait
+          // silencieusement et le client serait perdu.
+          item._erreur = estPanneReseau(e) ? null : (e.message || String(e));
+          restants.push(item);
+        }
+      }
+      outboxEcrire(restants);
+      if (!silencieux && envoyes > 0) toast(`${envoyes} fiche(s) client envoyée(s)`);
+      return { envoyes, restants: restants.length };
+    }
+
+    function renderOutboxBanner() {
+      const box = document.getElementById("clients-outbox");
+      const list = outboxLire();
+      if (list.length === 0) { box.classList.add("hidden"); return; }
+      const enErreur = list.filter(i => i._erreur);
+      box.classList.remove("hidden");
+      box.innerHTML = `
+        <div class="banner-card" style="border-left:3px solid #f59e0b; padding:14px 16px;">
+          <div style="font-size:13px; font-weight:700;">
+            ${list.length} fiche(s) en attente d'envoi
+            ${navigator.onLine ? "" : `<span style="color:#f59e0b; font-weight:400;"> · hors ligne</span>`}
+          </div>
+          <div style="font-size:11px; color:var(--text-faint); margin-top:4px;">
+            Enregistrées sur cet ordinateur, pas encore en base. Les coordonnées bancaires
+            ne sont jamais mises en attente : à compléter une fois la fiche envoyée.
+          </div>
+          ${enErreur.length ? `<div style="font-size:11px; color:var(--err); margin-top:6px;">
+            ${enErreur.length} refusée(s) par le serveur : ${escapeHtml(enErreur[0]._erreur)}
+          </div>` : ""}
+          <ul style="margin:8px 0 0; padding-left:18px; font-size:12px; color:var(--text-dim);">
+            ${list.slice(0, 6).map(i => `<li>${escapeHtml(i.payload.raison_sociale || "(sans nom)")}
+              <span style="color:var(--text-faint);">· ${i._le.slice(0, 10)}</span></li>`).join("")}
+          </ul>
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button type="button" class="act act-success" id="outbox-send-btn"${navigator.onLine ? "" : " disabled style=\"opacity:.45; cursor:not-allowed;\""}>📤 Envoyer maintenant</button>
+            <button type="button" class="banner-save-btn" id="outbox-clear-btn" style="background:#7f1d1d;">Vider la file</button>
+          </div>
+        </div>`;
+    }
+
+    // Envoi automatique au retour du réseau : c'est le comportement attendu,
+    // sans quoi il faudrait penser à revenir sur l'onglet.
+    window.addEventListener("online", async () => {
+      const r = await outboxVider();
+      renderOutboxBanner();
+      if (r.envoyes > 0 && !clientsView.classList.contains("hidden")) refreshClientsView();
+    });
+    window.addEventListener("offline", renderOutboxBanner);
+
+    // ─── Onglet Clients (partner_clients) ───────────────────────────────
+    const CLIENT_STATUTS = {
+      prospect:  { label: "Prospect",  color: "#f59e0b" },
+      actif:     { label: "Actif",     color: "#16a34a" },
+      suspendu:  { label: "Suspendu",  color: "#f59e0b" },
+      perdu:     { label: "Perdu",     color: "#6b7280" },
+    };
+    const MOYENS = {
+      virement: "Virement", prelevement_sepa: "Prélèvement SEPA",
+      carte: "Carte", cheque: "Chèque", especes: "Espèces",
+    };
+    let _clients = [];
+    let _clientCur = null;   // fiche ouverte (objet complet, IBAN inclus)
+
+    const clientsLoading = document.getElementById("clients-loading");
+    const clientsListEl  = document.getElementById("clients-list");
+    const clientForm     = document.getElementById("client-form");
+    const $cf = (k) => clientForm.querySelector(`[data-cf="${k}"]`);
+
+    async function refreshClientsView() {
+      clientsLoading.classList.remove("hidden");
+      clientsListEl.innerHTML = "";
+      try {
+        // Tentative d'envoi silencieuse à chaque ouverture : le retour réseau a
+        // pu se produire pendant que l'onglet était fermé.
+        await outboxVider({ silencieux: true });
+        renderOutboxBanner();
+        const { data, error } = await supabase.rpc("admin_list_clients");
+        if (error) throw error;
+        _clients = data || [];
+        renderClientsKpis();
+        renderClientsList();
+        renderAllOffers();
+      } catch (e) {
+        console.error("[Clients] load", e);
+        clientsListEl.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
+      } finally {
+        clientsLoading.classList.add("hidden");
+      }
+    }
+
+    function renderClientsKpis() {
+      const n = (st) => _clients.filter(c => c.statut === st).length;
+      const mrr = _clients.reduce((a, c) => a + Number(c.mrr_cents || 0), 0);
+      // Un mandat manquant bloque tout prélèvement : c'est un indicateur, pas
+      // un détail administratif.
+      const sansMandat = _clients.filter(
+        c => c.moyen_paiement === "prelevement_sepa" && !c.mandat_ok).length;
+      const card = (l, v, c, sub) => `
+        <div style="background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px;">${l}</div>
+          <div style="font-size:22px; font-weight:800; margin-top:4px; color:${c};">${v}</div>
+          ${sub ? `<div style="font-size:11px; color:var(--text-faint); margin-top:2px;">${sub}</div>` : ""}
+        </div>`;
+      document.getElementById("clients-kpis").innerHTML =
+        card("Clients actifs", n("actif"), "#16a34a") +
+        card("Prospects", n("prospect"), "#f59e0b") +
+        card("MRR client (HT)", subsEuros(mrr), "var(--text)") +
+        card("Mandat SEPA manquant", sansMandat, sansMandat ? "#ef4444" : "var(--text-dim)",
+             sansMandat ? "prélèvement impossible" : "");
+    }
+
+    function renderClientsList() {
+      const q = (document.getElementById("clients-search").value || "").trim().toLowerCase();
+      const st = document.getElementById("clients-statut-filter").value;
+      // Les fiches en file sont montrées avec les autres, mais marquées : sans
+      // ça on croirait qu'elles sont enregistrées.
+      const enAttente = outboxLire().map(i => ({
+        id: "_local_" + i._local,
+        raison_sociale: i.payload.raison_sociale || "(sans nom)",
+        enseigne: i.payload.enseigne || "",
+        ville: i.payload.ville || "",
+        statut: i.payload.statut || "prospect",
+        moyen_paiement: i.payload.moyen_paiement || "virement",
+        contact_nom: [i.payload.contact_prenom, i.payload.contact_nom].filter(Boolean).join(" "),
+        contact_email: i.payload.contact_email || "",
+        iban_4: "", mandat_ok: false, nb_abonnements: 0, mrr_cents: 0,
+        _enAttente: true,
+      }));
+      const list = [...enAttente, ..._clients].filter(c => {
+        if (st && c.statut !== st) return false;
+        if (!q) return true;
+        return [c.raison_sociale, c.enseigne, c.contact_nom, c.contact_email, c.ville]
+          .filter(Boolean).some(x => x.toLowerCase().includes(q));
+      });
+      if (list.length === 0) {
+        clientsListEl.innerHTML = `<div style="padding:20px; color:var(--text-dim);">${
+          _clients.length === 0 ? "Aucun client. Clique sur « + Nouveau client »." : "Aucun client pour ces filtres."
+        }</div>`;
+        return;
+      }
+      const rows = list.map(c => {
+        const s = CLIENT_STATUTS[c.statut] || { label: c.statut, color: "var(--text-dim)" };
+        const sepa = c.moyen_paiement === "prelevement_sepa";
+        return `<tr${c._enAttente ? ' style="opacity:.7;"' : ''}>
+          <td style="padding:10px 12px 10px 0;">
+            <div style="font-weight:600;">${escapeHtml(c.raison_sociale)}
+              ${c._enAttente ? `<span style="font-size:10px; font-weight:700; color:#f59e0b; border:1px solid #f59e0b; border-radius:3px; padding:1px 5px; margin-left:6px;">EN ATTENTE</span>` : ""}
+            </div>
+            ${c.enseigne ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(c.enseigne)}</div>` : ""}
+          </td>
+          <td style="padding:10px 12px; font-size:12px;">${escapeHtml(c.ville || "—")}</td>
+          <td style="padding:10px 12px; font-size:12px;">
+            ${escapeHtml(c.contact_nom || "—")}
+            ${c.contact_email ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(c.contact_email)}</div>` : ""}
+          </td>
+          <td style="padding:10px 12px; font-size:12px;">
+            ${escapeHtml(MOYENS[c.moyen_paiement] || c.moyen_paiement)}
+            ${sepa ? (c.mandat_ok
+                ? `<div style="font-size:11px; color:#16a34a;">mandat ✓${c.iban_4 ? " ····" + escapeHtml(c.iban_4) : ""}</div>`
+                : `<div style="font-size:11px; color:#ef4444;">mandat manquant</div>`) : ""}
+          </td>
+          <td style="padding:10px 12px; text-align:center; font-variant-numeric:tabular-nums;">${c.nb_abonnements}</td>
+          <td style="padding:10px 12px; text-align:right; font-variant-numeric:tabular-nums; color:#16a34a; font-weight:600;">${subsEuros(c.mrr_cents)}</td>
+          <td style="padding:10px 12px; font-size:11px; color:${s.color}; white-space:nowrap;">● ${s.label}</td>
+          <td style="padding:10px 0 10px 12px;">
+            ${c._enAttente
+              ? `<span style="font-size:11px; color:var(--text-faint);">local</span>`
+              : `<button type="button" class="banner-save-btn" style="padding:5px 12px; font-size:12px;" data-client-open="${escapeHtml(c.id)}">Ouvrir</button>`}
+          </td>
+        </tr>`;
+      }).join("");
+      clientsListEl.innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead><tr style="color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.08em;">
+            <th style="text-align:left; padding:0 12px 8px 0;">Client</th>
+            <th style="text-align:left; padding:0 12px 8px;">Ville</th>
+            <th style="text-align:left; padding:0 12px 8px;">Contact</th>
+            <th style="text-align:left; padding:0 12px 8px;">Règlement</th>
+            <th style="text-align:center; padding:0 12px 8px;">Abos</th>
+            <th style="text-align:right; padding:0 12px 8px;">MRR</th>
+            <th style="text-align:left; padding:0 12px 8px;">Statut</th><th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    async function renderAllOffers() {
+      const box = document.getElementById("offers-all");
+      try {
+        const { data, error } = await supabase.rpc("admin_list_all_offers");
+        if (error) throw error;
+        const list = data || [];
+        if (list.length === 0) {
+          box.innerHTML = `<div style="padding:16px; color:var(--text-dim);">Aucune offre. Ajoute-en une depuis la fiche d'un client.</div>`;
+          return;
+        }
+        const opts = (sel) => `<option value="">— non rattachée —</option>` +
+          _clients.map(c => `<option value="${escapeHtml(c.id)}"${sel === c.id ? " selected" : ""}>${escapeHtml(c.raison_sociale)}</option>`).join("");
+        box.innerHTML = `
+          <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead><tr style="color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.08em;">
+              <th style="text-align:left; padding:0 12px 8px 0;">Offre</th>
+              <th style="text-align:left; padding:0 12px 8px;">Enseigne · ville</th>
+              <th style="text-align:center; padding:0 12px 8px;">Places</th>
+              <th style="text-align:left; padding:0 12px 8px;">Expire</th>
+              <th style="text-align:left; padding:0 12px 8px;">Dans l'app</th>
+              <th style="text-align:left; padding:0 12px 8px;">Client</th><th></th>
+            </tr></thead>
+            <tbody>${list.map(o => `
+              <tr${o.visible_app ? "" : ' style="opacity:.55;"'}>
+                <td style="padding:9px 12px 9px 0;">${escapeHtml(o.emoji || "🎁")} ${escapeHtml(o.title)}
+                  ${o.description ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(o.description)}</div>` : ""}</td>
+                <td style="padding:9px 12px; font-size:12px;">${escapeHtml(o.business_name || "—")}<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(o.city || "—")}</div></td>
+                <td style="padding:9px 12px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
+                <td style="padding:9px 12px; font-size:12px;">${o.expires_at ? escapeHtml(o.expires_at.slice(0,10)) : "permanente"}</td>
+                <td style="padding:9px 12px; font-size:11px; color:${o.visible_app ? "#16a34a" : "#f59e0b"};">${o.visible_app ? "● visible" : "○ masquée"}</td>
+                <td style="padding:9px 12px;">
+                  <select data-offer-link="${escapeHtml(o.id)}" class="banner-input" style="margin:0; padding:4px 6px; font-size:12px; max-width:170px;">${opts(o.client_id)}</select>
+                </td>
+                <td style="padding:9px 0 9px 12px; white-space:nowrap;">
+                  <button type="button" class="banner-save-btn" style="padding:4px 9px; font-size:11px;" data-offer-toggle="${escapeHtml(o.id)}" data-active="${o.is_active}">${o.is_active ? "Désactiver" : "Activer"}</button>
+                </td>
+              </tr>`).join("")}</tbody>
+          </table>`;
+      } catch (e) {
+        box.innerHTML = `<div style="padding:16px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    const CF_KEYS = ["raison_sociale","enseigne","forme_juridique","siret","tva_intracom",
+      "rcs_ville","adresse","code_postal","ville","pays","contact_nom","contact_prenom",
+      "contact_fonction","contact_email","contact_tel","email_facturation",
+      "moyen_paiement","iban","bic","titulaire_compte","mandat_ref","mandat_signe_le",
+      "statut","entre_le","notes"];
+
+    function openClientForm(client) {
+      _clientCur = client;
+      $cf("id").value = client?.id || "";
+      for (const k of CF_KEYS) {
+        const el = $cf(k);
+        if (el) el.value = client?.[k] ?? "";
+      }
+      if (!client) {
+        $cf("pays").value = "France";
+        $cf("statut").value = "prospect";
+        $cf("moyen_paiement").value = "virement";
+        $cf("entre_le").value = new Date().toISOString().slice(0, 10);
+      }
+      document.getElementById("client-form-title").textContent =
+        client ? client.raison_sociale : "Nouveau client";
+      document.getElementById("client-form-id").textContent =
+        client ? `créé le ${(client.created_at || "").slice(0, 10)}` : "";
+      document.getElementById("client-delete-btn").style.display = client ? "" : "none";
+      clientForm.classList.remove("hidden");
+      clientForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      renderClientSubsAndOffers(client?.id || null);
+    }
+
+    async function renderClientSubsAndOffers(clientId) {
+      const box = document.getElementById("client-subs");
+      if (!clientId) {
+        box.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">Enregistre la fiche pour y rattacher des abonnements et des offres.</div>`;
+        return;
+      }
+      box.innerHTML = `<div style="font-size:12px; color:var(--text-dim);">Chargement…</div>`;
+      try {
+        const [subs, offres] = await Promise.all([
+          supabase.rpc("admin_client_subscriptions", { p_client_id: clientId }),
+          supabase.rpc("admin_client_offers", { p_client_id: clientId }),
+        ]);
+        if (subs.error) throw subs.error;
+        if (offres.error) throw offres.error;
+
+        const sRows = (subs.data || []).map(v => {
+          const t = SUBS_TIER_META[v.tier] || { label: v.tier, color: "var(--text-dim)" };
+          return `<tr>
+            <td style="padding:6px 10px 6px 0;">${escapeHtml(v.venue_name)}</td>
+            <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(v.ville)} · ${escapeHtml(v.rubrique)}</td>
+            <td style="padding:6px 10px; color:${t.color}; font-weight:700; font-size:11px;">${t.label}</td>
+            <td style="padding:6px 10px; text-align:right;">${subsEuros(v.amount_cents)}${v.billing_period === "annuel" ? "/an" : "/mois"}</td>
+            <td style="padding:6px 0 6px 10px; font-size:11px;">${escapeHtml(v.status)}</td>
+          </tr>`;
+        }).join("");
+
+        // Les établissements que le client paie : ce sont les seules cibles
+        // proposées pour badger une pochette. Pas de recherche libre, donc pas
+        // de faute de frappe possible sur le couple (source_table, source_id).
+        const cibles = (subs.data || []).filter(v => v.source_table && v.source_id);
+        // Nom de la pochette liée : d'abord les abonnements du client, sinon
+        // toutes les fiches (une offre peut viser un commerce sans abonnement).
+        const cibleLabel = (t, i) => {
+          const v = cibles.find(c => c.source_table === t && String(c.source_id) === String(i));
+          if (v) return v.venue_name;
+          const f = unifiedFiches().find(x => x.source === t && String(x.id) === String(i));
+          return f ? f.name : `${t} #${i}`;
+        };
+
+        const oRows = (offres.data || []).map(o => `<tr>
+            <td style="padding:6px 6px 6px 0; width:38px;">
+              ${o.image_url
+                ? `<img src="${escapeHtml(o.image_url)}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; display:block;" />`
+                : `<div style="width:34px; height:34px; border-radius:6px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:14px;">🎁</div>`}
+            </td>
+            <td style="padding:6px 10px 6px 0;">${escapeHtml(o.emoji || "🎁")} ${escapeHtml(o.title)}</td>
+            <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(o.description || "")}</td>
+            <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">
+              ${o.source_table ? "🏷️ " + escapeHtml(cibleLabel(o.source_table, o.source_id)) : "<span style='opacity:.6;'>aucune pochette</span>"}
+            </td>
+            <td style="padding:6px 10px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
+            <td style="padding:6px 10px; font-size:11px; color:${o.is_active ? "#16a34a" : "var(--text-faint)"};">${o.is_active ? "active" : "inactive"}</td>
+            <td style="padding:6px 0 6px 10px;">
+              <button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#7f1d1d;" data-offer-del="${o.id}">🗑</button>
+            </td>
+          </tr>`).join("");
+
+        box.innerHTML = `
+          <div style="font-size:13px; font-weight:700; margin-bottom:6px;">Abonnements rattachés</div>
+          ${sRows ? `<table style="width:100%; border-collapse:collapse; font-size:12px;"><tbody>${sRows}</tbody></table>`
+                  : `<div style="font-size:12px; color:var(--text-faint);">Aucun abonnement rattaché. Depuis l'onglet Abonnements, ouvre une fiche et choisis ce client.</div>`}
+
+          <div style="font-size:13px; font-weight:700; margin:20px 0 4px;">Offres proposées</div>
+          <div style="font-size:11px; color:var(--text-faint); margin-bottom:8px;">
+            Ce que le client offre aux utilisateurs. Publiées dans « Les offres premium » de l'app — un client peut en proposer plusieurs.
+          </div>
+          ${oRows ? `<table style="width:100%; border-collapse:collapse; font-size:12px;"><tbody>${oRows}</tbody></table>` : ""}
+          <div style="display:flex; gap:10px; margin-top:10px; align-items:flex-start;">
+            <div style="flex:0 0 96px;">
+              <div class="paste-zone insp-paste-zone" tabindex="0" data-role="offer-zone" style="height:96px;">
+                <div class="paste-icon">🖼️</div>
+                <div class="paste-hint">Photo</div>
+              </div>
+              <input type="hidden" id="offer-image" />
+            </div>
+            <div style="flex:1; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <input type="text" id="offer-emoji" class="banner-input" value="🎁" style="width:56px; text-align:center; margin:0;" />
+              <input type="text" id="offer-title" class="banner-input" placeholder="Titre, ex : 1 dessert offert" style="flex:1; min-width:180px; margin:0;" />
+              <input type="text" id="offer-desc" class="banner-input" placeholder="Conditions" style="flex:1; min-width:160px; margin:0;" />
+              <input type="number" id="offer-spots" class="banner-input" placeholder="Places" min="0" style="width:90px; margin:0;" />
+              <input type="date" id="offer-expires" class="banner-input" style="width:150px; margin:0;" />
+              <button type="button" class="act act-success" id="offer-add-btn">+ Ajouter l'offre</button>
+            </div>
+          </div>
+
+          <!-- Pochette mise en avant. Recherche libre sur TOUTES les fiches :
+               une offre ne doit pas dépendre d'un abonnement rattaché, sinon
+               on ne peut rien publier tant que la vente n'est pas saisie. -->
+          <div style="position:relative; margin-top:8px;">
+            <input type="text" class="banner-input" data-role="offer-venue-search" style="margin:0;"
+                   placeholder="🏷️ Pochette à mettre en avant : tape le nom de l'établissement" />
+            <div data-role="offer-venue-results"
+                 style="position:absolute; z-index:40; left:0; right:0; background:var(--surface);
+                        border:1px solid var(--line); border-radius:8px; max-height:220px; overflow:auto;"></div>
+            <input type="hidden" id="offer-source-table" value="${escapeHtml(cibles.length === 1 ? cibles[0].source_table : "")}" />
+            <input type="hidden" id="offer-source-id" value="${escapeHtml(cibles.length === 1 ? String(cibles[0].source_id) : "")}" />
+            <div data-role="offer-venue-current" style="font-size:11px; color:var(--text-faint); margin-top:4px;">
+              ${cibles.length === 1
+                ? `🏷️ ${escapeHtml(cibles[0].venue_name)} <span data-role="offer-venue-clear" style="color:var(--err); cursor:pointer; text-decoration:underline;">retirer</span>`
+                : "Aucune pochette mise en avant : l'offre restera visible dans la rubrique Offres, sans pastille sur la fiche du commerce."}
+            </div>
+          </div>`;
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    (function setupClients() {
+      document.getElementById("clients-new-btn").addEventListener("click", () => openClientForm(null));
+      document.getElementById("client-close-btn").addEventListener("click", () => clientForm.classList.add("hidden"));
+
+      let deb;
+      const onFilter = () => { clearTimeout(deb); deb = setTimeout(renderClientsList, 180); };
+      document.getElementById("clients-search").addEventListener("input", onFilter);
+      document.getElementById("clients-statut-filter").addEventListener("change", renderClientsList);
+
+      clientsListEl.addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-client-open]");
+        if (!btn) return;
+        try {
+          const { data, error } = await supabase.rpc("admin_get_client", { p_id: btn.dataset.clientOpen });
+          if (error) throw error;
+          openClientForm(data);
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("client-save-btn").addEventListener("click", async () => {
+        const payload = { id: $cf("id").value || null };
+        for (const k of CF_KEYS) {
+          const el = $cf(k);
+          if (el) payload[k] = el.value.trim();
+        }
+        if (!payload.raison_sociale) { toast("La raison sociale est obligatoire", false); return; }
+        // Le SIRET est contraint à 14 chiffres en base : on prévient ici plutôt
+        // que de laisser remonter une erreur SQL brute.
+        const siret = payload.siret.replace(/\s/g, "");
+        if (siret && !/^[0-9]{14}$/.test(siret)) {
+          toast("Le SIRET doit faire 14 chiffres", false); return;
+        }
+        try {
+          if (!navigator.onLine) throw new Error("hors ligne");
+          const { data, error } = await supabase.rpc("admin_upsert_client", { p: payload });
+          if (error) throw error;
+          toast("Client enregistré");
+          await refreshClientsView();
+          const { data: fresh } = await supabase.rpc("admin_get_client", { p_id: data });
+          if (fresh) openClientForm(fresh);
+        } catch (e) {
+          if (estPanneReseau(e) || e.message === "hors ligne") {
+            const propre = outboxAjouter(payload);
+            const perdus = CHAMPS_BANCAIRES.filter(k => payload[k]);
+            toast(perdus.length
+              ? `Fiche gardée en local — les coordonnées bancaires ne sont pas mises en attente, à ressaisir une fois en ligne`
+              : "Pas de réseau — fiche gardée en local, envoyée automatiquement au retour", true);
+            clientForm.classList.add("hidden");
+            renderOutboxBanner();
+            renderClientsList();
+          } else {
+            toast("Erreur : " + e.message, false);
+          }
+        }
+      });
+
+      document.getElementById("offers-all").addEventListener("change", async (ev) => {
+        const sel = ev.target.closest("[data-offer-link]");
+        if (!sel) return;
+        try {
+          const { error } = await supabase.rpc("admin_link_offer_client",
+            { p_offer_id: sel.dataset.offerLink, p_client_id: sel.value || null });
+          if (error) throw error;
+          toast("Offre rattachée");
+          await refreshClientsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("offers-all").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-offer-toggle]");
+        if (!btn) return;
+        try {
+          const { error } = await supabase.rpc("admin_toggle_offer",
+            { p_offer_id: btn.dataset.offerToggle, p_active: btn.dataset.active !== "true" });
+          if (error) throw error;
+          toast("Offre mise à jour");
+          renderAllOffers();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      document.getElementById("clients-outbox").addEventListener("click", async (ev) => {
+        if (ev.target.closest("#outbox-send-btn")) {
+          const r = await outboxVider();
+          renderOutboxBanner();
+          if (r.envoyes > 0) await refreshClientsView();
+          if (r.restants > 0 && r.envoyes === 0) toast("Envoi impossible pour l'instant", false);
+          return;
+        }
+        if (ev.target.closest("#outbox-clear-btn")) {
+          const n = outboxLire().length;
+          if (!confirm(`Vider la file de ${n} fiche(s) ?\n\nElles seront PERDUES : elles ne sont pas en base.`)) return;
+          outboxEcrire([]);
+          renderOutboxBanner();
+          renderClientsList();
+        }
+      });
+
+      document.getElementById("client-delete-btn").addEventListener("click", async () => {
+        const id = $cf("id").value;
+        if (!id) return;
+        if (!confirm(`Supprimer « ${$cf("raison_sociale").value} » ?\n\nLes abonnements ne sont PAS supprimés : ils perdent simplement leur rattachement client.`)) return;
+        try {
+          const { error } = await supabase.rpc("admin_delete_client", { p_id: id });
+          if (error) throw error;
+          toast("Client supprimé");
+          clientForm.classList.add("hidden");
+          await refreshClientsView();
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+
+      // Offres : ajout et suppression, délégués sur le conteneur qui est
+      // reconstruit à chaque ouverture de fiche.
+      document.getElementById("client-subs").addEventListener("click", async (ev) => {
+        const add = ev.target.closest("#offer-add-btn");
+        if (add) {
+          const clientId = $cf("id").value;
+          if (!clientId) { toast("Enregistre d'abord la fiche client", false); return; }
+          const title = document.getElementById("offer-title").value.trim();
+          if (!title) { toast("Le titre de l'offre est obligatoire", false); return; }
+          // Vide = offre non rattachée : visible dans la rubrique Offres, mais
+          // elle ne badge aucune pochette.
+          const srcTable = document.getElementById("offer-source-table").value;
+          const srcId = document.getElementById("offer-source-id").value;
+          try {
+            const { error } = await supabase.rpc("admin_upsert_client_offer", {
+              p: {
+                client_id: clientId, title,
+                description: document.getElementById("offer-desc").value.trim(),
+                emoji: document.getElementById("offer-emoji").value.trim() || "🎁",
+                total_spots: document.getElementById("offer-spots").value || "0",
+                expires_at: document.getElementById("offer-expires").value || "",
+                is_active: true,
+                image_url: document.getElementById("offer-image").value.trim(),
+                source_table: srcTable || "",
+                source_id: srcId || "",
+              },
+            });
+            if (error) throw error;
+            toast("Offre ajoutée");
+            renderClientSubsAndOffers(clientId);
+          } catch (e) { toast("Erreur : " + e.message, false); }
+          return;
+        }
+        const del = ev.target.closest("[data-offer-del]");
+        if (del && confirm("Supprimer cette offre ?")) {
+          try {
+            const { error } = await supabase.rpc("admin_delete_client_offer", { p_id: del.dataset.offerDel });
+            if (error) throw error;
+            toast("Offre supprimée");
+            renderClientSubsAndOffers($cf("id").value);
+          } catch (e) { toast("Erreur : " + e.message, false); }
+        }
+      });
+
+      // ── Pochette de l'offre : recherche sur toutes les fiches ──
+      // `data-offpick-*` et non `data-pick-*` : ce dernier est deja capte par
+      // le selecteur des cartes Inspirations, sur `document`. Deux jeux
+      // d'attributs distincts evitent qu'un clic ici aille remplir une carte
+      // Inspiration ouverte ailleurs.
+      const offerBox = document.getElementById("client-subs");
+      function _offerSetVenue(table, id, label) {
+        document.getElementById("offer-source-table").value = table || "";
+        document.getElementById("offer-source-id").value = id || "";
+        const cur = offerBox.querySelector('[data-role="offer-venue-current"]');
+        if (!cur) return;
+        cur.innerHTML = table
+          ? `🏷️ ${escapeHtml(label)} <span data-role="offer-venue-clear" style="color:var(--err); cursor:pointer; text-decoration:underline;">retirer</span>`
+          : "Aucune pochette mise en avant : l'offre restera visible dans la rubrique Offres, sans pastille sur la fiche du commerce.";
+      }
+      offerBox.addEventListener("input", (ev) => {
+        const input = ev.target.closest('[data-role="offer-venue-search"]');
+        if (!input) return;
+        const box = offerBox.querySelector('[data-role="offer-venue-results"]');
+        const q = input.value.trim().toLowerCase();
+        if (q.length < 2) { box.innerHTML = ""; return; }
+        const hits = unifiedFiches()
+          .filter(f => f.name && f.name.toLowerCase().includes(q))
+          .slice(0, 8);
+        box.innerHTML = hits.length
+          ? hits.map(f => `<div data-offpick-table="${escapeHtml(f.source)}" data-offpick-id="${f.id}"
+               data-offpick-label="${escapeHtml(f.name)}"
+               style="padding:7px 9px; cursor:pointer; border-bottom:1px solid var(--line); font-size:13px;">
+               ${escapeHtml(f.name)} <span style="color:var(--text-faint);">· ${escapeHtml(f.ville || "")} · ${escapeHtml(VENUE_SOURCE_LABEL[f.source] || f.source)}</span>
+             </div>`).join("")
+          : `<div style="padding:7px 9px; color:var(--text-faint); font-size:12px;">Aucun résultat</div>`;
+      });
+      offerBox.addEventListener("click", (ev) => {
+        const pick = ev.target.closest("[data-offpick-table]");
+        if (pick) {
+          _offerSetVenue(pick.dataset.offpickTable, pick.dataset.offpickId, pick.dataset.offpickLabel);
+          offerBox.querySelector('[data-role="offer-venue-results"]').innerHTML = "";
+          offerBox.querySelector('[data-role="offer-venue-search"]').value = "";
+          return;
+        }
+        if (ev.target.closest('[data-role="offer-venue-clear"]')) _offerSetVenue("", "", "");
+      });
+
+      // ── Zone photo de l'offre (browse + drag & drop + Ctrl+V) ──
+      // Même contrat que les zones Cadeaux / Médias ville : on stocke l'URL
+      // publique dans un input caché, la zone n'affiche qu'un aperçu.
+      const subsBox = document.getElementById("client-subs");
+      function _offerSetImage(url) {
+        const inp = document.getElementById("offer-image");
+        if (!inp) return;
+        inp.value = url;
+        const zone = subsBox.querySelector('[data-role="offer-zone"]');
+        if (zone) {
+          zone.innerHTML = `<img src="${escapeHtml(url)}" style="max-height:64px; border-radius:8px;"/>`
+            + `<div style="margin-top:4px;"><button type="button" class="paste-browse" id="offer-img-browse">📂</button></div>`;
+        }
+      }
+      subsBox.addEventListener("click", async (ev) => {
+        if (!ev.target.closest('[data-role="offer-zone"]')) return;
+        const url = await _pickImage();
+        if (url) _offerSetImage(url);
+      });
+      subsBox.addEventListener("dragover", (e) => {
+        if (e.target.closest('[data-role="offer-zone"]')) e.preventDefault();
+      });
+      subsBox.addEventListener("drop", async (e) => {
+        if (!e.target.closest('[data-role="offer-zone"]')) return;
+        e.preventDefault();
+        const f = [...(e.dataTransfer?.files || [])].find(x => x.type.startsWith("image/"));
+        if (!f) return;
+        try { _offerSetImage(await uploadImage(f)); }
+        catch (err) { toast("Upload échoué : " + (err.message || err), false); }
+      });
+      document.addEventListener("paste", async (e) => {
+        const z = document.activeElement && document.activeElement.closest
+          ? document.activeElement.closest('[data-role="offer-zone"]') : null;
+        if (!z) return;
+        const items = e.clipboardData?.items; if (!items) return;
+        for (const it of items) {
+          if (!it.type.startsWith("image/")) continue;
+          const b = it.getAsFile(); if (!b) continue;
+          e.preventDefault();
+          try { _offerSetImage(await uploadImage(b)); }
+          catch (err) { toast("Upload échoué", false); }
+          return;
+        }
+      });
+    })();
+
     const APP_STORE_DEFAULTS = {
       android: "https://play.google.com/store/apps/details?id=com.macity.app",
       ios:     "https://apps.apple.com/app/macity-app/id6778110272",
@@ -5705,9 +7351,11 @@
     // Courbe "Progression vers les objectifs" : trajectoire CIBLE (jalons, en
     // pointillé) vs courbe RÉELLE cumulée (fenêtre par_jour) + point du jour.
     // SVG pur, sans dépendance.
-    function _renderObjectiveCurve(total, parJour) {
+    function _renderObjectiveCurve(total, parJour, installs, actifs) {
       // Largeur par mois FIXE → ~3 mois visibles, scroll horizontal jusqu'à déc.
-      const monthW = 200, padL = 48, padR = 16, padT = 16, padB = 30, H = 320;
+      // 200 -> 340 : a cette largeur, deux a trois mois remplissent la vue et
+      // le reste s'atteint par la barre de defilement horizontale.
+      const monthW = 340, padL = 48, padR = 16, padT = 16, padB = 30, H = 440;
       const months = [["2026-06-01", "juin"], ["2026-07-01", "juil"], ["2026-08-01", "août"], ["2026-09-01", "sept"], ["2026-10-01", "oct"], ["2026-11-01", "nov"], ["2026-12-01", "déc"]];
       const plotW = monthW * months.length;    // 7 mois (juin → déc)
       const W = padL + plotW + padR;
@@ -5717,17 +7365,21 @@
       const span = end - start;
       const maxY = USERSTATS_OBJECTIF;
       const X = (d) => padL + Math.max(0, Math.min(1, (d - start) / span)) * plotW;
-      // Échelle Y LOGARITHMIQUE (1 → 20000) : rend lisibles à la fois les
-      // petites valeurs (unités / centaines) et l'objectif final 20k. Une
-      // échelle linéaire écraserait le réel actuel (quelques inscrits) sur 0.
-      const logMax = Math.log(maxY);
+      // Échelle Y LOGARITHMIQUE bornée de 100 à 20000. Le plancher était à 1,
+      // ce qui gaspillait la moitié basse du graphe sur des valeurs devenues
+      // sans intérêt : la zone utile 500-5000 n'occupait que 23 % de la
+      // hauteur, contre 43 % désormais.
+      // ⚠️ Toute valeur sous 100 est ramenée au plancher : le début des
+      // courbes est donc aplati, c'est voulu.
+      const FLOOR = 100;
+      const logSpan = Math.log(maxY / FLOOR);
       const Y = (v) => {
-        const c = Math.min(maxY, Math.max(1, v));
-        return padT + plotH - (Math.log(c) / logMax) * plotH;
+        const c = Math.min(maxY, Math.max(FLOOR, v));
+        return padT + plotH - (Math.log(c / FLOOR) / logSpan) * plotH;
       };
       const kfmt = (v) => v >= 1000 ? (v / 1000) + "k" : String(v);
 
-      const yTicks = [1, 10, 100, 500, 1000, 2000, 5000, 10000, 20000].map(v => {
+      const yTicks = [100, 200, 300, 500, 750, 1000, 1500, 2000, 3000, 5000, 10000, 20000].map(v => {
         const y = Y(v);
         return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)"/>
           <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${kfmt(v)}</text>`;
@@ -5761,30 +7413,77 @@
         realPath = `<path d="${pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#22c55e" stroke-width="2"/>`;
       }
 
+      // Courbe TELECHARGEMENTS cumules. Contrairement aux inscriptions, on
+      // dispose de l'historique complet en base : le cumul part donc de zero
+      // et n'a pas besoin d'une ligne de base reconstituee.
+      let dlPath = "";
+      const dlRows = (installs || []).filter(r => r.jour).slice()
+        .sort((a, b) => a.jour < b.jour ? -1 : 1);
+      if (dlRows.length) {
+        let cumDl = 0;
+        const pts = dlRows.map(r => {
+          cumDl += (r.total || 0);
+          return { x: X(new Date(r.jour + "T00:00:00")), y: Y(cumDl) };
+        });
+        dlPath = `<path d="${pts.map((pt, i) => `${i ? "L" : "M"}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#3b82f6" stroke-width="2"/>`
+          + `<circle cx="${pts[pts.length - 1].x.toFixed(1)}" cy="${pts[pts.length - 1].y.toFixed(1)}" r="4" fill="#3b82f6" stroke="#0b0b12" stroke-width="1.5"/>`
+          + `<text x="${pts[pts.length - 1].x.toFixed(1)}" y="${(pts[pts.length - 1].y - 9).toFixed(1)}" fill="#93c5fd" font-size="9.5" text-anchor="middle" font-weight="700">${cumDl.toLocaleString("fr-FR")}</text>`;
+      }
+
+      // Courbe ACTIFS. Ce n'est PAS un cumul mais un niveau : le nombre de
+      // personnes actives sur les 30 derniers jours, releve en fin de chaque
+      // mois. Meme metrique que le « 30 JOURS » de la console Firebase.
+      // Placee au 15 du mois pour tomber au milieu de sa colonne.
+      let auPath = "";
+      const auRows = (actifs || []).filter(r => r.mois).slice()
+        .sort((a, b) => a.mois < b.mois ? -1 : 1);
+      if (auRows.length) {
+        // Chaque point est place a SA date de mesure : le dernier jour du mois
+        // pour un mois clos, aujourd'hui pour le mois en cours. Le centrer au
+        // 15 projetait la valeur du mois courant dans le futur, en decalage
+        // avec les courbes bleue et verte qui s'arretent a aujourd'hui.
+        const maintenant = new Date();
+        const moisCourant = maintenant.toISOString().slice(0, 7);
+        const pts = auRows.map(r => {
+          const d = new Date(r.mois + "T00:00:00");
+          if (r.mois.slice(0, 7) === moisCourant) d.setDate(maintenant.getDate());
+          else d.setMonth(d.getMonth() + 1, 0);   // jour 0 du mois suivant = dernier jour
+          return { x: X(d), y: Y(r.actifs || 0), v: r.actifs || 0 };
+        });
+        // Fenetre glissante de 30 jours : chaque point couvre la meme duree,
+        // y compris le dernier. Aucun mois n'est donc « partiel », contrairement
+        // a un comptage par mois calendaire.
+        auPath = `<path d="${pts.map((pt, i) => `${i ? "L" : "M"}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#eab308" stroke-width="2"/>`
+          + pts.map(pt => `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3" fill="#eab308"/>`).join("")
+          + `<text x="${pts[pts.length - 1].x.toFixed(1)}" y="${(pts[pts.length - 1].y + 15).toFixed(1)}" fill="#fde68a" font-size="9.5" text-anchor="middle" font-weight="700">${pts[pts.length - 1].v.toLocaleString("fr-FR")}</text>`;
+      }
+
       // Point du jour (total actuel).
       const today = new Date();
       const tx = X(today), ty = Y(total);
       const todayDot = `<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="4.5" fill="#22c55e" stroke="#0b0b12" stroke-width="1.5"/>
-        <text x="${tx.toFixed(1)}" y="${(ty - 9).toFixed(1)}" fill="#7ee2a3" font-size="9.5" text-anchor="middle" font-weight="700">${total.toLocaleString("fr-FR")}</text>`;
+        <text x="${tx.toFixed(1)}" y="${(ty + 15).toFixed(1)}" fill="#7ee2a3" font-size="9.5" text-anchor="middle" font-weight="700">${total.toLocaleString("fr-FR")}</text>`;
 
       return `
         <div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-dim); margin:16px 0 4px;">
           <span><span style="display:inline-block;width:12px;height:0;border-top:2px dashed #7c3aed;vertical-align:middle;"></span> Objectif</span>
-          <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Réel</span>
-          <span style="color:var(--text-faint);">· échelle log</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Inscriptions</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#3b82f6;vertical-align:middle;"></span> Téléchargements</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#eab308;vertical-align:middle;"></span> Actifs 30 j glissants</span>
+          <span style="color:var(--text-faint);">· échelle log 100 à 20k</span>
           <span style="margin-left:auto; color:var(--text-faint);">↔ glisse jusqu'à décembre</span>
         </div>
-        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <div id="objcurve-scroll" data-scroll-x="${(X(new Date("2026-07-01T00:00:00")) - padL).toFixed(0)}" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
           <svg viewBox="0 0 ${W} ${H}" style="width:${W}px; height:auto; display:block;" role="img" aria-label="Progression vers les objectifs">
             ${yTicks}${xLabels}
             <path d="${tgtPath}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
-            ${tgtDots}${realPath}${todayDot}
+            ${tgtDots}${dlPath}${auPath}${realPath}${todayDot}
           </svg>
         </div>`;
     }
 
     // Barre de progression vers l'objectif + cartes today / 7j / 30j.
-    function _renderProgress(s, total) {
+    function _renderProgress(s, total, installs, actifs) {
       const obj = USERSTATS_OBJECTIF;
       const pctObj = obj > 0 ? Math.min(100, (total / obj) * 100) : 0;
       const reste = Math.max(0, obj - total);
@@ -5804,7 +7503,7 @@
             <span>Reste ${reste.toLocaleString("fr-FR")} inscriptions</span>
             <span>Objectif ${obj.toLocaleString("fr-FR")}</span>
           </div>
-          ${_renderObjectiveCurve(total, s.par_jour || [])}
+          ${_renderObjectiveCurve(total, s.par_jour || [], installs || [], actifs || [])}
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-top:16px;">
             ${_statCard("Aujourd'hui", (s.aujourdhui || 0), "nouvelles inscriptions")}
             ${_statCard("10 derniers jours", (s.total_10j || 0), `${((s.total_10j || 0) / 10).toFixed(1)} / jour en moy.`)}
@@ -5884,11 +7583,23 @@
           _statCard("Avec avatar", s.avec_avatar || 0, `${pct(s.avec_avatar || 0)}%`),
           _statCard("Avec bio", s.avec_bio || 0, `${pct(s.avec_bio || 0)}%`),
         ].join("");
-        document.getElementById("userstats-progress").innerHTML = _renderProgress(s, total);
+        const [installsJour, actifsMois] = await Promise.all([
+          _fetchInstallsDaily(), _fetchActiveUsers(),
+        ]);
+        document.getElementById("userstats-progress").innerHTML =
+          _renderProgress(s, total, installsJour, actifsMois);
+        // innerHTML n'execute aucun script : on cale le defilement ici, pour
+        // que le graphe s'ouvre sur juillet et non sur les mois vides.
+        const scrollBox = document.getElementById("objcurve-scroll");
+        if (scrollBox) scrollBox.scrollLeft = Number(scrollBox.dataset.scrollX) || 0;
         document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || [], s.par_jour_anonymes || []);
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
         userstatsContent.classList.remove("hidden");
+        // Chargé après l'affichage : une RPC lente ou absente (migration pas
+        // encore appliquée) ne doit pas priver l'onglet de ses statistiques.
+        _refreshCityMiles();
+        _refreshInstalls();
       } catch (e) {
         console.error("[Utilisateurs] load", e);
         toast("Erreur chargement : " + (e.message || e), false);
@@ -5897,6 +7608,124 @@
       }
     }
     document.getElementById("userstats-refresh-btn").addEventListener("click", refreshUserstatsView);
+
+    // ─── Téléchargements Play Store / App Store ─────────────────────────────
+    async function _fetchInstallsDaily() {
+      // 400 jours : la courbe d'objectif court de juin a decembre, une fenetre
+      // de 30 jours n'en couvrirait qu'un fragment. Echec silencieux, la
+      // courbe bleue disparait mais le reste de l'onglet fonctionne.
+      try {
+        const { data, error } = await supabase.rpc("admin_store_installs", { p_days: 400 });
+        return error ? [] : (data || []);
+      } catch { return []; }
+    }
+
+    async function _fetchActiveUsers() {
+      try {
+        const { data, error } = await supabase.rpc("admin_active_users", { p_mois: 24 });
+        return error ? [] : (data || []);
+      } catch { return []; }
+    }
+
+    async function _refreshInstalls() {
+      const box = document.getElementById("installs-cards");
+      try {
+        const { data, error } = await supabase.rpc("admin_store_installs_total");
+        if (error) throw error;
+        const t = data || {};
+        const nb = (n) => (n || 0).toLocaleString("fr-FR");
+        // `depuis` est la date de la plus ancienne ligne saisie, pas celle du
+        // lancement réel : sans ligne de reprise, le cumul démarre au premier
+        // jour renseigné. On l'affiche pour que le chiffre reste lisible.
+        const periode = t.depuis
+          ? `depuis le ${t.depuis}`
+          : "aucune donnée saisie";
+        document.getElementById("installs-cards").innerHTML = [
+          _statCard("Téléchargements", nb(t.total), periode),
+          _statCard("🤖 Android", nb(t.android), "Play Console"),
+          _statCard("🍎 iOS", nb(t.ios), "App Store Connect"),
+        ].join("");
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message || String(e))}</div>`;
+      }
+    }
+    document.getElementById("inst-save-btn").addEventListener("click", async () => {
+      const jour = document.getElementById("inst-jour").value;
+      const platform = document.getElementById("inst-platform").value;
+      const nb = document.getElementById("inst-nb").value;
+      if (!jour) { toast("La date est obligatoire", false); return; }
+      if (nb === "") { toast("Le nombre est obligatoire", false); return; }
+      try {
+        const { error } = await supabase.rpc("admin_upsert_store_installs", {
+          p: [{ jour, platform, installs: Number(nb) }],
+        });
+        if (error) throw error;
+        toast("Enregistré ✓", true);
+        document.getElementById("inst-nb").value = "";
+        _refreshInstalls();
+      } catch (e) { toast("Erreur : " + (e.message || e), false); }
+    });
+
+    // ─── City-Miles : contributeurs stories et distance au palier ───────────
+    async function _refreshCityMiles() {
+      const box = document.getElementById("userstats-miles");
+      box.textContent = "Chargement…";
+      let rows;
+      try {
+        const { data, error } = await supabase.rpc("admin_story_contributors");
+        if (error) throw error;
+        rows = data || [];
+      } catch (e) {
+        box.innerHTML = `<div style="color:var(--err); font-size:12px;">Erreur : ${escapeHtml(e.message || String(e))}</div>`;
+        return;
+      }
+      if (!rows.length) {
+        box.innerHTML = `<div style="color:var(--text-faint); font-size:12px;">Aucune story publiée pour l'instant.</div>`;
+        return;
+      }
+      const seuil = rows[0].threshold;
+      const trs = rows.map(r => {
+        // Proche = il reste au plus un quart du palier. Repere visuel, aucune
+        // conséquence métier : c'est le seuil DB qui débloque le cadeau.
+        const proche = r.restants <= Math.max(1, Math.round(seuil / 4));
+        const pct = Math.min(100, Math.round((r.stories % seuil) / seuil * 100));
+        return `<tr style="border-top:1px solid var(--line);">
+          <td style="padding:7px 10px 7px 0;">
+            ${escapeHtml(r.prenom)}
+            ${r.inscrit ? "" : `<span style="color:var(--text-faint); font-size:11px;"> · anonyme</span>`}
+            <div style="color:var(--text-faint); font-size:10px; font-family:monospace;">${escapeHtml(String(r.user_id).slice(0, 8))}…</div>
+          </td>
+          <td style="padding:7px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(r.ville || "n.c.")}</td>
+          <td style="padding:7px 10px; text-align:center; font-variant-numeric:tabular-nums; font-weight:700;">${r.stories}</td>
+          <td style="padding:7px 10px; min-width:120px;">
+            <div style="background:rgba(255,255,255,0.08); border-radius:999px; height:6px; overflow:hidden;">
+              <div style="width:${pct}%; height:100%; background:${proche ? "#16a34a" : "var(--magenta)"};"></div>
+            </div>
+          </td>
+          <td style="padding:7px 10px; text-align:right; font-variant-numeric:tabular-nums; color:${proche ? "#16a34a" : "var(--text)"}; font-weight:${proche ? 700 : 400};">
+            ${r.restants} avant ${r.next_at}
+          </td>
+          <td style="padding:7px 0 7px 10px; text-align:right; font-size:11px; color:var(--text-faint);">
+            ${r.paliers ? `🎁 ${r.paliers}` : "0"}${r.coupons_utilises ? ` (${r.coupons_utilises} utilisé${r.coupons_utilises > 1 ? "s" : ""})` : ""}
+          </td>
+        </tr>`;
+      }).join("");
+      box.innerHTML = `
+        <div style="font-size:11px; color:var(--text-faint); margin-bottom:8px;">
+          Seuil actuel : <strong>${seuil}</strong> stories par cadeau · ${rows.length} contributeur${rows.length > 1 ? "s" : ""}
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead><tr style="color:var(--text-faint); font-size:11px; text-align:left;">
+            <th style="padding:0 10px 6px 0;">Utilisateur</th>
+            <th style="padding:0 10px 6px;">Ville</th>
+            <th style="padding:0 10px 6px; text-align:center;">Stories</th>
+            <th style="padding:0 10px 6px;">Palier en cours</th>
+            <th style="padding:0 10px 6px; text-align:right;">Reste</th>
+            <th style="padding:0 0 6px 10px; text-align:right;">Cadeaux</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>`;
+    }
 
     // ─── Onglet Media Kit ────────────────────────────────────────────────────
     const mediakitLoading = document.getElementById("mediakit-loading");
@@ -5997,6 +7826,11 @@
               <div style="font-size:11px; color:#888; font-weight:700;">Répartition iOS / Android</div>
               <input id="mk-split" value="${escapeHtml(split)}" placeholder="ex : 55% iOS / 45% Android" style="width:100%; border:none; outline:none; font-size:15px; font-weight:700; color:#190A2E; background:transparent; margin-top:8px;" />
             </div>
+            <div style="flex:1; min-width:140px; background:#fff; border:1px solid #eadff0; border-radius:14px; padding:14px;">
+              <div style="font-size:11px; color:#888; font-weight:700;">% base active / mois</div>
+              <div id="mk-ratio" style="font-size:26px; font-weight:900; background:linear-gradient(135deg,#8E24AA,#E91E63); -webkit-background-clip:text; background-clip:text; color:transparent; margin-top:4px;">—</div>
+              <div style="font-size:10px; color:#aaa; margin-top:2px;">MAU ÷ utilisateurs</div>
+            </div>
           </div>
           <div style="display:flex; gap:26px; flex-wrap:wrap; margin-bottom:22px;">
             <div style="flex:1; min-width:240px;">
@@ -6018,14 +7852,235 @@
         </div>
       </div>`;
 
+      // Ratio % base active/mois = MAU ÷ utilisateurs totaux (recalculé live).
+      const _mkNum = (v) => parseInt(String(v || "").replace(/[^\d]/g, ""), 10) || 0;
+      const updateRatio = () => {
+        const el = document.getElementById("mk-ratio");
+        if (!el) return;
+        const mauN = _mkNum(document.getElementById("mk-mau").value);
+        el.textContent = (totalUsers > 0 && mauN > 0) ? Math.round((mauN / totalUsers) * 100) + "%" : "—";
+      };
       const bind = (id, key) => {
         const el = document.getElementById(id);
-        if (el) el.addEventListener("input", () => localStorage.setItem(key, el.value));
+        if (el) el.addEventListener("input", () => {
+          localStorage.setItem(key, el.value);
+          if (id === "mk-mau") updateRatio();
+        });
       };
       bind("mk-mau", "mk_mau"); bind("mk-dau", "mk_dau"); bind("mk-split", "mk_split");
+      updateRatio();
     }
 
     document.getElementById("mediakit-print-btn").addEventListener("click", () => window.print());
+
+    // ─── Onglet Éditer un event (user_events + scraped_events) ───────────────
+    const eventeditLoading = document.getElementById("eventedit-loading");
+    const eventeditResults = document.getElementById("eventedit-results");
+    const eventeditSearch = document.getElementById("eventedit-search");
+    const eventeditModal = document.getElementById("eventedit-modal");
+    const eventeditModalBody = document.getElementById("eventedit-modal-body");
+    let _eventeditReload = null; // callback pour rafraîchir la liste sous-jacente
+    document.getElementById("eventedit-modal-close").addEventListener("click", () => { eventeditModal.style.display = "none"; });
+
+    const _evLabels = {
+      titre:"Titre", nom_de_la_manifestation:"Titre",
+      date:"Date", date_debut:"Date début", date_fin:"Date fin",
+      heure:"Heure", heure_fin:"Heure fin", horaires:"Horaires", dates_affichage_horaires:"Affichage horaires",
+      description:"Description", description_courte:"Description courte", description_longue:"Description longue",
+      descriptif_court:"Descriptif court", descriptif_long:"Descriptif long",
+      lieu:"Lieu", lieu_nom:"Lieu", lieu_adresse_2:"Adresse", adresse:"Adresse",
+      ville:"Ville", commune:"Commune", code_postal:"Code postal", pays:"Pays",
+      type:"Type", type_de_manifestation:"Type", categorie:"Catégorie",
+      categorie_de_la_manifestation:"Catégorie", theme_de_la_manifestation:"Thème",
+      format:"Format", rubrique:"Rubrique",
+      image_url:"Photo", photo_url:"Photo", cover_url:"Cover", video_url:"Vidéo",
+      organisateur_nom:"Organisateur", organisateur_email:"Email organisateur",
+      organisateur_telephone:"Tél organisateur", organisateur_site:"Site organisateur",
+      reservation_site_internet:"Site réservation", reservation_telephone:"Tél réservation",
+      lien_billetterie:"Lien billetterie", business_url:"Lien business",
+      tarif_normal:"Tarif", prix:"Prix", est_gratuit:"Gratuit", manifestation_gratuite:"Gratuit",
+      station_metro_tram_a_proximite:"Métro/Tram proche", public_cible:"Public cible", niveau:"Niveau",
+    };
+    const _evSkip = new Set([
+      "id","identifiant","source","user_id","reported_by","created_at","updated_at",
+      "scraped_at","priority","boost_until","recurrence","programme","accessibilite",
+      "regles","gallery_urls","tags","status","reviewed_at",
+    ]);
+    const _evMedia = new Set(["image_url","photo_url","cover_url","video_url"]);
+
+    async function _eventeditRun() {
+      const q = eventeditSearch.value.trim();
+      if (q.length < 2) { toast("Tape au moins 2 caractères", false); return; }
+      eventeditLoading.classList.remove("hidden");
+      eventeditResults.innerHTML = "";
+      try {
+        const [ue, se] = await Promise.all([
+          supabase.from("user_events").select("id, titre, date, ville, image_url, video_url").ilike("titre", `%${q}%`).limit(25),
+          supabase.from("scraped_events").select("id, nom_de_la_manifestation, date_debut, commune, photo_url, video_url").ilike("nom_de_la_manifestation", `%${q}%`).limit(25),
+        ]);
+        const rows = [];
+        (ue.data || []).forEach(e => rows.push({ table:"user_events", source:"user", id:e.id, titre:e.titre, date:e.date, ville:e.ville, hasPhoto:!!e.image_url, hasVideo:!!e.video_url }));
+        (se.data || []).forEach(e => rows.push({ table:"scraped_events", source:"scraper", id:e.id, titre:e.nom_de_la_manifestation, date:e.date_debut, ville:e.commune, hasPhoto:!!e.photo_url, hasVideo:!!e.video_url }));
+        if (rows.length === 0) { eventeditResults.innerHTML = `<div style="padding:14px; color:var(--text-faint);">Aucun event trouvé pour « ${escapeHtml(q)} ».</div>`; return; }
+        eventeditResults.innerHTML = rows.map(r => `
+          <div class="banner-card" style="display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap; margin-bottom:8px;">
+            <div>
+              <div style="font-weight:700;">${escapeHtml(r.titre || "(sans titre)")}</div>
+              <div style="font-size:12px; color:var(--text-faint);">
+                <span style="background:${r.source==='user'?'#7B2D8E':'#0891B2'}; color:#fff; border-radius:6px; padding:1px 7px; font-size:10px; font-weight:700;">${r.source==='user'?'USER':'SCRAPER'}</span>
+                ${r.ville ? " · " + escapeHtml(r.ville) : ""}${r.date ? " · " + escapeHtml(String(r.date)) : ""}
+                ${r.hasPhoto ? " · 📷" : ""}${r.hasVideo ? " · 🎬" : ""}
+              </div>
+            </div>
+            <button class="banner-save-btn" data-edit-table="${r.table}" data-edit-id="${r.id}">✏️ Éditer</button>
+          </div>`).join("");
+      } catch (e) {
+        console.error("[EventEdit] search", e);
+        toast("Erreur recherche : " + (e.message || e), false);
+      } finally {
+        eventeditLoading.classList.add("hidden");
+      }
+    }
+
+    async function _eventeditOpen(table, id, reload) {
+      if (reload !== undefined) _eventeditReload = reload;
+      eventeditModalBody.innerHTML = `<div style="padding:14px; color:var(--text-faint);">Chargement…</div>`;
+      eventeditModal.style.display = "block";
+      try {
+        const { data, error } = await supabase.from(table).select("*").eq("id", id).single();
+        if (error) throw error;
+        _eventeditRenderForm(table, data);
+      } catch (e) {
+        eventeditModalBody.innerHTML = `<div style="padding:14px; color:#ef4444;">Erreur : ${escapeHtml(e.message || String(e))}</div>`;
+      }
+    }
+
+    function _eventeditRenderForm(table, row) {
+      const title = row.titre || row.nom_de_la_manifestation || "(sans titre)";
+      const cols = Object.keys(row).filter(k => !_evSkip.has(k));
+      const media = cols.filter(k => _evMedia.has(k));
+      const fields = cols.filter(k => !_evMedia.has(k) && typeof row[k] !== "object");
+      const label = (k) => _evLabels[k] || k;
+      const isVideo = (k) => k === "video_url";
+
+      const mediaHtml = media.map(k => {
+        const v = row[k] || "";
+        const preview = v
+          ? (isVideo(k)
+              ? `<video src="${escapeHtml(v)}" style="max-height:150px; border-radius:10px;" muted controls></video>`
+              : `<img src="${escapeHtml(v)}" style="max-height:150px; border-radius:10px;"/>`)
+          : `<div style="color:var(--text-faint); font-size:12px;">Aucun${isVideo(k)?"e vidéo":"e photo"}</div>`;
+        return `<div style="flex:1; min-width:220px;">
+          <label class="banner-field-label">${label(k)}</label>
+          <div style="margin:6px 0;">${preview}</div>
+          <button class="gen-btn" data-media-col="${k}" data-media-video="${isVideo(k)?1:0}">${isVideo(k)?"🎬 Remplacer la vidéo":"📷 Remplacer la photo"}</button>
+          ${v ? `<button class="gen-btn" data-media-clear="${k}" style="border-color:#ef4444; color:#ef4444;">× Retirer</button>` : ""}
+        </div>`;
+      }).join("");
+
+      const fieldsHtml = fields.map(k => {
+        const v = row[k];
+        if (typeof v === "boolean") {
+          return `<label class="banner-toggle" style="display:block; margin:8px 0;"><input type="checkbox" data-f="${k}"${v?" checked":""}/> ${label(k)}</label>`;
+        }
+        const numAttr = (typeof v === "number") ? ' data-num="1"' : "";
+        const long = /desc|adresse/i.test(k) || String(v || "").length > 60;
+        if (long) {
+          return `<div style="margin-bottom:10px;"><label class="banner-field-label">${label(k)}</label>
+            <textarea data-f="${k}" class="banner-input" rows="2" style="width:100%; resize:vertical;">${escapeHtml(String(v ?? ""))}</textarea></div>`;
+        }
+        return `<div style="margin-bottom:10px;"><label class="banner-field-label">${label(k)}</label>
+          <input type="text" data-f="${k}"${numAttr} class="banner-input" style="width:100%;" value="${escapeHtml(String(v ?? ""))}"/></div>`;
+      }).join("");
+
+      eventeditModalBody.innerHTML = `
+        <div class="banner-card" data-edit-table="${table}" data-edit-id="${row.id}" style="margin-top:8px;">
+          <div class="banner-card-head"><span class="banner-mode-pill">${table === "user_events" ? "USER" : "SCRAPER"} · #${row.id}</span> <strong style="margin-left:8px;">${escapeHtml(title)}</strong></div>
+          <div style="display:flex; gap:16px; flex-wrap:wrap; margin:14px 0;">${mediaHtml || '<div style="color:var(--text-faint);">Pas de champ média.</div>'}</div>
+          <hr style="border:none; border-top:1px solid var(--line); margin:8px 0 14px;"/>
+          ${fieldsHtml}
+          <div class="banner-actions-row" style="gap:10px; margin-top:8px;">
+            <button class="banner-save-btn" id="eventedit-save">💾 Enregistrer</button>
+            <span id="eventedit-status" style="font-size:12px; color:var(--text-faint); align-self:center;"></span>
+          </div>
+        </div>`;
+    }
+
+    function _pickVideoFile() {
+      return new Promise((resolve) => {
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "video/*";
+        inp.onchange = () => resolve(inp.files && inp.files[0] ? inp.files[0] : null);
+        inp.click();
+      });
+    }
+
+    document.getElementById("eventedit-search-btn").addEventListener("click", _eventeditRun);
+    eventeditSearch.addEventListener("keydown", (e) => { if (e.key === "Enter") _eventeditRun(); });
+    eventeditResults.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-edit-table]");
+      if (!btn) return;
+      _eventeditOpen(btn.dataset.editTable, Number(btn.dataset.editId), _eventeditRun);
+    });
+    eventeditModalBody.addEventListener("click", async (e) => {
+      const card = eventeditModalBody.querySelector(".banner-card[data-edit-table]");
+      if (!card) return;
+      const table = card.dataset.editTable;
+      const id = Number(card.dataset.editId);
+
+      const mbtn = e.target.closest("[data-media-col]");
+      if (mbtn) {
+        const col = mbtn.dataset.mediaCol;
+        const isVid = mbtn.dataset.mediaVideo === "1";
+        try {
+          let url;
+          if (isVid) {
+            const f = await _pickVideoFile();
+            if (!f) return;
+            mbtn.disabled = true; const t = mbtn.textContent; mbtn.textContent = "…";
+            url = await uploadVideo(f);
+            mbtn.disabled = false; mbtn.textContent = t;
+          } else {
+            url = await _pickImage();
+            if (!url) return;
+          }
+          const { error } = await supabase.from(table).update({ [col]: url }).eq("id", id);
+          if (error) throw error;
+          toast("Média mis à jour ✓", true);
+          _eventeditOpen(table, id);
+          if (_eventeditReload) _eventeditReload();
+        } catch (err) { toast("Échec média : " + (err.message || err), false); }
+        return;
+      }
+      const cbtn = e.target.closest("[data-media-clear]");
+      if (cbtn) {
+        const col = cbtn.dataset.mediaClear;
+        if (!confirm("Retirer ce média ?")) return;
+        const { error } = await supabase.from(table).update({ [col]: "" }).eq("id", id);
+        if (error) { toast("Échec : " + (error.message || ""), false); return; }
+        toast("Retiré ✓", true);
+        _eventeditOpen(table, id);
+        if (_eventeditReload) _eventeditReload();
+        return;
+      }
+      if (e.target.id === "eventedit-save") {
+        const patch = {};
+        card.querySelectorAll("[data-f]").forEach(el => {
+          const k = el.dataset.f;
+          if (el.type === "checkbox") patch[k] = el.checked;
+          else if (el.dataset.num === "1") patch[k] = el.value === "" ? null : Number(el.value);
+          else patch[k] = el.value;
+        });
+        const btn = e.target; btn.disabled = true;
+        document.getElementById("eventedit-status").textContent = "…";
+        const { error } = await supabase.from(table).update(patch).eq("id", id);
+        btn.disabled = false;
+        if (error) { document.getElementById("eventedit-status").textContent = ""; toast("Échec (RLS ?) : " + (error.message || ""), false); return; }
+        document.getElementById("eventedit-status").textContent = "Enregistré ✓";
+        toast("Event mis à jour ✓", true);
+        if (_eventeditReload) _eventeditReload();
+      }
+    });
 
     // ─── Onglet Système (monitoring base) ───────────────────────────────────
     const sysmonLoading = document.getElementById("sysmon-loading");
@@ -6913,7 +8968,15 @@
 
     // Liste unifiee venues + etablissements pour l'affichage admin.
     function unifiedFiches() {
-      const v = allVenues.map(r => ({
+      // Symétrique du filtre ETAB_ORPHAN_RUBRIQUES ci-dessous : l'app lit
+      // `etablissements` pour Food, donc les lignes venues mode='food' sont
+      // des doublons orphelins que l'app n'affiche jamais. Les masquer évite
+      // d'éditer dans le vide — sans ça, la migration des 2 559 restaurants
+      // de venues vers etablissements ferait apparaître chaque fiche en
+      // double (même bug que L'Étoile, à grande échelle).
+      // Le sélecteur de lieu du formulaire event n'est pas concerné : il lit
+      // `allVenues` directement, pas unifiedFiches().
+      const v = allVenues.filter(r => (r.mode || "").toLowerCase().trim() !== "food").map(r => ({
         source: "venues",
         id: r.id,
         name: r.name || "",
@@ -6989,7 +9052,30 @@
         videoUrl: "",
         isPartner: !!r.is_partner,
       }));
-      return v.concat(e).concat(s).concat(fam);
+      // L'app lit `evasion_venues` pour la rubrique Évasion. Sans ce bloc, un
+      // domaine n'apparaissait dans AUCUN sélecteur — donc impossible à abonner.
+      const eva = _allEvasion.map(r => ({
+        source: "evasion_venues",
+        id: r.id,
+        name: r.nom || "",
+        // `hub_ville` et NON `ville` : un domaine d'évasion est rattaché à une
+        // ville hub (Toulouse) mais physiquement dans un village (Lempaut,
+        // Drudas…). C'est le rattachement que l'app filtre, et le seul qui ait
+        // un sens commercial. Sur `ville`, les 10 domaines tombaient sous des
+        // communes absentes de la liste des hubs.
+        ville: r.hub_ville || r.ville || "",
+        adresse: [r.ville, r.adresse].filter(Boolean).join(" · "),
+        type: "évasion",
+        rubrique: "evasion",
+        code: null,            // evasion_venues : pas de code de revendication
+        photo: r.photo || "",
+        photos: Array.isArray(r.photos) ? r.photos : [],
+        priority: r.display_priority ?? 0,
+        priorities: {},
+        videoUrl: r.video_url || "",
+        isPartner: !!r.is_partner,
+      }));
+      return v.concat(e).concat(s).concat(fam).concat(eva);
     }
 
     function normalizeCity(s) {
@@ -7009,7 +9095,7 @@
     // Libellé du badge selon la table source
     const VENUE_SOURCE_LABEL = {
       venues: "venue", etablissements: "etab", sport_venues: "sport",
-      family_venues: "famille",
+      family_venues: "famille", evasion_venues: "évasion",
     };
 
     // Vignettes de la galerie — reconstruites à chaque ajout / retrait / déplacement.
@@ -9760,6 +11846,17 @@
             value="${escapeHtml(site)}"
             placeholder="https://exemple.com" />
 
+          <label class="banner-field-label">🥇 Établissement partenaire — emplacement Gold
+            <span style="opacity:.6; font-weight:400;">(vide = carte éditoriale)</span></label>
+          <input type="hidden" data-field="source_table" value="${escapeHtml(row?.source_table || '')}" />
+          <input type="hidden" data-field="source_id" value="${row?.source_id ?? ''}" />
+          <input type="text" class="banner-input" data-role="insp-partner-search"
+            placeholder="Tape un nom d'établissement…" autocomplete="off" />
+          <div data-role="insp-partner-results" style="max-height:180px; overflow-y:auto;"></div>
+          <div data-role="insp-partner-current" style="font-size:12px; margin-top:4px; color:var(--text-dim);">
+            ${row?.source_id ? `🥇 lié à <strong style="color:var(--text);">${escapeHtml(inspPartnerLabel(row.source_table, row.source_id))}</strong> — <span data-role="insp-partner-clear" style="color:var(--err); cursor:pointer; text-decoration:underline;">retirer</span>` : 'Aucun — carte éditoriale'}
+          </div>
+
           <label class="banner-field-label">Thème (filtre au tap — voir les suggestions de la rubrique)</label>
           <input type="text" class="banner-input" data-field="theme"
             list="insp-themes-datalist"
@@ -9912,6 +12009,10 @@
           theme: theme || null,
           sort_order: sortOrder,
           is_active: isActive,
+          // Lien vers l'établissement : les deux colonnes vont par paire
+          // (contrainte SQL), d'où le null des deux côtés si rien n'est choisi.
+          source_table: card.querySelector('[data-field="source_table"]').value || null,
+          source_id: Number(card.querySelector('[data-field="source_id"]').value) || null,
         };
 
         let resp;
@@ -9945,6 +12046,56 @@
 
         renderInspirationsList(ville);
         toast(`Carte ${existing ? 'mise à jour' : 'créée'}`, true);
+      }
+    });
+
+    // ─── Inspirations : rattacher un établissement (emplacement Gold) ───
+    // Réutilise unifiedFiches() : mêmes fiches que l'onglet Établissements,
+    // donc on ne peut lier que ce que l'app affiche réellement.
+    function inspPartnerLabel(table, id) {
+      const f = unifiedFiches().find(
+        x => x.source === table && String(x.id) === String(id));
+      return f ? `${f.name}${f.ville ? " · " + f.ville : ""}` : `${table}#${id}`;
+    }
+
+    document.addEventListener("input", (ev) => {
+      const input = ev.target.closest('[data-role="insp-partner-search"]');
+      if (!input) return;
+      const card = input.closest(".banner-card") || input.parentElement;
+      const box = card.querySelector('[data-role="insp-partner-results"]');
+      const q = input.value.trim().toLowerCase();
+      if (q.length < 2) { box.innerHTML = ""; return; }
+      const hits = unifiedFiches()
+        .filter(f => f.name && f.name.toLowerCase().includes(q))
+        .slice(0, 8);
+      box.innerHTML = hits.length
+        ? hits.map(f => `<div data-pick-table="${escapeHtml(f.source)}" data-pick-id="${f.id}"
+             style="padding:7px 9px; cursor:pointer; border-bottom:1px solid var(--line); font-size:13px;">
+             ${escapeHtml(f.name)} <span style="color:var(--text-faint);">· ${escapeHtml(f.ville || "")} · ${escapeHtml(VENUE_SOURCE_LABEL[f.source] || f.source)}</span>
+           </div>`).join("")
+        : `<div style="padding:7px 9px; color:var(--text-faint); font-size:12px;">Aucun résultat</div>`;
+    });
+
+    document.addEventListener("click", (ev) => {
+      const pick = ev.target.closest("[data-pick-table]");
+      if (pick) {
+        const card = pick.closest(".banner-card") || pick.parentElement.parentElement;
+        card.querySelector('[data-field="source_table"]').value = pick.dataset.pickTable;
+        card.querySelector('[data-field="source_id"]').value = pick.dataset.pickId;
+        card.querySelector('[data-role="insp-partner-results"]').innerHTML = "";
+        card.querySelector('[data-role="insp-partner-search"]').value = "";
+        card.querySelector('[data-role="insp-partner-current"]').innerHTML =
+          `🥇 lié à <strong style="color:var(--text);">${escapeHtml(inspPartnerLabel(pick.dataset.pickTable, pick.dataset.pickId))}</strong> — <span data-role="insp-partner-clear" style="color:var(--err); cursor:pointer; text-decoration:underline;">retirer</span>`;
+        toast("Établissement rattaché — pense à enregistrer");
+        return;
+      }
+      const clear = ev.target.closest('[data-role="insp-partner-clear"]');
+      if (clear) {
+        const card = clear.closest(".banner-card") || clear.parentElement.parentElement;
+        card.querySelector('[data-field="source_table"]').value = "";
+        card.querySelector('[data-field="source_id"]').value = "";
+        card.querySelector('[data-role="insp-partner-current"]').textContent =
+          "Aucun — carte éditoriale";
       }
     });
 
@@ -10108,114 +12259,160 @@
     }
 
     function renderTile(ev) {
-      const dateLabel = formatFrenchDate(ev.date_debut);
-      const dateFinLabel = ev.date_fin && ev.date_fin !== ev.date_debut
-        ? ` → ${formatFrenchDate(ev.date_fin)}` : "";
-      const lieu = ev.lieu_nom || ev.commune || ev.ville || "";
-      const isEditing = editingEvent && editingEvent.id === ev.id;
+      // ev = objet normalisé (voir loadHistory) : _table, _id, _source, title, date, dateFin, time, place, photo, hasVideo
+      const dateFinLabel = ev.dateFin && ev.dateFin !== ev.date
+        ? ` → ${formatFrenchDate(ev.dateFin)}` : "";
+      const badgeStyle = "font-size:10px; padding:2px 6px; border-radius:6px; color:#fff; vertical-align:middle; margin-left:6px;";
+      const badge = ev._source === "user"
+        ? `<span style="${badgeStyle} background:#2563eb;">👤 user</span>`
+        : ev._source === "manuel"
+        ? `<span style="${badgeStyle} background:#16a34a;">✍️ manuel</span>`
+        : `<span style="${badgeStyle} background:#6b7280;">🤖 scraper</span>`;
+      const key = `${ev._table}:${ev._id}`;
       return `
-        <div class="event-tile ${isEditing ? "editing" : ""}" data-id="${ev.id}">
-          ${ev.photo_url
-            ? `<img src="${escapeHtml(ev.photo_url)}" class="event-tile-img" alt="" loading="lazy" />`
-            : `<div class="event-tile-img-empty">📅</div>`}
+        <div class="event-tile" data-key="${key}">
+          ${ev.photo
+            ? `<img src="${escapeHtml(ev.photo)}" class="event-tile-img" alt="" loading="lazy" />`
+            : `<div class="event-tile-img-empty">${ev.hasVideo ? "🎬" : "📅"}</div>`}
           <div class="event-tile-body">
-            <div class="event-tile-title">${escapeHtml(ev.nom_de_la_manifestation)}</div>
-            ${ev.horaires ? `<div class="event-tile-meta">🕒 ${escapeHtml(ev.horaires)}${escapeHtml(dateFinLabel)}</div>` : (dateFinLabel ? `<div class="event-tile-meta">📅${escapeHtml(dateFinLabel)}</div>` : "")}
-            ${lieu ? `<div class="event-tile-meta">📍 ${escapeHtml(lieu)}</div>` : ""}
+            <div class="event-tile-title">${escapeHtml(ev.title)}${badge}</div>
+            ${ev._ongoing ? `<div class="event-tile-meta" style="color:#f59e0b;">🔴 en cours${ev.dateFin ? ` · jusqu'au ${escapeHtml(formatFrenchDate(ev.dateFin))}` : ""}</div>` : ""}
+            ${ev.time ? `<div class="event-tile-meta">🕒 ${escapeHtml(ev.time)}${escapeHtml(dateFinLabel)}</div>` : (dateFinLabel ? `<div class="event-tile-meta">📅${escapeHtml(dateFinLabel)}</div>` : "")}
+            ${ev.place ? `<div class="event-tile-meta">📍 ${escapeHtml(ev.place)}</div>` : ""}
+            ${ev.hasVideo ? `<div class="event-tile-meta">🎬 vidéo</div>` : ""}
             <div class="event-tile-actions">
-              <button type="button" class="event-tile-btn" data-action="edit" data-id="${ev.id}">✏️ Modifier</button>
-              <button type="button" class="event-tile-btn delete" data-action="delete" data-id="${ev.id}">🗑️</button>
+              <button type="button" class="event-tile-btn" data-action="edit" data-key="${key}">✏️ Éditer</button>
+              ${ev._source === "manuel"
+                ? `<button type="button" class="event-tile-btn delete" data-action="delete" data-key="${key}">🗑️</button>`
+                : ""}
             </div>
           </div>
         </div>`;
     }
 
+    function _isCinemaEvent(cat, src) {
+      const c = (cat || "").toLowerCase();
+      const s = (src || "").toLowerCase();
+      return c.includes("cinéma") || c.includes("cinema")
+          || s.includes("cinema") || s.includes("allocine");
+    }
+
     async function loadHistory() {
-      if (!currentUserEmail) return;
-      historyList.innerHTML = '<div class="helper" style="text-align:center; padding: 20px;">Chargement…</div>';
+      const cityInput = document.getElementById("history-city");
+      const city = (cityInput ? cityInput.value : "").trim();
       historyEmpty.classList.add("hidden");
-
-      const { data, error } = await supabase
-        .from("scraped_events")
-        .select("*")
-        .eq("source", "manual_admin")
-        .eq("created_by_email", currentUserEmail)
-        .order("date_debut", { ascending: true })
-        .limit(100);
-
-      if (error) {
-        historyList.innerHTML = `<div class="helper" style="color:var(--err); text-align:center; padding: 20px;">Erreur : ${escapeHtml(error.message)}</div>`;
+      if (!city) {
+        historyMap = {};
         historyCount.textContent = "";
         eventsCountBadge.textContent = "";
+        historyList.innerHTML = `<div class="helper" style="text-align:center; padding: 26px;">👆 Choisis une ville pour voir ses events <b>à venir</b> : tes events manuels + ceux des users. <br><small>(Les events scrapés automatiquement ne sont pas listés ici — édite-les via l'onglet « ✏️ Éditer un event » en cherchant par nom.)</small></div>`;
+        return;
+      }
+      historyList.innerHTML = '<div class="helper" style="text-align:center; padding: 20px;">Chargement…</div>';
+
+      const _n = new Date();
+      const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const today = fmt(_n);
+
+      const [ue, se] = await Promise.all([
+        // events créés par les users
+        supabase.from("user_events")
+          .select("id, titre, date, ville, image_url, video_url")
+          .ilike("ville", city)
+          .gte("date", today)
+          .order("date", { ascending: true })
+          .limit(500),
+        // UNIQUEMENT tes events manuels (pas la masse des events scrapés auto)
+        supabase.from("scraped_events")
+          .select("id, nom_de_la_manifestation, date_debut, date_fin, horaires, lieu_nom, commune, ville, photo_url, video_url, source")
+          .eq("source", "manual_admin")
+          .or(`commune.ilike.${city},ville.ilike.${city}`)
+          .or(`date_debut.gte.${today},date_fin.gte.${today}`)
+          .order("date_debut", { ascending: true })
+          .limit(500),
+      ]);
+
+      if (ue.error && se.error) {
+        historyList.innerHTML = `<div class="helper" style="color:var(--err); text-align:center; padding: 20px;">Erreur : ${escapeHtml(ue.error.message || se.error.message)}</div>`;
+        historyCount.textContent = ""; eventsCountBadge.textContent = "";
         return;
       }
 
+      const norm = [];
+      (ue.data || []).forEach(ev => {
+        norm.push({
+          _table: "user_events", _id: ev.id, _source: "user",
+          title: ev.titre || "(sans titre)",
+          date: ev.date || "", dateFin: "",
+          time: "", place: ev.ville || "",
+          photo: ev.image_url || "", hasVideo: !!ev.video_url,
+        });
+      });
+      (se.data || []).forEach(ev => {
+        norm.push({
+          _table: "scraped_events", _id: ev.id, _source: "manuel",
+          title: ev.nom_de_la_manifestation || "(sans titre)",
+          date: ev.date_debut || "", dateFin: ev.date_fin || "",
+          time: ev.horaires || "", place: ev.lieu_nom || ev.commune || ev.ville || "",
+          photo: ev.photo_url || "", hasVideo: !!ev.video_url,
+        });
+      });
+
       historyMap = {};
-      (data || []).forEach(ev => { historyMap[ev.id] = ev; });
-      const count = data ? data.length : 0;
+      norm.forEach(ev => { historyMap[`${ev._table}:${ev._id}`] = ev; });
+      const count = norm.length;
       historyCount.textContent = count ? `(${count})` : "";
       eventsCountBadge.textContent = count ? `(${count})` : "";
 
-      if (!data || data.length === 0) {
+      if (!count) {
         historyList.innerHTML = "";
         historyEmpty.classList.remove("hidden");
         return;
       }
 
-      // Groupement : date_debut -> categorie -> [events]
+      // Groupement par date, tri chronologique (sans date -> à la fin).
+      // Events "en cours" (commencés avant aujourd'hui mais pas finis) : on les
+      // range sous AUJOURD'HUI (pas sous leur date de début passée) + badge.
       const byDate = new Map();
-      data.forEach(ev => {
-        const date = ev.date_debut || "";
-        const cat = (ev.categorie_de_la_manifestation || "").trim() || "Sans catégorie";
-        if (!byDate.has(date)) byDate.set(date, new Map());
-        const byCat = byDate.get(date);
-        if (!byCat.has(cat)) byCat.set(cat, []);
-        byCat.get(cat).push(ev);
+      norm.forEach(ev => {
+        ev._ongoing = !!(ev.date && ev.date < today);
+        const gdate = ev._ongoing ? today : (ev.date || "");
+        if (!byDate.has(gdate)) byDate.set(gdate, []);
+        byDate.get(gdate).push(ev);
       });
-
-      // Tri : dates ascendantes, categories alphabetiques
-      const sortedDates = [...byDate.keys()].sort();
+      const sortedDates = [...byDate.keys()].sort((a, b) => (a || "9999").localeCompare(b || "9999"));
 
       const html = sortedDates.map(date => {
-        const byCat = byDate.get(date);
-        const sortedCats = [...byCat.keys()].sort((a, b) => a.localeCompare(b, "fr"));
-        const totalForDate = sortedCats.reduce((acc, c) => acc + byCat.get(c).length, 0);
-
-        const themeBlocks = sortedCats.map(cat => {
-          const evs = byCat.get(cat);
-          const tiles = evs.map(renderTile).join("");
-          return `
-            <div class="events-theme-section">
-              <div class="events-theme-header">${escapeHtml(cat)} <span class="count">(${evs.length})</span></div>
-              <div class="events-grid">${tiles}</div>
-            </div>`;
-        }).join("");
-
+        const evs = byDate.get(date);
+        const tiles = evs.map(renderTile).join("");
         return `
           <div class="events-date-section">
-            <h3 class="events-date-header">📅 ${escapeHtml(formatFrenchDateLong(date))} <span class="count">${totalForDate} event${totalForDate > 1 ? "s" : ""} ajouté${totalForDate > 1 ? "s" : ""}</span></h3>
-            ${themeBlocks}
+            <h3 class="events-date-header">📅 ${escapeHtml(formatFrenchDateLong(date))} <span class="count">${evs.length} event${evs.length > 1 ? "s" : ""}</span></h3>
+            <div class="events-grid">${tiles}</div>
           </div>`;
       }).join("");
 
       historyList.innerHTML = html;
     }
 
+    // Remplit la liste déroulante des villes + charge au changement / au bouton
+    const _histCitySel = document.getElementById("history-city");
+    _histCitySel.innerHTML = `<option value="">— Choisis une ville —</option>` + _hubCityOptions("");
+    _histCitySel.addEventListener("change", loadHistory);
+    document.getElementById("history-city-btn").addEventListener("click", loadHistory);
+
     historyList.addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-action]");
       if (!btn) return;
-      const id = parseInt(btn.dataset.id, 10);
-      const ev = historyMap[id];
+      const ev = historyMap[btn.dataset.key];
       if (!ev) return;
 
       if (btn.dataset.action === "edit") {
-        enterEditMode(ev);
+        _eventeditOpen(ev._table, ev._id, loadHistory);
       } else if (btn.dataset.action === "delete") {
-        if (!confirm(`Supprimer définitivement « ${ev.nom_de_la_manifestation} » ?`)) return;
-        const { error } = await supabase.from("scraped_events").delete().eq("id", id);
+        if (!confirm(`Supprimer définitivement « ${ev.title} » ?`)) return;
+        const { error } = await supabase.from(ev._table).delete().eq("id", ev._id);
         if (error) return toast("Erreur suppression : " + error.message, false);
-        // Si on etait en train d'editer cet event, on sort du mode edition
-        if (editingEvent && editingEvent.id === id) exitEditMode();
         toast("Event supprimé");
         loadHistory();
       }
@@ -10518,6 +12715,9 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
       btn.disabled = false;
       btn.textContent = "✨ Créer l'event";
+      // Pré-remplit le filtre ville de "Mes events" pour que le refresh montre l'event créé
+      const histCityInput = document.getElementById("history-city");
+      if (histCityInput && ville) histCityInput.value = ville;
       loadHistory();               // rafraichit la liste avec le nouveau / mis a jour
     });
   </script>
