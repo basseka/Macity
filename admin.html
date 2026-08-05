@@ -7353,7 +7353,9 @@
     // SVG pur, sans dépendance.
     function _renderObjectiveCurve(total, parJour, installs, actifs) {
       // Largeur par mois FIXE → ~3 mois visibles, scroll horizontal jusqu'à déc.
-      const monthW = 200, padL = 48, padR = 16, padT = 16, padB = 30, H = 440;
+      // 200 -> 340 : a cette largeur, deux a trois mois remplissent la vue et
+      // le reste s'atteint par la barre de defilement horizontale.
+      const monthW = 340, padL = 48, padR = 16, padT = 16, padB = 30, H = 440;
       const months = [["2026-06-01", "juin"], ["2026-07-01", "juil"], ["2026-08-01", "août"], ["2026-09-01", "sept"], ["2026-10-01", "oct"], ["2026-11-01", "nov"], ["2026-12-01", "déc"]];
       const plotW = monthW * months.length;    // 7 mois (juin → déc)
       const W = padL + plotW + padR;
@@ -7428,20 +7430,32 @@
           + `<text x="${pts[pts.length - 1].x.toFixed(1)}" y="${(pts[pts.length - 1].y - 9).toFixed(1)}" fill="#93c5fd" font-size="9.5" text-anchor="middle" font-weight="700">${cumDl.toLocaleString("fr-FR")}</text>`;
       }
 
-      // Courbe ACTIFS MENSUELS. Ce n'est PAS un cumul : c'est un niveau, le
-      // nombre de personnes actives dans le mois. On la place au 15 du mois
-      // pour qu'elle tombe au milieu de sa colonne et non sur la separation.
+      // Courbe ACTIFS. Ce n'est PAS un cumul mais un niveau : le nombre de
+      // personnes actives sur les 30 derniers jours, releve en fin de chaque
+      // mois. Meme metrique que le « 30 JOURS » de la console Firebase.
+      // Placee au 15 du mois pour tomber au milieu de sa colonne.
       let auPath = "";
       const auRows = (actifs || []).filter(r => r.mois).slice()
         .sort((a, b) => a.mois < b.mois ? -1 : 1);
       if (auRows.length) {
+        // Chaque point est place a SA date de mesure : le dernier jour du mois
+        // pour un mois clos, aujourd'hui pour le mois en cours. Le centrer au
+        // 15 projetait la valeur du mois courant dans le futur, en decalage
+        // avec les courbes bleue et verte qui s'arretent a aujourd'hui.
+        const maintenant = new Date();
+        const moisCourant = maintenant.toISOString().slice(0, 7);
         const pts = auRows.map(r => {
-          const d = new Date(r.mois + "T00:00:00"); d.setDate(15);
+          const d = new Date(r.mois + "T00:00:00");
+          if (r.mois.slice(0, 7) === moisCourant) d.setDate(maintenant.getDate());
+          else d.setMonth(d.getMonth() + 1, 0);   // jour 0 du mois suivant = dernier jour
           return { x: X(d), y: Y(r.actifs || 0), v: r.actifs || 0 };
         });
+        // Fenetre glissante de 30 jours : chaque point couvre la meme duree,
+        // y compris le dernier. Aucun mois n'est donc « partiel », contrairement
+        // a un comptage par mois calendaire.
         auPath = `<path d="${pts.map((pt, i) => `${i ? "L" : "M"}${pt.x.toFixed(1)},${pt.y.toFixed(1)}`).join(" ")}" fill="none" stroke="#eab308" stroke-width="2"/>`
           + pts.map(pt => `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3" fill="#eab308"/>`).join("")
-          + `<text x="${pts[pts.length - 1].x.toFixed(1)}" y="${(pts[pts.length - 1].y - 9).toFixed(1)}" fill="#fde68a" font-size="9.5" text-anchor="middle" font-weight="700">${pts[pts.length - 1].v.toLocaleString("fr-FR")}</text>`;
+          + `<text x="${pts[pts.length - 1].x.toFixed(1)}" y="${(pts[pts.length - 1].y + 15).toFixed(1)}" fill="#fde68a" font-size="9.5" text-anchor="middle" font-weight="700">${pts[pts.length - 1].v.toLocaleString("fr-FR")}</text>`;
       }
 
       // Point du jour (total actuel).
@@ -7455,11 +7469,11 @@
           <span><span style="display:inline-block;width:12px;height:0;border-top:2px dashed #7c3aed;vertical-align:middle;"></span> Objectif</span>
           <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Inscriptions</span>
           <span><span style="display:inline-block;width:12px;height:2px;background:#3b82f6;vertical-align:middle;"></span> Téléchargements</span>
-          <span><span style="display:inline-block;width:12px;height:2px;background:#eab308;vertical-align:middle;"></span> Actifs / mois</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#eab308;vertical-align:middle;"></span> Actifs 30 j glissants</span>
           <span style="color:var(--text-faint);">· échelle log 100 à 20k</span>
           <span style="margin-left:auto; color:var(--text-faint);">↔ glisse jusqu'à décembre</span>
         </div>
-        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <div id="objcurve-scroll" data-scroll-x="${(X(new Date("2026-07-01T00:00:00")) - padL).toFixed(0)}" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
           <svg viewBox="0 0 ${W} ${H}" style="width:${W}px; height:auto; display:block;" role="img" aria-label="Progression vers les objectifs">
             ${yTicks}${xLabels}
             <path d="${tgtPath}" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4"/>
@@ -7574,6 +7588,10 @@
         ]);
         document.getElementById("userstats-progress").innerHTML =
           _renderProgress(s, total, installsJour, actifsMois);
+        // innerHTML n'execute aucun script : on cale le defilement ici, pour
+        // que le graphe s'ouvre sur juillet et non sur les mois vides.
+        const scrollBox = document.getElementById("objcurve-scroll");
+        if (scrollBox) scrollBox.scrollLeft = Number(scrollBox.dataset.scrollX) || 0;
         document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || [], s.par_jour_anonymes || []);
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);

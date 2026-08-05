@@ -137,6 +137,14 @@ class UnifiedSearchService {
       final params = <String, String>{
         'select': 'id,nom,categorie,adresse,ville,horaires,telephone,site_web,lien_maps,photo,photos,video_url,latitude,longitude',
         'is_active': 'eq.true',
+        // Doublons orphelins : l'app sert Night depuis `venues`, Famille depuis
+        // `family_venues` et Culture depuis sa propre table. Les lignes
+        // correspondantes d'`etablissements` ne sont affichees NULLE PART, sauf
+        // ici. Elles portent des photos generiques (les cinq bowlings pointaient
+        // tous sur default_famille.jpg, une photo d'enfant) et masquaient les
+        // vraies fiches. Meme liste que ETAB_ORPHAN_RUBRIQUES dans admin.html :
+        // garder les deux synchronises.
+        'rubrique': 'not.in.(nuit,night,culture,famille,family)',
         // `theme` = classement Food (Salon de the, Guinguette, Brunch, cuisines…) :
         // sans lui, taper "salon de the" ne trouvait que les noms contenant le texte.
         'or': '(nom.ilike.*$query*,categorie.ilike.*$query*,theme.ilike.*$query*,adresse.ilike.*$query*)',
