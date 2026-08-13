@@ -34,8 +34,11 @@ workflows:
       vars:
         APP_STORE_APPLE_ID: 6778110272
         BUNDLE_ID: "com.macity.app"
-      flutter: stable
-      xcode: latest          # fournit le SDK iOS 26 requis par Apple
+      # Versions PINNEES. `stable` et `latest` sont des cibles mobiles : le build
+      # changeait de toolchain sans qu'aucune ligne du repo ne bouge (c'est ce qui
+      # a declenche les timeouts quand `latest` est passe de Xcode 16.x a 26.x).
+      flutter: 3.44.0        # identique a la version qui compile en local
+      xcode: 26.4            # = ce que `latest` resout aujourd'hui, fournit le SDK iOS 26
       cocoapods: default
     scripts:
       - name: Get Flutter packages
@@ -74,8 +77,10 @@ workflows:
           keychain add-certificates
           xcode-project use-profiles
       - name: Build IPA
+        # --verbose : en cas de nouveau blocage, le log indique la derniere phase
+        # atteinte (resolution SPM, compilation, linkage, export).
         script: |
-          flutter build ipa --release \
+          flutter build ipa --release --verbose \
             --export-options-plist=/Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
