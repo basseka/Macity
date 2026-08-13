@@ -15,7 +15,14 @@ workflows:
   ios-appstore:
     name: MaCity — iOS App Store
     instance_type: mac_mini_m2
-    max_build_duration: 90
+    max_build_duration: 120
+    # Sans cache, chaque build re-télécharge tout pub-cache + tout le graphe
+    # CocoaPods Firebase depuis zéro (principale cause des timeouts).
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - ~/Library/Caches/CocoaPods
+        - $CM_BUILD_DIR/ios/Pods
     integrations:
       app_store_connect: CodemagicAppStoreKey
     environment:
@@ -36,7 +43,12 @@ workflows:
       - name: Generate code (freezed / json_serializable / drift)
         script: dart run build_runner build --delete-conflicting-outputs
       - name: Install CocoaPods
-        script: find . -name "Podfile" -execdir pod install \;
+        # `cd ios && pod install` au lieu d'un `find` sur tout l'arbre : chemin
+        # déterministe (indispensable pour que le cache ios/Pods serve à quelque
+        # chose) et pas de scan de build/ ni des exemples de plugins.
+        script: |
+          cd ios
+          pod install
       - name: Set up code signing (reuse stored distribution cert + App Store profile)
         script: |
           keychain initialize
@@ -44,11 +56,21 @@ workflows:
           # CERTIFICATE_PRIVATE_KEY (groupe "appstore"). Le 1er build crée le
           # certificat avec cette clé ; les suivants le retrouvent (plus de
           # "409 You already have a current Distribution certificate").
+          # Garde-fou : si la variable est vide, le fichier .pem l'est aussi et
+          # app-store-connect bascule en mode interactif pour réclamer la clé —
+          # le build reste bloqué jusqu'au timeout. On échoue tout de suite.
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "ERREUR: CERTIFICATE_PRIVATE_KEY est vide."
+            echo "Vérifie que le groupe de variables 'appstore' est bien attaché"
+            echo "à ce workflow et qu'il contient la clé privée de distribution."
+            exit 1
+          fi
           echo "$CERTIFICATE_PRIVATE_KEY" > /tmp/dist_cert_key.pem
+          # < /dev/null : toute autre invite éventuelle échoue au lieu d'attendre.
           app-store-connect fetch-signing-files "com.macity.app" \
             --type IOS_APP_STORE \
             --certificate-key=@file:/tmp/dist_cert_key.pem \
-            --create
+            --create < /dev/null
           keychain add-certificates
           xcode-project use-profiles
       - name: Build IPA

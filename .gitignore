@@ -31,7 +31,9 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
-pubspec.lock
+# pubspec.lock est volontairement versionne : MaCity est une app (pas un package
+# publie). Le lockfile rend les builds Codemagic reproductibles et evite une
+# resolution complete des dependances a chaque run.
 
 # Symbolication related
 app.*.symbols
