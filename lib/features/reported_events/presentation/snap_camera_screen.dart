@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -104,8 +106,14 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   }
 
   Future<void> _setupCamera(int index) async {
-    _camCtrl?.dispose();
-    _camCtrl = CameraController(
+    // dispose() est asynchrone. Ne pas l'attendre laissait l'ancienne
+    // AVCaptureSession se fermer pendant que la nouvelle demarrait : les deux
+    // sessions se disputaient le capteur, d'ou un flip lent.
+    final previous = _camCtrl;
+    _camCtrl = null;
+    await previous?.dispose();
+
+    final ctrl = CameraController(
       _cameras[index],
       // `high` (pas veryHigh) : init + capture + upload nettement plus
       // rapides pour une story, qualite largement suffisante.
@@ -113,32 +121,55 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
       enableAudio: true,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
+    _camCtrl = ctrl;
     try {
-      await _camCtrl!.initialize();
-      // Bornes de zoom du capteur (reset a chaque (re)setup / flip).
+      await ctrl.initialize();
+      if (!mounted || _camCtrl != ctrl) return;
+      // Bornes de zoom remises a leur valeur neutre (reset a chaque flip) ;
+      // les vraies bornes arrivent via _tuneCamera. Tant qu'elles valent 1.0,
+      // _onScaleUpdate traite le zoom comme non supporte et ne fait rien.
       _currentZoom = 1.0;
       _baseZoom = 1.0;
-      try {
-        _minZoom = await _camCtrl!.getMinZoomLevel();
-        _maxZoom = await _camCtrl!.getMaxZoomLevel();
-      } catch (_) {
-        _minZoom = 1.0;
-        _maxZoom = 1.0;
-      }
-      // Stabilisation video native (EIS) : reduit le tremblement/tangage des
-      // stories filmees a la main. allowFallback (defaut) applique le MEILLEUR
-      // mode supporte par l'appareil, et no-op si aucun -> sans risque.
-      // iOS = AVCaptureConnection.preferredVideoStabilizationMode ;
-      // Android = CameraX video stabilization. Non supporte par certaines
-      // cameras frontales : le fallback gere ce cas silencieusement.
-      try {
-        await _camCtrl!.setVideoStabilizationMode(VideoStabilizationMode.level3);
-      } catch (e) {
-        debugPrint('[SnapCamera] stabilisation video non dispo: $e');
-      }
-      if (mounted) setState(() => _isReady = true);
+      _minZoom = 1.0;
+      _maxZoom = 1.0;
+      // L'apercu peut s'afficher des l'initialisation. Les reglages suivants
+      // sont des ameliorations, pas des prerequis : les attendre ajoutait trois
+      // allers-retours natifs (dont la stabilisation, de loin le plus couteux)
+      // sur le chemin critique du flip.
+      setState(() => _isReady = true);
+      unawaited(_tuneCamera(ctrl));
     } catch (e) {
       debugPrint('[SnapCamera] init failed: $e');
+    }
+  }
+
+  /// Reglages appliques une fois l'apercu visible, hors du chemin critique.
+  ///
+  /// Chaque etape re-verifie que [ctrl] est toujours la camera courante : un
+  /// flip rapide peut l'avoir remplacee et disposee entre-temps.
+  Future<void> _tuneCamera(CameraController ctrl) async {
+    try {
+      final min = await ctrl.getMinZoomLevel();
+      final max = await ctrl.getMaxZoomLevel();
+      if (!mounted || _camCtrl != ctrl) return;
+      setState(() {
+        _minZoom = min;
+        _maxZoom = max;
+      });
+    } catch (_) {
+      // Zoom non supporte : les bornes restent a 1.0 (pinch inactif).
+    }
+    if (!mounted || _camCtrl != ctrl) return;
+    // Stabilisation video native (EIS) : reduit le tremblement/tangage des
+    // stories filmees a la main. allowFallback (defaut) applique le MEILLEUR
+    // mode supporte par l'appareil, et no-op si aucun -> sans risque.
+    // iOS = AVCaptureConnection.preferredVideoStabilizationMode ;
+    // Android = CameraX video stabilization. Non supporte par certaines
+    // cameras frontales : le fallback gere ce cas silencieusement.
+    try {
+      await ctrl.setVideoStabilizationMode(VideoStabilizationMode.level3);
+    } catch (e) {
+      debugPrint('[SnapCamera] stabilisation video non dispo: $e');
     }
   }
 
@@ -164,6 +195,9 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
 
   void _flipCamera() {
     if (_cameras.length < 2 || _isRecording) return;
+    // Un setup est deja en cours : sans ce garde-fou, des taps rapides
+    // empilaient les _setupCamera concurrents.
+    if (!_isReady) return;
     HapticFeedback.lightImpact();
     setState(() {
       _isReady = false;
