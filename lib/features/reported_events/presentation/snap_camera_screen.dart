@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/router/app_router.dart';
@@ -33,12 +31,6 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   bool _isRecording = false;
   /// Chronometrage du dernier flip, affiche en overlay. TEMPORAIRE (diagnostic).
   String? _perfLine;
-
-  /// Cle de l'apercu, pour capturer sa derniere image avant un flip.
-  final GlobalKey _previewKey = GlobalKey();
-
-  /// Derniere image de l'apercu, figee le temps du redemarrage de session.
-  ui.Image? _freezeFrame;
   String _selectedCategory = '';
 
   // Zoom (pinch-to-zoom sur la preview)
@@ -218,47 +210,17 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
     if (mounted) setState(() {});
   }
 
-  /// Capture l'image actuellement affichee par l'apercu.
-  ///
-  /// Sert a masquer le redemarrage de session : sans elle, l'apercu laisse la
-  /// place a un ecran noir + spinner, ce qui fait paraitre le flip bien plus
-  /// long que les ~350ms reellement necessaires.
-  Future<ui.Image?> _capturePreviewFrame() async {
-    try {
-      final boundary = _previewKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
-      if (boundary == null) return null;
-      // pixelRatio 1.0 : l'image ne sert que de leurre transitoire, inutile de
-      // payer une capture pleine resolution sur le chemin critique.
-      return await boundary.toImage(pixelRatio: 1.0);
-    } catch (e) {
-      debugPrint('[SnapCamera] capture apercu impossible: $e');
-      return null;
-    }
-  }
-
-  Future<void> _flipCamera() async {
+  void _flipCamera() {
     if (_cameras.length < 2 || _isRecording) return;
     // Un setup est deja en cours : sans ce garde-fou, des taps rapides
     // empilaient les _setupCamera concurrents.
     if (!_isReady) return;
     HapticFeedback.lightImpact();
-
-    final frame = await _capturePreviewFrame();
-    if (!mounted) return;
     setState(() {
-      _freezeFrame = frame;
       _isReady = false;
       _cameraIndex = (_cameraIndex + 1) % _cameras.length;
     });
-
-    await _setupCamera(_cameraIndex);
-
-    if (!mounted) return;
-    final stale = _freezeFrame;
-    setState(() => _freezeFrame = null);
-    // ui.Image tient de la memoire native : a liberer explicitement.
-    stale?.dispose();
+    _setupCamera(_cameraIndex);
   }
 
   // ── Capture photo ──
@@ -320,7 +282,6 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   @override
   void dispose() {
     _camCtrl?.dispose();
-    _freezeFrame?.dispose();
     _recordAnimCtrl.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
@@ -341,17 +302,9 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
               onScaleStart: _onScaleStart,
               onScaleUpdate: _onScaleUpdate,
               child: Center(
-                child: RepaintBoundary(
-                  key: _previewKey,
-                  child: CameraPreview(_camCtrl!),
-                ),
+                child: CameraPreview(_camCtrl!),
               ),
             )
-          else if (_freezeFrame != null)
-            // Derniere image de l'apercu, maintenue pendant le redemarrage de
-            // session. La coupure vers un ecran noir etait ce qui donnait au
-            // flip sa sensation de lenteur, pas la duree elle-meme.
-            RawImage(image: _freezeFrame, fit: BoxFit.cover)
           else
             const Center(
               child: CircularProgressIndicator(color: Colors.white),
