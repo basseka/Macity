@@ -29,8 +29,6 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   int _cameraIndex = 0;
   bool _isReady = false;
   bool _isRecording = false;
-  /// Chronometrage du dernier flip, affiche en overlay. TEMPORAIRE (diagnostic).
-  String? _perfLine;
   String _selectedCategory = '';
 
   // Zoom (pinch-to-zoom sur la preview)
@@ -108,25 +106,12 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   }
 
   Future<void> _setupCamera(int index) async {
-    // Chronometrage des phases du flip. Sert a savoir ou part reellement le
-    // temps (teardown natif vs demarrage de session) plutot qu'a le deviner.
-    // Affiche a l'ecran via _perfLine : sur une build TestFlight les logs ne
-    // sont pas consultables, la mesure doit donc etre visible en vol.
-    // TEMPORAIRE — a retirer une fois la latence du flip diagnostiquee.
-    final sw = Stopwatch()..start();
-    final marks = <String>[];
-    void mark(String phase) {
-      marks.add('$phase ${sw.elapsedMilliseconds}');
-      if (mounted) setState(() => _perfLine = marks.join(' | '));
-    }
-
     // dispose() est asynchrone. Ne pas l'attendre laissait l'ancienne
     // AVCaptureSession se fermer pendant que la nouvelle demarrait : les deux
     // sessions se disputaient le capteur, d'ou un flip lent.
     final previous = _camCtrl;
     _camCtrl = null;
     await previous?.dispose();
-    mark('dispose');
 
     final ctrl = CameraController(
       _cameras[index],
@@ -139,7 +124,6 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
     _camCtrl = ctrl;
     try {
       await ctrl.initialize();
-      mark('initialize');
       if (!mounted || _camCtrl != ctrl) return;
       // Bornes de zoom remises a leur valeur neutre (reset a chaque flip) ;
       // les vraies bornes arrivent via _tuneCamera. Tant qu'elles valent 1.0,
@@ -153,7 +137,6 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
       // allers-retours natifs (dont la stabilisation, de loin le plus couteux)
       // sur le chemin critique du flip.
       setState(() => _isReady = true);
-      mark('apercu visible');
       unawaited(_tuneCamera(ctrl));
     } catch (e) {
       debugPrint('[SnapCamera] init failed: $e');
@@ -183,8 +166,14 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
     // iOS = AVCaptureConnection.preferredVideoStabilizationMode ;
     // Android = CameraX video stabilization. Non supporte par certaines
     // cameras frontales : le fallback gere ce cas silencieusement.
+    //
+    // level1 et NON level3 : la stabilisation se paie en latence, le plugin le
+    // documente noir sur blanc (level1 = "least latency", level3 = "most
+    // latency"). level3 correspond a cinematicExtended sur iOS, qui bufferise
+    // plusieurs images — l'apercu traine alors visiblement derriere les
+    // mouvements du telephone. level1 stabilise sans decoller du direct.
     try {
-      await ctrl.setVideoStabilizationMode(VideoStabilizationMode.level3);
+      await ctrl.setVideoStabilizationMode(VideoStabilizationMode.level1);
     } catch (e) {
       debugPrint('[SnapCamera] stabilisation video non dispo: $e');
     }
@@ -564,32 +553,6 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
               ),
             ),
 
-          // ── Mesure du flip — TEMPORAIRE (diagnostic latence).
-          // En dernier dans la Stack pour passer au-dessus des degrades.
-          if (_perfLine != null)
-            Positioned(
-              top: mq.padding.top + 4,
-              left: 8,
-              right: 8,
-              child: IgnorePointer(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  color: Colors.black.withValues(alpha: 0.7),
-                  child: Text(
-                    _perfLine!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.greenAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
