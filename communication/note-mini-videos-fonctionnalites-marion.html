@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity : mini-vidéos fonctionnalités — note pour Marion Vintrou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#E91E8C; --purple:#7C3AED;
+    --ink:#1B1533; --dim:#5C5276; --line:#E7DFEA;
+    --cream:#FDF3EB;
+  }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:16mm 15mm 18mm 15mm; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Inter','Liberation Sans','DejaVu Sans',sans-serif;
+    color:var(--ink); font-size:10pt; line-height:1.55;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .cover{
+    background:linear-gradient(135deg,#14101C 0%,#3A1E58 52%,#A11A6B 100%);
+    color:#fff; border-radius:16px; padding:26px 28px 24px; margin-bottom:20px;
+  }
+  .cover .kicker{ font-weight:700; letter-spacing:.22em; font-size:8pt;
+    color:#FFA8D2; text-transform:uppercase; }
+  .cover h1{ font-size:21pt; font-weight:900; margin:8px 0 6px; line-height:1.2; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover .base{ margin:0; color:#DDD3EC; font-size:9.5pt; max-width:150mm; }
+  .cover .to{ margin-top:12px; font-size:9pt; color:#FFA8D2; }
+
+  h2{ font-size:13pt; font-weight:900; margin:20px 0 8px; padding-left:11px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:8.5pt; font-weight:600; color:var(--dim);
+      margin-top:3px; }
+  p{ margin:7px 0; }
+  ul{ margin:6px 0 6px 17px; padding:0; }
+  li{ margin:5px 0; }
+  strong{ color:var(--ink); }
+
+  table{ width:100%; border-collapse:collapse; margin:9px 0; font-size:8.9pt; }
+  th{ background:var(--ink); color:#fff; text-align:left; font-weight:700;
+    padding:7px 9px; font-size:8pt; }
+  th:first-child{ border-top-left-radius:7px; }
+  th:last-child{ border-top-right-radius:7px; }
+  td{ padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:#FBF7F4; }
+
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:11px;
+    padding:13px 17px; margin:12px 0; }
+  .box.hi{ background:#FFF4F8; border-color:#F6C9DE; }
+  .box h4{ margin:0 0 6px; font-size:10.5pt; font-weight:900; }
+
+  .cta{ background:linear-gradient(135deg,#E91E8C,#7C3AED); color:#fff;
+    border-radius:13px; padding:16px 20px; margin-top:14px; }
+  .cta h3{ margin:0 0 6px; color:#fff; font-size:12pt; }
+  .cta p{ margin:4px 0; color:#F6E6F2; }
+
+  .foot{ margin-top:22px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:7.6pt; color:var(--dim); }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">Note interne · Communication</div>
+  <h1>Des mini-vidéos pour <span>expliquer MaCity</span></h1>
+  <p class="base">L'application couvre beaucoup de choses (recherche, carte en direct,
+  food, events privés...) mais une bonne partie des utilisateurs ne découvre jamais
+  tout ce qu'elle permet de faire. Le besoin : une série de courtes vidéos, une par
+  fonctionnalité, pour montrer plutôt qu'expliquer.</p>
+  <p class="to">Pour Marion Vintrou, Community Manager</p>
+</div>
+
+<h2>Le constat
+  <span class="sub">Pourquoi ce besoin maintenant</span></h2>
+<p>Beaucoup de retours utilisateurs montrent qu'ils utilisent MaCity pour une seule
+chose (souvent les events) sans savoir que l'appli propose bien plus : la recherche,
+la carte en direct, la partie food, les events privés, etc. Le problème n'est pas que
+ces fonctionnalités manquent, c'est qu'elles ne sont pas vues.</p>
+<p>Une explication écrite (FAQ, tooltip) ne suffit pas : ce sont des fonctionnalités
+visuelles et interactives, donc une vidéo courte qui montre l'usage réel est bien plus
+efficace qu'un texte.</p>
+
+<h2>Le besoin
+  <span class="sub">Ce qu'on veut produire</span></h2>
+<p>Une série de <strong>mini-vidéos, une par fonctionnalité</strong>, format court et
+vertical (utilisables en Reel/Story Instagram, TikTok, et potentiellement rejouées
+dans l'appli elle-même). L'objectif n'est pas la performance esthétique mais la
+clarté : montrer l'écran, montrer le geste, montrer le résultat.</p>
+
+<h2>Les fonctionnalités à couvrir
+  <span class="sub">Liste de départ, à compléter ensemble</span></h2>
+<table>
+  <tr><th style="width:22%">Fonctionnalité</th><th>Ce qu'on doit montrer</th></tr>
+  <tr><td><strong>Recherche</strong></td>
+      <td>Trouver un lieu, un event ou une catégorie en quelques secondes, sans se
+      perdre dans les rubriques</td></tr>
+  <tr><td><strong>Map Live</strong></td>
+      <td>La carte en direct : voir ce qui se passe autour de soi en temps réel</td></tr>
+  <tr><td><strong>Food</strong></td>
+      <td>Trouver un resto, un bar, une adresse food selon l'envie du moment</td></tr>
+  <tr><td><strong>Events privés</strong></td>
+      <td>Créer ou rejoindre un event privé, entre amis, hors du fil public</td></tr>
+  <tr><td><strong>À compléter…</strong></td>
+      <td>Sport, Night, Family, Évasion, Stories, Offres/cadeaux : à prioriser
+      ensemble selon ce qui est le moins compris par les utilisateurs</td></tr>
+</table>
+
+<div class="box hi">
+  <h4>Ce qui n'est pas encore fixé</h4>
+  <p style="margin:2px 0">Le nombre exact de vidéos, l'ordre de priorité et le
+  calendrier de publication restent à définir avec Marion, selon ce qui est
+  réalisable et ce qui manque le plus côté utilisateurs.</p>
+</div>
+
+<h2>Format attendu
+  <span class="sub">Simple à produire, pas besoin de tournage</span></h2>
+<ul>
+  <li><strong>Durée courte</strong> : 15 à 30 secondes par fonctionnalité</li>
+  <li><strong>Capture d'écran de l'appli</strong> en action, avec voix off ou
+  légendes animées, pas besoin de personnage filmé</li>
+  <li><strong>Un seul message par vidéo</strong> : une fonctionnalité, un bénéfice
+  clair, pas de liste de features en une fois</li>
+  <li><strong>Format vertical</strong>, réutilisable partout (Reels, Stories, TikTok,
+  et in-app)</li>
+</ul>
+
+<div class="cta">
+  <h3>Prochaine étape</h3>
+  <p>Un point avec Marion pour prioriser les fonctionnalités, compléter la liste, et
+  caler un calendrier de production réaliste.</p>
+</div>
+
+<div class="foot">
+  MaCity · Note interne · Mini-vidéos fonctionnalités. Document de travail, à
+  affiner avec Marion Vintrou.
+</div>
+
+</body>
+</html>

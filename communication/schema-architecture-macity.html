@@ -1,0 +1,347 @@
+<title>MaCity — carte de l'écosystème technique</title>
+<style>
+  :root{
+    --bg:#F5F3F9; --surface:#FFFFFF; --surface-2:#F0EDF7;
+    --line:#DAD3EA; --line-strong:#C3B9DE;
+    --text:#1C1626; --text-dim:#5C5470; --text-faint:#8B84A0;
+    --accent:#E91E8C; --accent-2:#7C3AED;
+
+    --c-core:#0891B2;    --c-core-bg:#E0F5F8;
+    --c-pay:#16A34A;     --c-pay-bg:#E4F7EB;
+    --c-mail:#B7791F;    --c-mail-bg:#FBF0DA;
+    --c-ai:#7C3AED;      --c-ai-bg:#F0E9FE;
+    --c-geo:#0D9488;     --c-geo-bg:#DFF5F1;
+    --c-data:#C2410C;    --c-data-bg:#FCE7D9;
+    --c-social:#BE185D;  --c-social-bg:#FBE0EC;
+    --c-report:#4F46E5;  --c-report-bg:#E7E5FC;
+    --c-legal:#57534E;   --c-legal-bg:#EEECE9;
+    --c-ship:#DB2777;    --c-ship-bg:#FCE4EF;
+    --c-host:#475569;    --c-host-bg:#E7ECF2;
+
+    --mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace;
+    --sans: -apple-system, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B0710; --surface:#160F20; --surface-2:#1C1530;
+      --line:rgba(255,255,255,0.10); --line-strong:rgba(255,255,255,0.20);
+      --text:#F3EEFC; --text-dim:#A99BC4; --text-faint:#766D8C;
+      --accent:#FF3D8B; --accent-2:#A855F7;
+
+      --c-core:#22D3EE;    --c-core-bg:rgba(34,211,238,0.12);
+      --c-pay:#4ADE80;     --c-pay-bg:rgba(74,222,128,0.12);
+      --c-mail:#F5B942;    --c-mail-bg:rgba(245,185,66,0.12);
+      --c-ai:#C4A6FF;      --c-ai-bg:rgba(196,166,255,0.14);
+      --c-geo:#2DD4BF;     --c-geo-bg:rgba(45,212,191,0.12);
+      --c-data:#FB923C;    --c-data-bg:rgba(251,146,60,0.12);
+      --c-social:#F472B6;  --c-social-bg:rgba(244,114,182,0.12);
+      --c-report:#8B9CFF;  --c-report-bg:rgba(139,156,255,0.14);
+      --c-legal:#B4ADC4;   --c-legal-bg:rgba(180,173,196,0.10);
+      --c-ship:#FF6FB4;    --c-ship-bg:rgba(255,111,180,0.12);
+      --c-host:#93A5C4;    --c-host-bg:rgba(147,165,196,0.12);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B0710; --surface:#160F20; --surface-2:#1C1530;
+    --line:rgba(255,255,255,0.10); --line-strong:rgba(255,255,255,0.20);
+    --text:#F3EEFC; --text-dim:#A99BC4; --text-faint:#766D8C;
+    --accent:#FF3D8B; --accent-2:#A855F7;
+
+    --c-core:#22D3EE;    --c-core-bg:rgba(34,211,238,0.12);
+    --c-pay:#4ADE80;     --c-pay-bg:rgba(74,222,128,0.12);
+    --c-mail:#F5B942;    --c-mail-bg:rgba(245,185,66,0.12);
+    --c-ai:#C4A6FF;      --c-ai-bg:rgba(196,166,255,0.14);
+    --c-geo:#2DD4BF;     --c-geo-bg:rgba(45,212,191,0.12);
+    --c-data:#FB923C;    --c-data-bg:rgba(251,146,60,0.12);
+    --c-social:#F472B6;  --c-social-bg:rgba(244,114,182,0.12);
+    --c-report:#8B9CFF;  --c-report-bg:rgba(139,156,255,0.14);
+    --c-legal:#B4ADC4;   --c-legal-bg:rgba(180,173,196,0.10);
+    --c-ship:#FF6FB4;    --c-ship-bg:rgba(255,111,180,0.12);
+    --c-host:#93A5C4;    --c-host-bg:rgba(147,165,196,0.12);
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); line-height:1.5;
+  }
+  .page{ max-width:1560px; margin:0 auto; padding:56px 28px 90px; }
+
+  header.top{ margin-bottom:40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); font-weight:600; margin:0 0 10px;
+  }
+  h1{
+    font-size:clamp(26px,3.4vw,38px); margin:0 0 12px; font-weight:700; letter-spacing:-0.01em;
+    text-wrap:balance;
+  }
+  .lede{
+    max-width:640px; color:var(--text-dim); font-size:15px; margin:0;
+  }
+
+  /* ── conteneur du diagramme : boites HTML + calque SVG de connecteurs ── */
+  .diagram{
+    position:relative; width:100%; max-width:1500px; margin:0 auto;
+    overflow-x:auto;
+  }
+  .diagram-inner{
+    position:relative; width:1500px; height:760px;
+  }
+  .diagram-inner svg{
+    position:absolute; inset:0; width:1500px; height:760px;
+    overflow:visible; pointer-events:none;
+  }
+  .diagram-inner svg path{
+    fill:none; stroke:var(--line-strong); stroke-width:1.6;
+  }
+  .diagram-inner svg path.hot{ stroke:var(--accent); stroke-width:2; }
+  .diagram-inner svg path.dashed{ stroke-dasharray:5 5; stroke:var(--text-faint); }
+  .diagram-inner svg text.arrlabel{
+    font-family:var(--mono); font-size:10px; fill:var(--text-faint); letter-spacing:.02em;
+  }
+
+  .node{
+    position:absolute; border-radius:14px; border:1px solid var(--line);
+    background:var(--surface); box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+  .node.app{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    border:none; color:#fff; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; gap:4px;
+    box-shadow:0 10px 26px -10px rgba(233,30,140,.55);
+  }
+  .node.app .k{ font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; opacity:.85; }
+  .node.app .t{ font-size:19px; font-weight:700; }
+  .node.app .s{ font-size:11.5px; opacity:.88; }
+
+  .node.direct{
+    padding:14px 16px; display:flex; flex-direction:column; gap:6px;
+    border-top:3px solid var(--c-core);
+  }
+  .node.direct .t{ font-size:14px; font-weight:700; }
+  .node.direct .s{ font-size:11.5px; color:var(--text-dim); }
+  .node.direct .tag{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--c-core); font-weight:700;
+  }
+
+  .node.spine{
+    background:var(--surface-2); display:flex; align-items:center; gap:14px;
+    padding:0 22px; border:1px dashed var(--line-strong);
+  }
+  .node.spine .t{ font-size:13.5px; font-weight:700; font-family:var(--mono); letter-spacing:.02em; }
+  .node.spine .s{ font-size:11px; color:var(--text-dim); }
+
+  .cluster{
+    padding:12px 14px 13px; display:flex; flex-direction:column; gap:6px;
+  }
+  .cluster .cat{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase;
+    font-weight:700; display:flex; align-items:center; gap:6px;
+  }
+  .cluster .cat .dot{ width:6px; height:6px; border-radius:50%; flex:none; }
+  .cluster .svc{ font-size:12.5px; font-weight:600; }
+  .cluster .svc + .svc{ margin-top:2px; }
+  .cluster .desc{ font-size:10.8px; color:var(--text-faint); line-height:1.35; }
+
+  .lane-label{
+    position:absolute; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--text-faint);
+  }
+
+  /* ── légende ── */
+  .legend{
+    max-width:1500px; margin:34px auto 0; display:flex; flex-wrap:wrap; gap:10px 22px;
+    padding-top:18px; border-top:1px solid var(--line);
+  }
+  .legend .item{ display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--text-dim); }
+  .legend .sw{ width:9px; height:9px; border-radius:50%; flex:none; }
+
+  .note{
+    max-width:1500px; margin:26px auto 0; font-size:12px; color:var(--text-faint);
+    font-family:var(--mono); line-height:1.6;
+  }
+
+  @media (max-width: 720px){
+    .page{ padding:36px 16px 60px; }
+  }
+
+  /* Export PDF : une seule page à la taille du schéma, pas de decoupage A4. */
+  @media print{
+    @page{ size:16.9in 13in; margin:0; }
+    body{ background:var(--bg); }
+    .page{ padding:40px; }
+    .diagram{ overflow-x:visible; }
+  }
+</style>
+
+<div class="page">
+  <header class="top">
+    <p class="eyebrow">Cartographie technique</p>
+    <h1>Tout ce qui fait tourner MaCity, en dehors de l'appli elle-même</h1>
+    <p class="lede">
+      Un seul backend (Supabase) au centre, trois intégrations directes depuis l'appli, et une dizaine
+      de services externes appelés depuis les fonctions serveur — plus deux circuits à part pour la
+      publication de l'appli et l'hébergement du site.
+    </p>
+  </header>
+
+  <div class="diagram">
+    <div class="diagram-inner" id="stage">
+      <svg viewBox="0 0 1500 760" role="img" aria-label="Schéma d'architecture : l'appli MaCity se connecte directement à Supabase, Firebase et aux tuiles de carte ; les fonctions Supabase appellent ensuite huit familles de services externes ; Codemagic et l'hébergement web forment deux circuits séparés, hors flux d'exécution.">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L6,3 L0,6 Z" fill="var(--line-strong)"></path>
+          </marker>
+          <marker id="arrowHot" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M0,0 L6,3 L0,6 Z" fill="var(--accent)"></path>
+          </marker>
+        </defs>
+
+        <!-- App -> 3 integrations directes -->
+        <path class="hot" marker-end="url(#arrowHot)" d="M 480,118 C 420,140 300,148 203,163"></path>
+        <path class="hot" marker-end="url(#arrowHot)" d="M 600,118 L 599,163"></path>
+        <path class="hot" marker-end="url(#arrowHot)" d="M 720,118 C 800,140 910,148 995,163"></path>
+        <text class="arrlabel" x="298" y="139">lit/écrit</text>
+        <text class="arrlabel" x="576" y="144">push + events</text>
+        <text class="arrlabel" x="828" y="139">webview tuiles</text>
+
+        <!-- Supabase (direct) -> Edge Functions spine -->
+        <path marker-end="url(#arrow)" d="M 203,246 C 210,272 240,286 280,296"></path>
+        <text class="arrlabel" x="205" y="272">exécute</text>
+
+        <!-- Spine -> bus horizontal -->
+        <path d="M 600,332 L 600,352"></path>
+
+        <!-- bus horizontal -->
+        <path d="M 157,352 L 1043,352"></path>
+
+        <!-- bus -> 4 colonnes (rangee 1) -->
+        <path marker-end="url(#arrow)" d="M 157,352 L 157,394"></path>
+        <path marker-end="url(#arrow)" d="M 453,352 L 453,394"></path>
+        <path marker-end="url(#arrow)" d="M 748,352 L 748,394"></path>
+        <path marker-end="url(#arrow)" d="M 1043,352 L 1043,394"></path>
+
+        <!-- rangee 1 -> rangee 2 (par colonne) -->
+        <path marker-end="url(#arrow)" d="M 157,478 L 157,520"></path>
+        <path marker-end="url(#arrow)" d="M 453,478 L 453,520"></path>
+        <path marker-end="url(#arrow)" d="M 748,478 L 748,520"></path>
+        <path marker-end="url(#arrow)" d="M 1043,478 L 1043,520"></path>
+
+        <!-- App -> lanes annexes (pointilles = hors flux runtime) -->
+        <path class="dashed" marker-end="url(#arrow)" d="M 772,92 C 1000,110 1220,135 1348,163"></path>
+        <path class="dashed" marker-end="url(#arrow)" d="M 782,104 C 980,170 1200,250 1348,297"></path>
+        <text class="arrlabel" x="1160" y="128">build &amp; publie</text>
+        <text class="arrlabel" x="1050" y="228">héberge</text>
+      </svg>
+
+      <!-- App -->
+      <div class="node app" style="left:430px; top:40px; width:340px; height:78px;">
+        <div class="k">Client</div>
+        <div class="t">MaCity</div>
+        <div class="s">Flutter · iOS &amp; Android</div>
+      </div>
+
+      <!-- 3 integrations directes -->
+      <div class="node direct" style="left:20px; top:163px; width:366px; height:83px; border-top-color:var(--c-core);">
+        <div class="tag" style="color:var(--c-core);">Backend principal</div>
+        <div class="t">Supabase</div>
+        <div class="s">Auth · Postgres · Storage · Realtime</div>
+      </div>
+      <div class="node direct" style="left:416px; top:163px; width:366px; height:83px; border-top-color:var(--c-report);">
+        <div class="tag" style="color:var(--c-report);">Google</div>
+        <div class="t">Firebase</div>
+        <div class="s">Cloud Messaging · Analytics · Hosting (liens de redirection)</div>
+      </div>
+      <div class="node direct" style="left:812px; top:163px; width:366px; height:83px; border-top-color:var(--c-geo);">
+        <div class="tag" style="color:var(--c-geo);">Cartes</div>
+        <div class="t">Leaflet.js + tuiles CARTO</div>
+        <div class="s">Carte en direct affichée dans une webview</div>
+      </div>
+
+      <!-- Spine Edge Functions -->
+      <div class="node spine" style="left:100px; top:296px; width:1000px; height:36px;">
+        <span class="t">supabase / functions</span>
+        <span class="s">— le code serveur qui parle à tous les services ci-dessous</span>
+      </div>
+
+      <!-- Rangee 1 clusters -->
+      <div class="cluster node" style="left:20px; top:394px; width:275px; height:84px;">
+        <div class="cat" style="color:var(--c-mail);"><span class="dot" style="background:var(--c-mail);"></span>Email transactionnel</div>
+        <div class="svc">Brevo</div>
+        <div class="desc">Bienvenue, code de vérification, validation/rejet pro, confirmation de réservation</div>
+      </div>
+      <div class="cluster node" style="left:315px; top:394px; width:275px; height:84px;">
+        <div class="cat" style="color:var(--c-pay);"><span class="dot" style="background:var(--c-pay);"></span>Paiements</div>
+        <div class="svc">Stripe</div>
+        <div class="desc">Checkout des publications payantes + webhooks de confirmation</div>
+      </div>
+      <div class="cluster node" style="left:610px; top:394px; width:275px; height:84px;">
+        <div class="cat" style="color:var(--c-ai);"><span class="dot" style="background:var(--c-ai);"></span>Intelligence artificielle</div>
+        <div class="svc">Anthropic Claude (Haiku 4.5)</div>
+        <div class="desc">Recherche IA, lecture d'affiches, génération de posters/guides de ville</div>
+      </div>
+      <div class="cluster node" style="left:905px; top:394px; width:275px; height:84px;">
+        <div class="cat" style="color:var(--c-data);"><span class="dot" style="background:var(--c-data);"></span>Données événementielles</div>
+        <div class="svc">Ticketmaster · OpenAgenda</div>
+        <div class="desc">Scraping automatique des concerts et événements, ville par ville</div>
+      </div>
+
+      <!-- Rangee 2 clusters -->
+      <div class="cluster node" style="left:20px; top:520px; width:275px; height:100px;">
+        <div class="cat" style="color:var(--c-geo);"><span class="dot" style="background:var(--c-geo);"></span>Données géo additionnelles</div>
+        <div class="svc">OSM Nominatim · OSM Overpass</div>
+        <div class="svc">Wikimedia Commons</div>
+        <div class="desc">Géocodage admin, import de lieux/POI, photo de secours des établissements</div>
+      </div>
+      <div class="cluster node" style="left:315px; top:520px; width:275px; height:100px;">
+        <div class="cat" style="color:var(--c-social);"><span class="dot" style="background:var(--c-social);"></span>Connexion sociale</div>
+        <div class="svc">Instagram OAuth</div>
+        <div class="desc">Connexion via deep link, proxée par une fonction serveur dédiée</div>
+      </div>
+      <div class="cluster node" style="left:610px; top:520px; width:275px; height:100px;">
+        <div class="cat" style="color:var(--c-report);"><span class="dot" style="background:var(--c-report);"></span>Reporting des stores</div>
+        <div class="svc">GA4 Data API</div>
+        <div class="svc">App Store Connect · Play Console</div>
+        <div class="desc">Récupération périodique des chiffres d'installs côté serveur</div>
+      </div>
+      <div class="cluster node" style="left:905px; top:520px; width:275px; height:100px;">
+        <div class="cat" style="color:var(--c-legal);"><span class="dot" style="background:var(--c-legal);"></span>Conformité</div>
+        <div class="svc">INSEE / data.gouv</div>
+        <div class="desc">Validation du SIRET à l'inscription d'un compte professionnel</div>
+      </div>
+
+      <!-- Lanes annexes -->
+      <div class="lane-label" style="left:1290px; top:145px;">hors flux runtime</div>
+      <div class="cluster node" style="left:1220px; top:163px; width:260px; height:96px; border:1px dashed var(--line-strong);">
+        <div class="cat" style="color:var(--c-ship);"><span class="dot" style="background:var(--c-ship);"></span>CI/CD &amp; distribution</div>
+        <div class="svc">Codemagic</div>
+        <div class="desc">Build iOS, App Store Connect, TestFlight, Google Play Console</div>
+      </div>
+      <div class="cluster node" style="left:1220px; top:297px; width:260px; height:80px; border:1px dashed var(--line-strong);">
+        <div class="cat" style="color:var(--c-host);"><span class="dot" style="background:var(--c-host);"></span>Hébergement web</div>
+        <div class="svc">LiteSpeed</div>
+        <div class="desc">Sert macity.app + redirections de liens profonds</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="sw" style="background:var(--c-core);"></span>Backend</div>
+    <div class="item"><span class="sw" style="background:var(--c-pay);"></span>Paiements</div>
+    <div class="item"><span class="sw" style="background:var(--c-mail);"></span>Email</div>
+    <div class="item"><span class="sw" style="background:var(--c-ai);"></span>IA</div>
+    <div class="item"><span class="sw" style="background:var(--c-geo);"></span>Cartes &amp; géo</div>
+    <div class="item"><span class="sw" style="background:var(--c-data);"></span>Données événementielles</div>
+    <div class="item"><span class="sw" style="background:var(--c-social);"></span>Social</div>
+    <div class="item"><span class="sw" style="background:var(--c-report);"></span>Reporting / Google</div>
+    <div class="item"><span class="sw" style="background:var(--c-legal);"></span>Conformité</div>
+    <div class="item"><span class="sw" style="background:var(--c-ship);"></span>Distribution</div>
+    <div class="item"><span class="sw" style="background:var(--c-host);"></span>Hébergement</div>
+  </div>
+
+  <p class="note">
+    Non trouvé dans le code à date : OneSignal, Sentry/Crashlytics, Algolia, Twilio/SMS, API météo, Meta Pixel, SDK Google Maps.
+  </p>
+</div>

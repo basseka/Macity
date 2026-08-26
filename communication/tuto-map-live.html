@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Tuto Map Live</title>
+<style>
+  :root{
+    --bg:#FAFAF7; --surface:#D8D8D8; --surfaceHi:#C8C8C8;
+    --text:#1A0F2E; --textDim:#4A4063; --textFaint:#8A819F;
+    --line: rgba(26,15,46,0.16);
+    --magenta:#FF3D8B; --violet:#A855F7; --purpleDeep:#6B1FB3;
+    --catNight:#A855F7; --catFood:#FB923C; --catCult:#22D3EE;
+    --catSport:#22C55E; --catFiesta:#EF4444;
+    --yellow:#FBBF24;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ width:1080px; height:1920px; overflow:hidden; background:#111; font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif; }
+  #stage{ position:relative; width:1080px; height:1920px; background:var(--bg); overflow:hidden; }
+
+  /* ── barre de statut factice ─────────────────────────────────── */
+  .statusbar{ position:absolute; top:0; left:0; right:0; height:54px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 34px; font-size:26px; font-weight:600; color:var(--text); z-index:50; }
+
+  /* ── scenes ───────────────────────────────────────────────────── */
+  .scene{ position:absolute; inset:0; }
+
+  /* ---- HOME ---- */
+  #scene-home{ background:var(--bg); }
+  .brandrow{ position:absolute; top:70px; left:28px; right:28px; height:64px;
+    display:flex; align-items:center; justify-content:space-between; }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .pin{ width:34px; height:34px; border-radius:10px 10px 10px 2px; transform:rotate(45deg);
+    background:linear-gradient(135deg,var(--magenta),var(--violet)); }
+  .pin-dot{ width:12px; height:12px; border-radius:50%; background:#fff; transform:rotate(-45deg); }
+  .brand-name{ font-size:34px; font-weight:800; color:var(--text); }
+  .brand-name span{ color:var(--magenta); }
+
+  .maplive-pill{ display:flex; align-items:center; gap:10px; height:64px; padding:0 20px 0 18px;
+    background:#fff; border-radius:999px; border:1px solid var(--line);
+    box-shadow:0 4px 16px rgba(0,0,0,.08); }
+  .yellow-dot{ width:14px; height:14px; border-radius:50%; background:var(--yellow);
+    box-shadow:0 0 12px rgba(251,191,36,.7); }
+  .maplive-pill .lbl{ font-size:26px; font-weight:700; color:var(--text); }
+  .badge{ min-width:38px; height:38px; border-radius:999px; background:var(--magenta);
+    color:#fff; font-size:24px; font-weight:800; display:flex; align-items:center; justify-content:center; padding:0 10px; }
+
+  .modes-row{ position:absolute; top:180px; left:28px; right:28px; display:flex; gap:16px; }
+  .mode-chip{ flex:1; height:150px; border-radius:26px; background:var(--surface);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    font-size:24px; font-weight:700; color:var(--textDim); }
+  .mode-chip .ic{ font-size:44px; }
+  .mode-chip.active{ background:linear-gradient(135deg,var(--magenta),var(--violet)); color:#fff; }
+
+  .feed-card{ position:absolute; left:28px; right:28px; height:340px; border-radius:30px;
+    background:var(--surface); }
+  .feed-card.c1{ top:370px; } .feed-card.c2{ top:730px; opacity:.7; }
+
+  /* ---- MAP LIVE ---- */
+  #scene-map{ background:var(--bg); }
+  .maptop{ position:absolute; top:64px; left:0; right:0; height:80px;
+    display:flex; align-items:center; justify-content:center; }
+  .maptop .back{ position:absolute; left:24px; font-size:34px; color:var(--text); }
+  .maptop .title{ font-family:'Courier New',monospace; letter-spacing:6px; font-size:22px;
+    font-weight:600; color:var(--textFaint); }
+
+  .mapheader{ position:absolute; top:160px; left:32px; right:32px; height:70px;
+    display:flex; align-items:center; gap:16px; }
+  .flagbadge{ width:44px; height:44px; border-radius:14px; background:var(--surface);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .mapheader .txt{ flex:1; font-size:28px; font-weight:700; color:var(--text); }
+  .livenotif{ display:flex; align-items:center; gap:12px; padding:16px 28px; border-radius:999px;
+    background:linear-gradient(135deg,var(--magenta),var(--violet) 60%, var(--purpleDeep));
+    box-shadow:0 6px 24px rgba(255,61,139,.45); }
+  .livenotif .dot{ width:14px; height:14px; border-radius:50%; background:#fff; }
+  .livenotif .lbl{ font-size:26px; font-weight:800; color:#fff; }
+
+  .mapbox{ position:absolute; top:260px; left:32px; right:32px; height:900px; border-radius:34px;
+    overflow:hidden; background:
+      linear-gradient(135deg,#eef0e8 0%, #e4e8dd 100%); box-shadow:0 10px 30px rgba(0,0,0,.08); }
+  .mapbox .street{ position:absolute; background:rgba(26,15,46,.08); }
+  .mapbox .river{ position:absolute; background:rgba(34,211,238,.18); border-radius:40%; }
+  .marker{ position:absolute; width:34px; height:34px; border-radius:50%; transform:translate(-50%,-50%);
+    display:flex; align-items:center; justify-content:center; }
+  .marker::after{ content:''; position:absolute; inset:0; border-radius:50%; opacity:.55; }
+  .marker .core{ width:20px; height:20px; border-radius:50%; border:3px solid #fff; box-shadow:0 2px 8px rgba(0,0,0,.25); position:relative; z-index:2; }
+  .locate-btn{ position:absolute; right:26px; bottom:26px; width:92px; height:92px; border-radius:50%;
+    background:#fff; box-shadow:0 6px 20px rgba(0,0,0,.22); display:flex; align-items:center; justify-content:center;
+    font-size:40px; color:#7B2D8E; }
+
+  .legend{ position:absolute; top:1180px; left:32px; right:32px; height:36px; display:flex; gap:26px; align-items:center; }
+  .legend .item{ display:flex; align-items:center; gap:8px; }
+  .legend .dot{ width:16px; height:16px; border-radius:50%; }
+  .legend .lbl{ font-family:'Courier New',monospace; font-size:15px; letter-spacing:2px; color:var(--textDim); font-weight:700; }
+
+  .carousel{ position:absolute; top:1240px; left:32px; right:0; height:260px; display:flex; gap:18px; overflow:hidden; }
+  .bubble{ width:190px; height:250px; border-radius:24px; background:var(--surface); flex-shrink:0; position:relative; overflow:hidden; }
+  .bubble .grad{ position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,.55)); }
+  .bubble .cat{ position:absolute; top:12px; left:12px; font-size:13px; font-weight:800; color:#fff; padding:5px 10px; border-radius:999px; }
+  .bubble .name{ position:absolute; bottom:12px; left:12px; right:12px; font-size:17px; font-weight:700; color:#fff; }
+
+  /* ---- BOTTOM SHEET ---- */
+  #sheet{ position:absolute; left:0; right:0; bottom:0; height:900px; background:#fff;
+    border-radius:44px 44px 0 0; box-shadow:0 -10px 40px rgba(0,0,0,.25); transform:translateY(900px); z-index:40; }
+  #sheet .handle{ width:80px; height:8px; border-radius:4px; background:var(--line); margin:20px auto 0; }
+  #sheet .photo{ margin:24px 32px 0; height:420px; border-radius:28px; background:linear-gradient(135deg,#3a2a4a,#7B2D8E); position:relative; overflow:hidden; }
+  #sheet .photo .chip{ position:absolute; top:20px; left:20px; background:var(--catFiesta); color:#fff; font-size:20px; font-weight:800; padding:8px 18px; border-radius:999px; }
+  #sheet .photo .time{ position:absolute; top:20px; right:20px; background:rgba(0,0,0,.4); color:#fff; font-size:18px; font-weight:700; padding:8px 16px; border-radius:999px; }
+  #sheet h2{ margin:28px 32px 0; font-size:38px; font-weight:800; color:var(--text); }
+  #sheet p.sub{ margin:10px 32px 0; font-size:24px; color:var(--textDim); font-weight:600; }
+
+  /* ---- HIGHLIGHT & CAPTION ---- */
+  #hl{ position:absolute; border:6px solid var(--magenta); border-radius:24px; opacity:0;
+    box-shadow:0 0 0 8px rgba(255,61,139,.0); pointer-events:none; z-index:60; }
+  #capbar{ position:absolute; left:40px; right:40px; bottom:70px; padding:26px 34px; border-radius:26px;
+    background:rgba(20,10,30,.92); opacity:0; z-index:70; }
+  #capbar .n{ display:inline-flex; width:44px; height:44px; border-radius:50%; background:var(--magenta);
+    color:#fff; font-weight:800; font-size:24px; align-items:center; justify-content:center; margin-right:16px; }
+  #capbar span.t{ font-size:28px; font-weight:600; color:#fff; vertical-align:middle; }
+
+  /* ---- END CARD ---- */
+  #end{ position:absolute; inset:0; background:linear-gradient(160deg,#14101C 0%, #3A1E58 55%, #A11A6B 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0; z-index:80; }
+  #end .pin{ width:70px; height:70px; margin-bottom:26px; }
+  #end h1{ color:#fff; font-size:56px; font-weight:900; text-align:center; line-height:1.15; padding:0 60px; }
+  #end h1 .hl{ color:#FF6FB4; }
+  #end p{ color:#DDD3EC; font-size:28px; margin-top:20px; font-weight:600; }
+  #end .btn{ margin-top:50px; padding:26px 60px; border-radius:999px; background:linear-gradient(135deg,var(--magenta),var(--violet));
+    color:#fff; font-size:30px; font-weight:800; box-shadow:0 10px 30px rgba(255,61,139,.4); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <div class="scene" id="scene-home">
+    <div class="statusbar"><span>21:47</span><span>●●● 5G 🔋</span></div>
+    <div class="brandrow">
+      <div class="brand">
+        <div class="pin"><div class="pin-dot"></div></div>
+        <div class="brand-name">Ma<span>City</span></div>
+      </div>
+      <div class="maplive-pill" id="el-pill-home">
+        <div class="yellow-dot"></div>
+        <div class="lbl">Map Live</div>
+        <div class="badge">12</div>
+      </div>
+    </div>
+    <div class="modes-row">
+      <div class="mode-chip active"><div class="ic">☀️</div>Day</div>
+      <div class="mode-chip"><div class="ic">🍽️</div>Food</div>
+      <div class="mode-chip"><div class="ic">🌙</div>Night</div>
+    </div>
+    <div class="feed-card c1"></div>
+    <div class="feed-card c2"></div>
+  </div>
+
+  <div class="scene" id="scene-map">
+    <div class="statusbar"><span>21:47</span><span>●●● 5G 🔋</span></div>
+    <div class="maptop"><div class="back">‹</div><div class="title">MAP LIVE</div></div>
+    <div class="mapheader">
+      <div class="flagbadge">🚩</div>
+      <div class="txt">Ça bouge près de toi</div>
+      <div class="livenotif" id="el-livenotif"><div class="dot"></div><div class="lbl">Live Notif</div></div>
+    </div>
+    <div class="mapbox" id="el-mapbox">
+      <div class="street" style="top:180px; left:0; right:0; height:10px;"></div>
+      <div class="street" style="top:0; bottom:0; left:340px; width:10px;"></div>
+      <div class="street" style="top:520px; left:0; right:0; height:10px;"></div>
+      <div class="street" style="top:0; bottom:0; left:660px; width:10px;"></div>
+      <div class="river" style="width:900px; height:180px; left:-120px; top:640px; transform:rotate(-8deg);"></div>
+
+      <div class="marker" id="mk1" style="left:220px; top:260px;"><div class="core" style="background:var(--catNight);"></div></div>
+      <div class="marker" id="mk2" style="left:520px; top:200px;"><div class="core" style="background:var(--catFood);"></div></div>
+      <div class="marker" id="mk3" style="left:420px; top:430px;"><div class="core" style="background:var(--catCult);"></div></div>
+      <div class="marker" id="mk4" style="left:190px; top:600px;"><div class="core" style="background:var(--catFiesta);"></div></div>
+      <div class="marker" id="mk5" style="left:640px; top:560px;"><div class="core" style="background:var(--catSport);"></div></div>
+      <div class="marker" id="mk6" style="left:300px; top:760px;"><div class="core" style="background:var(--catNight);"></div></div>
+
+      <div class="locate-btn" id="el-locate">◎</div>
+    </div>
+    <div class="legend">
+      <div class="item"><div class="dot" style="background:var(--catNight);"></div><div class="lbl">NIGHT</div></div>
+      <div class="item"><div class="dot" style="background:var(--catFood);"></div><div class="lbl">FOOD</div></div>
+      <div class="item"><div class="dot" style="background:var(--catCult);"></div><div class="lbl">CULTURE</div></div>
+      <div class="item"><div class="dot" style="background:var(--catSport);"></div><div class="lbl">SPORT</div></div>
+      <div class="item"><div class="dot" style="background:var(--catFiesta);"></div><div class="lbl">FIESTA</div></div>
+    </div>
+    <div class="carousel">
+      <div class="bubble"><div class="grad"></div><div class="cat" style="background:var(--catFiesta);">FIESTA</div><div class="name">Quai des Pêcheurs</div></div>
+      <div class="bubble"><div class="grad"></div><div class="cat" style="background:var(--catNight);">NIGHT</div><div class="name">Bar La Cave</div></div>
+      <div class="bubble"><div class="grad"></div><div class="cat" style="background:var(--catFood);">FOOD</div><div class="name">Food Truck Wilson</div></div>
+    </div>
+  </div>
+
+  <div id="sheet">
+    <div class="handle"></div>
+    <div class="photo"><div class="chip">FIESTA</div><div class="time">il y a 12 min</div></div>
+    <h2>Quai des Pêcheurs</h2>
+    <p class="sub">Ambiance qui monte au bord de la Garonne 🎉</p>
+  </div>
+
+  <div id="hl"></div>
+  <div id="capbar"><span class="n">1</span><span class="t" id="cap-text"></span></div>
+
+  <div id="end">
+    <div class="pin" style="background:linear-gradient(135deg,#FF3D8B,#A855F7); border-radius:20px 20px 20px 4px; transform:rotate(45deg);"></div>
+    <h1>Toute ta ville,<br>en <span class="hl">temps réel</span></h1>
+    <p>Map Live est disponible dès l'accueil de MaCity</p>
+    <div class="btn">Télécharge l'appli</div>
+  </div>
+
+</div>
+<script>
+  const $ = id => document.getElementById(id);
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  // fondu in/out lineaire : 1 pendant [a,b], rampe de `r` ms aux bords
+  function hold(t, a, b, r){
+    if (t < a - r || t > b + r) return 0;
+    if (t < a) return clamp01((t-(a-r))/r);
+    if (t > b) return clamp01((( b+r)-t)/r);
+    return 1;
+  }
+
+  const CAPTIONS = [
+    { a:1100, b:4000, n:'1', t:"Depuis l'accueil, tape sur Map Live" },
+    { a:5500, b:9300, n:'2', t:"La carte affiche tout ce qui se passe autour de toi, en direct" },
+    { a:10500, b:13600, n:'3', t:"Tape un point pour découvrir ce qui a été partagé" },
+    { a:14700, b:17900, n:'4', t:"Tape Live Notif pour signaler ce qui se passe autour de toi" },
+    { a:18300, b:21200, n:'5', t:"Ou centre-toi sur ta position avec ce bouton" },
+  ];
+
+  function renderFrame(t){
+    const sceneHome = $('scene-home');
+    const sceneMap  = $('scene-map');
+    const sheet     = $('sheet');
+    const end       = $('end');
+    const hl        = $('hl');
+    const cap       = $('capbar');
+    const capText   = $('cap-text');
+
+    // ---- scenes visibility (crossfade) ----
+    const homeOpacity = 1 - hold(t, 4200, 4700, 500) * 0 - (t>4700?1:0);
+    sceneHome.style.opacity = t < 4200 ? 1 : clamp01((4700 - t)/500);
+    sceneMap.style.opacity  = t < 4200 ? 0 : clamp01((t - 4200)/500);
+    sceneMap.style.display  = t < 4100 ? 'none' : 'block';
+    sceneHome.style.display = t > 4800 ? 'none' : 'block';
+
+    // ---- end card ----
+    const endIn = hold(t, 22200, 24500, 500);
+    end.style.opacity = t < 21700 ? 0 : clamp01((t-21700)/500);
+    sceneMap.style.filter = t > 21700 ? 'brightness(0.5)' : 'none';
+
+    // ---- bottom sheet ----
+    let sheetY = 900;
+    if (t >= 9700 && t < 10300) sheetY = 900 - 900*clamp01((t-9700)/600);
+    else if (t >= 10300 && t < 13600) sheetY = 0;
+    else if (t >= 13600 && t < 14100) sheetY = 900*clamp01((t-13600)/500);
+    sheet.style.transform = `translateY(${sheetY}px)`;
+
+    // ---- marker tap flash (mk4, "Quai des pecheurs") ----
+    const mk4 = $('mk4');
+    const tapPulse = hold(t, 9300, 9700, 150);
+    mk4.style.transform = `translate(-50%,-50%) scale(${1 + tapPulse*0.6})`;
+
+    // marker gentle pulsing (all, offset phases) while map scene active
+    ['mk1','mk2','mk3','mk4','mk5','mk6'].forEach((id,i)=>{
+      const el = $(id);
+      const phase = (t/900 + i*0.6) % 1;
+      const s = 1 + 0.12*Math.sin(phase*Math.PI*2);
+      if (!(id==='mk4' && tapPulse>0)) el.style.transform = `translate(-50%,-50%) scale(${s})`;
+      el.style.opacity = 0.55 + 0.35*Math.sin(phase*Math.PI*2);
+    });
+
+    // ---- highlight box logic ----
+    let target = null, pad = 14, radius = 24;
+    if (hold(t,1100,3900,400) > 0.3 && t < 4200) { target = $('el-pill-home'); }
+    else if (hold(t,10500,13600,400)>0.3) { target = mk4; pad = 26; radius = 999; }
+    else if (hold(t,14700,17900,400)>0.3) { target = $('el-livenotif'); pad=10; }
+    else if (hold(t,18300,21200,400)>0.3) { target = $('el-locate'); pad=8; radius=999; }
+
+    if (target && t < 21700) {
+      const stageRect = $('stage').getBoundingClientRect();
+      const r = target.getBoundingClientRect();
+      const pulse = 0.5 + 0.5*Math.sin(t/260);
+      hl.style.left   = (r.left - stageRect.left - pad) + 'px';
+      hl.style.top    = (r.top  - stageRect.top  - pad) + 'px';
+      hl.style.width  = (r.width  + pad*2) + 'px';
+      hl.style.height = (r.height + pad*2) + 'px';
+      hl.style.borderRadius = (typeof radius === 'number' && radius===999) ? '999px' : radius+'px';
+      hl.style.opacity = 0.55 + 0.45*pulse;
+      hl.style.boxShadow = `0 0 0 ${6+10*pulse}px rgba(255,61,139,${0.18*pulse})`;
+    } else {
+      hl.style.opacity = 0;
+    }
+
+    // ---- captions ----
+    let shown = null;
+    for (const c of CAPTIONS) { if (t >= c.a - 400 && t <= c.b + 400) { shown = c; break; } }
+    if (shown) {
+      capText.textContent = shown.t;
+      cap.querySelector('.n').textContent = shown.n;
+      cap.style.opacity = hold(t, shown.a, shown.b, 400);
+    } else {
+      cap.style.opacity = 0;
+    }
+  }
+
+  window.__renderFrame = renderFrame;
+  renderFrame(0);
+</script>
+</body>
+</html>

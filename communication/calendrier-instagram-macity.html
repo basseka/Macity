@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Calendrier Instagram MaCity</title>
+<style>
+  @font-face { font-family:'InterX'; font-weight:400;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Regular.otf'); }
+  @font-face { font-family:'InterX'; font-weight:600;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-SemiBold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:700;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Bold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:900;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Black.otf'); }
+
+  :root{
+    --pink:#E91E8C; --pink-hi:#FF2E93; --purple:#7C3AED;
+    --ink:#1B1533; --dim:#5C5276; --line:#E7DFEA;
+    --cream:#FDF3EB; --cream2:#F7E6DA;
+  }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:14mm 12mm 16mm 12mm; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'InterX', 'Liberation Sans', 'DejaVu Sans', sans-serif;
+    color:var(--ink); font-size:9.4pt; line-height:1.45;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .cover{
+    background:linear-gradient(135deg,#1B1533 0%,#3A1E58 55%,#8B1B62 100%);
+    color:#fff; border-radius:14px; padding:26px 28px 24px; margin-bottom:20px;
+  }
+  .cover .kicker{ font-weight:700; letter-spacing:.22em; font-size:8pt;
+    color:#FFA8D2; text-transform:uppercase; }
+  .cover h1{ font-size:27pt; font-weight:900; margin:8px 0 6px; line-height:1.05; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover p{ margin:0; color:#D9CFEA; font-size:10pt; max-width:135mm; }
+  .cover .meta{ margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+  .chip{ background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.22);
+    padding:5px 11px; border-radius:20px; font-size:8pt; font-weight:600; }
+
+  h2{ font-size:14pt; font-weight:900; margin:22px 0 4px; padding-left:11px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:8.5pt; font-weight:600; color:var(--dim);
+      margin-top:3px; letter-spacing:.02em; }
+  h3{ font-size:10.5pt; font-weight:700; margin:16px 0 6px; color:var(--purple); }
+  p{ margin:6px 0; }
+  strong{ font-weight:700; }
+  .lead{ color:var(--dim); }
+
+  table{ width:100%; border-collapse:collapse; margin:9px 0 4px; font-size:8.5pt; }
+  th{ background:var(--ink); color:#fff; text-align:left; font-weight:700;
+      padding:7px 8px; font-size:8pt; letter-spacing:.03em; }
+  th:first-child{ border-top-left-radius:7px; }
+  th:last-child{ border-top-right-radius:7px; }
+  td{ padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:#FBF7F4; }
+  .day{ font-weight:900; color:var(--pink); white-space:nowrap; }
+  .serie{ font-weight:700; font-size:8pt; text-transform:uppercase;
+          letter-spacing:.03em; white-space:nowrap; }
+  .hook{ font-style:italic; }
+  .cta{ font-weight:600; color:var(--purple); white-space:nowrap; }
+
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:11px;
+        padding:13px 16px; margin:12px 0; }
+  .box.warn{ background:#FFF4F8; border-color:#F6C9DE; }
+  .box.dark{ background:#F4F1FA; border-color:#DDD3F2; }
+  .box h4{ margin:0 0 6px; font-size:10pt; font-weight:900; }
+  .box ul{ margin:6px 0 0 16px; padding:0; }
+  .box li{ margin:4px 0; }
+  .ratio{ font-size:8pt; color:var(--dim); margin:2px 0 0; font-weight:600; }
+  .week{ page-break-inside:avoid; }
+  .pb{ page-break-before:always; }
+  .grid2{ display:flex; gap:14px; }
+  .grid2>div{ flex:1; }
+  .foot{ margin-top:26px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:7.5pt; color:var(--dim); }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MaCity · Toulouse</div>
+  <h1>Calendrier Instagram<br><span>4 semaines, prêt à publier</span></h1>
+  <p>Le compte qui te donne toujours une idée de sortie à Toulouse. MaCity devient
+     naturellement l'outil derrière.</p>
+  <div class="meta">
+    <span class="chip">10 août → 6 septembre 2026</span>
+    <span class="chip">5 posts / semaine</span>
+    <span class="chip">60 % découverte · 25 % communauté · 15 % MaCity</span>
+    <span class="chip">2 sessions de tournage</span>
+  </div>
+</div>
+
+<h2>Le principe
+  <span class="sub">Ce qui rend ce calendrier tenable dans la durée</span></h2>
+
+<p><strong>5 posts par semaine, pas 7.</strong> Lundi, mardi, jeudi, vendredi, samedi.
+Mercredi et dimanche vivent en stories seulement. Un compte régulier à 5 bat un compte
+irrégulier à 7, et sept posts hebdomadaires dont des micro-trottoirs ne tiennent pas
+au-delà de dix jours quand on est seul.</p>
+
+<p><strong>Alternance visuelle imposée.</strong> Jamais deux posts graphiques d'affilée.
+L'ordre de la semaine est : humain, communauté, graphique, humain, lieu réel.</p>
+
+<h3>Les 6 séries, à jour fixe</h3>
+<p class="lead">C'est la régularité qui crée le réflexe chez l'abonné, pas la variété.</p>
+
+<table>
+  <tr><th style="width:16%">Jour</th><th style="width:34%">Série</th><th>Objectif</th></tr>
+  <tr><td class="day">Lundi</td><td class="serie">Tu connais ?</td><td>Découverte, portée</td></tr>
+  <tr><td class="day">Mardi</td><td class="serie">On a demandé aux Toulousains</td><td>Communauté, commentaires</td></tr>
+  <tr><td class="day">Jeudi</td><td class="serie">5 sorties ce week-end</td><td>Le rendez-vous, enregistrements</td></tr>
+  <tr><td class="day">Vendredi</td><td class="serie">Ce soir, tu fais quoi ?</td><td>Pont vers l'application</td></tr>
+  <tr><td class="day">Samedi</td><td class="serie">MaCity teste · 1 partenaire</td><td>Preuve, authenticité</td></tr>
+</table>
+
+<div class="box warn">
+  <h4>Deux fenêtres à ne pas rater</h4>
+  <ul>
+    <li><strong>Le week-end du 15 août</strong> tombe en semaine 1. Toulouse se vide et
+        ceux qui restent cherchent activement quoi faire.</li>
+    <li><strong>La rentrée étudiante</strong> arrive en semaine 4. Des dizaines de
+        milliers de nouveaux arrivants qui ne connaissent rien à la ville : c'est ta
+        meilleure fenêtre d'acquisition de l'année.</li>
+  </ul>
+</div>
+
+<div class="week">
+<h2>Semaine 1 · 10 au 16 août
+  <span class="sub">Angle : le week-end du 15 août</span></h2>
+<table>
+  <tr><th style="width:9%">Jour</th><th style="width:15%">Série</th>
+      <th style="width:27%">Hook, 3 premières secondes</th>
+      <th style="width:29%">Contenu</th><th style="width:20%">CTA</th></tr>
+  <tr><td class="day">Lun 10</td><td class="serie">Tu connais ?</td>
+      <td class="hook">« 3 endroits à Toulouse où personne ne va en août 👀 »</td>
+      <td>Reel 3 plans : Jardin des Plantes, Port Saint-Sauveur, Prairie des Filtres</td>
+      <td class="cta">Enregistre pour cette semaine</td></tr>
+  <tr><td class="day">Mar 11</td><td class="serie">Toulousains</td>
+      <td class="hook">« On a demandé aux Toulousains leur endroit préféré »</td>
+      <td>Micro-trottoir, 5 réponses, Capitole ou Saint-Pierre</td>
+      <td class="cta">Et toi ? 👇</td></tr>
+  <tr><td class="day">Jeu 13</td><td class="serie">5 sorties</td>
+      <td class="hook">« 5 sorties pour le week-end du 15 août 🔥 »</td>
+      <td>Carrousel : 💸 Gratuit · 💑 Couple · 🥳 Potes · 🎶 Concert · 🍽️ Food</td>
+      <td class="cta">Tout est sur MaCity 📍</td></tr>
+  <tr><td class="day">Ven 14</td><td class="serie">Ce soir</td>
+      <td class="hook">« T'as rien de prévu ce soir ? »</td>
+      <td>Reel 15 s : 19h apéro, 21h événement, 23h club</td>
+      <td class="cta">Le programme est sur MaCity</td></tr>
+  <tr><td class="day">Sam 15</td><td class="serie">MaCity teste</td>
+      <td class="hook">« On a testé la guinguette dont tout Toulouse parle »</td>
+      <td>Test noté : Ambiance, Prix, Fun</td>
+      <td class="cta">Tu y vas ce week-end ?</td></tr>
+</table>
+<p class="ratio">Répartition : 60 % découverte · 20 % communauté · 20 % MaCity</p>
+</div>
+
+<div class="week">
+<h2>Semaine 2 · 17 au 23 août
+  <span class="sub">Angle : le budget</span></h2>
+<table>
+  <tr><th style="width:9%">Jour</th><th style="width:15%">Série</th>
+      <th style="width:27%">Hook</th><th style="width:29%">Contenu</th>
+      <th style="width:20%">CTA</th></tr>
+  <tr><td class="day">Lun 17</td><td class="serie">Moins de 20 €</td>
+      <td class="hook">« Une journée entière à Toulouse pour 20 € 💸 »</td>
+      <td>Reel parcours : matin, midi, après-midi, soir, prix affichés à l'écran</td>
+      <td class="cta">Enregistre, tu vas en avoir besoin</td></tr>
+  <tr><td class="day">Mar 18</td><td class="serie">Toulousains</td>
+      <td class="hook">« Le meilleur resto de Toulouse selon les Toulousains »</td>
+      <td>Micro-trottoir au marché Victor Hugo</td>
+      <td class="cta">On a oublié lequel ? 👇</td></tr>
+  <tr><td class="day">Jeu 20</td><td class="serie">5 sorties</td>
+      <td class="hook">« 5 sorties ce week-end à Toulouse »</td>
+      <td>Carrousel, mêmes 5 catégories</td>
+      <td class="cta">Tout est sur MaCity 📍</td></tr>
+  <tr><td class="day">Ven 21</td><td class="serie">Date</td>
+      <td class="hook">« 3 idées de date à Toulouse : 0 €, 15 €, 30 € ❤️ »</td>
+      <td>Reel 3 lieux, budget affiché sur chaque plan</td>
+      <td class="cta">Tague la personne concernée</td></tr>
+  <tr><td class="day">Sam 22</td><td class="serie">1 partenaire</td>
+      <td class="hook">« On vous emmène chez un partenaire MaCity 👀 »</td>
+      <td>Le Bouillon Labège ou Château de Drudas, avec le gérant à l'image</td>
+      <td class="cta">Son endroit préféré ? En commentaire</td></tr>
+</table>
+<p class="ratio">Répartition : 60 % découverte · 20 % communauté · 20 % MaCity</p>
+</div>
+
+<div class="week">
+<h2>Semaine 3 · 24 au 30 août
+  <span class="sub">Angle : lancement du MaCity Challenge</span></h2>
+<table>
+  <tr><th style="width:9%">Jour</th><th style="width:15%">Série</th>
+      <th style="width:27%">Hook</th><th style="width:29%">Contenu</th>
+      <th style="width:20%">CTA</th></tr>
+  <tr><td class="day">Lun 24</td><td class="serie">Tu connais ?</td>
+      <td class="hook">« Cet endroit est à 15 min du Capitole et personne ne le connaît »</td>
+      <td>Reel sur un seul lieu, format long, 30 s</td>
+      <td class="cta">Enregistre pour ta prochaine sortie</td></tr>
+  <tr><td class="day">Mar 25</td><td class="serie">Challenge #01</td>
+      <td class="hook">« On lance un truc, et c'est vous qui jouez 🟣 »</td>
+      <td>Règle du MaCity Challenge, voir la mécanique en fin de document</td>
+      <td class="cta">Publie ta découverte dans MaCity</td></tr>
+  <tr><td class="day">Jeu 27</td><td class="serie">5 sorties</td>
+      <td class="hook">« 5 sorties pour le dernier week-end d'août »</td>
+      <td>Carrousel</td>
+      <td class="cta">Tout est sur MaCity 📍</td></tr>
+  <tr><td class="day">Ven 28</td><td class="serie">Ce soir</td>
+      <td class="hook">« Vendredi soir à Toulouse, 3 plans selon ton humeur »</td>
+      <td>Reel : calme, entre potes, on sort tard</td>
+      <td class="cta">Choisis ton camp 👇</td></tr>
+  <tr><td class="day">Sam 29</td><td class="serie">MaCity teste</td>
+      <td class="hook">« On a testé le spot dont tout le monde parle »</td>
+      <td>Test noté</td>
+      <td class="cta">On recommande ? ✅</td></tr>
+</table>
+</div>
+
+<div class="week">
+<h2>Semaine 4 · 31 août au 6 septembre
+  <span class="sub">Angle : la rentrée. La semaine la plus rentable du trimestre</span></h2>
+<table>
+  <tr><th style="width:9%">Jour</th><th style="width:15%">Série</th>
+      <th style="width:27%">Hook</th><th style="width:29%">Contenu</th>
+      <th style="width:20%">CTA</th></tr>
+  <tr><td class="day">Lun 31</td><td class="serie">Nouveau à Toulouse</td>
+      <td class="hook">« Tu arrives à Toulouse ? Voilà les 5 endroits à connaître »</td>
+      <td>Reel repères : Capitole, Saint-Pierre, Ramier, Victor Hugo, Canal du Midi</td>
+      <td class="cta">Enregistre, tu vas te perdre sinon</td></tr>
+  <tr><td class="day">Mar 1<sup>er</sup></td><td class="serie">Résultats challenge</td>
+      <td class="hook">« Vous avez été X à participer 😳 »</td>
+      <td>Montage des meilleures découvertes de la communauté</td>
+      <td class="cta">Challenge #02 vendredi</td></tr>
+  <tr><td class="day">Jeu 3</td><td class="serie">5 sorties</td>
+      <td class="hook">« 5 sorties pour ta première semaine à Toulouse »</td>
+      <td>Carrousel orienté nouveaux arrivants et étudiants</td>
+      <td class="cta">Tout est sur MaCity 📍</td></tr>
+  <tr><td class="day">Ven 4</td><td class="serie">Toulousains</td>
+      <td class="hook">« Ton conseil pour quelqu'un qui arrive à Toulouse ? »</td>
+      <td>Micro-trottoir, la question idéale pour la période</td>
+      <td class="cta">Ajoute le tien 👇</td></tr>
+  <tr><td class="day">Sam 5</td><td class="serie">Moins de 20 €</td>
+      <td class="hook">« Étudiant à Toulouse ? Voilà comment sortir avec 20 € »</td>
+      <td>Reel budget étudiant</td>
+      <td class="cta">Partage à ton coloc</td></tr>
+</table>
+</div>
+
+<div class="pb"></div>
+<h2>Les stories
+  <span class="sub">Cinq minutes par jour, jamais plus</span></h2>
+<p class="lead">C'est le format qui fait vivre le compte entre deux posts, et celui qui
+génère le plus d'engagement pour le moins d'effort.</p>
+<table>
+  <tr><th style="width:16%">Jour</th><th>Story</th></tr>
+  <tr><td class="day">Lundi</td><td>Sondage : ton mood de la semaine ? 😴 tranquille · 🥳 sortie · 💪 sport · 🍻 apéro</td></tr>
+  <tr><td class="day">Mardi</td><td>Quiz Toulouse, une question par semaine</td></tr>
+  <tr><td class="day">Mercredi</td><td>Question ouverte : on cherche une idée de sortie pour ce week-end</td></tr>
+  <tr><td class="day">Jeudi</td><td>Le post du jour en story, puis « tu fais quoi ce week-end ? »</td></tr>
+  <tr><td class="day">Vendredi</td><td>Sondage entre deux lieux : on sort où ce soir ?</td></tr>
+  <tr><td class="day">Samedi</td><td>Repartage des stories où l'on t'a identifié</td></tr>
+  <tr><td class="day">Dimanche</td><td>Question ouverte : alors, votre week-end ? 👇</td></tr>
+</table>
+
+<h2>MaCity Challenge
+  <span class="sub">Avec une correction qui change tout</span></h2>
+
+<div class="box dark">
+  <h4>🟣 Challenge #01</h4>
+  <p style="margin:4px 0"><strong>Trouve un endroit à Toulouse où tu n'es jamais allé.</strong></p>
+  <ul>
+    <li>📸 Publie-le <strong>en story dans MaCity</strong>, pas sur Instagram</li>
+    <li>📍 Ajoute le lieu</li>
+    <li>La meilleure découverte est repartagée le dimanche</li>
+  </ul>
+</div>
+
+<p>La correction porte sur l'endroit où l'on publie. Une story Instagram disparaît en
+24 heures et ne te laisse rien. Une story publiée <strong>dans MaCity</strong> remplit
+le fil de l'application, déclenche les City-Miles, et donne une raison concrète de
+télécharger. Tu convertis un geste social en usage produit, ce qui est exactement le
+pont qui manque aujourd'hui entre le compte et l'application.</p>
+
+<h2>Le plan de tournage
+  <span class="sub">Deux sessions par semaine, c'est ce qui rend le calendrier réaliste</span></h2>
+
+<div class="grid2">
+  <div class="box">
+    <h4>Dimanche après-midi · 2 h</h4>
+    <p>Plans de lieux du lundi et du samedi. Trois lieux par sortie, 4 à 5 plans chacun,
+    téléphone à la main, aucun matériel.</p>
+  </div>
+  <div class="box">
+    <h4>Samedi matin · 1 h 30</h4>
+    <p>Micro-trottoir. Pose <strong>trois questions différentes à chaque personne</strong> :
+    une seule sortie te donne trois semaines de contenu du mardi.</p>
+  </div>
+</div>
+<p>Le reste se produit au bureau. Les carrousels du jeudi se fabriquent depuis
+l'application, à partir des événements réels du week-end. Compte 30 minutes.</p>
+
+<h2>Trois corrections au plan initial
+  <span class="sub">Ce que je ferais différemment</span></h2>
+
+<div class="box warn">
+  <h4>1. « Pas uniquement des événements MaCity » est un mauvais conseil ici</h4>
+  <p>Sur le principe il a raison : apporter de la valeur avant de vendre. Mais ton
+  application contient déjà tous les événements de Toulouse. Si un bon plan n'y figure
+  pas, ce n'est pas une raison de le sortir du post, c'est une raison de
+  <strong>l'ajouter dans l'application avant de publier</strong>. Chaque post devient
+  alors un contrôle de ta propre couverture.</p>
+</div>
+
+<div class="box warn">
+  <h4>2. Le micro-trottoir est la série la plus rentable et la plus coûteuse</h4>
+  <p>Ne la lance que si tu es certain de tenir les sorties du samedi. Une série
+  communautaire abandonnée au bout de trois semaines fait plus de mal qu'une série
+  jamais lancée.</p>
+</div>
+
+<div class="box warn">
+  <h4>3. Le Reel de présentation de 30 s ne va pas dans le feed</h4>
+  <p>Il est trop explicatif pour de l'organique. Garde-le pour les publicités et pour
+  la story à la une de présentation du compte.</p>
+</div>
+
+<div class="foot">
+  MaCity · Calendrier éditorial Instagram · 10 août au 6 septembre 2026.
+  Les lieux cités sont des propositions : vérifie les prix et les horaires avant
+  publication.
+</div>
+
+</body>
+</html>

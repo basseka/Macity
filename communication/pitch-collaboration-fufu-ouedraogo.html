@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity x Fufu Ouedraogo : proposition de collaboration</title>
+<style>
+  @font-face { font-family:'InterX'; font-weight:400;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Regular.otf'); }
+  @font-face { font-family:'InterX'; font-weight:600;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-SemiBold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:700;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Bold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:900;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Black.otf'); }
+
+  :root{
+    --pink:#E91E8C; --pink-hi:#FF2E93; --purple:#7C3AED;
+    --ink:#1B1533; --dim:#5C5276; --line:#E7DFEA;
+    --cream:#FDF3EB;
+  }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:14mm 13mm 15mm 13mm; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'InterX','Liberation Sans','DejaVu Sans',sans-serif;
+    color:var(--ink); font-size:9.6pt; line-height:1.5;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .cover{
+    background:linear-gradient(135deg,#14101C 0%,#3A1E58 52%,#A11A6B 100%);
+    color:#fff; border-radius:16px; padding:30px 32px 28px; margin-bottom:18px;
+  }
+  .cover .kicker{ font-weight:700; letter-spacing:.24em; font-size:8pt;
+    color:#FFA8D2; text-transform:uppercase; }
+  .cover h1{ font-size:29pt; font-weight:900; margin:10px 0 8px; line-height:1.02; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover .base{ margin:0; color:#DDD3EC; font-size:10.5pt; max-width:140mm; }
+  .cover .meta{ margin-top:16px; display:flex; gap:7px; flex-wrap:wrap; }
+  .chip{ background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.24);
+    padding:5px 12px; border-radius:20px; font-size:8pt; font-weight:600; }
+
+  h2{ font-size:14.5pt; font-weight:900; margin:20px 0 4px; padding-left:11px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:8.5pt; font-weight:600; color:var(--dim);
+      margin-top:3px; }
+  h3{ font-size:11pt; font-weight:900; margin:14px 0 5px; }
+  p{ margin:7px 0; }
+  .lead{ color:var(--dim); }
+  ul{ margin:6px 0 6px 17px; padding:0; }
+  li{ margin:4px 0; }
+
+  .etapes{ display:flex; gap:6px; margin:12px 0 4px; }
+  .etape{ flex:1; background:var(--cream); border:1px solid #EEDBCB;
+    border-radius:10px; padding:9px 8px; text-align:center; }
+  .etape .h{ font-size:7.5pt; font-weight:700; color:var(--pink);
+    letter-spacing:.08em; text-transform:uppercase; }
+  .etape .n{ font-size:9.5pt; font-weight:900; margin-top:2px; display:block; }
+
+  .pitch{ border:1px solid var(--line); border-radius:13px; padding:16px 18px;
+    margin:12px 0; page-break-inside:avoid; }
+  .pitch .tag{ display:inline-block; background:var(--ink); color:#fff;
+    font-size:7.5pt; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+    padding:4px 10px; border-radius:14px; }
+  .pitch h3{ margin:8px 0 2px; font-size:13pt; }
+  .pitch .moment{ font-size:8.5pt; font-weight:700; color:var(--purple);
+    margin:0 0 8px; }
+  .two{ display:flex; gap:14px; margin-top:10px; }
+  .two>div{ flex:1; background:#FBF7F4; border-radius:9px; padding:10px 12px; }
+  .two h4{ margin:0 0 5px; font-size:8.5pt; font-weight:900;
+    text-transform:uppercase; letter-spacing:.06em; color:var(--pink); }
+  .two.ask>div:last-child h4{ color:var(--purple); }
+  .two ul{ margin:0 0 0 15px; }
+  .two li{ font-size:8.7pt; }
+
+  table{ width:100%; border-collapse:collapse; margin:9px 0; font-size:8.8pt; }
+  th{ background:var(--ink); color:#fff; text-align:left; font-weight:700;
+    padding:7px 9px; font-size:8pt; }
+  th:first-child{ border-top-left-radius:7px; }
+  th:last-child{ border-top-right-radius:7px; }
+  td{ padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:#FBF7F4; }
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:11px;
+    padding:13px 17px; margin:12px 0; }
+  .box.hi{ background:#FFF4F8; border-color:#F6C9DE; }
+  .box h4{ margin:0 0 6px; font-size:10.5pt; font-weight:900; }
+  .pb{ page-break-before:always; }
+  .foot{ margin-top:22px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:7.6pt; color:var(--dim); }
+  .cta{ background:linear-gradient(135deg,#E91E8C,#7C3AED); color:#fff;
+    border-radius:13px; padding:18px 22px; margin-top:14px; }
+  .cta h3{ margin:0 0 6px; color:#fff; font-size:13pt; }
+  .cta p{ margin:4px 0; color:#F6E6F2; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MaCity · Proposition de collaboration</div>
+  <h1>Une journée à Toulouse<br><span>avec Fufu Ouedraogo</span></h1>
+  <p class="base">Une figure du rugby français, toujours sportive, débarque à Toulouse
+  sans connaître la ville. Elle n'a que MaCity pour construire sa journée. Chaque
+  partenaire devient une étape, filmée, racontée et diffusée.</p>
+  <div class="meta">
+    <span class="chip">4 étapes, 4 partenaires</span>
+    <span class="chip">1 seule journée de tournage</span>
+    <span class="chip">Reel dédié par partenaire</span>
+    <span class="chip">Rushs fournis</span>
+  </div>
+</div>
+
+<h2>Le principe
+  <span class="sub">Une histoire, pas une publicité</span></h2>
+
+<p>Le concept tient en une phrase : <strong>un sportif international débarque à
+Toulouse et utilise l'application MaCity pour construire sa journée.</strong></p>
+
+<p>Fufu Ouedraogo, ancien international français de rugby, vit à Montpellier et ne
+connaît pas Toulouse. C'est ce qui donne sa valeur au dispositif, et surtout à votre
+place dedans : <strong>votre établissement n'est pas choisi par relation ni par
+habitude, il est choisi par l'application, par quelqu'un qui ne vous connaissait
+pas.</strong> C'est exactement le parcours d'un nouveau client.</p>
+
+<p>Toulouse est une terre de rugby. Faire visiter la ville à un rugbyman se comprend
+immédiatement, sans avoir à l'expliquer : c'est ce qui donne au film son évidence, et
+ce qui lui vaudra d'être regardé jusqu'au bout.</p>
+
+<p>Nous ne filmons pas une démonstration d'application. Nous filmons une journée
+réelle. Fufu ouvre MaCity, cherche, choisit, se déplace, vit l'endroit. L'application
+n'est jamais le sujet : elle est le fil rouge qui relie les étapes. Chaque partenaire
+apparaît au moment où il a du sens dans la journée, pas dans un encart publicitaire.</p>
+
+<p class="lead">C'est ce qui différencie ce projet d'un placement de produit :
+l'établissement n'est pas montré, il est <strong>vécu</strong>.</p>
+
+<div class="etapes">
+  <div class="etape"><span class="h">Matin</span><span class="n">Sport</span></div>
+  <div class="etape"><span class="h">Midi</span><span class="n">Restaurant</span></div>
+  <div class="etape"><span class="h">Soir</span><span class="n">Détente</span></div>
+  <div class="etape"><span class="h">En bonus</span><span class="n">Évasion</span></div>
+</div>
+
+<h2>Ce que reçoit chaque partenaire
+  <span class="sub">Identique pour les quatre étapes, quel que soit le type d'établissement</span></h2>
+
+<table>
+  <tr><th style="width:32%">Livrable</th><th>Détail</th></tr>
+  <tr><td><strong>Un Reel dédié</strong></td>
+      <td>Une vidéo verticale entièrement consacrée à votre établissement, publiée
+      sur le compte Instagram MaCity et dans le fil de l'application</td></tr>
+  <tr><td><strong>Une séquence dans le film</strong></td>
+      <td>Votre étape dans le récapitulatif de la journée complète, le contenu le
+      plus vu du dispositif</td></tr>
+  <tr><td><strong>Les rushs bruts</strong></td>
+      <td>Tous les plans tournés chez vous, livrés sans filigrane, libres d'usage
+      sur vos propres réseaux et votre site</td></tr>
+  <tr><td><strong>Mise en avant dans MaCity</strong></td>
+      <td>Statut Partenaire et positionnement prioritaire dans votre rubrique
+      pendant toute la durée de l'opération</td></tr>
+  <tr><td><strong>Fiche enrichie</strong></td>
+      <td>Vos photos, vos horaires, votre lien de réservation, mis à jour à partir
+      du tournage</td></tr>
+  <tr><td><strong>Une offre dédiée</strong></td>
+      <td>Si vous le souhaitez, une offre à votre main dans la rubrique Offres,
+      pour transformer la visibilité en visites réelles</td></tr>
+</table>
+
+<h2>Ce que nous vous demandons
+  <span class="sub">Volontairement léger : la contrainte est de notre côté</span></h2>
+
+<ul>
+  <li><strong>Un créneau d'une heure</strong> sur un moment calme que vous choisissez</li>
+  <li><strong>L'accès à votre espace</strong> et, selon l'étape, une séance, un plat
+  ou une chambre</li>
+  <li><strong>L'autorisation de filmer</strong> et d'utiliser les images sur nos
+  supports et ceux de Fufu</li>
+  <li><strong>Un relais sur vos réseaux</strong> le jour de la publication, ce qui
+  bénéficie autant à vous qu'à nous</li>
+</ul>
+
+<div class="box hi">
+  <h4>Aucune exclusivité demandée</h4>
+  <p style="margin:2px 0">Vous restez libre de vos autres partenariats. Nous ne
+  demandons ni budget média, ni engagement de durée. Si l'opération fonctionne,
+  nous en reparlons ensuite, sur des bases plus larges.</p>
+</div>
+
+<h2>Les quatre propositions
+  <span class="sub">Une par type d'établissement, à envoyer telle quelle</span></h2>
+
+<div class="pitch">
+  <span class="tag">🏋️ Sport</span>
+  <h3>Fufu commence sa journée chez vous</h3>
+  <p class="moment">Étape 1 · Matin</p>
+  <p>Nous préparons une collaboration avec Fufu Ouedraogo, international français de
+  rugby, autour d'un concept simple : lui faire vivre une journée complète construite
+  avec MaCity, notre application de sorties à Toulouse.</p>
+  <p>La journée s'ouvre par le sport. Fufu prend son téléphone, cherche un endroit
+  où s'entraîner, et c'est votre établissement qui apparaît. Il arrive, découvre
+  l'espace, s'entraîne, échange avec vous. Nous filmons ce moment tel qu'il se passe.</p>
+  <p>Pour vous, l'intérêt est direct : associer votre image à celle d'un sportif de
+  haut niveau, et faire découvrir votre salle à une audience qui cherche précisément
+  où pratiquer.</p>
+  <div class="two ask">
+    <div><h4>Vous recevez</h4><ul>
+      <li>Un Reel dédié à votre salle</li>
+      <li>Vos plans bruts, libres d'usage</li>
+      <li>Le statut Partenaire dans la rubrique Sport</li>
+    </ul></div>
+    <div><h4>Vous fournissez</h4><ul>
+      <li>Une heure sur un créneau calme</li>
+      <li>L'accès aux équipements</li>
+      <li>Un relais sur vos réseaux</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="pitch">
+  <span class="tag">🍽️ Restaurant</span>
+  <h3>L'étape déjeuner de la journée</h3>
+  <p class="moment">Étape 2 · Midi</p>
+  <p>Après sa matinée sportive, Fufu rouvre MaCity pour trouver où déjeuner. Nous
+  aimerions que ce soit chez vous.</p>
+  <p>Le principe est le même : rien n'est joué. Il cherche, il choisit, il vient, il
+  mange, il en parle. Votre restaurant n'est pas présenté, il est traversé. C'est ce
+  qui rend la séquence crédible et regardable jusqu'au bout.</p>
+  <p>Pour vous, c'est une mise en avant portée par un sportif de haut niveau, avec
+  une image à la fois sportive, lifestyle et résolument locale, auprès d'une audience
+  qui cherche justement de nouvelles adresses.</p>
+  <div class="two ask">
+    <div><h4>Vous recevez</h4><ul>
+      <li>Un Reel dédié à votre table</li>
+      <li>Des images de vos plats, exploitables partout</li>
+      <li>Le statut Partenaire dans la rubrique Food</li>
+    </ul></div>
+    <div><h4>Vous fournissez</h4><ul>
+      <li>Un service, en salle ou en terrasse</li>
+      <li>Le repas de Fufu et de l'équipe</li>
+      <li>Un relais sur vos réseaux</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="pitch">
+  <span class="tag">🌙 Soirée</span>
+  <h3>Le moment détente de la fin de journée</h3>
+  <p class="moment">Étape 3 · Soir</p>
+  <p>Une application de sorties qui s'arrêterait au dessert manquerait l'essentiel.
+  Après le dîner, Fufu cherche où prolonger la soirée, et la séquence bascule dans
+  une autre énergie : lumière, musique, monde, ambiance.</p>
+  <p>C'est le moment le plus spectaculaire du dispositif, et celui qui se partage le
+  plus. Nous filmons l'arrivée, l'atmosphère, la salle qui prend, sans jamais tomber
+  dans la vidéo promotionnelle de club.</p>
+  <p>Pour vous, c'est l'occasion de montrer votre lieu en conditions réelles, porté
+  par une personnalité, auprès d'une audience qui décide souvent le soir même.</p>
+  <div class="two ask">
+    <div><h4>Vous recevez</h4><ul>
+      <li>Un Reel dédié à votre soirée</li>
+      <li>Des images d'ambiance de qualité</li>
+      <li>Le statut Partenaire dans la rubrique Night</li>
+    </ul></div>
+    <div><h4>Vous fournissez</h4><ul>
+      <li>Un accès en début de soirée</li>
+      <li>L'autorisation de filmer la salle</li>
+      <li>Un relais sur vos réseaux</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="pitch">
+  <span class="tag">🏡 Évasion</span>
+  <h3>Le petit plus de la journée</h3>
+  <p class="moment">Étape 4 · En bonus, format allégé</p>
+  <p>Au cœur d'une journée dense, cette séquence montre l'inverse de toutes les
+  autres : le moment où l'on prend du temps pour soi. Fufu ouvre la rubrique Évasion
+  de MaCity et cherche un endroit pour souffler.</p>
+  <p>Cette étape est la plus émotionnelle du film. On ne montre pas une adresse, on
+  fait ressentir un lieu : le calme, le cadre, l'air, ce que l'on vient y chercher.
+  Votre établissement n'apparaît pas comme une option parmi d'autres, mais comme la
+  destination naturelle après une journée intense.</p>
+  <p><strong>Le format est volontairement allégé pour vous.</strong> Fufu est filmé à
+  son arrivée chez vous, et c'est tout ce qui requiert sa présence. Les images du lieu,
+  du cadre et de l'ambiance, nous les réalisons nous-mêmes, à un moment qui vous
+  arrange. Vous obtenez donc une vitrine construite comme un film de destination, que
+  vous pourrez réutiliser librement bien après l'opération, pour une contrainte de
+  vingt minutes.</p>
+  <div class="two ask">
+    <div><h4>Vous recevez</h4><ul>
+      <li>Un Reel dédié à votre maison</li>
+      <li>Un film court réutilisable sur votre site</li>
+      <li>Le statut Partenaire dans la rubrique Évasion</li>
+    </ul></div>
+    <div><h4>Vous fournissez</h4><ul>
+      <li>Vingt minutes, le temps de filmer l'arrivée</li>
+      <li>L'accès aux espaces pour nos propres prises de vue</li>
+      <li>Un relais sur vos réseaux</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="pb"></div>
+<h2>Déroulé et calendrier
+  <span class="sub">Ce que nous prenons en charge intégralement</span></h2>
+
+<table>
+  <tr><th style="width:22%">Phase</th><th style="width:20%">Quand</th><th>Contenu</th></tr>
+  <tr><td><strong>Validation</strong></td><td>Semaine 1</td>
+      <td>Accord de principe des six partenaires, choix des créneaux</td></tr>
+  <tr><td><strong>Repérages</strong></td><td>Semaine 2</td>
+      <td>Passage rapide sur chaque lieu, cadrages et lumière</td></tr>
+  <tr><td><strong>Tournage</strong></td><td>Jour J</td>
+      <td>Une seule journée, trois créneaux d'une heure : matin, midi, soir</td></tr>
+  <tr><td><strong>Montage</strong></td><td>Semaine 3</td>
+      <td>Un Reel par partenaire, plus le film récapitulatif</td></tr>
+  <tr><td><strong>Diffusion</strong></td><td>Semaines 4 et 5</td>
+      <td>Publication échelonnée, un partenaire mis en avant à la fois</td></tr>
+</table>
+
+<p class="lead">Tournage, montage, droits musicaux et diffusion sont entièrement pris
+en charge par MaCity. Les rushs vous sont livrés à la fin du montage.</p>
+
+<h2>Pourquoi MaCity
+  <span class="sub">Le contexte de la démarche</span></h2>
+
+<p>MaCity est l'application gratuite qui rassemble ce qui se passe à Toulouse et dans
+son agglomération, en direct : concerts, restaurants, sorties famille, sport, soirées
+et évasion. Six univers, mis à jour chaque jour, disponibles sur iOS et Android.</p>
+
+<p>Cette opération poursuit deux objectifs simultanés. Faire connaître l'application
+à une audience qui ne la connaît pas encore, et surtout <strong>donner à voir ce
+qu'elle permet réellement</strong> : construire une journée entière, et pas seulement
+consulter une liste d'adresses.</p>
+
+<p>Les partenaires de cette journée ne sont donc pas des annonceurs. Ce sont les six
+endroits qui rendent la démonstration crédible.</p>
+
+<div class="cta">
+  <h3>La prochaine étape</h3>
+  <p>Un échange de quinze minutes, sur place ou par téléphone, pour vous présenter
+  le déroulé complet et caler un créneau.</p>
+  <p><strong>Dites-nous simplement si le principe vous intéresse, nous nous occupons
+  du reste.</strong></p>
+</div>
+
+<div class="foot">
+  MaCity · Proposition de collaboration · Une journée à Toulouse avec Fufu Ouedraogo.
+  Document de travail, non contractuel.
+</div>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity : bannière partagée ou exclusive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D0616; --panel:#160F20; --panel-hi:#1C1530;
+    --line:#2A2140; --text:#F3EEFC; --dim:#A99BC4; --faint:#766D8C;
+    --pink:#E91E8C; --pink-hi:#FF4FA8;
+    --blue:#3B82F6;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  @page{ size:A4; margin:0; }
+  html,body{ background:var(--bg); }
+  body{
+    font-family:'Inter','Liberation Sans','DejaVu Sans',sans-serif;
+    color:var(--text); font-size:10.3pt; line-height:1.45;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    padding:14mm 15mm 10mm;
+  }
+  .kicker{ font-weight:700; letter-spacing:.22em; font-size:8pt; color:var(--faint);
+    text-transform:uppercase; }
+  h1{ font-size:23pt; font-weight:900; margin:7px 0 8px; line-height:1.1; }
+  h1 span{ color:var(--pink-hi); }
+  .lede{ color:var(--dim); font-size:10.2pt; max-width:150mm; margin-bottom:16px; }
+
+  .row{ display:flex; gap:16px; margin-bottom:14px; }
+  .tier{ flex:1; background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:16px 20px; position:relative; overflow:hidden; }
+  .tier.exclusive{ background:linear-gradient(165deg,#22102E 0%,#3A1230 100%);
+    border-color:#5A2350; }
+  .tier .tag{ display:inline-block; font-size:7.6pt; font-weight:800; letter-spacing:.1em;
+    text-transform:uppercase; padding:3px 11px; border-radius:999px; margin-bottom:9px; }
+  .tier.shared .tag{ background:rgba(59,130,246,.16); color:#7DAAFF; border:1px solid rgba(59,130,246,.4); }
+  .tier.exclusive .tag{ background:rgba(233,30,140,.18); color:var(--pink-hi); border:1px solid rgba(233,30,140,.45); }
+  .tier h2{ font-size:14pt; font-weight:900; margin:0 0 3px; }
+  .tier .price{ font-size:24pt; font-weight:900; margin:6px 0 1px; }
+  .tier.exclusive .price{ color:var(--pink-hi); }
+  .tier .ttc{ font-size:8.4pt; color:var(--faint); margin-bottom:10px; }
+  .tier p.desc{ font-size:9.4pt; color:var(--dim); margin-bottom:9px; }
+  .tier ul{ margin:0 0 2px 15px; }
+  .tier li{ font-size:9.1pt; margin:4px 0; }
+  .tier li b{ color:var(--text); }
+
+  .compare{ background:var(--panel-hi); border:1px solid var(--line); border-radius:14px;
+    padding:12px 17px; margin-bottom:14px; font-size:9.3pt; color:var(--dim); }
+  .compare b{ color:var(--text); }
+
+  .note{ background:rgba(233,30,140,.08); border:1px solid rgba(233,30,140,.3);
+    border-radius:12px; padding:11px 16px; font-size:8.9pt; color:var(--dim); margin-bottom:14px; }
+  .note b{ color:var(--pink-hi); }
+
+  table{ width:100%; border-collapse:collapse; font-size:9.2pt; margin-bottom:4px; }
+  th{ text-align:left; font-size:7.8pt; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--faint); font-weight:700; padding:5px 10px; border-bottom:1px solid var(--line); }
+  td{ padding:7px 10px; border-bottom:1px solid var(--line); }
+  td.center{ text-align:center; }
+  tr:last-child td{ border-bottom:none; }
+  .yes{ color:var(--pink-hi); font-weight:800; }
+  .dash{ color:var(--faint); }
+
+  .foot{ margin-top:14px; padding-top:9px; border-top:1px solid var(--line);
+    font-size:7.8pt; color:var(--faint); display:flex; justify-content:space-between; }
+</style>
+</head>
+<body>
+
+<div class="kicker">MaCity · Options bannière partenaire</div>
+<h1>Une bannière.<br>Partagée, ou <span>rien qu'à vous</span>.</h1>
+<p class="lede">
+  Toute formule Premium donne accès à la bannière vidéo en tête de votre rubrique. Deux façons de
+  l'occuper : en rotation avec les autres partenaires Premium de votre catégorie, ou seul, en continu.
+</p>
+
+<div class="row">
+  <div class="tier shared">
+    <span class="tag">Partagée</span>
+    <h2>Bannière en rotation</h2>
+    <div class="price">149 € <span style="font-size:13pt; color:var(--faint); font-weight:700;">HT/mois</span></div>
+    <div class="ttc">178,80 € TTC · TVA 20 %</div>
+    <p class="desc">Vous apparaissez à tour de rôle avec les autres partenaires Premium de votre
+    rubrique et de votre ville, à parts égales.</p>
+    <ul>
+      <li>Bannière vidéo en tête de rubrique, <b>en rotation</b></li>
+      <li>Bloc « du jour » page d'accueil, <b>en rotation</b></li>
+      <li>Événements mis « à la une » des fils</li>
+      <li>Badge, étoile et repérage carte (socle Classique + Gold)</li>
+    </ul>
+  </div>
+
+  <div class="tier exclusive">
+    <span class="tag">Exclusive</span>
+    <h2>Bannière sans partage</h2>
+    <div class="price">349 € <span style="font-size:13pt; color:var(--faint); font-weight:700;">HT/mois</span></div>
+    <div class="ttc">418,80 € TTC · TVA 20 %</div>
+    <p class="desc">Vous êtes le seul partenaire affiché sur la bannière et le bloc d'accueil de
+    votre rubrique. Aucune rotation, aucun autre partenaire visible à votre place.</p>
+    <ul>
+      <li>Bannière vidéo en tête de rubrique, <b>100 % du temps</b></li>
+      <li>Bloc « du jour » page d'accueil, <b>100 % du temps</b></li>
+      <li>Événements mis « à la une » des fils</li>
+      <li>Badge, étoile et repérage carte (socle Classique + Gold)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="compare">
+  <b>Le calcul :</b> passer de partagée à exclusive coûte <b>+200 €/mois</b>, pour une exposition qui
+  n'est plus divisée entre plusieurs partenaires mais réservée à un seul. Pour une rubrique avec ne
+  serait-ce que deux ou trois partenaires Premium en rotation, l'exclusivité représente 2 à 3 fois plus
+  de temps d'affichage réel — pour un surcoût de 1,3 fois le tarif partagé.
+</div>
+
+<table>
+  <tr><th style="width:46%">Ce qui change</th><th class="center">Partagée · 149 €</th><th class="center">Exclusive · 349 €</th></tr>
+  <tr><td>Bannière vidéo rubrique</td><td class="center yes">oui, en rotation</td><td class="center yes">oui, en continu</td></tr>
+  <tr><td>Bloc « du jour » accueil</td><td class="center yes">oui, en rotation</td><td class="center yes">oui, en continu</td></tr>
+  <tr><td>Partagée avec d'autres partenaires</td><td class="center yes">oui</td><td class="center dash">— jamais</td></tr>
+  <tr><td>Nombre de places disponibles</td><td class="center">plusieurs, par ville/rubrique</td><td class="center yes">une seule à la fois</td></tr>
+</table>
+
+<div class="note">
+  <b>Un seul emplacement exclusif par rubrique et par ville.</b> Par construction, l'exclusivité ne peut
+  être vendue qu'à un partenaire à la fois pour une même rubrique dans une même ville — sinon ce
+  n'est plus une exclusivité. Si un emplacement exclusif est déjà occupé, seule la formule partagée
+  reste disponible jusqu'à ce qu'il se libère.
+</div>
+
+<div class="foot">
+  <span>MaCity — macity.app</span>
+  <span>Prix HT · TVA 20 % · sans engagement de durée, résiliable à tout moment</span>
+</div>
+
+</body>
+</html>

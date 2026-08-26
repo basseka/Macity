@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity : stratégie de prospection des 6 rubriques</title>
+<style>
+  @font-face { font-family:'InterX'; font-weight:400;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Regular.otf'); }
+  @font-face { font-family:'InterX'; font-weight:600;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-SemiBold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:700;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Bold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:900;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Black.otf'); }
+
+  :root{ --pink:#E91E8C; --purple:#7C3AED; --ink:#1B1533; --dim:#5C5276;
+         --line:#E7DFEA; --cream:#FDF3EB; }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:13mm 12mm 14mm 12mm; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'InterX','Liberation Sans',sans-serif; color:var(--ink);
+        font-size:9.3pt; line-height:1.45;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .cover{ background:linear-gradient(135deg,#14101C 0%,#3A1E58 50%,#A11A6B 100%);
+    color:#fff; border-radius:16px; padding:26px 30px 24px; margin-bottom:14px; }
+  .cover .kicker{ font-weight:700; letter-spacing:.24em; font-size:8pt;
+    color:#FFA8D2; text-transform:uppercase; }
+  .cover h1{ font-size:26pt; font-weight:900; margin:9px 0 7px; line-height:1.04; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover .base{ margin:0; color:#DDD3EC; font-size:10pt; max-width:145mm; }
+  .cover .meta{ margin-top:14px; display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{ background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.24);
+    padding:4px 11px; border-radius:20px; font-size:7.8pt; font-weight:600; }
+
+  h2{ font-size:13.5pt; font-weight:900; margin:16px 0 4px; padding-left:10px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:8.3pt; font-weight:600; color:var(--dim); margin-top:2px; }
+  p{ margin:5px 0; } ul{ margin:5px 0 5px 16px; padding:0; } li{ margin:3px 0; }
+  .lead{ color:var(--dim); }
+
+  table{ width:100%; border-collapse:collapse; margin:7px 0; font-size:8.5pt;
+         page-break-inside:avoid; }
+  th{ background:var(--ink); color:#fff; text-align:left; font-weight:700;
+      padding:6px 8px; font-size:7.8pt; }
+  th:first-child{ border-top-left-radius:7px; }
+  th:last-child{ border-top-right-radius:7px; }
+  td{ padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:#FBF7F4; }
+  .when{ font-weight:700; color:var(--purple); white-space:nowrap; }
+  .note{ font-weight:900; color:var(--pink); white-space:nowrap; }
+
+  .rub{ border:1px solid var(--line); border-radius:13px; padding:14px 16px;
+        margin:11px 0; page-break-inside:avoid; }
+  .rub .tag{ display:inline-block; color:#fff; font-size:7.6pt; font-weight:700;
+    letter-spacing:.09em; text-transform:uppercase; padding:4px 11px;
+    border-radius:14px; }
+  .t-food{ background:#C2410C; } .t-night{ background:#6D28D9; }
+  .t-cult{ background:#BE185D; } .t-fam{ background:#0E7490; }
+  .t-sport{ background:#15803D; } .t-eva{ background:#B45309; }
+  .rub h3{ margin:7px 0 2px; font-size:12pt; font-weight:900; }
+  .rub .kick{ font-size:8.4pt; font-weight:700; color:var(--purple); margin:0 0 6px; }
+  .grid{ display:flex; gap:12px; margin-top:8px; }
+  .grid>div{ flex:1; background:#FBF7F4; border-radius:9px; padding:9px 11px; }
+  .grid h4{ margin:0 0 4px; font-size:8.2pt; font-weight:900;
+    text-transform:uppercase; letter-spacing:.05em; color:var(--pink); }
+  .grid.piege>div:last-child h4{ color:#B3123C; }
+  .grid ul{ margin:0 0 0 14px; } .grid li{ font-size:8.3pt; }
+
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:11px;
+    padding:11px 15px; margin:10px 0; page-break-inside:avoid; }
+  .box.hi{ background:#FFF4F8; border-color:#F6C9DE; }
+  .box h4{ margin:0 0 4px; font-size:9.8pt; font-weight:900; }
+  .pb{ page-break-before:always; }
+  .cta{ background:linear-gradient(135deg,#E91E8C,#7C3AED); color:#fff;
+    border-radius:13px; padding:16px 20px; margin-top:12px; }
+  .cta h3{ margin:0 0 5px; color:#fff; font-size:12.5pt; }
+  .cta p{ margin:3px 0; color:#F6E6F2; }
+  .foot{ margin-top:18px; padding-top:8px; border-top:1px solid var(--line);
+    font-size:7.4pt; color:var(--dim); }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MaCity &middot; Stratégie commerciale</div>
+  <h1>Qui démarcher,<br><span>rubrique par rubrique</span></h1>
+  <p class="base">Les six univers de MaCity ne se vendent pas de la même façon. Chacun
+  a son acheteur, son argument, son piège et sa saison. Ce document les traite un
+  par un.</p>
+  <div class="meta">
+    <span class="chip">6 rubriques</span>
+    <span class="chip">Argument par cible</span>
+    <span class="chip">Calendrier annuel</span>
+    <span class="chip">Ordre de priorité</span>
+  </div>
+</div>
+
+<h2>La règle commune
+  <span class="sub">Ce qui change d'une rubrique à l'autre n'est pas le prix, c'est le motif d'achat</span></h2>
+
+<p>Un restaurateur, un patron de boîte de nuit et un directeur de théâtre n'achètent
+pas la même chose. Le premier veut des couverts, le deuxième veut remplir une soirée
+précise, le troisième doit rajeunir son public parce que sa subvention en dépend.</p>
+
+<p><strong>Vendre le même argumentaire aux six revient à en perdre cinq.</strong>
+D'où ce document : pour chaque rubrique, la cible qui convertit, la phrase qui ouvre
+la discussion, l'erreur qui la referme, et le moment de l'année où il faut appeler.</p>
+
+<div class="box hi">
+  <h4>Le socle commun, valable partout</h4>
+  <p style="margin:2px 0">Ne vends jamais du volume : <strong>586 utilisateurs actifs
+  en août, environ 1 200 téléchargements</strong>, un professionnel le verra tout de
+  suite. Vends l'intention et la trajectoire : une audience géolocalisée qui ouvre
+  l'application au moment précis où elle cherche quoi faire, et une progression de
+  <strong>71 % en un mois</strong>, de 343 à 586 actifs.</p>
+</div>
+
+<div class="rub">
+  <span class="tag t-night">🌙 Night</span>
+  <h3>La rubrique qui se vend le mieux</h3>
+  <p class="kick">Priorité 1. Le produit et le besoin coïncident parfaitement.</p>
+  <p>C'est la seule rubrique où ton produit répond exactement au problème du client.
+  Un club vend une soirée précise, à une date précise, et il lui reste souvent
+  quarante-huit heures pour la remplir. Les paliers Gold et Premium, qui font remonter
+  ses événements « au top » et « à la une », sont littéralement conçus pour ça.</p>
+  <div class="grid piege">
+    <div><h4>Qui viser</h4><ul>
+      <li>Clubs et discothèques qui programment chaque semaine</li>
+      <li>Bars à cocktails, rooftops, péniches</li>
+      <li><strong>Collectifs et organisateurs de soirées</strong>, souvent oubliés
+      alors qu'ils décident vite</li>
+      <li>Salles de concert de taille moyenne</li>
+    </ul></div>
+    <div><h4>Le piège</h4><ul>
+      <li>Ne jamais appeler le matin, personne ne répondra</li>
+      <li>Le gérant du lieu n'est pas toujours le décideur : beaucoup de soirées sont
+      vendues à des organisateurs extérieurs</li>
+      <li>Promettre du monde. Promets de la visibilité au bon moment, jamais des
+      entrées</li>
+    </ul></div>
+  </div>
+  <p style="margin-top:7px"><strong>La phrase qui ouvre :</strong> « Vos soirées
+  apparaissent en tête de l'application le jeudi et le vendredi, au moment où les gens
+  décident. »</p>
+</div>
+
+<div class="rub">
+  <span class="tag t-sport">⚽ Sport</span>
+  <h3>Les gros n'ont pas besoin de toi, les moyens si</h3>
+  <p class="kick">Priorité 2. Deux pics d'achat très nets dans l'année.</p>
+  <p>Inutile de viser les clubs qui remplissent déjà leur stade : ils n'ont aucun
+  problème à résoudre. Vise <strong>les clubs semi-professionnels</strong> qui peinent
+  à remplir leurs tribunes tout en disposant de budgets sponsors, et surtout le sport
+  de loisir payant, en pleine explosion.</p>
+  <div class="grid piege">
+    <div><h4>Qui viser</h4><ul>
+      <li><strong>Padel et escalade</strong>, les deux marchés qui ouvrent le plus de
+      structures et se battent pour se remplir en semaine</li>
+      <li>Salles de sport privées, piscines, patinoires</li>
+      <li>Clubs semi-pros de handball, volley, basket</li>
+      <li>Organisateurs de courses, trails et 10 km</li>
+    </ul></div>
+    <div><h4>Le piège</h4><ul>
+      <li>Les salles de sport achètent déjà de la publicité et mesurent leur coût par
+      inscription. Elles compareront, et tu perdras sur le volume</li>
+      <li>Contourne en vendant le créneau creux : remplir un mardi 14 h, pas un
+      samedi matin</li>
+    </ul></div>
+  </div>
+  <p style="margin-top:7px"><strong>Le moment :</strong> septembre pour la rentrée et
+  janvier pour les bonnes résolutions. Ce sont les deux seules périodes où une salle
+  de sport ouvre son budget.</p>
+</div>
+
+<div class="pb"></div>
+<div class="rub">
+  <span class="tag t-cult">🎭 Culture</span>
+  <h3>Ne vends pas des billets, vends du rajeunissement</h3>
+  <p class="kick">Priorité 3. Budgets réels, décision lente.</p>
+  <p>C'est la rubrique où l'argument commercial classique fonctionne le moins bien, et
+  où un autre marche remarquablement. Une grande partie des lieux culturels sont
+  subventionnés, et <strong>leur tutelle les évalue sur la diversité et l'âge de leur
+  public</strong>. Leur apporter des 25-35 ans vaut plus, pour eux, que leur apporter
+  du chiffre d'affaires.</p>
+  <div class="grid piege">
+    <div><h4>Qui viser</h4><ul>
+      <li>Théâtres privés, qui décident seuls et vite</li>
+      <li>Cinémas indépendants et d'art et essai</li>
+      <li><strong>Festivals</strong>, qui ont un budget de communication dédié et
+      daté</li>
+      <li>Salles de spectacle de taille moyenne, galeries</li>
+    </ul></div>
+    <div><h4>Le piège</h4><ul>
+      <li>La saison culturelle se boucle <strong>en juin pour septembre</strong> :
+      arriver en octobre, c'est arriver un an trop tard</li>
+      <li>Les structures publiques ont des circuits d'achat lents</li>
+      <li>Ne parle pas de remplissage, parle de public</li>
+    </ul></div>
+  </div>
+  <p style="margin-top:7px"><strong>Le moment :</strong> avril à juin pour la saison
+  suivante. Pour un festival, quatre à six mois avant l'édition.</p>
+</div>
+
+<div class="rub">
+  <span class="tag t-fam">👨‍👩‍👧 Famille</span>
+  <h3>Vends le mercredi, les vacances et la pluie</h3>
+  <p class="kick">Priorité 4. Saisonnalité extrême, mais argument imparable.</p>
+  <p>La demande famille est concentrée sur trois moments : <strong>le mercredi, les
+  vacances scolaires et les jours de pluie</strong>. Toulouse est en zone C, ce qui te
+  donne un calendrier public et précis pour caler ton démarchage.</p>
+  <p>L'argument le plus fort de toute cette rubrique tient en une phrase : un parent
+  qui se réveille un dimanche pluvieux ouvre son téléphone et cherche une activité
+  couverte. C'est exactement ce que fait ton application.</p>
+  <div class="grid piege">
+    <div><h4>Qui viser</h4><ul>
+      <li><strong>Les activités couvertes d'abord</strong> : bowlings, parcs de
+      trampolines, escape games, piscines ludiques. Ce sont elles qui vivent de la
+      pluie</li>
+      <li>Accrobranche, fermes pédagogiques, aquariums</li>
+      <li>Parcs de loisirs privés de la région</li>
+      <li>Ateliers et stages enfants</li>
+    </ul></div>
+    <div><h4>Le piège</h4><ul>
+      <li>Budgets très saisonniers : personne ne paiera en novembre pour rien</li>
+      <li>Retourne-le en argument : l'abonnement est mensuel, donc il s'arrête et
+      reprend au gré des saisons, sans engagement</li>
+    </ul></div>
+  </div>
+  <p style="margin-top:7px"><strong>Le moment :</strong> six semaines avant chaque
+  période de vacances scolaires.</p>
+</div>
+
+<div class="rub">
+  <span class="tag t-food">🍽️ Food</span>
+  <h3>Le plus gros vivier, le plus difficile à convertir</h3>
+  <p class="kick">Priorité 5. Beaucoup de prospects, peu de signatures.</p>
+  <p>C'est la rubrique où tu as le plus de cibles et le plus faible taux de
+  transformation. Un restaurateur est sollicité chaque semaine, ses marges sont
+  minces, et sa seule question sera : combien de couverts en plus.</p>
+  <p><strong>Ton meilleur angle n'est pas la visibilité, c'est le modèle
+  économique.</strong> Les plateformes de réservation prélèvent une commission sur
+  chaque couvert. Toi non : un montant fixe, connu d'avance, quel que soit le nombre
+  de clients. Pour un restaurateur, c'est un argument immédiatement compréhensible.</p>
+  <div class="grid piege">
+    <div><h4>Qui viser</h4><ul>
+      <li><strong>Les ouvertures récentes</strong>, qui ont un budget de lancement et
+      aucun avis en ligne. Ta meilleure cible du lot</li>
+      <li>Guinguettes et terrasses, dont la saison est courte et l'urgence réelle</li>
+      <li>Brunchs, dont la demande est concentrée sur le week-end</li>
+      <li>Indépendants qui refusent les commissions des plateformes</li>
+    </ul></div>
+    <div><h4>Le piège</h4><ul>
+      <li>Ne promets jamais un nombre de couverts, tu seras jugé dessus le mois
+      suivant</li>
+      <li>N'appelle jamais entre 11 h et 15 h, ni le soir</li>
+      <li>Évite les chaînes : la décision se prend au siège, pas dans le restaurant</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="rub">
+  <span class="tag t-eva">✈️ Évasion</span>
+  <h3>La seule rubrique où l'annonceur n'est pas local</h3>
+  <p class="kick">Priorité variable : très haute en septembre, faible au printemps.</p>
+  <p>Ici la logique s'inverse : tu ne cherches pas un établissement proche de ton
+  audience, mais un établissement <strong>dont la clientèle est déjà la tienne</strong>.
+  Une station des Pyrénées à deux heures de route vit des Toulousains.</p>
+  <div class="grid piege">
+    <div><h4>Qui viser</h4><ul>
+      <li><strong>Stations pyrénéennes</strong>, cible numéro un</li>
+      <li>Thermes et centres de bien-être</li>
+      <li>Comités départementaux du tourisme, gros budgets mais délais longs</li>
+      <li>Hébergements insolites et œnotourisme</li>
+    </ul></div>
+    <div><h4>Le piège</h4><ul>
+      <li>Les grandes marques nationales ne signeront jamais un abonnement : elles
+      travaillent à la performance. Pour elles, le bon modèle est
+      <strong>l'affiliation</strong></li>
+      <li>La fenêtre des stations se referme fin octobre</li>
+    </ul></div>
+  </div>
+  <p style="margin-top:7px" class="lead">Traitée en détail dans le document
+  <em>Prospection de la rubrique Évasion</em>.</p>
+</div>
+
+<div class="pb"></div>
+<h2>Où trouver les contacts
+  <span class="sub">Aucune adresse ne s'invente. Voici comment les obtenir, de façon fiable et légale</span></h2>
+
+<p>Le réflexe habituel consiste à écrire à l'adresse générique trouvée sur le site,
+du type <em>contact@</em>. <strong>C'est le meilleur moyen de n'obtenir aucune
+réponse :</strong> ces boîtes sont relevées par une personne qui n'est pas décideuse
+et qui reçoit dix sollicitations par jour.</p>
+
+<p>La méthode qui fonctionne tient en deux temps : <strong>obtenir le nom de la bonne
+personne, puis lui écrire nominativement.</strong></p>
+
+<table>
+  <tr><th style="width:26%">Source</th><th style="width:22%">Ce qu'elle donne</th>
+      <th>Comment s'en servir</th></tr>
+  <tr><td><strong>Google Maps et fiche Google</strong></td>
+      <td>Téléphone, site, horaires</td>
+      <td>La source la plus fiable pour Food, Night, Sport et Famille. Le numéro
+      affiché est celui qui décroche vraiment</td></tr>
+  <tr><td><strong>Pappers.fr ou Societe.com</strong></td>
+      <td>Le nom du gérant</td>
+      <td>Registres publics, gratuits. Demander la personne par son nom au téléphone
+      change tout de suite la nature de l'appel</td></tr>
+  <tr><td><strong>Instagram</strong></td>
+      <td>Message direct</td>
+      <td>Pour Night et Food, souvent le canal le plus rapide : le compte est tenu par
+      la personne qui décide de la communication</td></tr>
+  <tr><td><strong>LinkedIn</strong></td>
+      <td>Chargé de communication, responsable marketing</td>
+      <td>Indispensable pour Culture, clubs sportifs, stations et comités
+      départementaux, où la fonction existe vraiment</td></tr>
+  <tr><td><strong>Page « Partenaires » ou « Presse »</strong></td>
+      <td>Contact dédié</td>
+      <td>Sur les sites de festivals, stations et parcs de loisirs, une adresse
+      spécifique existe presque toujours et elle est lue</td></tr>
+</table>
+
+<h3 style="font-size:11pt; font-weight:900; margin:12px 0 4px;">Le bon canal dépend de la rubrique</h3>
+
+<table>
+  <tr><th style="width:18%">Rubrique</th><th style="width:26%">Canal à privilégier</th>
+      <th style="width:20%">Quand appeler</th><th>Qui demander</th></tr>
+  <tr><td><strong>Night</strong></td><td>Message Instagram, puis téléphone</td>
+      <td>15 h à 18 h, du mardi au jeudi</td><td>Le gérant ou le programmateur</td></tr>
+  <tr><td><strong>Sport</strong></td><td>Téléphone, puis mail nominatif</td>
+      <td>10 h à 12 h</td><td>Le responsable de salle ou le manager</td></tr>
+  <tr><td><strong>Culture</strong></td><td>Mail nominatif, contact via LinkedIn</td>
+      <td>Sur rendez-vous</td><td>Le chargé de communication ou des relations publiques</td></tr>
+  <tr><td><strong>Famille</strong></td><td>Téléphone</td>
+      <td>10 h à 12 h, hors mercredi</td><td>Le gérant ou le responsable d'accueil</td></tr>
+  <tr><td><strong>Food</strong></td><td>Visite sur place, puis téléphone</td>
+      <td>15 h à 17 h, jamais en service</td><td>Le patron, jamais le personnel de salle</td></tr>
+  <tr><td><strong>Évasion</strong></td><td>Mail nominatif, LinkedIn</td>
+      <td>9 h à 11 h</td><td>Le directeur ou le responsable marketing</td></tr>
+</table>
+
+<div class="box hi">
+  <h4>La règle des deux appels</h4>
+  <p style="margin:2px 0">Le premier appel ne sert pas à vendre. Il sert à obtenir un
+  nom et une adresse : <em>« Bonjour, qui s'occupe de la communication chez vous, et à
+  quelle adresse puis-je lui écrire ? »</em> Trente secondes, aucune pression, et
+  presque toujours une réponse. Le deuxième contact, nominatif et écrit, part alors
+  avec dix fois plus de chances d'aboutir.</p>
+</div>
+
+<div class="pb"></div>
+<h2>Le calendrier annuel
+  <span class="sub">Quand appeler qui, pour ne jamais arriver trop tard</span></h2>
+
+<table>
+  <tr><th style="width:20%">Période</th><th style="width:26%">Cible prioritaire</th>
+      <th>Pourquoi ce moment</th></tr>
+  <tr><td class="when">Janvier</td><td>Sport, salles et clubs</td>
+      <td>Pic d'inscriptions lié aux bonnes résolutions</td></tr>
+  <tr><td class="when">Février et mars</td><td>Famille, avant les vacances de printemps</td>
+      <td>Six semaines d'avance sur la période de forte demande</td></tr>
+  <tr><td class="when">Avril à juin</td><td>Culture, saison suivante</td>
+      <td>Les programmations se bouclent en juin pour septembre</td></tr>
+  <tr><td class="when">Avril et mai</td><td>Food, guinguettes et terrasses</td>
+      <td>Saison courte, urgence réelle de remplissage</td></tr>
+  <tr><td class="when">Juin</td><td>Famille, vacances d'été</td>
+      <td>Le plus gros pic de l'année sur cette rubrique</td></tr>
+  <tr><td class="when">Septembre</td><td>Sport et Night</td>
+      <td>Rentrée sportive et lancement des saisons de programmation</td></tr>
+  <tr><td class="when">Sept. et oct.</td><td><strong>Évasion, stations de ski</strong></td>
+      <td>Plans de communication hiver en cours d'arbitrage. Fenêtre courte</td></tr>
+  <tr><td class="when">Oct. et nov.</td><td>Évasion, comités départementaux</td>
+      <td>Budgets de l'année suivante en préparation</td></tr>
+  <tr><td class="when">Toute l'année</td><td>Food, ouvertures récentes</td>
+      <td>Un nouveau restaurant ouvre chaque semaine à Toulouse</td></tr>
+</table>
+
+<h2>Par quoi commencer
+  <span class="sub">Si tu ne devais travailler que deux rubriques</span></h2>
+
+<table>
+  <tr><th style="width:12%">Rang</th><th style="width:22%">Rubrique</th>
+      <th style="width:20%">Effort de vente</th><th>Raison</th></tr>
+  <tr><td class="note">1</td><td><strong>Night</strong></td><td>Faible</td>
+      <td>Le besoin et le produit coïncident. Décision rapide, souvent une seule
+      personne, et un événement à remplir chaque semaine</td></tr>
+  <tr><td class="note">2</td><td><strong>Sport</strong></td><td>Moyen</td>
+      <td>Padel et escalade ouvrent des structures en permanence et cherchent à
+      remplir leurs créneaux creux</td></tr>
+  <tr><td class="note">3</td><td>Évasion</td><td>Moyen</td>
+      <td>Excellents budgets, mais deux fenêtres seulement dans l'année</td></tr>
+  <tr><td class="note">4</td><td>Culture</td><td>Élevé</td>
+      <td>Budgets réels et argument fort, mais cycle de décision très long</td></tr>
+  <tr><td class="note">5</td><td>Famille</td><td>Moyen</td>
+      <td>Argument imparable, mais saisonnalité qui laisse de longs mois creux</td></tr>
+  <tr><td class="note">6</td><td>Food</td><td>Très élevé</td>
+      <td>Le plus grand vivier, mais des professionnels sur-sollicités aux marges
+      étroites. À réserver aux ouvertures récentes</td></tr>
+</table>
+
+<div class="box hi">
+  <h4>La conclusion à retenir</h4>
+  <p style="margin:2px 0">Food paraît la rubrique évidente parce qu'elle contient le
+  plus d'établissements. <strong>C'est un piège de volume :</strong> beaucoup d'appels
+  pour peu de signatures. Night et Sport rapporteront davantage avec deux fois moins
+  d'effort, et ce sont eux qui donneront à l'application les partenaires les plus
+  visibles.</p>
+</div>
+
+<div class="cta">
+  <h3>La première semaine</h3>
+  <p>Dix clubs et bars de nuit, cinq structures de padel ou d'escalade, trois stations
+  pyrénéennes. Rien d'autre.</p>
+  <p><strong>Trois rubriques travaillées sérieusement valent mieux que six survolées.</strong></p>
+</div>
+
+<div class="foot">
+  MaCity &middot; Stratégie de prospection des six rubriques. Les catégories citées
+  sont des pistes de démarchage, aucun contact n'a été pris à ce jour.
+  Document de travail interne.
+</div>
+
+</body>
+</html>

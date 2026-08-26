@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity : prospection de la rubrique Évasion</title>
+<style>
+  @font-face { font-family:'InterX'; font-weight:400;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Regular.otf'); }
+  @font-face { font-family:'InterX'; font-weight:600;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-SemiBold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:700;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Bold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:900;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Black.otf'); }
+
+  :root{ --pink:#E91E8C; --purple:#7C3AED; --ink:#1B1533; --dim:#5C5276;
+         --line:#E7DFEA; --cream:#FDF3EB; }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:14mm 13mm 15mm 13mm; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:'InterX','Liberation Sans',sans-serif; color:var(--ink);
+        font-size:9.6pt; line-height:1.5;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .cover{ background:linear-gradient(135deg,#0E1B2A 0%,#1E4A5F 48%,#A11A6B 100%);
+    color:#fff; border-radius:16px; padding:28px 30px 26px; margin-bottom:16px; }
+  .cover .kicker{ font-weight:700; letter-spacing:.24em; font-size:8pt;
+    color:#8FE3D6; text-transform:uppercase; }
+  .cover h1{ font-size:27pt; font-weight:900; margin:10px 0 8px; line-height:1.03; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover .base{ margin:0; color:#D5E2E8; font-size:10.5pt; max-width:142mm; }
+  .cover .meta{ margin-top:15px; display:flex; gap:7px; flex-wrap:wrap; }
+  .chip{ background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.24);
+    padding:5px 12px; border-radius:20px; font-size:8pt; font-weight:600; }
+
+  h2{ font-size:14pt; font-weight:900; margin:18px 0 4px; padding-left:11px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:8.5pt; font-weight:600; color:var(--dim); margin-top:3px; }
+  h3{ font-size:11pt; font-weight:900; margin:13px 0 4px; }
+  p{ margin:6px 0; } ul{ margin:6px 0 6px 17px; padding:0; } li{ margin:4px 0; }
+  .lead{ color:var(--dim); }
+
+  table{ width:100%; border-collapse:collapse; margin:8px 0; font-size:8.7pt;
+         page-break-inside:avoid; }
+  th{ background:var(--ink); color:#fff; text-align:left; font-weight:700;
+      padding:7px 9px; font-size:8pt; }
+  th:first-child{ border-top-left-radius:7px; }
+  th:last-child{ border-top-right-radius:7px; }
+  td{ padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:#FBF7F4; }
+  .prio{ font-weight:900; color:var(--pink); white-space:nowrap; }
+  .when{ font-weight:700; color:var(--purple); white-space:nowrap; }
+
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:11px;
+    padding:12px 16px; margin:11px 0; page-break-inside:avoid; }
+  .box.hi{ background:#FFF4F8; border-color:#F6C9DE; }
+  .box.vio{ background:#F4F1FA; border-color:#DDD3F2; }
+  .box h4{ margin:0 0 5px; font-size:10pt; font-weight:900; }
+  .pb{ page-break-before:always; }
+  .cta{ background:linear-gradient(135deg,#E91E8C,#7C3AED); color:#fff;
+    border-radius:13px; padding:17px 21px; margin-top:13px; }
+  .cta h3{ margin:0 0 5px; color:#fff; font-size:13pt; }
+  .cta p{ margin:4px 0; color:#F6E6F2; }
+  .foot{ margin-top:20px; padding-top:9px; border-top:1px solid var(--line);
+    font-size:7.6pt; color:var(--dim); }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MaCity &middot; Rubrique Évasion</div>
+  <h1>Qui démarcher<br><span>au-delà de Toulouse</span></h1>
+  <p class="base">Évasion est la seule des six rubriques où l'annonceur n'a aucune
+  raison d'être local. Il doit simplement vouloir des Toulousains.</p>
+  <div class="meta">
+    <span class="chip">4 familles de prospects</span>
+    <span class="chip">Calendrier de démarchage</span>
+    <span class="chip">Abonnement ou affiliation</span>
+  </div>
+</div>
+
+<h2>Le renversement à comprendre
+  <span class="sub">Ce n'est plus la proximité qui compte, c'est la clientèle</span></h2>
+
+<p>Pour Food, Night, Culture, Sport et Famille, tu démarches un établissement proche
+de ton audience. Pour Évasion, la logique s'inverse : tu cherches un établissement
+<strong>dont la clientèle est déjà la tienne</strong>, où qu'il se trouve.</p>
+
+<p>Une station des Pyrénées à deux heures de route vit des Toulousains. Elle est donc
+un bien meilleur prospect qu'un gîte situé à vingt minutes mais qui remplit avec des
+touristes étrangers.</p>
+
+<h2>Famille 1 : ceux qui vivent déjà des Toulousains
+  <span class="sub">Ta cible prioritaire, et de loin</span></h2>
+
+<table>
+  <tr><th style="width:26%">Type</th><th style="width:34%">Exemples</th>
+      <th style="width:14%">Priorité</th><th>Pourquoi ça marche</th></tr>
+  <tr><td><strong>Stations pyrénéennes</strong></td>
+      <td>Peyragudes, Saint-Lary, Font-Romeu, Ax-les-Thermes, Luchon, Piau-Engaly</td>
+      <td class="prio">Très haute</td>
+      <td>Leur clientèle est massivement toulousaine, elles le savent, et elles ont un
+      budget de promotion annuel</td></tr>
+  <tr><td><strong>Thermes et bien-être</strong></td>
+      <td>Barbotan, Cauterets, Balaruc, Amélie-les-Bains, Caliceo</td>
+      <td class="prio">Haute</td>
+      <td>Même bassin de clientèle, et une saisonnalité complémentaire de celle du ski</td></tr>
+  <tr><td><strong>Œnotourisme</strong></td>
+      <td>Domaines de Gaillac, Fronton, Madiran, Cahors</td>
+      <td class="prio">Moyenne</td>
+      <td>Visites et dégustations, cible exactement le citadin qui part le dimanche</td></tr>
+  <tr><td><strong>Hébergements insolites</strong></td>
+      <td>Cabanes dans les arbres, bulles, tiny houses, roulottes</td>
+      <td class="prio">Moyenne</td>
+      <td>Très visuels, donc parfaits pour l'application, et souvent mal référencés</td></tr>
+</table>
+
+<div class="box hi">
+  <h4>Le calendrier commande tout</h4>
+  <p style="margin:2px 0">Les stations bouclent leur plan de communication hiver
+  <strong>entre septembre et octobre</strong>. Les démarcher maintenant, c'est arriver
+  au bon moment. En janvier, les budgets sont engagés et la porte est fermée jusqu'à
+  l'année suivante.</p>
+</div>
+
+<h2>Famille 2 : l'institutionnel
+  <span class="sub">Les plus gros budgets, les délais les plus longs</span></h2>
+
+<p>Les <strong>Comités Départementaux du Tourisme</strong> de l'Ariège, du Gers, du
+Tarn, de l'Aude, du Lot et des Hautes-Pyrénées ont pour mission littérale de faire
+venir les urbains voisins chez eux. Toulouse est leur premier réservoir.</p>
+
+<p>Ajoute le <strong>Comité Régional du Tourisme Occitanie</strong> et les grands
+offices de tourisme.</p>
+
+<p class="lead">Réserve : ce sont des structures publiques. Le cycle de décision est
+long, parfois encadré par des procédures d'achat, et les budgets se votent en fin
+d'année. À travailler en parallèle du reste, jamais en priorité.</p>
+
+<div class="pb"></div>
+<h2>Famille 3 : le national ne s'achète pas par abonnement
+  <span class="sub">Le bon modèle est l'affiliation</span></h2>
+
+<p>Booking, Center Parcs, Belambra, Huttopia, Pierre &amp; Vacances, Wonderbox,
+Smartbox, GetYourGuide : <strong>aucun ne signera un abonnement à 149 €</strong>. Ce
+n'est pas une question de prix, c'est qu'ils n'achètent pas de cette façon. Ils
+travaillent à la performance.</p>
+
+<p>Pour eux, le bon dispositif est un <strong>lien affilié dans la rubrique
+Évasion</strong>, rémunéré à la réservation générée. La mise en place passe par les
+plateformes d'affiliation : Awin, Effiliation, Kwanko, TradeDoubler. L'inscription y
+est gratuite.</p>
+
+<div class="box vio">
+  <h4>L'avantage décisif de ce modèle</h4>
+  <p style="margin:2px 0"><strong>Aucune vente à faire.</strong> Tu poses les liens,
+  et tu es payé si ça convertit. Les coffrets cadeaux du type Wonderbox et Smartbox
+  sont particulièrement adaptés à l'univers Évasion et rémunèrent bien. C'est un
+  chantier technique, pas commercial.</p>
+</div>
+
+<h2>Ton prix est un atout, pas un handicap
+  <span class="sub">L'argument que tu sous-estimes probablement</span></h2>
+
+<p><strong>149 € par mois, c'est en dessous du seuil de décision de tous ces
+acteurs.</strong> Une station de ski ou un comité départemental engage des dizaines
+de milliers d'euros par saison. À ce niveau, ton abonnement ne passe pas en
+commission d'achat : c'est une signature individuelle, prise en réunion.</p>
+
+<p>Vends-le donc comme <strong>un test à faible risque sur un canal nouveau</strong>,
+jamais comme un achat média classique. Tu perds toute crédibilité en te comparant à
+de l'affichage ou à du display. Tu gagnes tout en te présentant comme un accès direct,
+bon marché, à une audience urbaine locale.</p>
+
+<h2>Ce qu'il faut préparer avant d'appeler
+  <span class="sub">Et l'écueil à éviter absolument</span></h2>
+
+<p>Sois lucide sur les chiffres : <strong>586 utilisateurs actifs en août, environ
+1 200 téléchargements</strong>. C'est petit, et un interlocuteur professionnel le
+verra immédiatement.</p>
+
+<p><strong>Ne vends donc pas du volume, tu perdrais à coup sûr.</strong> Vends la
+nature de l'audience : des urbains toulousains, géolocalisés, qui ouvrent
+l'application précisément au moment où ils cherchent quoi faire. C'est un contexte
+d'intention que ni les réseaux sociaux ni l'affichage ne procurent.</p>
+
+<div class="box">
+  <h4>Ton meilleur argument chiffré</h4>
+  <p style="margin:2px 0">La croissance, pas la taille : <strong>343 utilisateurs
+  actifs en juillet, 586 en août, soit une progression de 71 % en un mois.</strong>
+  Un annonceur qui hésite sur le volume entend très bien une trajectoire.</p>
+</div>
+
+<h2>Ordre de bataille
+  <span class="sub">Par quoi commencer, et quand</span></h2>
+
+<table>
+  <tr><th style="width:22%">Période</th><th style="width:34%">Cible</th><th>Raison</th></tr>
+  <tr><td class="when">Sept. et oct.</td><td>Stations pyrénéennes</td>
+      <td>Plan de communication hiver en cours d'arbitrage</td></tr>
+  <tr><td class="when">Oct. et nov.</td><td>Comités départementaux</td>
+      <td>Budgets de l'année suivante en préparation</td></tr>
+  <tr><td class="when">Janv. à mars</td><td>Thermes et bien-être</td>
+      <td>Préparation de la saison de printemps</td></tr>
+  <tr><td class="when">Mars à mai</td><td>Gîtes, insolite, œnotourisme</td>
+      <td>Remplissage de la saison estivale</td></tr>
+  <tr><td class="when">Toute l'année</td><td>Affiliation nationale</td>
+      <td>Aucune saisonnalité, aucune négociation</td></tr>
+</table>
+
+<div class="cta">
+  <h3>La première action</h3>
+  <p>Choisir trois stations pyrénéennes et les contacter avant fin septembre. C'est la
+  fenêtre la plus courte et la plus rentable de l'année.</p>
+  <p><strong>Un test à 149 € ne se refuse pas, il se teste.</strong></p>
+</div>
+
+<div class="foot">
+  MaCity &middot; Prospection de la rubrique Évasion. Les exemples cités sont des
+  pistes de démarchage, aucun contact n'a été pris à ce jour. Document de travail.
+</div>
+
+</body>
+</html>

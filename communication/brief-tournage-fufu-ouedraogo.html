@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity x Fufu Ouedraogo : note d'intention et déroulé de tournage</title>
+<style>
+  @font-face { font-family:'InterX'; font-weight:400;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Regular.otf'); }
+  @font-face { font-family:'InterX'; font-weight:600;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-SemiBold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:700;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Bold.otf'); }
+  @font-face { font-family:'InterX'; font-weight:900;
+    src:url('file:///tmp/claude-1353404749/-home-carlos-basseka-celadodc-rswl-com-Bureau-cba-appli-pulz-app/27970cfa-8bce-4217-a8e0-1dbb280a79a6/scratchpad/fonts/extras/otf/Inter-Black.otf'); }
+
+  :root{
+    --pink:#E91E8C; --pink-hi:#FF2E93; --purple:#7C3AED;
+    --ink:#1B1533; --dim:#5C5276; --line:#E7DFEA; --cream:#FDF3EB;
+  }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:14mm 13mm 15mm 13mm; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'InterX','Liberation Sans','DejaVu Sans',sans-serif;
+    color:var(--ink); font-size:9.6pt; line-height:1.5;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .cover{
+    background:linear-gradient(135deg,#14101C 0%,#3A1E58 52%,#A11A6B 100%);
+    color:#fff; border-radius:16px; padding:22px 28px 20px; margin-bottom:14px;
+  }
+  .cover .kicker{ font-weight:700; letter-spacing:.24em; font-size:8pt;
+    color:#FFA8D2; text-transform:uppercase; }
+  .cover h1{ font-size:25pt; font-weight:900; margin:10px 0 8px; line-height:1.03; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover .base{ margin:0; color:#DDD3EC; font-size:10.5pt; max-width:142mm; }
+  .cover .meta{ margin-top:16px; display:flex; gap:7px; flex-wrap:wrap; }
+  .chip{ background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.24);
+    padding:5px 12px; border-radius:20px; font-size:8pt; font-weight:600; }
+
+  h2{ font-size:14pt; font-weight:900; margin:16px 0 4px; padding-left:11px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:8.5pt; font-weight:600; color:var(--dim); margin-top:3px; }
+  h3{ font-size:11pt; font-weight:900; margin:14px 0 5px; }
+  p{ margin:7px 0; }
+  .lead{ color:var(--dim); }
+  ul{ margin:6px 0 6px 17px; padding:0; }
+  li{ margin:4px 0; }
+
+  table{ page-break-inside:avoid; width:100%; border-collapse:collapse; margin:9px 0; font-size:8.8pt; }
+  th{ background:var(--ink); color:#fff; text-align:left; font-weight:700;
+    padding:7px 9px; font-size:8pt; }
+  th:first-child{ border-top-left-radius:7px; }
+  th:last-child{ border-top-right-radius:7px; }
+  td{ padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr:nth-child(even) td{ background:#FBF7F4; }
+  .h{ font-weight:900; color:var(--pink); white-space:nowrap; }
+  .et{ font-weight:700; font-size:8pt; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--purple); white-space:nowrap; }
+
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:11px;
+    padding:13px 17px; margin:12px 0; page-break-inside:avoid; }
+  .box.hi{ background:#FFF4F8; border-color:#F6C9DE; }
+  .box.vio{ background:#F4F1FA; border-color:#DDD3F2; }
+  .box h4{ margin:0 0 6px; font-size:10.5pt; font-weight:900; }
+  .two{ display:flex; gap:14px; margin:12px 0; page-break-inside:avoid; }
+  .two>div{ flex:1; border-radius:11px; padding:13px 16px; }
+  .two .oui{ background:#F1FAF3; border:1px solid #C9E9D3; }
+  .two .non{ background:#FFF4F6; border:1px solid #F6CBD5; }
+  .two h4{ margin:0 0 6px; font-size:9.5pt; font-weight:900; }
+  .two .oui h4{ color:#1F7A46; }
+  .two .non h4{ color:#B3123C; }
+  .two ul{ margin:0 0 0 15px; }
+  .two li{ font-size:8.8pt; }
+  .quote{ font-size:10.5pt; font-weight:700; color:var(--ink);
+    border-left:3px solid var(--pink); padding-left:11px; margin:7px 0; }
+
+  .opts{ display:flex; gap:14px; margin:10px 0 16px; page-break-inside:avoid; }
+  .opts.single{ max-width:50%; }
+  .opt{ flex:1; background:#FBF7F4; border:1px solid var(--line);
+    border-radius:11px; padding:12px 15px; }
+  .opt h4{ margin:0; font-size:10pt; font-weight:900; }
+  .opt .lien{ font-size:7.8pt; color:var(--dim); margin:2px 0 8px; word-break:break-all; }
+  .opt ul{ margin:0 0 0 15px; }
+  .opt li{ font-size:8.6pt; }
+
+  .gestes{ display:flex; gap:8px; margin:10px 0; }
+  .geste{ flex:1; background:#FBF7F4; border:1px solid var(--line);
+    border-radius:10px; padding:11px 12px; }
+  .geste .n{ font-size:15pt; font-weight:900; color:var(--pink); line-height:1; }
+  .geste .t{ font-size:8.6pt; margin-top:5px; }
+
+  .pb{ page-break-before:always; }
+  .foot{ margin-top:22px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:7.6pt; color:var(--dim); }
+  .cta{ background:linear-gradient(135deg,#E91E8C,#7C3AED); color:#fff;
+    border-radius:13px; padding:18px 22px; margin-top:14px; }
+  .cta h3{ margin:0 0 6px; color:#fff; font-size:13pt; }
+  .cta p{ margin:4px 0; color:#F6E6F2; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MaCity · Note d'intention et déroulé</div>
+  <h1>Une journée à Toulouse<br><span>Le tournage, expliqué</span></h1>
+  <p class="base">Pour Fufu Ouedraogo. Ce que l'on filme, comment on s'y prend,
+  ce que l'on te demande, et ce que l'on ne te demandera pas.</p>
+  <div class="meta">
+    <span class="chip">3 h de tournage en tout</span>
+    <span class="chip">Équipe de 2 personnes</span>
+    <span class="chip">Aucun texte à apprendre</span>
+    <span class="chip">3 séquences + 1 arrivée</span>
+  </div>
+</div>
+
+<h2>Le concept, en une phrase
+  <span class="sub">C'est la seule chose à retenir</span></h2>
+
+<p class="quote">« Un sportif international débarque à Toulouse
+et utilise l'application MaCity. »</p>
+
+<p>MaCity est une application gratuite qui rassemble tout ce qui se passe à Toulouse :
+sport, restaurants, culture, sorties famille, soirées, évasion. Elle se géolocalise et
+propose ce qu'il y a autour de soi. Le problème, c'est que personne ne comprend
+vraiment ce que ça change tant qu'on ne le voit pas utilisé.</p>
+
+<p>D'où l'idée : plutôt que d'expliquer l'application, <strong>on te filme en train de
+vivre une journée entière construite avec elle.</strong> Tu ouvres l'app, tu cherches,
+tu choisis, tu y vas. Trois moments dans la journée, plus un dernier lieu où l'on te
+voit simplement arriver.</p>
+
+<p>Le résultat n'est pas une publicité. C'est une journée, racontée. L'application est
+le fil rouge, jamais le sujet.</p>
+
+<h2>Pourquoi toi
+  <span class="sub">Deux raisons, et aucune n'est un hasard</span></h2>
+
+<p><strong>En parcourant ton compte, je me suis reconnu.</strong> Le côté famille, et le
+côté bonne table, bon vivant. C'est exactement ce que MaCity cherche à raconter d'une
+ville : pas seulement des adresses, mais une façon d'en profiter. Trouver quelqu'un
+chez qui ça sonne juste est plus rare qu'on ne le croit.</p>
+
+<p><strong>Et puis il y a Toulouse.</strong> Tu la connais de réputation, c'est une
+terre de rugby. Faire visiter cette ville à un rugbyman n'a besoin d'aucune
+explication : ça se comprend en une seconde. La personne et le décor se répondent.</p>
+
+<h2>Le tournage, heure par heure
+  <span class="sub">Une seule journée, quatre étapes, trois heures vingt de tournage en tout</span></h2>
+
+<p>On ne te mobilise pas de 9 h à minuit. Trois créneaux d'une heure dans la même
+journée, et tu es totalement libre entre les trois. <strong>Trois heures de tournage en
+tout.</strong></p>
+
+<p class="lead">Tu viens de Montpellier : nous te proposons d'arriver la veille au soir,
+hébergement à notre charge, pour ne pas enchaîner deux heures de route juste avant le
+premier plan.</p>
+
+<table>
+  <tr><th style="width:22%">Créneau</th><th style="width:16%">Durée</th><th>Ce qu'on tourne</th></tr>
+  <tr><td class="h">Matin</td><td class="et">1 h</td>
+      <td>La séquence sport, chez <strong>On Air</strong></td></tr>
+  <tr><td class="h">Midi</td><td class="et">1 h</td>
+      <td>Le déjeuner, au <strong>Troquet Garonne</strong> ou au <strong>101</strong>
+      (deux options, voir ci-dessous), tourné avant le service pour avoir une salle
+      calme</td></tr>
+  <tr><td class="h">Soir</td><td class="et">1 h</td>
+      <td>La détente du soir, à <strong>Ma Biche sur le Toit</strong> ou chez
+      <strong>Pépère</strong> (deux options, voir ci-dessous), calée sur le moment
+      où le lieu donne le meilleur à l'image</td></tr>
+  <tr><td class="h">Bonus</td><td class="et">à part</td>
+      <td>La séquence évasion, au <strong>Domaine du Belvédère</strong> : voir le
+      point de vigilance ci-dessous, ce lieu ne rentre pas dans le format « 20 min en
+      fin de journée » des autres versions de ce document</td></tr>
+</table>
+
+<h3>Le sport : une seule option</h3>
+<div class="opts single">
+  <div class="opt">
+    <h4>On Air Fitness, Toulouse-Blagnac</h4>
+    <div class="lien">onair-fitness.fr/club/toulouse-blagnac</div>
+    <ul>
+      <li>1 650 m², équipements variés et visuels forts à l'image : ring de boxe,
+      MMA, haltérophilie, pole dance</li>
+      <li>Ambiance « underground », cohérente avec l'univers sportif de Fufu</li>
+      <li>Lieu couvert, indépendant de la météo, ouvert dès 6 h en semaine</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Le déjeuner : deux options</h3>
+<div class="opts">
+  <div class="opt">
+    <h4>Le Troquet Garonne</h4>
+    <div class="lien">letroquetgaronne.fr</div>
+    <ul>
+      <li>Jardin arboré de 250 m², cadre verdoyant et apaisant en pleine ville</li>
+      <li>Ambiance chaleureuse et cosy, terrasse, service décontracté</li>
+      <li>Cuisine traditionnelle française maison, carte de saison</li>
+      <li>Peut être tourné avant le service pour une salle calme</li>
+    </ul>
+  </div>
+  <div class="opt">
+    <h4>Le 101 (Complexe101), Balma-Gramont</h4>
+    <div class="lien">complexe101.fr</div>
+    <ul>
+      <li>Plusieurs décors filmables dans un même lieu : restaurant gastronomique,
+      bistrot, guinguette</li>
+      <li>Ambiance conviviale et familiale, accueil chaleureux</li>
+      <li>Cuisine maison, produits locaux ; brunch dominical si le tournage tombe
+      un dimanche</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Le soir : deux options</h3>
+<div class="opts">
+  <div class="opt">
+    <h4>Ma Biche sur le Toit</h4>
+    <div class="lien">mabichesurletoit.com</div>
+    <ul>
+      <li>Rooftop au 6ᵉ étage des Galeries Lafayette : vue panoramique sur la ville
+      rose, très photogénique</li>
+      <li>Transition naturelle dîner → club en soirée, colle exactement au calage
+      « coucher de soleil » du déroulé</li>
+      <li>Lieu emblématique et identifiable pour l'audience toulousaine</li>
+    </ul>
+  </div>
+  <div class="opt">
+    <h4>Pépère</h4>
+    <div class="lien">pepere-restaurant.fr</div>
+    <ul>
+      <li>Ambiance plus intimiste, « lieu de vie » convivial et généreux</li>
+      <li>Belle sélection de vins et spiritueux d'artisans, angle « table entre
+      potes » plutôt que rooftop</li>
+      <li>Bonne alternative si Ma Biche sur le Toit n'est pas disponible au bon
+      horaire, ou en cas de météo incertaine (lieu couvert)</li>
+    </ul>
+  </div>
+</div>
+
+<h3>L'évasion : une option, avec un point de vigilance</h3>
+<div class="opts single">
+  <div class="opt">
+    <h4>Domaine du Belvédère</h4>
+    <div class="lien">domainedubelvedere.com</div>
+    <ul>
+      <li>10 hectares préservés, vue panoramique sur une vallée boisée, spa sur
+      place</li>
+      <li>Correspond exactement à l'intention du séquencier : un lieu calme, où
+      l'on prend le temps de souffler après une journée intense</li>
+    </ul>
+  </div>
+</div>
+<div class="box hi">
+  <h4>Point de vigilance : la distance</h4>
+  <p style="margin:2px 0">Le Domaine du Belvédère est situé à Montagudet (82), dans
+  le Quercy Blanc, à environ 1 h de route de Toulouse. Ce n'est <strong>pas
+  compatible avec le format actuel</strong> (« 20 minutes greffées en fin de
+  journée », lieu choisi dans l'app juste avant l'arrivée). Deux options : soit on
+  prévoit une demi-journée dédiée pour cette séquence (avec plus de route), soit on
+  garde un lieu d'évasion plus proche de Toulouse pour rester dans le format initial.</p>
+</div>
+
+<div class="box">
+  <h4>Tu peux venir accompagné</h4>
+  <p style="margin:2px 0">Si tu le souhaites, tu peux faire cette journée avec ton
+  épouse. Ça colle même mieux au ton du film : découvrir une ville à deux est plus
+  juste et plus chaleureux qu'une visite en solo, et ça rejoint ce qui nous a plu chez
+  toi au départ. Dis-le nous simplement, on adapte les réservations.</p>
+</div>
+
+<h2>Comment on filme
+  <span class="sub">Léger, rapide, sans mise en scène lourde</span></h2>
+
+<ul>
+  <li><strong>Deux personnes</strong> : une à l'image et au son, une à la
+  coordination. Pas de camion, pas de projecteurs.</li>
+  <li><strong>Aucun texte à apprendre.</strong> Il n'y a pas de script. On te donne
+  une intention avant chaque séquence, tu la joues à ta façon.</li>
+  <li><strong>Deux ou trois prises par plan</strong>, pas dix. Si un moment est
+  raté, on passe à la suite.</li>
+  <li><strong>Tu peux dire stop.</strong> À tout moment, sur n'importe quel plan.
+  Rien de ce que tu ne valides pas ne sera monté.</li>
+</ul>
+
+<h2>L'application à l'écran
+  <span class="sub">Trois gestes, répétés à chaque étape</span></h2>
+
+<p>C'est la seule partie un peu « technique », et elle prend trente secondes par
+étape. À chaque nouvelle destination, on filme les mêmes trois gestes.</p>
+
+<div class="gestes">
+  <div class="geste"><div class="n">1</div>
+    <div class="t"><strong>Tu ouvres MaCity</strong> et tu regardes ce qu'il y a
+    autour de toi. Plan sur ton écran.</div></div>
+  <div class="geste"><div class="n">2</div>
+    <div class="t"><strong>Tu choisis une rubrique</strong> ou tu tapes une
+    recherche. Sport, Food, Night, Évasion.</div></div>
+  <div class="geste"><div class="n">3</div>
+    <div class="t"><strong>Tu ouvres une fiche</strong>, tu lèves les yeux, et on
+    enchaîne sur le lieu réel.</div></div>
+</div>
+
+<p class="lead">L'écran est filmé pour de vrai, jamais rajouté après coup. C'est ce
+qui fait la différence entre une démonstration et une vraie utilisation.</p>
+
+<h2>Ce que tu dis, et ce que tu ne diras jamais
+  <span class="sub">Le point le plus important du document</span></h2>
+
+<div class="two">
+  <div class="oui">
+    <h4>Ce qu'on te demande</h4>
+    <ul>
+      <li><strong>Tes vraies réactions de découverte.</strong> Tu ne connais pas la
+      ville, c'est le cœur du film, ne les retiens jamais</li>
+      <li>Des réactions courtes et vraies : « ah ça c'est pas mal », « allez, on y va »</li>
+      <li>Ton avis sincère sur les endroits, y compris s'il est mitigé</li>
+      <li>Une phrase de conclusion à la fin de la journée, à ta façon</li>
+    </ul>
+  </div>
+  <div class="non">
+    <h4>Ce qu'on ne te demandera pas</h4>
+    <ul>
+      <li>De dire « téléchargez MaCity ». Jamais. L'appel à l'action est en légende,
+      pas dans ta bouche</li>
+      <li>De réciter un argumentaire ou de citer des fonctionnalités</li>
+      <li>De faire semblant d'aimer un endroit</li>
+      <li>De porter ou de consommer une marque imposée</li>
+    </ul>
+  </div>
+</div>
+
+<p>La raison est simple : dès qu'un sportif fait la promotion frontale d'un produit,
+le spectateur décroche. Ta crédibilité est ce qui rend le format efficace, on ne va
+pas la dépenser pour un slogan.</p>
+
+<div class="cta">
+  <h3>La prochaine étape</h3>
+  <p>Un échange de trente minutes pour répondre à tes questions et voir si le principe
+  te plaît.</p>
+  <p><strong>Rien n'est engagé tant que tu n'as pas validé.</strong>
+  Aucun partenaire ne sera contacté avant ton accord.</p>
+</div>
+
+<div class="foot">
+  MaCity · Note d'intention et déroulé de tournage · Une journée à Toulouse.
+  Document de travail, non contractuel.
+</div>
+
+</body>
+</html>
