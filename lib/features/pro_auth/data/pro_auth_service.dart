@@ -9,10 +9,12 @@ import 'package:pulz_app/features/pro_auth/domain/models/pro_profile.dart';
 class ProAuthService {
   final Dio _restDio;
   final Dio _authDio;
+  final Dio _fnDio;
 
-  ProAuthService({Dio? restDio, Dio? authDio})
+  ProAuthService({Dio? restDio, Dio? authDio, Dio? fnDio})
       : _restDio = restDio ?? _createRestDio(),
-        _authDio = authDio ?? _createAuthDio();
+        _authDio = authDio ?? _createAuthDio(),
+        _fnDio = fnDio ?? _createFnDio();
 
   static Dio _createRestDio() {
     final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
@@ -22,6 +24,14 @@ class ProAuthService {
 
   static Dio _createAuthDio() {
     return DioClient.withBaseUrl('${SupabaseConfig.supabaseUrl}/auth/v1/');
+  }
+
+  static Dio _createFnDio() {
+    final dio = DioClient.withBaseUrl(
+      '${SupabaseConfig.supabaseUrl}/functions/v1/',
+    );
+    dio.interceptors.add(SupabaseInterceptor());
+    return dio;
   }
 
   // ─────────────────────────────────────────
@@ -81,6 +91,15 @@ class ProAuthService {
     final data = profileRes.data as List;
     final profile =
         ProProfile.fromSupabaseJson(data.first as Map<String, dynamic>);
+
+    // 3. Envoyer le code de verification par mail. Best-effort : un echec
+    // ici ne doit pas bloquer l'inscription, l'utilisateur pourra toujours
+    // taper "Renvoyer le code" (qui appelle la meme fonction).
+    try {
+      await sendVerificationCode(email: email);
+    } catch (e) {
+      debugPrint('[ProAuth] sendVerificationCode (register) error: $e');
+    }
 
     return (
       profile: profile,
@@ -195,15 +214,26 @@ class ProAuthService {
     return res.data == true;
   }
 
-  /// Regenere un nouveau code et le renvoie par mail (bouton "Renvoyer").
-  Future<void> resendApprovalCode({required String accessToken}) async {
-    await _restDio.post(
-      'rpc/regenerate_pro_approval_code',
-      data: const <String, dynamic>{},
-      options: Options(
-        headers: {'Authorization': 'Bearer $accessToken'},
-      ),
+  /// Genere un nouveau code et l'envoie par mail via l'edge function
+  /// `send-pro-verification-code` (qui ecrit aussi `approval_code` en base).
+  ///
+  /// Remplace l'ancien appel a la RPC `regenerate_pro_approval_code` : cette
+  /// derniere ne faisait que modifier la base sans jamais envoyer de mail,
+  /// c'etait la cause du bug "aucun code recu" a l'inscription comme au
+  /// clic sur "Renvoyer".
+  Future<void> sendVerificationCode({required String email}) async {
+    await _fnDio.post(
+      'send-pro-verification-code',
+      data: {'email': email.trim()},
     );
+  }
+
+  /// Regenere un nouveau code et le renvoie par mail (bouton "Renvoyer").
+  Future<void> resendApprovalCode({
+    required String email,
+    required String accessToken,
+  }) async {
+    await sendVerificationCode(email: email);
   }
 
   /// Suppression du compte pro (RGPD). Appelle la RPC `delete_my_pro_account`

@@ -249,9 +249,13 @@ class ProAuthNotifier extends StateNotifier<ProAuthState> {
   /// Demande le renvoi d'un nouveau code par mail.
   Future<void> resendCode() async {
     final accessToken = await _sessionService.getAccessToken();
-    if (accessToken == null) return;
+    final email = state.profile?.email;
+    if (accessToken == null || email == null || email.isEmpty) return;
     try {
-      await _authService.resendApprovalCode(accessToken: accessToken);
+      await _authService.resendApprovalCode(
+        email: email,
+        accessToken: accessToken,
+      );
     } catch (e) {
       debugPrint('[ProAuth] resendCode error: $e');
       rethrow;
