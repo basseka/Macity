@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#8E24AA" />
   <title>MaCity Admin — Ajouter un event</title>
   <meta name="robots" content="noindex,nofollow" />
+  <!-- Polices pour l'éditeur "Post libre" (onglet 🎨) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bodoni+Moda:wght@400..900&family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -987,6 +990,28 @@
       margin-top: 4px;
     }
 
+    /* ─── Post libre (éditeur de visuel : fond + textes déplaçables) ─── */
+    .pf-wrap { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .pf-panel { flex: 1 1 360px; min-width: 320px; max-width: 420px; }
+    .pf-stage-col { flex: 0 0 auto; position: sticky; top: 20px; }
+    .pf-canvas-shell { position: relative; display: inline-block; border-radius: 14px; overflow: hidden; box-shadow: 0 18px 50px rgba(0,0,0,.5); }
+    #pf-canvas { display: block; width: 380px; height: auto; background: var(--surface-hi); touch-action: none; }
+    #pf-canvas.pf-drag-ok { cursor: grab; }
+    #pf-canvas.pf-dragging { cursor: grabbing; }
+    .pf-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+    .pf-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 10px; border-radius: 999px; background: var(--surface-hi); border: 1px solid var(--line-strong); color: var(--text-dim); font-size: 11px; cursor: pointer; max-width: 170px; }
+    .pf-chip.active { border-color: var(--magenta); color: var(--text); background: rgba(233,30,99,0.14); }
+    .pf-chip .pf-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 110px; }
+    .pf-chip .pf-chip-x { color: var(--text-faint); font-weight: 700; padding: 0 2px; }
+    .pf-chip .pf-chip-x:hover { color: var(--err); }
+    .pf-add-btn { width: 100%; padding: 9px; border-radius: 9px; border: 1px dashed var(--line-strong); background: transparent; color: var(--text-dim); font-size: 12px; cursor: pointer; margin-top: 6px; }
+    .pf-add-btn:hover { border-color: var(--magenta); color: var(--text); }
+    .pf-align-row { display: flex; gap: 6px; }
+    .pf-align-row button { flex: 1; padding: 7px; border-radius: 7px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-dim); cursor: pointer; font-size: 12px; }
+    .pf-align-row button.active { border-color: var(--magenta); color: var(--text); background: rgba(233,30,99,0.15); }
+    .pf-range-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+    .pf-empty-hint { text-align: center; color: var(--text-faint); font-size: 12px; padding: 14px 10px; border: 1px dashed var(--line-strong); border-radius: 10px; }
+
     /* Export PDF du Media Kit : on isole #mediakit-sheet à l'impression. */
     @media print {
       body * { visibility: hidden; }
@@ -1059,6 +1084,13 @@
           <span class="nav-btn" id="goto-citymedia-btn">📰 Médias ville</span>
           <span class="nav-btn" id="goto-subs-btn">💳 Abonnements</span>
           <span class="nav-btn" id="goto-clients-btn">🧾 Clients</span>
+          <span class="nav-btn" id="goto-postfree-btn">🎨 Post libre</span>
+          <!-- Ouvre le generateur de visuels Instagram (carrousel a gabarits fixes)
+               dans un nouvel onglet. Chemin RELATIF : admin.html s'ouvre en local,
+               un lien absolu file:// serait casse des que le dossier change de place. -->
+          <a class="nav-btn" href="communication/generateur-post-instagram.html"
+             target="_blank" rel="noopener"
+             style="text-decoration:none;">🎨 Visuels Insta (carrousel)</a>
         </div>
       </div>
 
@@ -2755,6 +2787,100 @@
           </div>
         </div>
       </div>
+
+      <!-- ═══ VUE "POST LIBRE" (éditeur : image de fond + textes libres, déplaçables) ═══ -->
+      <div id="postfree-view" class="hidden">
+        <h1>🎨 Post libre</h1>
+        <p class="subtitle">Une image de fond, des textes que tu ajoutes, déplaces et modifies comme tu veux. Tout reste dans ce navigateur : rien n'est envoyé nulle part, il n'y a qu'à télécharger l'image à la fin.</p>
+
+        <div class="pf-wrap">
+          <div class="pf-panel">
+            <div class="banner-card">
+              <div class="banner-field-label">🖼️ Image de fond</div>
+              <div class="paste-zone" id="pf-bg-zone" tabindex="0">
+                <div class="paste-icon">🖼️</div>
+                <div class="paste-hint">Clique, glisse une image, ou <strong>Ctrl+V</strong></div>
+                <button type="button" class="paste-browse" id="pf-bg-browse">📂 Explorer</button>
+              </div>
+
+              <div style="margin-top:14px;">
+                <div class="pf-range-label"><span>Cadrage vertical</span></div>
+                <input type="range" id="pf-posy" min="0" max="100" value="50" style="width:100%;" />
+              </div>
+              <div style="margin-top:10px;">
+                <div class="pf-range-label"><span>Assombrissement</span><span id="pf-assom-val">45%</span></div>
+                <input type="range" id="pf-assom" min="0" max="90" value="45" style="width:100%;" />
+              </div>
+              <label class="banner-field-label" style="margin-top:12px;">Format</label>
+              <select id="pf-ratio" class="banner-input" style="margin:0;">
+                <option value="1350">1080 × 1350 (post)</option>
+                <option value="1080">1080 × 1080 (carré)</option>
+                <option value="1920">1080 × 1920 (story)</option>
+              </select>
+            </div>
+
+            <div class="banner-card">
+              <div class="banner-field-label">✏️ Textes</div>
+              <div class="pf-chips" id="pf-chips"></div>
+              <button type="button" class="pf-add-btn" id="pf-add-text">+ Ajouter un texte</button>
+
+              <div id="pf-empty-hint" class="pf-empty-hint" style="margin-top:10px;">Clique sur « + Ajouter un texte », puis fais-le glisser directement sur l'image pour le placer où tu veux.</div>
+
+              <div id="pf-editor" class="hidden" style="margin-top:14px;">
+                <label class="banner-field-label">Contenu</label>
+                <textarea id="pf-text-content" class="banner-input" style="min-height:60px; resize:vertical;"></textarea>
+
+                <label class="banner-field-label">Police</label>
+                <select id="pf-text-family" class="banner-input" style="margin:0 0 8px;">
+                  <option value="Anton">Anton (impact)</option>
+                  <option value="Bodoni Moda">Bodoni Moda (élégant)</option>
+                  <option value="Inter">Inter (net)</option>
+                </select>
+
+                <div style="display:flex; gap:8px;">
+                  <div style="flex:1;">
+                    <label class="banner-field-label">Graisse</label>
+                    <select id="pf-text-weight" class="banner-input" style="margin:0;">
+                      <option value="400">Normal</option>
+                      <option value="700">Gras</option>
+                      <option value="900">Extra-gras</option>
+                    </select>
+                  </div>
+                  <div style="width:90px;">
+                    <label class="banner-field-label">Couleur</label>
+                    <input type="color" id="pf-text-color" value="#ffffff" style="width:100%; height:34px; border-radius:7px; border:1px solid var(--line-strong); background:var(--surface); cursor:pointer;" />
+                  </div>
+                </div>
+
+                <div class="pf-range-label" style="margin-top:10px;"><span>Taille</span><span id="pf-text-size-val">64px</span></div>
+                <input type="range" id="pf-text-size" min="16" max="180" value="64" style="width:100%;" />
+
+                <div class="pf-range-label" style="margin-top:10px;"><span>Largeur du bloc</span><span id="pf-text-width-val">80%</span></div>
+                <input type="range" id="pf-text-width" min="20" max="100" value="80" style="width:100%;" />
+
+                <label class="banner-field-label" style="margin-top:10px;">Alignement</label>
+                <div class="pf-align-row">
+                  <button type="button" data-align="left">⬅ Gauche</button>
+                  <button type="button" data-align="center">↔ Centre</button>
+                  <button type="button" data-align="right">➡ Droite</button>
+                </div>
+
+                <button type="button" class="banner-delete-btn" id="pf-text-delete" style="width:100%; margin-top:14px;">🗑️ Supprimer ce texte</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="pf-download" style="margin-bottom:10px;">⬇️ Télécharger l'image</button>
+            <button type="button" class="banner-link-btn" id="pf-copy" style="width:100%; justify-content:center; padding:10px;">📋 Copier dans le presse-papier</button>
+          </div>
+
+          <div class="pf-stage-col">
+            <div class="pf-canvas-shell">
+              <canvas id="pf-canvas" width="1080" height="1350"></canvas>
+            </div>
+            <p class="helper" style="max-width:380px; margin-top:10px;">Clique un texte sur l'image pour le sélectionner, glisse-le pour le déplacer. La sauvegarde est automatique dans ce navigateur.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3819,6 +3945,8 @@
     const gotoSubsBtn = document.getElementById("goto-subs-btn");
     const clientsView = document.getElementById("clients-view");
     const gotoClientsBtn = document.getElementById("goto-clients-btn");
+    const postfreeView = document.getElementById("postfree-view");
+    const gotoPostfreeBtn = document.getElementById("goto-postfree-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -3848,6 +3976,7 @@
       eventeditView.classList.add("hidden");
       subsView.classList.add("hidden");
       clientsView.classList.add("hidden");
+      postfreeView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -3875,6 +4004,7 @@
       gotoEventeditBtn.style.display = "inline-flex";
       gotoSubsBtn.style.display = "inline-flex";
       gotoClientsBtn.style.display = "inline-flex";
+      gotoPostfreeBtn.style.display = "inline-flex";
       // Retire la surbrillance de tous les onglets (le bouton actif sera
       // re-surligne par la fonction showXView appelante).
       document
@@ -4073,6 +4203,13 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoClientsBtn.addEventListener("click", showClientsView);
+    function showPostfreeView() {
+      _hideAllViews();
+      postfreeView.classList.remove("hidden");
+      gotoPostfreeBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoPostfreeBtn.addEventListener("click", showPostfreeView);
     function showSysmonView() {
       _hideAllViews();
       sysmonView.classList.remove("hidden");
@@ -6102,7 +6239,18 @@
             </td>
             <td style="padding:6px 10px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
             <td style="padding:6px 10px; font-size:11px; color:${o.is_active ? "#16a34a" : "var(--text-faint)"};">${o.is_active ? "active" : "inactive"}</td>
-            <td style="padding:6px 0 6px 10px;">
+            <td style="padding:6px 0 6px 10px; white-space:nowrap;">
+              <button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#3730a3; margin-right:4px;"
+                data-offer-photo="${o.id}"
+                data-offer-title="${escapeHtml(o.title || "")}"
+                data-offer-desc="${escapeHtml(o.description || "")}"
+                data-offer-emoji="${escapeHtml(o.emoji || "🎁")}"
+                data-offer-spots="${o.total_spots ?? ""}"
+                data-offer-expires="${escapeHtml(o.expires_at || "")}"
+                data-offer-active="${o.is_active ? "1" : ""}"
+                data-offer-src-table="${escapeHtml(o.source_table || "")}"
+                data-offer-src-id="${escapeHtml(o.source_id ?? "")}"
+                title="Changer la photo">📷</button>
               <button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#7f1d1d;" data-offer-del="${o.id}">🗑</button>
             </td>
           </tr>`).join("");
@@ -6307,6 +6455,36 @@
             if (error) throw error;
             toast("Offre supprimée");
             renderClientSubsAndOffers($cf("id").value);
+          } catch (e) { toast("Erreur : " + e.message, false); }
+          return;
+        }
+        // Changer uniquement la photo d'une offre existante : on renvoie tous
+        // ses champs actuels (embarqués en data-* sur le bouton) à l'upsert,
+        // avec le nouvel image_url, pour ne rien ecraser d'autre.
+        const photoBtn = ev.target.closest("[data-offer-photo]");
+        if (photoBtn) {
+          const url = await _pickImage();
+          if (!url) return;
+          const clientId = $cf("id").value;
+          try {
+            const { error } = await supabase.rpc("admin_upsert_client_offer", {
+              p: {
+                id: photoBtn.dataset.offerPhoto,
+                client_id: clientId,
+                title: photoBtn.dataset.offerTitle,
+                description: photoBtn.dataset.offerDesc,
+                emoji: photoBtn.dataset.offerEmoji || "🎁",
+                total_spots: photoBtn.dataset.offerSpots || "0",
+                expires_at: photoBtn.dataset.offerExpires || "",
+                is_active: !!photoBtn.dataset.offerActive,
+                image_url: url,
+                source_table: photoBtn.dataset.offerSrcTable || "",
+                source_id: photoBtn.dataset.offerSrcId || "",
+              },
+            });
+            if (error) throw error;
+            toast("Photo de l'offre mise à jour");
+            renderClientSubsAndOffers(clientId);
           } catch (e) { toast("Erreur : " + e.message, false); }
         }
       });
@@ -12720,6 +12898,410 @@
       if (histCityInput && ville) histCityInput.value = ville;
       loadHistory();               // rafraichit la liste avec le nouveau / mis a jour
     });
+
+    // ─── Onglet "Post libre" : éditeur fond + textes déplaçables ───────────────
+    // Tout est canvas-only (pas d'overlay DOM) : le rendu écran ET l'export PNG
+    // utilisent exactement le même code de dessin, donc "ce qui est affiché
+    // est ce qui est téléchargé".
+    (function setupPostLibre() {
+      const c = document.getElementById("pf-canvas");
+      if (!c) return;
+      const ctx = c.getContext("2d");
+      const zone = document.getElementById("pf-bg-zone");
+      const browseBtn = document.getElementById("pf-bg-browse");
+      const posYInput = document.getElementById("pf-posy");
+      const assomInput = document.getElementById("pf-assom");
+      const assomVal = document.getElementById("pf-assom-val");
+      const ratioSelect = document.getElementById("pf-ratio");
+      const chipsEl = document.getElementById("pf-chips");
+      const addBtn = document.getElementById("pf-add-text");
+      const emptyHint = document.getElementById("pf-empty-hint");
+      const editorEl = document.getElementById("pf-editor");
+      const contentInput = document.getElementById("pf-text-content");
+      const familyInput = document.getElementById("pf-text-family");
+      const weightInput = document.getElementById("pf-text-weight");
+      const colorInput = document.getElementById("pf-text-color");
+      const sizeInput = document.getElementById("pf-text-size");
+      const sizeVal = document.getElementById("pf-text-size-val");
+      const widthInput = document.getElementById("pf-text-width");
+      const widthVal = document.getElementById("pf-text-width-val");
+      const alignBtns = document.querySelectorAll(".pf-align-row button");
+      const deleteBtn = document.getElementById("pf-text-delete");
+      const downloadBtn = document.getElementById("pf-download");
+      const copyBtn = document.getElementById("pf-copy");
+
+      let bgImg = null;
+      let bgData = null;
+      let layers = [];
+      let selectedId = null;
+      let nextId = 1;
+      let drag = null; // { id, dxPct, dyPct }
+
+      function memo(cle, val) { try { localStorage.setItem(cle, val); } catch (e) {} }
+
+      // Réduit le fond avant sauvegarde : l'export final fait 1080px de large,
+      // conserver l'original saturerait le quota localStorage (~5 Mo) pour rien.
+      function compresser(imgEl, maxCote) {
+        const r = Math.min(1, maxCote / Math.max(imgEl.width, imgEl.height));
+        const cv = document.createElement("canvas");
+        cv.width = Math.round(imgEl.width * r);
+        cv.height = Math.round(imgEl.height * r);
+        cv.getContext("2d").drawImage(imgEl, 0, 0, cv.width, cv.height);
+        return cv.toDataURL("image/jpeg", 0.85);
+      }
+
+      let sauveTimer = null;
+      function sauver() {
+        clearTimeout(sauveTimer);
+        sauveTimer = setTimeout(() => {
+          try {
+            const paquet = {
+              ratio: ratioSelect.value,
+              posY: posYInput.value,
+              assom: assomInput.value,
+              bgData,
+              layers,
+            };
+            memo("macity_postlibre", JSON.stringify(paquet));
+          } catch (e) { /* quota plein : tant pis, pas bloquant */ }
+        }, 400);
+      }
+
+      function restaurer() {
+        let p;
+        try { p = JSON.parse(localStorage.getItem("macity_postlibre") || "null"); } catch (e) { return; }
+        if (!p) return;
+        if (p.ratio) ratioSelect.value = p.ratio;
+        if (p.posY !== undefined) posYInput.value = p.posY;
+        if (p.assom !== undefined) assomInput.value = p.assom;
+        assomVal.textContent = assomInput.value + "%";
+        if (Array.isArray(p.layers)) {
+          layers = p.layers;
+          nextId = layers.reduce((m, l) => Math.max(m, l.id + 1), 1);
+        }
+        if (p.bgData) {
+          bgData = p.bgData;
+          const im = new Image();
+          im.onload = () => { bgImg = im; poserFondUI(true); dessiner(); };
+          im.src = p.bgData;
+        }
+        rendreChips();
+        dessiner();
+      }
+
+      function poserFondUI(ok) {
+        zone.classList.toggle("has-image", !!ok);
+        zone.querySelector(".paste-hint").textContent = ok ? "image chargée — clique pour la changer" : "Clique, glisse une image, ou Ctrl+V";
+      }
+
+      function chargerFond(file) {
+        if (!file || !file.type || !file.type.startsWith("image/")) return;
+        const fr = new FileReader();
+        fr.onload = () => {
+          const im = new Image();
+          im.onload = () => {
+            bgImg = im;
+            bgData = compresser(im, 1400);
+            poserFondUI(true);
+            dessiner();
+            sauver();
+          };
+          im.src = fr.result;
+        };
+        fr.readAsDataURL(file);
+      }
+      zone.addEventListener("click", () => {
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "image/*";
+        inp.onchange = () => chargerFond(inp.files[0]);
+        inp.click();
+      });
+      browseBtn.addEventListener("click", (e) => { e.stopPropagation(); zone.click(); });
+      zone.addEventListener("dragover", (e) => e.preventDefault());
+      zone.addEventListener("drop", (e) => { e.preventDefault(); chargerFond(e.dataTransfer.files[0]); });
+      document.addEventListener("paste", (e) => {
+        if (postfreeView.classList.contains("hidden")) return;
+        for (const it of e.clipboardData.items) {
+          if (it.type.startsWith("image/")) chargerFond(it.getAsFile());
+        }
+      });
+
+      posYInput.addEventListener("input", () => { dessiner(); sauver(); });
+      assomInput.addEventListener("input", () => { assomVal.textContent = assomInput.value + "%"; dessiner(); sauver(); });
+      ratioSelect.addEventListener("change", () => { redimensionner(); dessiner(); sauver(); });
+
+      function redimensionner() {
+        c.height = parseInt(ratioSelect.value, 10);
+      }
+
+      // ── Textes ──────────────────────────────────────────────────────────
+      function nouveauCalque() {
+        const l = {
+          id: nextId++, text: "Nouveau texte",
+          xPct: 50, yPct: 50, wPct: 80,
+          size: 64, color: "#ffffff", weight: "700",
+          align: "center", family: "Anton",
+        };
+        layers.push(l);
+        selectionner(l.id);
+        rendreChips();
+        dessiner();
+        sauver();
+      }
+      addBtn.addEventListener("click", nouveauCalque);
+
+      function trouver(id) { return layers.find((l) => l.id === id); }
+
+      function selectionner(id) {
+        selectedId = id;
+        const l = trouver(id);
+        editorEl.classList.toggle("hidden", !l);
+        emptyHint.classList.toggle("hidden", !!l || layers.length > 0);
+        if (l) {
+          contentInput.value = l.text;
+          familyInput.value = l.family;
+          weightInput.value = l.weight;
+          colorInput.value = l.color;
+          sizeInput.value = l.size;
+          sizeVal.textContent = l.size + "px";
+          widthInput.value = l.wPct;
+          widthVal.textContent = l.wPct + "%";
+          alignBtns.forEach((b) => b.classList.toggle("active", b.dataset.align === l.align));
+        }
+        rendreChips();
+        dessiner();
+      }
+
+      function rendreChips() {
+        chipsEl.innerHTML = "";
+        layers.forEach((l) => {
+          const chip = document.createElement("div");
+          chip.className = "pf-chip" + (l.id === selectedId ? " active" : "");
+          const label = document.createElement("span");
+          label.className = "pf-chip-label";
+          label.textContent = l.text.split("\n")[0] || "(vide)";
+          chip.appendChild(label);
+          const x = document.createElement("span");
+          x.className = "pf-chip-x";
+          x.textContent = "✕";
+          x.onclick = (e) => { e.stopPropagation(); supprimer(l.id); };
+          chip.appendChild(x);
+          chip.onclick = () => selectionner(l.id);
+          chipsEl.appendChild(chip);
+        });
+        emptyHint.classList.toggle("hidden", layers.length > 0);
+      }
+
+      function supprimer(id) {
+        layers = layers.filter((l) => l.id !== id);
+        if (selectedId === id) selectedId = null;
+        editorEl.classList.toggle("hidden", true);
+        rendreChips();
+        dessiner();
+        sauver();
+      }
+      deleteBtn.addEventListener("click", () => { if (selectedId != null) supprimer(selectedId); });
+
+      function majCalque(patch) {
+        const l = trouver(selectedId);
+        if (!l) return;
+        Object.assign(l, patch);
+        dessiner();
+        sauver();
+      }
+      contentInput.addEventListener("input", () => { majCalque({ text: contentInput.value }); rendreChips(); });
+      familyInput.addEventListener("change", () => majCalque({ family: familyInput.value }));
+      weightInput.addEventListener("change", () => majCalque({ weight: weightInput.value }));
+      colorInput.addEventListener("input", () => majCalque({ color: colorInput.value }));
+      sizeInput.addEventListener("input", () => { sizeVal.textContent = sizeInput.value + "px"; majCalque({ size: +sizeInput.value }); });
+      widthInput.addEventListener("input", () => { widthVal.textContent = widthInput.value + "%"; majCalque({ wPct: +widthInput.value }); });
+      alignBtns.forEach((b) => b.addEventListener("click", () => {
+        alignBtns.forEach((x) => x.classList.remove("active"));
+        b.classList.add("active");
+        majCalque({ align: b.dataset.align });
+      }));
+
+      // ── Dessin ──────────────────────────────────────────────────────────
+      function fondCouvrant(im, W, H, posY) {
+        const r = Math.max(W / im.width, H / im.height);
+        const w = im.width * r, h = im.height * r;
+        ctx.drawImage(im, (W - w) / 2, (H - h) * (posY / 100), w, h);
+      }
+      function envelopper(txt, maxW) {
+        const lignes = [];
+        txt.split("\n").forEach((par) => {
+          const mots = par.split(" ");
+          let ligne = "";
+          mots.forEach((m) => {
+            const essai = ligne ? ligne + " " + m : m;
+            if (ligne && ctx.measureText(essai).width > maxW) {
+              lignes.push(ligne);
+              ligne = m;
+            } else {
+              ligne = essai;
+            }
+          });
+          lignes.push(ligne);
+        });
+        return lignes;
+      }
+      function dessinerCalque(l, W, H, selection) {
+        const size = Math.max(8, l.size);
+        ctx.font = `${l.weight} ${size}px "${l.family}", sans-serif`;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = l.align;
+        const maxW = (l.wPct / 100) * W;
+        const lignes = envelopper(l.text || "", maxW);
+        const lh = size * 1.18;
+        const cx = (l.xPct / 100) * W;
+        const cy = (l.yPct / 100) * H;
+        const blocH = lignes.length * lh;
+        const x = l.align === "left" ? cx - maxW / 2 : l.align === "right" ? cx + maxW / 2 : cx;
+
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.55)";
+        ctx.shadowBlur = size * 0.18;
+        ctx.shadowOffsetY = size * 0.03;
+        ctx.fillStyle = l.color;
+        lignes.forEach((ligne, i) => {
+          const y = cy - blocH / 2 + lh / 2 + i * lh;
+          ctx.fillText(ligne, x, y);
+        });
+        ctx.restore();
+
+        if (selection) {
+          let maxLineW = 0;
+          lignes.forEach((ligne) => { maxLineW = Math.max(maxLineW, ctx.measureText(ligne).width); });
+          const boxW = Math.min(maxW, maxLineW) + size * 0.5;
+          const left = l.align === "left" ? cx - size * 0.25
+                     : l.align === "right" ? cx - boxW + size * 0.25
+                     : cx - boxW / 2;
+          ctx.save();
+          ctx.strokeStyle = "#E91E8C";
+          ctx.setLineDash([6, 5]);
+          ctx.lineWidth = 2;
+          ctx.strokeRect(left, cy - blocH / 2 - size * 0.15, boxW, blocH + size * 0.3);
+          ctx.restore();
+        }
+        return { cx, cy, w: maxW, h: blocH };
+      }
+
+      function dessiner(exportMode) {
+        const W = c.width, H = c.height;
+        ctx.clearRect(0, 0, W, H);
+        if (bgImg) {
+          fondCouvrant(bgImg, W, H, +posYInput.value);
+        } else {
+          ctx.fillStyle = "#1e1930";
+          ctx.fillRect(0, 0, W, H);
+          ctx.fillStyle = "#5a4f78";
+          ctx.font = "600 32px Inter, sans-serif";
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillText("Dépose une image de fond", W / 2, H / 2);
+        }
+        const assom = +assomInput.value;
+        if (assom > 0) {
+          ctx.fillStyle = `rgba(0,0,0,${(assom / 100).toFixed(2)})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+        layers.forEach((l) => dessinerCalque(l, W, H, !exportMode && l.id === selectedId));
+      }
+
+      // ── Interaction souris/tactile : sélection + glisser-déposer ────────
+      function coordsCanvas(e) {
+        const r = c.getBoundingClientRect();
+        const scale = c.width / r.width;
+        return {
+          x: (e.clientX - r.left) * scale,
+          y: (e.clientY - r.top) * scale,
+        };
+      }
+      function calqueSous(x, y) {
+        // Du dernier (au-dessus) au premier.
+        for (let i = layers.length - 1; i >= 0; i--) {
+          const l = layers[i];
+          const size = Math.max(8, l.size);
+          ctx.font = `${l.weight} ${size}px "${l.family}", sans-serif`;
+          const maxW = (l.wPct / 100) * c.width;
+          const lignes = envelopper(l.text || "", maxW);
+          let maxLineW = 0;
+          lignes.forEach((ligne) => { maxLineW = Math.max(maxLineW, ctx.measureText(ligne).width); });
+          const boxW = Math.min(maxW, maxLineW) + size * 0.5;
+          const lh = size * 1.18;
+          const blocH = lignes.length * lh;
+          const cx = (l.xPct / 100) * c.width;
+          const cy = (l.yPct / 100) * c.height;
+          const left = l.align === "left" ? cx - size * 0.25
+                     : l.align === "right" ? cx - boxW + size * 0.25
+                     : cx - boxW / 2;
+          const top = cy - blocH / 2 - size * 0.15;
+          if (x >= left && x <= left + boxW && y >= top && y <= top + blocH + size * 0.3) return l;
+        }
+        return null;
+      }
+      c.addEventListener("pointerdown", (e) => {
+        const { x, y } = coordsCanvas(e);
+        const l = calqueSous(x, y);
+        if (l) {
+          selectionner(l.id);
+          drag = { id: l.id, dx: x - (l.xPct / 100) * c.width, dy: y - (l.yPct / 100) * c.height };
+          c.classList.add("pf-dragging");
+          c.setPointerCapture(e.pointerId);
+        } else {
+          selectionner(null);
+        }
+      });
+      c.addEventListener("pointermove", (e) => {
+        const { x, y } = coordsCanvas(e);
+        if (drag) {
+          const l = trouver(drag.id);
+          if (l) {
+            l.xPct = Math.min(98, Math.max(2, ((x - drag.dx) / c.width) * 100));
+            l.yPct = Math.min(98, Math.max(2, ((y - drag.dy) / c.height) * 100));
+            dessiner();
+          }
+        } else {
+          c.classList.toggle("pf-drag-ok", !!calqueSous(x, y));
+        }
+      });
+      function finDrag(e) {
+        if (drag) {
+          drag = null;
+          c.classList.remove("pf-dragging");
+          sauver();
+        }
+      }
+      c.addEventListener("pointerup", finDrag);
+      c.addEventListener("pointerleave", finDrag);
+
+      // ── Export ────────────────────────────────────────────────────────
+      downloadBtn.addEventListener("click", () => {
+        if (!bgImg) { toast("Ajoute une image de fond d'abord", false); return; }
+        dessiner(true);
+        const a = document.createElement("a");
+        a.download = "macity-post-" + Date.now() + ".png";
+        a.href = c.toDataURL("image/png");
+        a.click();
+        dessiner(false);
+      });
+      copyBtn.addEventListener("click", async () => {
+        if (!bgImg) { toast("Ajoute une image de fond d'abord", false); return; }
+        try {
+          dessiner(true);
+          const blob = await new Promise((res) => c.toBlob(res, "image/png"));
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          dessiner(false);
+          toast("Image copiée dans le presse-papier");
+        } catch (e) {
+          dessiner(false);
+          toast("Copie impossible sur ce navigateur, utilise le téléchargement", false);
+        }
+      });
+
+      redimensionner();
+      restaurer();
+      dessiner();
+    })();
   </script>
 </body>
 </html>
