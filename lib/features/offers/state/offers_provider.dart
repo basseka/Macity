@@ -5,6 +5,11 @@ import 'package:pulz_app/features/offers/data/offer_supabase_service.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
 import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
+/// Categorie choisie dans les filtres de la rubrique Offres. `null` = toutes
+/// les categories confondues (comportement par defaut, y compris les offres
+/// non categorisees).
+final selectedOfferCategoryProvider = StateProvider<String?>((ref) => null);
+
 final activeOffersProvider = FutureProvider<List<Offer>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   try {

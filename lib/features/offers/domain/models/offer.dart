@@ -17,6 +17,11 @@ class Offer {
   final String city;
   final DateTime createdAt;
 
+  /// Type d'offre pour le filtre de la rubrique Offres : 'Restaurant',
+  /// 'Soiree', 'Sport', 'Services', 'Loisirs', ou vide si non categorisee
+  /// (offres anciennes, restent visibles hors filtres).
+  final String categorie;
+
   /// Commerce mis en avant par l'offre, au format canonique du projet :
   /// `sourceTable` vaut 'etablissements' | 'venues' | 'sport_venues' |
   /// 'family_venues', `sourceId` est l'id dans cette table. Les deux sont
@@ -60,6 +65,7 @@ class Offer {
     this.isActive = true,
     this.city = 'Toulouse',
     required this.createdAt,
+    this.categorie = '',
     this.sourceTable = '',
     this.sourceId,
   });
@@ -176,6 +182,7 @@ class Offer {
         createdAt: json['created_at'] != null
             ? DateTime.parse(json['created_at'] as String)
             : DateTime.now(),
+        categorie: json['categorie'] as String? ?? '',
         sourceTable: json['source_table'] as String? ?? '',
         sourceId: (json['source_id'] as num?)?.toInt(),
       );

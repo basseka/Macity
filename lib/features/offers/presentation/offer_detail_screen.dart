@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/features/offers/data/subscription_interest_service.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
@@ -23,8 +24,11 @@ class OfferDetailScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           // ─── Hero image avec back button ───
+          // 200 et non 320 : au-dela, le titre, la description et les 3 blocs
+          // d'info passaient sous le pli sur la plupart des telephones,
+          // obligeant a scroller pour voir l'essentiel de l'offre des l'ouverture.
           SliverAppBar(
-            expandedHeight: 320,
+            expandedHeight: 200,
             pinned: true,
             backgroundColor: const Color(0xFF1A0A2E),
             leading: Padding(
@@ -45,10 +49,10 @@ class OfferDetailScreen extends StatelessWidget {
                       placeholder: (_, __) => const ColoredBox(
                         color: Color(0xFF241338),
                       ),
-                      errorWidget: (_, __, ___) => _emojiHero(),
+                      errorWidget: (_, __, ___) => _EmojiHero(emoji: offer.emoji),
                     )
                   else
-                    _emojiHero(),
+                    _EmojiHero(emoji: offer.emoji),
                   // Degrade pour lisibilite du titre overlay
                   Positioned.fill(
                     child: DecoratedBox(
@@ -79,7 +83,7 @@ class OfferDetailScreen extends StatelessWidget {
           // ─── Contenu scrollable ───
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -90,7 +94,7 @@ class OfferDetailScreen extends StatelessWidget {
                       if (offer.emoji.isNotEmpty) ...[
                         Text(
                           offer.emoji,
-                          style: const TextStyle(fontSize: 32),
+                          style: const TextStyle(fontSize: 28),
                         ),
                         const SizedBox(width: 10),
                       ],
@@ -98,7 +102,7 @@ class OfferDetailScreen extends StatelessWidget {
                         child: Text(
                           offer.title,
                           style: GoogleFonts.geist(
-                            fontSize: 26,
+                            fontSize: 22,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                             letterSpacing: -0.5,
@@ -108,55 +112,75 @@ class OfferDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
 
                   // Description
                   if (offer.description.isNotEmpty)
                     Text(
                       offer.description,
                       style: GoogleFonts.geist(
-                        fontSize: 15,
+                        fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.78),
-                        height: 1.5,
+                        height: 1.4,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 16),
+
+                  // Bloc commerce : tap ouvre la photo de l'offre en grand
+                  // + un lien Maps pour s'y rendre.
+                  GestureDetector(
+                    onTap: () => _showBusinessSheet(context),
+                    child: _InfoBlock(
+                      icon: Icons.storefront_rounded,
+                      label: 'Chez',
+                      value: offer.businessName,
+                      subValue: offer.businessAddress.isNotEmpty
+                          ? offer.businessAddress
+                          : null,
+                      trailing: const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.white38,
+                        size: 20,
                       ),
                     ),
-                  const SizedBox(height: 28),
-
-                  // Bloc commerce
-                  _InfoBlock(
-                    icon: Icons.storefront_rounded,
-                    label: 'Chez',
-                    value: offer.businessName,
-                    subValue: offer.businessAddress.isNotEmpty
-                        ? offer.businessAddress
-                        : null,
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 10),
 
-                  // Bloc validite
-                  _InfoBlock(
-                    icon: Icons.event_available_rounded,
-                    label: 'Valable',
-                    value: offer.hasNoExpiration
-                        ? 'Sans date limite'
-                        : 'jusqu\'au ${_formatDate(offer.expiresAt)}',
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Bloc places
-                  _InfoBlock(
-                    icon: Icons.confirmation_number_rounded,
-                    label: 'Disponibilite',
-                    value: offer.isUnlimited
-                        ? 'Places illimitees'
-                        : (offer.hasSpots
-                            ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''} sur ${offer.totalSpots}'
-                            : 'Complet'),
-                    valueColor: offer.isUnlimited
-                        ? const Color(0xFFE8A0BF)
-                        : (offer.hasSpots
-                            ? const Color(0xFFE8A0BF)
-                            : Colors.red.shade300),
+                  // Validite + places : regroupees sur une ligne (au lieu de 2
+                  // blocs empiles) pour tenir dans la hauteur visible sans
+                  // scroller.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _InfoBlock(
+                          icon: Icons.event_available_rounded,
+                          label: 'Valable',
+                          value: offer.hasNoExpiration
+                              ? 'Sans date limite'
+                              : 'jusqu\'au ${_formatDate(offer.expiresAt)}',
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _InfoBlock(
+                          icon: Icons.confirmation_number_rounded,
+                          label: 'Disponibilite',
+                          value: offer.isUnlimited
+                              ? 'Illimitees'
+                              : (offer.hasSpots
+                                  ? '${offer.remainingSpots} / ${offer.totalSpots}'
+                                  : 'Complet'),
+                          valueColor: offer.isUnlimited
+                              ? const Color(0xFFE8A0BF)
+                              : (offer.hasSpots
+                                  ? const Color(0xFFE8A0BF)
+                                  : Colors.red.shade300),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -208,16 +232,34 @@ class OfferDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _emojiHero() {
-    return ColoredBox(
-      color: const Color(0xFF241338),
-      child: Center(
-        child: Text(
-          offer.emoji.isNotEmpty ? offer.emoji : '🎁',
-          style: const TextStyle(fontSize: 96),
+  /// Ouvre la photo de l'offre en plein ecran, avec le CTA itineraire par-
+  /// dessus. Remplace l'ancienne bottom sheet : la demande explicite etait
+  /// "ouvre l'offre en plein ecran", pas un panneau partiel.
+  void _showBusinessSheet(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => _OfferPhotoFullScreen(
+          offer: offer,
+          onItinerary: _openItinerary,
         ),
       ),
     );
+  }
+
+  /// Ouvre Google Maps en itineraire vers le commerce. Recherche texte
+  /// (nom + adresse) plutot que lat/lng : l'offre n'a pas de coordonnees,
+  /// seulement les champs libres saisis dans admin.html.
+  Future<void> _openItinerary() async {
+    final destination = offer.businessAddress.isNotEmpty
+        ? '${offer.businessName} ${offer.businessAddress}'
+        : offer.businessName;
+    final uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=${Uri.encodeComponent(destination)}',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   static String _formatDate(DateTime d) {
@@ -298,6 +340,7 @@ class _InfoBlock extends StatelessWidget {
   final String value;
   final String? subValue;
   final Color? valueColor;
+  final Widget? trailing;
 
   const _InfoBlock({
     required this.icon,
@@ -305,12 +348,13 @@ class _InfoBlock extends StatelessWidget {
     required this.value,
     this.subValue,
     this.valueColor,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
@@ -319,8 +363,8 @@ class _InfoBlock extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFFE8A0BF), size: 20),
-          const SizedBox(width: 12),
+          Icon(icon, color: const Color(0xFFE8A0BF), size: 18),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,10 +382,10 @@ class _InfoBlock extends StatelessWidget {
                 Text(
                   value,
                   style: GoogleFonts.geist(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: valueColor ?? Colors.white,
                     fontWeight: FontWeight.w600,
-                    height: 1.3,
+                    height: 1.25,
                   ),
                 ),
                 if (subValue != null) ...[
@@ -356,6 +400,153 @@ class _InfoBlock extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+/// Fallback affiche quand l'offre n'a pas de photo (hero, plein ecran).
+class _EmojiHero extends StatelessWidget {
+  final String emoji;
+
+  const _EmojiHero({required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFF241338),
+      child: Center(
+        child: Text(
+          emoji.isNotEmpty ? emoji : '🎁',
+          style: const TextStyle(fontSize: 96),
+        ),
+      ),
+    );
+  }
+}
+
+/// Photo de l'offre en plein ecran (tap sur le bloc "Chez"), avec un CTA
+/// itineraire superpose en bas : pas de panneau partiel, la photo occupe
+/// tout l'ecran comme demande.
+class _OfferPhotoFullScreen extends StatelessWidget {
+  final Offer offer;
+  final Future<void> Function() onItinerary;
+
+  const _OfferPhotoFullScreen({
+    required this.offer,
+    required this.onItinerary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          InteractiveViewer(
+            minScale: 1,
+            maxScale: 4,
+            child: Center(
+              child: offer.imageUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: offer.imageUrl,
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                      placeholder: (_, __) =>
+                          _EmojiHero(emoji: offer.emoji),
+                      errorWidget: (_, __, ___) =>
+                          _EmojiHero(emoji: offer.emoji),
+                    )
+                  : _EmojiHero(emoji: offer.emoji),
+            ),
+          ),
+          Positioned(
+            left: 8,
+            top: 0,
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _RoundIconButton(
+                  icon: Icons.close_rounded,
+                  onTap: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.85),
+                    ],
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      offer.businessName,
+                      style: GoogleFonts.geist(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (offer.businessAddress.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        offer.businessAddress,
+                        style: GoogleFonts.geist(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: onItinerary,
+                        icon: const Icon(Icons.directions_rounded),
+                        label: Text(
+                          'Itinéraire',
+                          style: GoogleFonts.geist(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: EditorialColors.gold,
+                          foregroundColor: const Color(0xFF1A0A2E),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

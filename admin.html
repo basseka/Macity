@@ -6234,12 +6234,29 @@
             </td>
             <td style="padding:6px 10px 6px 0;">${escapeHtml(o.emoji || "🎁")} ${escapeHtml(o.title)}</td>
             <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(o.description || "")}</td>
+            <td style="padding:6px 10px; font-size:11px;">
+              ${o.categorie ? `<span style="background:var(--line); border-radius:4px; padding:2px 6px;">${escapeHtml(o.categorie)}</span>` : "<span style='opacity:.6; color:var(--text-faint);'>non catégorisée</span>"}
+            </td>
             <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">
               ${o.source_table ? "🏷️ " + escapeHtml(cibleLabel(o.source_table, o.source_id)) : "<span style='opacity:.6;'>aucune pochette</span>"}
             </td>
             <td style="padding:6px 10px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
             <td style="padding:6px 10px; font-size:11px; color:${o.is_active ? "#16a34a" : "var(--text-faint)"};">${o.is_active ? "active" : "inactive"}</td>
             <td style="padding:6px 0 6px 10px; white-space:nowrap;">
+              <button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#166534; margin-right:4px;"
+                data-offer-edit="${o.id}"
+                data-offer-title="${escapeHtml(o.title || "")}"
+                data-offer-desc="${escapeHtml(o.description || "")}"
+                data-offer-emoji="${escapeHtml(o.emoji || "🎁")}"
+                data-offer-spots="${o.total_spots ?? ""}"
+                data-offer-expires="${escapeHtml(o.expires_at || "")}"
+                data-offer-active="${o.is_active ? "1" : ""}"
+                data-offer-categorie="${escapeHtml(o.categorie || "")}"
+                data-offer-image="${escapeHtml(o.image_url || "")}"
+                data-offer-src-table="${escapeHtml(o.source_table || "")}"
+                data-offer-src-id="${escapeHtml(o.source_id ?? "")}"
+                data-offer-venue-label="${escapeHtml(o.source_table ? cibleLabel(o.source_table, o.source_id) : "")}"
+                title="Modifier l'offre">✏️</button>
               <button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#3730a3; margin-right:4px;"
                 data-offer-photo="${o.id}"
                 data-offer-title="${escapeHtml(o.title || "")}"
@@ -6248,6 +6265,7 @@
                 data-offer-spots="${o.total_spots ?? ""}"
                 data-offer-expires="${escapeHtml(o.expires_at || "")}"
                 data-offer-active="${o.is_active ? "1" : ""}"
+                data-offer-categorie="${escapeHtml(o.categorie || "")}"
                 data-offer-src-table="${escapeHtml(o.source_table || "")}"
                 data-offer-src-id="${escapeHtml(o.source_id ?? "")}"
                 title="Changer la photo">📷</button>
@@ -6277,9 +6295,20 @@
               <input type="text" id="offer-emoji" class="banner-input" value="🎁" style="width:56px; text-align:center; margin:0;" />
               <input type="text" id="offer-title" class="banner-input" placeholder="Titre, ex : 1 dessert offert" style="flex:1; min-width:180px; margin:0;" />
               <input type="text" id="offer-desc" class="banner-input" placeholder="Conditions" style="flex:1; min-width:160px; margin:0;" />
+              <select id="offer-categorie" class="banner-input" style="width:130px; margin:0;">
+                <option value="">Catégorie…</option>
+                <option value="Restaurant">Restaurant</option>
+                <option value="Soiree">Soirée</option>
+                <option value="Sport">Sport</option>
+                <option value="Services">Services</option>
+                <option value="Loisirs">Loisirs</option>
+              </select>
               <input type="number" id="offer-spots" class="banner-input" placeholder="Places" min="0" style="width:90px; margin:0;" />
               <input type="date" id="offer-expires" class="banner-input" style="width:150px; margin:0;" />
+              <input type="hidden" id="offer-edit-id" />
+              <input type="hidden" id="offer-edit-active" />
               <button type="button" class="act act-success" id="offer-add-btn">+ Ajouter l'offre</button>
+              <span id="offer-edit-cancel" class="hidden" style="cursor:pointer; color:var(--text-faint); font-size:11px; text-decoration:underline;">Annuler la modification</span>
             </div>
           </div>
 
@@ -6428,24 +6457,61 @@
           // elle ne badge aucune pochette.
           const srcTable = document.getElementById("offer-source-table").value;
           const srcId = document.getElementById("offer-source-id").value;
+          // Present uniquement en mode edition (rempli par le bouton ✏️ ci-
+          // dessous) : sans id, l'upsert cree une nouvelle offre au lieu de
+          // mettre a jour celle en cours d'edition.
+          const editId = document.getElementById("offer-edit-id").value;
+          const editActive = document.getElementById("offer-edit-active").value;
           try {
-            const { error } = await supabase.rpc("admin_upsert_client_offer", {
-              p: {
-                client_id: clientId, title,
-                description: document.getElementById("offer-desc").value.trim(),
-                emoji: document.getElementById("offer-emoji").value.trim() || "🎁",
-                total_spots: document.getElementById("offer-spots").value || "0",
-                expires_at: document.getElementById("offer-expires").value || "",
-                is_active: true,
-                image_url: document.getElementById("offer-image").value.trim(),
-                source_table: srcTable || "",
-                source_id: srcId || "",
-              },
-            });
+            const payload = {
+              client_id: clientId, title,
+              description: document.getElementById("offer-desc").value.trim(),
+              emoji: document.getElementById("offer-emoji").value.trim() || "🎁",
+              total_spots: document.getElementById("offer-spots").value || "0",
+              expires_at: document.getElementById("offer-expires").value || "",
+              // En creation, toujours active. En edition, on garde le statut
+              // existant : sinon reenregistrer une offre desactivee la
+              // reactiverait silencieusement.
+              is_active: editId ? editActive === "1" : true,
+              image_url: document.getElementById("offer-image").value.trim(),
+              categorie: document.getElementById("offer-categorie").value || "",
+              source_table: srcTable || "",
+              source_id: srcId || "",
+            };
+            if (editId) payload.id = editId;
+            const { error } = await supabase.rpc("admin_upsert_client_offer", { p: payload });
             if (error) throw error;
-            toast("Offre ajoutée");
+            toast(editId ? "Offre mise à jour" : "Offre ajoutée");
             renderClientSubsAndOffers(clientId);
           } catch (e) { toast("Erreur : " + e.message, false); }
+          return;
+        }
+        // Charge une offre existante dans le formulaire pour la modifier :
+        // meme formulaire que la creation, mais offer-edit-id fait basculer
+        // le bouton en mode "mise a jour" au lieu de "creer".
+        const editBtn = ev.target.closest("[data-offer-edit]");
+        if (editBtn) {
+          document.getElementById("offer-edit-id").value = editBtn.dataset.offerEdit;
+          document.getElementById("offer-edit-active").value = editBtn.dataset.offerActive ? "1" : "";
+          document.getElementById("offer-emoji").value = editBtn.dataset.offerEmoji || "🎁";
+          document.getElementById("offer-title").value = editBtn.dataset.offerTitle || "";
+          document.getElementById("offer-desc").value = editBtn.dataset.offerDesc || "";
+          document.getElementById("offer-categorie").value = editBtn.dataset.offerCategorie || "";
+          document.getElementById("offer-spots").value = editBtn.dataset.offerSpots || "";
+          // Un <input type="date"> n'accepte que "YYYY-MM-DD" : lui assigner
+          // l'horodatage ISO complet stocke en base (avec heure/fuseau) est
+          // silencieusement ignore, le champ reste vide -> expires_at reparti
+          // vide a l'enregistrement -> viole la contrainte NOT NULL en base.
+          document.getElementById("offer-expires").value =
+            (editBtn.dataset.offerExpires || "").slice(0, 10);
+          if (editBtn.dataset.offerImage) _offerSetImage(editBtn.dataset.offerImage);
+          _offerSetVenue(editBtn.dataset.offerSrcTable, editBtn.dataset.offerSrcId, editBtn.dataset.offerVenueLabel);
+          document.getElementById("offer-add-btn").textContent = "💾 Enregistrer les modifications";
+          document.getElementById("offer-edit-cancel").classList.remove("hidden");
+          return;
+        }
+        if (ev.target.closest("#offer-edit-cancel")) {
+          renderClientSubsAndOffers($cf("id").value);
           return;
         }
         const del = ev.target.closest("[data-offer-del]");
@@ -6478,6 +6544,7 @@
                 expires_at: photoBtn.dataset.offerExpires || "",
                 is_active: !!photoBtn.dataset.offerActive,
                 image_url: url,
+                categorie: photoBtn.dataset.offerCategorie || "",
                 source_table: photoBtn.dataset.offerSrcTable || "",
                 source_id: photoBtn.dataset.offerSrcId || "",
               },

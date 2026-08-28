@@ -25,6 +25,7 @@ class ExplorerScreen extends ConsumerWidget {
     // du flag global laissé à false par Night (mode_shell).
     AppColors.isLightTheme = true;
     final offersAsync = ref.watch(activeOffersProvider);
+    final selectedCategory = ref.watch(selectedOfferCategoryProvider);
 
     return Scaffold(
       backgroundColor: EditorialColors.bg,
@@ -106,8 +107,12 @@ class ExplorerScreen extends ConsumerWidget {
             // disponible : sans ce titre, la grille se lisait comme la suite du
             // carrousel, donc comme du contenu verrouillé lui aussi.
             const SliverToBoxAdapter(child: _TitreOffresMaCity()),
+            const SliverToBoxAdapter(child: _CategoryFilterRow()),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: EditorialSpacing.sm),
+            ),
             // Grille des offres
-            ..._buildOffersSlivers(context, ref, offersAsync),
+            ..._buildOffersSlivers(context, ref, offersAsync, selectedCategory),
             const SliverToBoxAdapter(
               child: SizedBox(height: EditorialSpacing.xxl),
             ),
@@ -121,6 +126,7 @@ class ExplorerScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     AsyncValue<List<Offer>> offersAsync,
+    String? selectedCategory,
   ) {
     return offersAsync.when(
       loading: () => const [
@@ -149,7 +155,13 @@ class ExplorerScreen extends ConsumerWidget {
           ),
         ),
       ],
-      data: (offers) {
+      data: (allOffers) {
+        // Filtre applique cote client : la liste est deja courte (une seule
+        // ville) et deja chargee par activeOffersProvider, inutile de
+        // relancer une requete pour changer d'onglet.
+        final offers = selectedCategory == null
+            ? allOffers
+            : allOffers.where((o) => o.categorie == selectedCategory).toList();
         if (offers.isEmpty) {
           return [
             SliverToBoxAdapter(
@@ -157,7 +169,9 @@ class ExplorerScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 48),
                 child: Center(
                   child: Text(
-                    'Aucune offre disponible',
+                    selectedCategory == null
+                        ? 'Aucune offre disponible'
+                        : 'Aucune offre dans cette categorie',
                     style: GoogleFonts.geist(
                       fontSize: 13,
                       color: AppColors.textFaint,
@@ -237,6 +251,86 @@ class _TitreOffresMaCity extends StatelessWidget {
             style: EditorialText.cardTitle(color: const Color(0xFF1A0F2E))
                 .copyWith(fontSize: 16, fontWeight: FontWeight.w800),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Filtres par categorie au-dessus de la grille : "Toutes" + les 5
+/// categories d'offres. Filtrage cote client (cf. [_buildOffersSlivers]),
+/// pas de requete reseau au changement d'onglet.
+///
+/// Couleurs EN DUR, meme raison que [_TitreOffresMaCity] : cet ecran force
+/// le theme clair localement mais `EditorialColors`/`AppColors.isLightTheme`
+/// restent un drapeau global partage avec les ecrans sombres.
+class _CategoryFilterRow extends ConsumerWidget {
+  const _CategoryFilterRow();
+
+  static const _categories = [
+    'Restaurant',
+    'Soiree',
+    'Sport',
+    'Services',
+    'Loisirs',
+  ];
+
+  static const _labels = {
+    'Restaurant': 'Restaurant',
+    'Soiree': 'Soirée',
+    'Sport': 'Sport',
+    'Services': 'Services',
+    'Loisirs': 'Loisirs',
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selected = ref.watch(selectedOfferCategoryProvider);
+
+    Widget chip(String? value, String label) {
+      final isSelected = selected == value;
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: GestureDetector(
+          onTap: () =>
+              ref.read(selectedOfferCategoryProvider.notifier).state = value,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? EditorialColors.magenta
+                  : const Color(0xFFF1EEE9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isSelected
+                    ? EditorialColors.magenta
+                    : const Color(0x1A1A0F2E),
+              ),
+            ),
+            child: Text(
+              label,
+              style: GoogleFonts.geist(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? Colors.white : const Color(0xFF1A0F2E),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
+          horizontal: EditorialSpacing.screen,
+        ),
+        children: [
+          chip(null, 'Toutes'),
+          for (final c in _categories) chip(c, _labels[c]!),
         ],
       ),
     );
@@ -404,16 +498,17 @@ class _OfferCard extends StatelessWidget {
                           const Icon(
                             Icons.storefront_rounded,
                             color: Color(0xFFE8A0BF),
-                            size: 13,
+                            size: 15,
                           ),
                           const SizedBox(width: 5),
                           Expanded(
                             child: Text(
                               offer.businessName,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.white.withValues(alpha: 0.7),
-                                fontWeight: FontWeight.w500,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.2,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
