@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pulz_app/features/offers/presentation/widgets/locked_offers_carousel.dart';
+import 'package:pulz_app/features/offers/presentation/widgets/premium_offers_card.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_city_header.dart';
@@ -12,10 +12,10 @@ import 'package:pulz_app/features/offers/state/offers_provider.dart';
 
 /// Ecran "Explorer" — feed des offres.
 ///
-/// Layout :
+/// Layout (refonte handoff "Offres — refonte", fev. 2026) :
 ///  1. CityHeader (logo + Ta ville + ville + avatar)
-///  2. Header "Les offres *premium* par [logo BeThere]"
-///  3. Grille 2 colonnes des offres actives (tap -> OfferCodePopup)
+///  2. Carte sombre "Offres premium" (logo BeThere + categories verrouillees)
+///  3. Grille 2 colonnes des offres actives (tap -> OfferDetailScreen)
 class ExplorerScreen extends ConsumerWidget {
   const ExplorerScreen({super.key});
 
@@ -28,79 +28,22 @@ class ExplorerScreen extends ConsumerWidget {
     final selectedCategory = ref.watch(selectedOfferCategoryProvider);
 
     return Scaffold(
-      backgroundColor: EditorialColors.bg,
+      // Fond crème du handoff, EN DUR : distinct du gris `EditorialColors.bg`
+      // partagé avec le reste de l'app.
+      backgroundColor: const Color(0xFFFBF6EC),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: EditorialCityHeader()),
-            // Header "Les offres premium par [logo BeThere]"
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  EditorialSpacing.screen,
-                  // Titre remonté au contact du CityHeader (lg -> xs) : le logo
-                  // BeThere fait 60px de haut dans une ligne de texte 18pt, il
-                  // apporte donc déjà sa propre respiration verticale. Un
-                  // padding lg par-dessus creusait un blanc inutile.
-                  EditorialSpacing.xs,
-                  EditorialSpacing.screen,
-                  EditorialSpacing.sm,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '✦',
-                      style: TextStyle(
-                        color: EditorialColors.magenta,
-                        fontSize: 18,
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(width: EditorialSpacing.md),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Les offres premium par ',
-                              style: EditorialText.displayTitle()
-                                  .copyWith(fontSize: 18),
-                            ),
-                            // Logo BeThere a la place du mot, aligne avec
-                            // la baseline du texte. La hauteur du logo (28)
-                            // est legerement superieure a la x-height du
-                            // texte 18pt pour mieux ressortir.
-                            WidgetSpan(
-                              alignment: PlaceholderAlignment.middle,
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 2),
-                                child: Image.asset(
-                                  'assets/images/bethere-logo.png',
-                                  height: 60,
-                                  fit: BoxFit.contain,
-                                  filterQuality: FilterQuality.high,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: EditorialSpacing.sm),
             ),
-            // Carrousel « réservé aux abonnés », juste sous le titre et AVANT
-            // la grille : cartes volontairement génériques (catégorie seule,
-            // aucun commerçant ni remise chiffrée) qui mènent à la vidéo puis
-            // à l'abonnement.
+            // Carte "Offres premium" : logo BeThere + 3 catégories
+            // verrouillées + CTA d'abonnement, tout dans le même bloc sombre.
             const SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.only(bottom: EditorialSpacing.sm),
-                child: LockedOffersCarousel(),
+                padding: EdgeInsets.only(bottom: EditorialSpacing.screen),
+                child: PremiumOffersCard(),
               ),
             ),
             // Sépare le teaser « réservé aux abonnés » de ce qui est réellement
@@ -196,7 +139,9 @@ class ExplorerScreen extends ConsumerWidget {
                 crossAxisCount: 2,
                 mainAxisSpacing: 14,
                 crossAxisSpacing: 14,
-                childAspectRatio: 0.58,
+                // Carte blanche courte (image 112 + 3 lignes de texte max),
+                // bien plus compacte que l'ancienne carte sombre a 4 lignes.
+                childAspectRatio: 0.72,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, i) => _OfferCard(
@@ -217,11 +162,9 @@ class ExplorerScreen extends ConsumerWidget {
   }
 }
 
-/// Titre de section au-dessus de la grille, pendant de « Réservé aux abonnés »
-/// du carrousel : même corps et même graisse, pour que les deux blocs se lisent
-/// comme deux rayons du même écran plutôt que comme un seul bloc continu.
+/// Titre de section au-dessus de la grille : glyphe ◆ + "Les offres MaCity".
 ///
-/// Couleurs EN DUR, comme dans `LockedOffersCarousel` et pour les mêmes
+/// Couleurs EN DUR, comme dans `PremiumOffersCard` et pour les mêmes
 /// raisons : `Theme.of(context)` hérite du thème global, qui est SOMBRE (texte
 /// blanc sur fond crème = invisible), et `EditorialColors.text` dépend de
 /// `AppColors.isLightTheme`, un drapeau global MUTABLE qu'un autre écran peut
@@ -231,8 +174,8 @@ class _TitreOffresMaCity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(
         EditorialSpacing.screen,
         EditorialSpacing.sm,
         EditorialSpacing.screen,
@@ -240,16 +183,25 @@ class _TitreOffresMaCity extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.local_offer_rounded,
-            size: 17,
-            color: EditorialColors.magenta,
-          ),
-          const SizedBox(width: 7),
           Text(
-            'Les offres MaCity',
-            style: EditorialText.cardTitle(color: const Color(0xFF1A0F2E))
-                .copyWith(fontSize: 16, fontWeight: FontWeight.w800),
+            '◆',
+            style: TextStyle(color: Color(0xFFF5197F), fontSize: 14),
+          ),
+          SizedBox(width: 8),
+          // Expanded + ellipsis, par securite sur les ecrans etroits (les
+          // enfants non-Expanded d'un Row ne se compressent pas d'eux-memes).
+          Expanded(
+            child: Text(
+              'Les offres MaCity',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF101B33),
+                letterSpacing: -0.2,
+              ),
+            ),
           ),
         ],
       ),
@@ -290,30 +242,35 @@ class _CategoryFilterRow extends ConsumerWidget {
     Widget chip(String? value, String label) {
       final isSelected = selected == value;
       return Padding(
-        padding: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.only(right: 9),
         child: GestureDetector(
           onTap: () =>
               ref.read(selectedOfferCategoryProvider.notifier).state = value,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? EditorialColors.magenta
-                  : const Color(0xFFF1EEE9),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isSelected
-                    ? EditorialColors.magenta
-                    : const Color(0x1A1A0F2E),
-              ),
+              color: isSelected ? const Color(0xFFF5197F) : Colors.white,
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: [
+                BoxShadow(
+                  color: isSelected
+                      ? const Color(0xFFF5197F).withValues(alpha: 0.65)
+                      : const Color(0xFF101B33).withValues(alpha: 0.06),
+                  blurRadius: isSelected ? 14 : 6,
+                  offset: Offset(0, isSelected ? 6 : 2),
+                  spreadRadius: isSelected ? -6 : 0,
+                ),
+              ],
             ),
             child: Text(
               label,
-              style: GoogleFonts.geist(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: isSelected ? Colors.white : const Color(0xFF1A0F2E),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : const Color(0xFF101B33),
               ),
             ),
           ),
@@ -322,7 +279,7 @@ class _CategoryFilterRow extends ConsumerWidget {
     }
 
     return SizedBox(
-      height: 40,
+      height: 34,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(
@@ -337,8 +294,13 @@ class _CategoryFilterRow extends ConsumerWidget {
   }
 }
 
-/// Carte offre large pour la grille 2 colonnes : image + titre + commerce
-/// + badge places restantes.
+/// Carte offre blanche pour la grille 2 colonnes : photo + badge places +
+/// nom du commerce + titre de l'offre + adresse.
+///
+/// Le handoff design prevoit un badge remise chiffree (−20 %, OFFERT,
+/// ENTREE) : le modele `Offer` ne porte aucun type/montant de remise
+/// (uniquement des places, cf. `offer.dart`), donc le badge reste base sur
+/// les places restantes reelles plutot que d'inventer une remise.
 class _OfferCard extends StatelessWidget {
   final Offer offer;
   final VoidCallback onTap;
@@ -352,176 +314,135 @@ class _OfferCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF1A0A2E), Color(0xFF2D1B4E)],
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF101B33).withValues(alpha: 0.07),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Visuel
-              Expanded(
-                flex: 5,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (hasImage)
-                      CachedNetworkImage(
-                        imageUrl: offer.imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => const ColoredBox(
-                          color: Color(0xFF241338),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFFE8A0BF),
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        ),
-                        errorWidget: (_, __, ___) => _emojiFallback(),
-                      )
-                    else
-                      _emojiFallback(),
-                    // Degrade bas pour lisibilite
-                    Positioned.fill(
-                      child: DecoratedBox(
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 112,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (hasImage)
+                    CachedNetworkImage(
+                      imageUrl: offer.imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const ColoredBox(
+                        color: Color(0xFFEFE6D6),
+                      ),
+                      errorWidget: (_, __, ___) => _emojiFallback(),
+                    )
+                  else
+                    _emojiFallback(),
+                  if (!offer.isUnlimited)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        height: 26,
+                        padding: const EdgeInsets.symmetric(horizontal: 11),
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              const Color(0xFF1A0A2E).withValues(alpha: 0.85),
-                            ],
-                            stops: const [0.45, 1.0],
+                          color: offer.hasSpots
+                              ? const Color(0xFFF5197F)
+                              : const Color(0xFF6B7385),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          offer.hasSpots
+                              ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
+                              : 'Complet',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ),
-                    // Badge places restantes
+                  if (offer.isUnlimited)
                     Positioned(
-                      top: 8,
-                      right: 8,
+                      bottom: 10,
+                      left: 10,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
+                        height: 24,
+                        padding: const EdgeInsets.symmetric(horizontal: 9),
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: offer.hasSpots
-                              ? const Color(0xFFE8A0BF).withValues(alpha: 0.22)
-                              : Colors.red.withValues(alpha: 0.22),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: offer.hasSpots
-                                ? const Color(0xFFE8A0BF)
-                                    .withValues(alpha: 0.4)
-                                : Colors.red.withValues(alpha: 0.4),
-                          ),
+                          color: const Color(0xFF17102B).withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(999),
                         ),
-                        child: Text(
-                          offer.isUnlimited
-                              ? '∞ Illimite'
-                              : (offer.hasSpots
-                                  ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
-                                  : 'Complet'),
+                        child: const Text(
+                          '∞ ILLIMITÉ',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: offer.hasSpots
-                                ? const Color(0xFFE8A0BF)
-                                : Colors.red.shade300,
+                            color: Color(0xFFE8B54B),
+                            letterSpacing: 0.6,
                           ),
                         ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(13, 12, 13, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    offer.businessName.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFF5197F),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    offer.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF101B33),
+                      height: 1.2,
+                    ),
+                  ),
+                  if (offer.businessAddress.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      offer.businessAddress,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF6B7385),
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-              // Infos
-              Expanded(
-                flex: 4,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (offer.emoji.isNotEmpty) ...[
-                            Text(
-                              offer.emoji,
-                              style: const TextStyle(fontSize: 18),
-                            ),
-                            const SizedBox(width: 6),
-                          ],
-                          Expanded(
-                            child: Text(
-                              offer.title,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: -0.3,
-                                height: 1.2,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (offer.description.isNotEmpty) ...[
-                        const SizedBox(height: 5),
-                        Text(
-                          offer.description,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white.withValues(alpha: 0.6),
-                            height: 1.35,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                      const Spacer(),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.storefront_rounded,
-                            color: Color(0xFFE8A0BF),
-                            size: 15,
-                          ),
-                          const SizedBox(width: 5),
-                          Expanded(
-                            child: Text(
-                              offer.businessName,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -529,11 +450,11 @@ class _OfferCard extends StatelessWidget {
 
   Widget _emojiFallback() {
     return ColoredBox(
-      color: const Color(0xFF241338),
+      color: const Color(0xFFEFE6D6),
       child: Center(
         child: Text(
           offer.emoji.isNotEmpty ? offer.emoji : '🎁',
-          style: const TextStyle(fontSize: 44),
+          style: const TextStyle(fontSize: 40),
         ),
       ),
     );

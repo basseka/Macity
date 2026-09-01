@@ -139,9 +139,9 @@ mesures, pas des objectifs de résultat.
 
 **[149] € HT par mois**, soit **[178,80] € TTC** (TVA [20] %).
 
-**Abonnement sans engagement de durée.** Aucune durée minimale n'est imposée au
-Partenaire : il peut résilier à tout moment, dans les conditions de l'article 6,
-sans indemnité ni pénalité.
+**Engagement de 6 mois minimum.** Passé cette durée initiale, l'abonnement se
+poursuit sans engagement : le Partenaire peut résilier à tout moment, dans les
+conditions de l'article 6, sans indemnité ni pénalité.
 
 Payable [mensuellement, par prélèvement / virement], à [terme échu / d'avance].
 
@@ -151,12 +151,14 @@ Partenaire sans son accord écrit.
 
 ## 6. Durée, résiliation
 
-Le contrat prend effet le **[__/__/____]** pour une durée de **[1 mois],
-renouvelable tacitement** par périodes de même durée.
+Le contrat prend effet le **[__/__/____]** pour une durée initiale de
+**6 mois**, renouvelable ensuite tacitement par périodes d'**1 mois**.
 
-**Chaque partie peut y mettre fin à tout moment**, par simple écrit (courriel
-suffit), avec un préavis de **[15] jours**. Aucune indemnité n'est due de part
-ni d'autre.
+**Passé cette durée initiale, chaque partie peut y mettre fin à tout moment**,
+par simple écrit (courriel suffit), avec un préavis de **[15] jours**. Aucune
+indemnité n'est due de part ni d'autre. Avant l'échéance des 6 mois, le contrat
+ne peut être résilié que d'un commun accord ou en cas de manquement grave de
+l'une des parties.
 
 À la fin du contrat, MaCity retire les emplacements Premium. La fiche du
 Partenaire reste présente dans l'application, comme celle de tout établissement
@@ -204,7 +206,7 @@ Fait en deux exemplaires, à **[ville]**, le **[__/__/____]**.
 
 ---
 
-# Notes internes — à lire avant d'envoyer
+# Notes internes : à lire avant d'envoyer
 
 **Ceci est un brouillon, pas un contrat validé par un juriste.** Il est écrit
 pour être clair et équilibré, mais si tu comptes le réutiliser pour des dizaines
@@ -228,17 +230,17 @@ Sur les trois KPI que tu voulais promettre, **deux ne sont pas mesurables
 aujourd'hui** :
 
 - *consultations de fiche* : aucune table, aucun event Analytics. Les fiches sont
-  ouvertes par `Navigator.push`, et ces écrans ne sont pas tracés — même après
+  ouvertes par `Navigator.push`, et ces écrans ne sont pas tracés, même après
   le `screen_view` que je viens d'implémenter, qui ne couvre que les routes de
   premier niveau et les sous-rubriques.
 - *clics sur le lien* : `commerce_card.dart:226` appelle `launchUrl` sans rien
   enregistrer.
 - *utilisateurs envoyés* : seul `offers.claimed_spots` existe, et c'est un bon
-  proxy — c'est pour ça qu'il est dans la première liste.
+  proxy, c'est pour ça qu'il est dans la première liste.
 
 **✅ MAINTENANT CODÉ** (2026-07-31), mais **pas encore déployé** :
 
-- migration `20260731120000_partner_metrics.sql` — table `partner_metrics`,
+- migration `20260731120000_partner_metrics.sql` : table `partner_metrics`,
   RPC d'enregistrement filtrant les non-partenaires, RPC de reporting mensuel,
   fonction de purge ;
 - service `lib/core/services/partner_metrics_service.dart` ;
@@ -275,7 +277,7 @@ tiens le compte à la main, soit je code le plafond en base. À toi.
 Cette mise en avant repose sur le trigger d'attribution automatique du P1 que
 j'ai écrit (`20260731110000_auto_p1_premium_pro.sql`), qui **n'est pas encore
 appliqué**. Et il exige que Le Bouillon Labège ait **revendiqué sa fiche** via un
-code MaCity — sinon la promotion ne le trouve pas. Ordre à respecter :
+code MaCity, sinon la promotion ne le trouve pas. Ordre à respecter :
 
 1. appliquer la migration des plafonds + faire la release ;
 2. appliquer la migration auto-P1 ;

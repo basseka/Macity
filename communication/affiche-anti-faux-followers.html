@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity : pas de faux followers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-top:#160B22; --bg-bot:#0A0512;
+    --panel:#1C1330; --line:#2E2246;
+    --text:#F5F1FC; --dim:#C6BAE0; --faint:#8577A3;
+    --faint2:#A497C9;
+    --pink:#E91E8C; --pink-hi:#FF4FA8;
+    --blue:#3B82F6; --blue-hi:#6FA3FF;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:var(--bg-bot); }
+  /* 1080x1350 : ratio 4:5, le format portrait recommande par Instagram pour
+     le feed (le plus grand affiche possible sans etre recadre). Marges
+     hautes/basses volontairement genereuses : si l'affiche est repartagee
+     ou recadree en carre (grille de profil, story), l'essentiel du message
+     reste dans la zone centrale 1080x1080 qui survit au recadrage. */
+  body{
+    width:1080px; height:1350px;
+    font-family:'Inter','Liberation Sans','DejaVu Sans',sans-serif;
+    color:var(--text);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 15% 0%, #3A1445 0%, transparent 55%),
+      radial-gradient(110% 80% at 100% 100%, #12244A 0%, transparent 55%),
+      linear-gradient(160deg, var(--bg-top) 0%, var(--bg-bot) 70%);
+  }
+
+  .noise{
+    position:absolute; inset:0;
+    background-image: radial-gradient(rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size:3px 3px;
+    pointer-events:none;
+  }
+
+  .frame{
+    position:relative;
+    height:100%;
+    padding:104px 76px 96px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* ── Header : logo + marque ── */
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand img{ width:54px; height:54px; border-radius:14px; display:block;
+    box-shadow:0 6px 20px rgba(233,30,140,.3); }
+  .brand .word{ font-size:30px; font-weight:900; letter-spacing:-.01em; }
+  .brand .word span{ color:var(--pink-hi); }
+
+  .kicker{
+    margin-top:36px;
+    display:inline-flex; align-items:center; gap:10px; align-self:flex-start;
+    font-size:17px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--pink-hi);
+    background:rgba(233,30,140,.14);
+    border:1px solid rgba(233,30,140,.45);
+    border-radius:999px;
+    padding:11px 22px;
+  }
+
+  /* ── Titre principal : le plus gros element de la page, lisible en un
+       coup d'oeil pendant un scroll de feed. ── */
+  h1{
+    margin-top:30px;
+    font-size:66px; font-weight:900; line-height:1.1; letter-spacing:-.015em;
+  }
+  h1 .not{ color:var(--pink-hi); }
+
+  .lede{
+    margin-top:28px;
+    font-size:27px; font-weight:500; line-height:1.5; color:var(--dim);
+  }
+  .lede b{ color:var(--text); font-weight:700; }
+
+  /* ── Bandeau merci ── */
+  .thanks{
+    margin-top:34px;
+    display:flex; align-items:center; gap:14px; align-self:flex-start;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:20px 26px;
+    font-size:21px; font-weight:700; color:var(--text);
+    line-height:1.35;
+  }
+  .thanks .emoji{ font-size:28px; line-height:1; flex-shrink:0; }
+
+  /* ── Rappel des faits : 3 reperes courts, gros caracteres, pour occuper
+       l'espace central sans faire baisser la lisibilite. ── */
+  .stats{
+    margin-top:auto;
+    padding-top:40px;
+    display:flex; gap:16px;
+  }
+  .stat{
+    flex:1;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px 18px;
+    text-align:center;
+  }
+  .stat .icon{ font-size:32px; line-height:1; }
+  .stat .label{
+    margin-top:12px;
+    font-size:14px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--faint2);
+  }
+  .stat .value{
+    margin-top:6px;
+    font-size:21px; font-weight:800; color:var(--text); line-height:1.25;
+  }
+  .stat.pink .value{ color:var(--pink-hi); }
+  .stat.blue .value{ color:var(--blue-hi); }
+
+  /* ── Punchline finale : le clou de l'affiche ── */
+  .punch{
+    margin-top:40px;
+    padding-top:36px;
+    border-top:1px solid var(--line);
+  }
+  .punch .no-line{
+    font-size:26px; font-weight:700; color:var(--faint2);
+    text-decoration:line-through;
+    text-decoration-color:rgba(255,79,168,.55);
+    text-decoration-thickness:3px;
+  }
+  .punch .no-line + .no-line{ margin-top:4px; }
+  .punch .yes-line{
+    margin-top:18px;
+    font-size:52px; font-weight:900; line-height:1.15;
+    background:linear-gradient(95deg, var(--text) 0%, var(--blue-hi) 55%, var(--pink-hi) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  /* ── Footer ── */
+  .foot{
+    margin-top:34px;
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:16px; color:var(--faint2); font-weight:700;
+  }
+  .foot .dot{ color:var(--pink-hi); }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="frame">
+
+  <div class="brand">
+    <img src="../macity_icon.png" alt="MaCity">
+    <div class="word">Ma<span>City</span></div>
+  </div>
+
+  <div class="kicker">🚨 Position officielle</div>
+
+  <h1>MaCity n'est <span class="not">pas intéressée</span> par l'achat de faux&nbsp;followers.</h1>
+
+  <p class="lede">
+    MaCity grandit <b>naturellement, par ses propres moyens</b>, grâce à sa
+    communauté, son contenu et son travail.
+  </p>
+
+  <div class="thanks">
+    <span class="emoji">🙏</span>
+    <span>Merci aux prospecteurs de respecter notre démarche.</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat pink">
+      <div class="icon">🤖</div>
+      <div class="label">Bots</div>
+      <div class="value">Zéro</div>
+    </div>
+    <div class="stat">
+      <div class="icon">🌱</div>
+      <div class="label">Croissance</div>
+      <div class="value">Organique</div>
+    </div>
+    <div class="stat blue">
+      <div class="icon">🤝</div>
+      <div class="label">Communauté</div>
+      <div class="value">Réelle</div>
+    </div>
+  </div>
+
+  <div class="punch">
+    <div class="no-line">Pas de faux abonnés.</div>
+    <div class="no-line">Pas de fausse croissance.</div>
+    <div class="yes-line">MaCity avance avec du vrai. 💙</div>
+  </div>
+
+  <div class="foot">
+    <span>MaCity</span>
+    <span class="dot">•</span>
+    <span>macity.app</span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -7712,7 +7712,7 @@
       return `
         <div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-dim); margin:16px 0 4px;">
           <span><span style="display:inline-block;width:12px;height:0;border-top:2px dashed #7c3aed;vertical-align:middle;"></span> Objectif</span>
-          <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Inscriptions</span>
+          <span><span style="display:inline-block;width:12px;height:2px;background:#22c55e;vertical-align:middle;"></span> Utilisateurs totaux (inscrits + anonymes)</span>
           <span><span style="display:inline-block;width:12px;height:2px;background:#3b82f6;vertical-align:middle;"></span> Téléchargements</span>
           <span><span style="display:inline-block;width:12px;height:2px;background:#eab308;vertical-align:middle;"></span> Actifs 30 j glissants</span>
           <span style="color:var(--text-faint);">· échelle log 100 à 20k</span>
@@ -7748,7 +7748,15 @@
             <span>Reste ${reste.toLocaleString("fr-FR")} inscriptions</span>
             <span>Objectif ${obj.toLocaleString("fr-FR")}</span>
           </div>
-          ${_renderObjectiveCurve(total, s.par_jour || [], installs || [], actifs || [])}
+          ${(() => {
+            // Courbe verte = utilisateurs totaux (inscrits + anonymes), pas
+            // seulement les inscrits : on fusionne les deux séries par jour.
+            const totalUsers = total + (s.anonymes || 0);
+            const regRows = s.par_jour || [];
+            const anonRows = s.par_jour_anonymes || [];
+            const mergedParJour = regRows.map((r, i) => ({ jour: r.jour, n: (r.n || 0) + ((anonRows[i] && anonRows[i].n) || 0) }));
+            return _renderObjectiveCurve(totalUsers, mergedParJour, installs || [], actifs || []);
+          })()}
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-top:16px;">
             ${_statCard("Aujourd'hui", (s.aujourdhui || 0), "nouvelles inscriptions")}
             ${_statCard("10 derniers jours", (s.total_10j || 0), `${((s.total_10j || 0) / 10).toFixed(1)} / jour en moy.`)}
@@ -12974,6 +12982,9 @@
       const c = document.getElementById("pf-canvas");
       if (!c) return;
       const ctx = c.getContext("2d");
+      // Par defaut, Chrome interpole les drawImage() en qualite "low" (flou
+      // surtout visible quand la photo est agrandie pour couvrir le cadre).
+      ctx.imageSmoothingQuality = "high";
       const zone = document.getElementById("pf-bg-zone");
       const browseBtn = document.getElementById("pf-bg-browse");
       const posYInput = document.getElementById("pf-posy");

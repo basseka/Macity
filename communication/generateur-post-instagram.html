@@ -155,6 +155,9 @@ TOUTE TA VILLE, EN TEMPS RÉEL</textarea>
 <script>
 const c = document.getElementById("c");
 const ctx = c.getContext("2d");
+// Par defaut, Chrome interpole les drawImage() en qualite "low" (flou surtout
+// visible quand la photo est agrandie pour couvrir le cadre).
+ctx.imageSmoothingQuality = "high";
 const ROSE = "#FF1E8E";
 // Police des pastilles (« L'AGENDA », « CONCERT »…), volontairement
 // distincte de celle des titres.

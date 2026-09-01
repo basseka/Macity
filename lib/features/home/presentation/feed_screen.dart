@@ -63,6 +63,7 @@ import 'package:pulz_app/features/home/state/search_intent_provider.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/partners_of_day_section.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_live_stripe.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/tonight_cta_banner.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
@@ -839,7 +840,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: _buildHomeSearchRow(),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
+        // Visible sans scroller (contrairement a la bulle du meme nom, plus
+        // bas dans PartnersOfDaySection) : meme action, juste remontee.
+        // Hauteur/marges volontairement serrees : ce bandeau ne doit pas
+        // repousser la stripe "En direct" (stories Map Live) hors ecran.
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: TonightCtaBanner(),
+        ),
+        const SizedBox(height: 8),
         const HomeQuickPills(),
         const SizedBox(height: 4),
         boostedCarousel,

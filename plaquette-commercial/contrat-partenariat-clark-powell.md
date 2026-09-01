@@ -142,9 +142,9 @@ mesures, pas des objectifs de résultat.
 Ce tarif correspond à l'exclusivité totale de la rubrique Sport décrite à
 l'article 2.1 : sans partage, sans rotation, un seul partenaire affiché.
 
-**Abonnement sans engagement de durée.** Aucune durée minimale n'est imposée au
-Partenaire : il peut résilier à tout moment, dans les conditions de l'article 6,
-sans indemnité ni pénalité.
+**Engagement de 6 mois minimum.** Passé cette durée initiale, l'abonnement se
+poursuit sans engagement : le Partenaire peut résilier à tout moment, dans les
+conditions de l'article 6, sans indemnité ni pénalité.
 
 Payable [mensuellement, par prélèvement / virement], à [terme échu / d'avance].
 
@@ -154,12 +154,14 @@ Partenaire sans son accord écrit.
 
 ## 6. Durée, résiliation
 
-Le contrat prend effet le **[__/__/____]** pour une durée de **[1 mois],
-renouvelable tacitement** par périodes de même durée.
+Le contrat prend effet le **[__/__/____]** pour une durée initiale de
+**6 mois**, renouvelable ensuite tacitement par périodes d'**1 mois**.
 
-**Chaque partie peut y mettre fin à tout moment**, par simple écrit (courriel
-suffit), avec un préavis de **[15] jours**. Aucune indemnité n'est due de part
-ni d'autre.
+**Passé cette durée initiale, chaque partie peut y mettre fin à tout moment**,
+par simple écrit (courriel suffit), avec un préavis de **[15] jours**. Aucune
+indemnité n'est due de part ni d'autre. Avant l'échéance des 6 mois, le contrat
+ne peut être résilié que d'un commun accord ou en cas de manquement grave de
+l'une des parties.
 
 À la fin du contrat, MaCity retire les emplacements Premium Exclusif. La fiche
 du Partenaire reste présente dans l'application, comme celle de tout
@@ -208,7 +210,7 @@ Fait en deux exemplaires, à **[ville]**, le **[__/__/____]**.
 
 ---
 
-# Notes internes — à lire avant d'envoyer
+# Notes internes : à lire avant d'envoyer
 
 **Ceci est un brouillon, pas un contrat validé par un juriste**, adapté du
 contrat Le Bouillon Labège (Premium standard, 149 €) pour un forfait **Premium
@@ -219,25 +221,33 @@ Exclusif** à 349 €/mois.
 - **L'identité exacte du Partenaire.** « Clark Powel » est-il le nom de
   l'enseigne, ou un nom de personne (sportif, coach) ? Vérifie s'il faut une
   société derrière, avec son SIRET, ou si tu contractualises avec une personne
-  physique — dans ce dernier cas, plusieurs clauses (SIRET, facturation TVA)
+  physique, dans ce dernier cas, plusieurs clauses (SIRET, facturation TVA)
   doivent être adaptées, dis-le moi si c'est le cas.
 - **La date de l'article 4** pour les trois KPI non encore mesurables (voir le
   contrat Le Bouillon Labège pour le détail technique, inchangé ici).
 - Le nombre de publications Instagram et de stories (j'ai repris 2 et 4, comme
-  pour Le Bouillon Labège — à ajuster si l'exclusivité doit se voir aussi côté
+  pour Le Bouillon Labège, à ajuster si l'exclusivité doit se voir aussi côté
   réseaux sociaux).
 - **La ville** couverte par l'exclusivité (article 2.1 et 9).
 
 ## Ce qui change par rapport au contrat Premium standard
 
 - **Article 2.1** : la clause de rotation à parts égales a été remplacée par un
-  **engagement d'exclusivité** — un seul partenaire Sport à la fois, par ville.
+  **engagement d'exclusivité**, un seul partenaire Sport à la fois, par ville.
   Vérifie bien qu'aucun autre partenaire Sport Premium n'est déjà actif dans la
   ville de Clark Powel avant de signer : l'engagement ne tient que si c'est
   vrai au moment de la signature.
 - **Article 5** : 349 € HT au lieu de 149 €, avec la justification de
   l'exclusivité écrite noir sur blanc, pour qu'il n'y ait pas d'ambiguïté sur
   pourquoi ce prix est différent du tarif carte Premium standard.
+- **Articles 5 et 6** : ce contrat impose un **engagement de 6 mois minimum**,
+  contrairement au contrat Le Bouillon Labège (Premium standard) qui reste
+  sans engagement, résiliable à tout moment. C'est cohérent avec la plaquette
+  tarifaire bannière (`plaquette-banniere-exclusive.pdf`, mise à jour pareil),
+  mais ça veut dire que MaCity a maintenant deux structures contractuelles
+  différentes en circulation. Décide si l'engagement de 6 mois doit devenir la
+  norme pour tous les nouveaux contrats Premium, ou rester propre aux forfaits
+  exclusifs.
 - L'encart page d'accueil est décrit de façon générique (« à la une » de la
   rubrique Sport) plutôt que « salle de sport / club du jour » : ajuste la
   formulation une fois que tu sais précisément ce que fait Clark Powel (salle

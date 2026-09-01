@@ -1,0 +1,20 @@
+*MaCity - Campagne pub lancée aujourd'hui*
+
+*Ce qui a été fait*
+1. Montage des 3 vidéos (Bouscule, Sandwich, Voiture) : début raccourci, qualité d'origine conservée.
+2. Site macity.app modifié pour tracer les téléchargements. Chaque pub a son lien : on saura enfin quelle vidéo fait installer l'app, pas juste cliquer.
+3. Campagne Meta créée : "MaCity - Installations - Août 2026".
+
+*Réglages*
+Objectif trafic, optimisé sur les visites du site (pas juste les clics).
+Toulouse 30 km + Albi + Montauban, 18-45 ans.
+20 EUR/jour jusqu'au 31 août.
+3 pubs, 1 par vidéo, dans le même groupe : Meta bascule le budget vers celle qui marche.
+Anciennes campagnes mises en pause pour ne pas fausser les chiffres.
+
+*Prochaine étape : samedi 9 août*
+On regarde dans la Play Console combien d'installations par vidéo, on garde la meilleure et on coupe les 2 autres.
+Repère de coût : 0,05 EUR la visite.
+
+*À noter*
+Pour l'instant seul Android est mesuré. Pour iOS il manque un identifiant à récupérer dans App Store Connect.
