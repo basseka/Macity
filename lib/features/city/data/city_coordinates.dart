@@ -14,6 +14,7 @@ class CityCoordinates {
     'Angers': (lat: 47.4784, lng: -0.5632),
     'Annecy': (lat: 45.8992, lng: 6.1294),
     'Avignon': (lat: 43.9493, lng: 4.8055),
+    'Barcelone': (lat: 41.3874, lng: 2.1686),
     'Bayonne': (lat: 43.4929, lng: -1.4748),
     'Besancon': (lat: 47.2378, lng: 6.0241),
     'Blois': (lat: 47.5862, lng: 1.3359),

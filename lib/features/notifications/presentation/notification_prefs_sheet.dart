@@ -66,7 +66,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
   bool _saving = false;
 
   static const _hubCities = [
-    'Aix-en-Provence', 'Angers', 'Bordeaux', 'Brest', 'Clermont-Ferrand',
+    'Aix-en-Provence', 'Angers', 'Barcelone', 'Bordeaux', 'Brest', 'Clermont-Ferrand',
     'Dijon', 'Grenoble', 'Le Havre', 'Le Mans', 'Lille',
     'Lyon', 'Marseille', 'Montpellier', 'Nantes', 'Nice',
     'Nimes', 'Paris', 'Reims', 'Rennes', 'Saint-Denis',

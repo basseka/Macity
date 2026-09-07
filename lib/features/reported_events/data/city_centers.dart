@@ -13,6 +13,7 @@ class CityCenters {
     'angers': (lat: 47.4784, lng: -0.5632),
     'annecy': (lat: 45.8992, lng: 6.1294),
     'avignon': (lat: 43.9493, lng: 4.8055),
+    'barcelone': (lat: 41.3874, lng: 2.1686),
     'bayonne': (lat: 43.4929, lng: -1.4748),
     'besancon': (lat: 47.2380, lng: 6.0244),
     'blois': (lat: 47.5860, lng: 1.3359),

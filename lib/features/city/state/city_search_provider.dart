@@ -9,6 +9,7 @@ const _availableCities = [
   VilleModel(nom: 'Angers', codePostal: '49000', departement: 'Maine-et-Loire', population: 157175),
   VilleModel(nom: 'Annecy', codePostal: '74000', departement: 'Haute-Savoie', population: 130721),
   VilleModel(nom: 'Avignon', codePostal: '84000', departement: 'Vaucluse', population: 93671),
+  VilleModel(nom: 'Barcelone', codePostal: '08001', departement: 'Espagne', population: 1620343),
   VilleModel(nom: 'Bayonne', codePostal: '64100', departement: 'Pyrenees-Atlantiques', population: 52006),
   VilleModel(nom: 'Besancon', codePostal: '25000', departement: 'Doubs', population: 120271),
   VilleModel(nom: 'Blois', codePostal: '41000', departement: 'Loir-et-Cher', population: 47009),
