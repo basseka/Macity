@@ -60,6 +60,12 @@ class ApiConstants {
   // Festik (billetterie festivals)
   static const String festikBaseUrl = 'https://billetterie.festik.net/';
 
+  // CartoDB (fond de carte Voyager, Map Live)
+  static const String cartoApiKey = String.fromEnvironment(
+    'CARTO_API_KEY',
+    defaultValue: 'cb1_303y_1_382394a68e7659cd667e80a1',
+  );
+
   // Timeouts
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

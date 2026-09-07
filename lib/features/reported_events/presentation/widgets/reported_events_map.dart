@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
@@ -443,7 +444,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     // Tile layer claire (CartoDB Voyager) — AVEC labels (quartiers, rues,
     // villes) pour situer les événements. Pas de filter CSS ni hue-rotate :
     // tuiles natives claires qui s'alignent avec le light theme de l'app.
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${ApiConstants.cartoApiKey}', {
       maxZoom: 19,
       attribution: '&copy; CartoDB &copy; OSM',
       subdomains: 'abcd',
