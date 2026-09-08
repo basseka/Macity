@@ -6336,7 +6336,10 @@
                 : `<div style="width:34px; height:34px; border-radius:6px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:14px;">🎁</div>`}
             </td>
             <td style="padding:6px 10px 6px 0;">${escapeHtml(o.emoji || "🎁")} ${escapeHtml(o.title)}</td>
-            <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">${escapeHtml(o.description || "")}</td>
+            <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">
+              ${escapeHtml(o.description || "")}
+              ${o.business_phone ? `<br>📞 ${escapeHtml(o.business_phone)}` : ""}
+            </td>
             <td style="padding:6px 10px; font-size:11px;">
               ${o.categorie ? `<span style="background:var(--line); border-radius:4px; padding:2px 6px;">${escapeHtml(o.categorie)}</span>` : "<span style='opacity:.6; color:var(--text-faint);'>non catégorisée</span>"}
             </td>
@@ -6350,6 +6353,7 @@
                 data-offer-edit="${o.id}"
                 data-offer-title="${escapeHtml(o.title || "")}"
                 data-offer-desc="${escapeHtml(o.description || "")}"
+                data-offer-phone="${escapeHtml(o.business_phone || "")}"
                 data-offer-emoji="${escapeHtml(o.emoji || "🎁")}"
                 data-offer-spots="${o.total_spots ?? ""}"
                 data-offer-expires="${escapeHtml(o.expires_at || "")}"
@@ -6364,6 +6368,7 @@
                 data-offer-photo="${o.id}"
                 data-offer-title="${escapeHtml(o.title || "")}"
                 data-offer-desc="${escapeHtml(o.description || "")}"
+                data-offer-phone="${escapeHtml(o.business_phone || "")}"
                 data-offer-emoji="${escapeHtml(o.emoji || "🎁")}"
                 data-offer-spots="${o.total_spots ?? ""}"
                 data-offer-expires="${escapeHtml(o.expires_at || "")}"
@@ -6398,6 +6403,7 @@
               <input type="text" id="offer-emoji" class="banner-input" value="🎁" style="width:56px; text-align:center; margin:0;" />
               <input type="text" id="offer-title" class="banner-input" placeholder="Titre, ex : 1 dessert offert" style="flex:1; min-width:180px; margin:0;" />
               <input type="text" id="offer-desc" class="banner-input" placeholder="Conditions" style="flex:1; min-width:160px; margin:0;" />
+              <input type="tel" id="offer-phone" class="banner-input" placeholder="📞 Téléphone (ex : 05 61 00 00 00)" style="width:190px; margin:0;" />
               <select id="offer-categorie" class="banner-input" style="width:130px; margin:0;">
                 <option value="">Catégorie…</option>
                 <option value="Restaurant">Restaurant</option>
@@ -6569,6 +6575,7 @@
             const payload = {
               client_id: clientId, title,
               description: document.getElementById("offer-desc").value.trim(),
+              business_phone: document.getElementById("offer-phone").value.trim(),
               emoji: document.getElementById("offer-emoji").value.trim() || "🎁",
               total_spots: document.getElementById("offer-spots").value || "0",
               expires_at: document.getElementById("offer-expires").value || "",
@@ -6599,6 +6606,7 @@
           document.getElementById("offer-emoji").value = editBtn.dataset.offerEmoji || "🎁";
           document.getElementById("offer-title").value = editBtn.dataset.offerTitle || "";
           document.getElementById("offer-desc").value = editBtn.dataset.offerDesc || "";
+          document.getElementById("offer-phone").value = editBtn.dataset.offerPhone || "";
           document.getElementById("offer-categorie").value = editBtn.dataset.offerCategorie || "";
           document.getElementById("offer-spots").value = editBtn.dataset.offerSpots || "";
           // Un <input type="date"> n'accepte que "YYYY-MM-DD" : lui assigner
@@ -6642,6 +6650,7 @@
                 client_id: clientId,
                 title: photoBtn.dataset.offerTitle,
                 description: photoBtn.dataset.offerDesc,
+                business_phone: photoBtn.dataset.offerPhone || "",
                 emoji: photoBtn.dataset.offerEmoji || "🎁",
                 total_spots: photoBtn.dataset.offerSpots || "0",
                 expires_at: photoBtn.dataset.offerExpires || "",

@@ -3,6 +3,7 @@ class Offer {
   final String proProfileId;
   final String businessName;
   final String businessAddress;
+  final String businessPhone;
   final String title;
   final String description;
   final String emoji;
@@ -52,6 +53,7 @@ class Offer {
     required this.proProfileId,
     required this.businessName,
     this.businessAddress = '',
+    this.businessPhone = '',
     required this.title,
     this.description = '',
     this.emoji = '',
@@ -101,6 +103,7 @@ class Offer {
         'proProfileId': proProfileId,
         'businessName': businessName,
         'businessAddress': businessAddress,
+        'businessPhone': businessPhone,
         'title': title,
         'description': description,
         'emoji': emoji,
@@ -120,6 +123,7 @@ class Offer {
         proProfileId: json['proProfileId'] as String,
         businessName: json['businessName'] as String,
         businessAddress: json['businessAddress'] as String? ?? '',
+        businessPhone: json['businessPhone'] as String? ?? '',
         title: json['title'] as String,
         description: json['description'] as String? ?? '',
         emoji: json['emoji'] as String? ?? '',
@@ -142,6 +146,7 @@ class Offer {
         'pro_profile_id': proProfileId,
         'business_name': businessName,
         'business_address': businessAddress,
+        'business_phone': businessPhone,
         'title': title,
         'description': description,
         'emoji': emoji,
@@ -164,6 +169,7 @@ class Offer {
         proProfileId: json['pro_profile_id'] as String? ?? '',
         businessName: json['business_name'] as String,
         businessAddress: json['business_address'] as String? ?? '',
+        businessPhone: json['business_phone'] as String? ?? '',
         title: json['title'] as String,
         description: json['description'] as String? ?? '',
         emoji: json['emoji'] as String? ?? '',

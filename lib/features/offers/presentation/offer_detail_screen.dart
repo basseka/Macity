@@ -242,6 +242,7 @@ class OfferDetailScreen extends StatelessWidget {
         builder: (_) => _OfferPhotoFullScreen(
           offer: offer,
           onItinerary: _openItinerary,
+          onCall: _callPhone,
         ),
       ),
     );
@@ -259,6 +260,14 @@ class OfferDetailScreen extends StatelessWidget {
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Ouvre le composeur telephonique du device sur le numero du commerce.
+  Future<void> _callPhone() async {
+    final uri = Uri(scheme: 'tel', path: offer.businessPhone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     }
   }
 
@@ -435,10 +444,12 @@ class _EmojiHero extends StatelessWidget {
 class _OfferPhotoFullScreen extends StatelessWidget {
   final Offer offer;
   final Future<void> Function() onItinerary;
+  final Future<void> Function() onCall;
 
   const _OfferPhotoFullScreen({
     required this.offer,
     required this.onItinerary,
+    required this.onCall,
   });
 
   @override
@@ -544,6 +555,34 @@ class _OfferPhotoFullScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (offer.businessPhone.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: onCall,
+                          icon: const Icon(Icons.call_rounded),
+                          label: Text(
+                            offer.businessPhone,
+                            style: GoogleFonts.geist(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
