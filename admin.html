@@ -2587,6 +2587,22 @@
           <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
             <h2 style="font-size:15px; margin:0 0 4px;">📈 Entrées par jour</h2>
             <p class="subtitle" style="margin:0 0 12px;">Jusqu'à 1 an en arrière, fuseau Paris — glisse/scrolle horizontalement dans le graphe pour remonter dans le temps. Barres empilées : inscrits (<code>user_profiles.created_at</code>) + anonymes (<code>app_entries.entered_at</code>).</p>
+
+            <!-- Campagnes ads à mettre en évidence sur le graphe (bande colorée + total inscrits+anonymes) -->
+            <div style="border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:14px; background:rgba(255,255,255,0.02);">
+              <div style="font-size:12px; font-weight:600; color:var(--text-dim); margin-bottom:8px;">🎯 Campagnes à mettre en évidence</div>
+              <div id="ad-campaigns-list" style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;"></div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <input type="text" id="adcamp-new-label" class="banner-input" placeholder="Type (ex : Meta Ads Trafic)" style="width:180px; margin:0;" />
+                <input type="color" id="adcamp-new-color" value="#f59e0b" title="Couleur de la campagne" style="width:34px; height:30px; padding:0; border:none; background:none; cursor:pointer;" />
+                <label class="banner-field-label" style="display:flex; align-items:center; gap:4px; margin:0;">Début
+                  <input type="date" id="adcamp-new-start" class="banner-input" style="margin:0;" /></label>
+                <label class="banner-field-label" style="display:flex; align-items:center; gap:4px; margin:0;">Fin
+                  <input type="date" id="adcamp-new-end" class="banner-input" style="margin:0;" /></label>
+                <button class="banner-save-btn" id="adcamp-add-btn">+ Ajouter</button>
+              </div>
+            </div>
+
             <div id="userstats-daily"></div>
           </div>
 
@@ -7860,12 +7876,70 @@
     // Au-delà (jusqu'à 1 an), la largeur de barre est fixée à 8px et le SVG
     // dépasse la carte : conteneur overflow-x:auto → on glisse pour remonter
     // dans le temps. refreshUserstatsView() cale le scroll sur les jours récents.
-    function _renderDaily(regRows, anonRows) {
+    // Formate une date "YYYY-MM-DD" en "JJ/MM/AAAA" (affichage FR).
+    function _fmtFrDate(d) { const [y, m, day] = String(d).split("-"); return `${day}/${m}/${y}`; }
+    // Nombre de jours d'une période, bornes incluses (16/07 → 26/07 = 11 jours).
+    function _daysBetween(start, end) {
+      return Math.round((new Date(end + "T00:00:00") - new Date(start + "T00:00:00")) / 86400000) + 1;
+    }
+
+    // Campagnes ads à mettre en évidence sur "Entrées par jour" — table
+    // `ad_campaigns` (label, color, start_date, end_date), paramétrable dans
+    // l'onglet Utilisateurs. Rechargé par loadAdCampaigns().
+    let _adCampaigns = [];
+    async function loadAdCampaigns() {
+      const { data, error } = await supabase.from("ad_campaigns").select("*").order("start_date");
+      if (error) { console.error("[ad_campaigns] load", error); _adCampaigns = []; return; }
+      _adCampaigns = data || [];
+      renderAdCampaignsList();
+    }
+    function renderAdCampaignsList() {
+      const el = document.getElementById("ad-campaigns-list");
+      if (!el) return;
+      if (_adCampaigns.length === 0) {
+        el.innerHTML = `<span style="font-size:12px; color:var(--text-faint);">Aucune campagne enregistrée.</span>`;
+        return;
+      }
+      el.innerHTML = _adCampaigns.map(c => `
+        <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+          <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:${escapeHtml(c.color || '#f59e0b')}; flex:0 0 auto;"></span>
+          <span style="flex:1; min-width:100px;">${escapeHtml(c.label)}</span>
+          <span style="color:var(--text-dim);">${_fmtFrDate(c.start_date)} → ${_fmtFrDate(c.end_date)} · ${_daysBetween(c.start_date, c.end_date)}&nbsp;j</span>
+          <button class="gen-btn" data-action="adcamp-delete" data-id="${c.id}" style="border-color:#ef4444;color:#ef4444;padding:2px 8px;">🗑</button>
+        </div>`).join("");
+    }
+    document.getElementById("adcamp-add-btn").addEventListener("click", async () => {
+      const label = document.getElementById("adcamp-new-label").value.trim();
+      const color = document.getElementById("adcamp-new-color").value || "#f59e0b";
+      const start = document.getElementById("adcamp-new-start").value;
+      const end = document.getElementById("adcamp-new-end").value;
+      if (!label || !start || !end) { toast("Type, début et fin sont requis", false); return; }
+      if (start > end) { toast("La date de fin doit être après le début", false); return; }
+      const { error } = await supabase.from("ad_campaigns").insert([{ label, color, start_date: start, end_date: end }]);
+      if (error) { toast("Erreur : " + (error.message || "échec (RLS ?)"), false); return; }
+      document.getElementById("adcamp-new-label").value = "";
+      document.getElementById("adcamp-new-start").value = "";
+      document.getElementById("adcamp-new-end").value = "";
+      toast("Campagne ajoutée ✓", true);
+      await refreshUserstatsView();
+    });
+    document.getElementById("ad-campaigns-list").addEventListener("click", async (ev) => {
+      const btn = ev.target.closest('[data-action="adcamp-delete"]');
+      if (!btn) return;
+      if (!confirm("Supprimer cette campagne ?")) return;
+      const { error } = await supabase.from("ad_campaigns").delete().eq("id", Number(btn.dataset.id));
+      if (error) { toast("Erreur : " + (error.message || "échec (RLS ?)"), false); return; }
+      toast("Campagne supprimée", true);
+      await refreshUserstatsView();
+    });
+
+    function _renderDaily(regRows, anonRows, campaigns) {
       regRows = regRows || [];
       anonRows = anonRows || [];
+      campaigns = campaigns || [];
       if (regRows.length === 0)
         return `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée.</div>`;
-      const H = 210, padL = 34, padR = 8, padB = 26, padT = 10;
+      const H = 210, padL = 34, padR = 8, padB = 26, padT = 22;
       const n = regRows.length;
       const refW = 900; // largeur "pleine carte" visée quand ça tient sans scroll
       const bw = Math.max(8, (refW - padL - padR) / n);
@@ -7904,15 +7978,40 @@
         return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" />
                 <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${v}</text>`;
       }).join("");
+      // Périodes de campagne recoupant les jours affichés (idxs calculés une fois, réutilisés
+      // pour la bande dans le graphe et pour le résumé chiffré au-dessus).
+      const campaignData = campaigns.map(c => {
+        const idxs = [];
+        regRows.forEach((r, i) => { if (r.jour >= c.start_date && r.jour <= c.end_date) idxs.push(i); });
+        return { ...c, idxs };
+      }).filter(c => c.idxs.length > 0);
+      const campaignBands = campaignData.map(c => {
+        const color = c.color || "#f59e0b";
+        const i0 = c.idxs[0], i1 = c.idxs[c.idxs.length - 1];
+        const bx = padL + i0 * bw;
+        const bandW = (i1 - i0 + 1) * bw;
+        return `<rect x="${bx.toFixed(1)}" y="${padT}" width="${bandW.toFixed(1)}" height="${plotH.toFixed(1)}" fill="${color}" fill-opacity="0.14"><title>${c.label} (${c.start_date} → ${c.end_date})</title></rect>
+                <text x="${(bx + bandW / 2).toFixed(1)}" y="10" fill="${color}" font-size="8.5" font-weight="600" text-anchor="middle">${c.label}</text>`;
+      }).join("");
+      const campaignSummary = campaignData.length === 0 ? "" : `
+        <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom:10px;">
+          ${campaignData.map(c => {
+            const total = c.idxs.reduce((s, i) => s + (regRows[i].n || 0) + anonAt(i), 0);
+            return `<div>
+              <div style="font-size:11px; font-weight:700; color:${c.color || '#f59e0b'};">${c.label} · ${_fmtFrDate(c.start_date)} → ${_fmtFrDate(c.end_date)} (${_daysBetween(c.start_date, c.end_date)} j)</div>
+              <div style="font-size:26px; font-weight:800; color:var(--text); line-height:1.2;">${total} <span style="font-size:12px; font-weight:500; color:var(--text-dim);">utilisateurs (inscrits + sans compte)</span></div>
+            </div>`;
+          }).join("")}
+        </div>`;
       const legend = `<div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-dim); margin-bottom:6px;">
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#E91E8C;vertical-align:middle;"></span> Inscrits</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#b794f6;vertical-align:middle;"></span> Anonymes</span>
         ${needsScroll ? `<span style="margin-left:auto; color:var(--text-faint);">↔ glisse pour remonter dans le temps</span>` : ""}
       </div>`;
       const svgWidth = needsScroll ? `${W}px` : "100%";
-      return `${legend}<div id="userstats-daily-scroll" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+      return `${campaignSummary}${legend}<div id="userstats-daily-scroll" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
         <svg viewBox="0 0 ${W} ${H}" style="width:${svgWidth}; height:auto; display:block;" role="img" aria-label="Entrées par jour (inscrits + anonymes)">
-          ${yTicks}${bars}
+          ${campaignBands}${yTicks}${bars}
         </svg>
       </div>`;
     }
@@ -8114,7 +8213,8 @@
         // que le graphe s'ouvre sur juillet et non sur les mois vides.
         const scrollBox = document.getElementById("objcurve-scroll");
         if (scrollBox) scrollBox.scrollLeft = Number(scrollBox.dataset.scrollX) || 0;
-        document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || [], s.par_jour_anonymes || []);
+        await loadAdCampaigns();
+        document.getElementById("userstats-daily").innerHTML = _renderDaily(s.par_jour || [], s.par_jour_anonymes || [], _adCampaigns);
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
         userstatsContent.classList.remove("hidden");
@@ -11147,6 +11247,11 @@
             <div style="flex:1;min-width:240px;">
               <label class="banner-field-label">Teaser</label>
               <textarea data-f="teaser" class="banner-input" rows="2" style="width:100%;resize:vertical;">${escapeHtml(v.description || "")}</textarea>
+              <label class="banner-field-label">Site web <span style="opacity:.6;font-weight:400">— lien du bouton « En savoir plus » sur la bannière</span></label>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+                <input type="url" data-f="site" class="banner-input" style="flex:1;min-width:200px;margin:0;" value="${escapeHtml(v.site_web || '')}" placeholder="https://…" />
+                ${(v.site_web || '').startsWith('http') ? `<a class="banner-link-btn" href="${escapeHtml(v.site_web)}" target="_blank" rel="noopener">👁 Voir</a>` : ''}
+              </div>
               <div class="banner-actions-row" style="flex-wrap:wrap;gap:10px;margin-top:8px;">
                 <label class="banner-field-label" style="display:flex;align-items:center;gap:6px;">Trajet
                   <select data-f="travel" class="banner-input" style="width:auto;margin:0;">${travelOpts}</select></label>
@@ -11192,6 +11297,7 @@
       v.is_partner = card.querySelector('[data-f="partner"]').checked;
       v.hub_ville = card.querySelector('[data-f="hub"]').value.trim() || "Toulouse";
       v.video_url = card.querySelector('[data-f="video"]').value.trim();
+      v.site_web = card.querySelector('[data-f="site"]').value.trim();
     }
 
     async function _evasionUpdate(id, patch) {
@@ -11232,6 +11338,7 @@
           description: v.description, travel_time_h: v.travel_time_h,
           display_priority: v.display_priority, is_partner: v.is_partner,
           hub_ville: v.hub_ville, video_url: v.video_url || null,
+          site_web: v.site_web || null,
         });
         btn.disabled = false; btn.textContent = t;
         if (ok) toast("Enregistré ✓", true);

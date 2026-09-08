@@ -112,7 +112,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
         children: [
-          _hero(),
+          _hero(banner),
           const SizedBox(height: 18),
           ..._partnersSection(all),
           ..._inspirationsSection(),
@@ -505,7 +505,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
       );
 
   // ─── Hero vidéo ───────────────────────────────────────────────────────
-  Widget _hero() {
+  Widget _hero(ModeBannerData? banner) {
     final topPad = MediaQuery.of(context).padding.top;
     final c = _video;
     // `ready` exige que la vidéo chargée soit celle du slot courant, sinon un
@@ -667,29 +667,87 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
             left: 20,
             right: 20,
             bottom: 18,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  'Évasion.',
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -1,
-                    height: 0.95,
-                    color: Colors.white,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Évasion.',
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: -1,
+                          height: 0.95,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 230),
+                        child: Text(
+                          'Escapades et week-ends autour de chez vous.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.5,
+                            height: 1.3,
+                            color: Colors.white.withValues(alpha: 0.78),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 230),
-                  child: Text(
-                    'Escapades et week-ends autour de chez vous.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.5,
-                      height: 1.3,
-                      color: Colors.white.withValues(alpha: 0.78),
+                const SizedBox(width: 14),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      // Priorité au site du Premium affiché : c'est SON
+                      // emplacement, pas celui de la ville.
+                      final target = (_slot?.siteUrl.isNotEmpty == true)
+                          ? _slot!.siteUrl
+                          : banner?.linkUrl;
+                      if (target != null && target.isNotEmpty) {
+                        _openLink(target);
+                      }
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xC70B1410),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.14),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'En savoir plus',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.arrow_outward_rounded,
+                                  size: 10, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
