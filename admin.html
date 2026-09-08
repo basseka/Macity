@@ -37,8 +37,8 @@
       line-height: 1.4;
     }
     .container {
-      max-width: 720px;
-      margin: 0 auto;
+      max-width: 100%;
+      margin: 0;
     }
     h1 {
       font-size: 28px;
@@ -238,22 +238,31 @@
     }
     .logout:hover { color: var(--magenta); }
 
-    /* ─── Top toolbar (logout centré tout en haut, nav en dessous) ─── */
+    /* ─── Sidebar de nav (vue PC plein écran, fixe à gauche, scrollable) ─── */
     .top-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 16px;
+      padding: 18px 14px 24px;
+      background: var(--surface);
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+      z-index: 50;
+      box-sizing: border-box;
     }
-    /* align-self plutôt que align-items:center sur le parent : la grille de
-       navigation garde ainsi sa largeur pleine et son alignement à droite. */
-    .top-toolbar .logout { align-self: center; }
+    .top-toolbar .logout { align-self: flex-start; margin: 0 0 4px 4px; }
     .top-toolbar .nav-btn {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 6px;
-      padding: 9px 16px;
-      border-radius: 11px;
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
@@ -263,14 +272,14 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
       transition: transform 0.15s cubic-bezier(.2,.8,.2,1), border-color 0.15s, background 0.15s, box-shadow 0.15s;
       user-select: none;
+      box-sizing: border-box;
     }
     .top-toolbar .nav-btn:hover {
       border-color: var(--magenta);
       background: linear-gradient(180deg, #2c1a4d, #20143a);
-      transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(0,0,0,0.3), 0 0 0 1px rgba(233,30,99,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
     }
-    .top-toolbar .nav-btn:active { transform: translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.25); }
+    .top-toolbar .nav-btn:active { box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.25); }
     .top-toolbar .nav-btn.active {
       background: linear-gradient(135deg, var(--purple-dark), var(--magenta));
       border-color: var(--magenta);
@@ -284,8 +293,14 @@
     }
     .top-toolbar .nav-btn.primary:hover {
       background: linear-gradient(135deg, var(--magenta), var(--purple-dark));
-      transform: translateY(-1px);
       box-shadow: 0 8px 22px rgba(233, 30, 99, 0.5), inset 0 1px 0 rgba(255,255,255,0.22);
+    }
+    /* Zone de contenu principale : décalée à droite de la sidebar, largeur confortable PC */
+    #admin-area {
+      margin-left: 250px;
+      max-width: 1500px;
+      padding: 24px 40px 60px;
+      box-sizing: border-box;
     }
 
     /* ─── Historique : grille des events ─── */
@@ -1036,23 +1051,21 @@
 
     <!-- ═══ FORMULAIRE EVENT ═══ -->
     <div id="admin-area">
-      <!-- ═══ Logo MaCity ═══
-           Servi depuis le storage public (branding/macity_logo.png), la même
-           source que les e-mails transactionnels — un seul fichier à changer
-           le jour d'une refonte. Rayon de 22 % : proportion d'une icône d'app. -->
-      <div style="display:flex; justify-content:center; padding:14px 0 26px;">
-        <img src="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/branding/macity_logo_v2.png"
-             alt="MaCity"
-             width="132" height="132"
-             style="width:132px; height:132px; border-radius:29px; display:block;
-                    box-shadow:0 10px 30px -8px rgba(233,30,99,.45), 0 0 0 1px rgba(255,255,255,.08);"
-             onerror="this.style.display='none'" />
-      </div>
-
-      <!-- ═══ Top toolbar : logout (centré, tout en haut) + nav (dessous) ═══ -->
+      <!-- ═══ Sidebar de nav : logo + logout + liste des onglets (fixe à gauche, PC uniquement) ═══ -->
       <div class="top-toolbar">
+        <!-- Logo MaCity : servi depuis le storage public (branding/macity_logo.png), la même
+             source que les e-mails transactionnels — un seul fichier à changer le jour d'une
+             refonte. Rayon de 22 % : proportion d'une icône d'app. -->
+        <div style="display:flex; justify-content:center; padding:4px 0 8px;">
+          <img src="https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/branding/macity_logo_v2.png"
+               alt="MaCity"
+               width="76" height="76"
+               style="width:76px; height:76px; border-radius:18px; display:block;
+                      box-shadow:0 10px 30px -8px rgba(233,30,99,.45), 0 0 0 1px rgba(255,255,255,.08);"
+               onerror="this.style.display='none'" />
+        </div>
         <span class="logout" id="logout-btn" style="margin-bottom: 0;">← Se déconnecter</span>
-        <div style="display:grid; grid-template-columns:repeat(4, max-content); gap:8px; justify-content:center;">
+        <div style="display:flex; flex-direction:column; gap:6px;">
           <span class="nav-btn" id="goto-form-btn" style="display:none;">+ Nouveau</span>
           <span class="nav-btn primary" id="goto-events-btn">📋 Mes events <span id="events-count-badge" style="opacity:0.85; font-weight:400;"></span></span>
           <span class="nav-btn" id="goto-eventedit-btn">✏️ Éditer un event</span>
@@ -1076,7 +1089,7 @@
           <span class="nav-btn" id="goto-pubprices-btn">💶 Tarifs publi</span>
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
           <span class="nav-btn" id="goto-parcours-btn">🌙 Parcours soirée</span>
-          <span class="nav-btn" id="goto-userstats-btn">👥 Utilisateurs</span>
+          <span class="nav-btn" id="goto-userstats-btn" style="border: 2px solid #22c55e;">👥 Utilisateurs</span>
           <span class="nav-btn" id="goto-mediakit-btn">📊 Media Kit</span>
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
@@ -1289,6 +1302,27 @@
             <label>Horaire</label>
             <input type="text" name="horaires" placeholder="Ex: 20h30" />
           </div></div>
+          <div class="row"><div>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="periodic-chk" style="width:auto;" /> 🔁 Événement périodique (dupliquer automatiquement)
+            </label>
+          </div></div>
+          <div class="row two hidden" id="periodic-fields">
+            <div>
+              <label>Fréquence</label>
+              <select id="periodic-frequence">
+                <option value="daily">Chaque jour</option>
+                <option value="weekly" selected>Chaque semaine</option>
+                <option value="biweekly">Toutes les 2 semaines</option>
+                <option value="monthly">Chaque mois</option>
+              </select>
+            </div>
+            <div>
+              <label>Répéter jusqu'au <span class="req">*</span></label>
+              <input type="date" id="periodic-until" />
+              <div class="helper">Un event sera créé à chaque échéance (même durée, mêmes horaires) jusqu'à cette date incluse.</div>
+            </div>
+          </div>
         </div>
 
         <!-- Catégorisation -->
@@ -2552,8 +2586,28 @@
           <!-- Inscriptions par jour (30 derniers jours) -->
           <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
             <h2 style="font-size:15px; margin:0 0 4px;">📈 Entrées par jour</h2>
-            <p class="subtitle" style="margin:0 0 12px;">30 derniers jours, fuseau Paris. Barres empilées : inscrits (<code>user_profiles.created_at</code>) + anonymes (<code>app_entries.entered_at</code>).</p>
+            <p class="subtitle" style="margin:0 0 12px;">Jusqu'à 1 an en arrière, fuseau Paris — glisse/scrolle horizontalement dans le graphe pour remonter dans le temps. Barres empilées : inscrits (<code>user_profiles.created_at</code>) + anonymes (<code>app_entries.entered_at</code>).</p>
             <div id="userstats-daily"></div>
+          </div>
+
+          <!-- Tendance : cumul total depuis le début, façon courbe boursière (zoom molette + pan) -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
+              <h2 style="font-size:15px; margin:0;">📉 Tendance</h2>
+              <button type="button" id="trend-reset-btn" class="banner-save-btn" style="background:rgba(255,255,255,0.08); color:var(--text); padding:5px 12px; font-size:11px;">↺ Réinitialiser le zoom</button>
+            </div>
+            <p class="subtitle" style="margin:0 0 12px;">Cumul total (inscrits + anonymes) depuis le tout premier utilisateur. Molette pour zoomer, glisser pour te déplacer dans le temps, double-clic pour réinitialiser.</p>
+            <div id="trend-chart"></div>
+          </div>
+
+          <!-- Tendance 2 : volume par jour (pas cumulé) depuis le début, même mécanique zoom/pan -->
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:4px;">
+              <h2 style="font-size:15px; margin:0;">📊 Tendance par jour</h2>
+              <button type="button" id="trend-daily-reset-btn" class="banner-save-btn" style="background:rgba(255,255,255,0.08); color:var(--text); padding:5px 12px; font-size:11px;">↺ Réinitialiser le zoom</button>
+            </div>
+            <p class="subtitle" style="margin:0 0 12px;">Volume du jour (inscrits + anonymes, non cumulé) depuis le tout premier utilisateur. Molette pour zoomer, glisser pour te déplacer dans le temps, double-clic pour réinitialiser.</p>
+            <div id="trend-daily-chart"></div>
           </div>
 
           <!-- Téléchargements Play Store / App Store -->
@@ -2978,9 +3032,10 @@
         ? `🖼️ Affiche uploadée`
         : `⚠️ Pas d'affiche — l'event ne s'affichera pas dans le feed (filtre photo_url requis)`;
       const billLabel = info.billetterie ? `🎟️ Billetterie : <a href="${info.billetterie}" target="_blank" style="color:var(--magenta);">${info.billetterie.substring(0, 40)}…</a>` : "";
+      const periodicLabel = info.occurrenceCount > 1 ? `🔁 Événement périodique : <strong>${info.occurrenceCount} occurrences</strong> créées` : "";
 
       document.getElementById("success-meta").innerHTML = [
-        dateLabel, lieuLabel, boostLabel, photoLabel, billLabel,
+        dateLabel, lieuLabel, boostLabel, photoLabel, billLabel, periodicLabel,
       ].filter(Boolean).join("<br>");
 
       successCard.classList.remove("hidden");
@@ -3059,6 +3114,38 @@
     boostChk.addEventListener("change", () => {
       boostTypeWrap.classList.toggle("hidden", !boostChk.checked);
     });
+    const periodicChk = document.getElementById("periodic-chk");
+    const periodicFields = document.getElementById("periodic-fields");
+    const periodicFrequence = document.getElementById("periodic-frequence");
+    const periodicUntil = document.getElementById("periodic-until");
+    periodicChk.addEventListener("change", () => {
+      periodicFields.classList.toggle("hidden", !periodicChk.checked);
+    });
+
+    // Formatte une Date en "YYYY-MM-DD" en heure locale (surtout PAS
+    // toISOString, qui convertit en UTC et peut faire glisser d'un jour).
+    function formatDateLocal(d) {
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    // Calcule la liste des dates de début successives d'un event periodique.
+    function computeRecurrenceDates(startDate, untilDate, frequence) {
+      const dates = [];
+      let cur = new Date(startDate + "T00:00:00");
+      const until = new Date(untilDate + "T00:00:00");
+      if (isNaN(cur) || isNaN(until) || until < cur) return dates;
+      while (cur <= until) {
+        dates.push(formatDateLocal(cur));
+        const next = new Date(cur);
+        if (frequence === "daily") next.setDate(next.getDate() + 1);
+        else if (frequence === "biweekly") next.setDate(next.getDate() + 14);
+        else if (frequence === "monthly") next.setMonth(next.getMonth() + 1);
+        else next.setDate(next.getDate() + 7); // weekly (defaut)
+        cur = next;
+      }
+      return dates;
+    }
 
     // Toggle "options avancees" (Type + Theme)
     const toggleAdvancedBtn = document.getElementById("toggle-advanced");
@@ -7767,17 +7854,27 @@
     }
 
     // Graphe en barres des inscriptions par jour (SVG, sans dépendance).
+    // Tant que les jours tiennent en largeur "normale" (≥ 8px/barre sur une
+    // largeur de référence de 900px, soit ~100 jours), le graphe s'étire en
+    // 100% de la carte comme avant — pas de scroll pour la vue par défaut.
+    // Au-delà (jusqu'à 1 an), la largeur de barre est fixée à 8px et le SVG
+    // dépasse la carte : conteneur overflow-x:auto → on glisse pour remonter
+    // dans le temps. refreshUserstatsView() cale le scroll sur les jours récents.
     function _renderDaily(regRows, anonRows) {
       regRows = regRows || [];
       anonRows = anonRows || [];
       if (regRows.length === 0)
         return `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée.</div>`;
-      const W = 720, H = 210, padL = 34, padB = 26, padT = 10;
+      const H = 210, padL = 34, padR = 8, padB = 26, padT = 10;
       const n = regRows.length;
+      const refW = 900; // largeur "pleine carte" visée quand ça tient sans scroll
+      const bw = Math.max(8, (refW - padL - padR) / n);
+      const labelEvery = n > 120 ? 14 : (n > 45 ? 7 : 5); // hebdo si longue période
+      const plotW = n * bw, plotH = H - padT - padB;
+      const W = plotW + padL + padR;
+      const needsScroll = W > refW + 0.5;
       const anonAt = (i) => (anonRows[i] && (anonRows[i].n || 0)) || 0;
       const maxN = Math.max(1, ...regRows.map((r, i) => (r.n || 0) + anonAt(i)));
-      const plotW = W - padL - 8, plotH = H - padT - padB;
-      const bw = plotW / n;
       const baseY = padT + plotH;
       const bars = regRows.map((r, i) => {
         const x = padL + i * bw;
@@ -7794,7 +7891,7 @@
         const anonRect = anon > 0
           ? `<rect x="${xr}" y="${yAnon.toFixed(1)}" width="${rw}" height="${hAnon.toFixed(1)}" rx="2" fill="#b794f6"><title>${r.jour} · anonymes : ${anon}</title></rect>`
           : "";
-        const lbl = (i % 5 === 0 || i === n - 1)
+        const lbl = (i % labelEvery === 0 || i === n - 1)
           ? `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 8}" fill="#8a8a99" font-size="9" text-anchor="middle">${r.jour ? r.jour.slice(5) : ""}</text>`
           : "";
         const cnt = tot > 0
@@ -7804,16 +7901,188 @@
       }).join("");
       const yTicks = [0, Math.round(maxN / 2), maxN].map(v => {
         const y = padT + plotH - (v / maxN) * plotH;
-        return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - 8}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" />
+        return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.06)" />
                 <text x="${padL - 6}" y="${(y + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${v}</text>`;
       }).join("");
-      const legend = `<div style="display:flex; gap:16px; font-size:11px; color:var(--text-dim); margin-bottom:6px;">
+      const legend = `<div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-dim); margin-bottom:6px;">
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#E91E8C;vertical-align:middle;"></span> Inscrits</span>
         <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#b794f6;vertical-align:middle;"></span> Anonymes</span>
+        ${needsScroll ? `<span style="margin-left:auto; color:var(--text-faint);">↔ glisse pour remonter dans le temps</span>` : ""}
       </div>`;
-      return `${legend}<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="Entrées par jour (inscrits + anonymes)">
-        ${yTicks}${bars}
-      </svg>`;
+      const svgWidth = needsScroll ? `${W}px` : "100%";
+      return `${legend}<div id="userstats-daily-scroll" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <svg viewBox="0 0 ${W} ${H}" style="width:${svgWidth}; height:auto; display:block;" role="img" aria-label="Entrées par jour (inscrits + anonymes)">
+          ${yTicks}${bars}
+        </svg>
+      </div>`;
+    }
+
+    // ─── Tendance : courbe "façon bourse" avec zoom molette + pan ───
+    // Générique : rows = [{jour, n}] triés par jour croissant, n = valeur à
+    // tracer (cumul total OU volume du jour selon l'appelant). opts =
+    // {color, resetBtnId, tipSuffix, ariaLabel} pour réutiliser le même
+    // moteur avec un rendu distinct (cf. les deux appels dans
+    // refreshUserstatsView : cumul vert vs volume/jour rose). Rendu SVG pur,
+    // zoom/pan à la main (pas de lib graphique). Reconstruit entièrement à
+    // chaque appel : le conteneur est remplacé (innerHTML), donc les anciens
+    // listeners partent avec les anciens noeuds — pas de fuite entre deux
+    // "Rafraîchir".
+    function _initTrendChart(containerId, rows, opts) {
+      opts = opts || {};
+      const color = opts.color || "#22c55e";
+      const resetBtnId = opts.resetBtnId || "trend-reset-btn";
+      const tipSuffix = opts.tipSuffix || "au total";
+      const ariaLabel = opts.ariaLabel || "Tendance des créations cumulées";
+      const holder = document.getElementById(containerId);
+      if (!holder) return;
+      rows = (rows || []).filter(r => r && r.jour);
+      if (rows.length === 0) {
+        holder.innerHTML = `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée.</div>`;
+        return;
+      }
+      const dates = rows.map(r => new Date(r.jour + "T00:00:00").getTime());
+      const values = rows.map(r => r.n || 0);
+      const minT = dates[0], maxT = dates[dates.length - 1];
+      const fullSpan = Math.max(86400000, maxT - minT);
+      const totalDays = Math.max(1, Math.round(fullSpan / 86400000));
+      const minSpanFrac = Math.min(1, 5 / totalDays); // pas plus près que ~5 jours
+
+      const W = 900, H = 260, padL = 46, padR = 16, padT = 16, padB = 28;
+      const plotW = W - padL - padR, plotH = H - padT - padB;
+      let viewMin = 0, viewMax = 1; // fractions [0,1] de fullSpan, affichées
+
+      holder.innerHTML = `
+        <div id="${containerId}-wrap" style="position:relative; cursor:grab; -webkit-user-select:none; user-select:none; touch-action:none;">
+          <div id="${containerId}-svg"></div>
+          <div id="${containerId}-tip" style="position:absolute; display:none; pointer-events:none; background:rgba(10,6,20,0.95); border:1px solid var(--line-strong); border-radius:8px; padding:6px 10px; font-size:11px; color:var(--text); white-space:nowrap; z-index:5;"></div>
+        </div>`;
+      const wrap = document.getElementById(`${containerId}-wrap`);
+      const svgHolder = document.getElementById(`${containerId}-svg`);
+      const tip = document.getElementById(`${containerId}-tip`);
+
+      function fmtDate(t, span) {
+        const d = new Date(t);
+        if (span > 200 * 86400000) return d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+        if (span > 20 * 86400000) return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+        return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+      }
+      // Index du point le plus proche (<=) de t, par recherche binaire (dates triées).
+      function indexAt(t) {
+        let lo = 0, hi = dates.length - 1;
+        while (lo < hi) {
+          const mid = (lo + hi) >> 1;
+          if (dates[mid] < t) lo = mid + 1; else hi = mid;
+        }
+        return lo;
+      }
+      function clampView(nMin, nMax) {
+        let span = nMax - nMin;
+        if (span < minSpanFrac) span = minSpanFrac;
+        if (span > 1) span = 1;
+        if (nMin < 0) { nMin = 0; nMax = span; }
+        if (nMax > 1) { nMax = 1; nMin = 1 - span; }
+        return [nMin, nMax];
+      }
+
+      function render() {
+        const viewMinT = minT + viewMin * fullSpan;
+        const viewMaxT = minT + viewMax * fullSpan;
+        let i0 = indexAt(viewMinT); if (i0 > 0) i0--;
+        let i1 = indexAt(viewMaxT); if (i1 < dates.length - 1) i1++;
+        const vd = dates.slice(i0, i1 + 1), vv = values.slice(i0, i1 + 1);
+        const maxV = Math.max(1, ...vv);
+        const x = t => padL + ((t - viewMinT) / (viewMaxT - viewMinT || 1)) * plotW;
+        const y = v => padT + plotH - (v / maxV) * plotH;
+        const pts = vd.map((t, i) => `${x(t).toFixed(1)},${y(vv[i]).toFixed(1)}`);
+        const lineD = "M" + pts.join(" L");
+        const areaD = `${lineD} L${x(vd[vd.length - 1]).toFixed(1)},${(padT + plotH).toFixed(1)} L${x(vd[0]).toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
+        const yTicks = [0, 0.5, 1].map(f => {
+          const v = Math.round(maxV * f);
+          const yy = y(v);
+          return `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${W - padR}" y2="${yy.toFixed(1)}" stroke="rgba(255,255,255,0.06)" />
+                  <text x="${padL - 8}" y="${(yy + 3).toFixed(1)}" fill="#8a8a99" font-size="9" text-anchor="end">${v.toLocaleString("fr-FR")}</text>`;
+        }).join("");
+        const span = viewMaxT - viewMinT;
+        const xTicks = [0, 0.25, 0.5, 0.75, 1].map(f => {
+          const t = viewMinT + f * span;
+          const xx = padL + f * plotW;
+          return `<text x="${xx.toFixed(1)}" y="${H - 8}" fill="#8a8a99" font-size="9" text-anchor="middle">${fmtDate(t, span)}</text>`;
+        }).join("");
+        svgHolder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="${ariaLabel}">
+          <defs>
+            <linearGradient id="${containerId}-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          ${yTicks}
+          <path d="${areaD}" fill="url(#${containerId}-grad)" stroke="none"/>
+          <path d="${lineD}" fill="none" stroke="${color}" stroke-width="2"/>
+          ${xTicks}
+        </svg>`;
+      }
+
+      wrap.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const svg = svgHolder.querySelector("svg");
+        if (!svg) return;
+        const rect = svg.getBoundingClientRect();
+        const relX = (e.clientX - rect.left) / rect.width; // 0..1 sur toute la largeur du SVG
+        const plotFrac = Math.min(1, Math.max(0, (relX * W - padL) / plotW));
+        const span = viewMax - viewMin;
+        const zoom = e.deltaY < 0 ? 0.85 : 1 / 0.85; // molette haut = zoom in
+        const newSpan = Math.min(1, Math.max(minSpanFrac, span * zoom));
+        const anchor = viewMin + plotFrac * span; // fraction (du total) sous le curseur, à garder fixe
+        let newMin = anchor - plotFrac * newSpan;
+        let newMax = newMin + newSpan;
+        [newMin, newMax] = clampView(newMin, newMax);
+        viewMin = newMin; viewMax = newMax;
+        render();
+      }, { passive: false });
+
+      let dragging = false, dragStartX = 0, dragMin0 = 0, dragMax0 = 0;
+      wrap.addEventListener("pointerdown", (e) => {
+        dragging = true; dragStartX = e.clientX; dragMin0 = viewMin; dragMax0 = viewMax;
+        wrap.setPointerCapture(e.pointerId);
+        wrap.style.cursor = "grabbing";
+        tip.style.display = "none";
+      });
+      wrap.addEventListener("pointermove", (e) => {
+        if (!dragging) {
+          const svg = svgHolder.querySelector("svg");
+          if (!svg) return;
+          const rect = svg.getBoundingClientRect();
+          const relX = (e.clientX - rect.left) / rect.width;
+          const viewMinT = minT + viewMin * fullSpan, viewMaxT = minT + viewMax * fullSpan;
+          const t = viewMinT + relX * (viewMaxT - viewMinT);
+          const idx = Math.min(dates.length - 1, Math.max(0, indexAt(t)));
+          tip.style.display = "block";
+          tip.style.left = Math.max(0, e.clientX - rect.left - 70) + "px";
+          tip.style.top = "6px";
+          tip.innerHTML = `<strong>${new Date(dates[idx]).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })}</strong><br/>${values[idx].toLocaleString("fr-FR")} ${tipSuffix}`;
+          return;
+        }
+        const svg = svgHolder.querySelector("svg");
+        if (!svg) return;
+        const rect = svg.getBoundingClientRect();
+        const spanAtStart = dragMax0 - dragMin0;
+        const totalDx = e.clientX - dragStartX;
+        const shift = totalDx * (W / plotW) * spanAtStart / rect.width;
+        let newMin = dragMin0 - shift, newMax = dragMax0 - shift;
+        [newMin, newMax] = clampView(newMin, newMax);
+        viewMin = newMin; viewMax = newMax;
+        render();
+      });
+      wrap.addEventListener("pointerup", (e) => {
+        if (dragging) { dragging = false; wrap.style.cursor = "grab"; wrap.releasePointerCapture(e.pointerId); }
+      });
+      wrap.addEventListener("pointerleave", () => { if (!dragging) tip.style.display = "none"; });
+      wrap.addEventListener("dblclick", () => { viewMin = 0; viewMax = 1; render(); });
+
+      const resetBtn = document.getElementById(resetBtnId);
+      if (resetBtn) resetBtn.onclick = () => { viewMin = 0; viewMax = 1; render(); };
+
+      render();
     }
 
     async function refreshUserstatsView() {
@@ -7849,6 +8118,28 @@
         document.getElementById("userstats-villes").innerHTML = _statBars(s.par_ville || [], total);
         document.getElementById("userstats-interets").innerHTML = _statBars(s.par_interet || [], total);
         userstatsContent.classList.remove("hidden");
+        // Cale le scroll APRÈS avoir retiré "hidden" : tant que le conteneur est
+        // display:none, scrollWidth vaut 0 et scrollLeft=scrollWidth ne fait rien.
+        const dailyScroll = document.getElementById("userstats-daily-scroll");
+        if (dailyScroll) dailyScroll.scrollLeft = dailyScroll.scrollWidth;
+        // cumul_jour = pas encore dispo tant que la migration 20260908120000
+        // n'est pas appliquée : _initTrendChart affiche juste "Aucune donnée."
+        const cumulRows = s.cumul_jour || [];
+        _initTrendChart("trend-chart", cumulRows, {
+          color: "#22c55e", resetBtnId: "trend-reset-btn",
+          tipSuffix: "au total", ariaLabel: "Tendance cumulée des créations",
+        });
+        // Volume du jour (pas cumulé) : dérivé de cumul_jour par différence
+        // consécutive plutôt que d'une nouvelle colonne SQL — mêmes jours,
+        // même "depuis le début", zéro migration supplémentaire à rejouer.
+        const dailyFromCumul = cumulRows.map((r, i) => ({
+          jour: r.jour,
+          n: i === 0 ? (r.n || 0) : Math.max(0, (r.n || 0) - (cumulRows[i - 1].n || 0)),
+        }));
+        _initTrendChart("trend-daily-chart", dailyFromCumul, {
+          color: "#E91E8C", resetBtnId: "trend-daily-reset-btn",
+          tipSuffix: "ce jour-là", ariaLabel: "Tendance du volume quotidien",
+        });
         // Chargé après l'affichage : une RPC lente ou absente (migration pas
         // encore appliquée) ne doit pas priver l'onglet de ses statistiques.
         _refreshCityMiles();
@@ -12751,6 +13042,12 @@
         clearPastedVideo();
       }
 
+      // Duplication periodique n'a pas de sens en mode edition (on modifie
+      // une occurrence existante, pas une serie)
+      periodicChk.checked = false;
+      periodicChk.disabled = true;
+      periodicFields.classList.add("hidden");
+
       // UI mode edition
       editBanner.classList.remove("hidden");
       editBannerTitle.textContent = ev.nom_de_la_manifestation;
@@ -12774,6 +13071,10 @@
       clearPastedVideo();
       tarifWrap.classList.remove("hidden");
       boostTypeWrap.classList.add("hidden");
+      periodicChk.checked = false;
+      periodicChk.disabled = false;
+      periodicFields.classList.add("hidden");
+      periodicUntil.value = "";
       // Re-cache le bloc avance
       advancedFields.classList.add("hidden");
       toggleAdvancedBtn.textContent = "▸ Afficher les options avancées (Type + Thème)";
@@ -12869,11 +13170,42 @@
         }
       }
 
-      // En mode edition : on garde l'identifiant d'origine pour ne pas creer
-      // un doublon. En mode creation : on en genere un nouveau.
-      const identifiant = editingEvent
-        ? editingEvent.identifiant
-        : `manual_${slugify(titre)}_${dateDebut}`;
+      // Étape 1ter : occurrences (1 seule normalement, plusieurs si "event
+      // periodique" coche). En mode edition on modifie toujours UNE occurrence
+      // existante, jamais une serie (la case est desactivee dans ce cas).
+      let occurrences = [{
+        dateDebut,
+        dateFin,
+        identifiant: editingEvent ? editingEvent.identifiant : `manual_${slugify(titre)}_${dateDebut}`,
+      }];
+      if (!editingEvent && periodicChk.checked) {
+        const until = periodicUntil.value;
+        if (!until) {
+          showError("Événement périodique", { message: "Merci de renseigner la date « Répéter jusqu'au »." });
+          btn.disabled = false;
+          btn.textContent = "✨ Créer l'event";
+          return;
+        }
+        const starts = computeRecurrenceDates(dateDebut, until, periodicFrequence.value);
+        if (starts.length === 0) {
+          showError("Événement périodique", { message: "La date « Répéter jusqu'au » doit être postérieure ou égale à la date de début." });
+          btn.disabled = false;
+          btn.textContent = "✨ Créer l'event";
+          return;
+        }
+        // Duree (en jours) entre debut et fin, conservee a chaque occurrence
+        const dureeJours = Math.round((new Date(dateFin + "T00:00:00") - new Date(dateDebut + "T00:00:00")) / 86400000);
+        occurrences = starts.map((occDebut) => {
+          const occFinDate = new Date(occDebut + "T00:00:00");
+          occFinDate.setDate(occFinDate.getDate() + dureeJours);
+          return {
+            dateDebut: occDebut,
+            dateFin: formatDateLocal(occFinDate),
+            identifiant: `manual_${slugify(titre)}_${occDebut}`,
+          };
+        });
+      }
+
       // Photo : nouvelle upload > photo existante > vide (l'admin l'a retiree)
       const finalPhotoUrl = pastedBlob
         ? photoUrl
@@ -12883,18 +13215,18 @@
         ? videoUrl
         : (existingVideoUrl || "");
       const gratuit = gratuitChk.checked;
-      const row = {
-        identifiant,
+      const rows = occurrences.map(({ dateDebut: occDebut, dateFin: occFin, identifiant: occId }) => ({
+        identifiant: occId,
         source: "manual_admin",
         created_by_email: currentUserEmail,
         rubrique: f.get("rubrique"),
         nom_de_la_manifestation: titre,
         descriptif_court: f.get("descriptif_court") || "",
         descriptif_long: f.get("descriptif_long") || "",
-        date_debut: dateDebut,
-        date_fin: dateFin,
+        date_debut: occDebut,
+        date_fin: occFin,
         horaires,
-        dates_affichage_horaires: horaires ? `${dateDebut} ${horaires}` : dateDebut,
+        dates_affichage_horaires: horaires ? `${occDebut} ${horaires}` : occDebut,
         lieu_nom: f.get("lieu_nom") || "",
         lieu_adresse_2: f.get("lieu_adresse_2") || "",
         code_postal: parseInt(f.get("code_postal") || "0") || 0,
@@ -12908,13 +13240,13 @@
         reservation_site_internet: f.get("reservation_site_internet") || "",
         photo_url: finalPhotoUrl,
         video_url: finalVideoUrl,
-      };
+      }));
 
-      // Étape 2 : upsert event
+      // Étape 2 : upsert event(s) — un seul appel, meme pour une serie periodique
       try {
         const { error: evErr } = await supabase
           .from("scraped_events")
-          .upsert(row, { onConflict: "identifiant" });
+          .upsert(rows, { onConflict: "identifiant" });
         if (evErr) throw evErr;
       } catch (err) {
         console.error("[upsert event]", err);
@@ -12924,17 +13256,20 @@
         return;
       }
 
-      // Étape 3 : boost / pin admin (optionnel)
+      // Étape 3 : boost / pin admin (optionnel), applique a chaque occurrence
       if (boostChk.checked) {
         try {
           const pinType = document.getElementById("boost-type").value;
-          const { error: pinErr } = await supabase.from("admin_pins").upsert({
+          const adminEmail = (await supabase.auth.getUser()).data.user.email;
+          const pinRows = occurrences.map(({ dateFin: occFin, identifiant: occId }) => ({
             event_source: "scraped_events",
-            event_identifiant: identifiant,
+            event_identifiant: occId,
             pin_type: pinType,
-            pinned_until: `${dateFin}T23:59:59+02:00`,
-            admin_email: (await supabase.auth.getUser()).data.user.email,
-          }, { onConflict: "event_source,event_identifiant,pin_type" });
+            pinned_until: `${occFin}T23:59:59+02:00`,
+            admin_email: adminEmail,
+          }));
+          const { error: pinErr } = await supabase.from("admin_pins")
+            .upsert(pinRows, { onConflict: "event_source,event_identifiant,pin_type" });
           if (pinErr) throw pinErr;
         } catch (err) {
           console.error("[pin]", err);
@@ -12963,6 +13298,7 @@
         photoUrl: finalPhotoUrl,
         billetterie: f.get("reservation_site_internet") || "",
         wasEditing,
+        occurrenceCount: occurrences.length,
       });
       exitEditMode();              // remet le form a zero + UI
       window.scrollTo({ top: 0, behavior: "smooth" });
