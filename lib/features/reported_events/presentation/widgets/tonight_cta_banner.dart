@@ -41,12 +41,19 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
   Widget build(BuildContext context) {
     final city = ref.watch(selectedCityProvider);
     final count = ref.watch(tonightEventsCountProvider);
-    final hasEvents = count > 0;
+    final fetchFailed = ref.watch(tonightEventsFetchFailedProvider);
+    final hasPill = count > 0;
+    // Sur erreur reseau on ne sait pas s'il y a des events ou non : on ne
+    // doit jamais afficher "Rien aujourd'hui" (ca affirme a tort une liste
+    // vide confirmee), seulement quand le fetch a reellement reussi.
+    final isConfirmedEmpty = !fetchFailed && count == 0;
 
     final kicker = _dayLabel();
-    final semanticsLabel = hasEvents
-        ? 'Les bons plans à $city, $count ${count == 1 ? "sortie" : "sorties"}, bouton'
-        : 'Rien aujourd\'hui à $city, regarde demain, bouton';
+    final semanticsLabel = isConfirmedEmpty
+        ? 'Rien aujourd\'hui à $city, regarde demain, bouton'
+        : hasPill
+            ? 'Les bons plans à $city, $count ${count == 1 ? "sortie" : "sorties"}, bouton'
+            : 'Les bons plans à $city, bouton';
 
     return Semantics(
       button: true,
@@ -103,7 +110,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                _TitleLine(hasEvents: hasEvents),
+                                _TitleLine(isConfirmedEmpty: isConfirmedEmpty),
                               ],
                             ),
                           ),
@@ -114,7 +121,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                if (hasEvents) ...[
+                                if (hasPill) ...[
                                   _CounterPill(count: count),
                                   const SizedBox(width: 6),
                                 ],
@@ -146,9 +153,9 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
 /// §10.1). `FittedBox` remplace le "reduire a 18px" de la spec : ca fait
 /// tenir une ville longue sur une ligne sans jamais passer a deux lignes.
 class _TitleLine extends StatelessWidget {
-  const _TitleLine({required this.hasEvents});
+  const _TitleLine({required this.isConfirmedEmpty});
 
-  final bool hasEvents;
+  final bool isConfirmedEmpty;
 
   static final _style = GoogleFonts.outfit(
     fontSize: 13,
@@ -160,7 +167,7 @@ class _TitleLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!hasEvents) {
+    if (isConfirmedEmpty) {
       return FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
