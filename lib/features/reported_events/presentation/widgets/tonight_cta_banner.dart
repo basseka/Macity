@@ -33,8 +33,8 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
 
   String _dayLabel() {
     final wd = DateFormat('EEEE', 'fr_FR').format(DateTime.now());
-    if (wd.isEmpty) return 'Ce soir';
-    return '${wd[0].toUpperCase()}${wd.substring(1)} soir';
+    if (wd.isEmpty) return 'Aujourd\'hui';
+    return '${wd[0].toUpperCase()}${wd.substring(1)}';
   }
 
   @override
@@ -45,7 +45,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
 
     final kicker = _dayLabel();
     final semanticsLabel = hasEvents
-        ? 'Aujourd\'hui à $city, $count ${count == 1 ? "sortie" : "sorties"}, bouton'
+        ? 'Les bons plans à $city, $count ${count == 1 ? "sortie" : "sorties"}, bouton'
         : 'Rien aujourd\'hui à $city, regarde demain, bouton';
 
     return Semantics(
@@ -80,64 +80,55 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
               child: Stack(
                 children: [
                   const Positioned.fill(child: _StarsLayer()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                kicker.toUpperCase(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.geistMono(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 1.8,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              _TitleLine(hasEvents: hasEvents),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 13),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (hasEvents) ...[
-                              _CounterPill(count: count),
-                              const SizedBox(height: 3),
-                            ],
-                            Row(
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Explorer',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 10.5,
+                                  kicker.toUpperCase(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.geistMono(
+                                    fontSize: 9,
                                     fontWeight: FontWeight.w600,
+                                    letterSpacing: 1.8,
                                     color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
-                                const SizedBox(width: 2),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 12,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
+                                const SizedBox(height: 2),
+                                _TitleLine(hasEvents: hasEvents),
                               ],
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const SizedBox(width: 13),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (hasEvents) ...[
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: _CounterPill(count: count),
+                                ),
+                                const SizedBox(height: 3),
+                              ],
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                size: 12,
+                                color: Colors.white.withValues(alpha: 0.9),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -174,7 +165,11 @@ class _TitleLine extends StatelessWidget {
       return FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
-        child: Text('Rien aujourd\'hui ? Regarde demain', maxLines: 1, style: _style),
+        child: Text(
+          'Rien aujourd\'hui ? Regarde demain',
+          maxLines: 1,
+          style: _style,
+        ),
       );
     }
     return FittedBox(
@@ -184,7 +179,7 @@ class _TitleLine extends StatelessWidget {
         blendMode: BlendMode.srcIn,
         shaderCallback: (bounds) =>
             AppGradients.tonightAccentText.createShader(bounds),
-        child: Text('Aujourd\'hui', maxLines: 1, style: _style),
+        child: Text('Les bons plans', maxLines: 1, style: _style),
       ),
     );
   }
