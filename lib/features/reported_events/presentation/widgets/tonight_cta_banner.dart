@@ -40,7 +40,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
   @override
   Widget build(BuildContext context) {
     final city = ref.watch(selectedCityProvider);
-    final count = ref.watch(tonightAfter17hCountProvider);
+    final count = ref.watch(tonightEventsCountProvider);
     final hasEvents = count > 0;
 
     final kicker = '${_dayLabel()} · $city';

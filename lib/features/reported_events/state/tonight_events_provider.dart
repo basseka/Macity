@@ -4,7 +4,14 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 
 /// Événements d'AUJOURD'HUI (journée + soirée, toutes rubriques/catégories) de
-/// la ville sélectionnée. Alimente le carrousel « Quoi faire ce soir ».
+/// la ville sélectionnée. Alimente le carrousel « Quoi faire ce soir » ET la
+/// pastille compteur du bouton du meme nom (meme liste, meme longueur, pour
+/// que les deux affichent toujours le meme chiffre).
+///
+/// Limit volontairement large (500) : sur une seule ville et une seule
+/// journee, on ne s'attend jamais a en approcher le compte, mais un plafond
+/// bas (l'ancien 60) tronquait silencieusement la liste et faisait mentir le
+/// compteur.
 final tonightEventsProvider =
     FutureProvider.autoDispose<List<Event>>((ref) async {
   final city = ref.watch(selectedCityProvider);
@@ -16,7 +23,7 @@ final tonightEventsProvider =
     final (events, _) = await ScrapedEventsSupabaseService().fetchAllEvents(
       dateGte: todayStr,
       ville: city,
-      limit: 60,
+      limit: 500,
     );
     // Uniquement les events qui commencent aujourd'hui.
     return events.where((e) {
@@ -29,26 +36,13 @@ final tonightEventsProvider =
   }
 });
 
-/// Parse "14h30, 17h00, 20h30" et retourne `true` si au moins une seance est
-/// a 17h ou plus tard. Comme ailleurs dans le code (voir
-/// `today_events_provider.dart`), un horaire absent/non parsable ne filtre
-/// pas l'event : on l'inclut plutot que de le masquer a tort.
-bool _hasEveningShowing(String raw) {
-  if (raw.isEmpty) return true;
-  final matches = RegExp(r'(\d{1,2})h(\d{0,2})').allMatches(raw).toList();
-  if (matches.isEmpty) return true;
-  return matches.any((m) => (int.tryParse(m.group(1)!) ?? 0) >= 17);
-}
-
-/// Nombre d'evenements de CE SOIR (aujourd'hui, au moins une seance a partir
-/// de 17h) — alimente la pastille compteur du bouton "Quoi faire ce soir".
-/// Distinct de [tonightEventsProvider] qui, lui, inclut toute la journee
-/// (carrousel derriere le bouton, volontairement plus large).
-final tonightAfter17hCountProvider = Provider.autoDispose<int>((ref) {
+/// Nombre d'evenements d'aujourd'hui — alimente la pastille compteur du
+/// bouton "Quoi faire ce soir". Toujours egal a la longueur de la liste
+/// affichee dans [TonightEventsSheet] (meme provider source).
+final tonightEventsCountProvider = Provider.autoDispose<int>((ref) {
   final async = ref.watch(tonightEventsProvider);
   return async.maybeWhen(
-    data: (events) =>
-        events.where((e) => _hasEveningShowing(e.horaires)).length,
+    data: (events) => events.length,
     orElse: () => 0,
   );
 });
