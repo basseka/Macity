@@ -108,24 +108,23 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                             ),
                           ),
                           const SizedBox(width: 13),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (hasEvents) ...[
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 6),
-                                  child: _CounterPill(count: count),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (hasEvents) ...[
+                                  _CounterPill(count: count),
+                                  const SizedBox(width: 6),
+                                ],
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 12,
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
-                                const SizedBox(height: 3),
                               ],
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 12,
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
