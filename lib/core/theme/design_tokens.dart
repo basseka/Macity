@@ -57,6 +57,13 @@ class AppColors {
   static const catCult   = Color(0xFF22D3EE);
   static const catSport  = Color(0xFF22C55E);
   static const catFiesta = Color(0xFFEF4444);
+
+  // ─── Bouton "Quoi faire ce soir" (ciel de nuit, fixe, hors theme) ─────
+  // Volontairement independant de isLightTheme : c'est le seul element
+  // nocturne d'un ecran Home par ailleurs clair, son contraste vient de la.
+  static const tonightShadow = Color(0xFF4C1D95);
+  static const moonCore      = Color(0xFFFFF8E1);
+  static const moonEdge      = Color(0xFFFFD88A);
 }
 
 class AppRadius {
@@ -89,6 +96,18 @@ class AppGradients {
     end: Alignment.bottomCenter,
     colors: [Colors.transparent, Color(0xF20A0514)],
     stops: [0.3, 1.0],
+  );
+
+  // Bouton "Quoi faire ce soir" : fond ciel de nuit + degrade chaud du mot
+  // "ce soir ?" (voir BOUTON_CE_SOIR.md). Couleurs fixes, hors theme.
+  static const tonightSky = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF1A1040), Color(0xFF4C1D95), Color(0xFFA21CAF), Color(0xFFF4247C)],
+    stops: [0.0, 0.42, 0.78, 1.0],
+  );
+  static const tonightAccentText = LinearGradient(
+    colors: [Color(0xFFFFD88A), Color(0xFFFF9EC4)],
   );
 }
 

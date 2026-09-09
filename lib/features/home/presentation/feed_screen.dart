@@ -840,16 +840,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: _buildHomeSearchRow(),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 13),
         // Visible sans scroller (contrairement a la bulle du meme nom, plus
         // bas dans PartnersOfDaySection) : meme action, juste remontee.
-        // Hauteur/marges volontairement serrees : ce bandeau ne doit pas
-        // repousser la stripe "En direct" (stories Map Live) hors ecran.
+        // Geometrie (hauteur 74, marges 13) : voir BOUTON_CE_SOIR.md.
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: TonightCtaBanner(),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 13),
         const HomeQuickPills(),
         const SizedBox(height: 4),
         boostedCarousel,
