@@ -84,9 +84,9 @@ class TonightBonsPlansPage extends ConsumerWidget {
                   Text(
                     'Les bons plans',
                     style: GoogleFonts.outfit(
-                      fontSize: 23,
+                      fontSize: 19,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: -0.025 * 23,
+                      letterSpacing: -0.025 * 19,
                       color: AppColors.feedText,
                     ),
                   ),

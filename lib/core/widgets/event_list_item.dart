@@ -79,42 +79,42 @@ class EventListItem extends StatelessWidget {
   final VoidCallback onFavoriteTap;
 
   static final _priceStyle = GoogleFonts.outfit(
-    fontSize: 29,
+    fontSize: 21,
     fontWeight: FontWeight.w700,
-    letterSpacing: -0.03 * 29,
+    letterSpacing: -0.03 * 21,
     color: AppColors.feedText,
   );
   static final _priceStyleFree =
       _priceStyle.copyWith(color: AppColors.feedPriceFree);
   static final _priceNoteStyle = GoogleFonts.outfit(
-    fontSize: 17,
+    fontSize: 13,
     fontWeight: FontWeight.w400,
     color: AppColors.feedTextSecondary,
   );
   static final _characteristicsStyle = GoogleFonts.outfit(
-    fontSize: 21,
+    fontSize: 15,
     fontWeight: FontWeight.w400,
-    letterSpacing: -0.015 * 21,
+    letterSpacing: -0.015 * 15,
     height: 1.25,
     color: AppColors.feedText,
   );
   static final _distanceStyle = GoogleFonts.outfit(
-    fontSize: 19,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.feedTextSecondary,
   );
   static final _venueStyle = GoogleFonts.outfit(
-    fontSize: 19,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.feedTextSecondary,
   );
   static final _timestampStyle = GoogleFonts.outfit(
-    fontSize: 19,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.feedTextSecondary,
   );
   static final _pillStyle = GoogleFonts.outfit(
-    fontSize: 17,
+    fontSize: 13,
     fontWeight: FontWeight.w600,
   );
 
@@ -282,9 +282,9 @@ class _CategoryTag extends StatelessWidget {
   final Color color;
 
   static final _style = GoogleFonts.outfit(
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: FontWeight.w700,
-    letterSpacing: -0.01 * 16,
+    letterSpacing: -0.01 * 12,
     color: AppColors.feedText,
   );
 
@@ -614,9 +614,9 @@ class EventListSection extends StatelessWidget {
   final List<EventListItem> items;
 
   static final _titleStyle = GoogleFonts.outfit(
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: FontWeight.w500,
-    letterSpacing: -0.02 * 22,
+    letterSpacing: -0.02 * 17,
     color: AppColors.feedText,
   );
 
