@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
-import 'package:pulz_app/features/reported_events/presentation/widgets/tonight_events_sheet.dart';
+import 'package:pulz_app/features/reported_events/presentation/screens/tonight_bons_plans_page.dart';
 import 'package:pulz_app/features/reported_events/state/tonight_events_provider.dart';
 
 /// Bandeau "Quoi faire ce soir" tout en haut du feed home, entre la
@@ -28,7 +28,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
 
   void _onTap() {
     HapticFeedback.lightImpact();
-    TonightEventsSheet.show(context);
+    TonightBonsPlansPage.show(context);
   }
 
   String _dayLabel() {
@@ -69,7 +69,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
           child: Container(
-            height: 58,
+            height: 46,
             decoration: BoxDecoration(
               gradient: AppGradients.tonightSky,
               borderRadius: BorderRadius.circular(22),
@@ -103,13 +103,13 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.geistMono(
-                                    fontSize: 9,
+                                    fontSize: 8,
                                     fontWeight: FontWeight.w600,
-                                    letterSpacing: 1.8,
+                                    letterSpacing: 1.5,
                                     color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 1),
                                 _TitleLine(isConfirmedEmpty: isConfirmedEmpty),
                               ],
                             ),
@@ -123,11 +123,11 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                               children: [
                                 if (hasPill) ...[
                                   _CounterPill(count: count),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(width: 5),
                                 ],
                                 Icon(
                                   Icons.chevron_right_rounded,
-                                  size: 12,
+                                  size: 11,
                                   color: Colors.white.withValues(alpha: 0.9),
                                 ),
                               ],
@@ -158,7 +158,7 @@ class _TitleLine extends StatelessWidget {
   final bool isConfirmedEmpty;
 
   static final _style = GoogleFonts.outfit(
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.2,
     height: 1.1,
@@ -209,7 +209,7 @@ class _CounterPill extends StatelessWidget {
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(AppRadius.chip),
@@ -218,9 +218,9 @@ class _CounterPill extends StatelessWidget {
           child: Text(
             label,
             style: GoogleFonts.geistMono(
-              fontSize: 9,
+              fontSize: 8,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
+              letterSpacing: 0.4,
               color: Colors.white,
             ),
           ),

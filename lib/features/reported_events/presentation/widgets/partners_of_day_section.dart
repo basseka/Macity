@@ -7,10 +7,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/utils/image_url.dart';
+import 'package:pulz_app/core/widgets/tonight_neon_disc.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/reported_events/data/city_media_service.dart';
 import 'package:pulz_app/features/reported_events/data/partners_of_day_service.dart';
-import 'package:pulz_app/features/reported_events/presentation/widgets/tonight_events_sheet.dart';
+import 'package:pulz_app/features/reported_events/presentation/screens/tonight_bons_plans_page.dart';
+import 'package:pulz_app/features/reported_events/state/tonight_events_provider.dart';
 
 /// Sous « En direct autour de vous » : 6 encarts « du jour », un par rubrique,
 /// chacun mettant en avant UN partenaire. S'il y en a plusieurs, ils tournent
@@ -54,7 +56,8 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
     final async = ref.watch(partnersOfDayProvider);
     final rubriques = async.valueOrNull ?? const [];
     // Médias locaux (journal + radio) de la ville sélectionnée.
-    final media = ref.watch(cityMediaProvider).valueOrNull ?? const <CityMedia>[];
+    final media =
+        ref.watch(cityMediaProvider).valueOrNull ?? const <CityMedia>[];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,21 +107,10 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _bubble(
+          TonightNeonDisc(
             label: 'Quoi faire ce soir',
-            onTap: () => TonightEventsSheet.show(context),
-            child: const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF7B2D8E), Color(0xFFE91E8C)],
-                ),
-              ),
-              child: Center(
-                child: Icon(Icons.nightlife_rounded, color: Colors.white, size: 42),
-              ),
-            ),
+            eventCount: ref.watch(tonightEventsCountProvider),
+            onTap: () => TonightBonsPlansPage.show(context),
           ),
           for (final m in media) _mediaBubble(m),
         ],
@@ -183,7 +175,8 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0x22000000), width: 1),
+                      border:
+                          Border.all(color: const Color(0x22000000), width: 1),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x22000000),
@@ -340,13 +333,15 @@ class _PartnerCard extends StatelessWidget {
                 // la largeur, d'où 900 px pour couvrir les écrans à forte densité.
                 imageUrl: optimizedImageUrl(commerce.photo, width: 900),
                 fit: BoxFit.cover,
-                placeholder: (_, __) => const ColoredBox(color: Color(0xFF2A1546)),
+                placeholder: (_, __) =>
+                    const ColoredBox(color: Color(0xFF2A1546)),
                 // Repli sur l'original si la transformation échoue : mieux vaut
                 // une image lente qu'un bloc vide pour un partenaire payant.
                 errorWidget: (_, __, ___) => CachedNetworkImage(
                   imageUrl: commerce.photo,
                   fit: BoxFit.cover,
-                  placeholder: (_, __) => const ColoredBox(color: Color(0xFF2A1546)),
+                  placeholder: (_, __) =>
+                      const ColoredBox(color: Color(0xFF2A1546)),
                   errorWidget: (_, __, ___) => _fallback(),
                 ),
               )
@@ -357,7 +352,11 @@ class _PartnerCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0x22000000), Color(0x00000000), Color(0xE0000000)],
+                  colors: [
+                    Color(0x22000000),
+                    Color(0x00000000),
+                    Color(0xE0000000)
+                  ],
                   stops: [0.0, 0.4, 1.0],
                 ),
               ),
@@ -415,7 +414,9 @@ class _PartnerCard extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
-                      shadows: const [Shadow(blurRadius: 6, color: Colors.black87)],
+                      shadows: const [
+                        Shadow(blurRadius: 6, color: Colors.black87)
+                      ],
                     ),
                   ),
                   const SizedBox(height: 2),

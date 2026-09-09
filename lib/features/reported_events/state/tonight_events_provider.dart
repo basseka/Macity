@@ -69,7 +69,7 @@ final tonightEventsProvider =
 
 /// Nombre d'evenements d'aujourd'hui — alimente la pastille compteur du
 /// bouton "Quoi faire ce soir". Toujours egal a la longueur de la liste
-/// affichee dans [TonightEventsSheet] (meme provider source).
+/// affichee dans [TonightBonsPlansPage] (meme provider source).
 final tonightEventsCountProvider = Provider.autoDispose<int>((ref) {
   final async = ref.watch(tonightEventsProvider);
   return async.maybeWhen(
