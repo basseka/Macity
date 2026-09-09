@@ -80,10 +80,10 @@ final tonightEventsCountProvider = Provider.autoDispose<int>((ref) {
 
 /// Seuil (heure) a partir duquel un event compte comme "soiree spectacle".
 /// Exclut les events de journee (famille, brunch, expo diurne...) : seuls
-/// les events ayant une seance a 20h ou plus tard sont gardes.
-const _eveningShowHour = 20;
+/// les events ayant une seance a 17h ou plus tard sont gardes.
+const _eveningShowHour = 17;
 
-/// "14h30, 20h00, 22h30" -> true (au moins une seance a >= 20h).
+/// "14h30, 17h00, 22h30" -> true (au moins une seance a >= 17h).
 /// Volontairement strict : un horaire absent/non parsable EXCLUT l'event,
 /// pour ne jamais laisser passer un event de journee par defaut.
 bool _hasEveningShow(String raw) {
@@ -94,7 +94,7 @@ bool _hasEveningShow(String raw) {
 }
 
 /// Sous-ensemble « Quoi faire ce soir » de [tonightEventsProvider] : les
-/// events du jour ayant au moins une seance a 20h ou plus tard. Distinct de
+/// events du jour ayant au moins une seance a 17h ou plus tard. Distinct de
 /// « Les bons plans » (tous les events du jour) : les deux boutons doivent
 /// remonter des resultats differents.
 final nightEventsProvider =
@@ -105,7 +105,7 @@ final nightEventsProvider =
   );
 });
 
-/// Nombre d'evenements « soiree » (>= 20h) — alimente la pastille compteur
+/// Nombre d'evenements « soiree » (>= 17h) — alimente la pastille compteur
 /// de [TonightNeonDisc] "Quoi faire ce soir".
 final nightEventsCountProvider = Provider.autoDispose<int>((ref) {
   final async = ref.watch(nightEventsProvider);

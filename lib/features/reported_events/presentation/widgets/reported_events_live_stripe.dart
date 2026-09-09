@@ -233,6 +233,7 @@ class _LiveCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSeen = ref.watch(seenStoriesProvider).contains(event.id);
+    final isLive = DateTime.now().difference(event.createdAt).inHours < 24;
     final partners =
         ref.watch(partnerLocationsProvider).valueOrNull ?? const [];
     final partnerName = _partnerName(partners);
@@ -251,60 +252,65 @@ class _LiveCard extends ConsumerWidget {
         width: _photoSize,
         height: _photoSize,
         child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Photo de fond
-              hasPhoto
-                  ? CachedNetworkImage(
-                      imageUrl: cover,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) =>
-                          Container(color: AppColors.surfaceHi),
-                      errorWidget: (_, __, ___) =>
-                          Container(color: AppColors.surfaceHi),
-                    )
-                  : Container(
-                      color: AppColors.surfaceHi,
-                      alignment: Alignment.center,
-                      child: Text(
-                        event.generated?.emoji ?? '📍',
-                        style: const TextStyle(fontSize: 32),
-                      ),
+          fit: StackFit.expand,
+          children: [
+            // Photo de fond
+            hasPhoto
+                ? CachedNetworkImage(
+                    imageUrl: cover,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) =>
+                        Container(color: AppColors.surfaceHi),
+                    errorWidget: (_, __, ___) =>
+                        Container(color: AppColors.surfaceHi),
+                  )
+                : Container(
+                    color: AppColors.surfaceHi,
+                    alignment: Alignment.center,
+                    child: Text(
+                      event.generated?.emoji ?? '📍',
+                      style: const TextStyle(fontSize: 32),
                     ),
-
-              // Dégradé sombre bas pour lisibilité du titre blanc
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Color(0xCC000000)],
-                    stops: [0.45, 1.0],
                   ),
+
+            // Dégradé sombre bas pour lisibilité du titre blanc
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xCC000000)],
+                  stops: [0.45, 1.0],
                 ),
               ),
+            ),
 
-              // Badge LIVE haut-gauche
-              Positioned(
-                top: 6,
-                left: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEF4444),
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: AppShadows.neon(
-                      const Color(0xFFEF4444),
-                      blur: 6,
-                      y: 2,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+            // Badge LIVE (< 24h) / REPLAY (>= 24h) haut-gauche
+            Positioned(
+              top: 6,
+              left: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: isLive
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFF6B7280),
+                  borderRadius: BorderRadius.circular(4),
+                  boxShadow: isLive
+                      ? AppShadows.neon(
+                          const Color(0xFFEF4444),
+                          blur: 6,
+                          y: 2,
+                        )
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isLive) ...[
                       Container(
                         width: 5,
                         height: 5,
@@ -314,61 +320,62 @@ class _LiveCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 3),
-                      Text(
-                        'LIVE',
-                        style: GoogleFonts.geistMono(
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
                     ],
-                  ),
-                ),
-              ),
-
-              // Titre + temps en blanc, en bas sur l'affiche
-              Positioned(
-                left: 8,
-                right: 8,
-                bottom: 8,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
                     Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.geist(
-                        fontSize: 12,
+                      isLive ? 'LIVE' : 'REPLAY',
+                      style: GoogleFonts.geistMono(
+                        fontSize: 7.5,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
-                        height: 1.1,
-                        shadows: const [
-                          Shadow(blurRadius: 4, color: Colors.black54),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _relativeTime(event.createdAt),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.geist(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.85),
-                        height: 1.1,
+                        letterSpacing: 0.8,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // Titre + temps en blanc, en bas sur l'affiche
+            Positioned(
+              left: 8,
+              right: 8,
+              bottom: 8,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.geist(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      height: 1.1,
+                      shadows: const [
+                        Shadow(blurRadius: 4, color: Colors.black54),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _relativeTime(event.createdAt),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.geist(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
+      ),
     );
 
     return GestureDetector(
