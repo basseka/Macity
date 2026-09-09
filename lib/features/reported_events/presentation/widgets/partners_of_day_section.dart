@@ -109,8 +109,12 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
         children: [
           TonightNeonDisc(
             label: 'Quoi faire ce soir',
-            eventCount: ref.watch(tonightEventsCountProvider),
-            onTap: () => TonightBonsPlansPage.show(context),
+            eventCount: ref.watch(nightEventsCountProvider),
+            onTap: () => TonightBonsPlansPage.show(
+              context,
+              nightOnly: true,
+              title: 'Quoi faire ce soir',
+            ),
           ),
           for (final m in media) _mediaBubble(m),
         ],

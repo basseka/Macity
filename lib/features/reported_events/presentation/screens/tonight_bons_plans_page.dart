@@ -10,16 +10,32 @@ import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/reported_events/state/tonight_events_provider.dart';
 
-/// Page plein écran "Les bons plans" : liste petites annonces (FEED_LISTE.md)
-/// des events du jour, groupes par rubrique.
+/// Page plein écran "Les bons plans" / "Quoi faire ce soir" : liste petites
+/// annonces (FEED_LISTE.md) des events du jour, groupes par rubrique.
+///
+/// [nightOnly] bascule sur [nightEventsProvider] (events >= 20h uniquement) :
+/// les deux boutons de la Home affichent des resultats differents, l'un
+/// toute la journee, l'autre seulement la soiree.
 class TonightBonsPlansPage extends ConsumerWidget {
-  const TonightBonsPlansPage({super.key});
+  const TonightBonsPlansPage({
+    super.key,
+    this.nightOnly = false,
+    this.title = 'Les bons plans',
+  });
 
-  static Future<void> show(BuildContext context) {
+  final bool nightOnly;
+  final String title;
+
+  static Future<void> show(
+    BuildContext context, {
+    bool nightOnly = false,
+    String title = 'Les bons plans',
+  }) {
     return Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => const TonightBonsPlansPage(),
+        builder: (_) =>
+            TonightBonsPlansPage(nightOnly: nightOnly, title: title),
       ),
     );
   }
@@ -63,7 +79,9 @@ class TonightBonsPlansPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(tonightEventsProvider);
+    final async = nightOnly
+        ? ref.watch(nightEventsProvider)
+        : ref.watch(tonightEventsProvider);
     final liked = ref.watch(likesProvider);
 
     return Scaffold(
@@ -82,7 +100,7 @@ class TonightBonsPlansPage extends ConsumerWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Les bons plans',
+                    title,
                     style: GoogleFonts.outfit(
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
@@ -108,7 +126,9 @@ class TonightBonsPlansPage extends ConsumerWidget {
                 data: (events) {
                   if (events.isEmpty) {
                     return _empty(
-                      "Aucun bon plan aujourd'hui dans cette ville.",
+                      nightOnly
+                          ? "Rien ce soir dans cette ville."
+                          : "Aucun bon plan aujourd'hui dans cette ville.",
                     );
                   }
                   final byRubrique = <String, List<Event>>{};

@@ -16,10 +16,10 @@ final _lastKnownTodayEvents = <String, List<Event>>{};
 final tonightEventsFetchFailedProvider =
     StateProvider.autoDispose<bool>((ref) => false);
 
-/// Événements d'AUJOURD'HUI (journée + soirée, toutes rubriques/catégories) de
-/// la ville sélectionnée. Alimente le carrousel « Quoi faire ce soir » ET la
-/// pastille compteur du bouton du meme nom (meme liste, meme longueur, pour
-/// que les deux affichent toujours le meme chiffre).
+/// Événements d'AUJOURD'HUI (journée + soirée, toutes rubriques/catégories)
+/// de la ville sélectionnée. Alimente le bandeau/page « Les bons plans »
+/// (TOUS les events du jour, sans filtre horaire) et sert de base à
+/// [nightEventsProvider] (le sous-ensemble « Quoi faire ce soir »).
 ///
 /// Limit volontairement large (500) : sur une seule ville et une seule
 /// journee, on ne s'attend jamais a en approcher le compte, mais un plafond
@@ -67,11 +67,48 @@ final tonightEventsProvider =
   return _lastKnownTodayEvents[city] ?? const <Event>[];
 });
 
-/// Nombre d'evenements d'aujourd'hui — alimente la pastille compteur du
-/// bouton "Quoi faire ce soir". Toujours egal a la longueur de la liste
-/// affichee dans [TonightBonsPlansPage] (meme provider source).
+/// Nombre d'evenements d'aujourd'hui (tous, sans filtre horaire) — alimente
+/// la pastille compteur du bandeau "Les bons plans". Toujours egal a la
+/// longueur de la liste affichee dans [TonightBonsPlansPage] en mode normal.
 final tonightEventsCountProvider = Provider.autoDispose<int>((ref) {
   final async = ref.watch(tonightEventsProvider);
+  return async.maybeWhen(
+    data: (events) => events.length,
+    orElse: () => 0,
+  );
+});
+
+/// Seuil (heure) a partir duquel un event compte comme "soiree spectacle".
+/// Exclut les events de journee (famille, brunch, expo diurne...) : seuls
+/// les events ayant une seance a 20h ou plus tard sont gardes.
+const _eveningShowHour = 20;
+
+/// "14h30, 20h00, 22h30" -> true (au moins une seance a >= 20h).
+/// Volontairement strict : un horaire absent/non parsable EXCLUT l'event,
+/// pour ne jamais laisser passer un event de journee par defaut.
+bool _hasEveningShow(String raw) {
+  if (raw.isEmpty) return false;
+  final matches = RegExp(r'(\d{1,2})h(\d{0,2})').allMatches(raw);
+  return matches
+      .any((m) => (int.tryParse(m.group(1)!) ?? -1) >= _eveningShowHour);
+}
+
+/// Sous-ensemble « Quoi faire ce soir » de [tonightEventsProvider] : les
+/// events du jour ayant au moins une seance a 20h ou plus tard. Distinct de
+/// « Les bons plans » (tous les events du jour) : les deux boutons doivent
+/// remonter des resultats differents.
+final nightEventsProvider =
+    Provider.autoDispose<AsyncValue<List<Event>>>((ref) {
+  final async = ref.watch(tonightEventsProvider);
+  return async.whenData(
+    (events) => events.where((e) => _hasEveningShow(e.horaires)).toList(),
+  );
+});
+
+/// Nombre d'evenements « soiree » (>= 20h) — alimente la pastille compteur
+/// de [TonightNeonDisc] "Quoi faire ce soir".
+final nightEventsCountProvider = Provider.autoDispose<int>((ref) {
+  final async = ref.watch(nightEventsProvider);
   return async.maybeWhen(
     data: (events) => events.length,
     orElse: () => 0,

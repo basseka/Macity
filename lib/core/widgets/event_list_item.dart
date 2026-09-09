@@ -641,8 +641,8 @@ class EventListSection extends StatelessWidget {
           items[i],
           if (i != items.length - 1)
             const Divider(
-              height: 1,
-              thickness: 1,
+              height: 8,
+              thickness: 2,
               color: AppColors.feedDivider,
               indent: 20,
               endIndent: 20,

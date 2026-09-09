@@ -58,7 +58,7 @@ class AppColors {
   static const feedBg = Color(0xFFFFFFFF);
   static const feedText = Color(0xFF15121C);
   static const feedTextSecondary = Color(0xFF4A4458);
-  static const feedDivider = Color(0x1F15121C);
+  static const feedDivider = Color(0x4D15121C);
   static const feedPriceFree = Color(0xFF0E8A4F);
   static const feedProBadge = Color(0xFF1F3A6E);
   static const feedFriendsBadge = Color(0xFF8B3FD4);
@@ -115,9 +115,9 @@ class AppGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF1A1040),
-      Color(0xFF4C1D95),
-      Color(0xFFA21CAF),
+      Color(0xFF362268),
+      Color(0xFF6B2FC5),
+      Color(0xFFC026D3),
       Color(0xFFF4247C)
     ],
     stops: [0.0, 0.42, 0.78, 1.0],
