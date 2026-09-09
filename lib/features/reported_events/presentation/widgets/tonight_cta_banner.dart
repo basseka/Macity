@@ -43,10 +43,10 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
     final count = ref.watch(tonightEventsCountProvider);
     final hasEvents = count > 0;
 
-    final kicker = '${_dayLabel()} · $city';
+    final kicker = _dayLabel();
     final semanticsLabel = hasEvents
-        ? 'Quoi faire ce soir à $city, $count ${count == 1 ? "sortie" : "sorties"}, bouton'
-        : 'Rien ce soir à $city, regarde demain, bouton';
+        ? 'Aujourd\'hui à $city, $count ${count == 1 ? "sortie" : "sorties"}, bouton'
+        : 'Rien aujourd\'hui à $city, regarde demain, bouton';
 
     return Semantics(
       button: true,
@@ -80,7 +80,6 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
               child: Stack(
                 children: [
                   const Positioned.fill(child: _StarsLayer()),
-                  const Positioned(right: 74, top: 8, child: _Moon()),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -175,24 +174,17 @@ class _TitleLine extends StatelessWidget {
       return FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
-        child: Text('Rien ce soir ? Regarde demain', maxLines: 1, style: _style),
+        child: Text('Rien aujourd\'hui ? Regarde demain', maxLines: 1, style: _style),
       );
     }
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerLeft,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('Quoi faire ', maxLines: 1, style: _style),
-          ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) =>
-                AppGradients.tonightAccentText.createShader(bounds),
-            child: Text('ce soir ?', maxLines: 1, style: _style),
-          ),
-        ],
+      child: ShaderMask(
+        blendMode: BlendMode.srcIn,
+        shaderCallback: (bounds) =>
+            AppGradients.tonightAccentText.createShader(bounds),
+        child: Text('Aujourd\'hui', maxLines: 1, style: _style),
       ),
     );
   }
@@ -231,35 +223,6 @@ class _CounterPill extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Lune : degrade radial decale vers le haut-gauche + halo flou.
-class _Moon extends StatelessWidget {
-  const _Moon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Opacity(
-      opacity: 0.85,
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const RadialGradient(
-            center: Alignment(-0.36, -0.36),
-            colors: [AppColors.moonCore, AppColors.moonEdge],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.moonEdge.withValues(alpha: 0.55),
-              blurRadius: 22,
-            ),
-          ],
         ),
       ),
     );

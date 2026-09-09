@@ -62,8 +62,6 @@ class AppColors {
   // Volontairement independant de isLightTheme : c'est le seul element
   // nocturne d'un ecran Home par ailleurs clair, son contraste vient de la.
   static const tonightShadow = Color(0xFF4C1D95);
-  static const moonCore      = Color(0xFFFFF8E1);
-  static const moonEdge      = Color(0xFFFFD88A);
 }
 
 class AppRadius {
