@@ -106,7 +106,7 @@ class EventListItem extends StatelessWidget {
   static final _venueStyle = GoogleFonts.outfit(
     fontSize: 15,
     fontWeight: FontWeight.w600,
-    color: AppColors.feedText,
+    color: AppColors.violet,
   );
   static final _timestampStyle = GoogleFonts.outfit(
     fontSize: 14,
@@ -217,7 +217,7 @@ class EventListItem extends StatelessWidget {
                   const Icon(
                     Icons.place_rounded,
                     size: 15,
-                    color: AppColors.feedText,
+                    color: AppColors.violet,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -401,16 +401,17 @@ class _EventGalleryState extends State<_EventGallery> {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 16 / 11.6,
+      // 4/5 (portrait) : les affiches d'events sont quasi toujours en
+      // portrait. Un cadre large en 16/11.6 forcait soit un "cover" qui
+      // tronquait l'affiche, soit un "contain" avec des bandes vides
+      // visibles. Un cadre portrait + cover remplit le cadre bord a bord
+      // (comme une photo Instagram) en ne perdant quasiment rien.
+      aspectRatio: 4 / 5,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // BoxFit.contain (pas cover) : une affiche d'event est le plus
-            // souvent en portrait, "cover" dans ce cadre large la tronquait
-            // fortement en haut/bas. Le fond neutre derriere comble les
-            // bandes laissees vides par le contain plutot que du blanc cru.
             const ColoredBox(color: Color(0xFFF1EEE9)),
             widget.galleryCount > 1
                 ? PageView.builder(
@@ -419,12 +420,12 @@ class _EventGalleryState extends State<_EventGallery> {
                     onPageChanged: (p) => setState(() => _page = p),
                     itemBuilder: (_, __) => CachedNetworkImage(
                       imageUrl: widget.imageUrl,
-                      fit: BoxFit.contain,
+                      fit: BoxFit.cover,
                     ),
                   )
                 : CachedNetworkImage(
                     imageUrl: widget.imageUrl,
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
                   ),
             Positioned(
               top: 12,
