@@ -104,9 +104,9 @@ class EventListItem extends StatelessWidget {
     color: AppColors.feedTextSecondary,
   );
   static final _venueStyle = GoogleFonts.outfit(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: AppColors.feedTextSecondary,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: AppColors.feedText,
   );
   static final _timestampStyle = GoogleFonts.outfit(
     fontSize: 14,
@@ -212,11 +212,23 @@ class EventListItem extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 11),
-              Text(
-                _venueLine,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: _venueStyle,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.place_rounded,
+                    size: 15,
+                    color: AppColors.feedText,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      _venueLine,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _venueStyle,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 9),
               Row(
@@ -395,6 +407,11 @@ class _EventGalleryState extends State<_EventGallery> {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // BoxFit.contain (pas cover) : une affiche d'event est le plus
+            // souvent en portrait, "cover" dans ce cadre large la tronquait
+            // fortement en haut/bas. Le fond neutre derriere comble les
+            // bandes laissees vides par le contain plutot que du blanc cru.
+            const ColoredBox(color: Color(0xFFF1EEE9)),
             widget.galleryCount > 1
                 ? PageView.builder(
                     controller: _controller,
@@ -402,12 +419,12 @@ class _EventGalleryState extends State<_EventGallery> {
                     onPageChanged: (p) => setState(() => _page = p),
                     itemBuilder: (_, __) => CachedNetworkImage(
                       imageUrl: widget.imageUrl,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     ),
                   )
                 : CachedNetworkImage(
                     imageUrl: widget.imageUrl,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                   ),
             Positioned(
               top: 12,
