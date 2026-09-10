@@ -75,6 +75,30 @@
   </fieldset>
 
   <fieldset>
+    <legend>Importer une liste d'events (IA)</legend>
+    <p class="sub" style="margin:0 0 8px;">Colle ici le texte généré par une IA (ex. ChatGPT) listant tes événements, au format ci-dessous. Une diapo « Story événement » est créée automatiquement par bloc.</p>
+    <button type="button" class="sec" id="copierPromptIA" style="margin-bottom:8px;">📋 Copier le prompt pour ChatGPT</button>
+    <textarea id="texteIA" style="min-height:160px;" placeholder="ACCROCHE: Solo mais pas triste
+TITRE: La Noche
+ACCENT: Bachata
+LIEU: Moulin Tropical
+DATE:
+HORAIRE: Dès 20h
+TEXTE: Tu arrives seul.
+Pour la suite, on ne garantit rien.
+---
+ACCROCHE: ...
+TITRE: ...
+..."></textarea>
+    <button type="button" id="importerIA" style="margin-top:8px;">Générer les diapos depuis ce texte</button>
+    <p class="sub" id="etatImportIA" style="margin:8px 0 0; min-height:14px;"></p>
+    <details style="margin-top:6px;">
+      <summary style="cursor:pointer; color:var(--dim); font-size:11px;">Format attendu (détails)</summary>
+      <p class="sub" style="margin:6px 0 0;">Un bloc par événement, séparés par une ligne <code>---</code>. Champs reconnus : <code>ACCROCHE</code>, <code>TITRE</code>, <code>ACCENT</code> (mot mis en dégradé, optionnel), <code>LIEU</code>, <code>DATE</code> (optionnel), <code>HORAIRE</code>, <code>TEXTE</code> (1-2 lignes, peut continuer sur plusieurs lignes). Les photos de fond restent à ajouter diapo par diapo après génération.<br><br>Si aucune balise n'est trouvée (ex. une simple liste numérotée ou à puces renvoyée par une IA sans le prompt ci-dessus), une diapo est quand même créée par ligne : titre et horaire sont déduits au mieux, mais accroche et lieu restent vides à compléter à la main.</p>
+    </details>
+  </fieldset>
+
+  <fieldset>
     <legend>Image de fond</legend>
     <div id="zone">Clique, dépose une image, ou colle avec Ctrl+V</div>
     <label>Cadrage vertical</label>
@@ -85,10 +109,12 @@
 
   <fieldset>
     <legend>Le carrousel</legend>
-    <label>Nombre de plans (fixe les points du bas)</label>
+    <label>Nombre de plans</label>
     <input type="text" id="nbPlans" value="3" />
-    <label>Bas de l'image</label>
-    <input type="text" id="bas" value="Swip" />
+    <label>Ville (bandeau « MACITY — VILLE »)</label>
+    <input type="text" id="ville" value="Toulouse" />
+    <label>Texte d'incitation à swiper</label>
+    <input type="text" id="bas" value="Swipe" />
   </fieldset>
 
   <fieldset id="blocCouv">
@@ -105,19 +131,24 @@ WEEK-END ?</textarea>
   </fieldset>
 
   <fieldset id="blocPlan" class="cache">
-    <legend>Le plan</legend>
-    <div class="ligne">
-      <div><label>Numéro</label><input type="text" id="numero" value="01" /></div>
-      <div><label>Catégorie</label><input type="text" id="categorie" value="CONCERT" /></div>
-    </div>
-    <label>Nom de l'événement</label>
-    <textarea id="event">KENY ARKANA</textarea>
+    <legend>Story événement</legend>
+    <label>Numéro (ordre interne)</label>
+    <input type="text" id="numero" value="01" />
+    <label>Accroche (pastille dégradée)</label>
+    <input type="text" id="categorie" value="SOLO MAIS PAS TRISTE" />
+    <label>Titre (partie blanche)</label>
+    <textarea id="event">LA NOCHE</textarea>
+    <label>Titre (partie dégradée, optionnelle)</label>
+    <textarea id="titreAccent" style="min-height:40px;">BACHATA</textarea>
     <label>Lieu</label>
-    <input type="text" id="lieu" value="Le Bikini" />
+    <input type="text" id="lieu" value="Moulin Tropical" />
     <div class="ligne">
-      <div><label>Date</label><input type="text" id="date" value="01 Août" /></div>
-      <div><label>Horaire</label><input type="text" id="heure" value="à partir de 17h30" /></div>
+      <div><label>Date (optionnel)</label><input type="text" id="date" value="" /></div>
+      <div><label>Horaire</label><input type="text" id="heure" value="Dès 20h" /></div>
     </div>
+    <label>Texte (1-2 lignes)</label>
+    <textarea id="texte">Tu arrives seul.
+Pour la suite, on ne garantit rien.</textarea>
   </fieldset>
 
   <fieldset id="blocFin" class="cache">
@@ -159,6 +190,7 @@ const ctx = c.getContext("2d");
 // visible quand la photo est agrandie pour couvrir le cadre).
 ctx.imageSmoothingQuality = "high";
 const ROSE = "#FF1E8E";
+const ORANGE = "#FF7A2E";
 // Police des pastilles (« L'AGENDA », « CONCERT »…), volontairement
 // distincte de celle des titres.
 let policePastille = "Inter, sans-serif";
@@ -166,7 +198,7 @@ const $ = (id) => document.getElementById(id);
 // Chaque diapositive garde SON image et SES textes. Sans ca, changer de
 // diapo ecraserait ce qu'on vient de saisir sur la precedente.
 const CHAMPS_DIAPO = ["posY","assom","pastille","titre","soustitre","motRose",
-  "numero","categorie","event","lieu","date","heure",
+  "numero","categorie","event","titreAccent","lieu","date","heure","texte",
   "finTitre","finSurligne","finSous","finBouton","finMention"];
 let diapos = [];
 let courant = 0;
@@ -210,6 +242,7 @@ function sauverEtat() {
       const paquet = {
         nbPlans: $("nbPlans").value,
         bas: $("bas").value,
+        ville: $("ville").value,
         ratio: $("ratio").value,
         diapos: diapos.map((d) => ({ type: d.type, v: d.v, imgData: d.imgData || null })),
       };
@@ -229,7 +262,8 @@ function restaurerEtat() {
   try { p = JSON.parse(localStorage.getItem("macity_carrousel") || "null"); } catch (e) { return false; }
   if (!p || !Array.isArray(p.diapos) || !p.diapos.length) return false;
   $("nbPlans").value = p.nbPlans || "3";
-  $("bas").value = p.bas || "Swip";
+  $("bas").value = p.bas || "Swipe";
+  $("ville").value = p.ville || "Toulouse";
   if (p.ratio) $("ratio").value = p.ratio;
   diapos = p.diapos.map((d) => ({ type: d.type, v: d.v, img: null, imgData: d.imgData || null }));
   // Les images se rechargent en differe : chacune redessine si elle concerne
@@ -318,7 +352,7 @@ function reconstruire() {
     diapos.push(ancien || {
       type: "plan", img: null,
       v: { ...gabarit, numero: String(i).padStart(2, "0"),
-           categorie: "", event: "", lieu: "", date: "", heure: "" },
+           categorie: "", event: "", titreAccent: "", lieu: "", date: "", heure: "", texte: "" },
     });
   }
   const fin = avant.find((d) => d && d.type === "cloture");
@@ -339,9 +373,15 @@ function rendreNav() {
     nav.appendChild(b);
   });
 }
-/** Sauve la diapo courante, charge la demandee. */
-function aller(i) {
-  if (diapos[courant]) diapos[courant].v = valeursActuelles();
+/**
+ * Sauve la diapo courante, charge la demandee. `sauverAvant=false` saute la
+ * sauvegarde initiale : indispensable quand `diapos`/`courant` viennent
+ * d'etre reassignes par le code appelant (import IA), sinon cette sauvegarde
+ * lirait les champs du formulaire (encore ceux de l'ancienne diapo affichee)
+ * et ecraserait les donnees fraichement generees a l'index `courant`.
+ */
+function aller(i, sauverAvant) {
+  if (sauverAvant !== false && diapos[courant]) diapos[courant].v = valeursActuelles();
   courant = i;
   const d = diapos[courant];
   mode = d.type;
@@ -405,6 +445,28 @@ function tailleQuiTient(lignes, police, max, depart) {
   }
   return t;
 }
+/**
+ * Decoupe un texte en lignes qui tiennent dans `maxW`, selon la police
+ * COURANTE de ctx (a definir avant l'appel). Necessaire pour le pitch de la
+ * story : contrairement au titre (voir `tailleQuiTient`), une description
+ * generee par IA n'a pas de retour a la ligne manuel et peut deborder.
+ */
+function envelopperTexte(txt, maxW) {
+  const mots = txt.split(" ");
+  const lignes = [];
+  let ligne = "";
+  mots.forEach((m) => {
+    const essai = ligne ? ligne + " " + m : m;
+    if (ligne && ctx.measureText(essai).width > maxW) {
+      lignes.push(ligne);
+      ligne = m;
+    } else {
+      ligne = essai;
+    }
+  });
+  if (ligne) lignes.push(ligne);
+  return lignes;
+}
 function pastilleArrondie(x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -426,6 +488,34 @@ function pastilleTexte(txt, cx, cy, taille, espacement) {
   ctx.fillStyle = ROSE;
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText(txt, cx, cy + 1);
+  ctx.letterSpacing = "0px";
+  return { w, h };
+}
+/**
+ * Pastille dégradée rose→orange à texte blanc, alignée à gauche (gabarit
+ * « story » façon Pulse) : point blanc + texte, contrairement a
+ * `pastilleTexte` (fond blanc, texte rose, centree) utilisee par couverture/cloture.
+ */
+function pastilleAccroche(txt, xGauche, yHaut, taille) {
+  ctx.font = `800 ${taille}px Inter, sans-serif`;
+  ctx.letterSpacing = "1.5px";
+  const dotR = taille * 0.18;
+  const padGauche = taille * 0.55, padDroite = taille * 0.9, ecartPoint = taille * 0.5;
+  const largeurTexte = ctx.measureText(txt).width;
+  const h = taille * 2.0;
+  const w = padGauche + dotR * 2 + ecartPoint + largeurTexte + padDroite;
+  const grad = ctx.createLinearGradient(xGauche, 0, xGauche + w, 0);
+  grad.addColorStop(0, ROSE);
+  grad.addColorStop(1, ORANGE);
+  ctx.fillStyle = grad;
+  pastilleArrondie(xGauche, yHaut, w, h, h / 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.arc(xGauche + padGauche + dotR, yHaut + h / 2, dotR, 0, 7);
+  ctx.fill();
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText(txt, xGauche + padGauche + dotR * 2 + ecartPoint, yHaut + h / 2 + 1);
   ctx.letterSpacing = "0px";
   return { w, h };
 }
@@ -459,27 +549,41 @@ function logo(x, y, align, W) {
   ctx.fillStyle = ROSE;   ctx.fillText("City", gx + wPin + ecart + wMa, y + t * 0.34);
   ctx.restore();
 }
-/** « Swip » + points. Le nombre de points = couverture + plans. */
+/**
+ * Bas de page façon story Instagram : bandeau « MACITY — VILLE » puis
+ * incitation à swiper avec une barre dégradée rose→orange en dessous.
+ * Pas de swipe sur la cloture, c'est le dernier écran du carrousel.
+ */
 function basDePage(W, H) {
+  const ville = $("ville").value.trim().toUpperCase();
+  if (ville) {
+    ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    ctx.font = "700 26px Inter, sans-serif";
+    ctx.letterSpacing = "3px";
+    ctx.fillStyle = "rgba(255,255,255,.85)";
+    ombre(true);
+    ctx.fillText("MACITY  —  " + ville, W / 2, H - 150);
+    ombre(false);
+    ctx.letterSpacing = "0px";
+  }
+  if (mode === "cloture") return;
+
   const bas = $("bas").value.trim();
   if (bas) {
     ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
-    ctx.font = "800 40px Inter, sans-serif";
+    ctx.font = "700 30px Inter, sans-serif";
     ctx.fillStyle = "#fff";
-    ctx.fillText(bas, W / 2, H - 86);
+    ombre(true);
+    ctx.fillText(bas.toUpperCase(), W / 2, H - 96);
+    ombre(false);
   }
-  const plans = Math.max(0, Math.min(9, parseInt($("nbPlans").value, 10) || 0));
-  const n = plans + 1;
-  const actif = mode === "couverture" ? 0
-    : mode === "cloture" ? n - 1
-    : Math.min(n - 1, Math.max(1, parseInt($("numero").value, 10) || 1));
-  const esp = 22, total = (n - 1) * esp;
-  for (let i = 0; i < n; i++) {
-    ctx.beginPath();
-    ctx.arc(W / 2 - total / 2 + i * esp, H - 52, i === actif ? 5.5 : 4, 0, 7);
-    ctx.fillStyle = i === actif ? "#fff" : "rgba(255,255,255,.45)";
-    ctx.fill();
-  }
+  const wBarre = 90, hBarre = 5, xBarre = (W - wBarre) / 2, yBarre = H - 78;
+  const grad = ctx.createLinearGradient(xBarre, 0, xBarre + wBarre, 0);
+  grad.addColorStop(0, ROSE);
+  grad.addColorStop(1, ORANGE);
+  ctx.fillStyle = grad;
+  pastilleArrondie(xBarre, yBarre, wBarre, hBarre, hBarre / 2);
+  ctx.fill();
 }
 function ombre(on) {
   ctx.shadowColor = on ? "rgba(0,0,0,.5)" : "transparent";
@@ -628,45 +732,61 @@ function dessiner() {
       ombre(true); ctx.fillText(men, W / 2, y); ombre(false);
     }
   } else {
-    // ── Gabarit « plan » : logo a droite, numero en haut a gauche
-    logo(58, 86, "droite", W);
+    // ── Gabarit « plan » / story événement : tout aligné à gauche, pastille
+    // dégradée, titre blanc + partie dégradée, lieu/horaire, puis un pitch
+    // court. Reprend le design des stories Instagram Pulse-Toulouse.
+    let y = 190;
 
-    const num = $("numero").value.trim();
-    ombre(true);
-    ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.textBaseline = "top";
-    ctx.font = "300 170px Inter, sans-serif";
-    ctx.fillText(num, marge, 96);
-    const wNum = ctx.measureText(num).width;
-    ombre(false);
-
-    const cat = $("categorie").value.trim().toUpperCase();
-    if (cat) pastilleTexte(cat, marge + wNum / 2, 300, 30, 3);
-
-    // Nom de l'evenement, centre
-    const lignes = $("event").value.split("\n").map((l) => l.trim()).filter(Boolean);
-    const tEv = tailleQuiTient(lignes, policeTitre, dispo, 108);
-    const hL = tEv * 1.05;
-    let y = H * 0.46 - (lignes.length * hL) / 2;
-    ctx.textAlign = "center"; ctx.textBaseline = "top";
-    ctx.fillStyle = "#fff";
-    ctx.font = `${tEv}px ${policeTitre}`;
-    ombre(true);
-    lignes.forEach((l, i) => ctx.fillText(l, W / 2, y + i * hL));
-    y += lignes.length * hL + 16;
-
-    const lieu = $("lieu").value.trim();
-    if (lieu) {
-      ctx.font = "800 44px Inter, sans-serif";
-      ctx.fillText(lieu, W / 2, y);
+    const accroche = $("categorie").value.trim().toUpperCase();
+    if (accroche) {
+      const { h } = pastilleAccroche(accroche, marge, y, 28);
+      y += h + 44;
     }
 
-    // Date et horaire, en bas a gauche
-    ctx.textAlign = "left";
-    ctx.font = "800 40px Inter, sans-serif";
-    const d = $("date").value.trim(), h = $("heure").value.trim();
-    if (d) ctx.fillText(d, marge, H - 300);
-    if (h) ctx.fillText(h, marge, H - 244);
+    const lignesBlanc = $("event").value.split("\n").map((l) => l.trim().toUpperCase()).filter(Boolean);
+    const lignesAccent = $("titreAccent").value.split("\n").map((l) => l.trim().toUpperCase()).filter(Boolean);
+    const tTitre = tailleQuiTient(lignesBlanc.concat(lignesAccent), policeTitre, dispo, 118);
+    const hL = tTitre * 1.0;
+    ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.font = `${tTitre}px ${policeTitre}`;
+    ombre(true);
+    ctx.fillStyle = "#fff";
+    lignesBlanc.forEach((l, i) => ctx.fillText(l, marge, y + i * hL));
+    y += lignesBlanc.length * hL;
+    if (lignesAccent.length) {
+      const grad = ctx.createLinearGradient(marge, 0, marge + dispo, 0);
+      grad.addColorStop(0, ROSE);
+      grad.addColorStop(1, ORANGE);
+      ctx.fillStyle = grad;
+      lignesAccent.forEach((l, i) => ctx.fillText(l, marge, y + i * hL));
+      y += lignesAccent.length * hL;
+    }
     ombre(false);
+    y += 26;
+
+    const lieu = $("lieu").value.trim();
+    const dateTxt = $("date").value.trim();
+    const heureTxt = $("heure").value.trim();
+    const ligneHoraire = [dateTxt, heureTxt].filter(Boolean).join(" • ");
+    ctx.font = "800 44px Inter, sans-serif";
+    ctx.fillStyle = "#fff";
+    ombre(true);
+    if (lieu) { ctx.fillText(lieu, marge, y); y += 54; }
+    if (ligneHoraire) { ctx.fillText(ligneHoraire, marge, y); y += 54; }
+    ombre(false);
+
+    if ($("texte").value.trim()) {
+      y += 18;
+      ctx.font = "500 36px Inter, sans-serif";
+      // Enveloppe chaque ligne saisie : une description venue d'un import
+      // sans retour a la ligne manuel peut sinon deborder du cadre.
+      const pitch = $("texte").value.split("\n").map((l) => l.trim()).filter(Boolean)
+        .flatMap((l) => envelopperTexte(l, dispo));
+      ctx.fillStyle = "rgba(255,255,255,.92)";
+      ombre(true);
+      pitch.forEach((l, i) => ctx.fillText(l, marge, y + i * 46));
+      ombre(false);
+    }
   }
 
   basDePage(W, H);
@@ -685,7 +805,7 @@ $("oublier").onclick = () => {
 };
 
 // ── Cablage ──────────────────────────────────────────────────────────────
-CHAMPS_DIAPO.concat(["bas", "ratio"]).forEach((id) => {
+CHAMPS_DIAPO.concat(["bas", "ratio", "ville"]).forEach((id) => {
   const maj = () => {
     if (diapos[courant]) diapos[courant].v = valeursActuelles();
     if (id === "numero") rendreNav();
@@ -740,6 +860,149 @@ $("copier").onclick = () => {
       setTimeout(() => ($("copier").textContent = "Copier dans le presse-papier"), 1800);
     } catch { $("copier").textContent = "Copie refusée par le navigateur"; }
   });
+};
+
+// ── Import en masse depuis un texte IA ──────────────────────────────────
+// Format : un bloc par evenement, separes par une ligne de tirets ---.
+// Champs reconnus (insensibles a la casse) : ACCROCHE, TITRE, ACCENT, LIEU,
+// DATE, HORAIRE, TEXTE (peut continuer sur plusieurs lignes).
+const CLES_IA = ["ACCROCHE", "TITRE", "ACCENT", "LIEU", "DATE", "HORAIRE", "TEXTE"];
+const RE_CLE_IA = new RegExp("^(" + CLES_IA.join("|") + ")\\s*:\\s*(.*)$", "i");
+
+function analyserTexteIA(brut) {
+  const blocs = /^-{3,}\s*$/m.test(brut)
+    ? brut.split(/^-{3,}\s*$/m)
+    : brut.split(/\n\s*\n(?=\s*(?:ACCROCHE|TITRE)\s*:)/i);
+  return blocs
+    .map((bloc) => {
+      const v = { accroche: "", titre: "", accent: "", lieu: "", date: "", horaire: "", texte: "" };
+      let cleCourante = null;
+      bloc.split("\n").forEach((ligne) => {
+        const m = ligne.match(RE_CLE_IA);
+        if (m) {
+          cleCourante = m[1].toLowerCase();
+          v[cleCourante] = m[2].trim();
+        } else if (cleCourante && ligne.trim()) {
+          v[cleCourante] += (v[cleCourante] ? "\n" : "") + ligne.trim();
+        }
+      });
+      return v;
+    })
+    .filter((v) => v.titre || v.accroche);
+}
+
+/**
+ * Repli quand aucune balise ACCROCHE/TITRE n'est trouvée : une IA interrogée
+ * sans le prompt fourni renvoie souvent une simple liste (numérotée ou à
+ * puces/emoji), une ligne par événement, du style
+ * "🧩 Prison Island : défis en équipe dès 14h aujourd'hui.". On extrait alors
+ * au mieux titre/horaire/texte ; accroche et lieu restent à compléter à la
+ * main (mieux vaut les laisser vides que deviner faux).
+ */
+function nettoyerDebutLigne(ligne) {
+  return ligne
+    .replace(/^\s*(?:\d+[.)]|[-*•])\s+/, "")
+    .replace(/^[\p{Extended_Pictographic}‍️]+\s*/u, "")
+    .trim();
+}
+function analyserLigneSimple(ligne) {
+  let reste = ligne;
+  let horaire = "";
+  const mPrefixHeure = reste.match(/^(\d{1,2}h(?:\d{2})?)\s*[-–—]\s*/);
+  if (mPrefixHeure) {
+    horaire = mPrefixHeure[1];
+    reste = reste.slice(mPrefixHeure[0].length);
+  }
+  let titre = reste, texte = "";
+  const iColon = reste.indexOf(" : ");
+  if (iColon !== -1) {
+    titre = reste.slice(0, iColon).trim();
+    texte = reste.slice(iColon + 3).trim();
+  } else {
+    const mTiret = reste.match(/\s[-–—]\s/);
+    if (mTiret) {
+      titre = reste.slice(0, mTiret.index).trim();
+      texte = reste.slice(mTiret.index + mTiret[0].length).trim();
+    }
+  }
+  if (!horaire) {
+    const mHoraire = ligne.match(/\b\d{1,2}h(?:\d{2})?\b/);
+    if (mHoraire) horaire = mHoraire[0];
+  }
+  return { accroche: "", titre, accent: "", lieu: "", date: "", horaire, texte };
+}
+function analyserListeSimple(brut) {
+  return brut.split("\n")
+    .map(nettoyerDebutLigne)
+    .filter(Boolean)
+    .map(analyserLigneSimple)
+    .filter((v) => v.titre);
+}
+
+$("importerIA").onclick = () => {
+  const brutIA = $("texteIA").value;
+  let analyses = analyserTexteIA(brutIA);
+  let repli = false;
+  if (!analyses.length) {
+    analyses = analyserListeSimple(brutIA);
+    repli = true;
+  }
+  const etat = $("etatImportIA");
+  if (!analyses.length) {
+    etat.textContent = "Aucun événement reconnu, vérifie le format (détails ci-dessus).";
+    etat.style.color = "#f87171";
+    return;
+  }
+  if (diapos[courant]) diapos[courant].v = valeursActuelles();
+  const gabarit = valeursActuelles();
+  const ancienPlans = diapos.filter((d) => d.type === "plan");
+  const nouveauxPlans = analyses.map((a, i) => {
+    const d = {
+      type: "plan", img: null, imgData: null,
+      v: { ...gabarit,
+        numero: String(i + 1).padStart(2, "0"),
+        categorie: a.accroche, event: a.titre, titreAccent: a.accent,
+        lieu: a.lieu, date: a.date, heure: a.horaire, texte: a.texte },
+    };
+    // Reutilise la photo deja posee sur le plan a la meme position, pour ne
+    // pas la perdre si on regenere le texte apres avoir choisi les fonds.
+    const ancien = ancienPlans[i];
+    if (ancien && ancien.img) { d.img = ancien.img; d.imgData = ancien.imgData; }
+    return d;
+  });
+  const couverture = diapos.find((d) => d.type === "couverture") || { type: "couverture", img: null, v: { ...gabarit } };
+  const cloture = diapos.find((d) => d.type === "cloture") || { type: "cloture", img: null, v: { ...gabarit } };
+  diapos = [couverture, ...nouveauxPlans, cloture];
+  $("nbPlans").value = nouveauxPlans.length;
+  aller(1, false);
+  sauverEtat();
+  etat.style.color = repli ? "#facc15" : "#4ade80";
+  etat.textContent = repli
+    ? `${nouveauxPlans.length} diapo(s) générée(s) depuis une liste simple (pas de balises reconnues) : titre/horaire déduits au mieux, complète l'accroche et le lieu diapo par diapo. Pour un résultat plus fiable, utilise le prompt ChatGPT ci-dessus.`
+    : `${nouveauxPlans.length} diapo(s) générée(s). Ajoute maintenant une photo par diapo.`;
+};
+
+const PROMPT_IA = `Tu es rédacteur pour les stories Instagram d'une app d'agenda de sorties (MaCity). Je vais te donner une liste d'événements (nom, lieu, date, horaire). Pour CHAQUE événement, rédige un mini-texte de story, ton fun et direct, en français, en respectant EXACTEMENT ce format (un bloc par événement, séparés par une ligne de trois tirets ---) :
+
+ACCROCHE: [accroche courte et percutante, façon teaser, en lien avec l'ambiance ou la cible, tout en majuscules, ex: "SOLO MAIS PAS TRISTE"]
+TITRE: [nom de l'événement en 1 à 2 mots forts, tout en majuscules]
+ACCENT: [mot ou groupe de mots complémentaire du titre à mettre en couleur, tout en majuscules — laisse vide si le titre se suffit à lui-même]
+LIEU: [nom du lieu]
+DATE: [laisse vide si inutile]
+HORAIRE: [ex: "Dès 20h"]
+TEXTE: [1 à 2 phrases courtes et punchy, avec une pointe d'humour, qui donnent envie d'y aller]
+
+Ne réponds rien d'autre que ces blocs, sans numérotation ni commentaire. Voici la liste des événements :
+[colle ici tes événements]`;
+
+$("copierPromptIA").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(PROMPT_IA);
+    $("copierPromptIA").textContent = "Copié ✓";
+    setTimeout(() => ($("copierPromptIA").textContent = "📋 Copier le prompt pour ChatGPT"), 1800);
+  } catch {
+    $("copierPromptIA").textContent = "Copie refusée par le navigateur";
+  }
 };
 
 // Les polices doivent etre chargees AVANT le premier rendu, sinon le canvas
