@@ -1098,6 +1098,7 @@
           <span class="nav-btn" id="goto-subs-btn">💳 Abonnements</span>
           <span class="nav-btn" id="goto-clients-btn">🧾 Clients</span>
           <span class="nav-btn" id="goto-postfree-btn">🎨 Post libre</span>
+          <span class="nav-btn" id="goto-discoursnight-btn">🎤 Discours boîtes de nuit</span>
           <!-- Ouvre le generateur de visuels Instagram (carrousel a gabarits fixes)
                dans un nouvel onglet. Chemin RELATIF : admin.html s'ouvre en local,
                un lien absolu file:// serait casse des que le dossier change de place. -->
@@ -2951,6 +2952,109 @@
           </div>
         </div>
       </div>
+
+      <!-- ═══ VUE "DISCOURS BOÎTES DE NUIT" (argumentaire de prospection, contenu statique) ═══ -->
+      <div id="discoursnight-view" class="hidden">
+        <h1>🎤 Discours boîtes de nuit</h1>
+        <p class="subtitle">
+          Argumentaire pour lancer un partenariat avec une boîte de nuit / un club : ce qu'on dit en arrivant,
+          ce qu'il faut pour créer la fiche, comment fonctionne la mise en avant, le reel tourné sur place,
+          et les offres MaCity. Contenu de référence uniquement — rien n'est envoyé, tout reste dans ce fichier.
+        </p>
+
+        <button type="button" class="banner-save-btn" id="discoursnight-copy-btn" style="margin-bottom:18px;">📋 Copier tout le discours</button>
+
+        <div class="banner-card" style="max-width:760px;">
+          <div class="banner-field-label">🎯 1. L'accroche</div>
+          <p style="font-size:14px; line-height:1.6; color:var(--text);">
+            « Bonjour, je suis [prénom] de MaCity — l'appli qui centralise tout ce qui se passe le soir à [ville],
+            pensée pour que les gens sortent plus, et surtout, qu'ils sortent <strong>chez vous</strong>. On a
+            déjà [X] utilisateurs actifs sur la ville, et on cherche les meilleurs clubs pour lancer un partenariat.
+            Je peux vous montrer en 5 minutes comment ça marche et ce que ça change pour vous ? »
+          </p>
+          <p style="font-size:13px; line-height:1.6; color:var(--text-dim); margin-top:10px;">
+            Objectif de l'accroche : montrer tout de suite la valeur concrète (visibilité + contenu offert),
+            pas vendre un abonnement. Le partenariat se présente comme un service, pas une dépense.
+          </p>
+        </div>
+
+        <div class="banner-card" style="max-width:760px; margin-top:14px;">
+          <div class="banner-field-label">📋 2. Ce qu'il faut pour créer la fiche</div>
+          <p style="font-size:14px; line-height:1.6; color:var(--text);">Les infos à collecter sur place ou à récupérer dans la foulée :</p>
+          <ul style="font-size:14px; line-height:1.8; color:var(--text); padding-left:20px; margin:8px 0 0;">
+            <li>Nom de l'établissement + adresse complète</li>
+            <li>3 à 5 photos (ambiance, salle, extérieur/façade) — les nôtres si besoin, sinon on peut les prendre au moment du reel</li>
+            <li>Horaires d'ouverture (jours + heures) et éventuelles soirées thématiques (électro, latino, généraliste…)</li>
+            <li>Tarifs : entrée, conso, éventuelle liste/guest-list</li>
+            <li>Réseaux sociaux (Instagram en priorité — sert pour le lien et les mentions)</li>
+            <li>Un contact référent (téléphone + email) pour la gestion du compte partenaire</li>
+          </ul>
+          <p style="font-size:13px; line-height:1.6; color:var(--text-dim); margin-top:10px;">
+            La fiche est créée directement dans l'admin MaCity (onglet Établissements). Sans photo, la fiche
+            reste invisible dans l'appli — c'est le seul élément vraiment bloquant à obtenir avant de partir.
+          </p>
+        </div>
+
+        <div class="banner-card" style="max-width:760px; margin-top:14px;">
+          <div class="banner-field-label">🌟 3. La mise en avant</div>
+          <p style="font-size:14px; line-height:1.6; color:var(--text);">
+            Sur l'écran d'accueil, juste sous les stories « En direct autour de vous », il y a 6 encarts
+            « du jour » (Le restaurant du jour, <strong>Le club du jour</strong>, etc.) — l'endroit le plus vu
+            de toute l'appli. Cet encart est <strong>réservé exclusivement aux partenaires Premium</strong> :
+            un club Classique ou Gold n'y apparaît jamais, seul le passage en Premium donne accès à cette vitrine.
+          </p>
+          <p style="font-size:13px; line-height:1.6; color:var(--text-dim); margin-top:10px;">
+            Argument clé : ce n'est pas une option payante parmi d'autres, c'est LA vitrine de l'appli — un
+            argument fort pour faire monter un prospect hésitant du Classique/Gold vers le Premium.
+          </p>
+        </div>
+
+        <div class="banner-card" style="max-width:760px; margin-top:14px;">
+          <div class="banner-field-label">🎬 4. Le reel tourné chez eux</div>
+          <p style="font-size:14px; line-height:1.6; color:var(--text);">
+            MaCity vient tourner un reel vertical (30-60s) directement dans l'établissement : ambiance, DJ,
+            clientèle, cocktails — un contenu prêt pour Instagram/TikTok. Deux usages : MaCity le republie pour
+            mettre le club en avant sur ses propres réseaux, et le club récupère le fichier pour ses réseaux à lui.
+          </p>
+          <p style="font-size:13px; line-height:1.6; color:var(--text-dim); margin-top:10px;">
+            À caler avec le gérant : une soirée où il y a du monde (le rendu est bien plus vendeur qu'une salle vide),
+            prévoir 15-20 minutes de tournage sur place.
+          </p>
+        </div>
+
+        <div class="banner-card" style="max-width:760px; margin-top:14px;">
+          <div class="banner-field-label">💳 5. Les offres MaCity</div>
+          <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:6px;">
+            <thead>
+              <tr style="text-align:left; color:var(--text-dim); border-bottom:1px solid var(--stroke,#fff2);">
+                <th style="padding:8px 6px;">Palier</th>
+                <th style="padding:8px 6px;">Ce qui est inclus</th>
+                <th style="padding:8px 6px;">Tarif</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--stroke,#fff2);">
+                <td style="padding:8px 6px; font-weight:700; color:#38BDF8;">🔹 Classique</td>
+                <td style="padding:8px 6px;">Fiche visible dans l'appli (photos, horaires, tarifs). Pas de mise en avant automatique.</td>
+                <td style="padding:8px 6px; color:var(--text-dim);">[à compléter]</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--stroke,#fff2);">
+                <td style="padding:8px 6px; font-weight:700; color:#C79A3E;">🥇 Gold</td>
+                <td style="padding:8px 6px;">Tout le Classique + [avantages à compléter].</td>
+                <td style="padding:8px 6px; color:var(--text-dim);">[à compléter]</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 6px; font-weight:700; color:#8E24AA;">💎 Premium</td>
+                <td style="padding:8px 6px;">Tout le Gold + « Le club du jour » (mise en avant quotidienne garantie) + reel tourné inclus.</td>
+                <td style="padding:8px 6px; color:var(--text-dim);">[à compléter]</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size:12px; line-height:1.6; color:var(--text-faint); margin-top:10px;">
+            Tarifs volontairement laissés en blanc ici — à compléter une fois les grilles validées (onglet Abonnements).
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4050,6 +4154,8 @@
     const gotoClientsBtn = document.getElementById("goto-clients-btn");
     const postfreeView = document.getElementById("postfree-view");
     const gotoPostfreeBtn = document.getElementById("goto-postfree-btn");
+    const discoursnightView = document.getElementById("discoursnight-view");
+    const gotoDiscoursnightBtn = document.getElementById("goto-discoursnight-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -4080,6 +4186,7 @@
       subsView.classList.add("hidden");
       clientsView.classList.add("hidden");
       postfreeView.classList.add("hidden");
+      discoursnightView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -4313,6 +4420,45 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoPostfreeBtn.addEventListener("click", showPostfreeView);
+    function showDiscoursnightView() {
+      _hideAllViews();
+      discoursnightView.classList.remove("hidden");
+      gotoDiscoursnightBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoDiscoursnightBtn.addEventListener("click", showDiscoursnightView);
+    document.getElementById("discoursnight-copy-btn").addEventListener("click", async () => {
+      const texte = `DISCOURS PARTENARIAT — BOÎTES DE NUIT
+
+1. L'ACCROCHE
+« Bonjour, je suis [prénom] de MaCity — l'appli qui centralise tout ce qui se passe le soir à [ville], pensée pour que les gens sortent plus, et surtout, qu'ils sortent chez vous. On a déjà [X] utilisateurs actifs sur la ville, et on cherche les meilleurs clubs pour lancer un partenariat. Je peux vous montrer en 5 minutes comment ça marche et ce que ça change pour vous ? »
+
+2. CE QU'IL FAUT POUR CRÉER LA FICHE
+- Nom de l'établissement + adresse complète
+- 3 à 5 photos (ambiance, salle, extérieur/façade)
+- Horaires d'ouverture + soirées thématiques (électro, latino, généraliste...)
+- Tarifs : entrée, conso, éventuelle liste/guest-list
+- Réseaux sociaux (Instagram en priorité)
+- Un contact référent (téléphone + email)
+Sans photo, la fiche reste invisible dans l'appli.
+
+3. LA MISE EN AVANT
+Sous les stories « En direct autour de vous », 6 encarts « du jour » (dont « Le club du jour ») sont l'endroit le plus vu de l'appli. Cet encart est réservé exclusivement aux partenaires Premium.
+
+4. LE REEL TOURNÉ CHEZ EUX
+Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. MaCity le republie pour mettre le club en avant, et le club récupère le fichier pour ses propres réseaux. Prévoir une soirée avec du monde, 15-20 min de tournage.
+
+5. LES OFFRES MACITY
+🔹 Classique : fiche visible dans l'appli, pas de mise en avant automatique. [tarif à compléter]
+🥇 Gold : tout le Classique + [avantages à compléter]. [tarif à compléter]
+💎 Premium : tout le Gold + « Le club du jour » (mise en avant quotidienne garantie) + reel tourné inclus. [tarif à compléter]`;
+      try {
+        await navigator.clipboard.writeText(texte);
+        toast("Discours copié dans le presse-papier");
+      } catch (e) {
+        toast("Impossible de copier : " + e.message, false);
+      }
+    });
     function showSysmonView() {
       _hideAllViews();
       sysmonView.classList.remove("hidden");
@@ -6403,7 +6549,7 @@
               <input type="text" id="offer-emoji" class="banner-input" value="🎁" style="width:56px; text-align:center; margin:0;" />
               <input type="text" id="offer-title" class="banner-input" placeholder="Titre, ex : 1 dessert offert" style="flex:1; min-width:180px; margin:0;" />
               <input type="text" id="offer-desc" class="banner-input" placeholder="Conditions" style="flex:1; min-width:160px; margin:0;" />
-              <input type="tel" id="offer-phone" class="banner-input" placeholder="📞 Téléphone (ex : 05 61 00 00 00)" style="width:190px; margin:0;" />
+              <input type="tel" id="offer-phone" class="banner-input" placeholder="📞 Téléphone * (obligatoire)" style="width:190px; margin:0;" />
               <select id="offer-categorie" class="banner-input" style="width:130px; margin:0;">
                 <option value="">Catégorie…</option>
                 <option value="Restaurant">Restaurant</option>
@@ -6562,6 +6708,11 @@
           if (!clientId) { toast("Enregistre d'abord la fiche client", false); return; }
           const title = document.getElementById("offer-title").value.trim();
           if (!title) { toast("Le titre de l'offre est obligatoire", false); return; }
+          const phone = document.getElementById("offer-phone").value.trim();
+          // Sans telephone, le bouton d'appel n'apparait jamais dans l'app
+          // (voir offer_detail_screen.dart) : l'utilisateur n'a alors aucun
+          // moyen de joindre le commerce pour reserver.
+          if (!phone) { toast("Le téléphone du commerce est obligatoire", false); return; }
           // Vide = offre non rattachée : visible dans la rubrique Offres, mais
           // elle ne badge aucune pochette.
           const srcTable = document.getElementById("offer-source-table").value;
@@ -6575,7 +6726,7 @@
             const payload = {
               client_id: clientId, title,
               description: document.getElementById("offer-desc").value.trim(),
-              business_phone: document.getElementById("offer-phone").value.trim(),
+              business_phone: phone,
               emoji: document.getElementById("offer-emoji").value.trim() || "🎁",
               total_spots: document.getElementById("offer-spots").value || "0",
               expires_at: document.getElementById("offer-expires").value || "",
