@@ -19,6 +19,8 @@ import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/engagement/domain/event_source_detector.dart';
 import 'package:pulz_app/features/engagement/presentation/event_engagement_sheet.dart';
 import 'package:pulz_app/features/engagement/state/event_engagement_provider.dart';
+import 'package:pulz_app/features/likes/data/likes_repository.dart';
+import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/features/night_plan/presentation/night_plan_sheet.dart';
 
 /// Popup plein ecran affichant la pochette en fond avec les infos overlayees.
@@ -250,8 +252,9 @@ class EventFullscreenPopup extends ConsumerWidget {
                                   ville: event.commune,
                                   eventTitle: event.titre,
                                   eventCategoryEmoji: event.categoryEmoji,
-                                  anchorLat:
-                                      event.latitude != 0 ? event.latitude : null,
+                                  anchorLat: event.latitude != 0
+                                      ? event.latitude
+                                      : null,
                                   anchorLng: event.longitude != 0
                                       ? event.longitude
                                       : null,
@@ -462,6 +465,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                       eventSource: detectEventSource(event.identifiant),
                       eventIdentifiant: event.identifiant,
                       eventTitle: event.titre,
+                      eventCategory: event.categorie,
                       photoUrl: event.photoPath,
                       fallbackAsset: fallbackAsset,
                     ),
@@ -1334,6 +1338,7 @@ class _EngagementActionsBar extends ConsumerStatefulWidget {
   final String eventSource;
   final String eventIdentifiant;
   final String eventTitle;
+  final String eventCategory;
   final String? photoUrl;
   final String fallbackAsset;
 
@@ -1341,6 +1346,7 @@ class _EngagementActionsBar extends ConsumerStatefulWidget {
     required this.eventSource,
     required this.eventIdentifiant,
     required this.eventTitle,
+    required this.eventCategory,
     required this.photoUrl,
     required this.fallbackAsset,
   });
@@ -1396,9 +1402,25 @@ class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
           icon: liked ? Icons.favorite : Icons.favorite_border,
           iconColor: liked ? AppColors.magenta : AppColors.text,
           count: totals?.likesCount ?? 0,
-          onTap: () => ref
-              .read(engagementTotalsProvider.notifier)
-              .toggleLike(widget.eventSource, widget.eventIdentifiant),
+          // Ce cœur cumule 2 rôles : compteur public (engagementTotalsProvider,
+          // table event_real_likes) ET favori perso (likesProvider, table
+          // establishment_likes -> "Mes Favoris"). Avant ce fix, seul le
+          // compteur public était mis à jour : un event liké depuis ce popup
+          // (ex: une fiche "Fête foraine", ouverte sans cœur propre sur sa
+          // tuile) n'apparaissait jamais dans les favoris de l'utilisateur.
+          onTap: () {
+            ref
+                .read(engagementTotalsProvider.notifier)
+                .toggleLike(widget.eventSource, widget.eventIdentifiant);
+            ref.read(likesProvider.notifier).toggle(
+                  widget.eventIdentifiant,
+                  meta: LikeMetadata(
+                    title: widget.eventTitle,
+                    imageUrl: widget.photoUrl,
+                    category: widget.eventCategory,
+                  ),
+                );
+          },
         ),
         _actionTile(
           icon: Icons.mode_comment_outlined,

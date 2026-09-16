@@ -37,7 +37,7 @@ class ItemDetailSheet extends ConsumerWidget {
   final double imageHeightFraction;
   final bool isVerified;
   final bool isPartner;
-  /// Libellé du badge partenaire (adapté à la rubrique). Défaut restaurant.
+  /// Libellé du badge partenaire (adapté à la rubrique). Défaut générique.
   final String partnerLabel;
   final List<String> photoGallery;
   final ReviewsTarget? reviewsTarget;
@@ -67,7 +67,7 @@ class ItemDetailSheet extends ConsumerWidget {
     this.imageHeightFraction = 1.0,
     this.isVerified = false,
     this.isPartner = false,
-    this.partnerLabel = 'Restaurant partenaire',
+    this.partnerLabel = 'Partenaire',
     this.photoGallery = const [],
     this.reviewsTarget,
     this.description = '',

@@ -419,7 +419,7 @@ class CommerceRowCard extends ConsumerWidget {
         isPartner: commerce.isPartner,
         partnerLabel: commerce.categorie == 'Évasion'
             ? 'Domaine partenaire'
-            : 'Restaurant partenaire',
+            : 'Partenaire',
         claimSourceTable: _claimSourceTableFromSingular(commerce.sourceTable),
         claimSourceId: commerce.sourceId,
         photoGallery: _buildPhotoGalleryFor(commerce),
