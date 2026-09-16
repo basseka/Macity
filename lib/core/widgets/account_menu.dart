@@ -550,54 +550,124 @@ class AccountMenu {
     required VoidCallback onTap,
     bool showBadge = false,
   }) {
+    return _MenuItemCard(
+      icon: icon,
+      label: label,
+      subtitle: subtitle,
+      gradientColors: gradientColors,
+      onTap: onTap,
+      pulse: showBadge,
+    );
+  }
+}
+
+/// Carte de _menuItem, extraite en widget pour pouvoir clignoter (fond,
+/// bordure, halo) quand [pulse] est actif : le petit point sur l'icone seul
+/// etait trop discret (signale) pour "Mes invitations" quand une soiree a
+/// venir attend une confirmation "Je viens".
+class _MenuItemCard extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final List<Color> gradientColors;
+  final VoidCallback onTap;
+  final bool pulse;
+
+  const _MenuItemCard({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.gradientColors,
+    required this.onTap,
+    this.pulse = false,
+  });
+
+  @override
+  State<_MenuItemCard> createState() => _MenuItemCardState();
+}
+
+class _MenuItemCardState extends State<_MenuItemCard>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _c;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.pulse) {
+      _c = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 700),
+      )..repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_c == null) return _buildCard(0);
+    return AnimatedBuilder(
+      animation: _c!,
+      builder: (_, __) => _buildCard(_c!.value),
+    );
+  }
+
+  Widget _buildCard(double t) {
+    final accent = widget.gradientColors[0];
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.card),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.card),
-        onTap: onTap,
+        onTap: widget.onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.card),
-            color: AppColors.surfaceHi,
-            border: Border.all(color: AppColors.line),
+            color: widget.pulse
+                ? Color.lerp(AppColors.surfaceHi,
+                    accent.withValues(alpha: 0.28), t)
+                : AppColors.surfaceHi,
+            border: Border.all(
+              color: widget.pulse
+                  ? accent.withValues(alpha: 0.4 + t * 0.6)
+                  : AppColors.line,
+              width: widget.pulse ? 1.5 : 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: gradientColors[0].withValues(alpha: 0.18),
-                blurRadius: 10,
+                color: accent.withValues(
+                    alpha: widget.pulse ? 0.18 + t * 0.5 : 0.18),
+                blurRadius: widget.pulse ? 10 + t * 10 : 10,
                 offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Row(
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: gradientColors,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: gradientColors[0].withValues(alpha: 0.4),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 16),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: widget.gradientColors,
                   ),
-                  if (showBadge)
-                    const Positioned(top: -3, right: -3, child: _PulseDot()),
-                ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: widget.gradientColors[0].withValues(alpha: 0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(widget.icon, color: Colors.white, size: 16),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -605,7 +675,7 @@ class AccountMenu {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      label,
+                      widget.label,
                       style: GoogleFonts.geist(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -615,7 +685,7 @@ class AccountMenu {
                     ),
                     const SizedBox(height: 1),
                     Text(
-                      subtitle,
+                      widget.subtitle,
                       style: GoogleFonts.geist(
                         fontSize: 9,
                         color: AppColors.textFaint,
@@ -631,51 +701,6 @@ class AccountMenu {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Petit point qui clignote (memes reglages que _LiveDot du greeting block,
-/// couleur invitations) : signale "Mes invitations" quand une soiree a venir
-/// attend une confirmation "Je viens", en echo au point discret de l'avatar.
-class _PulseDot extends StatefulWidget {
-  const _PulseDot();
-  @override
-  State<_PulseDot> createState() => _PulseDotState();
-}
-
-class _PulseDotState extends State<_PulseDot>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: Tween(begin: 0.35, end: 1.0).animate(_c),
-      child: Container(
-        width: 11,
-        height: 11,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0xFF00B4D8),
-          border: Border.all(color: AppColors.surfaceHi, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF00B4D8).withValues(alpha: 0.7),
-              blurRadius: 6,
-            ),
-          ],
         ),
       ),
     );
