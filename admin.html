@@ -773,13 +773,15 @@
       color: var(--text);
     }
     .venue-prio input:focus { outline: none; border-color: var(--magenta); }
-    .venue-photo-editor {
+    .venue-photo-editor, .venue-info-editor {
       background: var(--surface);
       border: 1px solid var(--line-strong);
       border-radius: 10px;
       padding: 14px;
       margin-top: 6px;
     }
+    .vi-field { flex: 1 1 200px; }
+    .vi-field > .helper { margin: 0 0 4px; }
     .venue-photo-actions {
       display: flex;
       gap: 8px;
@@ -1027,6 +1029,42 @@
     .pf-range-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
     .pf-empty-hint { text-align: center; color: var(--text-faint); font-size: 12px; padding: 14px 10px; border: 1px dashed var(--line-strong); border-radius: 10px; }
 
+    /* ─── Onglet Appli view (galerie statique) ─── */
+    .appliview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+    .appliview-card {
+      background: var(--surface);
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .appliview-card .appliview-frame {
+      width: 100%;
+      aspect-ratio: 9 / 19.5;
+      background: var(--surface-hi);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .appliview-card .appliview-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .appliview-card .appliview-frame .appliview-missing { color: var(--text-faint); font-size: 12px; text-align: center; padding: 10px; }
+    .appliview-card .appliview-label { padding: 10px 10px 4px; font-size: 13px; font-weight: 700; color: var(--text); text-align: center; }
+    .appliview-card .appliview-notes { padding: 6px 14px 16px; text-align: left; }
+    .appliview-card .appliview-notes .av-group { margin-bottom: 9px; }
+    .appliview-card .appliview-notes .av-group:last-child { margin-bottom: 0; }
+    .appliview-card .appliview-notes .av-group b { display: block; font-size: 12.5px; color: var(--text); margin-bottom: 3px; }
+    .appliview-card .appliview-notes ul { margin: 0; padding-left: 16px; }
+    .appliview-card .appliview-notes li { font-size: 11.5px; color: var(--text-dim); line-height: 1.55; }
+    .appliview-card .appliview-notes .av-arrow { color: var(--text-faint); }
+    .appliview-card .appliview-notes .av-hidden { color: #f59e0b; }
+    .appliview-card .appliview-notes .av-hint { font-size: 11.5px; color: var(--text-faint); line-height: 1.5; margin: 0; }
+
     /* Export PDF du Media Kit : on isole #mediakit-sheet à l'impression. */
     @media print {
       body * { visibility: hidden; }
@@ -1099,6 +1137,7 @@
           <span class="nav-btn" id="goto-clients-btn">🧾 Clients</span>
           <span class="nav-btn" id="goto-postfree-btn">🎨 Post libre</span>
           <span class="nav-btn" id="goto-discoursnight-btn">🎤 Discours boîtes de nuit</span>
+          <span class="nav-btn" id="goto-appliview-btn">📱 Appli view</span>
           <!-- Ouvre le generateur de visuels Instagram (carrousel a gabarits fixes)
                dans un nouvel onglet. Chemin RELATIF : admin.html s'ouvre en local,
                un lien absolu file:// serait casse des que le dossier change de place. -->
@@ -3055,6 +3094,13 @@
           </p>
         </div>
       </div>
+
+      <!-- ═══ VUE "APPLI VIEW" (galerie statique de captures de l'appli) ═══ -->
+      <div id="appliview-view" class="hidden">
+        <h1>📱 Appli view</h1>
+        <p class="subtitle">Aperçu des écrans de l'appli, en grille. Galerie de référence uniquement — les images vivent dans <code>assets/images/appli_view/</code>, rien n'est chargé depuis la base.</p>
+        <div class="appliview-grid" id="appliview-grid"></div>
+      </div>
     </div>
   </div>
 
@@ -3898,7 +3944,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("venues")
-          .select("id, name, adresse, ville, mode, category, pro_claim_code, photo, photos, video_url, display_priority, is_partner")
+          .select("id, name, adresse, ville, mode, category, pro_claim_code, photo, photos, video_url, display_priority, is_partner, telephone, horaires, website_url, lien_maps")
           .eq("is_active", true)
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
@@ -3927,7 +3973,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("etablissements")
-          .select("id, nom, adresse, ville, rubrique, categorie, theme, pro_claim_code, photo, photos, display_priority, priorities, video_url, is_partner")
+          .select("id, nom, adresse, ville, rubrique, categorie, theme, pro_claim_code, photo, photos, display_priority, priorities, video_url, is_partner, telephone, horaires, site_web, lien_maps")
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
         if (error) {
@@ -3952,7 +3998,7 @@
       while (true) {
         const { data, error } = await supabase
           .from("sport_venues")
-          .select("id, nom, adresse, ville, sport_type, categorie, photo, photos, display_priority, video_url, is_partner")
+          .select("id, nom, adresse, ville, sport_type, categorie, photo, photos, display_priority, video_url, is_partner, telephone, horaires, site_web, lien_maps")
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
         if (error) {
@@ -4156,6 +4202,8 @@
     const gotoPostfreeBtn = document.getElementById("goto-postfree-btn");
     const discoursnightView = document.getElementById("discoursnight-view");
     const gotoDiscoursnightBtn = document.getElementById("goto-discoursnight-btn");
+    const appliviewView = document.getElementById("appliview-view");
+    const gotoAppliviewBtn = document.getElementById("goto-appliview-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -4187,6 +4235,7 @@
       clientsView.classList.add("hidden");
       postfreeView.classList.add("hidden");
       discoursnightView.classList.add("hidden");
+      appliviewView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -4427,6 +4476,106 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoDiscoursnightBtn.addEventListener("click", showDiscoursnightView);
+    // ─── Onglet Appli view : galerie statique de 8 captures (assets/images/appli_view/) ───
+    const APPLIVIEW_SLOTS = [
+      {
+        file: "vue-1.png", label: "Accueil",
+        notes: `<div class="av-group"><p class="av-hint">Pas de catégories propres : agrège les stories, les 6 encarts "du jour" et les rubriques ci-dessous. Rien à remplir spécifiquement pour cet écran.</p></div>`,
+      },
+      {
+        file: "vue-2.png", label: "Food",
+        notes: `
+          <div class="av-group"><b>🍽️ Types de resto</b><ul>
+            <li>Restaurant <span class="av-arrow">→ chip "Restaurants", tous les lieux (pas de filtre)</span></li>
+            <li>Guinguette</li>
+            <li>Buffet <span class="av-arrow">→ affiché "Buffets" (singulier en base)</span></li>
+            <li>Salon de the <span class="av-arrow">→ affiché "Salon de Thé"</span></li>
+            <li>Brunch</li>
+          </ul></div>
+          <div class="av-group"><b>🌍 Cuisine (sous-filtre)</b><ul>
+            <li>Francais, Asiatique, Japonais, Italien, Orientale, Mediterraneen, Mexicain, Africain, Indien, Fusion, Sud-Ouest, Fruits de mer, Vegetarien</li>
+            <li class="av-hidden">West Indies → utilisé par l'app mais absent du menu admin (non assignable actuellement)</li>
+          </ul></div>`,
+      },
+      {
+        file: "vue-3.png", label: "Famille",
+        notes: `
+          <div class="av-group"><b>🎢 Divertissements</b><ul><li>Parc d'attractions, Laser game, Escape game, Bowling, Cinema, Patinoire</li></ul></div>
+          <div class="av-group"><b>🧒 Jeux d'enfants</b><ul><li>Aire de jeux, Parc de loisirs</li></ul></div>
+          <div class="av-group"><b>🦁 Animaux et Nature</b><ul><li>Parc animalier, Ferme pedagogique, Aquarium, Zoo, Jardin botanique</li></ul></div>
+          <div class="av-group"><b>🏊 Activité Aquatique</b><ul><li>Centre aquatique, Piscine <span class="av-arrow">(Aquarium déjà listé plus haut)</span></li></ul></div>
+          <div class="av-group"><b>🌳 Sortie en Plein Air</b><ul><li>Parcs, Balade familiale, Accrobranche, Mini golf, Base de loisirs</li></ul></div>
+          <div class="av-group"><b>🔭 Découvrir</b><ul><li>Musee pour enfants, Planetarium, Atelier creatif</li></ul></div>`,
+      },
+      {
+        file: "vue-4.png", label: "Culture",
+        notes: `
+          <div class="av-group"><b>🎬 Cinéma</b><ul><li>Cinema <span class="av-arrow">→ événement scrapé, pas une fiche lieu</span></li></ul></div>
+          <div class="av-group"><b>🎭 Arts vivants</b><ul><li>Theatre</li></ul></div>
+          <div class="av-group"><b>🏛️ Musées & expositions</b><ul><li>Musee</li><li>Exposition <span class="av-arrow">→ événement scrapé</span></li></ul></div>
+          <div class="av-group"><b>🏰 Patrimoine & monuments</b><ul><li>Monument historique, Bibliotheque</li></ul></div>
+          <div class="av-group"><b>🚶 Visites & animations</b><ul><li>Visites guidees <span class="av-arrow">→ événement scrapé</span></li></ul></div>
+          <div class="av-group"><b>🎨 Art</b><ul><li>Galerie d'art</li></ul></div>
+          <div class="av-group"><p class="av-hint">"Danse" est en réalité géré côté Sport (sport_venues), pas ici.</p></div>`,
+      },
+      {
+        file: "vue-5.png", label: "Sport",
+        notes: `
+          <div class="av-group"><b>🏋️ Chips de l'écran</b><ul>
+            <li>Cours Co → <code>fitness</code></li>
+            <li>Boxe → <code>boxe</code></li>
+            <li>Football → <code>terrain-football</code></li>
+            <li>Basket → <code>terrain-basketball</code></li>
+            <li>Piscine → <code>piscine</code></li>
+            <li>Golf → <code>golf</code></li>
+          </ul></div>
+          <div class="av-group"><b>🎾 Raquette</b><ul><li>tennis, padel, squash, ping-pong, badminton</li></ul></div>
+          <div class="av-group"><ul><li><span class="av-arrow">danse → rattaché à l'onglet Culture, pas Sport</span></li>
+            <li class="av-hidden">muscu, gym-douce → utilisés par l'app mais absents du menu admin</li></ul></div>`,
+      },
+      {
+        file: "vue-6.png", label: "Nuit",
+        notes: `
+          <div class="av-group"><b>🍸 Bars & vie nocturne</b><ul>
+            <li>Club Discotheque → affiché "Discothèque"</li>
+            <li>Bar de nuit</li>
+            <li>Bar a cocktails → affiché "Cocktails"</li>
+            <li>Bar a chicha → affiché "Chicha"</li>
+            <li>Pub</li>
+            <li class="av-hidden">Spicy → regroupe Coquin et Strip, absents du menu admin</li>
+          </ul></div>
+          <div class="av-group"><b>🌙 Commerces ouverts la nuit</b><ul><li>SOS Apero, Epicerie de nuit, Tabac de nuit</li></ul></div>
+          <div class="av-group"><b>🏨 Hébergement</b><ul><li>Hotel</li></ul></div>`,
+      },
+      {
+        file: "vue-7.png", label: "Évasion",
+        notes: `<div class="av-group"><p class="av-hint">Pas de catégorie : filtre uniquement par temps de trajet (À 1h / À 2h / À 3h). Onglet Évasion dédié dans l'admin (pas Établissements) : Nom, Commune, Ville hub, Adresse, Latitude/Longitude, Trajet, Site web, Teaser.</p></div>`,
+      },
+      { file: "vue-8.png", label: "Vue 8" },
+    ];
+    function renderAppliView() {
+      const grid = document.getElementById("appliview-grid");
+      grid.innerHTML = APPLIVIEW_SLOTS.map(
+        (s) => `
+        <div class="appliview-card">
+          <div class="appliview-frame">
+            <img src="assets/images/appli_view/${s.file}" alt="${escapeHtml(s.label)}"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="appliview-missing" style="display:none; flex-direction:column; align-items:center; justify-content:center; height:100%;">📷<br/>À venir</div>
+          </div>
+          <div class="appliview-label">${escapeHtml(s.label)}</div>
+          ${s.notes ? `<div class="appliview-notes">${s.notes}</div>` : ""}
+        </div>`
+      ).join("");
+    }
+    function showAppliViewView() {
+      _hideAllViews();
+      appliviewView.classList.remove("hidden");
+      gotoAppliviewBtn.classList.add("active");
+      renderAppliView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoAppliviewBtn.addEventListener("click", showAppliViewView);
     document.getElementById("discoursnight-copy-btn").addEventListener("click", async () => {
       const texte = `DISCOURS PARTENARIAT — BOÎTES DE NUIT
 
@@ -9795,6 +9944,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         priorities: {},          // venues : pas d'override par categorie
         videoUrl: r.video_url || "",
         isPartner: !!r.is_partner,
+        telephone: r.telephone || "",
+        horaires: r.horaires || "",
+        website: r.website_url || "",
+        lienMaps: r.lien_maps || "",
       }));
       // L'app ne lit `etablissements` QUE pour food. Pour night/culture/
       // famille elle lit `venues` (et sport → `sport_venues`), donc les
@@ -9820,6 +9973,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           priorities: (r.priorities && typeof r.priorities === "object") ? r.priorities : {},
           videoUrl: r.video_url || "",
           isPartner: !!r.is_partner,
+          telephone: r.telephone || "",
+          horaires: r.horaires || "",
+          website: r.site_web || "",
+          lienMaps: r.lien_maps || "",
         }));
       const s = allSportVenues.map(r => ({
         source: "sport_venues",
@@ -9836,6 +9993,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         priorities: {},
         videoUrl: r.video_url || "",
         isPartner: !!r.is_partner,
+        telephone: r.telephone || "",
+        horaires: r.horaires || "",
+        website: r.site_web || "",
+        lienMaps: r.lien_maps || "",
       }));
       // L'app lit `family_venues` pour la rubrique Famille (PAS etablissements).
       // On les affiche en lecture (filtre Famille + sous-catégories de l'app).
@@ -9920,6 +10081,42 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
 
     // Bloc éditeur (replié par défaut), un par fiche :
     // pochette (vignette de la carte) + galerie (photos de la fiche détaillée).
+    // Panneau d'édition des infos texte (nom, adresse, contact) d'une fiche
+    // existante. Les colonnes site web / nom diffèrent selon la table
+    // (`venues.website_url`+`name` vs `etablissements`/`sport_venues`
+    // `site_web`+`nom`) — géré au moment du save, pas ici.
+    function venueInfoEditorHtml(f) {
+      return `
+        <div class="venue-info-editor hidden">
+          <div class="vp-section-label">✏️ Infos <span>— nom, adresse, contact</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <label class="vi-field"><div class="helper">Nom</div>
+              <input type="text" class="banner-input" style="width:100%;margin:0;" data-field="info-name" value="${escapeHtml(f.name)}" /></label>
+            <label class="vi-field" style="flex-basis:160px;"><div class="helper">Ville</div>
+              <input type="text" class="banner-input" style="width:100%;margin:0;" data-field="info-ville" value="${escapeHtml(f.ville)}" /></label>
+          </div>
+          <label style="display:block;margin-top:10px;"><div class="helper" style="margin:0 0 4px;">Adresse</div>
+            <input type="text" class="banner-input" style="width:100%;margin:0;" data-field="info-adresse" value="${escapeHtml(f.adresse)}" /></label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+            <label class="vi-field" style="flex-basis:160px;"><div class="helper">Téléphone</div>
+              <input type="text" class="banner-input" style="width:100%;margin:0;" data-field="info-telephone" value="${escapeHtml(f.telephone || "")}" /></label>
+            <label class="vi-field" style="flex:2 1 220px;"><div class="helper">Horaires</div>
+              <input type="text" class="banner-input" style="width:100%;margin:0;" data-field="info-horaires" value="${escapeHtml(f.horaires || "")}" placeholder="Ex : Jeu-Sam 23h-5h" /></label>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+            <label class="vi-field"><div class="helper">Site web</div>
+              <input type="url" class="banner-input" style="width:100%;margin:0;" data-field="info-website" value="${escapeHtml(f.website || "")}" placeholder="https://…" /></label>
+            <label class="vi-field"><div class="helper">Lien Google Maps</div>
+              <input type="url" class="banner-input" style="width:100%;margin:0;" data-field="info-lienmaps" value="${escapeHtml(f.lienMaps || "")}" placeholder="https://maps.google.com/…" /></label>
+          </div>
+          <div class="venue-photo-actions">
+            <button class="gen-btn" data-action="cancel-info">Annuler</button>
+            <button class="banner-save-btn" data-action="save-info">Enregistrer</button>
+          </div>
+        </div>
+      `;
+    }
+
     function venuePhotoEditorHtml(f) {
       const photo = f.photo || "";
       const isHttp = photo.startsWith("http");
@@ -10034,6 +10231,14 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           ? `<button class="code-pill" data-action="copy" data-code="${escapeHtml(f.code)}" title="Cliquer pour copier"><span>${escapeHtml(f.code)}</span><span class="copy-icon">📋</span></button>`
           : `<button class="gen-btn" data-action="generate" data-source="${f.source}" data-id="${f.id}">🔑 Générer</button>`;
       }
+      // Infos texte (nom/adresse/ville/telephone/horaires/site web/maps) :
+      // éditables pour venues, etablissements et sport_venues. family_venues
+      // et evasion_venues restent gérées dans leur onglet dédié.
+      const canEditInfo = f.source === "venues" || f.source === "etablissements"
+        || f.source === "sport_venues";
+      const infoBtn = canEditInfo
+        ? `<button class="photo-btn" data-action="toggle-info">✏️ Infos</button>`
+        : "";
       // family_venues : lecture seule ici (l'app lit cette table). L'édition
       // — photo, catégorie, priorité — se fait dans l'onglet Famille dédié.
       const isFamily = f.source === "family_venues";
@@ -10110,9 +10315,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
               <div class="venue-row-name">${badge}${escapeHtml(f.name)}</div>
               <div class="venue-row-meta">${meta}</div>
             </div>
-            <div class="venue-row-actions">${prioCtrl}${partnerBtn}${catPrioBtn}${codeAction}${photoBtn}${deleteBtn}</div>
+            <div class="venue-row-actions">${prioCtrl}${partnerBtn}${infoBtn}${catPrioBtn}${codeAction}${photoBtn}${deleteBtn}</div>
           </div>
           ${catPanel}
+          ${canEditInfo ? venueInfoEditorHtml(f) : ""}
           ${venuePhotoEditorHtml(f)}
         </div>
       `;
@@ -10323,6 +10529,128 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         editor.classList.add("hidden");
         const tgl = item.querySelector('.photo-btn[data-action="toggle-photo"]');
         if (tgl) tgl.classList.remove("open");
+        return;
+      }
+
+      // ── Edition des infos texte (nom / adresse / ville / contact) ──
+      if (action === "toggle-info") {
+        const item = target.closest(".venue-item");
+        const editor = item.querySelector(".venue-info-editor");
+        if (!editor) return;
+        const nowHidden = editor.classList.toggle("hidden");
+        target.classList.toggle("open", !nowHidden);
+        return;
+      }
+
+      if (action === "cancel-info") {
+        const item = target.closest(".venue-item");
+        const editor = item.querySelector(".venue-info-editor");
+        const source = item.dataset.source;
+        const id = Number(item.dataset.id);
+        const fiche = unifiedFiches().find(f => f.source === source && String(f.id) === String(id));
+        if (fiche && editor) {
+          editor.querySelector('[data-field="info-name"]').value = fiche.name;
+          editor.querySelector('[data-field="info-ville"]').value = fiche.ville;
+          editor.querySelector('[data-field="info-adresse"]').value = fiche.adresse;
+          editor.querySelector('[data-field="info-telephone"]').value = fiche.telephone || "";
+          editor.querySelector('[data-field="info-horaires"]').value = fiche.horaires || "";
+          editor.querySelector('[data-field="info-website"]').value = fiche.website || "";
+          editor.querySelector('[data-field="info-lienmaps"]').value = fiche.lienMaps || "";
+        }
+        if (editor) editor.classList.add("hidden");
+        const tgl = item.querySelector('.photo-btn[data-action="toggle-info"]');
+        if (tgl) tgl.classList.remove("open");
+        return;
+      }
+
+      if (action === "save-info") {
+        const item = target.closest(".venue-item");
+        const source = item.dataset.source;
+        const id = Number(item.dataset.id);
+        const nameVal = item.querySelector('[data-field="info-name"]').value.trim();
+        const adresse = item.querySelector('[data-field="info-adresse"]').value.trim();
+        const ville = item.querySelector('[data-field="info-ville"]').value.trim();
+        const telephone = item.querySelector('[data-field="info-telephone"]').value.trim();
+        const horaires = item.querySelector('[data-field="info-horaires"]').value.trim();
+        const website = item.querySelector('[data-field="info-website"]').value.trim();
+        const lienMaps = item.querySelector('[data-field="info-lienmaps"]').value.trim();
+        if (!nameVal) {
+          toast("Le nom ne peut pas être vide", false);
+          return;
+        }
+        for (const [lbl, u] of [["site web", website], ["lien Maps", lienMaps]]) {
+          if (u && !/^https?:\/\//.test(u)) {
+            toast(`L'URL ${lbl} doit commencer par http:// ou https://`, false);
+            return;
+          }
+        }
+        // `venues` a une colonne `name` + `website_url` ; `etablissements` et
+        // `sport_venues` ont `nom` + `site_web` — même donnée, nom de colonne
+        // different selon la table.
+        const nameCol = source === "venues" ? "name" : "nom";
+        const websiteCol = source === "venues" ? "website_url" : "site_web";
+        const patch = {
+          [nameCol]: nameVal, adresse, ville, telephone, horaires,
+          [websiteCol]: website, lien_maps: lienMaps,
+        };
+        target.disabled = true;
+        const prevLbl = target.textContent;
+        target.textContent = "…";
+        const { data, error } = await supabase
+          .from(source)
+          .update(patch)
+          .eq("id", id)
+          .select("id");
+        target.disabled = false;
+        target.textContent = prevLbl;
+        if (error) {
+          console.warn("[venue info save]", error);
+          toast("Erreur : " + (error.message || "échec de l'enregistrement"), false);
+          return;
+        }
+        if (!data || data.length === 0) {
+          toast(`⚠️ 0 ligne modifiée : la base a refusé l'écriture (RLS). Applique la migration « admin_update_${source} ».`, false);
+          return;
+        }
+        const TABLES = { venues: allVenues, etablissements: allEtabs, sport_venues: allSportVenues };
+        const editedRow = (TABLES[source] || []).find(r => r.id === id);
+        if (editedRow) Object.assign(editedRow, patch);
+
+        // ── Propagation aux doublons dans les autres tables (même logique
+        // que le save des médias — cf. bug L'Étoile en commentaire plus haut) ──
+        let propagated = 0;
+        if (editedRow) {
+          const norm = (s) => (s || "").toLowerCase()
+            .normalize("NFD").replace(/[̀-ͯ]/g, "")
+            .replace(/[^a-z0-9]+/g, " ").trim();
+          const key = norm(nameVal);
+          const villeNorm = norm(ville);
+          for (const [tbl, cache] of Object.entries(TABLES)) {
+            if (tbl === source) continue;
+            const twin = (cache || []).find(r => {
+              const rn = r.name ?? r.nom ?? "";
+              return norm(rn) === key && norm(r.ville) === villeNorm;
+            });
+            if (!twin) continue;
+            const twinNameCol = tbl === "venues" ? "name" : "nom";
+            const twinWebsiteCol = tbl === "venues" ? "website_url" : "site_web";
+            const twinPatch = {
+              [twinNameCol]: nameVal, adresse, ville, telephone, horaires,
+              [twinWebsiteCol]: website, lien_maps: lienMaps,
+            };
+            const { data: tData, error: tErr } = await supabase
+              .from(tbl).update(twinPatch).eq("id", twin.id).select("id");
+            if (tErr) { console.warn(`[info propagate ${tbl}]`, tErr); continue; }
+            if (tData && tData.length) {
+              Object.assign(twin, twinPatch);
+              propagated++;
+            }
+          }
+        }
+        renderVenuesList();
+        toast(propagated > 0
+          ? `Infos mises à jour (+${propagated} doublon synchronisé)`
+          : "Infos mises à jour", true);
         return;
       }
 
