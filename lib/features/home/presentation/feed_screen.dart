@@ -27,6 +27,7 @@ import 'package:pulz_app/features/home/state/paginated_feed_provider.dart';
 import 'package:pulz_app/features/home/state/banners_provider.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+import 'package:pulz_app/features/private_events/state/my_invitations_provider.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
 import 'package:pulz_app/features/food/state/food_venues_provider.dart';
 import 'package:pulz_app/features/search/data/unified_search_service.dart';
@@ -712,7 +713,40 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => AccountMenu.show(context, ref),
-          child: AccountMenu.buildButton(ref: ref, size: 34),
+          child: Builder(builder: (_) {
+            // Point discret : au moins une invitation ("je viens") en
+            // cours. Volontairement sans chiffre, juste un signal de
+            // presence pour ne pas alourdir l'avatar.
+            final hasInvitation =
+                (ref.watch(myInvitationsCountProvider).valueOrNull ?? 0) > 0;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AccountMenu.buildButton(ref: ref, size: 34),
+                if (hasInvitation)
+                  Positioned(
+                    top: -1,
+                    right: -1,
+                    child: Container(
+                      width: 11,
+                      height: 11,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF00B4D8),
+                        border: Border.all(color: AppColors.bg, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                const Color(0xFF00B4D8).withValues(alpha: 0.6),
+                            blurRadius: 5,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
         ),
         const SizedBox(width: 9),
         // Bloc "prenom + ville" cliquable -> ouvre le city picker

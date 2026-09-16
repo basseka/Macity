@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
@@ -9,6 +10,22 @@ import 'package:pulz_app/features/private_events/data/private_event_service.dart
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+/// Palette fixe (sombre), volontairement independante du flag global
+/// `AppColors.isLightTheme` (bascule selon la rubrique visitee : Night =
+/// sombre, tout le reste = clair, cf design_tokens.dart). Le coffre/les
+/// invitations n'appartiennent a aucune rubrique : sans ca, l'ecran heritait
+/// du theme clair ou sombre laisse par le dernier mode visite, d'ou un rendu
+/// incoherent entre deux ouvertures (signale : rendu different Android/iPhone).
+class _CoffreColors {
+  static const bg = Color(0xFF0A0514);
+  static const surface = Color(0xFF1A0F2E);
+  static const surfaceHi = Color(0xFF241640);
+  static const text = Color(0xFFF5F0FF);
+  static const textDim = Color(0xFFB5A8D0);
+  static const textFaint = Color(0xFF7A6E95);
+  static const line = Color(0x12FFFFFF);
+}
 
 /// Coffre secret : champ token + passcode + animation cadenas → reveal event.
 class OpenSecretBoxScreen extends StatefulWidget {
@@ -133,19 +150,34 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: _CoffreColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
+        backgroundColor: _CoffreColors.bg,
         elevation: 0,
+        // Le lien de coffre arrive via `go()` (deep link), qui remplace toute
+        // la pile de navigation : sans ce bouton explicite, Navigator.canPop
+        // est false, l'AppBar n'affiche aucun retour automatique et l'invite
+        // reste bloque sur cet ecran (signale sur iPhone).
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new,
+              size: 20, color: _CoffreColors.text),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
         title: Text(
           _revealed != null ? 'Coffre ouvert' : 'Ouvrir un coffre',
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: AppColors.text,
+            color: _CoffreColors.text,
           ),
         ),
-        iconTheme: IconThemeData(color: AppColors.text),
+        iconTheme: IconThemeData(color: _CoffreColors.text),
       ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
@@ -208,14 +240,14 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
           style: GoogleFonts.geist(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.text,
+            color: _CoffreColors.text,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'L\'organisateur t\'a partage un token + un code 4 chiffres.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.geist(fontSize: 12, color: AppColors.textDim),
+          style: GoogleFonts.geist(fontSize: 12, color: _CoffreColors.textDim),
         ),
         const SizedBox(height: 26),
 
@@ -225,7 +257,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDim,
+            color: _CoffreColors.textDim,
           ),
         ),
         const SizedBox(height: 4),
@@ -237,24 +269,24 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
               minLines: 2,
               style: GoogleFonts.geistMono(
                 fontSize: 12,
-                color: AppColors.text,
+                color: _CoffreColors.text,
               ),
               decoration: InputDecoration(
                 hintText: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
                 hintStyle: GoogleFonts.geistMono(
                   fontSize: 12,
-                  color: AppColors.textFaint,
+                  color: _CoffreColors.textFaint,
                 ),
                 filled: true,
-                fillColor: AppColors.surfaceHi,
+                fillColor: _CoffreColors.surfaceHi,
                 contentPadding: const EdgeInsets.fromLTRB(12, 12, 50, 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.card),
-                  borderSide: BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: _CoffreColors.line),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.card),
-                  borderSide: BorderSide(color: AppColors.line),
+                  borderSide: BorderSide(color: _CoffreColors.line),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.card),
@@ -285,7 +317,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.textDim,
+            color: _CoffreColors.textDim,
           ),
         ),
         const SizedBox(height: 4),
@@ -303,7 +335,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
             fontSize: 24,
             fontWeight: FontWeight.w700,
             letterSpacing: 10,
-            color: AppColors.text,
+            color: _CoffreColors.text,
           ),
           decoration: InputDecoration(
             counterText: '',
@@ -311,17 +343,17 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
             hintStyle: GoogleFonts.geistMono(
               fontSize: 24,
               letterSpacing: 10,
-              color: AppColors.textFaint,
+              color: _CoffreColors.textFaint,
             ),
             filled: true,
-            fillColor: AppColors.surfaceHi,
+            fillColor: _CoffreColors.surfaceHi,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
-              borderSide: BorderSide(color: AppColors.line),
+              borderSide: BorderSide(color: _CoffreColors.line),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
-              borderSide: BorderSide(color: AppColors.line),
+              borderSide: BorderSide(color: _CoffreColors.line),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.card),
@@ -506,21 +538,31 @@ class _RevealViewState extends State<_RevealView> {
         // Carte event
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: _CoffreColors.surface,
             borderRadius: BorderRadius.circular(AppRadius.card),
-            border: Border.all(color: AppColors.line),
+            border: Border.all(color: _CoffreColors.line),
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Pas d'AspectRatio fixe : l'affiche d'un event prive est le
+              // plus souvent en portrait (infos texte + pictos imprimes
+              // dessus) : un cadrage 16:9 + cover en coupait une partie.
+              // Ici l'image garde son ratio naturel, entiere, avant tous
+              // les details textuels qui suivent.
               if (hasPhoto)
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: CachedNetworkImage(
-                    imageUrl: event.photoUrl!,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => _photoFallback(),
+                CachedNetworkImage(
+                  imageUrl: event.photoUrl!,
+                  fit: BoxFit.fitWidth,
+                  width: double.infinity,
+                  placeholder: (_, __) => AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Container(color: _CoffreColors.surfaceHi),
+                  ),
+                  errorWidget: (_, __, ___) => AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: _photoFallback(),
                   ),
                 )
               else
@@ -538,7 +580,7 @@ class _RevealViewState extends State<_RevealView> {
                       style: GoogleFonts.geist(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
+                        color: _CoffreColors.text,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -556,7 +598,7 @@ class _RevealViewState extends State<_RevealView> {
                         style: GoogleFonts.geist(
                           fontSize: 13,
                           height: 1.4,
-                          color: AppColors.textDim,
+                          color: _CoffreColors.textDim,
                         ),
                       ),
                     ],
@@ -575,8 +617,8 @@ class _RevealViewState extends State<_RevealView> {
                             ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.text,
-                            side: BorderSide(color: AppColors.line),
+                            foregroundColor: _CoffreColors.text,
+                            side: BorderSide(color: _CoffreColors.line),
                             shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(AppRadius.chip),
@@ -596,9 +638,9 @@ class _RevealViewState extends State<_RevealView> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: _CoffreColors.surface,
             borderRadius: BorderRadius.circular(AppRadius.card),
-            border: Border.all(color: AppColors.line),
+            border: Border.all(color: _CoffreColors.line),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -618,7 +660,7 @@ class _RevealViewState extends State<_RevealView> {
                     style: GoogleFonts.geist(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.text,
+                      color: _CoffreColors.text,
                     ),
                   ),
                 ],
@@ -680,7 +722,7 @@ class _RevealViewState extends State<_RevealView> {
             '${event.openCount} / ${event.maxOpens} ouvertures',
             style: GoogleFonts.geistMono(
               fontSize: 10,
-              color: AppColors.textFaint,
+              color: _CoffreColors.textFaint,
               letterSpacing: 1,
             ),
           ),
@@ -704,14 +746,14 @@ class _RevealViewState extends State<_RevealView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 14, color: AppColors.textDim),
+          Icon(icon, size: 14, color: _CoffreColors.textDim),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               style: GoogleFonts.geist(
                 fontSize: 13,
-                color: AppColors.text,
+                color: _CoffreColors.text,
               ),
             ),
           ),

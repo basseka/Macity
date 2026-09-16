@@ -13,6 +13,7 @@ import 'package:pulz_app/features/offers/presentation/my_offers_screen.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/private_events/presentation/my_invitations_screen.dart';
+import 'package:pulz_app/features/private_events/state/my_invitations_provider.dart';
 import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/open_secret_box_screen.dart';
 import 'package:pulz_app/features/pro_auth/presentation/pro_login_sheet.dart';
@@ -62,6 +63,8 @@ class AccountMenu {
     // Anonyme ("Explorer sans compte") : pas inscrit, pas pro → on lui propose
     // de créer son compte (conversion).
     final showCreateAccount = !isProConnected && !isDeviceRegistered();
+    final hasInvitation =
+        (ref.read(myInvitationsCountProvider).valueOrNull ?? 0) > 0;
 
     showModalBottomSheet(
       context: context,
@@ -109,7 +112,8 @@ class AccountMenu {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.location_on, size: 11, color: AppColors.textFaint),
+                      Icon(Icons.location_on,
+                          size: 11, color: AppColors.textFaint),
                       const SizedBox(width: 3),
                       Text(
                         ville,
@@ -130,7 +134,10 @@ class AccountMenu {
                     icon: Icons.person_add_alt_1_rounded,
                     label: 'Créer mon compte',
                     subtitle: 'Débloque stories, favoris et récompenses',
-                    gradientColors: const [Color(0xFFE91E8C), Color(0xFF7B2D8E)],
+                    gradientColors: const [
+                      Color(0xFFE91E8C),
+                      Color(0xFF7B2D8E)
+                    ],
                     onTap: () {
                       Navigator.pop(ctx);
                       appRouter.go('/onboarding');
@@ -176,7 +183,8 @@ class AccountMenu {
                       useRootNavigator: true,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (_) => const LikedPlacesBottomSheet(fromAccountMenu: true),
+                      builder: (_) =>
+                          const LikedPlacesBottomSheet(fromAccountMenu: true),
                     );
                   },
                 ),
@@ -219,6 +227,7 @@ class AccountMenu {
                   label: 'Mes invitations',
                   subtitle: 'Soirees ou j\'ai dit "Je viens"',
                   gradientColors: const [Color(0xFF00B4D8), Color(0xFF48CAE4)],
+                  showBadge: hasInvitation,
                   onTap: () {
                     Navigator.of(ctx).pop();
                     Navigator.of(context).push(
@@ -436,7 +445,8 @@ class AccountMenu {
             onPressed: () => Navigator.of(dialogCtx).pop(true),
             child: const Text(
               'Supprimer',
-              style: TextStyle(color: Color(0xFFE91E8C), fontWeight: FontWeight.w700),
+              style: TextStyle(
+                  color: Color(0xFFE91E8C), fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -497,7 +507,8 @@ class AccountMenu {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
+            child:
+                Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(true),
@@ -537,6 +548,7 @@ class AccountMenu {
     required String subtitle,
     required List<Color> gradientColors,
     required VoidCallback onTap,
+    bool showBadge = false,
   }) {
     return Material(
       color: Colors.transparent,
@@ -560,25 +572,32 @@ class AccountMenu {
           ),
           child: Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: gradientColors,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: gradientColors[0].withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: gradientColors,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: gradientColors[0].withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Icon(icon, color: Colors.white, size: 16),
+                    child: Icon(icon, color: Colors.white, size: 16),
+                  ),
+                  if (showBadge)
+                    const Positioned(top: -3, right: -3, child: _PulseDot()),
+                ],
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -612,6 +631,51 @@ class AccountMenu {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Petit point qui clignote (memes reglages que _LiveDot du greeting block,
+/// couleur invitations) : signale "Mes invitations" quand une soiree a venir
+/// attend une confirmation "Je viens", en echo au point discret de l'avatar.
+class _PulseDot extends StatefulWidget {
+  const _PulseDot();
+  @override
+  State<_PulseDot> createState() => _PulseDotState();
+}
+
+class _PulseDotState extends State<_PulseDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: Tween(begin: 0.35, end: 1.0).animate(_c),
+      child: Container(
+        width: 11,
+        height: 11,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: const Color(0xFF00B4D8),
+          border: Border.all(color: AppColors.surfaceHi, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00B4D8).withValues(alpha: 0.7),
+              blurRadius: 6,
+            ),
+          ],
         ),
       ),
     );

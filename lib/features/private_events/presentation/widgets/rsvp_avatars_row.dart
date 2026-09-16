@@ -4,6 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 
+/// Palette fixe (sombre), voir _CoffreColors dans open_secret_box_screen.dart
+/// et my_invitations_screen.dart : ce widget est utilise exclusivement par
+/// les ecrans coffre/invitations, qui doivent garder le meme rendu quelle
+/// que soit la rubrique visitee juste avant (AppColors.isLightTheme global).
+class _CoffreColors {
+  static const bg = Color(0xFF0A0514);
+  static const surfaceHi = Color(0xFF241640);
+  static const text = Color(0xFFF5F0FF);
+  static const line = Color(0x12FFFFFF);
+}
+
 /// Rangee d'avatars superposes (style Instagram). Affiche jusqu'a [maxVisible]
 /// cercles + un "+N" si plus.
 class RsvpAvatarsRow extends StatelessWidget {
@@ -49,9 +60,9 @@ class RsvpAvatarsRow extends StatelessWidget {
               height: size,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
-                color: AppColors.surfaceHi,
+                color: _CoffreColors.surfaceHi,
                 borderRadius: BorderRadius.circular(size / 2),
-                border: Border.all(color: AppColors.line),
+                border: Border.all(color: _CoffreColors.line),
               ),
               alignment: Alignment.center,
               child: Text(
@@ -59,7 +70,7 @@ class RsvpAvatarsRow extends StatelessWidget {
                 style: GoogleFonts.geist(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.text,
+                  color: _CoffreColors.text,
                 ),
               ),
             ),
@@ -79,8 +90,8 @@ class RsvpAvatarsRow extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.surfaceHi,
-        border: Border.all(color: AppColors.bg, width: 2),
+        color: _CoffreColors.surfaceHi,
+        border: Border.all(color: _CoffreColors.bg, width: 2),
       ),
       clipBehavior: Clip.antiAlias,
       child: hasPhoto

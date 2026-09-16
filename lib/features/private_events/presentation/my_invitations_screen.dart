@@ -7,8 +7,26 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const _accentColor = Color(0xFF00B4D8);
+
+/// Palette fixe (sombre), volontairement independante du flag global
+/// `AppColors.isLightTheme` (bascule selon la rubrique visitee : Night =
+/// sombre, tout le reste = clair, cf design_tokens.dart). Le coffre/les
+/// invitations n'appartiennent a aucune rubrique : sans ca, l'ecran heritait
+/// du theme clair ou sombre laisse par le dernier mode visite, d'ou un rendu
+/// incoherent entre deux ouvertures (signale : rendu different Android/iPhone).
+class _CoffreColors {
+  static const bg = Color(0xFF0A0514);
+  static const surface = Color(0xFF1A0F2E);
+  static const surfaceHi = Color(0xFF241640);
+  static const text = Color(0xFFF5F0FF);
+  static const textDim = Color(0xFFB5A8D0);
+  static const textFaint = Color(0xFF7A6E95);
+  static const line = Color(0x12FFFFFF);
+  static const lineStrong = Color(0x24FFFFFF);
+}
 
 /// Liste des soirees auxquelles ce device a confirme sa venue ("Je viens").
 /// Distincte de [MyPrivateEventsScreen] qui liste les events crees PAR le user.
@@ -52,19 +70,19 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: _CoffreColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
+        backgroundColor: _CoffreColors.bg,
         elevation: 0,
         title: Text(
           'Mes invitations',
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: AppColors.text,
+            color: _CoffreColors.text,
           ),
         ),
-        iconTheme: IconThemeData(color: AppColors.text),
+        iconTheme: IconThemeData(color: _CoffreColors.text),
       ),
       body: FutureBuilder<List<PrivateEventReveal>>(
         future: _future,
@@ -120,7 +138,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
               style: GoogleFonts.geist(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: AppColors.text,
+                color: _CoffreColors.text,
               ),
             ),
             const SizedBox(height: 6),
@@ -129,7 +147,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.geist(
                 fontSize: 13,
-                color: AppColors.textDim,
+                color: _CoffreColors.textDim,
               ),
             ),
           ],
@@ -159,9 +177,9 @@ class _InvitationTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: _CoffreColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(color: AppColors.line),
+          border: Border.all(color: _CoffreColors.line),
         ),
         clipBehavior: Clip.antiAlias,
         child: Padding(
@@ -172,7 +190,7 @@ class _InvitationTile extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceHi,
+                  color: _CoffreColors.surfaceHi,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -194,7 +212,7 @@ class _InvitationTile extends StatelessWidget {
                       style: GoogleFonts.geist(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
+                        color: _CoffreColors.text,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -205,7 +223,7 @@ class _InvitationTile extends StatelessWidget {
                         Icon(
                           Icons.calendar_today,
                           size: 11,
-                          color: AppColors.textFaint,
+                          color: _CoffreColors.textFaint,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -215,7 +233,7 @@ class _InvitationTile extends StatelessWidget {
                                   : ''),
                           style: GoogleFonts.geist(
                             fontSize: 11,
-                            color: AppColors.textDim,
+                            color: _CoffreColors.textDim,
                           ),
                         ),
                       ],
@@ -227,7 +245,7 @@ class _InvitationTile extends StatelessWidget {
                           Icon(
                             Icons.location_on_outlined,
                             size: 11,
-                            color: AppColors.textFaint,
+                            color: _CoffreColors.textFaint,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
@@ -235,7 +253,7 @@ class _InvitationTile extends StatelessWidget {
                               event.lieu,
                               style: GoogleFonts.geist(
                                 fontSize: 11,
-                                color: AppColors.textDim,
+                                color: _CoffreColors.textDim,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -258,7 +276,7 @@ class _InvitationTile extends StatelessWidget {
                             '${event.rsvps.length} present${event.rsvps.length > 1 ? "s" : ""}',
                             style: GoogleFonts.geist(
                               fontSize: 10,
-                              color: AppColors.textFaint,
+                              color: _CoffreColors.textFaint,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -292,10 +310,10 @@ class _InvitationTile extends StatelessWidget {
   }
 
   Widget _photoPlaceholder() => Container(
-        color: AppColors.surfaceHi,
+        color: _CoffreColors.surfaceHi,
         child: Icon(
           Icons.celebration,
-          color: AppColors.textFaint,
+          color: _CoffreColors.textFaint,
           size: 22,
         ),
       );
@@ -330,20 +348,32 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
     return DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(d);
   }
 
+  Future<void> _openMaps() async {
+    final ev = widget.event;
+    final query = Uri.encodeComponent(
+      ev.adresse.isNotEmpty ? ev.adresse : ev.lieu,
+    );
+    final url =
+        Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Future<void> _cancel() async {
     final token = widget.event.accessToken;
     if (token == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: _CoffreColors.surface,
         title: Text(
           'Annuler ta venue ?',
-          style: GoogleFonts.geist(color: AppColors.text),
+          style: GoogleFonts.geist(color: _CoffreColors.text),
         ),
         content: Text(
           'Tu pourras toujours revenir en cliquant "Je viens" depuis le coffre.',
-          style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 13),
+          style: GoogleFonts.geist(color: _CoffreColors.textDim, fontSize: 13),
         ),
         actions: [
           TextButton(
@@ -388,9 +418,9 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: _CoffreColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border(top: BorderSide(color: AppColors.line)),
+        border: Border(top: BorderSide(color: _CoffreColors.line)),
       ),
       child: SafeArea(
         top: false,
@@ -405,77 +435,160 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.lineStrong,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+              // Bouton fermer explicite : la simple poignee de drag n'etait
+              // pas assez claire comme affordance de fermeture (signale).
+              SizedBox(
+                height: 32,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: _CoffreColors.lineStrong,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Positioned(
+                      right: -8,
+                      child: IconButton(
+                        icon: Icon(Icons.close,
+                            size: 20, color: _CoffreColors.textDim),
+                        onPressed: () => Navigator.of(context).pop(),
+                        tooltip: 'Fermer',
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (hasPhoto)
-                        ClipRRect(
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _CoffreColors.surfaceHi,
                           borderRadius: BorderRadius.circular(AppRadius.card),
-                          child: AspectRatio(
-                            aspectRatio: 16 / 10,
-                            child: CachedNetworkImage(
-                              imageUrl: ev.photoUrl!,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => Container(
-                                color: AppColors.surfaceHi,
-                                child: Icon(
-                                  Icons.celebration,
-                                  color: AppColors.textFaint,
-                                  size: 32,
+                          border: Border.all(color: _CoffreColors.line),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Pas d'AspectRatio fixe : l'affiche d'un event
+                            // prive est le plus souvent en portrait (infos
+                            // texte + pictos imprimes dessus, cf coffre) :
+                            // un cadrage 16:10 + cover en coupait le bas.
+                            // Ici l'image garde son ratio naturel, entiere.
+                            if (hasPhoto)
+                              CachedNetworkImage(
+                                imageUrl: ev.photoUrl!,
+                                fit: BoxFit.fitWidth,
+                                width: double.infinity,
+                                placeholder: (_, __) => AspectRatio(
+                                  aspectRatio: 16 / 10,
+                                  child:
+                                      Container(color: _CoffreColors.surface),
+                                ),
+                                errorWidget: (_, __, ___) => AspectRatio(
+                                  aspectRatio: 16 / 10,
+                                  child: Container(
+                                    color: _CoffreColors.surface,
+                                    child: Icon(
+                                      Icons.celebration,
+                                      color: _CoffreColors.textFaint,
+                                      size: 32,
+                                    ),
+                                  ),
                                 ),
                               ),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    ev.title,
+                                    style: GoogleFonts.geist(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: _CoffreColors.text,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _detailRow(
+                                    Icons.calendar_today,
+                                    _friendlyDate(ev.date) +
+                                        (ev.heure.isNotEmpty
+                                            ? ' · ${ev.heure}'
+                                            : ''),
+                                  ),
+                                  if (ev.lieu.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    _detailRow(Icons.place, ev.lieu),
+                                  ],
+                                  if (ev.adresse.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    _detailRow(Icons.map_outlined, ev.adresse),
+                                  ],
+                                  if (ev.description.isNotEmpty) ...[
+                                    const SizedBox(height: 14),
+                                    Text(
+                                      ev.description,
+                                      style: GoogleFonts.geist(
+                                        fontSize: 13,
+                                        color: _CoffreColors.textDim,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                  if (ev.adresse.isNotEmpty ||
+                                      ev.lieu.isNotEmpty) ...[
+                                    const SizedBox(height: 16),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        onPressed: _openMaps,
+                                        icon: const Icon(Icons.map_outlined,
+                                            size: 18),
+                                        label: Text(
+                                          'Itineraire',
+                                          style: GoogleFonts.geist(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: _CoffreColors.text,
+                                          side: BorderSide(
+                                              color: _CoffreColors.line),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                AppRadius.chip),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-                      const SizedBox(height: 14),
-                      Text(
-                        ev.title,
-                        style: GoogleFonts.geist(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.text,
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _detailRow(
-                        Icons.calendar_today,
-                        _friendlyDate(ev.date) +
-                            (ev.heure.isNotEmpty ? ' · ${ev.heure}' : ''),
-                      ),
-                      if (ev.lieu.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        _detailRow(Icons.place, ev.lieu),
-                      ],
-                      if (ev.adresse.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        _detailRow(Icons.map_outlined, ev.adresse),
-                      ],
-                      if (ev.description.isNotEmpty) ...[
-                        const SizedBox(height: 14),
-                        Text(
-                          ev.description,
-                          style: GoogleFonts.geist(
-                            fontSize: 13,
-                            color: AppColors.textDim,
-                            height: 1.4,
-                          ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: _CoffreColors.surfaceHi,
+                          borderRadius: BorderRadius.circular(AppRadius.card),
+                          border: Border.all(color: _CoffreColors.line),
                         ),
-                      ],
-                      const SizedBox(height: 18),
-                      _GuestsBlock(rsvps: _rsvps),
+                        child: _GuestsBlock(rsvps: _rsvps),
+                      ),
                     ],
                   ),
                 ),
@@ -488,11 +601,11 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                   onPressed: (_cancelling || _cancelled) ? null : _cancel,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _cancelled
-                        ? AppColors.surfaceHi
+                        ? _CoffreColors.surfaceHi
                         : const Color(0xFFFF6B6B),
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: AppColors.surfaceHi,
-                    disabledForegroundColor: AppColors.textFaint,
+                    disabledBackgroundColor: _CoffreColors.surfaceHi,
+                    disabledForegroundColor: _CoffreColors.textFaint,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.card),
                     ),
@@ -538,7 +651,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
             text,
             style: GoogleFonts.geist(
               fontSize: 13,
-              color: AppColors.text,
+              color: _CoffreColors.text,
             ),
           ),
         ),
@@ -557,14 +670,14 @@ class _GuestsBlock extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surfaceHi,
+          color: _CoffreColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.card),
         ),
         child: Text(
           'Personne d\'autre n\'a encore confirme.',
           style: GoogleFonts.geist(
             fontSize: 12,
-            color: AppColors.textFaint,
+            color: _CoffreColors.textFaint,
             fontStyle: FontStyle.italic,
           ),
         ),
@@ -578,7 +691,7 @@ class _GuestsBlock extends StatelessWidget {
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: AppColors.textDim,
+            color: _CoffreColors.textDim,
             letterSpacing: 0.4,
           ),
         ),
@@ -601,13 +714,12 @@ class _GuestRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasPhoto = rsvp.avatarUrl != null && rsvp.avatarUrl!.isNotEmpty;
-    final initial = (rsvp.prenom ?? '?').isNotEmpty
-        ? rsvp.prenom![0].toUpperCase()
-        : '?';
+    final initial =
+        (rsvp.prenom ?? '?').isNotEmpty ? rsvp.prenom![0].toUpperCase() : '?';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surfaceHi,
+        color: _CoffreColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
       ),
       child: Row(
@@ -617,7 +729,7 @@ class _GuestRow extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.surface,
+              color: _CoffreColors.surfaceHi,
             ),
             clipBehavior: Clip.antiAlias,
             child: hasPhoto
@@ -636,7 +748,7 @@ class _GuestRow extends StatelessWidget {
               style: GoogleFonts.geist(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.text,
+                color: _CoffreColors.text,
               ),
             ),
           ),
