@@ -377,7 +377,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           : Text(
                               _isSignUp ? 'C\'est parti !' : 'Se connecter',
                               style: GoogleFonts.poppins(
-                                fontSize: 15,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
