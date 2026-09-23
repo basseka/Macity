@@ -12,12 +12,36 @@ class ContributorProfileSheet extends StatefulWidget {
   final String fallbackPrenom;
   final String? fallbackAvatarUrl;
 
+  /// Profil deja connu (prenom, avatar_url, ville, bio) : pas d'appel reseau.
+  /// Sert quand on ne doit pas exposer l'identifiant (ex : organisateur d'un
+  /// event prive).
+  final Map<String, dynamic>? preloaded;
+
   const ContributorProfileSheet({
     super.key,
     required this.userId,
     required this.fallbackPrenom,
     this.fallbackAvatarUrl,
+    this.preloaded,
   });
+
+  /// Ouvre la fiche a partir d'un profil public deja charge.
+  static Future<void> showPreloaded(
+    BuildContext context, {
+    required Map<String, dynamic> profile,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => ContributorProfileSheet(
+        userId: '',
+        fallbackPrenom: (profile['prenom'] as String?) ?? '',
+        fallbackAvatarUrl: profile['avatar_url'] as String?,
+        preloaded: profile,
+      ),
+    );
+  }
 
   /// Ouvre la fiche en bottom sheet. No-op si [userId] est vide (anonyme).
   static Future<void> show(
@@ -51,7 +75,9 @@ class _ContributorProfileSheetState extends State<ContributorProfileSheet> {
   @override
   void initState() {
     super.initState();
-    _future = _service.fetchPublicProfile(widget.userId);
+    _future = widget.preloaded != null
+        ? Future.value(widget.preloaded)
+        : _service.fetchPublicProfile(widget.userId);
   }
 
   @override

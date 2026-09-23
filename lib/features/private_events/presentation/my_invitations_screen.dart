@@ -9,6 +9,7 @@ import 'package:pulz_app/features/private_events/presentation/private_event_chat
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/host_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _accentColor = Color(0xFF00B4D8);
@@ -582,6 +583,10 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      if (widget.event.host != null) ...[
+                        HostCard(host: widget.event.host!),
+                        const SizedBox(height: 12),
+                      ],
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(

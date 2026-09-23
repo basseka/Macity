@@ -51,10 +51,26 @@ class PrivateEventReveal with _$PrivateEventReveal {
     @JsonKey(name: 'max_opens') @Default(0) int maxOpens,
     @Default([]) List<PrivateEventRsvp> rsvps,
     @JsonKey(name: 'access_token') String? accessToken,
+    PrivateEventHost? host,
   }) = _PrivateEventReveal;
 
   factory PrivateEventReveal.fromJson(Map<String, dynamic> json) =>
       _$PrivateEventRevealFromJson(json);
+}
+
+/// Profil PUBLIC de l'organisateur montre aux invites (pas d'identifiant ni
+/// de coordonnees). Null si l'hote n'a pas de profil.
+@freezed
+class PrivateEventHost with _$PrivateEventHost {
+  const factory PrivateEventHost({
+    String? prenom,
+    @JsonKey(name: 'avatar_url') String? avatarUrl,
+    String? ville,
+    String? bio,
+  }) = _PrivateEventHost;
+
+  factory PrivateEventHost.fromJson(Map<String, dynamic> json) =>
+      _$PrivateEventHostFromJson(json);
 }
 
 /// Un acceptant ("Je viens") d'une soiree privee. prenom + avatar_url joints

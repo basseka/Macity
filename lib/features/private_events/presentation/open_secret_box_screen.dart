@@ -13,6 +13,7 @@ import 'package:pulz_app/features/private_events/data/private_event_service.dart
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/host_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Palette fixe (sombre), volontairement independante du flag global
@@ -687,6 +688,12 @@ class _RevealViewState extends State<_RevealView> {
           ),
         ),
         const SizedBox(height: 16),
+
+        // ── Organisateur (avant les presents) ──
+        if (widget.event.host != null) ...[
+          HostCard(host: widget.event.host!),
+          const SizedBox(height: 12),
+        ],
 
         // ── Section RSVP : avatars + bouton "Je viens" ──
         Container(
