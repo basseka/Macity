@@ -569,9 +569,8 @@ class _GuestRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasPhoto = rsvp.avatarUrl != null && rsvp.avatarUrl!.isNotEmpty;
-    final initial = (rsvp.prenom ?? '?').isNotEmpty
-        ? rsvp.prenom![0].toUpperCase()
-        : '?';
+    final prenom = rsvp.prenom?.trim() ?? '';
+    final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : '?';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(

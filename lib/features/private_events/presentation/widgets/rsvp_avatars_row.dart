@@ -82,9 +82,8 @@ class RsvpAvatarsRow extends StatelessWidget {
 
   Widget _avatar(PrivateEventRsvp r) {
     final hasPhoto = r.avatarUrl != null && r.avatarUrl!.isNotEmpty;
-    final initial = (r.prenom ?? '?').isNotEmpty
-        ? r.prenom![0].toUpperCase()
-        : '?';
+    final prenom = r.prenom?.trim() ?? '';
+    final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : '?';
     return Container(
       width: size,
       height: size,
