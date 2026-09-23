@@ -85,10 +85,11 @@ class UserEventSupabaseService {
   }
 
   /// Upload une photo locale vers Supabase Storage (compressee).
-  /// Retourne l'URL publique de l'image.
-  Future<String> uploadPhoto(String localPath) async {
+  /// Retourne l'URL publique de l'image. [objectName] : chemin dans le bucket
+  /// (defaut `<timestamp>_photo.jpg`), ex. un nom aleatoire pour le chat prive.
+  Future<String> uploadPhoto(String localPath, {String? objectName}) async {
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final fileName = '${ts}_photo.jpg';
+    final fileName = objectName ?? '${ts}_photo.jpg';
 
     // Compresser avant upload
     final bytes = await _compressImage(localPath);

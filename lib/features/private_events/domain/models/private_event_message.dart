@@ -8,6 +8,7 @@ class PrivateEventMessage {
   final String? avatarUrl;
   final bool isHost;
   final String content;
+  final String? imageUrl;
   final DateTime createdAt;
 
   const PrivateEventMessage({
@@ -17,12 +18,14 @@ class PrivateEventMessage {
     required this.content,
     required this.createdAt,
     this.avatarUrl,
+    this.imageUrl,
     this.isHost = false,
   });
 
   factory PrivateEventMessage.fromJson(Map<String, dynamic> json) {
     final prenom = (json['prenom'] as String?)?.trim() ?? '';
     final avatar = json['avatar_url'] as String?;
+    final image = json['image_url'] as String?;
     return PrivateEventMessage(
       id: json['id'] as String,
       userId: (json['user_id'] as String?) ?? '',
@@ -30,6 +33,7 @@ class PrivateEventMessage {
       avatarUrl: avatar != null && avatar.isNotEmpty ? avatar : null,
       isHost: json['is_host'] == true,
       content: (json['content'] as String?) ?? '',
+      imageUrl: image != null && image.isNotEmpty ? image : null,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }

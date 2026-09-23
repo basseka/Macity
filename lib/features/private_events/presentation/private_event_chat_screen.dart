@@ -1,15 +1,20 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/utils/bad_words_filter.dart';
 import 'package:pulz_app/core/widgets/account_gate.dart';
+import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event_message.dart';
+import 'package:uuid/uuid.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 
 /// Palette fixe sombre, alignee sur le coffre et "Mes invitations".
@@ -80,6 +85,10 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
   bool _loading = true;
   bool _sending = false;
   bool _polling = false;
+  // Photo jointe au prochain message : apercu local + URL une fois uploadee.
+  String? _pendingPhotoPath;
+  String? _pendingPhotoUrl;
+  bool _uploadingPhoto = false;
   String? _error;
 
   @override
@@ -155,14 +164,90 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     AccountGate.showNudge(context, action: 'participer a la discussion');
   }
 
-  Future<void> _send() async {
-    final raw = _controller.text.trim();
-    if (raw.isEmpty || _sending || _userId == null) return;
+  Future<void> _pickPhoto() async {
     if (!isDeviceRegistered()) {
       _askSignup();
       return;
     }
-    if (BadWordsFilter.contains(raw)) {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: _ChatColors.surface,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined,
+                  color: _ChatColors.text),
+              title: Text('Prendre une photo',
+                  style: GoogleFonts.geist(color: _ChatColors.text)),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined,
+                  color: _ChatColors.text),
+              title: Text('Choisir dans la galerie',
+                  style: GoogleFonts.geist(color: _ChatColors.text)),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    final picked =
+        await ImagePicker().pickImage(source: source, imageQuality: 85);
+    if (picked == null || !mounted) return;
+    setState(() {
+      _pendingPhotoPath = picked.path;
+      _pendingPhotoUrl = null;
+      _uploadingPhoto = true;
+    });
+    try {
+      // Nom aleatoire : l'URL publique n'est pas devinable.
+      final url = await UserEventSupabaseService().uploadPhoto(
+        picked.path,
+        objectName: 'private_chat/${const Uuid().v4()}.jpg',
+      );
+      if (!mounted || _pendingPhotoPath != picked.path) return;
+      setState(() {
+        _pendingPhotoUrl = url;
+        _uploadingPhoto = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _pendingPhotoPath = null;
+        _uploadingPhoto = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Echec de l\'envoi de la photo')),
+      );
+    }
+  }
+
+  void _removePendingPhoto() {
+    setState(() {
+      _pendingPhotoPath = null;
+      _pendingPhotoUrl = null;
+      _uploadingPhoto = false;
+    });
+  }
+
+  Future<void> _send() async {
+    final raw = _controller.text.trim();
+    final photoUrl = _pendingPhotoUrl;
+    if ((raw.isEmpty && photoUrl == null) ||
+        _sending ||
+        _uploadingPhoto ||
+        _userId == null) {
+      return;
+    }
+    if (!isDeviceRegistered()) {
+      _askSignup();
+      return;
+    }
+    if (raw.isNotEmpty && BadWordsFilter.contains(raw)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Message refuse : langage inapproprie'),
@@ -178,8 +263,10 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         userId: _userId!,
         content: raw,
         passcode: widget.passcode,
+        imageUrl: photoUrl,
       );
       _controller.clear();
+      _removePendingPhoto();
       await _refresh();
     } on PrivateEventException catch (e) {
       if (!mounted) return;
@@ -345,62 +432,128 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         color: _ChatColors.surface,
         border: Border(top: BorderSide(color: _ChatColors.line)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              maxLength: 500,
-              maxLines: 4,
-              minLines: 1,
-              textCapitalization: TextCapitalization.sentences,
-              style: GoogleFonts.geist(fontSize: 14, color: _ChatColors.text),
-              cursorColor: AppColors.magenta,
-              decoration: InputDecoration(
-                hintText: 'Ecris un message...',
-                hintStyle: GoogleFonts.geist(
-                  fontSize: 13,
-                  color: _ChatColors.textFaint,
+          if (_pendingPhotoPath != null) _buildPendingPhoto(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              IconButton(
+                onPressed: _sending || _uploadingPhoto ? null : _pickPhoto,
+                icon: const Icon(Icons.add_photo_alternate_outlined),
+                color: _ChatColors.textDim,
+                tooltip: 'Photo',
+              ),
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  maxLength: 500,
+                  maxLines: 4,
+                  minLines: 1,
+                  textCapitalization: TextCapitalization.sentences,
+                  style:
+                      GoogleFonts.geist(fontSize: 14, color: _ChatColors.text),
+                  cursorColor: AppColors.magenta,
+                  decoration: InputDecoration(
+                    hintText: _pendingPhotoPath != null
+                        ? 'Ajoute une legende...'
+                        : 'Ecris un message...',
+                    hintStyle: GoogleFonts.geist(
+                      fontSize: 13,
+                      color: _ChatColors.textFaint,
+                    ),
+                    counterText: '',
+                    isDense: true,
+                    filled: true,
+                    fillColor: _ChatColors.surfaceHi,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
-                counterText: '',
-                isDense: true,
-                filled: true,
-                fillColor: _ChatColors.surfaceHi,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
+              ),
+              const SizedBox(width: 6),
+              Material(
+                color: AppColors.magenta,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: _sending ? null : _send,
+                  child: Padding(
+                    padding: const EdgeInsets.all(11),
+                    child: _sending
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                  ),
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingPhoto() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 6, bottom: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Image.file(
+              File(_pendingPhotoPath!),
+              width: 90,
+              height: 90,
+              fit: BoxFit.cover,
+            ),
+          ),
+          if (_uploadingPhoto)
+            const Positioned.fill(
+              child: ColoredBox(
+                color: Colors.black45,
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 6),
-          Material(
-            color: AppColors.magenta,
-            shape: const CircleBorder(),
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: _sending ? null : _send,
-              child: Padding(
-                padding: const EdgeInsets.all(11),
-                child: _sending
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+          Positioned(
+            top: 2,
+            right: 2,
+            child: GestureDetector(
+              onTap: _removePendingPhoto,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 14, color: Colors.white),
               ),
             ),
           ),
@@ -476,14 +629,63 @@ class _MessageBubble extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
-              msg.content,
-              style: GoogleFonts.geist(
-                fontSize: 14,
-                color: _ChatColors.text,
-                height: 1.3,
+            if (msg.imageUrl != null)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: 2,
+                  bottom: msg.content.isNotEmpty ? 6 : 2,
+                ),
+                child: GestureDetector(
+                  onTap: () => _PhotoViewer.open(
+                    context,
+                    url: msg.imageUrl!,
+                    heroTag: 'private_chat_${msg.id}',
+                  ),
+                  child: Hero(
+                    tag: 'private_chat_${msg.id}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxHeight: 260,
+                          minWidth: 140,
+                        ),
+                        child: CachedNetworkImage(
+                          imageUrl: msg.imageUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => const SizedBox(
+                            width: 200,
+                            height: 200,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.magenta,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (_, __, ___) => const SizedBox(
+                            width: 200,
+                            height: 120,
+                            child: Icon(
+                              Icons.broken_image_outlined,
+                              color: _ChatColors.textFaint,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
+            if (msg.content.isNotEmpty)
+              Text(
+                msg.content,
+                style: GoogleFonts.geist(
+                  fontSize: 14,
+                  color: _ChatColors.text,
+                  height: 1.3,
+                ),
+              ),
             const SizedBox(height: 2),
             Text(
               _formatTime(msg.createdAt),
@@ -622,6 +824,74 @@ class _Avatar extends StatelessWidget {
               placeholder: (_, __) => fallback,
             )
           : fallback,
+    );
+  }
+}
+
+/// Photo du chat en plein ecran : fond noir, zoom a deux doigts, tap ou
+/// bouton fermer pour revenir.
+class _PhotoViewer extends StatelessWidget {
+  final String url;
+  final String heroTag;
+
+  const _PhotoViewer({required this.url, required this.heroTag});
+
+  static Future<void> open(
+    BuildContext context, {
+    required String url,
+    required String heroTag,
+  }) {
+    return Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (_, __, ___) => _PhotoViewer(url: url, heroTag: heroTag),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 5,
+                child: Center(
+                  child: Hero(
+                    tag: heroTag,
+                    child: CachedNetworkImage(
+                      imageUrl: url,
+                      fit: BoxFit.contain,
+                      placeholder: (_, __) => const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                tooltip: 'Fermer',
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

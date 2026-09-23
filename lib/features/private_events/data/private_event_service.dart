@@ -144,6 +144,7 @@ class PrivateEventService {
     required String userId,
     required String content,
     String? passcode,
+    String? imageUrl,
   }) async {
     try {
       await _dio.post(
@@ -153,6 +154,7 @@ class PrivateEventService {
           'p_user_id': userId,
           'p_content': content,
           'p_passcode': passcode,
+          if (imageUrl != null) 'p_image_url': imageUrl,
         },
       );
     } on DioException catch (e) {
