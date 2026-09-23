@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 
 /// Palette fixe (sombre), voir _CoffreColors dans open_secret_box_screen.dart
 /// et my_invitations_screen.dart : ce widget est utilise exclusivement par
@@ -49,7 +50,15 @@ class RsvpAvatarsRow extends StatelessWidget {
                 for (int i = 0; i < visible.length; i++)
                   Positioned(
                     left: i * (size - overlap),
-                    child: _avatar(visible[i]),
+                    child: GestureDetector(
+                      onTap: () => ContributorProfileSheet.show(
+                        context,
+                        userId: visible[i].userId,
+                        fallbackPrenom: visible[i].prenom?.trim() ?? '',
+                        fallbackAvatarUrl: visible[i].avatarUrl,
+                      ),
+                      child: _avatar(visible[i]),
+                    ),
                   ),
               ],
             ),

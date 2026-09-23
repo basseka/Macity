@@ -10,6 +10,7 @@ import 'package:pulz_app/core/utils/bad_words_filter.dart';
 import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event_message.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 
 /// Palette fixe sombre, alignee sur le coffre et "Mes invitations".
 class _ChatColors {
@@ -318,8 +319,7 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         return _MessageBubble(
           msg: msg,
           isMine: isMine,
-          onLongPress:
-              isMine || iAmHost ? () => _confirmDelete(msg) : null,
+          onLongPress: isMine || iAmHost ? () => _confirmDelete(msg) : null,
         );
       },
     );
@@ -452,17 +452,20 @@ class _MessageBubble extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Flexible(
-                    child: Text(
-                      isMine ? 'Moi' : msg.prenom,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.geist(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: msg.isHost
-                            ? _ChatColors.host
-                            : isMine
-                                ? AppColors.magenta
-                                : _nameColor(msg.userId),
+                    child: GestureDetector(
+                      onTap: () => _openProfile(context),
+                      child: Text(
+                        isMine ? 'Moi' : msg.prenom,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.geist(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: msg.isHost
+                              ? _ChatColors.host
+                              : isMine
+                                  ? AppColors.magenta
+                                  : _nameColor(msg.userId),
+                        ),
                       ),
                     ),
                   ),
@@ -502,12 +505,24 @@ class _MessageBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMine) ...[
-            _Avatar(msg: msg),
+            GestureDetector(
+              onTap: () => _openProfile(context),
+              child: _Avatar(msg: msg),
+            ),
             const SizedBox(width: 8),
           ],
           bubble,
         ],
       ),
+    );
+  }
+
+  void _openProfile(BuildContext context) {
+    ContributorProfileSheet.show(
+      context,
+      userId: msg.userId,
+      fallbackPrenom: msg.prenom,
+      fallbackAvatarUrl: msg.avatarUrl,
     );
   }
 
@@ -577,8 +592,7 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial =
-        msg.prenom.isNotEmpty ? msg.prenom[0].toUpperCase() : '?';
+    final initial = msg.prenom.isNotEmpty ? msg.prenom[0].toUpperCase() : '?';
     final fallback = Container(
       decoration: const BoxDecoration(gradient: AppGradients.primary),
       alignment: Alignment.center,
@@ -596,9 +610,8 @@ class _Avatar extends StatelessWidget {
       height: 28,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: msg.isHost
-            ? Border.all(color: _ChatColors.host, width: 2)
-            : null,
+        border:
+            msg.isHost ? Border.all(color: _ChatColors.host, width: 2) : null,
       ),
       clipBehavior: Clip.antiAlias,
       child: msg.avatarUrl != null

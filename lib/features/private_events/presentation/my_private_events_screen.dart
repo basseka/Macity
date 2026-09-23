@@ -8,6 +8,7 @@ import 'package:pulz_app/features/private_events/data/private_event_service.dart
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 
 /// Liste des soirees privees creees par ce device. Permet de re-partager le
 /// lien+code et de supprimer un event.
@@ -616,7 +617,16 @@ class _GuestRow extends StatelessWidget {
     final hasPhoto = rsvp.avatarUrl != null && rsvp.avatarUrl!.isNotEmpty;
     final prenom = rsvp.prenom?.trim() ?? '';
     final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : '?';
-    return Container(
+    // Tap -> fiche profil publique (photo, prenom, ville, bio).
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => ContributorProfileSheet.show(
+        context,
+        userId: rsvp.userId,
+        fallbackPrenom: prenom,
+        fallbackAvatarUrl: rsvp.avatarUrl,
+      ),
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.surfaceHi,
@@ -654,6 +664,7 @@ class _GuestRow extends StatelessWidget {
           ),
           const Icon(Icons.check_circle, size: 16, color: AppColors.magenta),
         ],
+      ),
       ),
     );
   }
