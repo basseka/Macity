@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -14,10 +15,13 @@ import 'package:pulz_app/features/private_events/domain/models/private_event.dar
 import 'package:share_plus/share_plus.dart';
 
 /// Sheet en 2 etapes : 1) form de creation, 2) confirmation + bouton partager.
+/// Avec [initial] : mode modification (form pre-rempli, lien et code
+/// inchanges, fermeture directe apres enregistrement).
 class CreatePrivateEventSheet extends StatefulWidget {
   final VoidCallback? onCreated;
+  final PrivateEvent? initial;
 
-  const CreatePrivateEventSheet({super.key, this.onCreated});
+  const CreatePrivateEventSheet({super.key, this.onCreated, this.initial});
 
   static Future<void> show(BuildContext context, {VoidCallback? onCreated}) {
     return showModalBottomSheet<void>(
@@ -26,6 +30,21 @@ class CreatePrivateEventSheet extends StatefulWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => CreatePrivateEventSheet(onCreated: onCreated),
+    );
+  }
+
+  static Future<void> showEdit(
+    BuildContext context,
+    PrivateEvent event, {
+    VoidCallback? onSaved,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) =>
+          CreatePrivateEventSheet(initial: event, onCreated: onSaved),
     );
   }
 
@@ -49,6 +68,24 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
   String? _error;
 
   PrivateEvent? _created; // step 2 si non null
+
+  bool get _isEdit => widget.initial != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.initial;
+    if (e != null) {
+      _titleCtrl.text = e.title;
+      _lieuCtrl.text = e.lieu;
+      _adresseCtrl.text = e.adresse;
+      _descriptionCtrl.text = e.description;
+      _heureCtrl.text = e.heure;
+      _passcodeCtrl.text = e.passcode;
+      _date = DateTime.tryParse(e.date);
+      _photoUrl = e.photoUrl;
+    }
+  }
 
   @override
   void dispose() {
@@ -91,10 +128,14 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    // En modification, un event deja passe garde sa date comme borne basse.
+    final firstDate =
+        _date != null && _date!.isBefore(today) ? _date! : today;
     final picked = await showDatePicker(
       context: context,
       initialDate: _date ?? now,
-      firstDate: DateTime(now.year, now.month, now.day),
+      firstDate: firstDate,
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null && mounted) setState(() => _date = picked);
@@ -110,7 +151,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
       return;
     }
     final code = _passcodeCtrl.text.trim();
-    if (code.length != 4 || int.tryParse(code) == null) {
+    if (!_isEdit && (code.length != 4 || int.tryParse(code) == null)) {
       setState(() => _error = 'Le code doit faire 4 chiffres');
       return;
     }
@@ -120,6 +161,23 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
     });
     try {
       final hostUuid = await UserIdentityService.getUserId();
+      if (_isEdit) {
+        await PrivateEventService().updatePrivateEvent(
+          token: widget.initial!.accessToken,
+          hostDeviceUuid: hostUuid,
+          title: _titleCtrl.text.trim(),
+          date: _date!,
+          heure: _heureCtrl.text.trim(),
+          lieu: _lieuCtrl.text.trim(),
+          adresse: _adresseCtrl.text.trim(),
+          description: _descriptionCtrl.text.trim(),
+          photoUrl: _photoUrl,
+        );
+        if (!mounted) return;
+        widget.onCreated?.call();
+        Navigator.of(context).pop();
+        return;
+      }
       final created = await PrivateEventService().createPrivateEvent(
         hostDeviceUuid: hostUuid,
         title: _titleCtrl.text.trim(),
@@ -143,7 +201,9 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
         _busy = false;
         _error = e.code == PrivateEventError.invalidInput
             ? (e.message ?? 'Champ invalide')
-            : 'Echec creation, reessaie';
+            : _isEdit
+                ? 'Echec de la modification, reessaie'
+                : 'Echec creation, reessaie';
       });
     }
   }
@@ -201,7 +261,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Creer un event privé',
+                _isEdit ? 'Modifier l\'event privé' : 'Creer un event privé',
                 style: GoogleFonts.geist(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
@@ -213,7 +273,9 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Coffre secret partage par lien + code',
+            _isEdit
+                ? 'Le lien et le code deja envoyes restent valables'
+                : 'Coffre secret partage par lien + code',
             style: GoogleFonts.geist(fontSize: 12, color: AppColors.textDim),
           ),
           const SizedBox(height: 18),
@@ -249,6 +311,11 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                           ),
                       ],
                     )
+                  : _photoUrl != null && _photoUrl!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: _photoUrl!,
+                          fit: BoxFit.cover,
+                        )
                   : Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -303,8 +370,9 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
           ),
           const SizedBox(height: 16),
 
-          // Passcode mis en avant
-          Container(
+          // Passcode mis en avant (non modifiable apres creation : il est
+          // deja dans les invitations envoyees).
+          if (!_isEdit) Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppColors.magenta.withValues(alpha: 0.08),
@@ -400,7 +468,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                       ),
                     )
                   : Text(
-                      'Creer mon event',
+                      _isEdit ? 'Enregistrer' : 'Creer mon event',
                       style: GoogleFonts.geist(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,

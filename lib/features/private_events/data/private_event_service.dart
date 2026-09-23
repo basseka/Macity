@@ -75,6 +75,40 @@ class PrivateEventService {
     }
   }
 
+  /// Modifie un event de l'hote (lien et code inchanges). Renvoie la row a
+  /// jour. Throw [PrivateEventException] (notFound si pas proprietaire).
+  Future<PrivateEvent> updatePrivateEvent({
+    required String token,
+    required String hostDeviceUuid,
+    required String title,
+    required DateTime date,
+    String heure = '',
+    String lieu = '',
+    String adresse = '',
+    String description = '',
+    String? photoUrl,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/update_my_private_event',
+        data: {
+          'p_token': token,
+          'p_host_device_uuid': hostDeviceUuid,
+          'p_title': title,
+          'p_date': _formatDate(date),
+          'p_heure': heure,
+          'p_lieu': lieu,
+          'p_adresse': adresse,
+          'p_description': description,
+          'p_photo_url': photoUrl,
+        },
+      );
+      return PrivateEvent.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
   /// Tente d'ouvrir un coffre. Throw [PrivateEventException] si token/passcode
   /// invalide, expire, ou quota depasse.
   Future<PrivateEventReveal> openPrivateEvent({

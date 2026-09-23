@@ -132,6 +132,11 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
               itemBuilder: (_, i) => _EventTile(
                 event: events[i],
                 onShare: () => sharePrivateEventInvite(events[i]),
+                onEdit: () => CreatePrivateEventSheet.showEdit(
+                  context,
+                  events[i],
+                  onSaved: _reload,
+                ),
                 onDelete: () => _delete(events[i]),
                 onShowGuests: () => _showGuests(events[i]),
               ),
@@ -203,12 +208,14 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
 class _EventTile extends StatelessWidget {
   final PrivateEvent event;
   final VoidCallback onShare;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onShowGuests;
 
   const _EventTile({
     required this.event,
     required this.onShare,
+    required this.onEdit,
     required this.onDelete,
     required this.onShowGuests,
   });
@@ -369,6 +376,20 @@ class _EventTile extends StatelessWidget {
                     color: AppColors.magenta,
                   ),
                   tooltip: 'Partager',
+                  constraints: const BoxConstraints.tightFor(
+                    width: 36,
+                    height: 36,
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+                IconButton(
+                  onPressed: onEdit,
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    size: 18,
+                    color: AppColors.magenta,
+                  ),
+                  tooltip: 'Modifier',
                   constraints: const BoxConstraints.tightFor(
                     width: 36,
                     height: 36,
