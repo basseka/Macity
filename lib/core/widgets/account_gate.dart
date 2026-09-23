@@ -12,19 +12,31 @@ class AccountGate {
   /// une invitation à créer un compte et retourne false.
   static bool requirePublish(BuildContext context, {required String action}) {
     if (isDeviceRegistered()) return true;
+    showNudge(context, action: action);
+    return false;
+  }
+
+  /// Affiche l'invitation a creer un compte. [beforeSignup] est appele juste
+  /// avant d'aller sur l'onboarding (ex : memoriser ou revenir ensuite).
+  static void showNudge(
+    BuildContext context, {
+    required String action,
+    Future<void> Function()? beforeSignup,
+  }) {
     showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _AccountNudge(action: action),
+      builder: (ctx) =>
+          _AccountNudge(action: action, beforeSignup: beforeSignup),
     );
-    return false;
   }
 }
 
 class _AccountNudge extends StatelessWidget {
   final String action;
-  const _AccountNudge({required this.action});
+  final Future<void> Function()? beforeSignup;
+  const _AccountNudge({required this.action, this.beforeSignup});
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +86,9 @@ class _AccountNudge extends StatelessWidget {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(context);
+                    await beforeSignup?.call();
                     appRouter.go('/onboarding');
                   },
                   style: ElevatedButton.styleFrom(

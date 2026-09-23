@@ -12,6 +12,7 @@ import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+import 'package:pulz_app/features/private_events/data/pending_coffre_rsvp.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -91,7 +92,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await markRegistered();
       markRegisteredComplete();
       AnalyticsService.signupCompleted();
-      if (mounted) context.go('/home');
+      final route = await PendingCoffreRsvp.postAuthRoute();
+      if (mounted) context.go(route);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,7 +134,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await markOnboardingDone();
       await markRegistered();
       markRegisteredComplete();
-      if (mounted) context.go('/home');
+      final route = await PendingCoffreRsvp.postAuthRoute();
+      if (mounted) context.go(route);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -150,6 +153,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await UserProfileService().logAnonymousEntry();
     await markSkipped();
     markSkippedComplete();
+    // Pas d'inscription : le RSVP en attente ne pourra pas aboutir.
+    await PendingCoffreRsvp.clear();
     AnalyticsService.exploreNoAccount();
     if (mounted) context.go('/home');
   }

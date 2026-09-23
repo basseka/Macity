@@ -4,8 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/core/widgets/account_gate.dart';
+import 'package:pulz_app/features/private_events/data/pending_coffre_rsvp.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
@@ -46,6 +49,8 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
   bool _busy = false;
   String? _error;
   PrivateEventReveal? _revealed;
+  // Retour d'inscription : confirmer la venue des l'ouverture du coffre.
+  bool _autoRsvp = false;
 
   late final AnimationController _unlockCtrl;
 
@@ -63,6 +68,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _passcodeFocus.requestFocus();
       });
+      _resumePendingRsvp();
     }
     _unlockCtrl = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -77,6 +83,21 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
     _passcodeFocus.dispose();
     _unlockCtrl.dispose();
     super.dispose();
+  }
+
+  /// Invite revenu de l'onboarding apres avoir clique "Je viens" sans
+  /// profil : on rouvre le coffre avec son code et on confirme sa venue.
+  Future<void> _resumePendingRsvp() async {
+    final pending = await PendingCoffreRsvp.peek();
+    if (pending == null ||
+        pending.token.toLowerCase() != widget.prefilledToken!.toLowerCase()) {
+      return;
+    }
+    await PendingCoffreRsvp.clear();
+    if (!mounted) return;
+    _passcodeCtrl.text = pending.passcode;
+    _autoRsvp = true;
+    await _open();
   }
 
   Future<void> _pasteToken() async {
@@ -142,6 +163,8 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
         return 'Ce coffre a atteint sa limite d\'ouvertures';
       case PrivateEventError.invalidInput:
         return e.message ?? 'Donnee invalide';
+      case PrivateEventError.profileRequired:
+        return 'Complete ton profil MaCity pour continuer';
       case PrivateEventError.network:
         return 'Erreur reseau, reessaie';
     }
@@ -187,6 +210,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
                 event: _revealed!,
                 token: _tokenCtrl.text.trim().toLowerCase(),
                 passcode: _passcodeCtrl.text.trim(),
+                autoRsvp: _autoRsvp,
               )
             : _buildForm(),
       ),
@@ -410,12 +434,14 @@ class _RevealView extends StatefulWidget {
   final PrivateEventReveal event;
   final String token;
   final String passcode;
+  final bool autoRsvp;
 
   const _RevealView({
     super.key,
     required this.event,
     required this.token,
     required this.passcode,
+    this.autoRsvp = false,
   });
 
   @override
@@ -437,7 +463,22 @@ class _RevealViewState extends State<_RevealView> {
 
   Future<void> _loadUserId() async {
     final uid = await UserIdentityService.getUserId();
-    if (mounted) setState(() => _currentUserId = uid);
+    if (!mounted) return;
+    setState(() => _currentUserId = uid);
+    if (widget.autoRsvp && !_isMine) _toggleRsvp();
+  }
+
+  /// RSVP reserve aux inscrits (le prenom s'affiche dans la liste des
+  /// presents). On memorise le coffre pour y revenir apres l'onboarding.
+  void _askSignup() {
+    AccountGate.showNudge(
+      context,
+      action: 'confirmer ta venue',
+      beforeSignup: () => PendingCoffreRsvp.save(
+        token: widget.token,
+        passcode: widget.passcode,
+      ),
+    );
   }
 
   bool get _isMine =>
@@ -445,6 +486,10 @@ class _RevealViewState extends State<_RevealView> {
 
   Future<void> _toggleRsvp() async {
     if (_currentUserId == null) return;
+    if (!_isMine && !isDeviceRegistered()) {
+      _askSignup();
+      return;
+    }
     setState(() => _busy = true);
     try {
       final updated = _isMine
@@ -465,6 +510,12 @@ class _RevealViewState extends State<_RevealView> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _busy = false);
+      // Inscrit localement mais sans profil en base (ex : UUID regenere).
+      if (e is PrivateEventException &&
+          e.code == PrivateEventError.profileRequired) {
+        _askSignup();
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Echec, reessaie')),
       );
@@ -719,7 +770,7 @@ class _RevealViewState extends State<_RevealView> {
         const SizedBox(height: 12),
         Center(
           child: Text(
-            '${event.openCount} / ${event.maxOpens} ouvertures',
+            '${event.openCount} ouverture${event.openCount > 1 ? 's' : ''}',
             style: GoogleFonts.geistMono(
               fontSize: 10,
               color: _CoffreColors.textFaint,

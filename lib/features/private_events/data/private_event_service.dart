@@ -13,6 +13,7 @@ enum PrivateEventError {
   expired,
   quotaExceeded,
   invalidInput,
+  profileRequired,
   network,
 }
 
@@ -241,6 +242,11 @@ class PrivateEventService {
       case 'quota_exceeded':
         return PrivateEventException(
           PrivateEventError.quotaExceeded,
+          message,
+        );
+      case 'profile_required':
+        return PrivateEventException(
+          PrivateEventError.profileRequired,
           message,
         );
       default:

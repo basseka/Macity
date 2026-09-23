@@ -319,10 +319,7 @@ class _EventTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                _OpensBadge(
-                  open: event.openCount,
-                  max: event.maxOpens,
-                ),
+                _OpensBadge(open: event.openCount),
               ],
             ),
             const SizedBox(height: 10),
@@ -411,30 +408,34 @@ class _EventTile extends StatelessWidget {
       );
 }
 
+/// Nombre d'ouvertures du coffre (statistique, plus de limite).
 class _OpensBadge extends StatelessWidget {
   final int open;
-  final int max;
 
-  const _OpensBadge({required this.open, required this.max});
+  const _OpensBadge({required this.open});
 
   @override
   Widget build(BuildContext context) {
-    final saturated = open >= max;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: saturated
-            ? const Color(0xFFFF6B6B).withValues(alpha: 0.15)
-            : AppColors.surfaceHi,
+        color: AppColors.surfaceHi,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        '$open/$max',
-        style: GoogleFonts.geistMono(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: saturated ? const Color(0xFFFF6B6B) : AppColors.textDim,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.visibility_outlined, size: 11, color: AppColors.textDim),
+          const SizedBox(width: 4),
+          Text(
+            '$open',
+            style: GoogleFonts.geistMono(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textDim,
+            ),
+          ),
+        ],
       ),
     );
   }
