@@ -20,6 +20,8 @@ class _ChatColors {
   static const textDim = Color(0xFFB5A8D0);
   static const textFaint = Color(0xFF7A6E95);
   static const line = Color(0x12FFFFFF);
+  // Accent organisateur : or, distinct du magenta de "Moi".
+  static const host = Color(0xFFFFC857);
 }
 
 /// Chat d'une soiree privee : l'organisateur et les invites posent des
@@ -429,39 +431,48 @@ class _MessageBubble extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isMine
-              ? AppColors.magenta.withValues(alpha: 0.22)
-              : _ChatColors.surfaceHi,
+          color: msg.isHost
+              ? _ChatColors.host.withValues(alpha: 0.14)
+              : isMine
+                  ? AppColors.magenta.withValues(alpha: 0.22)
+                  : _ChatColors.surfaceHi,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _ChatColors.line),
+          border: msg.isHost
+              ? Border.all(color: _ChatColors.host, width: 1.5)
+              : Border.all(color: _ChatColors.line),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (!isMine)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 2),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        msg.prenom,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.geist(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _ChatColors.text,
-                        ),
+            // Auteur sur CHAQUE message (y compris les siens : "Moi"),
+            // couleur propre a chaque personne comme dans un groupe WhatsApp.
+            Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      isMine ? 'Moi' : msg.prenom,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.geist(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: msg.isHost
+                            ? _ChatColors.host
+                            : isMine
+                                ? AppColors.magenta
+                                : _nameColor(msg.userId),
                       ),
                     ),
-                    if (msg.isHost) ...[
-                      const SizedBox(width: 6),
-                      const _HostBadge(),
-                    ],
+                  ),
+                  if (msg.isHost) ...[
+                    const SizedBox(width: 6),
+                    const _HostBadge(),
                   ],
-                ),
+                ],
               ),
+            ),
             Text(
               msg.content,
               style: GoogleFonts.geist(
@@ -500,6 +511,26 @@ class _MessageBubble extends StatelessWidget {
     );
   }
 
+  // Couleurs lisibles sur fond sombre, attribuees de facon stable par user.
+  static const _nameColors = [
+    Color(0xFF4FC3F7),
+    Color(0xFFFFB74D),
+    Color(0xFF81C784),
+    Color(0xFFBA68C8),
+    Color(0xFFFF8A65),
+    Color(0xFF4DD0E1),
+    Color(0xFFFFD54F),
+    Color(0xFFA1887F),
+  ];
+
+  static Color _nameColor(String userId) {
+    var h = 0;
+    for (final c in userId.codeUnits) {
+      h = (h * 31 + c) & 0x7fffffff;
+    }
+    return _nameColors[h % _nameColors.length];
+  }
+
   static String _formatTime(DateTime dt) {
     final local = dt.toLocal();
     final diff = DateTime.now().difference(local);
@@ -516,18 +547,25 @@ class _HostBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.magenta.withValues(alpha: 0.2),
+        color: _ChatColors.host,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(
-        'Organisateur',
-        style: GoogleFonts.geist(
-          fontSize: 9,
-          fontWeight: FontWeight.w700,
-          color: AppColors.magenta,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, size: 11, color: _ChatColors.bg),
+          const SizedBox(width: 3),
+          Text(
+            'Organisateur',
+            style: GoogleFonts.geist(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: _ChatColors.bg,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -556,7 +594,12 @@ class _Avatar extends StatelessWidget {
     return Container(
       width: 28,
       height: 28,
-      decoration: const BoxDecoration(shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: msg.isHost
+            ? Border.all(color: _ChatColors.host, width: 2)
+            : null,
+      ),
       clipBehavior: Clip.antiAlias,
       child: msg.avatarUrl != null
           ? CachedNetworkImage(
