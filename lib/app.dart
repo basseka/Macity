@@ -26,7 +26,9 @@ import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/notifications/data/mairie_notifications_service.dart';
 import 'package:pulz_app/features/reported_events/data/reported_events_service.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
+import 'package:pulz_app/features/private_events/presentation/my_invitations_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 
 class PulzApp extends ConsumerStatefulWidget {
   const PulzApp({super.key});
@@ -187,6 +189,24 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       // ouvrir la liste "Mes soirees privees" de l'organisateur.
       if (type == 'private_event_rsvp') {
         _openMyPrivateEvents();
+        return;
+      }
+
+      // Notification "event modifie" (edge fn notify-private-event-updated)
+      // cote invite → ouvrir "Mes invitations" avec les infos a jour.
+      if (type == 'private_event_updated') {
+        _openMyInvitations();
+        return;
+      }
+
+      // Nouveau message dans le chat d'une soiree privee → ouvrir le chat.
+      if (type == 'private_event_message') {
+        final token = data['access_token'] as String? ?? '';
+        if (token.isNotEmpty) {
+          _openPrivateEventChat(token, data['event_title'] as String? ?? '');
+        } else {
+          appRouter.go('/home');
+        }
         return;
       }
 
@@ -356,6 +376,44 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       );
     } catch (e) {
       debugPrint('[App] open my private events failed: $e');
+    }
+  }
+
+  /// Ouvre le chat d'une soiree privee apres tap sur une notif de message.
+  Future<void> _openPrivateEventChat(String token, String title) async {
+    try {
+      appRouter.go('/home');
+      final rootNav = appRouter.routerDelegate.navigatorKey.currentState;
+      if (rootNav == null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      rootNav.push(
+        MaterialPageRoute<void>(
+          builder: (_) => PrivateEventChatScreen(
+            token: token,
+            title: title.isNotEmpty ? title : 'Discussion',
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[App] open private event chat failed: $e');
+    }
+  }
+
+  /// Ouvre "Mes invitations" (cote invite) apres tap sur une notif de
+  /// modification d'event prive.
+  Future<void> _openMyInvitations() async {
+    try {
+      appRouter.go('/home');
+      final rootNav = appRouter.routerDelegate.navigatorKey.currentState;
+      if (rootNav == null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      rootNav.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const MyInvitationsScreen(),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[App] open my invitations failed: $e');
     }
   }
 

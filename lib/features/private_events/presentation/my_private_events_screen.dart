@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
+import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
 
@@ -132,6 +133,12 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
               itemBuilder: (_, i) => _EventTile(
                 event: events[i],
                 onShare: () => sharePrivateEventInvite(events[i]),
+                onChat: () => PrivateEventChatScreen.open(
+                  context,
+                  token: events[i].accessToken,
+                  title: events[i].title,
+                  isHost: true,
+                ),
                 onEdit: () => CreatePrivateEventSheet.showEdit(
                   context,
                   events[i],
@@ -208,6 +215,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
 class _EventTile extends StatelessWidget {
   final PrivateEvent event;
   final VoidCallback onShare;
+  final VoidCallback onChat;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onShowGuests;
@@ -215,6 +223,7 @@ class _EventTile extends StatelessWidget {
   const _EventTile({
     required this.event,
     required this.onShare,
+    required this.onChat,
     required this.onEdit,
     required this.onDelete,
     required this.onShowGuests,
@@ -376,6 +385,20 @@ class _EventTile extends StatelessWidget {
                     color: AppColors.magenta,
                   ),
                   tooltip: 'Partager',
+                  constraints: const BoxConstraints.tightFor(
+                    width: 36,
+                    height: 36,
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+                IconButton(
+                  onPressed: onChat,
+                  icon: const Icon(
+                    Icons.forum_outlined,
+                    size: 18,
+                    color: AppColors.magenta,
+                  ),
+                  tooltip: 'Discussion',
                   constraints: const BoxConstraints.tightFor(
                     width: 36,
                     height: 36,

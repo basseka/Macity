@@ -4,6 +4,7 @@ import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
+import 'package:pulz_app/features/private_events/domain/models/private_event_message.dart';
 
 /// Erreurs metier remontees par les RPC `private_events`. Le code matche le
 /// `RAISE EXCEPTION 'xxx'` cote SQL pour permettre un branch UI propre.
@@ -14,6 +15,7 @@ enum PrivateEventError {
   quotaExceeded,
   invalidInput,
   profileRequired,
+  forbidden,
   network,
 }
 
@@ -104,6 +106,76 @@ class PrivateEventService {
         },
       );
       return PrivateEvent.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Chat : messages de l'event. [since] null -> 200 derniers, sinon
+  /// uniquement les plus recents (polling incremental). [passcode] requis
+  /// seulement pour qui n'est ni hote, ni invite "Je viens", ni deja auteur.
+  Future<List<PrivateEventMessage>> listMessages({
+    required String token,
+    required String userId,
+    String? passcode,
+    DateTime? since,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/list_private_event_messages',
+        data: {
+          'p_token': token,
+          'p_user_id': userId,
+          'p_passcode': passcode,
+          'p_since': since?.toUtc().toIso8601String(),
+        },
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .map((e) => PrivateEventMessage.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<void> postMessage({
+    required String token,
+    required String userId,
+    required String content,
+    String? passcode,
+  }) async {
+    try {
+      await _dio.post(
+        'rpc/post_private_event_message',
+        data: {
+          'p_token': token,
+          'p_user_id': userId,
+          'p_content': content,
+          'p_passcode': passcode,
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Supprime un message (le sien, ou n'importe lequel pour l'hote).
+  Future<bool> deleteMessage({
+    required String messageId,
+    required String token,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/delete_private_event_message',
+        data: {
+          'p_message_id': messageId,
+          'p_token': token,
+          'p_user_id': userId,
+        },
+      );
+      return response.data == true;
     } on DioException catch (e) {
       throw _mapError(e);
     }
@@ -277,6 +349,13 @@ class PrivateEventService {
         return PrivateEventException(
           PrivateEventError.quotaExceeded,
           message,
+        );
+      case 'forbidden':
+        return PrivateEventException(PrivateEventError.forbidden, message);
+      case 'invalid_message':
+        return PrivateEventException(
+          PrivateEventError.invalidInput,
+          'Message vide ou trop long',
         );
       case 'profile_required':
         return PrivateEventException(

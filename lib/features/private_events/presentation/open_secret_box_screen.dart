@@ -11,6 +11,7 @@ import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/private_events/data/pending_coffre_rsvp.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
+import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -165,6 +166,8 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
         return e.message ?? 'Donnee invalide';
       case PrivateEventError.profileRequired:
         return 'Complete ton profil MaCity pour continuer';
+      case PrivateEventError.forbidden:
+        return 'Acces refuse';
       case PrivateEventError.network:
         return 'Erreur reseau, reessaie';
     }
@@ -762,6 +765,34 @@ class _RevealViewState extends State<_RevealView> {
                           elevation: 0,
                         ),
                       ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: OutlinedButton.icon(
+                  onPressed: () => PrivateEventChatScreen.open(
+                    context,
+                    token: widget.token,
+                    passcode: widget.passcode,
+                    title: widget.event.title,
+                  ),
+                  icon: const Icon(Icons.forum_outlined, size: 18),
+                  label: Text(
+                    'Discussion',
+                    style: GoogleFonts.geist(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.magenta,
+                    side: const BorderSide(color: AppColors.magenta),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
