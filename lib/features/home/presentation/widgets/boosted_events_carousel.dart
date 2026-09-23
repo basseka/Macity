@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -62,9 +64,8 @@ class BoostedEventsCarousel extends ConsumerWidget {
         ),
         SizedBox(
           height: cardHeight,
-          child: PageView.builder(
+          child: _AutoRotatingPageView(
             itemCount: events.length,
-            physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: _BoostedCard(
@@ -383,9 +384,8 @@ class BoostedP2Carousel extends ConsumerWidget {
             ),
             SizedBox(
               height: cardHeight,
-              child: PageView.builder(
+              child: _AutoRotatingPageView(
                 itemCount: events.length,
-                physics: const BouncingScrollPhysics(),
                 itemBuilder: (context, index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _P2Card(
@@ -712,6 +712,107 @@ class _SectionTitle extends StatelessWidget {
 /// remplace par le VideoPlayer une fois la premiere frame disponible.
 /// FittedBox(BoxFit.cover) garantit que la video remplit la card meme si son
 /// ratio differe.
+/// PageView qui avance tout seul toutes les [interval] (5 s) et boucle a
+/// l'infini (dernier -> premier sans rembobiner). Pause tant que l'utilisateur
+/// touche le carrousel, puis reprend 5 s apres. Ne tourne pas quand l'ecran
+/// est recouvert (popup plein ecran, autre page) grace a TickerMode.
+class _AutoRotatingPageView extends StatefulWidget {
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final Duration interval;
+
+  const _AutoRotatingPageView({
+    required this.itemCount,
+    required this.itemBuilder,
+    this.interval = const Duration(seconds: 5),
+  });
+
+  @override
+  State<_AutoRotatingPageView> createState() => _AutoRotatingPageViewState();
+}
+
+class _AutoRotatingPageViewState extends State<_AutoRotatingPageView> {
+  // Page de depart au milieu d'une plage "infinie" : on peut glisser dans les
+  // deux sens et l'auto-rotation ne bute jamais sur une fin.
+  static const _loopBase = 10000;
+
+  late final PageController _ctrl;
+  Timer? _timer;
+  bool _touching = false;
+
+  bool get _canRotate => widget.itemCount > 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = PageController(
+      initialPage: _canRotate ? _loopBase * widget.itemCount : 0,
+    );
+    _restartTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AutoRotatingPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.itemCount != widget.itemCount) _restartTimer();
+  }
+
+  void _restartTimer() {
+    _timer?.cancel();
+    if (!_canRotate) return;
+    _timer = Timer.periodic(widget.interval, (_) => _next());
+  }
+
+  void _next() {
+    if (!mounted || _touching || !_ctrl.hasClients) return;
+    // Ecran recouvert (route par-dessus) : on ne fait rien.
+    if (!TickerMode.of(context)) return;
+    _ctrl.nextPage(
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_canRotate) {
+      return PageView.builder(
+        controller: _ctrl,
+        itemCount: widget.itemCount,
+        physics: const BouncingScrollPhysics(),
+        itemBuilder: widget.itemBuilder,
+      );
+    }
+    return Listener(
+      onPointerDown: (_) {
+        _touching = true;
+        _timer?.cancel();
+      },
+      onPointerUp: (_) {
+        _touching = false;
+        _restartTimer();
+      },
+      onPointerCancel: (_) {
+        _touching = false;
+        _restartTimer();
+      },
+      child: PageView.builder(
+        controller: _ctrl,
+        physics: const BouncingScrollPhysics(),
+        itemBuilder: (context, i) =>
+            widget.itemBuilder(context, i % widget.itemCount),
+      ),
+    );
+  }
+}
+
 class _AutoPlayVideo extends StatefulWidget {
   final String url;
   final Widget fallback;
