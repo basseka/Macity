@@ -37,9 +37,11 @@ class AppColors {
       isLightTheme ? const Color(0x661A0F2E) : const Color(0x24FFFFFF);
 
   // ─── Brand (inchange dans les 2 themes) ──────────────────────────────
-  static const magenta = Color(0xFFFF3D8B);
-  static const violet = Color(0xFFA855F7);
-  static const purpleDeep = Color(0xFF6B1FB3);
+  // Valeurs verifiees sur macity.app (Playwright, styles calcules) :
+  // magenta #E91E63 -> violet #6A1B9A. Ne pas re-deviner depuis ce fichier.
+  static const magenta = Color(0xFFE91E63);
+  static const violet = Color(0xFF6A1B9A);
+  static const purpleDeep = Color(0xFF4B1174);
   static const cyan = Color(0xFF22D3EE);
 
   // Categories
