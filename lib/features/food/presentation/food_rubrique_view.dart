@@ -43,11 +43,20 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
     _Chip('Buffets', Icons.room_service_rounded, 'Buffet'),
     _Chip('Salon de Thé', Icons.local_cafe_rounded, 'Salon de the'),
     _Chip('Brunch', Icons.egg_alt_rounded, 'Brunch'),
+    // Chips optionnels : masques dans les villes qui n'ont aucun
+    // etablissement de ce theme, pour ne pas afficher un filtre vide.
+    _Chip('Tapas', Icons.tapas_rounded, 'Tapas', hideWhenEmpty: true),
+    _Chip('Pintxos', Icons.kebab_dining_rounded, 'Pintxos', hideWhenEmpty: true),
+    _Chip('Poisson', Icons.set_meal_rounded, 'Poisson', hideWhenEmpty: true),
+    _Chip('Viande', Icons.outdoor_grill_rounded, 'Viande', hideWhenEmpty: true),
   ];
 
   /// Themes de `_chips` : ce sont des formats de sortie, pas des cuisines.
   /// Exclus du filtre "Affinez votre recherche".
-  static const _nonCuisineThemes = {'guinguette', 'buffet', 'salon de the'};
+  static const _nonCuisineThemes = {
+    'guinguette', 'buffet', 'salon de the', 'tapas', 'pintxos', 'poisson',
+    'viande',
+  };
 
   String _activeChip = 'Restaurants';
 
@@ -234,7 +243,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
               onOpenLink: _openLink,
             ),
             const SizedBox(height: 18),
-            _chipsRow(),
+            _chipsRow(restaurantsAsync.valueOrNull ?? const []),
             ..._partnerSection(restaurantsAsync.valueOrNull ?? const []),
             _sectionHeader('Restaurants',
                 actionLabel: 'Plus proche de moi',
@@ -301,17 +310,23 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   }
 
   // ─── Chips ───────────────────────────────────────────────────────────
-  Widget _chipsRow() {
+  Widget _chipsRow(List<RestaurantVenue> all) {
+    final chips = _chips
+        .where((c) =>
+            !c.hideWhenEmpty ||
+            c.label == _activeChip ||
+            all.any((r) => r.matchesTheme(c.theme!)),)
+        .toList();
     return SizedBox(
       height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
-        itemCount: _chips.length,
+        itemCount: chips.length,
         separatorBuilder: (_, __) => const SizedBox(width: 6),
         itemBuilder: (_, i) {
-          final c = _chips[i];
+          final c = chips[i];
           final active = c.label == _activeChip;
           return GestureDetector(
             onTap: () => setState(() => _activeChip = c.label),
@@ -818,7 +833,8 @@ class _Chip {
   final String label;
   final IconData icon;
   final String? theme; // null = "Restaurants" (tout)
-  const _Chip(this.label, this.icon, this.theme);
+  final bool hideWhenEmpty;
+  const _Chip(this.label, this.icon, this.theme, {this.hideWhenEmpty = false});
 }
 
 

@@ -44,8 +44,11 @@ class FamilyVenueRowCard extends ConsumerWidget {
       latitude: venue.latitude,
       longitude: venue.longitude,
       photo: hasPhoto ? venue.photo : '',
+      photos: venue.photos,
+      videoUrl: venue.videoUrl,
       description: description,
       isVerified: venue.isVerified,
+      isPartner: venue.isPartner,
       sourceId: venue.id,
       sourceTable: 'family_venue',
     );

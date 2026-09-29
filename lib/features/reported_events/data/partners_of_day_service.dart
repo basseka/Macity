@@ -99,13 +99,15 @@ final partnersOfDayProvider =
     // Famille → family_venues
     q('family_venues', {
       'select':
-          'id,name,adresse,ville,category,photo,latitude,longitude,description,website_url,telephone',
+          'id,name,adresse,ville,category,photo,photos,video_url,latitude,longitude,description,website_url,telephone',
     }, (e) => CommerceModel(
           nom: s(e['name']),
           adresse: s(e['adresse']),
           ville: s(e['ville']),
           categorie: s(e['category']),
           photo: s(e['photo']),
+          photos: photos(e['photos']),
+          videoUrl: s(e['video_url']),
           latitude: d(e['latitude']),
           longitude: d(e['longitude']),
           description: s(e['description']),

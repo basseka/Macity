@@ -18,6 +18,10 @@ class FamilyVenue {
   final String ticketUrl;
   final String lienMaps;
   final String photo;
+
+  /// Galerie de la fiche detail (ordre = ordre d'affichage) et video teaser.
+  final List<String> photos;
+  final String videoUrl;
   final bool isVerified;
 
   /// Lieu partenaire (abonné) : badge doré, rail « Nos partenaires », pastille
@@ -46,6 +50,8 @@ class FamilyVenue {
     this.ticketUrl = '',
     this.lienMaps = '',
     this.photo = '',
+    this.photos = const [],
+    this.videoUrl = '',
     this.isVerified = false,
     this.isPartner = false,
     this.ageMin,
@@ -70,6 +76,12 @@ class FamilyVenue {
       ticketUrl: json['ticket_url'] as String? ?? '',
       lienMaps: json['lien_maps'] as String? ?? '',
       photo: json['photo'] as String? ?? '',
+      photos: (json['photos'] as List<dynamic>?)
+              ?.whereType<String>()
+              .where((p) => p.isNotEmpty)
+              .toList() ??
+          const [],
+      videoUrl: json['video_url'] as String? ?? '',
       isVerified: json['is_verified'] as bool? ?? false,
       isPartner: json['is_partner'] as bool? ?? false,
       ageMin: (json['age_min'] as num?)?.toInt(),

@@ -13,7 +13,6 @@ import 'package:pulz_app/core/widgets/error_widget.dart';
 import 'package:pulz_app/core/widgets/loading_indicator.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart';
-import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/family_category_data.dart';
 import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 import 'package:pulz_app/features/family/presentation/family_hub_grid.dart';
@@ -55,27 +54,10 @@ class FamilyScreen extends ConsumerWidget {
   /// Adapte un lieu famille en item de carrousel (carte + fiche détail).
   /// Partagé par le carrousel principal et la section « Affinez ».
   RubriqueItem _toItem(FamilyVenue v) {
-    final isHttp = v.photo.startsWith('http');
-    final description = [
-      if (v.description.isNotEmpty) v.description,
-      if (v.tarif.isNotEmpty) 'Tarif : ${v.tarif}',
-    ].join('\n\n');
-    final commerce = CommerceModel(
-      nom: v.name,
-      categorie: v.category,
-      adresse: v.adresse,
-      ville: v.ville,
-      horaires: v.horaires,
-      telephone: v.telephone,
-      siteWeb: v.ticketUrl.isNotEmpty ? v.ticketUrl : v.websiteUrl,
-      lienMaps: v.lienMaps,
-      latitude: v.latitude,
-      longitude: v.longitude,
-      photo: isHttp ? v.photo : '',
-      description: description,
-      isVerified: v.isVerified,
-      isPartner: v.isPartner,
-    );
+    // Conversion commune (galerie photos + vidéo + source incluses) : une
+    // copie locale ici oubliait `photos` / `videoUrl`, la fiche ouverte depuis
+    // la landing Famille n'affichait donc jamais les médias saisis en admin.
+    final commerce = FamilyVenueRowCard.toCommerce(v);
     return RubriqueItem(
       title: v.name,
       subtitle: [

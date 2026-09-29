@@ -162,6 +162,8 @@ final nearbyProvider =
       siteWeb: fv.websiteUrl,
       lienMaps: fv.lienMaps,
       photo: fv.photo,
+      photos: fv.photos,
+      videoUrl: fv.videoUrl,
       latitude: fv.latitude,
       longitude: fv.longitude,
       sourceId: fv.id,

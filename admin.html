@@ -1065,6 +1065,30 @@
     .appliview-card .appliview-notes .av-hidden { color: #f59e0b; }
     .appliview-card .appliview-notes .av-hint { font-size: 11.5px; color: var(--text-faint); line-height: 1.5; margin: 0; }
 
+    /* ─── Onglet Résumé du jour (lecture seule, filtré par ville) ─── */
+    .dsum-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .dsum-toolbar label { font-size: 13px; color: var(--text-dim); font-weight: 600; }
+    .dsum-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+    .dsum-card { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 14px; padding: 14px; }
+    .dsum-card h3 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .dsum-list { display: flex; flex-direction: column; gap: 8px; }
+    .dsum-row { display: flex; align-items: center; gap: 10px; background: var(--surface-hi); border-radius: 10px; padding: 7px; }
+    .dsum-row img { width: 42px; height: 42px; border-radius: 8px; object-fit: cover; flex-shrink: 0; background: var(--surface); }
+    .dsum-row .dsum-noimg { width: 42px; height: 42px; border-radius: 8px; background: var(--surface); flex-shrink: 0; }
+    .dsum-row .dsum-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+    .dsum-row .dsum-meta { font-size: 10.5px; color: var(--text-faint); margin-top: 1px; }
+    .dsum-badge { display: inline-block; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 5px; margin-right: 5px; vertical-align: 1px; }
+    .dsum-badge.premium { background: #F5C518; color: #0D0618; }
+    .dsum-badge.pin { background: var(--magenta); color: #fff; }
+    .dsum-empty, .dsum-error, .dsum-skeleton { padding: 10px 4px; text-align: center; color: var(--text-faint); font-size: 12px; }
+    .dsum-error { color: var(--err); }
+
     /* Export PDF du Media Kit : on isole #mediakit-sheet à l'impression. */
     @media print {
       body * { visibility: hidden; }
@@ -1138,6 +1162,7 @@
           <span class="nav-btn" id="goto-postfree-btn">🎨 Post libre</span>
           <span class="nav-btn" id="goto-discoursnight-btn">🎤 Discours boîtes de nuit</span>
           <span class="nav-btn" id="goto-appliview-btn">📱 Appli view</span>
+          <span class="nav-btn" id="goto-dailysummary-btn">🗓️ Résumé du jour</span>
           <!-- Ouvre le generateur de visuels Instagram (carrousel a gabarits fixes)
                dans un nouvel onglet. Chemin RELATIF : admin.html s'ouvre en local,
                un lien absolu file:// serait casse des que le dossier change de place. -->
@@ -3101,6 +3126,17 @@
         <p class="subtitle">Aperçu des écrans de l'appli, en grille. Galerie de référence uniquement — les images vivent dans <code>assets/images/appli_view/</code>, rien n'est chargé depuis la base.</p>
         <div class="appliview-grid" id="appliview-grid"></div>
       </div>
+
+      <!-- ═══ VUE "RÉSUMÉ DU JOUR" (lecture seule, live, filtré par ville) ═══ -->
+      <div id="dailysummary-view" class="hidden">
+        <h1>🗓️ Résumé du jour</h1>
+        <p class="subtitle">Ce qui est actuellement mis en avant dans l'appli pour la ville choisie : events épinglés, offres actives et partenaire premium du jour par rubrique. Lecture seule.</p>
+        <div class="dsum-toolbar">
+          <label for="dailysummary-city">Ville</label>
+          <select id="dailysummary-city" class="banner-input" style="max-width:260px;"></select>
+        </div>
+        <div class="dsum-grid" id="dailysummary-grid"></div>
+      </div>
     </div>
   </div>
 
@@ -4022,13 +4058,22 @@
       const PAGE = 1000;
       let from = 0;
       const all = [];
+      // photos + video_url : ajoutées par la migration family_venues_media.
+      // Tant qu'elle n'est pas appliquée, on retombe sur la liste sans médias
+      // plutôt que de vider tout l'onglet Famille.
+      let cols = "id, name, adresse, ville, category, photo, photos, video_url, display_priority, is_partner";
       while (true) {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from("family_venues")
-          .select("id, name, adresse, ville, category, photo, display_priority, is_partner")
+          .select(cols)
           .eq("is_active", true)
           .order("id", { ascending: true })
           .range(from, from + PAGE - 1);
+        if (error && cols.includes("video_url")) {
+          console.warn("[family_venues unified] colonnes médias absentes, migration family_venues_media à appliquer", error);
+          cols = "id, name, adresse, ville, category, photo, display_priority, is_partner";
+          continue;
+        }
         if (error) {
           console.warn("[family_venues unified]", error);
           return;
@@ -4204,6 +4249,8 @@
     const gotoDiscoursnightBtn = document.getElementById("goto-discoursnight-btn");
     const appliviewView = document.getElementById("appliview-view");
     const gotoAppliviewBtn = document.getElementById("goto-appliview-btn");
+    const dailysummaryView = document.getElementById("dailysummary-view");
+    const gotoDailysummaryBtn = document.getElementById("goto-dailysummary-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -4236,6 +4283,7 @@
       postfreeView.classList.add("hidden");
       discoursnightView.classList.add("hidden");
       appliviewView.classList.add("hidden");
+      dailysummaryView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -4576,6 +4624,141 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoAppliviewBtn.addEventListener("click", showAppliViewView);
+
+    // ─── Onglet Résumé du jour : lecture seule, live, filtré par ville ───
+    async function _dsumPinnedEvents(pinType, city) {
+      const { data: pins, error } = await supabase
+        .from("admin_pins")
+        .select("event_source, event_identifiant, pinned_until")
+        .eq("pin_type", pinType)
+        .gte("pinned_until", new Date().toISOString())
+        .order("pinned_until", { ascending: true });
+      if (error) throw error;
+      const rows = pins || [];
+      const scrapedIds = rows.filter(p => p.event_source === "scraped_events").map(p => p.event_identifiant);
+      const userIds = rows.filter(p => p.event_source === "user_events").map(p => p.event_identifiant);
+      const [se, ue] = await Promise.all([
+        scrapedIds.length
+          ? supabase.from("scraped_events").select("identifiant, nom_de_la_manifestation, commune, ville, photo_url").in("identifiant", scrapedIds)
+          : Promise.resolve({ data: [] }),
+        userIds.length
+          ? supabase.from("user_events").select("id, titre, ville, photo_url").in("id", userIds)
+          : Promise.resolve({ data: [] }),
+      ]);
+      if (se.error) throw se.error;
+      if (ue.error) throw ue.error;
+      const items = [];
+      (se.data || []).forEach(e => items.push({ title: e.nom_de_la_manifestation, ville: e.ville || e.commune || "", photo: e.photo_url }));
+      (ue.data || []).forEach(e => items.push({ title: e.titre, ville: e.ville || "", photo: e.photo_url }));
+      const target = normalizeCity(city);
+      return items.filter(it => normalizeCity(it.ville) === target);
+    }
+
+    function _dsumRow(name, meta, photo, badgeHtml) {
+      const img = photo
+        ? `<img src="${escapeHtml(photo)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className:'dsum-noimg'}))">`
+        : `<div class="dsum-noimg"></div>`;
+      return `
+        <div class="dsum-row">
+          ${img}
+          <div style="min-width:0;">
+            <div class="dsum-name">${badgeHtml || ""}${escapeHtml(name || "(sans nom)")}</div>
+            <div class="dsum-meta">${escapeHtml(meta || "")}</div>
+          </div>
+        </div>`;
+    }
+    const DSUM_BADGE_PIN = `<span class="dsum-badge pin">📌 Pin</span>`;
+    const DSUM_BADGE_PREMIUM = `<span class="dsum-badge premium">★ Premium</span>`;
+    function _dsumList(items) {
+      return items.length ? `<div class="dsum-list">${items.join("")}</div>` : "";
+    }
+
+    async function fetchDsumFeatured(city) {
+      const items = await _dsumPinnedEvents("featured", city);
+      return _dsumList(items.map(it => _dsumRow(it.title, it.ville, it.photo, DSUM_BADGE_PIN)));
+    }
+    async function fetchDsumTop(city) {
+      const items = await _dsumPinnedEvents("top", city);
+      return _dsumList(items.map(it => _dsumRow(it.title, it.ville, it.photo, DSUM_BADGE_PIN)));
+    }
+    async function fetchDsumOffers(city) {
+      const { data, error } = await supabase
+        .from("offers")
+        .select("title, business_name, image_url, city")
+        .eq("is_active", true)
+        .or(`expires_at.is.null,expires_at.gte.${new Date().toISOString()}`)
+        .ilike("city", city)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return _dsumList((data || []).map(o => _dsumRow(o.title, o.business_name || "", o.image_url, "")));
+    }
+    // Reproduit lib/features/reported_events/data/partners_of_day_service.dart :
+    // is_partner=true, is_active=true, partner_tier=premium, tri display_priority desc.
+    async function _dsumPremiumPartners(table, cityCol, city, nameCol, extraEq) {
+      let q = supabase.from(table).select("*")
+        .eq("is_partner", true).eq("is_active", true).eq("partner_tier", "premium")
+        .ilike(cityCol, city).order("display_priority", { ascending: false });
+      if (extraEq) q = q.eq(extraEq[0], extraEq[1]);
+      const { data, error } = await q;
+      if (error) throw error;
+      return _dsumList((data || []).map(r => _dsumRow(r[nameCol], r.ville || r.hub_ville || "", r.photo, DSUM_BADGE_PREMIUM)));
+    }
+    async function fetchDsumFood(city) { return _dsumPremiumPartners("etablissements", "ville", city, "nom"); }
+    async function fetchDsumFamille(city) { return _dsumPremiumPartners("family_venues", "ville", city, "name"); }
+    async function fetchDsumCulture(city) { return _dsumPremiumPartners("venues", "ville", city, "name", ["mode", "culture"]); }
+    async function fetchDsumSport(city) { return _dsumPremiumPartners("sport_venues", "ville", city, "nom"); }
+    async function fetchDsumNight(city) { return _dsumPremiumPartners("venues", "ville", city, "name", ["mode", "night"]); }
+    async function fetchDsumEvasion(city) { return _dsumPremiumPartners("evasion_venues", "hub_ville", city, "nom"); }
+
+    const DAILYSUMMARY_SECTIONS = [
+      { slug: "featured", label: "⭐ À la une", fetch: fetchDsumFeatured, empty: "Aucun event à la une." },
+      { slug: "top", label: "📈 Top", fetch: fetchDsumTop, empty: "Aucun event en Top." },
+      { slug: "offers", label: "🎁 Offres", fetch: fetchDsumOffers, empty: "Aucune offre active." },
+      { slug: "food", label: "🍽️ Food — pick du jour", fetch: fetchDsumFood, empty: "Aucun partenaire premium Food." },
+      { slug: "famille", label: "👨‍👩‍👧 Famille — pick du jour", fetch: fetchDsumFamille, empty: "Aucun partenaire premium Famille." },
+      { slug: "culture", label: "🎭 Culture — pick du jour", fetch: fetchDsumCulture, empty: "Aucun partenaire premium Culture." },
+      { slug: "sport", label: "⚽ Sport — pick du jour", fetch: fetchDsumSport, empty: "Aucun partenaire premium Sport." },
+      { slug: "night", label: "🌙 Night — pick du jour", fetch: fetchDsumNight, empty: "Aucun partenaire premium Night." },
+      { slug: "evasion", label: "✈️ Évasion — pick du jour", fetch: fetchDsumEvasion, empty: "Aucun partenaire premium Évasion." },
+    ];
+
+    function dailysummaryCityKey() {
+      const sel = document.getElementById("dailysummary-city");
+      return (sel && sel.value) || "Toulouse";
+    }
+    function renderDailySummary() {
+      const grid = document.getElementById("dailysummary-grid");
+      grid.innerHTML = DAILYSUMMARY_SECTIONS.map(s => `
+        <div class="dsum-card">
+          <h3>${escapeHtml(s.label)}</h3>
+          <div id="dsum-body-${s.slug}"><div class="dsum-skeleton">Chargement…</div></div>
+        </div>`).join("");
+      const city = dailysummaryCityKey();
+      DAILYSUMMARY_SECTIONS.forEach(async (s) => {
+        const body = document.getElementById(`dsum-body-${s.slug}`);
+        try {
+          const html = await s.fetch(city);
+          body.innerHTML = html || `<div class="dsum-empty">${escapeHtml(s.empty)}</div>`;
+        } catch (e) {
+          console.error(`[dailysummary:${s.slug}]`, e);
+          body.innerHTML = `<div class="dsum-error">Erreur de chargement<br><small>${escapeHtml(e.message || String(e))}</small></div>`;
+        }
+      });
+    }
+    function showDailySummaryView() {
+      _hideAllViews();
+      dailysummaryView.classList.remove("hidden");
+      gotoDailysummaryBtn.classList.add("active");
+      const citySelect = document.getElementById("dailysummary-city");
+      if (citySelect && !citySelect.dataset.filled) {
+        citySelect.innerHTML = _hubCityOptions("Toulouse");
+        citySelect.dataset.filled = "1";
+        citySelect.addEventListener("change", renderDailySummary);
+      }
+      renderDailySummary();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoDailysummaryBtn.addEventListener("click", showDailySummaryView);
     document.getElementById("discoursnight-copy-btn").addEventListener("click", async () => {
       const texte = `DISCOURS PARTENARIAT — BOÎTES DE NUIT
 
@@ -9800,6 +9983,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         { label: "🍱 Buffet", cat: "Buffet" },
         { label: "🫖 Salon de thé", cat: "Salon de the" },
         { label: "🥐 Brunch", cat: "Brunch" },
+        { label: "🫒 Tapas", cat: "Tapas" },
+        { label: "🍢 Pintxos", cat: "Pintxos" },
+        { label: "🐟 Poisson", cat: "Poisson" },
+        { label: "🥩 Viande", cat: "Viande" },
         { label: "🥖 Français", cat: "Francais" },
         { label: "🥢 Asiatique", cat: "Asiatique" },
         { label: "🍣 Japonais", cat: "Japonais" },
@@ -10011,10 +10198,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         rubrique: "famille",
         code: null,            // family_venues : pas de code de revendication
         photo: r.photo || "",
-        photos: [],
+        photos: Array.isArray(r.photos) ? r.photos : [],
         priority: r.display_priority ?? 0,
         priorities: {},
-        videoUrl: "",
+        videoUrl: r.video_url || "",
         isPartner: !!r.is_partner,
       }));
       // L'app lit `evasion_venues` pour la rubrique Évasion. Sans ce bloc, un
@@ -10198,6 +10385,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       { key: "Buffet", label: "Buffet" },
       { key: "Salon de the", label: "Salon de thé" },
       { key: "Brunch", label: "Brunch" },
+      { key: "Tapas", label: "Tapas" },
+      { key: "Pintxos", label: "Pintxos" },
+      { key: "Poisson", label: "Poisson" },
+      { key: "Viande", label: "Viande" },
     ];
     const FOOD_PRIO_CUISINES = [
       { key: "Francais", label: "Français" },
@@ -10239,12 +10430,12 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       const infoBtn = canEditInfo
         ? `<button class="photo-btn" data-action="toggle-info">✏️ Infos</button>`
         : "";
-      // family_venues : lecture seule ici (l'app lit cette table). L'édition
-      // — photo, catégorie, priorité — se fait dans l'onglet Famille dédié.
+      // family_venues : médias (pochette, galerie, vidéo) éditables ici ;
+      // infos texte, catégorie et priorité restent dans l'onglet Famille dédié.
       const isFamily = f.source === "family_venues";
-      const photoBtn = isFamily
+      const photoBtn = (isFamily
         ? `<button class="photo-btn" data-action="edit-in-family" data-id="${f.id}">✏️ Éditer dans Famille</button>`
-        : `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
+        : "") + `<button class="photo-btn" data-action="toggle-photo">📷 Médias</button>`;
       // Partenaire : flag commercial (badge doré + carrousel dans l'app).
       // Dispo pour venues, etablissements, sport_venues et family_venues.
       const canPartner = f.source === "venues" || f.source === "etablissements"
@@ -10702,6 +10893,25 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         }
         target.disabled = true;
         target.textContent = "…";
+        // family_venues n'a pas de policy RLS d'écriture : on passe par la
+        // RPC admin (SECURITY DEFINER + is_admin_user).
+        if (source === "family_venues") {
+          const { error: fErr } = await supabase.rpc("admin_update_family_venue_media", {
+            p_id: id, p_photo: photo, p_photos: photos, p_video_url: videoUrl,
+          });
+          if (fErr) {
+            target.disabled = false;
+            target.textContent = "Enregistrer";
+            console.warn("[family media save]", fErr);
+            toast("Erreur : " + (fErr.message || "échec") + " (migration family_venues_media appliquée ?)", false);
+            return;
+          }
+          const famRow = allFamily.find(r => r.id === id);
+          if (famRow) { famRow.photo = photo; famRow.photos = photos; famRow.video_url = videoUrl; }
+          renderVenuesList();
+          toast("Médias mis à jour", true);
+          return;
+        }
         const { data, error } = await supabase
           .from(source)
           .update({ photo, photos, video_url: videoUrl })
@@ -11257,10 +11467,13 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
     // ATTENTION : la valeur de `theme` est ce qui filtre les listings cote app.
     // Pour qu'un etablissement remonte dans le filtre "Guinguette" du hub Food,
     // il faut THEME = "Guinguette" (pas la colonne categorie). Idem pour
-    // Buffet (singulier), Salon de the (sans accent), Brunch.
+    // Buffet (singulier), Salon de the (sans accent), Brunch, Tapas, Pintxos.
+    // Un bar a la fois tapas ET pintxos : theme = "Tapas" + categorie =
+    // "Pintxos" (l'app matche theme OU categorie).
     const ETAB_THEMES = ['',
       // Sous-rubriques Food qui ont leur propre filtre dans l'app :
-      'Guinguette', 'Buffet', 'Salon de the', 'Brunch',
+      'Guinguette', 'Buffet', 'Salon de the', 'Brunch', 'Tapas', 'Pintxos',
+      'Poisson', 'Viande',
       // Cuisines :
       'Francais', 'Asiatique', 'Japonais', 'Italien',
       'Orientale', 'Mediterraneen', 'Mexicain', 'Africain', 'Indien',
@@ -11506,51 +11719,60 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         return;
       }
 
-      // ── Rubrique Famille → INSERT dans `family_venues` (table lue par l'app
-      // pour la section Famille ; etablissements.rubrique=famille = orphelin) ──
+      // ── Rubrique Famille → RPC admin_upsert_family_venue (table lue par
+      // l'app pour la section Famille ; etablissements.rubrique=famille =
+      // orphelin). family_venues n'a AUCUNE policy RLS d'ecriture par design
+      // (cf 20260628200000_admin_family_venues.sql) : un INSERT direct
+      // echoue toujours avec "new row violates row-level security policy".
+      // Il faut passer par le RPC SECURITY DEFINER + is_admin_user(). ──
       if (rubrique === "famille") {
-        const slugify = (s) => (s || "")
-          .toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
-          .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-        const famPayload = {
-          slug: `${slugify(nom)}-${slugify(ville)}`.slice(0, 80),
-          name: nom,
-          category: $etab("etab-family-type").value,
-          groupe: "",
-          adresse: $etab("etab-adresse").value.trim(),
-          ville,
-          telephone: $etab("etab-telephone").value.trim(),
-          horaires: $etab("etab-horaires").value.trim(),
-          website_url: siteWeb,
-          ticket_url: "",
-          lien_maps: lienMaps,
-          photo,
-          latitude: parseFloat($etab("etab-lat").value) || 0,
-          longitude: parseFloat($etab("etab-lon").value) || 0,
-          display_priority: parseInt($etab("etab-priority").value, 10) || 0,
-          is_active: $etab("etab-active").checked,
-        };
+        const famPriority = parseInt($etab("etab-priority").value, 10) || 0;
         btn.disabled = true;
         btn.textContent = "…";
-        const { data, error } = await supabase
-          .from("family_venues")
-          .insert(famPayload)
-          .select()
-          .single();
+        const { data: newId, error } = await supabase.rpc("admin_upsert_family_venue", {
+          p_id: null,
+          p_name: nom,
+          p_category: $etab("etab-family-type").value,
+          p_ville: ville,
+          p_adresse: $etab("etab-adresse").value.trim(),
+          p_horaires: $etab("etab-horaires").value.trim(),
+          p_telephone: $etab("etab-telephone").value.trim(),
+          p_latitude: parseFloat($etab("etab-lat").value) || 0,
+          p_longitude: parseFloat($etab("etab-lon").value) || 0,
+          p_website_url: siteWeb,
+          p_photo: photo,
+          p_lien_maps: lienMaps,
+        });
+        if (!error && famPriority) {
+          const { error: prioErr } = await supabase.rpc("admin_set_family_venue_priority", {
+            p_id: newId, p_priority: famPriority,
+          });
+          if (prioErr) console.warn("[family_venue priority]", prioErr);
+        }
         btn.disabled = false;
         syncEtabRubrique();
         if (error) {
-          console.warn("[family_venue insert]", error);
+          console.warn("[family_venue upsert]", error);
           toast("Erreur : " + (error.message || "création échouée"), false);
           return;
         }
-        allFamily.push(data);
+        allFamily.push({
+          id: newId, name: nom, category: $etab("etab-family-type").value,
+          ville, adresse: $etab("etab-adresse").value.trim(),
+          telephone: $etab("etab-telephone").value.trim(),
+          horaires: $etab("etab-horaires").value.trim(),
+          website_url: siteWeb, lien_maps: lienMaps, photo,
+          latitude: parseFloat($etab("etab-lat").value) || 0,
+          longitude: parseFloat($etab("etab-lon").value) || 0,
+          display_priority: famPriority,
+          is_active: $etab("etab-active").checked,
+        });
         resetEtabForm();
         showEtabForm(false);
         venuesNameSearch.value = "";
         venuesCityFilter.value = ville;
         refreshVenuesView();
-        toast(`« ${data.name} » ajouté ✓`, true);
+        toast(`« ${nom} » ajouté ✓`, true);
         return;
       }
 
@@ -12887,7 +13109,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
     // (sinon le tap ouvre seulement le site). Liste indicative — le champ
     // reste libre côté DB.
     const INSP_THEME_HINTS = {
-      food:    ['Brunch', 'Guinguette', 'Buffet', 'Salon de the'],
+      food:    ['Brunch', 'Guinguette', 'Buffet', 'Salon de the', 'Tapas', 'Pintxos', 'Poisson', 'Viande'],
       family:  [],
       sport:   ['fitness', 'boxe', 'terrain-football', 'terrain-basketball', 'piscine', 'golf'],
       culture: ['Musee', 'Monument historique', 'Bibliotheque', 'Galerie'],

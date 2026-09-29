@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1080px; height:1350px; font-family:"Liberation Sans", Arial, sans-serif; background:#140a1c; overflow:hidden; }
+  .card { position:relative; width:1080px; height:1350px; overflow:hidden; }
+  .bg { position:absolute; inset:0; background:url(prison-island-photo.png) center/cover no-repeat; filter:saturate(1.15) contrast(1.05); }
+  .shade { position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(20,10,28,.92) 0%, rgba(20,10,28,.55) 26%, rgba(20,10,28,.15) 44%, rgba(20,10,28,.55) 50%, rgba(20,10,28,.9) 66%, #140a1c 100%); }
+  .top { position:absolute; top:70px; left:0; right:0; text-align:center; }
+  .pill { display:inline-flex; align-items:center; gap:12px; padding:16px 34px; border-radius:999px;
+    background:rgba(40,22,52,.75); border:1.5px solid rgba(255,79,163,.45);
+    color:#ff4fa3; font-weight:700; font-size:28px; letter-spacing:4px; }
+  .brand { margin-top:34px; color:#fff; font-size:92px; font-weight:800; letter-spacing:6px;
+    text-shadow:0 6px 30px rgba(0,0,0,.6); }
+  .sub { margin-top:10px; color:#e6d9f2; font-size:32px; font-weight:700; letter-spacing:2px; text-shadow:0 3px 14px rgba(0,0,0,.7); }
+  .bottom { position:absolute; bottom:70px; left:0; right:0; text-align:center; }
+  .pct { color:#ff4fa3; font-size:230px; font-weight:800; line-height:1; letter-spacing:-6px;
+    text-shadow:0 8px 40px rgba(255,79,163,.35); }
+  .pct-sub { margin-top:6px; color:#fff; font-size:44px; font-weight:700; }
+  .code-lbl { margin-top:44px; color:#b9a6cc; font-size:26px; font-weight:700; letter-spacing:3px; }
+  .code { display:inline-block; margin-top:14px; padding:22px 56px; border-radius:22px;
+    border:3px dashed #ff4fa3; background:rgba(255,79,163,.1);
+    color:#fff; font-size:64px; font-weight:800; letter-spacing:6px; }
+  .foot { margin-top:48px; display:flex; justify-content:center; align-items:center; gap:14px; }
+  .logo { width:52px; height:52px; border-radius:12px; background:#1e1228; border:1px solid rgba(255,255,255,.14);
+    display:flex; align-items:center; justify-content:center; color:#ff4fa3; font-weight:800; font-size:28px; }
+  .name { color:#fff; font-size:34px; font-weight:800; }
+  .name span { color:#ff4fa3; }
+  .handle { color:#8fb2ff; font-size:30px; font-weight:700; margin-left:18px; }
+</style></head>
+<body><div class="card">
+  <div class="bg"></div><div class="shade"></div>
+  <div class="top">
+    <div class="pill">🎁 OFFRE MACITY</div>
+    <div class="brand">PRISON ISLAND</div>
+    <div class="sub">Escape game · Toulouse</div>
+  </div>
+  <div class="bottom">
+    <div class="pct">-10%</div>
+    <div class="pct-sub">sur le panier total</div>
+    <div class="code-lbl">AVEC LE CODE</div>
+    <div class="code">PITMACITY10</div>
+    <div class="foot"><div class="logo">M</div><div class="name">Ma<span>City</span></div><div class="handle">@macity.app</div></div>
+  </div>
+</div></body></html>

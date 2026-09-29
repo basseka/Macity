@@ -54,7 +54,8 @@ class _AdminAddEtablissementSheetState
   static const _themes = [
     '', 'Francais', 'Asiatique', 'Japonais', 'Italien', 'Orientale',
     'Mediterraneen', 'Mexicain', 'Africain', 'Indien', 'Fusion',
-    'Sud-Ouest', 'Fruits de mer', 'Vegetarien',
+    'Sud-Ouest', 'Fruits de mer', 'Vegetarien', 'Tapas', 'Pintxos',
+    'Poisson', 'Viande',
   ];
 
   static const _quartiers = [
