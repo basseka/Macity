@@ -6820,6 +6820,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         if (oRes.error) throw oRes.error;
         _partners = buildPartners(cRes.data || [], sRes.data || [], oRes.data || []);
         await fillPartnerTypes(_partners);
+        sortPartnersByType(_partners);
         // Tarifs de référence : servent au montant quand on change de formule.
         if (!_subsPrices.length) {
           const { data: prices } = await supabase.rpc("admin_get_subscription_prices");
@@ -6913,6 +6914,18 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       food: "🍴 Food", night: "🌙 Night", nuit: "🌙 Night", culture: "🎭 Culture",
       famille: "👨‍👩‍👧 Famille", family: "👨‍👩‍👧 Famille", sport: "⚽ Sport",
     };
+    // Ordre d'affichage des rubriques ; sans rubrique connue = en dernier.
+    // Le tri est stable : dans une rubrique, l'ordre de buildPartners
+    // (formule, offres visibles, nom) est conservé.
+    const PARTNER_TYPE_ORDER = ["🌙 Night", "🍴 Food", "👨‍👩‍👧 Famille", "🎭 Culture", "⚽ Sport", "🏰 Évasion"];
+    function sortPartnersByType(partners) {
+      const rank = (p) => {
+        const i = PARTNER_TYPE_ORDER.indexOf(p.type);
+        return i === -1 ? PARTNER_TYPE_ORDER.length : i;
+      };
+      partners.sort((a, b) => rank(a) - rank(b));
+    }
+
     async function fillPartnerTypes(partners) {
       const ids = {};
       for (const p of partners) {
@@ -7274,6 +7287,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
             <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">
               ${escapeHtml(o.description || "")}
               ${o.business_phone ? `<br>📞 ${escapeHtml(o.business_phone)}` : ""}
+              ${o.promo_code ? `<br>🏷️ Code promo : <strong style="color:var(--text);">${escapeHtml(o.promo_code)}</strong>` : ""}
             </td>
             <td style="padding:6px 10px; font-size:11px;">
               ${o.categorie ? `<span style="background:var(--line); border-radius:4px; padding:2px 6px;">${escapeHtml(o.categorie)}</span>` : "<span style='opacity:.6; color:var(--text-faint);'>non catégorisée</span>"}
@@ -7288,6 +7302,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
                 data-offer-edit="${o.id}"
                 data-offer-title="${escapeHtml(o.title || "")}"
                 data-offer-desc="${escapeHtml(o.description || "")}"
+                ${o.promo_code !== undefined ? `data-offer-promo="${escapeHtml(o.promo_code || "")}"` : ""}
                 data-offer-phone="${escapeHtml(o.business_phone || "")}"
                 data-offer-emoji="${escapeHtml(o.emoji || "🎁")}"
                 data-offer-spots="${o.total_spots ?? ""}"
@@ -7339,6 +7354,9 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
               <input type="text" id="offer-title" class="banner-input" placeholder="Titre, ex : 1 dessert offert" style="flex:1; min-width:180px; margin:0;" />
               <input type="text" id="offer-desc" class="banner-input" placeholder="Conditions" style="flex:1; min-width:160px; margin:0;" />
               <input type="tel" id="offer-phone" class="banner-input" placeholder="📞 Téléphone * (obligatoire)" style="width:190px; margin:0;" />
+              <input type="text" id="offer-promo" class="banner-input" placeholder="🏷️ Code promo (optionnel)"
+                title="Code imposé par le partenaire (ex. PITMACITY10), affiché dans l'app à la place du code généré. Vide = code unique par téléphone."
+                style="width:190px; margin:0; text-transform:uppercase;" />
               <select id="offer-categorie" class="banner-input" style="width:130px; margin:0;">
                 <option value="">Catégorie…</option>
                 <option value="Restaurant">Restaurant</option>
@@ -7529,6 +7547,13 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
               source_id: srcId || "",
             };
             if (editId) payload.id = editId;
+            // En édition, on n'envoie le code que si la RPC nous l'a fourni :
+            // avant la migration 20260930130000 il n'est pas relu, le champ
+            // serait vide et effacerait le code existant (ex. PITMACITY10).
+            const promoEl = document.getElementById("offer-promo");
+            if (!editId || promoEl.dataset.known === "1") {
+              payload.promo_code = promoEl.value.trim().toUpperCase();
+            }
             const { error } = await supabase.rpc("admin_upsert_client_offer", { p: payload });
             if (error) throw error;
             toast(editId ? "Offre mise à jour" : "Offre ajoutée");
@@ -7547,6 +7572,9 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           document.getElementById("offer-title").value = editBtn.dataset.offerTitle || "";
           document.getElementById("offer-desc").value = editBtn.dataset.offerDesc || "";
           document.getElementById("offer-phone").value = editBtn.dataset.offerPhone || "";
+          const promoEl = document.getElementById("offer-promo");
+          promoEl.value = editBtn.dataset.offerPromo || "";
+          promoEl.dataset.known = editBtn.hasAttribute("data-offer-promo") ? "1" : "";
           document.getElementById("offer-categorie").value = editBtn.dataset.offerCategorie || "";
           document.getElementById("offer-spots").value = editBtn.dataset.offerSpots || "";
           // Un <input type="date"> n'accepte que "YYYY-MM-DD" : lui assigner
