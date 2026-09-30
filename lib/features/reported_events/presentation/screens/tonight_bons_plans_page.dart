@@ -48,6 +48,47 @@ class TonightBonsPlansPage extends ConsumerWidget {
     AppMode.family,
   ];
 
+  /// Ordre des sections en mode [nightOnly] : concerts, soirees, spectacles,
+  /// le reste, et le cinema tout a la fin.
+  static const _nightSectionOrder = [
+    'Concerts',
+    'Soirées',
+    'Spectacles',
+    'Autres sorties',
+    'Cinéma',
+  ];
+
+  /// Classe un event du soir dans une section de [_nightSectionOrder] a
+  /// partir de sa categorie/type (le champ rubrique ne suffit pas : les
+  /// concerts sont en "day", le theatre en "culture" ou "day").
+  static String _nightSectionFor(Event e) {
+    final s = '${e.categorie} ${e.type}'.toLowerCase();
+    bool has(List<String> keys) => keys.any(s.contains);
+    if (has(['cinéma', 'cinema'])) return 'Cinéma';
+    if (has(['concert', 'musique'])) return 'Concerts';
+    if (e.rubrique == 'night' || has(['soirée', 'soiree', 'club'])) {
+      return 'Soirées';
+    }
+    if (has([
+      'spectacle',
+      'théâtre',
+      'theatre',
+      'humour',
+      'stand up',
+      'one-man',
+      'danse',
+      'opéra',
+      'opera',
+      'cirque',
+      'magie',
+      'comédie',
+      'comedie',
+    ])) {
+      return 'Spectacles';
+    }
+    return 'Autres sorties';
+  }
+
   static EventListCategory _categoryFor(String rubrique) {
     switch (rubrique) {
       case 'food':
@@ -132,17 +173,29 @@ class TonightBonsPlansPage extends ConsumerWidget {
                     );
                   }
                   final byRubrique = <String, List<Event>>{};
-                  for (final e in events) {
-                    byRubrique.putIfAbsent(e.rubrique, () => []).add(e);
+                  if (nightOnly) {
+                    for (final e in events) {
+                      byRubrique
+                          .putIfAbsent(_nightSectionFor(e), () => [])
+                          .add(e);
+                    }
+                  } else {
+                    for (final e in events) {
+                      byRubrique.putIfAbsent(e.rubrique, () => []).add(e);
+                    }
                   }
-                  final rubriques = [
-                    ..._rubriqueOrder
-                        .map((m) => m.name)
-                        .where(byRubrique.containsKey),
-                    ...byRubrique.keys.where(
-                      (r) => !_rubriqueOrder.any((m) => m.name == r),
-                    ),
-                  ];
+                  final rubriques = nightOnly
+                      ? _nightSectionOrder
+                          .where(byRubrique.containsKey)
+                          .toList()
+                      : [
+                          ..._rubriqueOrder
+                              .map((m) => m.name)
+                              .where(byRubrique.containsKey),
+                          ...byRubrique.keys.where(
+                            (r) => !_rubriqueOrder.any((m) => m.name == r),
+                          ),
+                        ];
 
                   return ListView.builder(
                     padding: const EdgeInsets.only(bottom: 24),
@@ -157,8 +210,8 @@ class TonightBonsPlansPage extends ConsumerWidget {
                         final isFavorite = liked.contains(event.identifiant);
                         return EventListItem(
                           imageUrl: event.photoPath ?? '',
-                          categoryLabel: _shortLabelFor(rubrique),
-                          category: _categoryFor(rubrique),
+                          categoryLabel: _shortLabelFor(event.rubrique),
+                          category: _categoryFor(event.rubrique),
                           price: event.isFree
                               ? 'Gratuit'
                               : (event.tarifNormal.isNotEmpty
@@ -193,7 +246,10 @@ class TonightBonsPlansPage extends ConsumerWidget {
                         );
                       }).toList();
 
-                      return EventListSection(title: mode.label, items: items);
+                      return EventListSection(
+                        title: nightOnly ? rubrique : mode.label,
+                        items: items,
+                      );
                     },
                   );
                 },
