@@ -1152,6 +1152,7 @@
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
           <span class="nav-btn" id="goto-parcours-btn">🌙 Parcours soirée</span>
           <span class="nav-btn" id="goto-userstats-btn" style="border: 2px solid #22c55e;">👥 Utilisateurs</span>
+          <span class="nav-btn" id="goto-partners-btn">🤝 Partenaires</span>
           <span class="nav-btn" id="goto-mediakit-btn">📊 Media Kit</span>
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
@@ -2355,6 +2356,9 @@
 
         <!-- ─── Fiche client ─── -->
         <div id="client-form" class="banner-card hidden" style="margin-top:20px; max-width:900px;">
+          <!-- Visible seulement quand la fiche est ouverte depuis l'onglet Partenaires. -->
+          <button type="button" class="banner-save-btn hidden" id="client-back-partners-btn"
+            style="padding:6px 14px; font-size:12px; margin-bottom:14px; background:transparent; border:1px solid var(--line);">← Retour aux partenaires</button>
           <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
             <div id="client-form-title" style="font-size:16px; font-weight:800;"></div>
             <span id="client-form-id" style="font-size:11px; color:var(--text-faint);"></span>
@@ -3125,6 +3129,34 @@
         <h1>📱 Appli view</h1>
         <p class="subtitle">Aperçu des écrans de l'appli, en grille. Galerie de référence uniquement — les images vivent dans <code>assets/images/appli_view/</code>, rien n'est chargé depuis la base.</p>
         <div class="appliview-grid" id="appliview-grid"></div>
+      </div>
+
+      <!-- ═══ VUE "PARTENAIRES" (annuaire : clients + abonnements + offres) ═══ -->
+      <div id="partners-view" class="hidden">
+        <h1>🤝 Partenaires</h1>
+        <p class="subtitle">Une fiche par partenaire : sa formule, les offres qu'il propose aux utilisateurs et comment le joindre. Regroupe les onglets Clients, Abonnements et les offres. Lecture seule : l'édition se fait dans Clients ou Abonnements.</p>
+
+        <div id="partners-kpis" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin:16px 0 20px;"></div>
+
+        <div class="banner-card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="partners-search" class="banner-input" placeholder="Chercher : nom, contact, email, téléphone, offre…" autocomplete="off" style="flex:2; min-width:220px; margin:0;" />
+            <input type="text" id="partners-city" class="banner-input" list="cities-datalist" placeholder="Ville" autocomplete="off" style="flex:1; min-width:140px; margin:0;" />
+            <select id="partners-tier" class="banner-input" style="max-width:170px; margin:0;">
+              <option value="">Toutes formules</option>
+              <option value="premium">💎 Premium</option>
+              <option value="gold">🥇 Gold</option>
+              <option value="classique">🔹 Classique</option>
+              <option value="none">Sans abonnement</option>
+            </select>
+            <button type="button" class="rub-pill" id="partners-only-offers">🎁 Avec offre visible</button>
+            <button type="button" class="banner-save-btn" id="partners-export-btn" style="padding:6px 12px; font-size:12px;">⬇️ Export CSV</button>
+          </div>
+          <div id="partners-hint" style="font-size:11px; color:var(--text-faint); margin-top:8px;"></div>
+        </div>
+
+        <div id="partners-loading" style="text-align:center; padding:40px; color:var(--text-dim);">Chargement…</div>
+        <div id="partners-list" style="overflow-x:auto;"></div>
       </div>
 
       <!-- ═══ VUE "RÉSUMÉ DU JOUR" (lecture seule, live, filtré par ville) ═══ -->
@@ -4243,6 +4275,8 @@
     const gotoSubsBtn = document.getElementById("goto-subs-btn");
     const clientsView = document.getElementById("clients-view");
     const gotoClientsBtn = document.getElementById("goto-clients-btn");
+    const partnersView = document.getElementById("partners-view");
+    const gotoPartnersBtn = document.getElementById("goto-partners-btn");
     const postfreeView = document.getElementById("postfree-view");
     const gotoPostfreeBtn = document.getElementById("goto-postfree-btn");
     const discoursnightView = document.getElementById("discoursnight-view");
@@ -4280,6 +4314,7 @@
       eventeditView.classList.add("hidden");
       subsView.classList.add("hidden");
       clientsView.classList.add("hidden");
+      partnersView.classList.add("hidden");
       postfreeView.classList.add("hidden");
       discoursnightView.classList.add("hidden");
       appliviewView.classList.add("hidden");
@@ -4506,10 +4541,28 @@
       _hideAllViews();
       clientsView.classList.remove("hidden");
       gotoClientsBtn.classList.add("active");
+      document.getElementById("client-back-partners-btn").classList.add("hidden");
       refreshClientsView();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoClientsBtn.addEventListener("click", showClientsView);
+    // keep : retour depuis une fiche client, on garde la liste chargée,
+    // les filtres et la position de défilement au lieu de tout recharger.
+    let _partnersScrollY = 0;
+    function showPartnersView(keep = false) {
+      _hideAllViews();
+      partnersView.classList.remove("hidden");
+      gotoPartnersBtn.classList.add("active");
+      if (keep === true && _partners.length) {
+        window.scrollTo({ top: _partnersScrollY, behavior: "instant" });
+        return;
+      }
+      refreshPartnersView();
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoPartnersBtn.addEventListener("click", () => showPartnersView());
+    document.getElementById("client-back-partners-btn")
+      .addEventListener("click", () => showPartnersView(true));
     function showPostfreeView() {
       _hideAllViews();
       postfreeView.classList.remove("hidden");
@@ -6723,7 +6776,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
                 <td style="padding:9px 12px 9px 0;">${escapeHtml(o.emoji || "🎁")} ${escapeHtml(o.title)}
                   ${o.description ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(o.description)}</div>` : ""}</td>
                 <td style="padding:9px 12px; font-size:12px;">${escapeHtml(o.business_name || "—")}<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(o.city || "—")}</div></td>
-                <td style="padding:9px 12px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
+                <td style="padding:9px 12px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${!o.total_spots || o.total_spots >= 99999 ? "∞" : o.total_spots}</td>
                 <td style="padding:9px 12px; font-size:12px;">${o.expires_at ? escapeHtml(o.expires_at.slice(0,10)) : "permanente"}</td>
                 <td style="padding:9px 12px; font-size:11px; color:${o.visible_app ? "#16a34a" : "#f59e0b"};">${o.visible_app ? "● visible" : "○ masquée"}</td>
                 <td style="padding:9px 12px;">
@@ -6738,6 +6791,410 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         box.innerHTML = `<div style="padding:16px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
       }
     }
+
+    // ─── Onglet Partenaires (annuaire en lecture seule) ─────────────────
+    // Recolle les 3 sources par partenaire : le client qui paie (clé c:id),
+    // sinon l'établissement abonné (clé v:table:id), sinon l'enseigne saisie
+    // sur l'offre (clé o:nom|ville). Aucune RPC dédiée : on réutilise celles
+    // des onglets Clients et Abonnements.
+    const PARTNER_TIER_RANK = { premium: 3, gold: 2, classique: 1 };
+    let _partners = [];
+    let _partnersOnlyOffers = false;
+    // expires_at = 2099 est la sentinelle « sans date limite » (Offer.hasNoExpiration).
+    const partnerOfferExpiry = (o) =>
+      !o.expires_at || o.expires_at.slice(0, 4) >= "2099" ? "" : o.expires_at.slice(0, 10);
+
+    async function refreshPartnersView() {
+      const loading = document.getElementById("partners-loading");
+      const listEl = document.getElementById("partners-list");
+      loading.classList.remove("hidden");
+      listEl.innerHTML = "";
+      try {
+        const [cRes, sRes, oRes] = await Promise.all([
+          supabase.rpc("admin_list_clients"),
+          supabase.rpc("admin_list_venue_subscriptions"),
+          supabase.rpc("admin_list_all_offers"),
+        ]);
+        if (cRes.error) throw cRes.error;
+        if (sRes.error) throw sRes.error;
+        if (oRes.error) throw oRes.error;
+        _partners = buildPartners(cRes.data || [], sRes.data || [], oRes.data || []);
+        await fillPartnerTypes(_partners);
+        // Tarifs de référence : servent au montant quand on change de formule.
+        if (!_subsPrices.length) {
+          const { data: prices } = await supabase.rpc("admin_get_subscription_prices");
+          _subsPrices = prices || [];
+        }
+        renderPartnersKpis();
+        renderPartnersList();
+      } catch (e) {
+        console.error("[Partenaires] load", e);
+        listEl.innerHTML = `<div style="padding:20px; color:var(--err);">Erreur : ${escapeHtml(e.message)}</div>`;
+      } finally {
+        loading.classList.add("hidden");
+      }
+    }
+
+    function buildPartners(clients, subs, offers) {
+      const map = new Map();
+      const get = (key, init) => {
+        if (!map.has(key)) {
+          map.set(key, { key, client_id: null, name: "", raison_sociale: "", ville: "",
+            statut: "", contact_nom: "", emails: new Set(), phones: new Set(),
+            pro_nom: "", subs: [], offers: [], ...init });
+        }
+        return map.get(key);
+      };
+      const add = (set, v) => { if (v && String(v).trim()) set.add(String(v).trim()); };
+
+      for (const c of clients) {
+        const p = get("c:" + c.id, {
+          client_id: c.id, name: c.enseigne || c.raison_sociale,
+          raison_sociale: c.raison_sociale, ville: c.ville || "", statut: c.statut,
+          contact_nom: c.contact_nom || "",
+        });
+        add(p.emails, c.contact_email);
+        add(p.phones, c.contact_tel);
+      }
+      // Un établissement abonné par un client renvoie vers ce client : ses
+      // offres non rattachées mais ciblant la pochette y seront regroupées.
+      const venueKey = new Map();
+      for (const s of subs) {
+        const vk = `v:${s.source_table}:${s.source_id}`;
+        const key = s.client_id ? "c:" + s.client_id : vk;
+        venueKey.set(vk, key);
+        const p = get(key, { name: s.venue_name, ville: s.ville || "" });
+        if (!p.ville) p.ville = s.ville || "";
+        if (s.pro_nom && !p.pro_nom) p.pro_nom = s.pro_nom;
+        add(p.emails, s.pro_email);
+        p.subs.push(s);
+      }
+      for (const o of offers) {
+        let key;
+        if (o.client_id) key = "c:" + o.client_id;
+        else if (o.source_table && o.source_id != null) {
+          const vk = `v:${o.source_table}:${o.source_id}`;
+          key = venueKey.get(vk) || vk;
+        } else {
+          key = "o:" + (o.business_name || o.title || o.id).toLowerCase().trim() + "|" + (o.city || "").toLowerCase();
+        }
+        const p = get(key, { name: o.business_name || "(enseigne inconnue)", ville: o.city || "" });
+        if (!p.ville) p.ville = o.city || "";
+        add(p.phones, o.business_phone);
+        p.offers.push(o);
+      }
+
+      return [...map.values()].map(p => {
+        const live = p.subs.filter(s => s.status === "active" || s.status === "past_due");
+        const best = live.sort((a, b) => (PARTNER_TIER_RANK[b.tier] || 0) - (PARTNER_TIER_RANK[a.tier] || 0))[0];
+        return {
+          ...p,
+          emails: [...p.emails], phones: [...p.phones],
+          tier: best ? best.tier : null,
+          past_due: live.some(s => s.status === "past_due"),
+          mrr: p.subs.filter(s => s.status === "active").reduce((n, s) => n + subsMonthly(s), 0),
+          offersVisible: p.offers.filter(o => o.visible_app).length,
+          claimed: p.offers.reduce((n, o) => n + Number(o.claimed_spots || 0), 0),
+        };
+      }).sort((a, b) =>
+        (PARTNER_TIER_RANK[b.tier] || 0) - (PARTNER_TIER_RANK[a.tier] || 0)
+        || b.offersVisible - a.offersVisible
+        || a.name.localeCompare(b.name, "fr"));
+    }
+
+    // Type d'établissement : lu dans la fiche source (seulement les lignes
+    // référencées par un abonnement ou une offre, pas les tables entières).
+    // select("*") car la colonne du type diffère selon la table.
+    const PARTNER_RUB_BY_TABLE = {
+      etablissements: "🍴 Food", family_venues: "👨‍👩‍👧 Famille",
+      sport_venues: "⚽ Sport", evasion_venues: "🏰 Évasion",
+    };
+    const PARTNER_RUB_BY_MODE = {
+      food: "🍴 Food", night: "🌙 Night", nuit: "🌙 Night", culture: "🎭 Culture",
+      famille: "👨‍👩‍👧 Famille", family: "👨‍👩‍👧 Famille", sport: "⚽ Sport",
+    };
+    async function fillPartnerTypes(partners) {
+      const ids = {};
+      for (const p of partners) {
+        for (const r of [...p.subs, ...p.offers]) {
+          if (!r.source_table || r.source_id == null) continue;
+          (ids[r.source_table] ||= new Set()).add(r.source_id);
+        }
+      }
+      const fiches = new Map();
+      await Promise.all(Object.entries(ids).map(async ([table, set]) => {
+        const { data, error } = await supabase.from(table).select("*").in("id", [...set]);
+        if (error) { console.warn("[Partenaires] type", table, error.message); return; }
+        for (const r of data || []) fiches.set(`${table}:${r.id}`, r);
+      }));
+      for (const p of partners) {
+        let rub = "", cat = "";
+        for (const r of [...p.subs, ...p.offers]) {
+          const f = fiches.get(`${r.source_table}:${r.source_id}`);
+          if (!f) continue;
+          p.ref ||= {
+            table: r.source_table, id: r.source_id, name: f.name || f.nom || p.name,
+            ville: f.ville || f.hub_ville || p.ville || "",
+            rubrique: PARTNER_TABLE_RUBRIQUE[r.source_table] || canonRubrique(f.mode || f.rubrique),
+          };
+          rub = PARTNER_RUB_BY_TABLE[r.source_table]
+            || PARTNER_RUB_BY_MODE[(f.mode || f.rubrique || "").toLowerCase().trim()] || "";
+          cat = f.categorie || f.category || f.sport_type || f.theme || f.type || "";
+          if (cat) break;
+        }
+        if (!rub) {
+          const s = p.subs.find(x => x.rubrique);
+          if (s) rub = PARTNER_RUB_BY_MODE[s.rubrique.toLowerCase()] || s.rubrique;
+        }
+        if (!cat) cat = (p.offers.find(o => o.categorie) || {}).categorie || "";
+        // Rubrique seule ; la catégorie de l'offre ne sert que de repli.
+        p.type = rub || cat;
+      }
+    }
+
+    // ─── Changement de formule depuis la liste ───────────────────────────
+    // Passe par les mêmes RPC que l'onglet Abonnements, qui propagent tout en
+    // base : venue_subscriptions, is_partner et partner_tier de la fiche
+    // (trigger), palier du compte pro rattaché.
+    const PARTNER_TABLE_RUBRIQUE = {
+      etablissements: "food", family_venues: "famille", sport_venues: "sport", evasion_venues: "evasion",
+    };
+
+    // Abonnements visés par un changement de formule : ceux en cours, sinon le
+    // dernier résilié (réactivation), sinon un nouveau sur l'établissement lié.
+    function partnerTierTargets(p) {
+      const live = p.subs.filter(s => s.status === "active" || s.status === "past_due");
+      if (live.length) return live;
+      if (p.subs.length) return [p.subs[p.subs.length - 1]];
+      if (p.ref) return [{
+        source_table: p.ref.table, source_id: p.ref.id, venue_name: p.ref.name,
+        ville: p.ref.ville, rubrique: p.ref.rubrique, billing_period: "mensuel",
+        started_on: null, ends_on: null, notes: "", _new: true,
+      }];
+      return [];
+    }
+
+    async function changePartnerTier(p, tier, selectEl) {
+      const targets = partnerTierTargets(p);
+      const noms = targets.map(s => "• " + s.venue_name).join("\n");
+      if (!tier) {
+        const live = targets.filter(s => !s._new && s.status !== "cancelled");
+        if (!live.length) return;
+        if (!confirm(`Résilier la formule de « ${p.name} » ?\n\n${noms}\n\nLe badge Partenaire sera retiré (sauf s'il avait été posé à la main) et le palier du compte pro recalculé.`)) {
+          selectEl.value = p.tier || ""; return;
+        }
+      } else {
+        const lignes = targets.map(s => {
+          const annuel = s.billing_period === "annuel";
+          return `• ${s.venue_name} : ${subsEuros(subsDefaultAmount(tier) * (annuel ? 12 : 1))} HT${annuel ? "/an" : "/mois"}`;
+        }).join("\n");
+        if (!confirm(`Passer « ${p.name} » en ${SUBS_TIER_META[tier].label} ?\n\n${lignes}\n\nMontant = tarif de référence de la formule. L'abonnement, le badge Partenaire et le palier du compte pro sont mis à jour en base.`)) {
+          selectEl.value = p.tier || ""; return;
+        }
+      }
+      selectEl.disabled = true;
+      try {
+        for (const s of targets) {
+          if (!tier) {
+            if (s._new || s.status === "cancelled") continue;
+            const { error } = await supabase.rpc("admin_cancel_venue_subscription", { p_id: s.id });
+            if (error) throw error;
+            continue;
+          }
+          const annuel = s.billing_period === "annuel";
+          const { error } = await supabase.rpc("admin_upsert_venue_subscription", {
+            p_source_table:   s.source_table,
+            p_source_id:      s.source_id,
+            p_tier:           tier,
+            p_amount_cents:   subsDefaultAmount(tier) * (annuel ? 12 : 1),
+            p_billing_period: s.billing_period || "mensuel",
+            p_started_on:     s.started_on || null,
+            p_ends_on:        s.ends_on || null,
+            p_notes:          s.notes || "",
+            p_venue_name:     s.venue_name || p.name,
+            p_ville:          s.ville || p.ville || "",
+            p_rubrique:       s.rubrique || "",
+          });
+          if (error) throw error;
+        }
+        // Nouvel abonnement d'un partenaire qui a une fiche client : on le
+        // rattache, sinon il n'apparaîtrait plus sous ce partenaire.
+        if (tier && p.client_id && targets.some(s => s._new || !s.client_id)) {
+          const { data } = await supabase.rpc("admin_list_venue_subscriptions");
+          for (const s of targets) {
+            const row = (data || []).find(r => r.source_table === s.source_table && String(r.source_id) === String(s.source_id));
+            if (row && !row.client_id) {
+              const { error } = await supabase.rpc("admin_link_subscription_client",
+                { p_subscription_id: row.id, p_client_id: p.client_id });
+              if (error) console.warn("[Partenaires] rattachement client", error.message);
+            }
+          }
+        }
+        toast(tier ? `Formule ${SUBS_TIER_META[tier].label} enregistrée` : "Formule résiliée");
+        // is_partner a bougé : caches des fiches à recharger (comme l'onglet Abonnements).
+        Promise.all([loadVenues(), loadEtabs(), loadSportVenues(), loadFamilyUnified()])
+          .catch(e => console.warn("[Partenaires] caches", e));
+        const y = window.scrollY;
+        await refreshPartnersView();
+        window.scrollTo({ top: y, behavior: "instant" });
+      } catch (e) {
+        toast("Erreur : " + e.message, false);
+        selectEl.value = p.tier || "";
+        selectEl.disabled = false;
+      }
+    }
+
+    function renderPartnersKpis() {
+      const card = (l, v, c, sub) => `
+        <div style="background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:14px; padding:14px;">
+          <div style="font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px;">${l}</div>
+          <div style="font-size:22px; font-weight:800; margin-top:4px; color:${c};">${v}</div>
+          ${sub ? `<div style="font-size:11px; color:var(--text-faint); margin-top:2px;">${sub}</div>` : ""}
+        </div>`;
+      const abonnes = _partners.filter(p => p.tier).length;
+      const offresVis = _partners.reduce((n, p) => n + p.offersVisible, 0);
+      const claimed = _partners.reduce((n, p) => n + p.claimed, 0);
+
+      // Un partenaire sans email ni téléphone est injoignable : à compléter.
+      const sansContact = _partners.filter(p => !p.emails.length && !p.phones.length).length;
+      document.getElementById("partners-kpis").innerHTML =
+        card("Partenaires", _partners.length, "var(--text)", `${abonnes} abonné${abonnes > 1 ? "s" : ""}`) +
+        card("Offres visibles", offresVis, "#16a34a") +
+        card("Places réclamées", claimed, "var(--text)", "codes récupérés dans l'app") +
+        card("Sans contact", sansContact, sansContact ? "#ef4444" : "var(--text-dim)",
+             sansContact ? "ni email ni téléphone" : "");
+    }
+
+    function filteredPartners() {
+      const q = (document.getElementById("partners-search").value || "").trim().toLowerCase();
+      const city = (document.getElementById("partners-city").value || "").trim().toLowerCase();
+      const tier = document.getElementById("partners-tier").value;
+      return _partners.filter(p => {
+        if (city && !(p.ville || "").toLowerCase().includes(city)) return false;
+        if (tier === "none" && p.tier) return false;
+        if (tier && tier !== "none" && p.tier !== tier) return false;
+        if (_partnersOnlyOffers && !p.offersVisible) return false;
+        if (!q) return true;
+        return [p.name, p.type, p.raison_sociale, p.contact_nom, p.pro_nom, ...p.emails, ...p.phones,
+                ...p.offers.map(o => o.title), ...p.subs.map(s => s.venue_name)]
+          .filter(Boolean).some(x => String(x).toLowerCase().includes(q));
+      });
+    }
+
+    function renderPartnersList() {
+      const listEl = document.getElementById("partners-list");
+      const list = filteredPartners();
+      document.getElementById("partners-hint").textContent =
+        `${list.length} partenaire${list.length > 1 ? "s" : ""} affiché${list.length > 1 ? "s" : ""} sur ${_partners.length}`;
+      if (!list.length) {
+        listEl.innerHTML = `<div style="padding:20px; color:var(--text-dim);">Aucun partenaire pour ces filtres.</div>`;
+        return;
+      }
+      const telHref = (t) => "tel:" + t.replace(/[^\d+]/g, "");
+      const partnerTierSelect = (p, t) => {
+        const canChange = partnerTierTargets(p).length > 0;
+        const opt = (v, l) => `<option value="${v}"${(p.tier || "") === v ? " selected" : ""}>${l}</option>`;
+        return `<select class="banner-input" data-partner-tier="${escapeHtml(p.key)}"${canChange ? "" : " disabled title=\"Aucun établissement lié : crée l'abonnement dans l'onglet Abonnements\""}
+          style="margin:0; padding:3px 6px; font-size:12px; width:auto; font-weight:700; color:${t ? t.color : "var(--text-faint)"};">
+          ${opt("", "Aucune")}${opt("classique", SUBS_TIER_META.classique.label)}${opt("gold", SUBS_TIER_META.gold.label)}${opt("premium", SUBS_TIER_META.premium.label)}
+        </select>`;
+      };
+      // Une ligne par partenaire : tout est tronqué, le détail complet est
+      // dans l'infobulle (title) de la cellule.
+      const td = (html, extra = "", tip = "") =>
+        `<td${tip ? ` title="${escapeHtml(tip)}"` : ""} style="padding:7px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; ${extra}">${html}</td>`;
+      const rows = list.map(p => {
+        const t = p.tier ? SUBS_TIER_META[p.tier] : null;
+        const contact = [p.contact_nom, p.pro_nom].filter(Boolean)[0] || "";
+        const phone = p.phones[0] || "";
+        const email = p.emails[0] || "";
+        const vis = p.offers.filter(o => o.visible_app);
+        const shown = vis[0] || p.offers[0];
+        const offTitle = p.offers.map(o =>
+          `${o.visible_app ? "●" : "○"} ${o.title} (réclamées ${o.claimed_spots ?? 0}/${!o.total_spots || o.total_spots >= 99999 ? "∞" : o.total_spots}${partnerOfferExpiry(o) ? ", exp. " + partnerOfferExpiry(o) : ""})`).join("\n");
+        const withImg = (shown && shown.image_url) ? shown : p.offers.find(o => o.image_url);
+        const imgLink = withImg
+          ? `<a href="${escapeHtml(withImg.image_url)}" target="_blank" rel="noopener" title="Voir l'affiche : ${escapeHtml(withImg.title)}" style="text-decoration:none; margin-right:4px;">🖼️</a>`
+          : "";
+        const offHtml = shown
+          ? imgLink + `<span style="color:${shown.visible_app ? "var(--text)" : "var(--text-faint)"};">${escapeHtml(shown.emoji || "🎁")} ${escapeHtml(shown.title)}</span>${p.offers.length > 1 ? ` <span style="color:var(--text-faint);">+${p.offers.length - 1}</span>` : ""}`
+          : `<span style="color:var(--text-faint);">-</span>`;
+        return `<tr style="border-top:1px solid var(--line);${p.tier || p.offersVisible ? "" : " opacity:.6;"}">
+          ${td(`<strong>${escapeHtml(p.name)}</strong>`, "max-width:220px;")}
+          ${td(escapeHtml(p.type || "-"), "max-width:200px;", p.type)}
+          ${td(escapeHtml(p.ville || "-"), "max-width:110px; color:var(--text-dim);")}
+          ${td(partnerTierSelect(p, t) + (p.past_due ? ` <span style="color:#f59e0b; font-size:11px;">impayé</span>` : ""), "overflow:visible;")}
+          ${td(p.mrr ? subsEuros(p.mrr) : "", "text-align:right; font-variant-numeric:tabular-nums; color:#16a34a;")}
+          ${td(escapeHtml(contact || "-"), "max-width:150px;")}
+          ${td(phone ? `<a href="${escapeHtml(telHref(phone))}" style="color:inherit;">${escapeHtml(phone)}</a>` : `<span style="color:#ef4444;">-</span>`)}
+          ${td(email ? `<a href="mailto:${escapeHtml(email)}" style="color:inherit;">${escapeHtml(email)}</a>` : `<span style="color:var(--text-faint);">-</span>`, "max-width:200px;")}
+          <td title="${escapeHtml(offTitle)}" style="padding:7px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px;">${offHtml}</td>
+          ${td(`${p.offersVisible}/${p.offers.length}`, "text-align:center; font-variant-numeric:tabular-nums;")}
+          ${td(p.claimed || "", "text-align:center; font-variant-numeric:tabular-nums;")}
+          <td style="padding:7px 0 7px 12px; white-space:nowrap;">${p.client_id
+            ? `<button type="button" class="banner-save-btn" style="padding:3px 9px; font-size:11px;" data-partner-client="${escapeHtml(p.client_id)}">🧾 Fiche</button>`
+            : ""}</td>
+        </tr>`;
+      }).join("");
+      const th = (l, align = "left") => `<th style="text-align:${align}; padding:0 12px 8px; font-weight:600;">${l}</th>`;
+      listEl.innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead><tr style="color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.08em;">
+            ${th("Partenaire")}${th("Type")}${th("Ville")}${th("Formule")}${th("MRR HT", "right")}${th("Contact")}${th("Téléphone")}${th("Email")}${th("Offre")}${th("Visibles", "center")}${th("Réclamées", "center")}<th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    function exportPartnersCsv() {
+      const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+      const head = ["Partenaire", "Type", "Raison sociale", "Ville", "Formule", "MRR HT (€)", "Statut client",
+                    "Contact", "Téléphones", "Emails", "Offres visibles", "Offres", "Places réclamées"];
+      const rows = filteredPartners().map(p => [
+        p.name, p.type || "", p.raison_sociale, p.ville, p.tier || "", (p.mrr / 100).toFixed(2).replace(".", ","),
+        p.statut ? (CLIENT_STATUTS[p.statut]?.label || p.statut) : "",
+        [p.contact_nom, p.pro_nom].filter(Boolean).join(" / "),
+        p.phones.join(" / "), p.emails.join(" / "), p.offersVisible,
+        p.offers.map(o => o.title).join(" / "), p.claimed,
+      ].map(cell).join(";"));
+      // BOM : sans lui, Excel lit l'UTF-8 comme du Latin-1 (accents cassés).
+      const blob = new Blob(["﻿" + [head.map(cell).join(";"), ...rows].join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `partenaires-macity-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    (function wirePartnersView() {
+      document.getElementById("partners-search").addEventListener("input", renderPartnersList);
+      document.getElementById("partners-city").addEventListener("input", renderPartnersList);
+      document.getElementById("partners-tier").addEventListener("change", renderPartnersList);
+      document.getElementById("partners-only-offers").addEventListener("click", (ev) => {
+        _partnersOnlyOffers = !_partnersOnlyOffers;
+        ev.currentTarget.classList.toggle("active", _partnersOnlyOffers);
+        renderPartnersList();
+      });
+      document.getElementById("partners-export-btn").addEventListener("click", exportPartnersCsv);
+      document.getElementById("partners-list").addEventListener("change", (ev) => {
+        const sel = ev.target.closest("[data-partner-tier]");
+        if (!sel) return;
+        const p = _partners.find(x => x.key === sel.dataset.partnerTier);
+        if (p && sel.value !== (p.tier || "")) changePartnerTier(p, sel.value, sel);
+      });
+      document.getElementById("partners-list").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("[data-partner-client]");
+        if (!btn) return;
+        try {
+          const { data, error } = await supabase.rpc("admin_get_client", { p_id: btn.dataset.partnerClient });
+          if (error) throw error;
+          _partnersScrollY = window.scrollY;
+          showClientsView();
+          document.getElementById("client-back-partners-btn").classList.remove("hidden");
+          openClientForm(data);
+        } catch (e) { toast("Erreur : " + e.message, false); }
+      });
+    })();
 
     const CF_KEYS = ["raison_sociale","enseigne","forme_juridique","siret","tva_intracom",
       "rcs_ville","adresse","code_postal","ville","pays","contact_nom","contact_prenom",
@@ -6824,7 +7281,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
             <td style="padding:6px 10px; font-size:11px; color:var(--text-faint);">
               ${o.source_table ? "🏷️ " + escapeHtml(cibleLabel(o.source_table, o.source_id)) : "<span style='opacity:.6;'>aucune pochette</span>"}
             </td>
-            <td style="padding:6px 10px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${o.total_spots || "∞"}</td>
+            <td style="padding:6px 10px; text-align:center; font-variant-numeric:tabular-nums;">${o.claimed_spots ?? 0} / ${!o.total_spots || o.total_spots >= 99999 ? "∞" : o.total_spots}</td>
             <td style="padding:6px 10px; font-size:11px; color:${o.is_active ? "#16a34a" : "var(--text-faint)"};">${o.is_active ? "active" : "inactive"}</td>
             <td style="padding:6px 0 6px 10px; white-space:nowrap;">
               <button type="button" class="banner-save-btn" style="padding:3px 8px; font-size:11px; background:#166534; margin-right:4px;"
