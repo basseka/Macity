@@ -32,6 +32,8 @@ class PrivateEvent with _$PrivateEvent {
     @JsonKey(name: 'rsvp_count') @Default(0) int rsvpCount,
     /// Participants ayant confirme leur venue (list_my_private_events).
     @JsonKey(name: 'confirmed_count') @Default(0) int confirmedCount,
+    /// Photos de l'album (discussion de groupe), list_my_private_events.
+    @JsonKey(name: 'photo_count') @Default(0) int photoCount,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
   }) = _PrivateEvent;
@@ -63,6 +65,7 @@ class PrivateEventReveal with _$PrivateEventReveal {
     PrivateEventHost? host,
     @JsonKey(name: 'confirmation_requise') @Default(false) bool confirmationRequise,
     @JsonKey(name: 'max_participants') int? maxParticipants,
+    @JsonKey(name: 'photo_count') @Default(0) int photoCount,
   }) = _PrivateEventReveal;
 
   factory PrivateEventReveal.fromJson(Map<String, dynamic> json) =>

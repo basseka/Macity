@@ -7,6 +7,7 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/event_album_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/album_button.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
@@ -198,7 +199,10 @@ class _InvitationTile extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+          Row(
             children: [
               Container(
                 width: 56,
@@ -319,38 +323,15 @@ class _InvitationTile extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (onAlbum != null) ...[
-                    const SizedBox(height: 8),
-                    // Album photo de la soiree, sans passer par le detail.
-                    Material(
-                      color: AppColors.magenta.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppRadius.chip),
-                      child: InkWell(
-                        onTap: onAlbum,
-                        borderRadius: BorderRadius.circular(AppRadius.chip),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.photo_library_outlined, size: 14, color: AppColors.magenta),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Album',
-                                style: GoogleFonts.geist(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.magenta,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
+            ],
+          ),
+          // Album photo bien visible, sans passer par le detail.
+          if (onAlbum != null) ...[
+            const SizedBox(height: 10),
+            AlbumButton(photoCount: event.photoCount, onTap: onAlbum!),
+          ],
             ],
           ),
         ),

@@ -12,6 +12,7 @@ import 'package:pulz_app/features/private_events/presentation/create_private_eve
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/guest_list_pdf.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/album_button.dart';
 
 /// Liste des soirees privees creees par ce device. Permet de re-partager le
 /// lien+code et de supprimer un event.
@@ -434,6 +435,10 @@ class _EventTile extends StatelessWidget {
               value: event.confirmationRequise,
               onChanged: onToggleConfirmation,
             ),
+            const SizedBox(height: 10),
+
+            // ── Album photo, mis en avant (pleine largeur) ──
+            AlbumButton(photoCount: event.photoCount, onTap: onAlbum),
             const SizedBox(height: 8),
             Divider(height: 1, color: AppColors.line),
             const SizedBox(height: 4),
@@ -457,13 +462,7 @@ class _EventTile extends StatelessWidget {
                     onTap: onChat,
                   ),
                 ),
-                Expanded(
-                  child: _TileAction(
-                    icon: Icons.photo_library_outlined,
-                    label: 'Album',
-                    onTap: onAlbum,
-                  ),
-                ),
+
                 Expanded(
                   child: _TileAction(
                     icon: Icons.edit_outlined,
