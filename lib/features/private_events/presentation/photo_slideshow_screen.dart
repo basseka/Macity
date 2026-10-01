@@ -81,7 +81,6 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
   late final List<PrivateEventPhoto> _photos = [...widget.photos];
   late int _index = widget.initialIndex.clamp(0, _photos.length - 1);
   late bool _playing = widget.autoplay && _photos.length > 1;
-  bool _showUi = true;
   bool _saving = false;
   Timer? _timer;
 
@@ -186,181 +185,150 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // ── Photos ──
-          GestureDetector(
-            onTap: () => setState(() => _showUi = !_showUi),
-            // Glisser a la main met la lecture automatique en pause.
-            child: NotificationListener<UserScrollNotification>(
-              onNotification: (n) {
-                if (_playing && n.direction != ScrollDirection.idle) _togglePlay();
-                return false;
-              },
-              child: PageView.builder(
-              controller: _pager,
-              itemCount: photos.length,
-              onPageChanged: (i) {
-                setState(() => _index = i);
-                _precache(i + 1);
-              },
-              itemBuilder: (_, i) => _KenBurnsImage(
-                url: photos[i].imageUrl,
-                animate: _playing && i == _index,
-                duration: _slideDuration,
-              ),
-            ),
-            ),
-          ),
-
-          // ── Barre du haut ──
-          AnimatedOpacity(
-            opacity: _showUi ? 1 : 0,
-            duration: const Duration(milliseconds: 200),
-            child: IgnorePointer(
-              ignoring: !_showUi,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xAA000000), Colors.transparent],
+      // Mise en page en 3 bandes : boutons EN HAUT, photo au milieu, auteur
+      // et legende EN BAS. Rien n'est pose sur la photo.
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── Bande du haut : fermer, titre, lecture, corbeille, enregistrer ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, color: Colors.white),
                   ),
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 4, 8, 24),
-                    child: Row(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close, color: Colors.white),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.eventTitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.geist(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Text(
-                                '${_index + 1} / ${photos.length}',
-                                style: GoogleFonts.geist(fontSize: 11, color: Colors.white70),
-                              ),
-                            ],
+                        Text(
+                          widget.eventTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.geist(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
                         ),
-                        if (photos.length > 1)
-                          IconButton(
-                            onPressed: _togglePlay,
-                            tooltip: _playing ? 'Pause' : 'Lecture',
-                            icon: Icon(
-                              _playing ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                        if (widget.onDelete != null &&
-                            (widget.canDelete?.call(current) ?? false))
-                          IconButton(
-                            onPressed: _delete,
-                            tooltip: 'Retirer de l\'album',
-                            icon: const Icon(Icons.delete_outline, color: Colors.white),
-                          ),
-                        Builder(
-                          builder: (btnCtx) => IconButton(
-                            onPressed: () => _save(btnCtx),
-                            tooltip: 'Enregistrer / partager',
-                            icon: _saving
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Icon(Icons.download_rounded, color: Colors.white),
-                          ),
+                        Text(
+                          '${_index + 1} / ${photos.length}',
+                          style: GoogleFonts.geist(fontSize: 11, color: Colors.white70),
                         ),
                       ],
+                    ),
+                  ),
+                  if (photos.length > 1)
+                    IconButton(
+                      onPressed: _togglePlay,
+                      tooltip: _playing ? 'Pause' : 'Lecture',
+                      icon: Icon(
+                        _playing ? Icons.pause_circle_filled : Icons.play_circle_fill,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                  if (widget.onDelete != null && (widget.canDelete?.call(current) ?? false))
+                    IconButton(
+                      onPressed: _delete,
+                      tooltip: 'Retirer de l\'album',
+                      icon: const Icon(Icons.delete_outline, color: Colors.white),
+                    ),
+                  Builder(
+                    builder: (btnCtx) => IconButton(
+                      onPressed: () => _save(btnCtx),
+                      tooltip: 'Enregistrer / partager',
+                      icon: _saving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.download_rounded, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Photo : glisser pour naviguer (met la lecture en pause) ──
+            Expanded(
+              child: NotificationListener<UserScrollNotification>(
+                onNotification: (n) {
+                  if (_playing && n.direction != ScrollDirection.idle) _togglePlay();
+                  return false;
+                },
+                child: PageView.builder(
+                  controller: _pager,
+                  itemCount: photos.length,
+                  onPageChanged: (i) {
+                    setState(() => _index = i);
+                    _precache(i + 1);
+                  },
+                  itemBuilder: (_, i) => ClipRect(
+                    child: _KenBurnsImage(
+                      url: photos[i].imageUrl,
+                      animate: _playing && i == _index,
+                      duration: _slideDuration,
                     ),
                   ),
                 ),
               ),
             ),
-          ),
 
-          // ── Auteur, heure, legende ──
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: AnimatedOpacity(
-              opacity: _showUi ? 1 : 0,
-              duration: const Duration(milliseconds: 200),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [Color(0xCC000000), Colors.transparent],
-                  ),
-                ),
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+            // ── Bande du bas : auteur, heure, legende ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: AppColors.magenta,
-                            backgroundImage: (current.avatarUrl?.isNotEmpty ?? false)
-                                ? CachedNetworkImageProvider(current.avatarUrl!)
-                                : null,
-                            child: (current.avatarUrl?.isNotEmpty ?? false)
-                                ? null
-                                : Text(author[0].toUpperCase(),
-                                    style: const TextStyle(color: Colors.white, fontSize: 12)),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            current.isHost ? '$author · organisateur' : author,
-                            style: GoogleFonts.geist(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(when, style: GoogleFonts.geist(fontSize: 11, color: Colors.white70)),
-                        ],
+                      CircleAvatar(
+                        radius: 14,
+                        backgroundColor: AppColors.magenta,
+                        backgroundImage: (current.avatarUrl?.isNotEmpty ?? false)
+                            ? CachedNetworkImageProvider(current.avatarUrl!)
+                            : null,
+                        child: (current.avatarUrl?.isNotEmpty ?? false)
+                            ? null
+                            : Text(author[0].toUpperCase(),
+                                style: const TextStyle(color: Colors.white, fontSize: 12)),
                       ),
-                      if (current.caption.trim().isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          current.caption.trim(),
-                          maxLines: 3,
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          current.isHost ? '$author · organisateur' : author,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.geist(fontSize: 13, color: Colors.white),
+                          style: GoogleFonts.geist(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
                         ),
-                      ],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(when, style: GoogleFonts.geist(fontSize: 11, color: Colors.white70)),
                     ],
                   ),
-                ),
+                  if (current.caption.trim().isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      current.caption.trim(),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.geist(fontSize: 13, color: Colors.white),
+                    ),
+                  ],
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

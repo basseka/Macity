@@ -14,6 +14,8 @@ import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/presentation/event_album_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/photo_slideshow_screen.dart';
+import 'package:pulz_app/features/private_events/domain/models/private_event.dart' show PrivateEventPhoto;
 import 'package:pulz_app/features/private_events/domain/models/private_event_message.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
@@ -411,6 +413,33 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     }
   }
 
+  /// Toucher une photo : diaporama de TOUTES les photos de la conversation,
+  /// ouvert sur celle-ci (on glisse pour voir les autres).
+  void _openPhotos(PrivateEventMessage tapped) {
+    final withImage = _messages.where((m) => m.imageUrl != null).toList();
+    final photos = [
+      for (final m in withImage)
+        PrivateEventPhoto(
+          id: m.id,
+          imageUrl: m.imageUrl!,
+          caption: m.content,
+          userId: m.userId,
+          prenom: m.prenom,
+          avatarUrl: m.avatarUrl,
+          isHost: m.isHost,
+          createdAt: m.createdAt,
+        ),
+    ];
+    final index = withImage.indexWhere((m) => m.id == tapped.id);
+    PhotoSlideshowScreen.open(
+      context,
+      photos: photos,
+      eventTitle: widget.title,
+      initialIndex: index < 0 ? 0 : index,
+      autoplay: false,
+    );
+  }
+
   /// Hote : ouvert depuis ses events, ou auteur d'un message marque isHost
   /// (cas d'une ouverture via notification).
   bool get _iAmHost =>
@@ -516,6 +545,7 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
           msg: msg,
           isMine: isMine,
           onLongPress: isMine || iAmHost ? () => _confirmDelete(msg) : null,
+          onPhotoTap: () => _openPhotos(msg),
         );
       },
     );
@@ -676,11 +706,14 @@ class _MessageBubble extends StatelessWidget {
   final PrivateEventMessage msg;
   final bool isMine;
   final VoidCallback? onLongPress;
+  /// Toucher la photo du message : diaporama de la conversation.
+  final VoidCallback? onPhotoTap;
 
   const _MessageBubble({
     required this.msg,
     required this.isMine,
     this.onLongPress,
+    this.onPhotoTap,
   });
 
   @override
@@ -745,11 +778,7 @@ class _MessageBubble extends StatelessWidget {
                   bottom: msg.content.isNotEmpty ? 6 : 2,
                 ),
                 child: GestureDetector(
-                  onTap: () => _PhotoViewer.open(
-                    context,
-                    url: msg.imageUrl!,
-                    heroTag: 'private_chat_${msg.id}',
-                  ),
+                  onTap: onPhotoTap,
                   child: Hero(
                     tag: 'private_chat_${msg.id}',
                     child: ClipRRect(
@@ -933,74 +962,6 @@ class _Avatar extends StatelessWidget {
               placeholder: (_, __) => fallback,
             )
           : fallback,
-    );
-  }
-}
-
-/// Photo du chat en plein ecran : fond noir, zoom a deux doigts, tap ou
-/// bouton fermer pour revenir.
-class _PhotoViewer extends StatelessWidget {
-  final String url;
-  final String heroTag;
-
-  const _PhotoViewer({required this.url, required this.heroTag});
-
-  static Future<void> open(
-    BuildContext context, {
-    required String url,
-    required String heroTag,
-  }) {
-    return Navigator.of(context).push(
-      PageRouteBuilder<void>(
-        opaque: false,
-        barrierColor: Colors.black,
-        pageBuilder: (_, __, ___) => _PhotoViewer(url: url, heroTag: heroTag),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: InteractiveViewer(
-                minScale: 1,
-                maxScale: 5,
-                child: Center(
-                  child: Hero(
-                    tag: heroTag,
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      fit: BoxFit.contain,
-                      placeholder: (_, __) => const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                tooltip: 'Fermer',
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
