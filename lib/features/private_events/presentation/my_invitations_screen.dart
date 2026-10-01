@@ -10,6 +10,7 @@ import 'package:pulz_app/features/private_events/domain/models/private_event.dar
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/host_card.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/confirm_attendance_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _accentColor = Color(0xFF00B4D8);
@@ -338,11 +339,31 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
   late List<PrivateEventRsvp> _rsvps;
   bool _cancelling = false;
   bool _cancelled = false;
+  /// Mon id device : le bouton « Confirmer » n'apparait qu'a cote de MON pseudo.
+  String? _myUserId;
 
   @override
   void initState() {
     super.initState();
     _rsvps = widget.event.rsvps;
+    UserIdentityService.getUserId().then((id) {
+      if (mounted) setState(() => _myUserId = id);
+    });
+  }
+
+  Future<void> _openConfirmation() async {
+    final token = widget.event.accessToken;
+    if (token == null) return;
+    final updated = await ConfirmAttendanceSheet.show(
+      context,
+      token: token,
+      eventTitle: widget.event.title,
+    );
+    if (updated == null || !mounted) return;
+    setState(() => _rsvps = updated);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Venue confirmée, l\'organisateur est prévenu')),
+    );
   }
 
   String _friendlyDate(String iso) {
@@ -594,7 +615,15 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                           borderRadius: BorderRadius.circular(AppRadius.card),
                           border: Border.all(color: _CoffreColors.line),
                         ),
-                        child: _GuestsBlock(rsvps: _rsvps),
+                        child: _GuestsBlock(
+                          rsvps: _rsvps,
+                          myUserId: _myUserId,
+                          // Plus de bouton une fois la venue annulee.
+                          confirmationRequise:
+                              widget.event.confirmationRequise && !_cancelled,
+                          onConfirm: _openConfirmation,
+                          maxParticipants: widget.event.maxParticipants,
+                        ),
                       ),
                     ],
                   ),
@@ -698,7 +727,17 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
 
 class _GuestsBlock extends StatelessWidget {
   final List<PrivateEventRsvp> rsvps;
-  const _GuestsBlock({required this.rsvps});
+  final String? myUserId;
+  final bool confirmationRequise;
+  final VoidCallback? onConfirm;
+  final int? maxParticipants;
+  const _GuestsBlock({
+    required this.rsvps,
+    this.myUserId,
+    this.confirmationRequise = false,
+    this.onConfirm,
+    this.maxParticipants,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -723,7 +762,9 @@ class _GuestsBlock extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Presents (${rsvps.length})',
+          maxParticipants != null
+              ? 'Presents (${rsvps.length} / $maxParticipants)'
+              : 'Presents (${rsvps.length})',
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -735,7 +776,12 @@ class _GuestsBlock extends StatelessWidget {
         ...rsvps.map(
           (r) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: _GuestRow(rsvp: r),
+            child: _GuestRow(
+              rsvp: r,
+              isMe: r.userId == myUserId,
+              confirmationRequise: confirmationRequise,
+              onConfirm: onConfirm,
+            ),
           ),
         ),
       ],
@@ -745,7 +791,47 @@ class _GuestsBlock extends StatelessWidget {
 
 class _GuestRow extends StatelessWidget {
   final PrivateEventRsvp rsvp;
-  const _GuestRow({required this.rsvp});
+  final bool isMe;
+  final bool confirmationRequise;
+  final VoidCallback? onConfirm;
+  const _GuestRow({
+    required this.rsvp,
+    this.isMe = false,
+    this.confirmationRequise = false,
+    this.onConfirm,
+  });
+
+  /// A droite du pseudo : bouton « Confirmer » (moi, pas encore confirme),
+  /// « Confirmé » cliquable pour corriger (moi, confirme), coche verte (un
+  /// autre participant confirme), coche simple sinon.
+  Widget _trailing() {
+    if (confirmationRequise && isMe) {
+      final done = rsvp.confirmed;
+      return SizedBox(
+        height: 30,
+        child: TextButton.icon(
+          onPressed: onConfirm,
+          style: TextButton.styleFrom(
+            backgroundColor: done ? const Color(0x2222C55E) : AppColors.magenta,
+            foregroundColor: done ? const Color(0xFF22C55E) : Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.chip),
+            ),
+          ),
+          icon: Icon(done ? Icons.verified : Icons.how_to_reg, size: 15),
+          label: Text(
+            done ? 'Confirmé' : 'Confirmer',
+            style: GoogleFonts.geist(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+        ),
+      );
+    }
+    if (confirmationRequise && rsvp.confirmed) {
+      return const Icon(Icons.verified, size: 16, color: Color(0xFF22C55E));
+    }
+    return const Icon(Icons.check_circle, size: 14, color: _accentColor);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -789,7 +875,9 @@ class _GuestRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              prenom.isNotEmpty ? prenom : 'Anonyme',
+              isMe
+                  ? '${prenom.isNotEmpty ? prenom : 'Anonyme'} (moi)'
+                  : (prenom.isNotEmpty ? prenom : 'Anonyme'),
               style: GoogleFonts.geist(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -797,7 +885,7 @@ class _GuestRow extends StatelessWidget {
               ),
             ),
           ),
-          const Icon(Icons.check_circle, size: 14, color: _accentColor),
+          _trailing(),
         ],
       ),
       ),

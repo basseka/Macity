@@ -13,6 +13,7 @@ import 'package:pulz_app/features/private_events/data/private_event_service.dart
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/confirm_attendance_sheet.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/host_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -169,6 +170,8 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
         return 'Complete ton profil MaCity pour continuer';
       case PrivateEventError.forbidden:
         return 'Acces refuse';
+      case PrivateEventError.full:
+        return 'C\'est complet, plus de place';
       case PrivateEventError.network:
         return 'Erreur reseau, reessaie';
     }
@@ -488,6 +491,29 @@ class _RevealViewState extends State<_RevealView> {
   bool get _isMine =>
       _currentUserId != null && _rsvps.any((r) => r.userId == _currentUserId);
 
+  /// Plus de place pour une nouvelle inscription (un inscrit garde la sienne).
+  bool get _isFull =>
+      widget.event.maxParticipants != null &&
+      !_isMine &&
+      _rsvps.length >= widget.event.maxParticipants!;
+
+  bool get _isMineConfirmed =>
+      _currentUserId != null &&
+      _rsvps.any((r) => r.userId == _currentUserId && r.confirmed);
+
+  Future<void> _openConfirmation() async {
+    final updated = await ConfirmAttendanceSheet.show(
+      context,
+      token: widget.token,
+      eventTitle: widget.event.title,
+    );
+    if (updated == null || !mounted) return;
+    setState(() => _rsvps = updated);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Venue confirmée, l\'organisateur est prévenu')),
+    );
+  }
+
   Future<void> _toggleRsvp() async {
     if (_currentUserId == null) return;
     if (!_isMine && !isDeviceRegistered()) {
@@ -520,10 +546,25 @@ class _RevealViewState extends State<_RevealView> {
         _askSignup();
         return;
       }
+      if (e is PrivateEventException && e.code == PrivateEventError.full) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('C\'est complet, plus de place')),
+        );
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Echec, reessaie')),
       );
     }
+  }
+
+  /// « · 5 places restantes » / « · Complet » ; vide si illimite.
+  String _placesLabel() {
+    final max = widget.event.maxParticipants;
+    if (max == null) return '';
+    final left = max - _rsvps.length;
+    if (left <= 0) return ' · Complet';
+    return ' · $left place${left > 1 ? 's' : ''} restante${left > 1 ? 's' : ''}';
   }
 
   String _friendlyDate() {
@@ -715,9 +756,10 @@ class _RevealViewState extends State<_RevealView> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _rsvps.isEmpty
-                        ? 'Personne pour l\'instant'
-                        : '${_rsvps.length} ${_rsvps.length > 1 ? "personnes viennent" : "personne vient"}',
+                    (_rsvps.isEmpty
+                            ? 'Personne pour l\'instant'
+                            : '${_rsvps.length} ${_rsvps.length > 1 ? "personnes viennent" : "personne vient"}') +
+                        _placesLabel(),
                     style: GoogleFonts.geist(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -754,10 +796,10 @@ class _RevealViewState extends State<_RevealView> {
                         ),
                       )
                     : ElevatedButton.icon(
-                        onPressed: _busy ? null : _toggleRsvp,
-                        icon: const Icon(Icons.check, size: 18),
+                        onPressed: (_busy || _isFull) ? null : _toggleRsvp,
+                        icon: Icon(_isFull ? Icons.block : Icons.check, size: 18),
                         label: Text(
-                          _busy ? 'Envoi...' : 'Je viens',
+                          _busy ? 'Envoi...' : (_isFull ? 'Complet' : 'Je viens'),
                           style: GoogleFonts.geist(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -773,6 +815,58 @@ class _RevealViewState extends State<_RevealView> {
                         ),
                       ),
               ),
+              // L'hote demande une confirmation : raccourci juste apres
+              // « Je viens » (meme formulaire que dans « Mes invitations »).
+              if (widget.event.confirmationRequise && _isMine) ...[
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: _isMineConfirmed
+                      ? OutlinedButton.icon(
+                          onPressed: _openConfirmation,
+                          icon: const Icon(Icons.verified, size: 18),
+                          label: Text(
+                            'Venue confirmée · modifier',
+                            style: GoogleFonts.geist(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF22C55E),
+                            side: const BorderSide(color: Color(0xFF22C55E)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.chip),
+                            ),
+                          ),
+                        )
+                      : ElevatedButton.icon(
+                          onPressed: _openConfirmation,
+                          icon: const Icon(Icons.how_to_reg, size: 18),
+                          label: Text(
+                            'Confirmer ma venue',
+                            style: GoogleFonts.geist(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF22C55E),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.chip),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'L\'organisateur demande de confirmer ta venue (nom, âge, téléphone…).',
+                  style: GoogleFonts.geist(fontSize: 11, color: _CoffreColors.textFaint),
+                ),
+              ],
               const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,

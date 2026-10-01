@@ -60,12 +60,18 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
   final _descriptionCtrl = TextEditingController();
   final _heureCtrl = TextEditingController();
   final _passcodeCtrl = TextEditingController();
+  /// Nombre maximum de participants ; vide = illimite.
+  final _maxCtrl = TextEditingController();
   DateTime? _date;
   String? _localPhotoPath;
   String? _photoUrl; // upload Storage
   bool _uploadingPhoto = false;
   bool _busy = false;
   String? _error;
+  /// Demander aux participants de confirmer leur venue (nom, prenom, e-mail,
+  /// age, telephone). Enregistre par set_private_event_confirmation apres la
+  /// creation / modification (RPC separee : create/update restent inchanges).
+  bool _confirmation = false;
 
   PrivateEvent? _created; // step 2 si non null
 
@@ -84,6 +90,8 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
       _passcodeCtrl.text = e.passcode;
       _date = DateTime.tryParse(e.date);
       _photoUrl = e.photoUrl;
+      _confirmation = e.confirmationRequise;
+      _maxCtrl.text = e.maxParticipants?.toString() ?? '';
     }
   }
 
@@ -95,6 +103,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
     _descriptionCtrl.dispose();
     _heureCtrl.dispose();
     _passcodeCtrl.dispose();
+    _maxCtrl.dispose();
     super.dispose();
   }
 
@@ -155,6 +164,13 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
       setState(() => _error = 'Le code doit faire 4 chiffres');
       return;
     }
+    final maxText = _maxCtrl.text.trim();
+    final int? maxParticipants = maxText.isEmpty ? null : int.tryParse(maxText);
+    if (maxText.isNotEmpty &&
+        (maxParticipants == null || maxParticipants < 1 || maxParticipants > 1000)) {
+      setState(() => _error = 'Nombre de places : entre 1 et 1000 (ou vide)');
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -173,6 +189,20 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
           description: _descriptionCtrl.text.trim(),
           photoUrl: _photoUrl,
         );
+        if (maxParticipants != widget.initial!.maxParticipants) {
+          await PrivateEventService().setMaxParticipants(
+            token: widget.initial!.accessToken,
+            hostDeviceUuid: hostUuid,
+            max: maxParticipants,
+          );
+        }
+        if (_confirmation != widget.initial!.confirmationRequise) {
+          await PrivateEventService().setConfirmationRequired(
+            token: widget.initial!.accessToken,
+            hostDeviceUuid: hostUuid,
+            enabled: _confirmation,
+          );
+        }
         if (!mounted) return;
         widget.onCreated?.call();
         Navigator.of(context).pop();
@@ -189,11 +219,34 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
         description: _descriptionCtrl.text.trim(),
         photoUrl: _photoUrl,
       );
+      var result = created;
+      if (maxParticipants != null) {
+        try {
+          await PrivateEventService().setMaxParticipants(
+            token: created.accessToken,
+            hostDeviceUuid: hostUuid,
+            max: maxParticipants,
+          );
+          result = result.copyWith(maxParticipants: maxParticipants);
+        } catch (_) {}
+      }
+      if (_confirmation) {
+        // Event deja cree : un echec ici ne doit pas faire croire a l'hote
+        // que rien n'a ete enregistre (il pourra l'activer via Modifier).
+        try {
+          await PrivateEventService().setConfirmationRequired(
+            token: created.accessToken,
+            hostDeviceUuid: hostUuid,
+            enabled: true,
+          );
+          result = result.copyWith(confirmationRequise: true);
+        } catch (_) {}
+      }
       if (!mounted) return;
       widget.onCreated?.call();
       setState(() {
         _busy = false;
-        _created = created;
+        _created = result;
       });
     } on PrivateEventException catch (e) {
       if (!mounted) return;
@@ -433,6 +486,101 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
             ),
           ),
 
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHi,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.group, size: 18, color: AppColors.magenta),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Nombre de places',
+                        style: GoogleFonts.geist(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      Text(
+                        _isEdit && (widget.initial!.rsvpCount > 0)
+                            ? '${widget.initial!.rsvpCount} déjà inscrit${widget.initial!.rsvpCount > 1 ? 's' : ''}. Vide = illimité.'
+                            : 'Vide = illimité. « Complet » une fois atteint.',
+                        style: GoogleFonts.geist(fontSize: 11, color: AppColors.textDim),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: 72,
+                  child: TextField(
+                    controller: _maxCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(4),
+                    ],
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.geist(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: '∞',
+                      hintStyle: GoogleFonts.geist(fontSize: 15, color: AppColors.textFaint),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.card),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHi,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: SwitchListTile(
+              value: _confirmation,
+              onChanged: _busy ? null : (v) => setState(() => _confirmation = v),
+              activeColor: AppColors.magenta,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+              title: Text(
+                'Activer la confirmation',
+                style: GoogleFonts.geist(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.text,
+                ),
+              ),
+              subtitle: Text(
+                'Chaque participant confirme sa venue avec nom, prénom, '
+                'e-mail, âge et téléphone. Toi seul vois ces infos.',
+                style: GoogleFonts.geist(
+                  fontSize: 11,
+                  color: AppColors.textDim,
+                ),
+              ),
+            ),
+          ),
+
           if (_error != null) ...[
             const SizedBox(height: 10),
             Text(
@@ -619,14 +767,49 @@ String buildPrivateEventShareText(PrivateEvent event) {
 /// WhatsApp/Insta affichent alors l'affiche en grand avec juste le lien + le
 /// code ; le lieu/la date restent caches jusqu'a l'ouverture du coffre. Si la
 /// photo n'est pas dispo (pas d'URL ou download KO), on partage le texte seul.
-Future<void> sharePrivateEventInvite(PrivateEvent event) async {
+///
+/// [context] = celui du BOUTON : sert d'ancrage a la feuille de partage iOS
+/// (`sharePositionOrigin`, obligatoire sur iPad et exige par certaines
+/// versions d'iOS ; sans lui la feuille ne s'ouvre pas et l'erreur etait
+/// avalee -> « le bouton partager ne marche pas » sur iPhone).
+/// Si le partage avec photo echoue, on retente en texte seul ; si tout
+/// echoue, l'utilisateur voit un message au lieu de rien.
+Future<void> sharePrivateEventInvite(BuildContext context, PrivateEvent event) async {
+  final origin = _shareOrigin(context);
+  final messenger = ScaffoldMessenger.maybeOf(context);
   final text = buildPrivateEventShareText(event);
+
+  // Le telechargement de l'affiche peut prendre quelques secondes.
+  messenger?.showSnackBar(const SnackBar(
+    content: Text('Préparation du partage…'),
+    duration: Duration(seconds: 10),
+  ));
   final photo = await _resolveInvitePhoto(event.photoUrl);
+  messenger?.hideCurrentSnackBar();
+
   if (photo != null) {
-    await Share.shareXFiles([photo], text: text);
-  } else {
-    await Share.share(text);
+    try {
+      await Share.shareXFiles([photo], text: text, sharePositionOrigin: origin);
+      return;
+    } catch (e) {
+      debugPrint('[private-share] partage avec photo KO, repli texte : $e');
+    }
   }
+  try {
+    await Share.share(text, sharePositionOrigin: origin);
+  } catch (e) {
+    debugPrint('[private-share] partage texte KO : $e');
+    messenger?.showSnackBar(
+      const SnackBar(content: Text('Partage impossible, réessaie')),
+    );
+  }
+}
+
+/// Rectangle du bouton a l'ecran (ancrage de la feuille de partage iOS).
+Rect? _shareOrigin(BuildContext context) {
+  final box = context.findRenderObject();
+  if (box is! RenderBox || !box.hasSize) return null;
+  return box.localToGlobal(Offset.zero) & box.size;
 }
 
 /// Telecharge la photo de l'event vers un fichier partageable. Renvoie null si
@@ -723,8 +906,8 @@ class _SuccessView extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             height: 46,
-            child: ElevatedButton.icon(
-              onPressed: () => sharePrivateEventInvite(event),
+            child: Builder(builder: (btnCtx) => ElevatedButton.icon(
+              onPressed: () => sharePrivateEventInvite(btnCtx, event),
               icon: const Icon(Icons.share, size: 18),
               label: Text(
                 'Partager',
@@ -741,7 +924,7 @@ class _SuccessView extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-            ),
+            )),
           ),
           const SizedBox(height: 8),
           SizedBox(

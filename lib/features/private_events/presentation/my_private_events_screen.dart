@@ -9,6 +9,7 @@ import 'package:pulz_app/features/private_events/presentation/private_event_chat
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Liste des soirees privees creees par ce device. Permet de re-partager le
 /// lien+code et de supprimer un event.
@@ -133,7 +134,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 10),
               itemBuilder: (_, i) => _EventTile(
                 event: events[i],
-                onShare: () => sharePrivateEventInvite(events[i]),
+                onShare: (btnCtx) => sharePrivateEventInvite(btnCtx, events[i]),
                 onChat: () => PrivateEventChatScreen.open(
                   context,
                   token: events[i].accessToken,
@@ -215,7 +216,8 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
 
 class _EventTile extends StatelessWidget {
   final PrivateEvent event;
-  final VoidCallback onShare;
+  /// Recoit le context du bouton (ancrage de la feuille de partage iOS).
+  final void Function(BuildContext buttonContext) onShare;
   final VoidCallback onChat;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -377,9 +379,14 @@ class _EventTile extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                _ParticipantsBadge(
+                  count: event.rsvpCount,
+                  max: event.maxParticipants,
+                ),
                 const Spacer(),
-                IconButton(
-                  onPressed: onShare,
+                Builder(builder: (btnCtx) => IconButton(
+                  onPressed: () => onShare(btnCtx),
                   icon: const Icon(
                     Icons.share_outlined,
                     size: 18,
@@ -391,7 +398,7 @@ class _EventTile extends StatelessWidget {
                     height: 36,
                   ),
                   padding: EdgeInsets.zero,
-                ),
+                )),
                 IconButton(
                   onPressed: onChat,
                   icon: const Icon(
@@ -501,6 +508,9 @@ class _GuestsSheet extends StatefulWidget {
 class _GuestsSheetState extends State<_GuestsSheet> {
   final _service = PrivateEventService();
   Future<List<PrivateEventRsvp>>? _future;
+  // Onglet « Confirmés » : seulement si l'hote a active la confirmation.
+  Future<List<PrivateEventConfirmation>>? _confFuture;
+  bool _showConfirmed = false;
 
   @override
   void initState() {
@@ -508,6 +518,74 @@ class _GuestsSheetState extends State<_GuestsSheet> {
     _future = _service.hostListEventRsvps(
       token: widget.event.accessToken,
       hostDeviceUuid: widget.hostDeviceUuid,
+    );
+    if (widget.event.confirmationRequise) {
+      _confFuture = _service.hostListConfirmations(
+        token: widget.event.accessToken,
+        hostDeviceUuid: widget.hostDeviceUuid,
+      );
+    }
+  }
+
+  Widget _tab(String label, bool selected, VoidCallback onTap) => Expanded(
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? AppColors.magenta : AppColors.surfaceHi,
+              borderRadius: BorderRadius.circular(AppRadius.chip),
+            ),
+            child: Text(
+              label,
+              style: GoogleFonts.geist(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : AppColors.text,
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget _empty(String text) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.geist(
+              fontSize: 13,
+              color: AppColors.textDim,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ),
+      );
+
+  /// Liste des confirmes, dans l'ordre de confirmation (1er confirme en haut).
+  Widget _confirmedList() {
+    return FutureBuilder<List<PrivateEventConfirmation>>(
+      future: _confFuture,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.magenta),
+          );
+        }
+        final list = snap.data ?? [];
+        if (list.isEmpty) {
+          return _empty('Aucune confirmation pour l\'instant.\n'
+              'Les participants confirment depuis « Mes invitations ».');
+        }
+        return ListView.separated(
+          shrinkWrap: true,
+          itemCount: list.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (_, i) => _ConfirmedRow(rank: i + 1, c: list[i]),
+        );
+      },
     );
   }
 
@@ -551,7 +629,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Invites — ${widget.event.title}',
+                      'Inscrits ${widget.event.maxParticipants != null ? "${widget.event.rsvpCount}/${widget.event.maxParticipants}" : "(${widget.event.rsvpCount})"} : ${widget.event.title}',
                       style: GoogleFonts.geist(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -564,6 +642,21 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                 ],
               ),
               const SizedBox(height: 16),
+              if (_confFuture != null) ...[
+                Row(
+                  children: [
+                    _tab('Participants', !_showConfirmed,
+                        () => setState(() => _showConfirmed = false)),
+                    const SizedBox(width: 8),
+                    _tab('✅ Confirmés', _showConfirmed,
+                        () => setState(() => _showConfirmed = true)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (_showConfirmed)
+                Flexible(child: _confirmedList())
+              else
               Flexible(
                 child: FutureBuilder<List<PrivateEventRsvp>>(
                   future: _future,
@@ -662,7 +755,9 @@ class _GuestRow extends StatelessWidget {
               ),
             ),
           ),
-          const Icon(Icons.check_circle, size: 16, color: AppColors.magenta),
+          rsvp.confirmed
+              ? const Icon(Icons.verified, size: 18, color: Color(0xFF22C55E))
+              : const Icon(Icons.check_circle, size: 16, color: AppColors.magenta),
         ],
       ),
       ),
@@ -681,4 +776,123 @@ class _GuestRow extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// Un participant confirme, vu par l'hote : rang, identite, age, contact.
+/// Telephone et e-mail cliquables (appel / e-mail).
+class _ConfirmedRow extends StatelessWidget {
+  final int rank;
+  final PrivateEventConfirmation c;
+  const _ConfirmedRow({required this.rank, required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    final fullName = '${c.prenom} ${c.nom.toUpperCase()}'.trim();
+    final pseudo = c.pseudo?.trim() ?? '';
+    final when = c.confirmedAt == null
+        ? ''
+        : DateFormat("d MMM 'à' HH'h'mm", 'fr_FR').format(c.confirmedAt!.toLocal());
+    final small = GoogleFonts.geist(fontSize: 12, color: AppColors.textDim);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHi,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppGradients.primary,
+            ),
+            child: Text(
+              '$rank',
+              style: GoogleFonts.geist(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  c.age != null ? '$fullName · ${c.age} ans' : fullName,
+                  style: GoogleFonts.geist(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+                if (pseudo.isNotEmpty || when.isNotEmpty)
+                  Text(
+                    [if (pseudo.isNotEmpty) '@$pseudo', if (when.isNotEmpty) 'confirmé le $when']
+                        .join(' · '),
+                    style: small,
+                  ),
+                const SizedBox(height: 6),
+                if (c.tel.isNotEmpty)
+                  GestureDetector(
+                    onTap: () => launchUrl(Uri(scheme: 'tel', path: c.tel.replaceAll(' ', ''))),
+                    child: Text('📞 ${c.tel}',
+                        style: small.copyWith(color: AppColors.text, decoration: TextDecoration.underline)),
+                  ),
+                if (c.email.isNotEmpty)
+                  GestureDetector(
+                    onTap: () => launchUrl(Uri(scheme: 'mailto', path: c.email)),
+                    child: Text('✉️ ${c.email}',
+                        style: small.copyWith(color: AppColors.text, decoration: TextDecoration.underline)),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Nombre d'inscrits toujours visible par l'hote : « 12 » ou « 12 / 20 »,
+/// en rouge quand c'est complet.
+class _ParticipantsBadge extends StatelessWidget {
+  final int count;
+  final int? max;
+  const _ParticipantsBadge({required this.count, this.max});
+
+  @override
+  Widget build(BuildContext context) {
+    final full = max != null && count >= max!;
+    final color = full ? const Color(0xFFFF6B6B) : AppColors.text;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHi,
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+        border: Border.all(color: full ? color : AppColors.line),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.group, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(
+            max != null ? '$count / $max${full ? ' · complet' : ''}' : '$count inscrit${count > 1 ? 's' : ''}',
+            style: GoogleFonts.geist(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

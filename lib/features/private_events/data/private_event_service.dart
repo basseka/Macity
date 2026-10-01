@@ -16,6 +16,8 @@ enum PrivateEventError {
   invalidInput,
   profileRequired,
   forbidden,
+  /// Nombre maximum de participants atteint.
+  full,
   network,
 }
 
@@ -311,6 +313,121 @@ class PrivateEventService {
     }
   }
 
+  /// Hote : active / desactive la confirmation de venue des participants.
+  Future<void> setConfirmationRequired({
+    required String token,
+    required String hostDeviceUuid,
+    required bool enabled,
+  }) async {
+    try {
+      await _dio.post(
+        'rpc/set_private_event_confirmation',
+        data: {
+          'p_token': token,
+          'p_host_device_uuid': hostDeviceUuid,
+          'p_enabled': enabled,
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Hote : fixe le nombre maximum de participants (null = illimite).
+  Future<void> setMaxParticipants({
+    required String token,
+    required String hostDeviceUuid,
+    required int? max,
+  }) async {
+    try {
+      await _dio.post(
+        'rpc/set_private_event_max_participants',
+        data: {
+          'p_token': token,
+          'p_host_device_uuid': hostDeviceUuid,
+          'p_max': max,
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Participant ("Je viens") : envoie (ou corrige) sa confirmation.
+  /// Retourne la liste a jour des participants (avec la coche confirmed).
+  Future<List<PrivateEventRsvp>> confirmAttendance({
+    required String token,
+    required String userId,
+    required String nom,
+    required String prenom,
+    required String email,
+    required int age,
+    required String tel,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/confirm_private_event_attendance',
+        data: {
+          'p_token': token,
+          'p_user_id': userId,
+          'p_nom': nom,
+          'p_prenom': prenom,
+          'p_email': email,
+          'p_age': age,
+          'p_tel': tel,
+        },
+      );
+      final data = response.data as List;
+      return data
+          .map((e) => PrivateEventRsvp.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Participant : ses propres infos deja envoyees (pre-remplissage), ou
+  /// null s'il n'a pas encore confirme.
+  Future<PrivateEventConfirmation?> getMyConfirmation({
+    required String token,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/get_my_private_event_confirmation',
+        data: {'p_token': token, 'p_user_id': userId},
+      );
+      final data = response.data;
+      if (data is! Map<String, dynamic>) return null;
+      final c = PrivateEventConfirmation.fromJson(data);
+      return c.isConfirmed ? c : null;
+    } on DioException catch (e) {
+      debugPrint('[PrivateEvents] getMyConfirmation failed: $e');
+      return null;
+    }
+  }
+
+  /// Hote : participants ayant confirme, dans l'ordre de confirmation.
+  Future<List<PrivateEventConfirmation>> hostListConfirmations({
+    required String token,
+    required String hostDeviceUuid,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/host_list_event_confirmations',
+        data: {'p_token': token, 'p_host_device_uuid': hostDeviceUuid},
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .map((e) =>
+              PrivateEventConfirmation.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      debugPrint('[PrivateEvents] hostListConfirmations failed: $e');
+      return [];
+    }
+  }
+
   /// Supprime un event si appartient au device caller. Renvoie true si delete OK.
   Future<bool> deleteMyPrivateEvent({
     required String token,
@@ -359,6 +476,27 @@ class PrivateEventService {
           PrivateEventError.invalidInput,
           'Message vide ou trop long',
         );
+      case 'full':
+        return PrivateEventException(
+            PrivateEventError.full, 'C\'est complet, plus de place');
+      case 'invalid_name':
+        return PrivateEventException(
+            PrivateEventError.invalidInput, 'Nom et prénom obligatoires');
+      case 'invalid_email':
+        return PrivateEventException(
+            PrivateEventError.invalidInput, 'Adresse e-mail invalide');
+      case 'invalid_age':
+        return PrivateEventException(
+            PrivateEventError.invalidInput, 'Âge invalide');
+      case 'invalid_tel':
+        return PrivateEventException(
+            PrivateEventError.invalidInput, 'Numéro de téléphone invalide');
+      case 'not_going':
+        return PrivateEventException(PrivateEventError.forbidden,
+            'Indique d\'abord que tu viens à la soirée');
+      case 'confirmation_disabled':
+        return PrivateEventException(PrivateEventError.forbidden,
+            'L\'organisateur ne demande plus de confirmation');
       case 'profile_required':
         return PrivateEventException(
           PrivateEventError.profileRequired,

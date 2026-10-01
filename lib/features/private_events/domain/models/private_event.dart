@@ -23,6 +23,13 @@ class PrivateEvent with _$PrivateEvent {
     required String passcode,
     @JsonKey(name: 'max_opens') @Default(50) int maxOpens,
     @JsonKey(name: 'open_count') @Default(0) int openCount,
+    /// L'hote demande aux participants de confirmer leur venue (formulaire
+    /// nom, prenom, e-mail, age, telephone).
+    @JsonKey(name: 'confirmation_requise') @Default(false) bool confirmationRequise,
+    /// Nombre maximum de participants ; null = illimite.
+    @JsonKey(name: 'max_participants') int? maxParticipants,
+    /// Nombre d'inscrits (« Je viens »), renvoye par list_my_private_events.
+    @JsonKey(name: 'rsvp_count') @Default(0) int rsvpCount,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
   }) = _PrivateEvent;
@@ -52,6 +59,8 @@ class PrivateEventReveal with _$PrivateEventReveal {
     @Default([]) List<PrivateEventRsvp> rsvps,
     @JsonKey(name: 'access_token') String? accessToken,
     PrivateEventHost? host,
+    @JsonKey(name: 'confirmation_requise') @Default(false) bool confirmationRequise,
+    @JsonKey(name: 'max_participants') int? maxParticipants,
   }) = _PrivateEventReveal;
 
   factory PrivateEventReveal.fromJson(Map<String, dynamic> json) =>
@@ -83,8 +92,55 @@ class PrivateEventRsvp with _$PrivateEventRsvp {
     String? prenom,
     @JsonKey(name: 'avatar_url') String? avatarUrl,
     @JsonKey(name: 'created_at') required DateTime createdAt,
+    /// A rempli le formulaire de confirmation (seul ce booleen est public :
+    /// les infos personnelles ne sont lisibles que par l'hote).
+    @Default(false) bool confirmed,
   }) = _PrivateEventRsvp;
 
   factory PrivateEventRsvp.fromJson(Map<String, dynamic> json) =>
       _$PrivateEventRsvpFromJson(json);
+}
+
+/// Infos de confirmation de venue d'un participant. Lues par l'hote
+/// (host_list_event_confirmations, avec [pseudo]) ou par le participant
+/// lui-meme pour pre-remplir le formulaire (get_my_private_event_confirmation).
+class PrivateEventConfirmation {
+  final String? userId;
+  final String? pseudo;
+  final String? avatarUrl;
+  final String nom;
+  final String prenom;
+  final String email;
+  final int? age;
+  final String tel;
+  final DateTime? confirmedAt;
+
+  const PrivateEventConfirmation({
+    this.userId,
+    this.pseudo,
+    this.avatarUrl,
+    this.nom = '',
+    this.prenom = '',
+    this.email = '',
+    this.age,
+    this.tel = '',
+    this.confirmedAt,
+  });
+
+  bool get isConfirmed => confirmedAt != null;
+
+  factory PrivateEventConfirmation.fromJson(Map<String, dynamic> json) =>
+      PrivateEventConfirmation(
+        userId: json['user_id'] as String?,
+        pseudo: json['pseudo'] as String?,
+        avatarUrl: json['avatar_url'] as String?,
+        nom: json['nom'] as String? ?? '',
+        prenom: json['prenom'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        age: (json['age'] as num?)?.toInt(),
+        tel: json['tel'] as String? ?? '',
+        confirmedAt: json['confirmed_at'] == null
+            ? null
+            : DateTime.tryParse(json['confirmed_at'] as String),
+      );
 }
