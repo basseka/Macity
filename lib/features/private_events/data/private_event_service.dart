@@ -18,6 +18,9 @@ enum PrivateEventError {
   forbidden,
   /// Nombre maximum de participants atteint.
   full,
+  /// Le serveur exige une inscription (« Je viens ») : confirmation de venue,
+  /// ou conversation privee avec quelqu'un qui n'est pas / plus inscrit.
+  notGoing,
   network,
 }
 
@@ -565,7 +568,7 @@ class PrivateEventService {
         return PrivateEventException(
             PrivateEventError.invalidInput, 'Numéro de téléphone invalide');
       case 'not_going':
-        return PrivateEventException(PrivateEventError.forbidden,
+        return PrivateEventException(PrivateEventError.notGoing,
             'Indique d\'abord que tu viens à la soirée');
       case 'confirmation_disabled':
         return PrivateEventException(PrivateEventError.forbidden,

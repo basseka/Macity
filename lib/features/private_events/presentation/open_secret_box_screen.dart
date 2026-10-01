@@ -172,6 +172,8 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
         return 'Acces refuse';
       case PrivateEventError.full:
         return 'C\'est complet, plus de place';
+      case PrivateEventError.notGoing:
+        return e.message ?? 'Indique d\'abord que tu viens à la soirée';
       case PrivateEventError.network:
         return 'Erreur reseau, reessaie';
     }

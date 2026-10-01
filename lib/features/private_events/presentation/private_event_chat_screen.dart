@@ -183,14 +183,40 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
       if (!initial && e.code == PrivateEventError.network) return;
       setState(() {
         _loading = false;
-        _error = e.code == PrivateEventError.forbidden ||
-                e.code == PrivateEventError.notFound
-            ? 'Cette discussion n\'est plus accessible.'
-            : 'Impossible de charger la discussion.';
+        _error = _errorText(e);
       });
     } finally {
       _polling = false;
     }
+  }
+
+  /// Message d'erreur explicite selon le cas (au lieu d'un « plus
+  /// accessible » generique qui ne disait pas quoi faire).
+  String _errorText(PrivateEventException e) {
+    if (widget.isDm) {
+      // Cote hote (inscrit vise) : la personne a annule sa venue.
+      if (e.code == PrivateEventError.notGoing && widget.dmWithUserId != null) {
+        return 'Cette personne n\'est plus inscrite à l\'event : '
+            'la conversation privée n\'est plus possible.';
+      }
+      // Cote « Écrire à l'organisateur » : le serveur renvoie not_going quand
+      // c'est l'organisateur lui-meme qui ouvre ce bouton (son propre event).
+      if (e.code == PrivateEventError.notGoing) {
+        return 'Tu es l\'organisateur de cet event : écris à tes participants '
+            'depuis « Mes events privés », bouton 💬 à côté de chacun.';
+      }
+      if (e.code == PrivateEventError.forbidden) {
+        return 'Tu n\'es plus inscrit à cet event : fais « Je viens » '
+            'pour écrire à l\'organisateur.';
+      }
+    }
+    if (e.code == PrivateEventError.notFound) {
+      return 'Cet event n\'existe plus (supprimé ou passé depuis plus de 7 jours).';
+    }
+    if (e.code == PrivateEventError.forbidden) {
+      return 'Cette discussion n\'est plus accessible.';
+    }
+    return 'Impossible de charger la discussion. Vérifie ta connexion et réessaie.';
   }
 
   void _scrollToBottom() {
