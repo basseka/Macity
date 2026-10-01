@@ -6,6 +6,7 @@ import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/event_album_screen.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avatars_row.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
@@ -108,6 +109,13 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
               itemBuilder: (_, i) => _InvitationTile(
                 event: events[i],
                 onTap: () => _showDetails(events[i]),
+                onAlbum: events[i].accessToken == null
+                    ? null
+                    : () => EventAlbumScreen.open(
+                          context,
+                          token: events[i].accessToken!,
+                          title: events[i].title,
+                        ),
               ),
             ),
           );
@@ -165,7 +173,9 @@ class _InvitationTile extends StatelessWidget {
   final PrivateEventReveal event;
   final VoidCallback onTap;
 
-  const _InvitationTile({required this.event, required this.onTap});
+  /// Ouvre l'album photo de l'event (null : pas de token, pas d'album).
+  final VoidCallback? onAlbum;
+  const _InvitationTile({required this.event, required this.onTap, this.onAlbum});
 
   String _friendlyDate(String iso) {
     final d = DateTime.tryParse(iso);
@@ -290,21 +300,56 @@ class _InvitationTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _accentColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'JE VIENS',
-                  style: GoogleFonts.geistMono(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    color: _accentColor,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _accentColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'JE VIENS',
+                      style: GoogleFonts.geistMono(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: _accentColor,
+                      ),
+                    ),
                   ),
-                ),
+                  if (onAlbum != null) ...[
+                    const SizedBox(height: 8),
+                    // Album photo de la soiree, sans passer par le detail.
+                    Material(
+                      color: AppColors.magenta.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                      child: InkWell(
+                        onTap: onAlbum,
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.photo_library_outlined, size: 14, color: AppColors.magenta),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Album',
+                                style: GoogleFonts.geist(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.magenta,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -631,8 +676,8 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
               ),
               const SizedBox(height: 14),
               if (widget.event.accessToken != null) ...[
-                SizedBox(
-                width: double.infinity,
+                Row(children: [
+                Expanded(child: SizedBox(
                 height: 44,
                 child: OutlinedButton.icon(
                   onPressed: () => PrivateEventChatScreen.open(
@@ -656,7 +701,31 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                     ),
                   ),
                 ),
-              ),
+              )),
+                const SizedBox(width: 10),
+                Expanded(child: SizedBox(
+                  height: 44,
+                  child: OutlinedButton.icon(
+                    onPressed: () => EventAlbumScreen.open(
+                      context,
+                      token: widget.event.accessToken!,
+                      title: widget.event.title,
+                    ),
+                    icon: const Icon(Icons.photo_library_outlined, size: 18),
+                    label: Text(
+                      'Album',
+                      style: GoogleFonts.geist(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.magenta,
+                      side: const BorderSide(color: AppColors.magenta),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.card),
+                      ),
+                    ),
+                  ),
+                )),
+                ]),
                 const SizedBox(height: 10),
                 // Conversation privee avec l'organisateur (lui seul la voit).
                 if (!_cancelled) ...[

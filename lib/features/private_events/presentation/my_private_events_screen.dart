@@ -6,6 +6,7 @@ import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
+import 'package:pulz_app/features/private_events/presentation/event_album_screen.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
@@ -168,6 +169,12 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
                   title: events[i].title,
                   isHost: true,
                 ),
+                onAlbum: () => EventAlbumScreen.open(
+                  context,
+                  token: events[i].accessToken,
+                  title: events[i].title,
+                  isHost: true,
+                ),
                 onEdit: () => CreatePrivateEventSheet.showEdit(
                   context,
                   events[i],
@@ -247,6 +254,7 @@ class _EventTile extends StatelessWidget {
   /// Recoit le context du bouton (ancrage de la feuille de partage iOS).
   final void Function(BuildContext buttonContext) onShare;
   final VoidCallback onChat;
+  final VoidCallback onAlbum;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onShowGuests;
@@ -257,6 +265,7 @@ class _EventTile extends StatelessWidget {
     required this.event,
     required this.onShare,
     required this.onChat,
+    required this.onAlbum,
     required this.onEdit,
     required this.onDelete,
     required this.onShowGuests,
@@ -438,6 +447,13 @@ class _EventTile extends StatelessWidget {
                     icon: Icons.forum_outlined,
                     label: 'Discussion',
                     onTap: onChat,
+                  ),
+                ),
+                Expanded(
+                  child: _TileAction(
+                    icon: Icons.photo_library_outlined,
+                    label: 'Album',
+                    onTap: onAlbum,
                   ),
                 ),
                 Expanded(
