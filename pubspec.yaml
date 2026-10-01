@@ -96,6 +96,7 @@ dependencies:
   # QR des offres. Pur Dart (peinture sur canvas), aucune dependance native :
   # pas d'impact sur les permissions ni sur la taille du binaire natif.
   qr_flutter: ^4.1.0
+  pdf: ^3.12.0
 
 dev_dependencies:
   flutter_test:

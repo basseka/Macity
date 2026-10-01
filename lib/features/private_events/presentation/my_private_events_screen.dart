@@ -10,6 +10,7 @@ import 'package:pulz_app/features/private_events/domain/models/private_event.dar
 import 'package:pulz_app/features/private_events/presentation/create_private_event_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/guest_list_pdf.dart';
 
 /// Liste des soirees privees creees par ce device. Permet de re-partager le
 /// lien+code et de supprimer un event.
@@ -543,6 +544,28 @@ class _GuestsSheetState extends State<_GuestsSheet> {
     }
   }
 
+  bool _exporting = false;
+
+  /// Export PDF de la liste (inscrits + confirmes) puis partage.
+  Future<void> _exportPdf(BuildContext btnCtx) async {
+    if (_exporting) return;
+    setState(() => _exporting = true);
+    try {
+      final rsvps = await (_future ?? Future.value(<PrivateEventRsvp>[]));
+      final confirmations = await (_confFuture ??
+          Future.value(<PrivateEventConfirmation>[]));
+      if (!mounted || !btnCtx.mounted) return;
+      await GuestListPdf.share(
+        btnCtx,
+        event: widget.event,
+        rsvps: rsvps,
+        confirmations: confirmations,
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
   Future<void> _loadPendingDm() async {
     final ids = await _service.hostPendingDmUserIds(
       token: widget.event.accessToken,
@@ -697,6 +720,37 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  // Export PDF de la liste (WhatsApp, impression a l'entree).
+                  Builder(
+                    builder: (btnCtx) => TextButton.icon(
+                      onPressed: _exporting ? null : () => _exportPdf(btnCtx),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.magenta,
+                        backgroundColor: AppColors.magenta.withValues(alpha: 0.1),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.chip),
+                        ),
+                      ),
+                      icon: _exporting
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.magenta,
+                              ),
+                            )
+                          : const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                      label: Text(
+                        'PDF',
+                        style: GoogleFonts.geist(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
                 ],
