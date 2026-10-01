@@ -12,6 +12,7 @@ import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dar
 import 'package:pulz_app/features/offers/presentation/my_offers_screen.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+import 'package:pulz_app/features/private_events/presentation/memories_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/my_invitations_screen.dart';
 import 'package:pulz_app/features/private_events/state/my_invitations_provider.dart';
 import 'package:pulz_app/features/private_events/presentation/my_private_events_screen.dart';
@@ -233,6 +234,22 @@ class AccountMenu {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const MyInvitationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 5),
+                _menuItem(
+                  ctx: ctx,
+                  icon: Icons.auto_awesome,
+                  label: 'Mes souvenirs',
+                  subtitle: 'Albums photo de mes soirées passées',
+                  gradientColors: const [Color(0xFFFF9F43), Color(0xFFE91E8C)],
+                  onTap: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MemoriesScreen(),
                       ),
                     );
                   },

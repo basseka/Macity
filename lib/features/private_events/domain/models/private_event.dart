@@ -146,3 +146,85 @@ class PrivateEventConfirmation {
             : DateTime.tryParse(json['confirmed_at'] as String),
       );
 }
+
+/// Photo de l'album d'un event (discussion de groupe uniquement).
+class PrivateEventPhoto {
+  final String id;
+  final String imageUrl;
+  final String caption;
+  final String userId;
+  final String? prenom;
+  final String? avatarUrl;
+  final bool isHost;
+  final DateTime createdAt;
+
+  const PrivateEventPhoto({
+    required this.id,
+    required this.imageUrl,
+    required this.userId,
+    required this.createdAt,
+    this.caption = '',
+    this.prenom,
+    this.avatarUrl,
+    this.isHost = false,
+  });
+
+  factory PrivateEventPhoto.fromJson(Map<String, dynamic> json) => PrivateEventPhoto(
+        id: json['id'] as String,
+        imageUrl: json['image_url'] as String,
+        caption: json['caption'] as String? ?? '',
+        userId: json['user_id'] as String? ?? '',
+        prenom: json['prenom'] as String?,
+        avatarUrl: json['avatar_url'] as String?,
+        isHost: json['is_host'] as bool? ?? false,
+        createdAt: DateTime.parse(json['created_at'] as String),
+      );
+}
+
+/// Event passe dans « Mes souvenirs » (organise ou inscrit).
+class PrivateEventMemory {
+  final String id;
+  final String accessToken;
+  final String title;
+  final String? photoUrl;
+  final String date; // YYYY-MM-DD
+  final String heure;
+  final String lieu;
+  final bool isHost;
+  /// Plus de publication possible (J+7 depasse) : album fige.
+  final bool archived;
+  final int participants;
+  final int photoCount;
+  /// Jusqu'a 4 dernieres photos de l'album (mosaique de couverture).
+  final List<String> preview;
+
+  const PrivateEventMemory({
+    required this.id,
+    required this.accessToken,
+    required this.title,
+    required this.date,
+    this.photoUrl,
+    this.heure = '',
+    this.lieu = '',
+    this.isHost = false,
+    this.archived = false,
+    this.participants = 0,
+    this.photoCount = 0,
+    this.preview = const [],
+  });
+
+  factory PrivateEventMemory.fromJson(Map<String, dynamic> json) => PrivateEventMemory(
+        id: json['id'] as String,
+        accessToken: json['access_token'] as String,
+        title: json['title'] as String? ?? '',
+        photoUrl: json['photo_url'] as String?,
+        date: json['date'] as String? ?? '',
+        heure: json['heure'] as String? ?? '',
+        lieu: json['lieu'] as String? ?? '',
+        isHost: json['is_host'] as bool? ?? false,
+        archived: json['archived'] as bool? ?? false,
+        participants: (json['participants'] as num?)?.toInt() ?? 0,
+        photoCount: (json['photo_count'] as num?)?.toInt() ?? 0,
+        preview: (json['preview'] as List?)?.whereType<String>().toList() ?? const [],
+      );
+}

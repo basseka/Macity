@@ -13,6 +13,7 @@ import 'package:pulz_app/core/utils/bad_words_filter.dart';
 import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/private_events/data/private_event_service.dart';
+import 'package:pulz_app/features/private_events/presentation/event_album_screen.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event_message.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
@@ -353,6 +354,10 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
       if (!mounted) return;
       if (e.code == PrivateEventError.profileRequired) {
         _askSignup();
+      } else if (e.code == PrivateEventError.archived) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.message ?? 'Soirée terminée : consultation seule'),
+        ));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Echec de l\'envoi, reessaie')),
@@ -420,6 +425,21 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: _ChatColors.text),
         titleSpacing: 0,
+        // Album : toutes les photos de la discussion de groupe (+ diaporama).
+        actions: [
+          if (!widget.isDm)
+            IconButton(
+              tooltip: 'Album photos',
+              onPressed: () => EventAlbumScreen.open(
+                context,
+                token: widget.token,
+                title: widget.title,
+                passcode: widget.passcode,
+                isHost: widget.isHost,
+              ),
+              icon: const Icon(Icons.photo_library_outlined, color: _ChatColors.text),
+            ),
+        ],
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

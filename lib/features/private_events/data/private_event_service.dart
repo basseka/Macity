@@ -18,6 +18,8 @@ enum PrivateEventError {
   forbidden,
   /// Nombre maximum de participants atteint.
   full,
+  /// Event passe depuis plus de 7 jours : consultation seule (album fige).
+  archived,
   /// Le serveur exige une inscription (« Je viens ») : confirmation de venue,
   /// ou conversation privee avec quelqu'un qui n'est pas / plus inscrit.
   notGoing,
@@ -237,6 +239,43 @@ class PrivateEventService {
     } on DioException catch (e) {
       debugPrint('[PrivateEvents] hostPendingDmUserIds failed: $e');
       return {};
+    }
+  }
+
+  /// Album : photos de la discussion de groupe, ordre chronologique.
+  Future<List<PrivateEventPhoto>> listPhotos({
+    required String token,
+    required String userId,
+    String? passcode,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/list_private_event_photos',
+        data: {'p_token': token, 'p_user_id': userId, 'p_passcode': passcode},
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .map((e) => PrivateEventPhoto.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// « Mes souvenirs » : events passes que j'ai organises ou ou j'etais inscrit.
+  Future<List<PrivateEventMemory>> listMemories({required String userId}) async {
+    try {
+      final response = await _dio.post(
+        'rpc/list_my_private_event_memories',
+        data: {'p_user_id': userId},
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .map((e) => PrivateEventMemory.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      debugPrint('[PrivateEvents] listMemories failed: $e');
+      return [];
     }
   }
 
@@ -552,6 +591,9 @@ class PrivateEventService {
           PrivateEventError.invalidInput,
           'Message vide ou trop long',
         );
+      case 'archived':
+        return PrivateEventException(PrivateEventError.archived,
+            'Soirée terminée depuis plus de 7 jours : l\'album est figé');
       case 'full':
         return PrivateEventException(
             PrivateEventError.full, 'C\'est complet, plus de place');
