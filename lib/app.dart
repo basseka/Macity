@@ -210,6 +210,25 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         return;
       }
 
+      // Message PRIVE organisateur <-> inscrit → ouvrir cette conversation.
+      // with_user_id rempli = je suis l'hote (l'inscrit a qui repondre) ;
+      // vide = je suis l'inscrit (conversation avec l'hote).
+      if (type == 'private_event_dm') {
+        final token = data['access_token'] as String? ?? '';
+        if (token.isNotEmpty) {
+          final withUser = data['with_user_id'] as String? ?? '';
+          _openPrivateEventDm(
+            token,
+            data['event_title'] as String? ?? '',
+            withUserId: withUser.isEmpty ? null : withUser,
+            withName: data['with_prenom'] as String?,
+          );
+        } else {
+          appRouter.go('/home');
+        }
+        return;
+      }
+
       // Notification "live" (signalement proche, edge fn
       // notify-nearby-reported-event) → ouvrir directement l'affiche.
       // Le payload utilise `reported_event_id` (≠ `event_id` du chat).
@@ -376,6 +395,35 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       );
     } catch (e) {
       debugPrint('[App] open my private events failed: $e');
+    }
+  }
+
+  /// Ouvre une conversation privee d'event (organisateur <-> inscrit).
+  Future<void> _openPrivateEventDm(
+    String token,
+    String title, {
+    String? withUserId,
+    String? withName,
+  }) async {
+    try {
+      appRouter.go('/home');
+      final rootNav = appRouter.routerDelegate.navigatorKey.currentState;
+      if (rootNav == null) return;
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      rootNav.push(
+        MaterialPageRoute<void>(
+          builder: (_) => PrivateEventChatScreen(
+            token: token,
+            title: title.isNotEmpty ? title : 'Soirée privée',
+            isDm: true,
+            isHost: withUserId != null,
+            dmWithUserId: withUserId,
+            dmName: withName,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[App] open private event dm failed: $e');
     }
   }
 

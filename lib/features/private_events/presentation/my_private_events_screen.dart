@@ -54,6 +54,32 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
     );
   }
 
+  Future<bool> _toggleConfirmation(PrivateEvent event, bool enabled) async {
+    try {
+      final uuid = await UserIdentityService.getUserId();
+      await _service.setConfirmationRequired(
+        token: event.accessToken,
+        hostDeviceUuid: uuid,
+        enabled: enabled,
+      );
+      if (!mounted) return true;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(enabled
+            ? 'Confirmation activée : tes participants peuvent confirmer'
+            : 'Confirmation désactivée'),
+      ));
+      _reload();
+      return true;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Échec, réessaie')),
+        );
+      }
+      return false;
+    }
+  }
+
   Future<void> _delete(PrivateEvent event) async {
     final ok = await showDialog<bool>(
       context: context,
@@ -148,6 +174,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
                 ),
                 onDelete: () => _delete(events[i]),
                 onShowGuests: () => _showGuests(events[i]),
+                onToggleConfirmation: (on) => _toggleConfirmation(events[i], on),
               ),
             ),
           );
@@ -222,6 +249,8 @@ class _EventTile extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onShowGuests;
+  /// Bascule « Demander une confirmation » ; renvoie true si enregistre.
+  final Future<bool> Function(bool enabled) onToggleConfirmation;
 
   const _EventTile({
     required this.event,
@@ -230,6 +259,7 @@ class _EventTile extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onShowGuests,
+    required this.onToggleConfirmation,
   });
 
   String _friendlyDate(String iso) {
@@ -338,108 +368,91 @@ class _EventTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                _OpensBadge(open: event.openCount),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _StatusBadge(date: event.date),
+                    const SizedBox(height: 6),
+                    _OpensBadge(open: event.openCount),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // ── Pastilles : code, inscrits (ouvre la liste), confirmes ──
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _Chip(
+                  icon: Icons.key,
+                  label: event.passcode,
+                  mono: true,
+                  color: AppColors.magenta,
+                ),
+                GestureDetector(
+                  onTap: onShowGuests,
+                  child: _ParticipantsBadge(
+                    count: event.rsvpCount,
+                    max: event.maxParticipants,
+                  ),
+                ),
+                if (event.confirmationRequise)
+                  GestureDetector(
+                    onTap: onShowGuests,
+                    child: _Chip(
+                      icon: Icons.verified,
+                      label: '${event.confirmedCount} confirmé${event.confirmedCount > 1 ? 's' : ''}',
+                      color: const Color(0xFF22C55E),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 10),
 
-            // Code + actions
+            // ── Confirmation des participants, basculable d'ici ──
+            _ConfirmationToggle(
+              value: event.confirmationRequise,
+              onChanged: onToggleConfirmation,
+            ),
+            const SizedBox(height: 8),
+            Divider(height: 1, color: AppColors.line),
+            const SizedBox(height: 4),
+
+            // ── Actions : pleine largeur, icone + libelle, jamais coupees ──
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.magenta.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.chip),
-                    border: Border.all(
-                      color: AppColors.magenta.withValues(alpha: 0.3),
+                Expanded(
+                  child: Builder(
+                    builder: (btnCtx) => _TileAction(
+                      icon: Icons.share_outlined,
+                      label: 'Partager',
+                      onTap: () => onShare(btnCtx),
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.key,
-                        size: 12,
-                        color: AppColors.magenta,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        event.passcode,
-                        style: GoogleFonts.geistMono(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 2,
-                          color: AppColors.magenta,
-                        ),
-                      ),
-                    ],
+                ),
+                Expanded(
+                  child: _TileAction(
+                    icon: Icons.forum_outlined,
+                    label: 'Discussion',
+                    onTap: onChat,
                   ),
                 ),
-                const SizedBox(width: 8),
-                _ParticipantsBadge(
-                  count: event.rsvpCount,
-                  max: event.maxParticipants,
+                Expanded(
+                  child: _TileAction(
+                    icon: Icons.edit_outlined,
+                    label: 'Modifier',
+                    onTap: onEdit,
+                  ),
                 ),
-                const Spacer(),
-                Builder(builder: (btnCtx) => IconButton(
-                  onPressed: () => onShare(btnCtx),
-                  icon: const Icon(
-                    Icons.share_outlined,
-                    size: 18,
-                    color: AppColors.magenta,
+                Expanded(
+                  child: _TileAction(
+                    icon: Icons.delete_outline,
+                    label: 'Supprimer',
+                    onTap: onDelete,
+                    color: const Color(0xFFFF6B6B),
                   ),
-                  tooltip: 'Partager',
-                  constraints: const BoxConstraints.tightFor(
-                    width: 36,
-                    height: 36,
-                  ),
-                  padding: EdgeInsets.zero,
-                )),
-                IconButton(
-                  onPressed: onChat,
-                  icon: const Icon(
-                    Icons.forum_outlined,
-                    size: 18,
-                    color: AppColors.magenta,
-                  ),
-                  tooltip: 'Discussion',
-                  constraints: const BoxConstraints.tightFor(
-                    width: 36,
-                    height: 36,
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-                IconButton(
-                  onPressed: onEdit,
-                  icon: const Icon(
-                    Icons.edit_outlined,
-                    size: 18,
-                    color: AppColors.magenta,
-                  ),
-                  tooltip: 'Modifier',
-                  constraints: const BoxConstraints.tightFor(
-                    width: 36,
-                    height: 36,
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-                IconButton(
-                  onPressed: onDelete,
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    size: 18,
-                    color: Color(0xFFFF6B6B),
-                  ),
-                  tooltip: 'Supprimer',
-                  constraints: const BoxConstraints.tightFor(
-                    width: 36,
-                    height: 36,
-                  ),
-                  padding: EdgeInsets.zero,
                 ),
               ],
             ),
@@ -511,10 +524,13 @@ class _GuestsSheetState extends State<_GuestsSheet> {
   // Onglet « Confirmés » : seulement si l'hote a active la confirmation.
   Future<List<PrivateEventConfirmation>>? _confFuture;
   bool _showConfirmed = false;
+  /// Inscrits dont le dernier message prive attend une reponse de l'hote.
+  Set<String> _pendingDm = {};
 
   @override
   void initState() {
     super.initState();
+    _loadPendingDm();
     _future = _service.hostListEventRsvps(
       token: widget.event.accessToken,
       hostDeviceUuid: widget.hostDeviceUuid,
@@ -525,6 +541,27 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         hostDeviceUuid: widget.hostDeviceUuid,
       );
     }
+  }
+
+  Future<void> _loadPendingDm() async {
+    final ids = await _service.hostPendingDmUserIds(
+      token: widget.event.accessToken,
+      hostDeviceUuid: widget.hostDeviceUuid,
+    );
+    if (mounted) setState(() => _pendingDm = ids);
+  }
+
+  /// Conversation privee avec un inscrit ; au retour, rafraichit les points.
+  Future<void> _openDm(String userId, String? name) async {
+    await PrivateEventChatScreen.openDm(
+      context,
+      token: widget.event.accessToken,
+      eventTitle: widget.event.title,
+      withUserId: userId,
+      withName: name,
+      isHost: true,
+    );
+    _loadPendingDm();
   }
 
   Widget _tab(String label, bool selected, VoidCallback onTap) => Expanded(
@@ -583,7 +620,14 @@ class _GuestsSheetState extends State<_GuestsSheet> {
           shrinkWrap: true,
           itemCount: list.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (_, i) => _ConfirmedRow(rank: i + 1, c: list[i]),
+          itemBuilder: (_, i) => _ConfirmedRow(
+            rank: i + 1,
+            c: list[i],
+            pendingDm: _pendingDm.contains(list[i].userId),
+            onMessage: list[i].userId == null
+                ? null
+                : () => _openDm(list[i].userId!, list[i].pseudo),
+          ),
         );
       },
     );
@@ -627,16 +671,32 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                     color: AppColors.magenta,
                   ),
                   const SizedBox(width: 8),
+                  // Titre court sur la 1re ligne, nom de l'event en petit
+                  // dessous : un nom long ne deborde plus de l'ecran.
                   Expanded(
-                    child: Text(
-                      'Inscrits ${widget.event.maxParticipants != null ? "${widget.event.rsvpCount}/${widget.event.maxParticipants}" : "(${widget.event.rsvpCount})"} : ${widget.event.title}',
-                      style: GoogleFonts.geist(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.text,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.event.maxParticipants != null
+                              ? 'Inscrits ${widget.event.rsvpCount} / ${widget.event.maxParticipants}'
+                              : 'Inscrits (${widget.event.rsvpCount})',
+                          style: GoogleFonts.geist(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text,
+                          ),
+                        ),
+                        Text(
+                          widget.event.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.geist(
+                            fontSize: 12,
+                            color: AppColors.textDim,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -688,7 +748,11 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                       shrinkWrap: true,
                       itemCount: rsvps.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (_, i) => _GuestRow(rsvp: rsvps[i]),
+                      itemBuilder: (_, i) => _GuestRow(
+                        rsvp: rsvps[i],
+                        pendingDm: _pendingDm.contains(rsvps[i].userId),
+                        onMessage: () => _openDm(rsvps[i].userId, rsvps[i].prenom),
+                      ),
                     );
                   },
                 ),
@@ -703,7 +767,9 @@ class _GuestsSheetState extends State<_GuestsSheet> {
 
 class _GuestRow extends StatelessWidget {
   final PrivateEventRsvp rsvp;
-  const _GuestRow({required this.rsvp});
+  final VoidCallback? onMessage;
+  final bool pendingDm;
+  const _GuestRow({required this.rsvp, this.onMessage, this.pendingDm = false});
 
   @override
   Widget build(BuildContext context) {
@@ -758,6 +824,10 @@ class _GuestRow extends StatelessWidget {
           rsvp.confirmed
               ? const Icon(Icons.verified, size: 18, color: Color(0xFF22C55E))
               : const Icon(Icons.check_circle, size: 16, color: AppColors.magenta),
+          if (onMessage != null) ...[
+            const SizedBox(width: 6),
+            _DmButton(onTap: onMessage!, pending: pendingDm),
+          ],
         ],
       ),
       ),
@@ -783,7 +853,14 @@ class _GuestRow extends StatelessWidget {
 class _ConfirmedRow extends StatelessWidget {
   final int rank;
   final PrivateEventConfirmation c;
-  const _ConfirmedRow({required this.rank, required this.c});
+  final VoidCallback? onMessage;
+  final bool pendingDm;
+  const _ConfirmedRow({
+    required this.rank,
+    required this.c,
+    this.onMessage,
+    this.pendingDm = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -832,12 +909,31 @@ class _ConfirmedRow extends StatelessWidget {
                     color: AppColors.text,
                   ),
                 ),
-                if (pseudo.isNotEmpty || when.isNotEmpty)
-                  Text(
-                    [if (pseudo.isNotEmpty) '@$pseudo', if (when.isNotEmpty) 'confirmé le $when']
-                        .join(' · '),
-                    style: small,
+                // Pseudo MaCity mis en avant (pastille de couleur) : c'est
+                // lui que l'hote reconnait dans la liste des inscrits.
+                if (pseudo.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.magenta.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                      border: Border.all(color: AppColors.magenta.withValues(alpha: 0.35)),
+                    ),
+                    child: Text(
+                      '@$pseudo',
+                      style: GoogleFonts.geist(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.magenta,
+                      ),
+                    ),
                   ),
+                ],
+                if (when.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text('confirmé le $when', style: small),
+                ],
                 const SizedBox(height: 6),
                 if (c.tel.isNotEmpty)
                   GestureDetector(
@@ -854,8 +950,55 @@ class _ConfirmedRow extends StatelessWidget {
               ],
             ),
           ),
+          if (onMessage != null) ...[
+            const SizedBox(width: 6),
+            _DmButton(onTap: onMessage!, pending: pendingDm),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// Bouton « message prive » d'une ligne d'inscrit. Point rouge : l'inscrit a
+/// ecrit et attend une reponse.
+class _DmButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final bool pending;
+  const _DmButton({required this.onTap, this.pending = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Material(
+          color: AppColors.magenta.withValues(alpha: 0.12),
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: const Padding(
+              padding: EdgeInsets.all(8),
+              child: Icon(Icons.chat_bubble_outline, size: 17, color: AppColors.magenta),
+            ),
+          ),
+        ),
+        if (pending)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF3B30),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.surfaceHi, width: 1.5),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -892,6 +1035,203 @@ class _ParticipantsBadge extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Pastille compacte (code secret, nombre de confirmes...).
+class _Chip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool mono;
+  const _Chip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.mono = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = (mono ? GoogleFonts.geistMono : GoogleFonts.geist)(
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      letterSpacing: mono ? 2 : 0,
+      color: color,
+    );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(label, style: style),
+        ],
+      ),
+    );
+  }
+}
+
+/// Interrupteur « Confirmation des participants » sur la carte. Optimiste :
+/// bascule tout de suite, revient en arriere si l'enregistrement echoue.
+class _ConfirmationToggle extends StatefulWidget {
+  final bool value;
+  final Future<bool> Function(bool enabled) onChanged;
+  const _ConfirmationToggle({required this.value, required this.onChanged});
+
+  @override
+  State<_ConfirmationToggle> createState() => _ConfirmationToggleState();
+}
+
+class _ConfirmationToggleState extends State<_ConfirmationToggle> {
+  late bool _value = widget.value;
+  bool _busy = false;
+
+  @override
+  void didUpdateWidget(covariant _ConfirmationToggle old) {
+    super.didUpdateWidget(old);
+    if (!_busy && old.value != widget.value) _value = widget.value;
+  }
+
+  Future<void> _set(bool v) async {
+    setState(() {
+      _value = v;
+      _busy = true;
+    });
+    final ok = await widget.onChanged(v);
+    if (!mounted) return;
+    setState(() {
+      if (!ok) _value = !v;
+      _busy = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(Icons.how_to_reg, size: 18, color: Color(0xFF22C55E)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Confirmation des participants',
+                style: GoogleFonts.geist(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.text,
+                ),
+              ),
+              Text(
+                _value
+                    ? 'Activée : nom, âge, téléphone demandés'
+                    : 'Désactivée',
+                style: GoogleFonts.geist(fontSize: 11, color: AppColors.textDim),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: _value,
+          onChanged: _busy ? null : _set,
+          activeColor: const Color(0xFF22C55E),
+        ),
+      ],
+    );
+  }
+}
+
+/// Action de la carte : icone + libelle, pleine largeur partagee.
+class _TileAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color color;
+  const _TileAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color = AppColors.magenta,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.geist(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Statut de l'event selon sa date : « Aujourd'hui », « À venir » ou
+/// « Passé » (supprime automatiquement 7 jours apres la date).
+class _StatusBadge extends StatelessWidget {
+  final String date; // YYYY-MM-DD
+  const _StatusBadge({required this.date});
+
+  @override
+  Widget build(BuildContext context) {
+    final d = DateTime.tryParse(date);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = d == null ? null : DateTime(d.year, d.month, d.day);
+
+    final String label;
+    final Color color;
+    if (day == null || day.isAfter(today)) {
+      label = 'À venir';
+      color = const Color(0xFF22C55E);
+    } else if (day == today) {
+      label = 'Aujourd\'hui';
+      color = AppColors.magenta;
+    } else {
+      label = 'Passé';
+      color = AppColors.textFaint;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.geist(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }

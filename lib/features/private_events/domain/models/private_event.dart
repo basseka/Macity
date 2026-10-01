@@ -30,6 +30,8 @@ class PrivateEvent with _$PrivateEvent {
     @JsonKey(name: 'max_participants') int? maxParticipants,
     /// Nombre d'inscrits (« Je viens »), renvoye par list_my_private_events.
     @JsonKey(name: 'rsvp_count') @Default(0) int rsvpCount,
+    /// Participants ayant confirme leur venue (list_my_private_events).
+    @JsonKey(name: 'confirmed_count') @Default(0) int confirmedCount,
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'updated_at') required DateTime updatedAt,
   }) = _PrivateEvent;

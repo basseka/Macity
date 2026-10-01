@@ -164,6 +164,79 @@ class PrivateEventService {
     }
   }
 
+  /// Conversation PRIVEE organisateur <-> inscrit. Hote : [withUserId] =
+  /// l'inscrit. Inscrit : [withUserId] null (sa conversation avec l'hote).
+  Future<List<PrivateEventMessage>> listDm({
+    required String token,
+    required String userId,
+    String? withUserId,
+    DateTime? since,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/list_private_event_dm',
+        data: {
+          'p_token': token,
+          'p_user_id': userId,
+          'p_with_user_id': withUserId,
+          'p_since': since?.toUtc().toIso8601String(),
+        },
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .map((e) => PrivateEventMessage.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  Future<void> postDm({
+    required String token,
+    required String userId,
+    required String content,
+    String? withUserId,
+    String? imageUrl,
+  }) async {
+    try {
+      await _dio.post(
+        'rpc/post_private_event_dm',
+        data: {
+          'p_token': token,
+          'p_user_id': userId,
+          'p_content': content,
+          'p_with_user_id': withUserId,
+          if (imageUrl != null) 'p_image_url': imageUrl,
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
+  /// Hote : inscrits dont le DERNIER message prive vient d'eux (= en attente
+  /// de reponse). Renvoie leurs user_id ; vide en cas d'erreur.
+  Future<Set<String>> hostPendingDmUserIds({
+    required String token,
+    required String hostDeviceUuid,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/host_list_private_event_dm_threads',
+        data: {'p_token': token, 'p_host_device_uuid': hostDeviceUuid},
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .where((t) => t['last_from_guest'] == true)
+          .map((t) => t['with_user_id'] as String)
+          .toSet();
+    } on DioException catch (e) {
+      debugPrint('[PrivateEvents] hostPendingDmUserIds failed: $e');
+      return {};
+    }
+  }
+
   /// Supprime un message (le sien, ou n'importe lequel pour l'hote).
   Future<bool> deleteMessage({
     required String messageId,

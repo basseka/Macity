@@ -42,13 +42,50 @@ class PrivateEventChatScreen extends StatefulWidget {
   /// n'importe quel message (le serveur le reverifie).
   final bool isHost;
 
+  /// Conversation PRIVEE (organisateur <-> un inscrit) au lieu du groupe.
+  final bool isDm;
+
+  /// Hote en conversation privee : l'inscrit concerne. Null cote inscrit.
+  final String? dmWithUserId;
+
+  /// Nom affiche en titre de la conversation privee (pseudo de l'inscrit
+  /// cote hote, « Organisateur » cote inscrit).
+  final String? dmName;
+
   const PrivateEventChatScreen({
     super.key,
     required this.token,
     required this.title,
     this.passcode,
     this.isHost = false,
+    this.isDm = false,
+    this.dmWithUserId,
+    this.dmName,
   });
+
+  /// Ouvre la conversation privee. Hote : [withUserId] + [withName] de
+  /// l'inscrit. Inscrit : sans [withUserId] (conversation avec l'hote).
+  static Future<void> openDm(
+    BuildContext context, {
+    required String token,
+    required String eventTitle,
+    String? withUserId,
+    String? withName,
+    bool isHost = false,
+  }) {
+    return Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PrivateEventChatScreen(
+          token: token,
+          title: eventTitle,
+          isHost: isHost,
+          isDm: true,
+          dmWithUserId: withUserId,
+          dmName: withName,
+        ),
+      ),
+    );
+  }
 
   static Future<void> open(
     BuildContext context, {
@@ -117,12 +154,20 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     if (_polling || _userId == null) return;
     _polling = true;
     try {
-      final fresh = await _service.listMessages(
-        token: widget.token,
-        userId: _userId!,
-        passcode: widget.passcode,
-        since: initial || _messages.isEmpty ? null : _messages.last.createdAt,
-      );
+      final since = initial || _messages.isEmpty ? null : _messages.last.createdAt;
+      final fresh = widget.isDm
+          ? await _service.listDm(
+              token: widget.token,
+              userId: _userId!,
+              withUserId: widget.dmWithUserId,
+              since: since,
+            )
+          : await _service.listMessages(
+              token: widget.token,
+              userId: _userId!,
+              passcode: widget.passcode,
+              since: since,
+            );
       if (!mounted) return;
       final known = _messages.map((m) => m.id).toSet();
       final added = fresh.where((m) => !known.contains(m.id)).toList();
@@ -258,13 +303,23 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     }
     setState(() => _sending = true);
     try {
-      await _service.postMessage(
-        token: widget.token,
-        userId: _userId!,
-        content: raw,
-        passcode: widget.passcode,
-        imageUrl: photoUrl,
-      );
+      if (widget.isDm) {
+        await _service.postDm(
+          token: widget.token,
+          userId: _userId!,
+          content: raw,
+          withUserId: widget.dmWithUserId,
+          imageUrl: photoUrl,
+        );
+      } else {
+        await _service.postMessage(
+          token: widget.token,
+          userId: _userId!,
+          content: raw,
+          passcode: widget.passcode,
+          imageUrl: photoUrl,
+        );
+      }
       _controller.clear();
       _removePendingPhoto();
       await _refresh();
@@ -343,7 +398,9 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.title,
+              widget.isDm
+                  ? '🔒 ${widget.dmName?.trim().isNotEmpty == true ? widget.dmName!.trim() : (widget.isHost ? 'Participant' : 'Organisateur')}'
+                  : widget.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.geist(
@@ -353,7 +410,9 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
               ),
             ),
             Text(
-              'Discussion privee',
+              widget.isDm
+                  ? 'Message privé · ${widget.title}'
+                  : 'Discussion privee',
               style: GoogleFonts.geist(
                 fontSize: 11,
                 color: _ChatColors.textFaint,
@@ -392,7 +451,11 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     }
     if (_messages.isEmpty) {
       return _centerText(
-        'Pose une question a l\'organisateur ou dis bonjour aux autres invites !',
+        widget.isDm
+            ? (widget.isHost
+                ? 'Écris en privé à ce participant : lui seul verra tes messages.'
+                : 'Écris en privé à l\'organisateur : lui seul verra tes messages.')
+            : 'Pose une question a l\'organisateur ou dis bonjour aux autres invites !',
       );
     }
     final iAmHost = _iAmHost;

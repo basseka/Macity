@@ -658,6 +658,37 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                 ),
               ),
                 const SizedBox(height: 10),
+                // Conversation privee avec l'organisateur (lui seul la voit).
+                if (!_cancelled) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: OutlinedButton.icon(
+                      onPressed: () => PrivateEventChatScreen.openDm(
+                        context,
+                        token: widget.event.accessToken!,
+                        eventTitle: widget.event.title,
+                        withName: widget.event.host?.prenom,
+                      ),
+                      icon: const Icon(Icons.lock_outline, size: 18),
+                      label: Text(
+                        'Écrire à l\'organisateur',
+                        style: GoogleFonts.geist(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _CoffreColors.text,
+                        side: const BorderSide(color: _CoffreColors.line),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.card),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ],
               SizedBox(
                 width: double.infinity,
