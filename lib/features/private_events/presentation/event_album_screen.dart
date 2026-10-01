@@ -1,6 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:pulz_app/core/router/app_router.dart' show isDeviceRegistered;
+import 'package:pulz_app/core/widgets/account_gate.dart';
+import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
+import 'package:uuid/uuid.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -67,6 +72,64 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
   List<PrivateEventPhoto>? _photos;
   String? _error;
   bool _savingAll = false;
+  String? _userId;
+
+  /// Organisateur : ouvert depuis ses events, ou auteur d'une photo marquee
+  /// is_host (ouverture depuis une notification / un souvenir).
+  bool get _iAmHost =>
+      widget.isHost ||
+      (_userId != null && (_photos ?? const []).any((p) => p.isHost && p.userId == _userId));
+
+  /// L'organisateur peut retirer n'importe quelle photo (hors sujet...), chacun
+  /// peut retirer les siennes. Le serveur reverifie (delete_private_event_message).
+  bool _canDelete(PrivateEventPhoto p) => _iAmHost || p.userId == _userId;
+
+  /// Supprime une photo de l'album (= son message dans la discussion).
+  /// Renvoie true si supprimee.
+  Future<bool> _deletePhoto(PrivateEventPhoto p) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Retirer cette photo ?'),
+        content: Text(
+          _iAmHost && p.userId != _userId
+              ? 'Elle sera retirée de l\'album et de la discussion pour tout le monde.'
+              : 'Elle sera retirée de l\'album et de la discussion.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Retirer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || _userId == null || !mounted) return false;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final deleted = await _service.deleteMessage(
+        messageId: p.id,
+        token: widget.token,
+        userId: _userId!,
+      );
+      if (!deleted) {
+        messenger.showSnackBar(const SnackBar(content: Text('Tu ne peux pas retirer cette photo')));
+        return false;
+      }
+      if (mounted) setState(() => _photos = [...?_photos]..removeWhere((x) => x.id == p.id));
+      messenger.showSnackBar(const SnackBar(content: Text('Photo retirée de l\'album')));
+      return true;
+    } on PrivateEventException {
+      messenger.showSnackBar(const SnackBar(content: Text('Échec, réessaie')));
+      return false;
+    }
+  }
+
+  /// Ajout de photos en cours : « 2 / 5 ».
+  int _uploadDone = 0;
+  int _uploadTotal = 0;
+  bool get _uploading => _uploadTotal > 0;
 
   @override
   void initState() {
@@ -77,6 +140,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
   Future<void> _load({bool autoStart = false}) async {
     try {
       final uid = await UserIdentityService.getUserId();
+      _userId = uid;
       final photos = await _service.listPhotos(
         token: widget.token,
         userId: uid,
@@ -96,6 +160,98 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
     }
   }
 
+  /// Ajoute des photos a l'album SANS ouvrir la discussion : chaque photo
+  /// est publiee comme un message (sans texte) de la discussion de groupe,
+  /// exactement comme depuis le chat, donc visible des deux cotes.
+  /// Galerie : plusieurs photos d'un coup (20 max) ; ou appareil photo.
+  Future<void> _addPhotos() async {
+    if (_uploading) return;
+    if (!isDeviceRegistered()) {
+      AccountGate.showNudge(context, action: 'ajouter des photos');
+      return;
+    }
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.photo_library_outlined, color: AppColors.text),
+              title: Text('Choisir dans la galerie (plusieurs)',
+                  style: GoogleFonts.geist(color: AppColors.text)),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_camera_outlined, color: AppColors.text),
+              title: Text('Prendre une photo', style: GoogleFonts.geist(color: AppColors.text)),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    final picker = ImagePicker();
+    final List<XFile> picked = source == ImageSource.gallery
+        ? await picker.pickMultiImage(imageQuality: 85, limit: 20)
+        : [if (await picker.pickImage(source: source, imageQuality: 85) case final f?) f];
+    if (picked.isEmpty || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() {
+      _uploadDone = 0;
+      _uploadTotal = picked.length;
+    });
+    var ok = 0;
+    String? stopReason;
+    try {
+      final uid = await UserIdentityService.getUserId();
+      for (final file in picked) {
+        try {
+          // Nom aleatoire : l'URL publique n'est pas devinable.
+          final url = await UserEventSupabaseService().uploadPhoto(
+            file.path,
+            objectName: 'private_chat/${const Uuid().v4()}.jpg',
+          );
+          await _service.postMessage(
+            token: widget.token,
+            userId: uid,
+            content: '',
+            passcode: widget.passcode,
+            imageUrl: url,
+          );
+          ok++;
+        } on PrivateEventException catch (e) {
+          // Refus definitif (album fige, profil manquant, acces) : on arrete.
+          if (e.code != PrivateEventError.network) {
+            stopReason = e.code == PrivateEventError.profileRequired
+                ? 'Complète ton profil pour ajouter des photos'
+                : (e.message ?? 'Ajout refusé');
+            break;
+          }
+        } catch (_) {/* echec d'upload d'une photo : on passe a la suivante */}
+        if (mounted) setState(() => _uploadDone++);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _uploadDone = 0;
+          _uploadTotal = 0;
+        });
+      }
+    }
+    if (!mounted) return;
+    messenger.showSnackBar(SnackBar(
+      content: Text(stopReason ??
+          (ok == picked.length
+              ? '$ok photo${ok > 1 ? 's' : ''} ajoutée${ok > 1 ? 's' : ''} à l\'album'
+              : '$ok / ${picked.length} photos ajoutées, réessaie pour les autres')),
+    ));
+    if (ok > 0) _load();
+  }
+
   void _slideshow(int index, {bool autoplay = false}) {
     final photos = _photos;
     if (photos == null || photos.isEmpty) return;
@@ -105,6 +261,8 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
       eventTitle: widget.title,
       initialIndex: index,
       autoplay: autoplay,
+      canDelete: _canDelete,
+      onDelete: _deletePhoto,
     );
   }
 
@@ -189,15 +347,43 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
         ],
       ),
       body: _buildBody(photos),
-      floatingActionButton: (photos != null && photos.length > 1)
-          ? FloatingActionButton.extended(
-              onPressed: () => _slideshow(0, autoplay: true),
-              backgroundColor: AppColors.magenta,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: Text('Diaporama', style: GoogleFonts.geist(fontWeight: FontWeight.w700)),
-            )
-          : null,
+      floatingActionButton: (photos == null || _error != null)
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (!widget.archived)
+                  FloatingActionButton.extended(
+                    heroTag: 'album_add',
+                    onPressed: _uploading ? null : _addPhotos,
+                    backgroundColor: AppColors.surface,
+                    foregroundColor: AppColors.magenta,
+                    icon: _uploading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.magenta),
+                          )
+                        : const Icon(Icons.add_a_photo_outlined),
+                    label: Text(
+                      _uploading ? 'Envoi $_uploadDone / $_uploadTotal' : 'Ajouter',
+                      style: GoogleFonts.geist(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                if (photos.length > 1) ...[
+                  const SizedBox(height: 10),
+                  FloatingActionButton.extended(
+                    heroTag: 'album_play',
+                    onPressed: () => _slideshow(0, autoplay: true),
+                    backgroundColor: AppColors.magenta,
+                    foregroundColor: Colors.white,
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    label: Text('Diaporama', style: GoogleFonts.geist(fontWeight: FontWeight.w700)),
+                  ),
+                ],
+              ],
+            ),
     );
   }
 
@@ -225,12 +411,23 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
               Text(
                 widget.archived
                     ? 'Personne n\'a partagé de photo pendant cette soirée.'
-                    : 'Partage tes photos dans la discussion : elles apparaissent ici automatiquement.',
+                    : 'Ajoute tes photos ici, ou partage-les dans la discussion : '
+                        'elles apparaissent automatiquement dans l\'album.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.geist(fontSize: 13, color: AppColors.textDim),
               ),
               if (!widget.archived) ...[
                 const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: _uploading ? null : _addPhotos,
+                  icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+                  label: const Text('Ajouter des photos'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.magenta,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: () => PrivateEventChatScreen.open(
                     context,
@@ -262,7 +459,8 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
               child: Text(
                 '${photos.length} photo${photos.length > 1 ? 's' : ''}'
-                '${widget.archived ? ' · album figé' : ' · ajoutées depuis la discussion'}',
+                '${widget.archived ? ' · album figé' : ''}'
+                '${_iAmHost ? ' · appui long sur une photo pour la retirer' : ''}',
                 style: GoogleFonts.geist(fontSize: 12, color: AppColors.textDim),
               ),
             ),
@@ -278,6 +476,8 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
               delegate: SliverChildBuilderDelegate(
                 (_, i) => GestureDetector(
                   onTap: () => _slideshow(i),
+                  // Appui long : retirer la photo (organisateur, ou son auteur).
+                  onLongPress: _canDelete(photos[i]) ? () => _deletePhoto(photos[i]) : null,
                   child: CachedNetworkImage(
                       imageUrl: photos[i].imageUrl,
                       fit: BoxFit.cover,

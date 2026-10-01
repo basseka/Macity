@@ -390,10 +390,14 @@ class _EventTile extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // ── Pastilles : code, inscrits (ouvre la liste), confirmes ──
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            // ── Pastilles sur UNE ligne : code, inscrits, confirmes ──
+            // FittedBox : sur un ecran etroit, la ligne se reduit au lieu de
+            // passer a la ligne.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _Chip(
                   icon: Icons.key,
@@ -401,6 +405,7 @@ class _EventTile extends StatelessWidget {
                   mono: true,
                   color: AppColors.magenta,
                 ),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: onShowGuests,
                   child: _ParticipantsBadge(
@@ -408,7 +413,8 @@ class _EventTile extends StatelessWidget {
                     max: event.maxParticipants,
                   ),
                 ),
-                if (event.confirmationRequise)
+                if (event.confirmationRequise) ...[
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: onShowGuests,
                     child: _Chip(
@@ -417,7 +423,9 @@ class _EventTile extends StatelessWidget {
                       color: const Color(0xFF22C55E),
                     ),
                   ),
+                ],
               ],
+            ),
             ),
             const SizedBox(height: 10),
 

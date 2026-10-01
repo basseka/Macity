@@ -25,12 +25,21 @@ class PhotoSlideshowScreen extends StatefulWidget {
   final bool autoplay;
   final String eventTitle;
 
+  /// Photos que l'utilisateur peut retirer (organisateur : toutes ; sinon
+  /// les siennes). Null : pas de bouton de suppression.
+  final bool Function(PrivateEventPhoto photo)? canDelete;
+
+  /// Retire la photo (confirmation comprise) ; true si retiree.
+  final Future<bool> Function(PrivateEventPhoto photo)? onDelete;
+
   const PhotoSlideshowScreen({
     super.key,
     required this.photos,
     required this.eventTitle,
     this.initialIndex = 0,
     this.autoplay = true,
+    this.canDelete,
+    this.onDelete,
   });
 
   static Future<void> open(
@@ -39,6 +48,8 @@ class PhotoSlideshowScreen extends StatefulWidget {
     required String eventTitle,
     int initialIndex = 0,
     bool autoplay = true,
+    bool Function(PrivateEventPhoto photo)? canDelete,
+    Future<bool> Function(PrivateEventPhoto photo)? onDelete,
   }) {
     return Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder<void>(
@@ -49,6 +60,8 @@ class PhotoSlideshowScreen extends StatefulWidget {
           eventTitle: eventTitle,
           initialIndex: initialIndex,
           autoplay: autoplay,
+          canDelete: canDelete,
+          onDelete: onDelete,
         ),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
@@ -64,8 +77,10 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
   static const _slideDuration = Duration(seconds: 4);
 
   late final PageController _pager;
-  late int _index = widget.initialIndex.clamp(0, widget.photos.length - 1);
-  late bool _playing = widget.autoplay && widget.photos.length > 1;
+  /// Copie locale : une photo retiree disparait du diaporama sans le fermer.
+  late final List<PrivateEventPhoto> _photos = [...widget.photos];
+  late int _index = widget.initialIndex.clamp(0, _photos.length - 1);
+  late bool _playing = widget.autoplay && _photos.length > 1;
   bool _showUi = true;
   bool _saving = false;
   Timer? _timer;
@@ -87,8 +102,8 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
   }
 
   void _precache(int i) {
-    if (!mounted || widget.photos.isEmpty) return;
-    final p = widget.photos[i % widget.photos.length];
+    if (!mounted || _photos.isEmpty) return;
+    final p = _photos[i % _photos.length];
     precacheImage(CachedNetworkImageProvider(p.imageUrl), context);
   }
 
@@ -96,7 +111,7 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
     _timer?.cancel();
     _timer = Timer.periodic(_slideDuration, (_) {
       if (!mounted || !_pager.hasClients) return;
-      final next = (_index + 1) % widget.photos.length;
+      final next = (_index + 1) % _photos.length;
       if (next == 0) {
         _pager.jumpToPage(0); // boucle : retour direct au debut
       } else {
@@ -128,7 +143,7 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
       origin = box.localToGlobal(Offset.zero) & box.size;
     }
     try {
-      final photo = widget.photos[_index];
+      final photo = _photos[_index];
       final file = await DefaultCacheManager().getSingleFile(photo.imageUrl);
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/jpeg')],
@@ -144,9 +159,27 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
     }
   }
 
+  Future<void> _delete() async {
+    final onDelete = widget.onDelete;
+    if (onDelete == null || _photos.isEmpty) return;
+    if (_playing) _togglePlay();
+    final photo = _photos[_index];
+    final removed = await onDelete(photo);
+    if (!mounted || !removed) return;
+    if (_photos.length == 1) {
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() {
+      _photos.removeAt(_index);
+      if (_index >= _photos.length) _index = _photos.length - 1;
+    });
+    _pager.jumpToPage(_index);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final photos = widget.photos;
+    final photos = _photos;
     final current = photos[_index];
     final author = (current.prenom?.trim().isNotEmpty ?? false) ? current.prenom!.trim() : 'Anonyme';
     final when = DateFormat("EEE d MMM 'à' HH'h'mm", 'fr_FR').format(current.createdAt.toLocal());
@@ -234,6 +267,13 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
                               color: Colors.white,
                               size: 30,
                             ),
+                          ),
+                        if (widget.onDelete != null &&
+                            (widget.canDelete?.call(current) ?? false))
+                          IconButton(
+                            onPressed: _delete,
+                            tooltip: 'Retirer de l\'album',
+                            icon: const Icon(Icons.delete_outline, color: Colors.white),
                           ),
                         Builder(
                           builder: (btnCtx) => IconButton(
