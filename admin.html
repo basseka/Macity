@@ -6818,7 +6818,8 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         if (cRes.error) throw cRes.error;
         if (sRes.error) throw sRes.error;
         if (oRes.error) throw oRes.error;
-        _partners = buildPartners(cRes.data || [], sRes.data || [], oRes.data || []);
+        const fiches = await fetchPartnerFiches();
+        _partners = buildPartners(cRes.data || [], sRes.data || [], oRes.data || [], fiches);
         await fillPartnerTypes(_partners);
         sortPartnersByType(_partners);
         // Tarifs de référence : servent au montant quand on change de formule.
@@ -6836,13 +6837,26 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       }
     }
 
-    function buildPartners(clients, subs, offers) {
+    // Fiches marquées partenaire (is_partner=true), avec ou sans abonnement :
+    // un badge posé à la main (ex. La Voile Blanche) n'a ni client, ni
+    // abonnement, ni offre, et restait donc absent de la liste.
+    const PARTNER_FICHE_TABLES = ["venues", "etablissements", "family_venues", "sport_venues", "evasion_venues"];
+    async function fetchPartnerFiches() {
+      const res = await Promise.all(PARTNER_FICHE_TABLES.map(async (table) => {
+        const { data, error } = await supabase.from(table).select("*").eq("is_partner", true);
+        if (error) { console.warn("[Partenaires] fiches", table, error.message); return []; }
+        return (data || []).map(f => ({ ...f, _table: table }));
+      }));
+      return res.flat();
+    }
+
+    function buildPartners(clients, subs, offers, fiches = []) {
       const map = new Map();
       const get = (key, init) => {
         if (!map.has(key)) {
           map.set(key, { key, client_id: null, name: "", raison_sociale: "", ville: "",
             statut: "", contact_nom: "", emails: new Set(), phones: new Set(),
-            pro_nom: "", subs: [], offers: [], ...init });
+            pro_nom: "", subs: [], offers: [], fiches: [], ...init });
         }
         return map.get(key);
       };
@@ -6870,6 +6884,16 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         add(p.emails, s.pro_email);
         p.subs.push(s);
       }
+      for (const f of fiches) {
+        const vk = `v:${f._table}:${f.id}`;
+        const p = get(venueKey.get(vk) || vk, {
+          name: f.name || f.nom || "(sans nom)", ville: f.ville || f.hub_ville || "",
+        });
+        if (!p.ville) p.ville = f.ville || f.hub_ville || "";
+        add(p.phones, f.telephone);
+        add(p.emails, f.email);
+        p.fiches.push({ source_table: f._table, source_id: f.id });
+      }
       for (const o of offers) {
         let key;
         if (o.client_id) key = "c:" + o.client_id;
@@ -6893,6 +6917,8 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           emails: [...p.emails], phones: [...p.phones],
           tier: best ? best.tier : null,
           past_due: live.some(s => s.status === "past_due"),
+          // Badge Partenaire sans abonnement en cours : posé à la main.
+          manual: !live.length && p.fiches.length > 0,
           mrr: p.subs.filter(s => s.status === "active").reduce((n, s) => n + subsMonthly(s), 0),
           offersVisible: p.offers.filter(o => o.visible_app).length,
           claimed: p.offers.reduce((n, o) => n + Number(o.claimed_spots || 0), 0),
@@ -6929,7 +6955,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
     async function fillPartnerTypes(partners) {
       const ids = {};
       for (const p of partners) {
-        for (const r of [...p.subs, ...p.offers]) {
+        for (const r of [...p.subs, ...p.offers, ...p.fiches]) {
           if (!r.source_table || r.source_id == null) continue;
           (ids[r.source_table] ||= new Set()).add(r.source_id);
         }
@@ -6942,7 +6968,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       }));
       for (const p of partners) {
         let rub = "", cat = "";
-        for (const r of [...p.subs, ...p.offers]) {
+        for (const r of [...p.subs, ...p.offers, ...p.fiches]) {
           const f = fiches.get(`${r.source_table}:${r.source_id}`);
           if (!f) continue;
           p.ref ||= {
@@ -7132,11 +7158,12 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         const offHtml = shown
           ? imgLink + `<span style="color:${shown.visible_app ? "var(--text)" : "var(--text-faint)"};">${escapeHtml(shown.emoji || "🎁")} ${escapeHtml(shown.title)}</span>${p.offers.length > 1 ? ` <span style="color:var(--text-faint);">+${p.offers.length - 1}</span>` : ""}`
           : `<span style="color:var(--text-faint);">-</span>`;
-        return `<tr style="border-top:1px solid var(--line);${p.tier || p.offersVisible ? "" : " opacity:.6;"}">
+        return `<tr style="border-top:1px solid var(--line);${p.tier || p.offersVisible || p.manual ? "" : " opacity:.6;"}">
           ${td(`<strong>${escapeHtml(p.name)}</strong>`, "max-width:220px;")}
           ${td(escapeHtml(p.type || "-"), "max-width:200px;", p.type)}
           ${td(escapeHtml(p.ville || "-"), "max-width:110px; color:var(--text-dim);")}
-          ${td(partnerTierSelect(p, t) + (p.past_due ? ` <span style="color:#f59e0b; font-size:11px;">impayé</span>` : ""), "overflow:visible;")}
+          ${td(partnerTierSelect(p, t)
+            + (p.past_due ? ` <span style="color:#f59e0b; font-size:11px;">impayé</span>` : ""), "overflow:visible;")}
           ${td(p.mrr ? subsEuros(p.mrr) : "", "text-align:right; font-variant-numeric:tabular-nums; color:#16a34a;")}
           ${td(escapeHtml(contact || "-"), "max-width:150px;")}
           ${td(phone ? `<a href="${escapeHtml(telHref(phone))}" style="color:inherit;">${escapeHtml(phone)}</a>` : `<span style="color:#ef4444;">-</span>`)}
