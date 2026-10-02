@@ -27,7 +27,11 @@ _HeatTier _tierFor(ReportedEvent e, int maxScore) {
 /// Carrousel horizontal des affiches de signalements communautaires.
 /// Les affiches sont triees par activite et les plus populaires ressortent.
 class ReportedEventsCarousel extends ConsumerStatefulWidget {
-  const ReportedEventsCarousel({super.key});
+  /// Pose sur la carte plein ecran (MapLive, facon Snap) : bulles plus
+  /// grandes, cerclees de blanc et ombrees pour ressortir sur le fond.
+  final bool onMap;
+
+  const ReportedEventsCarousel({super.key, this.onMap = false});
 
   @override
   ConsumerState<ReportedEventsCarousel> createState() =>
@@ -86,8 +90,9 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
 
         final maxScore = sorted.first.photos.length + sorted.first.reportCount;
 
+        final onMap = widget.onMap;
         return SizedBox(
-          height: 74,
+          height: onMap ? 84 : 74,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -97,9 +102,10 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
             itemBuilder: (context, index) {
               final event = sorted[index];
               final tier = _tierFor(event, maxScore);
-              final bubbleSize = tier == _HeatTier.hot
-                  ? 64.0
-                  : (tier == _HeatTier.warm ? 58.0 : 54.0);
+              final bubbleSize = (tier == _HeatTier.hot
+                      ? 64.0
+                      : (tier == _HeatTier.warm ? 58.0 : 54.0)) +
+                  (onMap ? 8 : 0);
 
               final card = ReportedEventViewTracker(
                 eventId: event.id,
@@ -121,7 +127,26 @@ class _ReportedEventsCarouselState extends ConsumerState<ReportedEventsCarousel>
                 ),
               );
 
-              if (tier == _HeatTier.normal) return Center(child: card);
+              if (tier == _HeatTier.normal) {
+                if (!onMap) return Center(child: card);
+                return Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x66000000),
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: card,
+                  ),
+                );
+              }
 
               // Ring colore autour de la bulle (hot = anime, warm = fixe).
               if (tier == _HeatTier.hot) {

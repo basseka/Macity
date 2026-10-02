@@ -12,7 +12,7 @@ import 'package:pulz_app/features/reported_events/presentation/media_preview_scr
 ///
 /// - Preview live camera en fond
 /// - Categories en overlay (selectables avant capture)
-/// - Bouton central : tap = photo, long press = video (max 10s)
+/// - Bouton central : tap = photo, long press = video (max 30s)
 /// - Animation du bouton pendant l'enregistrement
 /// - Flip camera
 class SnapCameraScreen extends StatefulWidget {
@@ -42,8 +42,9 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   late Animation<double> _recordScale;
   late Animation<double> _recordProgress;
 
-  // Timer 10s max
-  static const _maxRecordDuration = Duration(seconds: 10);
+  // Timer 30s max (aligne sur la lecture des stories, cf.
+  // reported_events_paged_sheet._maxVideoDuration).
+  static const _maxRecordDuration = Duration(seconds: 30);
 
   static const _categories = <_CatDef>[
     _CatDef('concert', Icons.music_note_rounded, 'Concert', Color(0xFF7C3AED)),
@@ -75,7 +76,7 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
     );
     _recordProgress = Tween<double>(begin: 0, end: 1).animate(_recordAnimCtrl);
     _recordAnimCtrl.addStatusListener((status) {
-      // Auto-stop a 10s
+      // Auto-stop a 30s
       if (status == AnimationStatus.completed && _isRecording) {
         _stopVideo();
       }
@@ -538,7 +539,7 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '${seconds}s / 10s',
+                            '${seconds}s / ${_maxRecordDuration.inSeconds}s',
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,

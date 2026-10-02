@@ -164,7 +164,7 @@ class ReportedEventsService {
     }
   }
 
-  /// Upload video courte (10s max). Meme strategie que _uploadPhotoLight.
+  /// Upload video courte (30s max). Meme strategie que _uploadPhotoLight.
   Future<String?> _uploadVideoLight(String localPath) async {
     try {
       await Future<void>.delayed(Duration.zero);
@@ -172,8 +172,8 @@ class ReportedEventsService {
       if (!await file.exists()) return null;
 
       // Compression AVANT lecture des bytes : une video camera brute
-      // (ResolutionPreset.veryHigh, 10s) pese souvent 25-50 MB.
-      // Res1280x720Quality ramene a ~4-8 MB tout en gardant une qualite
+      // (30s) pese souvent 40-100 MB.
+      // Res1280x720Quality ramene a ~12-25 MB pour 30s tout en gardant une qualite
       // visuelle "Snapchat moderne".
       // Duree d'origine (avant compression) pour detecter le bug VFR.
       double? originalDurationMs;
@@ -221,8 +221,9 @@ class ReportedEventsService {
         bytes = await file.readAsBytes();
       }
       if (bytes.isEmpty) return null;
-      // Garde-fou taille : 50 MB. Plafond eleve car le fallback brut VFR n'est
-      // pas compresse (720p/10s ~ 10-25 MB, marge pour les bitrates eleves).
+      // Garde-fou taille : 50 MB (limite par fichier du stockage Supabase).
+      // Le fallback brut VFR n'est pas compresse : une video longue (30s) sur
+      // un appareil VFR peut le depasser, l'envoi echoue alors proprement.
       if (bytes.length > 50 * 1024 * 1024) {
         debugPrint('[ReportedEvents] video too large: ${bytes.length} bytes');
         return null;

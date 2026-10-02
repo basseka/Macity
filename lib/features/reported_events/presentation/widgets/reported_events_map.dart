@@ -33,11 +33,16 @@ class ReportedEventsMap extends ConsumerStatefulWidget {
   /// démarre cadré sur la ville (tous les points) plutôt que sur le GPS.
   final bool fullscreen;
 
+  /// Plein ecran : distance du bouton « Me localiser » au bas de l'ecran
+  /// (au-dessus de la bande des stories posee sur la carte).
+  final double locateBottom;
+
   const ReportedEventsMap({
     super.key,
     this.height = 180,
     this.usePresentationMarkers = false,
     this.fullscreen = false,
+    this.locateBottom = 12,
   });
 
   @override
@@ -100,7 +105,8 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
           if (_lastCity != null) _centerOnCity(_lastCity!);
           if (widget.usePresentationMarkers) {
             _injectPresentationMarkersForCurrentCity();
-          } else if (_lastEvents.isNotEmpty) {
+          } else {
+            // Meme sans story : pose les pins partenaires.
             _injectMarkers(_lastEvents);
           }
         });
@@ -129,7 +135,8 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
             if (_lastCity != null) _centerOnCity(_lastCity!);
             if (widget.usePresentationMarkers) {
               _injectPresentationMarkersForCurrentCity();
-            } else if (_lastEvents.isNotEmpty) {
+            } else {
+              // Meme sans story : pose les pins partenaires.
               _injectMarkers(_lastEvents);
             }
           },
@@ -284,6 +291,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     debugPrint(
         '[PresentationMap] injecting ${fakes.length} fake + ${realEvents.length} real markers around $city',);
     await _controller.runJavaScript('setPresentationReports($json); void 0;');
+    await _injectPartners();
   }
 
   void _handleMarkerTap(String id) {
@@ -312,6 +320,29 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       return "{id:'${e.id}',lat:${e.lat},lng:${e.lng},emoji:'$emoji',title:'$title',photos:$photoCount,reports:$reportCount,category:'$category'$partnerJs}";
     }).join(',');
     await _controller.runJavaScript('setReports([$js]); void 0;');
+    await _injectPartners();
+  }
+
+  /// Pins partenaires : vert (Premium / Gold) ou orange (Classique ou sans
+  /// formule). Un partenaire qui a une story active chez lui (< 80 m) n'a
+  /// pas de pin vert / orange : c'est la story, avec ses couleurs, qui le
+  /// represente.
+  Future<void> _injectPartners() async {
+    if (!_pageReady) return;
+    final list = <Map<String, Object>>[];
+    for (final p in _partners) {
+      final hasStory = _lastEvents.any((e) =>
+          Haversine.distanceInMeters(e.lat, e.lng, p.lat, p.lng) <=
+          _partnerMatchMeters,);
+      if (hasStory) continue;
+      list.add({
+        'name': p.name,
+        'lat': p.lat,
+        'lng': p.lng,
+        'top': p.isTopTier,
+      });
+    }
+    await _controller.runJavaScript('setPartners(${jsonEncode(list)}); void 0;');
   }
 
   String _buildHtml() {
@@ -395,6 +426,35 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       pointer-events: none;
       z-index: 2;
     }
+
+    /* Lieu partenaire sans story : pastille ronde verte (Premium / Gold) ou
+       orange (Classique), etoile blanche, nom dessous des le zoom 14. */
+    .partner-pin {
+      position: relative;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 2.5px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 13px; line-height: 1;
+    }
+    .partner-pin.top { background: #16A34A; }
+    .partner-pin.std { background: #F97316; }
+    .partner-pin .partner-name {
+      position: absolute;
+      top: 27px; left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 10px; font-weight: 700;
+      color: #1A0F2E; background: rgba(255,255,255,0.92);
+      padding: 1px 6px; border-radius: 7px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      pointer-events: none;
+      display: none;
+    }
+    .partner-pin.top .partner-name { color: #15803D; }
+    .partner-pin.std .partner-name { color: #C2410C; }
+    #map.show-partner-names .partner-pin .partner-name { display: block; }
 
     .user-dot {
       width: 14px; height: 14px;
@@ -554,6 +614,46 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       });
     }
 
+    // Lieux partenaires (hors clustering : toujours visibles), sous les
+    // stories.
+    map.createPane('partners');
+    map.getPane('partners').style.zIndex = 590;
+    const partnerLayer = L.layerGroup().addTo(map);
+
+    function escapeHtml(t) {
+      return String(t).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      })[c]);
+    }
+
+    function setPartners(partners) {
+      partnerLayer.clearLayers();
+      partners.forEach(p => {
+        const name = escapeHtml(p.name);
+        const html = '<div class="partner-pin ' + (p.top ? 'top' : 'std') + '" title="' + name + '">'
+          + '&#9733;<div class="partner-name">' + name + '</div></div>';
+        L.marker([p.lat, p.lng], {
+          pane: 'partners',
+          icon: L.divIcon({
+            className: '',
+            html: html,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13],
+          }),
+        })
+          .bindPopup('<b>' + name + '</b><br>Partenaire MaCity', { offset: [0, -8] })
+          .addTo(partnerLayer);
+      });
+    }
+
+    // Noms des partenaires affiches seulement de pres (sinon illisible).
+    function majNomsPartenaires() {
+      document.getElementById('map')
+        .classList.toggle('show-partner-names', map.getZoom() >= 14);
+    }
+    map.on('zoomend', majNomsPartenaires);
+    majNomsPartenaires();
+
     /// Recentre la map sur le centre d'une ville.
     /// Appelle au load et a chaque changement de ville selectionnee.
     function centerOnCity(lat, lng) {
@@ -613,8 +713,12 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
     ref.watch(partnerLocationsProvider).whenData((partners) {
       if (partners.length != _partners.length) {
         _partners = partners;
-        if (_pageReady && !widget.usePresentationMarkers) {
-          _injectMarkers(_lastEvents);
+        if (_pageReady) {
+          if (widget.usePresentationMarkers) {
+            _injectPartners();
+          } else {
+            _injectMarkers(_lastEvents);
+          }
         }
       }
     });
@@ -637,25 +741,31 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       }
     });
 
+    // Plein ecran (MapLive) : carte bord a bord, sans cadre ni arrondi.
+    final radius = widget.fullscreen ? 0.0 : 22.0;
     return Container(
       height: widget.height,
       decoration: BoxDecoration(
         color: const Color(0xFFF1EEE9),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: const Color(0x33A855F7),
-          width: 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x22A855F7),
-            blurRadius: 12,
-            spreadRadius: -4,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(radius),
+        border: widget.fullscreen
+            ? null
+            : Border.all(
+                color: const Color(0x33A855F7),
+                width: 1,
+              ),
+        boxShadow: widget.fullscreen
+            ? null
+            : const [
+                BoxShadow(
+                  color: Color(0x22A855F7),
+                  blurRadius: 12,
+                  spreadRadius: -4,
+                ),
+              ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(radius),
         child: Stack(
           children: [
             WebViewWidget(
@@ -677,11 +787,11 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
                   ),
                 ),
               ),
-            // Bouton « Me localiser » (géoloc à la demande) — MapLive seulement.
+            // Bouton « Me localiser » (géoloc à la demande) : MapLive seulement.
             if (widget.fullscreen)
               Positioned(
                 right: 12,
-                bottom: 12,
+                bottom: widget.locateBottom,
                 child: Material(
                   color: Colors.white,
                   elevation: 4,

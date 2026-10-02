@@ -339,7 +339,7 @@ class _ReportEventModalState extends ConsumerState<ReportEventModal> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Video attachee (10s max)',
+                                'Video attachee (30s max)',
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,

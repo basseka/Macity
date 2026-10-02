@@ -29,7 +29,7 @@ class ReportedEvent {
   /// Chaque URL pointe vers le bucket Supabase `user-events`.
   final List<String> photos;
 
-  /// Videos courtes accumulees (10s max chacune).
+  /// Videos courtes accumulees (30s max chacune).
   final List<String> videos;
 
   /// Medias (photos + videos) avec leur timestamp SERVEUR d'ajout (colonne
