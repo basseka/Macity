@@ -57,6 +57,8 @@
   canvas { border-radius: 14px; box-shadow: 0 18px 50px rgba(0,0,0,.55); display: block; }
   .aide { font-size: 11px; color: var(--dim); margin-top: 8px; max-width: 430px; }
   .cache { display: none; }
+  #blocLegende { width: 380px; flex: 0 0 380px; position: sticky; top: 24px; }
+  #legende { min-height: 520px; font: 13px/1.5 Inter, system-ui, sans-serif; }
 </style>
 
 <div id="panneau">
@@ -72,6 +74,22 @@
     <label>Taille du logo <span id="vLogo">150</span> px</label>
     <input type="range" id="tailleLogo" min="60" max="320" value="150" />
     <button class="sec" id="oublier" style="margin-top:10px;">Oublier logo et police</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>⚡ Carrousel auto depuis l'app</legend>
+    <p class="sub" style="margin:0 0 8px;">Pioche dans les events publiés sur MaCity (ville du champ « Ville » plus bas) et remplit une diapo par type, photo comprise. Tu peux ensuite retoucher chaque diapo ou demander un autre event.</p>
+    <label>Période</label>
+    <select id="autoPeriode">
+      <option value="soir">Ce soir</option>
+      <option value="weekend" selected>Ce week-end</option>
+      <option value="semaine">Les 7 prochains jours</option>
+    </select>
+    <label>Une diapo par type, dans cet ordre</label>
+    <div id="autoTypes" style="display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; font-size:12px;"></div>
+    <button type="button" id="autoGen" style="margin-top:10px;">⚡ Générer le carrousel</button>
+    <button type="button" class="sec" id="autoAutre" style="margin-top:6px;">🔄 Autre event pour cette diapo</button>
+    <p class="sub" id="etatAuto" style="margin:8px 0 0; min-height:14px;"></p>
   </fieldset>
 
   <fieldset>
@@ -183,6 +201,17 @@ TOUTE TA VILLE, EN TEMPS RÉEL</textarea>
   </select></label>
 </div>
 
+<div id="blocLegende">
+  <fieldset>
+    <legend>Texte du post</legend>
+    <p class="sub" style="margin:0 0 8px;">Rempli tout seul avec les events du carrousel. Modifiable avant de copier.</p>
+    <textarea id="legende" spellcheck="false"></textarea>
+    <button type="button" id="copierLegende" style="margin-top:8px;">📋 Copier le texte</button>
+    <button type="button" class="sec" id="regenLegende">🔄 Régénérer depuis les diapos</button>
+    <p class="sub" id="etatLegende" style="margin:8px 0 0; min-height:14px;"></p>
+  </fieldset>
+</div>
+
 <script>
 const c = document.getElementById("c");
 const ctx = c.getContext("2d");
@@ -244,7 +273,7 @@ function sauverEtat() {
         bas: $("bas").value,
         ville: $("ville").value,
         ratio: $("ratio").value,
-        diapos: diapos.map((d) => ({ type: d.type, v: d.v, imgData: d.imgData || null })),
+        diapos: diapos.map((d) => ({ type: d.type, v: d.v, imgData: d.imgData || null, ev: d.ev || null })),
       };
       localStorage.setItem("macity_carrousel", JSON.stringify(paquet));
       $("etatSauve").textContent = "sauvegardé";
@@ -265,7 +294,7 @@ function restaurerEtat() {
   $("bas").value = p.bas || "Swipe";
   $("ville").value = p.ville || "Toulouse";
   if (p.ratio) $("ratio").value = p.ratio;
-  diapos = p.diapos.map((d) => ({ type: d.type, v: d.v, img: null, imgData: d.imgData || null }));
+  diapos = p.diapos.map((d) => ({ type: d.type, v: d.v, img: null, imgData: d.imgData || null, ev: d.ev || null }));
   // Les images se rechargent en differe : chacune redessine si elle concerne
   // la diapo affichee.
   diapos.forEach((d, i) => {
@@ -863,6 +892,437 @@ $("copier").onclick = () => {
   });
 };
 
+// ── Carrousel AUTO depuis les donnees de l'app ─────────────────────────
+// Lecture publique (cle anon, la meme qu'admin.html / l'app) de la table
+// scraped_events. Une diapo « plan » par type coche, le meilleur event de
+// chaque type sur la periode choisie, photo comprise.
+//
+// Photos : elles viennent de dizaines de sites (Eventbrite, RA, billetteries)
+// qui n'autorisent pas la lecture par un canvas : dessinees telles quelles,
+// elles « souilleraient » le canvas et l'export PNG echouerait. Elles passent
+// donc par le relais d'images wsrv.nl, qui renvoie l'en-tete CORS ouvert.
+const SB_URL = "https://dpqxefmwjfvoysacwgef.supabase.co";
+const SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwcXhlZm13amZ2b3lzYWN3Z2VmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAyOTkxMTgsImV4cCI6MjA4NTg3NTExOH0.xzNidmrcNsUhpsTFcaaL_lXtHcx_MWzQHCPF7kY5i90";
+
+/** Types proposes : libelle de la pastille + filtre PostgREST (parametre or). */
+const TYPES_AUTO = [
+  { id: "concert",   label: "CONCERT",    on: true,
+    or: "(categorie_de_la_manifestation.ilike.*concert*,type_de_manifestation.ilike.*concert*)" },
+  { id: "soiree",    label: "SOIRÉE",     on: true,
+    or: "(rubrique.eq.night,categorie_de_la_manifestation.ilike.*club*)" },
+  { id: "food",      label: "FOOD",       on: true,  or: "(rubrique.eq.food)" },
+  { id: "spectacle", label: "SPECTACLE",  on: true,
+    or: "(categorie_de_la_manifestation.ilike.*th*tre*,categorie_de_la_manifestation.ilike.*spectacle*,categorie_de_la_manifestation.ilike.*humour*,categorie_de_la_manifestation.ilike.*danse*,categorie_de_la_manifestation.ilike.*op*ra*)" },
+  { id: "famille",   label: "EN FAMILLE", on: true,  or: "(rubrique.eq.family)" },
+  { id: "expo",      label: "EXPO",       on: false, or: "(categorie_de_la_manifestation.ilike.*expo*)" },
+  { id: "sport",     label: "SPORT",      on: false, or: "(rubrique.eq.sport)" },
+];
+
+// Cases a cocher (memorisees).
+(function rendreTypesAuto() {
+  let memo = null;
+  try { memo = JSON.parse(localStorage.getItem("macity_auto_types") || "null"); } catch (e) {}
+  $("autoTypes").innerHTML = TYPES_AUTO.map((t) => {
+    const coche = memo ? memo.includes(t.id) : t.on;
+    return `<label style="display:flex; gap:6px; align-items:center; margin:0; font-size:12px;">
+      <input type="checkbox" data-type-auto="${t.id}" ${coche ? "checked" : ""} style="width:auto; margin:0;"> ${t.label}</label>`;
+  }).join("");
+  $("autoTypes").addEventListener("change", () => {
+    const ids = [...document.querySelectorAll("[data-type-auto]:checked")].map((x) => x.dataset.typeAuto);
+    memoriser("macity_auto_types", JSON.stringify(ids));
+  });
+})();
+
+const fmtJour = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/** Bornes [debut, fin] (AAAA-MM-JJ) de la periode choisie. */
+function bornesPeriode(periode) {
+  const auj = new Date();
+  auj.setHours(0, 0, 0, 0);
+  if (periode === "soir") return [fmtJour(auj), fmtJour(auj)];
+  if (periode === "semaine") {
+    const fin = new Date(auj); fin.setDate(fin.getDate() + 7);
+    return [fmtJour(auj), fmtJour(fin)];
+  }
+  // Week-end : du vendredi au dimanche qui viennent (ou d'aujourd'hui si on y est).
+  const jour = auj.getDay(); // 0 dim ... 6 sam
+  const debut = new Date(auj);
+  if (jour >= 1 && jour <= 4) debut.setDate(auj.getDate() + (5 - jour));
+  const fin = new Date(auj);
+  fin.setDate(auj.getDate() + (jour === 0 ? 0 : 7 - jour));
+  return [fmtJour(debut), fmtJour(fin)];
+}
+
+const TITRE_COUV = {
+  soir: "QUOI FAIRE\nCE SOIR",
+  weekend: "QUOI FAIRE CE\nWEEK-END",
+  semaine: "QUOI FAIRE\nCETTE SEMAINE",
+};
+
+/** Candidats d'un type, du plus « prêt a publier » au moins bon. */
+async function chercherCandidats(type, ville, debut, fin) {
+  const p = new URLSearchParams({
+    select: "identifiant,source,nom_de_la_manifestation,descriptif_court,lieu_nom,date_debut,date_fin,horaires,dates_affichage_horaires,photo_url,rubrique,categorie_de_la_manifestation",
+    ville: `ilike.${ville}`,
+    photo_url: "neq.",
+    date_debut: `lte.${fin}`,
+    or: type.or,
+    order: "date_debut.asc",
+    limit: "60",
+  });
+  p.append("date_fin", `gte.${debut}`);
+  // Pas de cinema (une seance de film n'est pas un « plan » de carrousel).
+  p.append("categorie_de_la_manifestation", "not.ilike.*cin*ma*");
+  // Une nouvelle tentative en cas d'echec reseau ponctuel.
+  let res = null;
+  for (let essai = 0; essai < 2; essai++) {
+    try {
+      res = await fetch(`${SB_URL}/rest/v1/scraped_events?${p}`, {
+        headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` },
+      });
+      if (res.ok) break;
+    } catch (e) { res = null; }
+    await new Promise((r) => setTimeout(r, 800));
+  }
+  if (!res || !res.ok) throw new Error(`lecture ${type.label} : ${res ? "HTTP " + res.status : "réseau"}`);
+  const rows = await res.json();
+  const jours = (e) => (e.date_fin ? (new Date(e.date_fin) - new Date(e.date_debut)) / 864e5 : 0);
+  const texteEv = (e) => `${e.nom_de_la_manifestation || ""} ${e.descriptif_court || ""}`.toLowerCase();
+  // La rubrique food de la base contient aussi des events mal classes
+  // (spectacles, expos) : on exige un vocabulaire culinaire.
+  const culinaire = (e) => /(food|brunch|d[ée]gust|repas|d[îi]ner|d[ée]jeuner|march[ée]|cuisine|gastro|\bvins?\b|bi[èe]re|oktober|ap[ée]ro|restaurant|\bchef\b|menu|burger|pizza|tapas)/.test(texteEv(e));
+  const score = (e) =>
+    ((e.descriptif_court || "").trim().length > 30 ? 3 : 0) +
+    ((e.horaires || "").trim() ? 1 : 0) +
+    ((e.lieu_nom || "").trim() ? 1 : 0) +
+    ((e.nom_de_la_manifestation || "").length <= 40 ? 1 : 0) +
+    // Un event ponctuel colle mieux a « ce soir / ce week-end » qu'un cours
+    // annuel ou une expo de 3 mois.
+    (jours(e) === 0 ? 2 : jours(e) <= 3 ? 1 : jours(e) <= 14 ? -1 : -5) +
+    // Cours, ateliers, stages : pas un « plan » de sortie.
+    (/^(cours|atelier|initiation|stage|formation)\b/i.test((e.nom_de_la_manifestation || "").trim()) ? -4 : 0) +
+    (type.id === "food" ? 2 : 0) +
+    // Publie a la main depuis l'admin : selectionne par l'equipe.
+    (e.source === "manual_admin" ? 2 : 0);
+  // Un meme event peut exister en plusieurs exemplaires (une ligne par jour).
+  const vus = new Set();
+  return rows
+    .filter((e) => {
+      const k = (e.nom_de_la_manifestation || "").toLowerCase().replace(/\W+/g, "");
+      if (vus.has(k)) return false;
+      vus.add(k);
+      if (type.id === "food" && !culinaire(e)) return false;
+      return score(e) > -4;
+    })
+    .sort((a, b) => score(b) - score(a) || a.date_debut.localeCompare(b.date_debut))
+    .slice(0, 12);
+}
+
+const JOURS = ["DIM.", "LUN.", "MAR.", "MER.", "JEU.", "VEN.", "SAM."];
+const MOIS = ["JANV.", "FÉVR.", "MARS", "AVR.", "MAI", "JUIN", "JUIL.", "AOÛT", "SEPT.", "OCT.", "NOV.", "DÉC."];
+function dateCourte(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return isNaN(d) ? "" : `${JOURS[d.getDay()]} ${d.getDate()} ${MOIS[d.getMonth()]}`;
+}
+
+/** Event de la base -> champs d'une diapo « plan ». */
+function champsDepuisEvent(e, type, periode) {
+  const titre = (e.nom_de_la_manifestation || "").replace(/\s+/g, " ").trim().toUpperCase();
+  const court = titre.length > 44 ? titre.slice(0, 42).replace(/\s+\S*$/, "") + "…" : titre;
+  // Titre long : premiere moitie en blanc, fin en degrade (comme le gabarit).
+  const mots = court.split(" ");
+  const coupe = mots.length >= 3 ? Math.ceil(mots.length / 2) : mots.length;
+  const multiJours = e.date_fin && e.date_fin !== e.date_debut;
+  let date = "";
+  if (multiJours) date = `JUSQU'AU ${dateCourte(e.date_fin)}`;
+  else if (periode !== "soir") date = dateCourte(e.date_debut);
+  // Horaire : premiere heure trouvee (« 20h00 », « 20:30 »…) -> « Dès 20h ».
+  const h = `${e.horaires || ""} ${e.dates_affichage_horaires || ""}`.match(/(\d{1,2})\s*[h:]\s*(\d{2})?/i);
+  // Heure improbable pour un debut (2h-9h du matin) : souvent une erreur de
+  // source ; mieux vaut ne rien afficher qu'une heure fausse.
+  const hh = h ? parseInt(h[1], 10) : -1;
+  const heure = h && !(hh >= 2 && hh <= 9) ? `Dès ${hh}h${h[2] && h[2] !== "00" ? h[2] : ""}` : "";
+  // Texte : premiere phrase de la description, 120 caracteres max.
+  let texte = (e.descriptif_court || "").replace(/\s+/g, " ").trim();
+  const phrase = texte.match(/^.{20,120}?[.!?](\s|$)/);
+  texte = phrase ? phrase[0].trim() : (texte.length > 120 ? texte.slice(0, 117).replace(/\s+\S*$/, "") + "…" : texte);
+  return {
+    categorie: type.label,
+    event: mots.slice(0, coupe).join(" "),
+    titreAccent: mots.slice(coupe).join(" "),
+    lieu: (e.lieu_nom || "").trim(),
+    date,
+    heure,
+    texte,
+  };
+}
+
+/** Charge une photo de la base via le relais CORS ; null si echec. */
+function chargerPhotoAuto(url) {
+  return new Promise((resolve) => {
+    if (!url || !/^https?:/.test(url)) return resolve(null);
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    const t = setTimeout(() => resolve(null), 15000);
+    im.onload = () => { clearTimeout(t); resolve(im); };
+    im.onerror = () => { clearTimeout(t); resolve(null); };
+    im.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=1400&output=jpg&q=85`;
+  });
+}
+
+/** Pose l'event candidat n° idx sur la diapo d (texte + photo). */
+async function appliquerCandidat(d, idx, periode) {
+  const a = d.auto;
+  const e = a.candidats[idx];
+  a.idx = idx;
+  d.v = { ...d.v, ...champsDepuisEvent(e, a.type, periode) };
+  d.ev = {
+    type: a.type.id,
+    nom: (e.nom_de_la_manifestation || "").replace(/\s+/g, " ").trim(),
+    lieu: (e.lieu_nom || "").trim(),
+    debut: e.date_debut || "",
+    fin: e.date_fin || "",
+    heure: d.v.heure || "",
+    periode,
+  };
+  const im = await chargerPhotoAuto(e.photo_url);
+  d.img = im;
+  d.imgData = im ? compresser(im, 1400) : null;
+  return !!im;
+}
+
+$("autoGen").onclick = async () => {
+  const etat = $("etatAuto");
+  const ville = ($("ville").value || "").trim();
+  const periode = $("autoPeriode").value;
+  const choisis = TYPES_AUTO.filter((t) =>
+    document.querySelector(`[data-type-auto="${t.id}"]`)?.checked);
+  if (!ville) { etat.textContent = "Renseigne la ville (champ « Ville »)."; etat.style.color = "#f87171"; return; }
+  if (!choisis.length) { etat.textContent = "Coche au moins un type d'event."; etat.style.color = "#f87171"; return; }
+
+  const [debut, fin] = bornesPeriode(periode);
+  etat.style.color = "var(--dim)";
+  etat.textContent = `Recherche des events à ${ville} (${debut} → ${fin})…`;
+  $("autoGen").disabled = true;
+  try {
+    if (diapos[courant]) diapos[courant].v = valeursActuelles();
+    const gabarit = valeursActuelles();
+    // Lecture type par type (plutot qu'en parallele) : plus fiable, et le
+    // volume est faible.
+    const resultats = [];
+    for (const t of choisis) {
+      etat.textContent = `Recherche ${t.label.toLowerCase()} à ${ville}…`;
+      try {
+        resultats.push({ t, c: await chercherCandidats(t, ville, debut, fin) });
+      } catch (e) {
+        resultats.push({ t, c: [], erreur: true });
+      }
+    }
+    const enErreur = resultats.filter((r) => r.erreur).map((r) => r.t.label);
+    const manquants = resultats.filter((r) => !r.erreur && !r.c.length).map((r) => r.t.label);
+    const utiles = resultats.filter((r) => r.c.length);
+    if (!utiles.length) {
+      etat.textContent = enErreur.length
+        ? "Impossible de lire les events (connexion ?). Réessaie."
+        : `Aucun event avec photo trouvé à ${ville} sur cette période.`;
+      etat.style.color = "#f87171";
+      return;
+    }
+    // Pas deux fois le meme event (un concert peut aussi etre tague soiree).
+    const pris = new Set();
+    const plans = [];
+    for (let i = 0; i < utiles.length; i++) {
+      const { t, c } = utiles[i];
+      const idx = Math.max(0, c.findIndex((e) => !pris.has(e.identifiant)));
+      pris.add(c[idx].identifiant);
+      const d = {
+        type: "plan", img: null, imgData: null,
+        v: { ...gabarit, numero: String(i + 1).padStart(2, "0") },
+        auto: { type: t, candidats: c, idx },
+      };
+      etat.textContent = `Photo ${i + 1} / ${utiles.length} (${t.label})…`;
+      await appliquerCandidat(d, idx, periode);
+      plans.push(d);
+    }
+    const couverture = diapos.find((d) => d.type === "couverture") || { type: "couverture", img: null, v: { ...gabarit } };
+    couverture.v = { ...couverture.v, titre: TITRE_COUV[periode] };
+    // Couverture sans photo : on reprend celle du premier plan.
+    const premier = plans.find((p) => p.img);
+    if (!couverture.img && premier) { couverture.img = premier.img; couverture.imgData = premier.imgData; }
+    const cloture = diapos.find((d) => d.type === "cloture") || { type: "cloture", img: null, v: { ...gabarit } };
+    diapos = [couverture, ...plans, cloture];
+    $("nbPlans").value = plans.length;
+    aller(0, false);
+    sauverEtat();
+    genererLegende();
+    const sansPhoto = plans.filter((p) => !p.img).length;
+    etat.style.color = manquants.length || enErreur.length || sansPhoto ? "#facc15" : "#4ade80";
+    etat.textContent = `${plans.length} diapo(s) générée(s).`
+      + (manquants.length ? ` Rien trouvé pour : ${manquants.join(", ")}.` : "")
+      + (enErreur.length ? ` Erreur de lecture pour : ${enErreur.join(", ")} (relance la génération).` : "")
+      + (sansPhoto ? ` ${sansPhoto} photo(s) non chargée(s) : « Autre event » ou dépose une image.` : "")
+      + " Vérifie chaque diapo puis « Télécharger tout le carrousel ».";
+  } catch (e) {
+    etat.textContent = "Erreur : " + (e.message || e);
+    etat.style.color = "#f87171";
+  } finally {
+    $("autoGen").disabled = false;
+  }
+};
+
+/** Remplace l'event de la diapo affichee par le candidat suivant du meme type. */
+$("autoAutre").onclick = async () => {
+  const etat = $("etatAuto");
+  const d = diapos[courant];
+  if (!d || !d.auto) {
+    etat.textContent = "Affiche une diapo générée automatiquement (onglets 01, 02…).";
+    etat.style.color = "#facc15";
+    return;
+  }
+  const a = d.auto;
+  if (a.candidats.length < 2) { etat.textContent = `Pas d'autre ${a.type.label.toLowerCase()} sur cette période.`; return; }
+  const autres = new Set(diapos.filter((x) => x !== d && x.auto).map((x) => x.auto.candidats[x.auto.idx].identifiant));
+  let idx = a.idx;
+  for (let n = 0; n < a.candidats.length; n++) {
+    idx = (idx + 1) % a.candidats.length;
+    if (!autres.has(a.candidats[idx].identifiant)) break;
+  }
+  etat.textContent = "Chargement…";
+  $("autoAutre").disabled = true;
+  await appliquerCandidat(d, idx, $("autoPeriode").value);
+  $("autoAutre").disabled = false;
+  aller(courant, false);
+  sauverEtat();
+  genererLegende();
+  etat.style.color = "#4ade80";
+  etat.textContent = `${a.type.label} ${idx + 1} / ${a.candidats.length} : ${a.candidats[idx].nom_de_la_manifestation}`;
+};
+
+// ── Texte du post Instagram (légende) ───────────────────────────────────
+// Construit depuis les diapos « plan », sur le modele :
+//   🚨 accroche / 3 plans numerotes (emoji, categorie, lieu, titre + date) /
+//   appel a telecharger / question 1, 2 ou 3 / hashtags de la ville.
+const EMOJI_TYPE = {
+  concert: "🎶", soiree: "🪩", food: "🍽️", spectacle: "🎭",
+  famille: "👨‍👩‍👧", expo: "🖼️", sport: "🏟️",
+};
+const FIN_TYPE = {
+  concert: "🎸✨", soiree: "💃🔥", food: "😋", spectacle: "👏✨",
+  famille: "🎈", expo: "🎨", sport: "💪",
+};
+const CHIFFRES = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+const JOURS_LONGS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+const MOIS_LONGS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
+  "septembre", "octobre", "novembre", "décembre"];
+const ACCROCHE_PERIODE = {
+  soir: "CE SOIR", weekend: "CE WEEK-END", semaine: "CETTE SEMAINE",
+};
+
+function dateLongue(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return isNaN(d) ? "" : `${JOURS_LONGS[d.getDay()]} ${d.getDate()} ${MOIS_LONGS[d.getMonth()]}`;
+}
+
+/** « Concert », « En famille »… depuis le libelle en capitales. */
+function libelleDoux(txt) {
+  const t = (txt || "").trim().toLowerCase();
+  return t ? t[0].toUpperCase() + t.slice(1) : "";
+}
+
+/** « LEON SHOWMAN » -> « Leon Showman » ; un texte en casse mixte est garde tel quel. */
+function casseTitre(txt) {
+  const t = (txt || "").trim();
+  if (!/[A-ZÀ-Ý]{3}/.test(t) || t !== t.toUpperCase()) return t;
+  return t.toLowerCase().replace(/(^|[\s\-'’(])(\p{L})/gu, (m, sep, l) => sep + l.toUpperCase());
+}
+
+/** « Toulouse » -> « Toulouse » ; « Saint-Étienne » -> « SaintEtienne » (hashtag). */
+function motHashtag(txt) {
+  return (txt || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .split(/[^A-Za-z0-9]+/).filter(Boolean)
+    .map((m) => m[0].toUpperCase() + m.slice(1)).join("");
+}
+
+/** « dimanche 9 août à 18h » / « jusqu'au dimanche 9 août » / « ce soir à 21h ». */
+function quandLegende(ev, periode) {
+  const h = (ev.heure || "").replace(/^Dès\s*/i, "");
+  const aH = h ? ` à ${h}` : "";
+  if (ev.fin && ev.fin !== ev.debut) return `jusqu'au ${dateLongue(ev.fin)}`;
+  if (periode === "soir") return `ce soir${aH}`;
+  const j = dateLongue(ev.debut);
+  return j ? `${j}${aH}` : (h ? `dès ${h}` : "");
+}
+
+/** Infos d'une diapo plan : event d'origine si connu, sinon champs saisis. */
+function infosPlan(d) {
+  if (d.ev) return d.ev;
+  const v = d.v || {};
+  const nom = [v.event, v.titreAccent].filter((x) => (x || "").trim()).join(" ").trim();
+  // Saisie manuelle en capitales : on la remet en casse de phrase.
+  const doux = nom === nom.toUpperCase() ? libelleDoux(nom) : nom;
+  return { type: null, nom: doux, lieu: (v.lieu || "").trim(), libre: [v.date, v.heure].filter(Boolean).join(", ").toLowerCase() };
+}
+
+function genererLegende() {
+  const ville = ($("ville").value || "").trim() || "Toulouse";
+  const periode = $("autoPeriode").value;
+  const plans = diapos.filter((d) => d.type === "plan");
+  if (!plans.length) {
+    $("legende").value = "";
+    $("etatLegende").textContent = "Aucun plan dans le carrousel.";
+    return;
+  }
+  const n = plans.length;
+  const lignes = [];
+  lignes.push(`🚨 TU NE SAIS PAS QUOI FAIRE ${ACCROCHE_PERIODE[periode] || "CE WEEK-END"} ? 👀`, "");
+  lignes.push(`MaCity t'a sélectionné ${n} plan${n > 1 ? "s" : ""} à découvrir à ${ville} 🔥`, "");
+  plans.forEach((d, i) => {
+    const ev = infosPlan(d);
+    const v = d.v || {};
+    const num = String(i + 1).padStart(2, "0");
+    const emoji = EMOJI_TYPE[ev.type] || "✨";
+    const categorie = libelleDoux(v.categorie) || "Sortie";
+    const quand = ev.libre !== undefined ? ev.libre : quandLegende(ev, periode);
+    lignes.push(`${emoji} ${num} • ${categorie}`);
+    if (ev.lieu) lignes.push(`📍 ${casseTitre(ev.lieu)}`);
+    lignes.push(`${casseTitre(ev.nom)}${quand ? ", " + quand : ""} ${FIN_TYPE[ev.type] || "✨"}`.trim());
+    lignes.push("");
+  });
+  lignes.push("📲 Retrouve encore plus de concerts, soirées, événements et bons plans directement sur MaCity.", "");
+  lignes.push("👉 Télécharge l'application : lien en bio", "");
+  const choix = plans.map((_, i) => `le ${CHIFFRES[i + 1] || i + 1}`);
+  const question = choix.length > 1
+    ? `${choix.slice(0, -1).join(", ")} ou ${choix[choix.length - 1]}`
+    : choix[0];
+  lignes.push(n > 1 ? `💬 Alors, tu choisis ${question} ? 👇` : "💬 Tu y vas ? Dis-le en commentaire 👇", "");
+  const v = motHashtag(ville);
+  lignes.push(`#MaCity #${v} #Agenda${v} #SortirA${v} #BonPlan${v}`);
+  $("legende").value = lignes.join("\n");
+  memoriser("macity_legende", $("legende").value);
+  $("etatLegende").textContent = `${$("legende").value.length} / 2200 caractères`;
+  $("etatLegende").style.color = $("legende").value.length > 2200 ? "#f87171" : "var(--dim)";
+}
+
+$("regenLegende").onclick = () => {
+  if (diapos[courant]) diapos[courant].v = valeursActuelles();
+  genererLegende();
+};
+$("legende").addEventListener("input", () => {
+  memoriser("macity_legende", $("legende").value);
+  $("etatLegende").textContent = `${$("legende").value.length} / 2200 caractères`;
+});
+$("copierLegende").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($("legende").value);
+  } catch (e) {
+    $("legende").select();
+    document.execCommand("copy");
+  }
+  $("etatLegende").textContent = "Texte copié ✔";
+  $("etatLegende").style.color = "#4ade80";
+};
+try { $("legende").value = localStorage.getItem("macity_legende") || ""; } catch (e) {}
+
 // ── Import en masse depuis un texte IA ──────────────────────────────────
 // Format : un bloc par evenement, separes par une ligne de tirets ---.
 // Champs reconnus (insensibles a la casse) : ACCROCHE, TITRE, ACCENT, LIEU,
@@ -1021,6 +1481,16 @@ try {
 // On restaure d'abord : sans etat memorise, on repart d'un carrousel neuf.
 const restaure = restaurerEtat();
 if (!restaure) reconstruire(); else rendreNav();
-document.fonts.ready.then(() => { if (!restaure) reconstruire(); aller(courant); });
+document.fonts.ready.then(() => {
+  if (!restaure) reconstruire();
+  aller(courant);
+  // Ouvert depuis admin.html (« ⚡ Carrousel auto ») : genere tout de suite.
+  const q = new URLSearchParams(location.search);
+  if (q.get("auto") === "1") {
+    if (q.get("ville")) $("ville").value = q.get("ville");
+    if (q.get("periode")) $("autoPeriode").value = q.get("periode");
+    $("autoGen").click();
+  }
+});
 aller(0);
 </script>
