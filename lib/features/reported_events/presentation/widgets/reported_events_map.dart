@@ -45,6 +45,14 @@ class ReportedEventsMap extends ConsumerStatefulWidget {
     this.locateBottom = 12,
   });
 
+  /// Centre la carte (deja chargee) sur un point : recherche de ville sur la
+  /// Map Live. Sans effet tant que la carte n'est pas prete.
+  static Future<void> flyTo(double lat, double lng, {int zoom = 12}) async {
+    final c = _MapWebViewCache.controller;
+    if (c == null || !_MapWebViewCache.pageReady) return;
+    await c.runJavaScript('map.flyTo([$lat, $lng], $zoom, {duration: 1.2}); void 0;');
+  }
+
   @override
   ConsumerState<ReportedEventsMap> createState() => _ReportedEventsMapState();
 }

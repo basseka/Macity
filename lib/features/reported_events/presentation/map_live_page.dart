@@ -1,8 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pulz_app/core/widgets/branded/gradient_pill_button.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_legend.dart';
@@ -10,8 +12,8 @@ import 'package:pulz_app/features/reported_events/presentation/widgets/reported_
 
 /// Page dediee "Ça bouge près de toi", facon Snap Map : la carte des
 /// signalements communautaires occupe tout l'ecran, et tout le reste flotte
-/// par-dessus (retour, titre, Live Notif et legende en haut ; bulles des
-/// stories en bas). Ouverte depuis un bouton "Map Live" sur le home.
+/// par-dessus (retour, recherche de ville, Live Notif et legende en haut ;
+/// bulles des stories en bas). Ouverte depuis un bouton "Map Live" sur le home.
 class MapLivePage extends ConsumerWidget {
   const MapLivePage({super.key});
 
@@ -81,34 +83,18 @@ class MapLivePage extends ConsumerWidget {
                         onTap: () => Navigator.of(context).pop(),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: _GlassChip(
-                            child: Text(
-                              'Ça bouge près de toi',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.geist(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      const Expanded(child: _CitySearchField()),
                       const SizedBox(width: 8),
-                      GradientPillButton(
-                        label: 'Live Notif',
-                        onPressed: () => _openLiveReport(context),
-                      ),
+                      _LiveButton(onTap: () => _openLiveReport(context)),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const _GlassChip(
-                    padding: EdgeInsets.symmetric(vertical: 6),
-                    child: SizedBox(width: 300, child: ReportedEventsLegend()),
+                  // Legende centree, lisible sur la carte.
+                  const Center(
+                    child: _GlassChip(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                      child: ReportedEventsLegend(onMap: true),
+                    ),
                   ),
                 ],
               ),
@@ -191,6 +177,186 @@ class _GlassChip extends StatelessWidget {
         ],
       ),
       child: child,
+    );
+  }
+}
+
+/// Champ loupe : taper une ville (« Bordeaux ») et valider centre la carte
+/// dessus. Villes de l'app : coordonnees locales ; sinon geocodage
+/// Nominatim (OSM, sans cle).
+class _CitySearchField extends StatefulWidget {
+  const _CitySearchField();
+
+  @override
+  State<_CitySearchField> createState() => _CitySearchFieldState();
+}
+
+class _CitySearchFieldState extends State<_CitySearchField> {
+  final _ctrl = TextEditingController();
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<({double lat, double lng})?> _geocode(String q) async {
+    final local = CityCenters.center(q);
+    if (local != null) return local;
+    try {
+      final res = await Dio().get<dynamic>(
+        'https://nominatim.openstreetmap.org/search',
+        queryParameters: {
+          'q': q,
+          'format': 'json',
+          'limit': '1',
+          'accept-language': 'fr',
+        },
+        options: Options(
+          headers: {'User-Agent': 'PulzApp/1.0 (https://macity.app)'},
+          receiveTimeout: const Duration(seconds: 6),
+        ),
+      );
+      final data = res.data;
+      if (data is List && data.isNotEmpty && data.first is Map) {
+        final m = data.first as Map;
+        final lat = double.tryParse('${m['lat']}');
+        final lng = double.tryParse('${m['lon']}');
+        if (lat != null && lng != null) return (lat: lat, lng: lng);
+      }
+    } on DioException {
+      // Reseau : traite comme « introuvable » ci-dessous.
+    }
+    return null;
+  }
+
+  Future<void> _search(String raw) async {
+    final q = raw.trim();
+    if (q.isEmpty || _busy) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final pos = await _geocode(q);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    if (pos == null) {
+      messenger?.showSnackBar(
+        SnackBar(content: Text('Impossible de trouver « $q »')),
+      );
+      return;
+    }
+    await ReportedEventsMap.flyTo(pos.lat, pos.lng);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _GlassChip(
+      padding: const EdgeInsets.only(left: 12, right: 6),
+      child: SizedBox(
+        height: 42,
+        child: Row(
+          children: [
+            const Icon(Icons.search, color: Colors.white, size: 20),
+            const SizedBox(width: 6),
+            Expanded(
+              child: TextField(
+                controller: _ctrl,
+                textInputAction: TextInputAction.search,
+                textCapitalization: TextCapitalization.words,
+                onSubmitted: _search,
+                cursorColor: Colors.white,
+                style: GoogleFonts.geist(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  isDense: true,
+                  // Le theme de l'app remplit les champs (fond blanc) : ici
+                  // le texte blanc doit rester sur la pastille sombre.
+                  filled: false,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  hintText: 'Rechercher une ville',
+                  hintStyle: GoogleFonts.geist(
+                    fontSize: 14,
+                    color: Colors.white60,
+                  ),
+                ),
+              ),
+            ),
+            if (_busy)
+              const Padding(
+                padding: EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            else if (_ctrl.text.trim().isNotEmpty)
+              // Valider (en plus de la touche loupe du clavier).
+              GestureDetector(
+                onTap: () => _search(_ctrl.text),
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: AppGradients.primary,
+                  ),
+                  child: const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bouton Live Notif compact (camera) : publier une story depuis la carte.
+class _LiveButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _LiveButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 42,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          gradient: AppGradients.primary,
+          borderRadius: BorderRadius.circular(21),
+          boxShadow: const [
+            BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.videocam_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 4),
+            Text(
+              'Live',
+              style: GoogleFonts.geist(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -5,7 +5,11 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 /// Legende compacte affichee entre la carte et le carousel.
 /// 5 familles = 5 couleurs, en phase avec les pins de la carte.
 class ReportedEventsLegend extends StatelessWidget {
-  const ReportedEventsLegend({super.key});
+  /// Posee sur la carte plein ecran (MapLive) : texte blanc plus gros,
+  /// une seule ligne centree qui se reduit pour tenir dans la largeur.
+  final bool onMap;
+
+  const ReportedEventsLegend({super.key, this.onMap = false});
 
   static const _items = <_LegendItem>[
     _LegendItem(AppColors.catNight, 'Night'),
@@ -15,8 +19,41 @@ class ReportedEventsLegend extends StatelessWidget {
     _LegendItem(AppColors.catFiesta, 'Fiesta'),
   ];
 
+  Widget _dot(Color color, double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 1.5),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
+    if (onMap) {
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < _items.length; i++) ...[
+              if (i > 0) const SizedBox(width: 14),
+              _dot(_items[i].color, 11),
+              const SizedBox(width: 6),
+              Text(
+                _items[i].label,
+                style: GoogleFonts.geist(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
     return SizedBox(
       height: 18,
       child: ListView.separated(
