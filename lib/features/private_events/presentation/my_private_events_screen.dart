@@ -54,10 +54,10 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
       builder: (_) => _GuestsSheet(
         event: event,
         hostDeviceUuid: hostUuid,
-        onGuestRemoved: () => changed = true,
+        onChanged: () => changed = true,
       ),
     );
-    // Un participant retire : compteur d'inscrits a jour sur la carte.
+    // Participant retire ou confirmation activee : carte a jour.
     if (changed && mounted) _reload();
   }
 
@@ -539,12 +539,13 @@ class _OpensBadge extends StatelessWidget {
 class _GuestsSheet extends StatefulWidget {
   final PrivateEvent event;
   final String hostDeviceUuid;
-  final VoidCallback? onGuestRemoved;
+  /// Liste ou reglages modifies depuis la feuille (carte a rafraichir).
+  final VoidCallback? onChanged;
 
   const _GuestsSheet({
     required this.event,
     required this.hostDeviceUuid,
-    this.onGuestRemoved,
+    this.onChanged,
   });
 
   @override
@@ -561,6 +562,8 @@ class _GuestsSheetState extends State<_GuestsSheet> {
   Set<String> _pendingDm = {};
   /// Nombre d'inscrits affiche dans le titre (baisse quand l'hote retire).
   late int _count = widget.event.rsvpCount;
+  /// Confirmation activee (peut l'etre depuis le bouton PDF).
+  late bool _confirmationOn = widget.event.confirmationRequise;
 
   @override
   void initState() {
@@ -574,7 +577,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
   }
 
   void _loadConfirmations() {
-    if (widget.event.confirmationRequise) {
+    if (_confirmationOn) {
       _confFuture = _service.hostListConfirmations(
         token: widget.event.accessToken,
         hostDeviceUuid: widget.hostDeviceUuid,
@@ -625,7 +628,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         userId: userId,
       );
       if (!mounted) return;
-      widget.onGuestRemoved?.call();
+      widget.onChanged?.call();
       setState(() {
         _future = Future.value(updated);
         _count = updated.length;
@@ -645,19 +648,81 @@ class _GuestsSheetState extends State<_GuestsSheet> {
 
   bool _exporting = false;
 
-  /// Export PDF de la liste (inscrits + confirmes) puis partage.
+  void _snack(String text) => ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(text)));
+
+  /// Le PDF est genere depuis le formulaire de confirmation (nom, prenom...) :
+  /// sans confirmation activee, on propose de l'activer.
+  Future<void> _askEnableConfirmation() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Activer la confirmation ?',
+          style: GoogleFonts.geist(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+          ),
+        ),
+        content: Text(
+          'Le PDF liste les participants qui ont confirmé leur venue avec '
+          'leur nom et prénom. Active la confirmation : tes participants '
+          'pourront remplir le formulaire depuis « Mes invitations ».',
+          style: GoogleFonts.geist(fontSize: 14, color: AppColors.textDim),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Activer'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      await _service.setConfirmationRequired(
+        token: widget.event.accessToken,
+        hostDeviceUuid: widget.hostDeviceUuid,
+        enabled: true,
+      );
+      if (!mounted) return;
+      widget.onChanged?.call();
+      setState(() {
+        _confirmationOn = true;
+        _loadConfirmations();
+      });
+      _snack('Confirmation activée : le PDF sera prêt dès la 1re confirmation');
+    } catch (_) {
+      if (mounted) _snack('Échec, réessaie');
+    }
+  }
+
+  /// Export PDF des confirmes (nom, prenom, age, contact) puis partage.
   Future<void> _exportPdf(BuildContext btnCtx) async {
     if (_exporting) return;
+    if (!_confirmationOn) {
+      await _askEnableConfirmation();
+      return;
+    }
     setState(() => _exporting = true);
     try {
-      final rsvps = await (_future ?? Future.value(<PrivateEventRsvp>[]));
       final confirmations = await (_confFuture ??
           Future.value(<PrivateEventConfirmation>[]));
       if (!mounted || !btnCtx.mounted) return;
+      if (confirmations.isEmpty) {
+        _snack('Personne n\'a encore confirmé : le PDF liste les confirmés '
+            'avec leur nom et prénom');
+        return;
+      }
       await GuestListPdf.share(
         btnCtx,
         event: widget.event,
-        rsvps: rsvps,
         confirmations: confirmations,
       );
     } finally {

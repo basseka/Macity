@@ -23,15 +23,6 @@ void main() {
         'updated_at': '2026-10-01T10:00:00Z',
       });
 
-  final rsvps = [
-    for (var i = 0; i < 30; i++)
-      PrivateEventRsvp(
-        userId: 'u$i',
-        prenom: i == 0 ? 'Zoé 💃' : 'Invité n°$i',
-        createdAt: DateTime.utc(2026, 10, 1, 12, i),
-        confirmed: i < 12,
-      ),
-  ];
   final confirmations = [
     for (var i = 0; i < 12; i++)
       PrivateEventConfirmation(
@@ -49,7 +40,6 @@ void main() {
   test('PDF avec confirmations : genere, accents et emojis sans erreur', () async {
     final bytes = await GuestListPdf.buildBytes(
       event: event(),
-      rsvps: rsvps,
       confirmations: confirmations,
     );
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
@@ -59,18 +49,11 @@ void main() {
     if (out != null) File(out).writeAsBytesSync(bytes);
   });
 
-  test('PDF sans confirmation (liste simple) et liste vide', () async {
-    final a = await GuestListPdf.buildBytes(
-      event: event(confirmation: false),
-      rsvps: rsvps,
+  test('PDF sans aucune confirmation', () async {
+    final bytes = await GuestListPdf.buildBytes(
+      event: event(),
       confirmations: const [],
     );
-    final b = await GuestListPdf.buildBytes(
-      event: event(confirmation: false),
-      rsvps: const [],
-      confirmations: const [],
-    );
-    expect(String.fromCharCodes(a.take(4)), '%PDF');
-    expect(String.fromCharCodes(b.take(4)), '%PDF');
+    expect(String.fromCharCodes(bytes.take(4)), '%PDF');
   });
 }

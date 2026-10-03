@@ -12,10 +12,9 @@ import 'package:share_plus/share_plus.dart';
 /// Export PDF de la liste des invites d'un event prive, pour l'organisateur
 /// (partage WhatsApp, impression pour l'entree...).
 ///
-///  - confirmation activee : tableau des CONFIRMES (ordre de confirmation)
-///    avec nom, prenom, age, telephone, e-mail, pseudo ; puis les inscrits
-///    pas encore confirmes ;
-///  - sinon : tableau des inscrits (pseudo, date d'inscription).
+/// Genere depuis le formulaire de confirmation : seuls les CONFIRMES y
+/// figurent (ordre de confirmation), avec nom, prenom, age, telephone et
+/// e-mail. Ni pseudos, ni inscrits non confirmes.
 ///
 /// Polices standard PDF (Helvetica) : pas d'emoji, caracteres hors Latin-1
 /// retires (sinon glyphes manquants).
@@ -57,10 +56,9 @@ class GuestListPdf {
   /// Construit le PDF et renvoie le fichier (dossier temporaire).
   static Future<File> build({
     required PrivateEvent event,
-    required List<PrivateEventRsvp> rsvps,
     required List<PrivateEventConfirmation> confirmations,
   }) async {
-    final bytes = await buildBytes(event: event, rsvps: rsvps, confirmations: confirmations);
+    final bytes = await buildBytes(event: event, confirmations: confirmations);
     final dir = await getTemporaryDirectory();
     final slug = _clean(event.title)
         .toLowerCase()
@@ -74,25 +72,17 @@ class GuestListPdf {
   /// Contenu du PDF (sans fichier : testable).
   static Future<Uint8List> buildBytes({
     required PrivateEvent event,
-    required List<PrivateEventRsvp> rsvps,
     required List<PrivateEventConfirmation> confirmations,
   }) async {
     final doc = pw.Document(
       title: 'Liste des invités - ${_clean(event.title)}',
       author: 'MaCity',
     );
-    final withConfirmation = event.confirmationRequise;
-    final confirmedIds = confirmations.map((c) => c.userId).toSet();
-    final pending = rsvps.where((r) => !confirmedIds.contains(r.userId)).toList();
     final fmtDate = DateFormat("dd/MM/yyyy 'à' HH'h'mm", 'fr_FR');
-
-    final summary = [
-      event.maxParticipants != null
-          ? '${rsvps.length} inscrit${rsvps.length > 1 ? 's' : ''} / ${event.maxParticipants} places'
-          : '${rsvps.length} inscrit${rsvps.length > 1 ? 's' : ''}',
-      if (withConfirmation)
-        '${confirmations.length} confirmé${confirmations.length > 1 ? 's' : ''}',
-    ].join('  ·  ');
+    final n = confirmations.length;
+    final summary = event.maxParticipants != null
+        ? '$n confirmé${n > 1 ? 's' : ''} / ${event.maxParticipants} places'
+        : '$n confirmé${n > 1 ? 's' : ''}';
 
     pw.Widget sectionTitle(String t) => pw.Padding(
           padding: const pw.EdgeInsets.only(top: 16, bottom: 6),
@@ -115,11 +105,9 @@ class GuestListPdf {
           cellAlignment: pw.Alignment.centerLeft,
         );
 
-    final pseudoOf = {for (final r in rsvps) r.userId: r.prenom ?? ''};
-
     doc.addPage(
       pw.MultiPage(
-        pageFormat: withConfirmation ? PdfPageFormat.a4.landscape : PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.a4.landscape,
         margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 36),
         header: (ctx) => ctx.pageNumber == 1
             ? pw.Column(
@@ -156,54 +144,28 @@ class GuestListPdf {
           ],
         ),
         build: (ctx) => [
-          if (withConfirmation) ...[
-            sectionTitle('Confirmés (${confirmations.length})  ·  ordre de confirmation'),
-            if (confirmations.isEmpty)
-              pw.Text('Aucune confirmation pour le moment.',
-                  style: pw.TextStyle(fontSize: 10, color: _grey))
-            else
-              table(
-                ['N°', 'Nom', 'Prénom', 'Âge', 'Téléphone', 'E-mail', 'Pseudo', 'Confirmé le'],
-                [
-                  for (var i = 0; i < confirmations.length; i++)
-                    [
-                      '${i + 1}',
-                      _clean(confirmations[i].nom.toUpperCase()),
-                      _clean(confirmations[i].prenom),
-                      confirmations[i].age?.toString() ?? '',
-                      _clean(confirmations[i].tel),
-                      _clean(confirmations[i].email),
-                      _clean(confirmations[i].pseudo ?? pseudoOf[confirmations[i].userId]),
-                      confirmations[i].confirmedAt == null
-                          ? ''
-                          : fmtDate.format(confirmations[i].confirmedAt!.toLocal()),
-                    ],
-                ],
-              ),
-            if (pending.isNotEmpty) ...[
-              sectionTitle('Inscrits non confirmés (${pending.length})'),
-              table(
-                ['N°', 'Pseudo', 'Inscrit le'],
-                [
-                  for (var i = 0; i < pending.length; i++)
-                    ['${i + 1}', _clean(pending[i].prenom ?? 'Anonyme'), fmtDate.format(pending[i].createdAt.toLocal())],
-                ],
-              ),
-            ],
-          ] else ...[
-            sectionTitle('Inscrits (${rsvps.length})'),
-            if (rsvps.isEmpty)
-              pw.Text('Personne pour le moment.',
-                  style: pw.TextStyle(fontSize: 10, color: _grey))
-            else
-              table(
-                ['N°', 'Pseudo', 'Inscrit le'],
-                [
-                  for (var i = 0; i < rsvps.length; i++)
-                    ['${i + 1}', _clean(rsvps[i].prenom ?? 'Anonyme'), fmtDate.format(rsvps[i].createdAt.toLocal())],
-                ],
-              ),
-          ],
+          sectionTitle('Confirmés ($n)  ·  ordre de confirmation'),
+          if (confirmations.isEmpty)
+            pw.Text('Aucune confirmation pour le moment.',
+                style: pw.TextStyle(fontSize: 10, color: _grey))
+          else
+            table(
+              ['N°', 'Nom', 'Prénom', 'Âge', 'Téléphone', 'E-mail', 'Confirmé le'],
+              [
+                for (var i = 0; i < n; i++)
+                  [
+                    '${i + 1}',
+                    _clean(confirmations[i].nom.toUpperCase()),
+                    _clean(confirmations[i].prenom),
+                    confirmations[i].age?.toString() ?? '',
+                    _clean(confirmations[i].tel),
+                    _clean(confirmations[i].email),
+                    confirmations[i].confirmedAt == null
+                        ? ''
+                        : fmtDate.format(confirmations[i].confirmedAt!.toLocal()),
+                  ],
+              ],
+            ),
         ],
       ),
     );
@@ -216,7 +178,6 @@ class GuestListPdf {
   static Future<void> share(
     BuildContext buttonContext, {
     required PrivateEvent event,
-    required List<PrivateEventRsvp> rsvps,
     required List<PrivateEventConfirmation> confirmations,
   }) async {
     final messenger = ScaffoldMessenger.maybeOf(buttonContext);
@@ -226,7 +187,7 @@ class GuestListPdf {
       origin = box.localToGlobal(Offset.zero) & box.size;
     }
     try {
-      final file = await build(event: event, rsvps: rsvps, confirmations: confirmations);
+      final file = await build(event: event, confirmations: confirmations);
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/pdf')],
         text: 'Liste des invités : ${event.title}',
