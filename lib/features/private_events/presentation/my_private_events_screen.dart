@@ -45,7 +45,8 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
   Future<void> _showGuests(PrivateEvent event) async {
     final hostUuid = await UserIdentityService.getUserId();
     if (!mounted) return;
-    showModalBottomSheet<void>(
+    var changed = false;
+    await showModalBottomSheet<void>(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
@@ -53,8 +54,11 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
       builder: (_) => _GuestsSheet(
         event: event,
         hostDeviceUuid: hostUuid,
+        onGuestRemoved: () => changed = true,
       ),
     );
+    // Un participant retire : compteur d'inscrits a jour sur la carte.
+    if (changed && mounted) _reload();
   }
 
   Future<bool> _toggleConfirmation(PrivateEvent event, bool enabled) async {
@@ -535,8 +539,13 @@ class _OpensBadge extends StatelessWidget {
 class _GuestsSheet extends StatefulWidget {
   final PrivateEvent event;
   final String hostDeviceUuid;
+  final VoidCallback? onGuestRemoved;
 
-  const _GuestsSheet({required this.event, required this.hostDeviceUuid});
+  const _GuestsSheet({
+    required this.event,
+    required this.hostDeviceUuid,
+    this.onGuestRemoved,
+  });
 
   @override
   State<_GuestsSheet> createState() => _GuestsSheetState();
@@ -550,6 +559,8 @@ class _GuestsSheetState extends State<_GuestsSheet> {
   bool _showConfirmed = false;
   /// Inscrits dont le dernier message prive attend une reponse de l'hote.
   Set<String> _pendingDm = {};
+  /// Nombre d'inscrits affiche dans le titre (baisse quand l'hote retire).
+  late int _count = widget.event.rsvpCount;
 
   @override
   void initState() {
@@ -559,10 +570,75 @@ class _GuestsSheetState extends State<_GuestsSheet> {
       token: widget.event.accessToken,
       hostDeviceUuid: widget.hostDeviceUuid,
     );
+    _loadConfirmations();
+  }
+
+  void _loadConfirmations() {
     if (widget.event.confirmationRequise) {
       _confFuture = _service.hostListConfirmations(
         token: widget.event.accessToken,
         hostDeviceUuid: widget.hostDeviceUuid,
+      );
+    }
+  }
+
+  /// Retire un participant (meme confirme) apres confirmation. Il ne pourra
+  /// plus se reinscrire ni acceder a la discussion de l'event.
+  Future<void> _removeGuest(String userId, String? name) async {
+    final label = (name?.trim().isNotEmpty ?? false) ? name!.trim() : 'cette personne';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Retirer $label ?',
+          style: GoogleFonts.geist(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: AppColors.text,
+          ),
+        ),
+        content: Text(
+          'Elle sera supprimée de la liste des participants (et des '
+          'confirmés), ne pourra plus se réinscrire et n\'aura plus accès '
+          'à la discussion de la soirée.',
+          style: GoogleFonts.geist(fontSize: 14, color: AppColors.textDim),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF3B30)),
+            child: const Text('Retirer'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      final updated = await _service.hostRemoveRsvp(
+        token: widget.event.accessToken,
+        hostDeviceUuid: widget.hostDeviceUuid,
+        userId: userId,
+      );
+      if (!mounted) return;
+      widget.onGuestRemoved?.call();
+      setState(() {
+        _future = Future.value(updated);
+        _count = updated.length;
+        _pendingDm = {..._pendingDm}..remove(userId);
+        _loadConfirmations();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$label a été retiré(e) de la liste')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Échec du retrait, réessaie')),
       );
     }
   }
@@ -673,6 +749,12 @@ class _GuestsSheetState extends State<_GuestsSheet> {
             onMessage: list[i].userId == null
                 ? null
                 : () => _openDm(list[i].userId!, list[i].pseudo),
+            onRemove: list[i].userId == null
+                ? null
+                : () => _removeGuest(
+                      list[i].userId!,
+                      list[i].pseudo ?? '${list[i].prenom} ${list[i].nom}',
+                    ),
           ),
         );
       },
@@ -725,8 +807,8 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                       children: [
                         Text(
                           widget.event.maxParticipants != null
-                              ? 'Inscrits ${widget.event.rsvpCount} / ${widget.event.maxParticipants}'
-                              : 'Inscrits (${widget.event.rsvpCount})',
+                              ? 'Inscrits $_count / ${widget.event.maxParticipants}'
+                              : 'Inscrits ($_count)',
                           style: GoogleFonts.geist(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -829,6 +911,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                         rsvp: rsvps[i],
                         pendingDm: _pendingDm.contains(rsvps[i].userId),
                         onMessage: () => _openDm(rsvps[i].userId, rsvps[i].prenom),
+                        onRemove: () => _removeGuest(rsvps[i].userId, rsvps[i].prenom),
                       ),
                     );
                   },
@@ -845,8 +928,14 @@ class _GuestsSheetState extends State<_GuestsSheet> {
 class _GuestRow extends StatelessWidget {
   final PrivateEventRsvp rsvp;
   final VoidCallback? onMessage;
+  final VoidCallback? onRemove;
   final bool pendingDm;
-  const _GuestRow({required this.rsvp, this.onMessage, this.pendingDm = false});
+  const _GuestRow({
+    required this.rsvp,
+    this.onMessage,
+    this.onRemove,
+    this.pendingDm = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -905,6 +994,10 @@ class _GuestRow extends StatelessWidget {
             const SizedBox(width: 6),
             _DmButton(onTap: onMessage!, pending: pendingDm),
           ],
+          if (onRemove != null) ...[
+            const SizedBox(width: 6),
+            _RemoveButton(onTap: onRemove!),
+          ],
         ],
       ),
       ),
@@ -931,11 +1024,13 @@ class _ConfirmedRow extends StatelessWidget {
   final int rank;
   final PrivateEventConfirmation c;
   final VoidCallback? onMessage;
+  final VoidCallback? onRemove;
   final bool pendingDm;
   const _ConfirmedRow({
     required this.rank,
     required this.c,
     this.onMessage,
+    this.onRemove,
     this.pendingDm = false,
   });
 
@@ -1031,7 +1126,33 @@ class _ConfirmedRow extends StatelessWidget {
             const SizedBox(width: 6),
             _DmButton(onTap: onMessage!, pending: pendingDm),
           ],
+          if (onRemove != null) ...[
+            const SizedBox(width: 6),
+            _RemoveButton(onTap: onRemove!),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+/// Bouton « retirer de la liste » d'une ligne d'inscrit (hote uniquement).
+class _RemoveButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _RemoveButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFFF3B30).withValues(alpha: 0.12),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: const Padding(
+          padding: EdgeInsets.all(8),
+          child: Icon(Icons.person_remove_outlined, size: 17, color: Color(0xFFFF3B30)),
+        ),
       ),
     );
   }

@@ -169,7 +169,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
       case PrivateEventError.profileRequired:
         return 'Complete ton profil MaCity pour continuer';
       case PrivateEventError.forbidden:
-        return 'Acces refuse';
+        return e.message ?? 'Acces refuse';
       case PrivateEventError.full:
         return 'C\'est complet, plus de place';
       case PrivateEventError.archived:
@@ -553,6 +553,15 @@ class _RevealViewState extends State<_RevealView> {
       if (e is PrivateEventException && e.code == PrivateEventError.full) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('C\'est complet, plus de place')),
+        );
+        return;
+      }
+      // Retire par l'organisateur : il ne peut plus se reinscrire.
+      if (e is PrivateEventException &&
+          e.code == PrivateEventError.forbidden &&
+          e.message != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message!)),
         );
         return;
       }

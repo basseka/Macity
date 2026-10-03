@@ -428,6 +428,31 @@ class PrivateEventService {
     }
   }
 
+  /// Hote : retire un participant (meme confirme) et l'empeche de se
+  /// reinscrire. Retourne la liste a jour des participants.
+  Future<List<PrivateEventRsvp>> hostRemoveRsvp({
+    required String token,
+    required String hostDeviceUuid,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/host_remove_event_rsvp',
+        data: {
+          'p_token': token,
+          'p_host_device_uuid': hostDeviceUuid,
+          'p_user_id': userId,
+        },
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .map((e) => PrivateEventRsvp.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _mapError(e);
+    }
+  }
+
   /// Hote : active / desactive la confirmation de venue des participants.
   Future<void> setConfirmationRequired({
     required String token,
@@ -594,6 +619,9 @@ class PrivateEventService {
       case 'archived':
         return PrivateEventException(PrivateEventError.archived,
             'Soirée terminée depuis plus de 7 jours : l\'album est figé');
+      case 'removed':
+        return PrivateEventException(PrivateEventError.forbidden,
+            'L\'organisateur t\'a retiré de la liste de cette soirée');
       case 'full':
         return PrivateEventException(
             PrivateEventError.full, 'C\'est complet, plus de place');
