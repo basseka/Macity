@@ -23,7 +23,7 @@
   }
   legend { font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--dim); padding: 0 6px; }
   label { display: block; font-size: 11px; color: var(--dim); margin: 10px 0 4px; }
-  input[type=text], textarea, select {
+  input[type=text], input[type=date], textarea, select {
     width: 100%; background: #100d18; border: 1px solid var(--line);
     color: var(--text); border-radius: 8px; padding: 8px 10px; font: inherit;
   }
@@ -84,7 +84,12 @@
       <option value="soir">Ce soir</option>
       <option value="weekend" selected>Ce week-end</option>
       <option value="semaine">Les 7 prochains jours</option>
+      <option value="dates">Date précise ou plage…</option>
     </select>
+    <div class="ligne" id="autoDates" style="display:none;">
+      <div><label>Du</label><input type="date" id="autoDu" /></div>
+      <div><label>Au (vide = un seul jour)</label><input type="date" id="autoAu" /></div>
+    </div>
     <label>Une diapo par type, dans cet ordre</label>
     <div id="autoTypes" style="display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; font-size:12px;"></div>
     <button type="button" id="autoGen" style="margin-top:10px;">⚡ Générer le carrousel</button>
@@ -933,10 +938,31 @@ const TYPES_AUTO = [
   });
 })();
 
+// Champs « Du / Au » visibles seulement pour « Date précise ou plage ».
+(function initDatesAuto() {
+  const maj = () => { $("autoDates").style.display = $("autoPeriode").value === "dates" ? "" : "none"; };
+  $("autoPeriode").addEventListener("change", maj);
+  try {
+    const m = JSON.parse(localStorage.getItem("macity_auto_dates") || "null");
+    if (m) { $("autoDu").value = m.du || ""; $("autoAu").value = m.au || ""; }
+  } catch (e) {}
+  const garder = () => {
+    try { localStorage.setItem("macity_auto_dates", JSON.stringify({ du: $("autoDu").value, au: $("autoAu").value })); } catch (e) {}
+  };
+  $("autoDu").addEventListener("change", garder);
+  $("autoAu").addEventListener("change", garder);
+  maj();
+})();
+
 const fmtJour = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 /** Bornes [debut, fin] (AAAA-MM-JJ) de la periode choisie. */
 function bornesPeriode(periode) {
+  if (periode === "dates") {
+    const du = $("autoDu").value;
+    const au = $("autoAu").value || du;
+    return au < du ? [au, du] : [du, au];
+  }
   const auj = new Date();
   auj.setHours(0, 0, 0, 0);
   if (periode === "soir") return [fmtJour(auj), fmtJour(auj)];
@@ -958,6 +984,27 @@ const TITRE_COUV = {
   weekend: "QUOI FAIRE CE\nWEEK-END",
   semaine: "QUOI FAIRE\nCETTE SEMAINE",
 };
+
+// Date precise ou plage : libelles calcules depuis les bornes choisies.
+const MOIS_COURTS = ["JANV.", "FÉVR.", "MARS", "AVR.", "MAI", "JUIN", "JUIL.", "AOÛT", "SEPT.", "OCT.", "NOV.", "DÉC."];
+const JOURS_MAJ = ["DIMANCHE", "LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI"];
+const MOIS_MAJ = ["JANVIER", "FÉVRIER", "MARS", "AVRIL", "MAI", "JUIN", "JUILLET", "AOÛT",
+  "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DÉCEMBRE"];
+const jourIso = (iso) => new Date(iso + "T12:00:00");
+
+/** « SAMEDI 14 NOV. » ou « DU 14 AU 16 NOV. » (mois répété s'il change). */
+function libelleDates(debut, fin, mois) {
+  const a = jourIso(debut), b = jourIso(fin);
+  if (debut === fin) return `${JOURS_MAJ[a.getDay()]} ${a.getDate()} ${mois[a.getMonth()]}`;
+  const moisA = a.getMonth() === b.getMonth() ? "" : ` ${mois[a.getMonth()]}`;
+  return `DU ${a.getDate()}${moisA} AU ${b.getDate()} ${mois[b.getMonth()]}`;
+}
+
+function titreCouverture(periode) {
+  if (periode !== "dates") return TITRE_COUV[periode];
+  const [debut, fin] = bornesPeriode(periode);
+  return `QUOI FAIRE\n${libelleDates(debut, fin, MOIS_COURTS)}`;
+}
 
 /** Candidats d'un type, du plus « prêt a publier » au moins bon. */
 async function chercherCandidats(type, ville, debut, fin) {
@@ -1099,6 +1146,7 @@ $("autoGen").onclick = async () => {
     document.querySelector(`[data-type-auto="${t.id}"]`)?.checked);
   if (!ville) { etat.textContent = "Renseigne la ville (champ « Ville »)."; etat.style.color = "#f87171"; return; }
   if (!choisis.length) { etat.textContent = "Coche au moins un type d'event."; etat.style.color = "#f87171"; return; }
+  if (periode === "dates" && !$("autoDu").value) { etat.textContent = "Choisis au moins la date « Du »."; etat.style.color = "#f87171"; return; }
 
   const [debut, fin] = bornesPeriode(periode);
   etat.style.color = "var(--dim)";
@@ -1145,7 +1193,7 @@ $("autoGen").onclick = async () => {
       plans.push(d);
     }
     const couverture = diapos.find((d) => d.type === "couverture") || { type: "couverture", img: null, v: { ...gabarit } };
-    couverture.v = { ...couverture.v, titre: TITRE_COUV[periode] };
+    couverture.v = { ...couverture.v, titre: titreCouverture(periode) };
     // Couverture sans photo : on reprend celle du premier plan.
     const premier = plans.find((p) => p.img);
     if (!couverture.img && premier) { couverture.img = premier.img; couverture.imgData = premier.imgData; }
@@ -1274,7 +1322,12 @@ function genererLegende() {
   }
   const n = plans.length;
   const lignes = [];
-  lignes.push(`🚨 TU NE SAIS PAS QUOI FAIRE ${ACCROCHE_PERIODE[periode] || "CE WEEK-END"} ? 👀`, "");
+  let accroche = ACCROCHE_PERIODE[periode] || "CE WEEK-END";
+  if (periode === "dates") {
+    const [debut, fin] = bornesPeriode(periode);
+    accroche = (debut === fin ? "LE " : "") + libelleDates(debut, fin, MOIS_MAJ);
+  }
+  lignes.push(`🚨 TU NE SAIS PAS QUOI FAIRE ${accroche} ? 👀`, "");
   lignes.push(`MaCity t'a sélectionné ${n} plan${n > 1 ? "s" : ""} à découvrir à ${ville} 🔥`, "");
   plans.forEach((d, i) => {
     const ev = infosPlan(d);
@@ -1489,6 +1542,13 @@ document.fonts.ready.then(() => {
   if (q.get("auto") === "1") {
     if (q.get("ville")) $("ville").value = q.get("ville");
     if (q.get("periode")) $("autoPeriode").value = q.get("periode");
+    // ?du=2026-11-14&au=2026-11-16 : date precise ou plage.
+    if (q.get("du")) {
+      $("autoPeriode").value = "dates";
+      $("autoDu").value = q.get("du");
+      $("autoAu").value = q.get("au") || "";
+    }
+    $("autoPeriode").dispatchEvent(new Event("change"));
     $("autoGen").click();
   }
 });
