@@ -64,6 +64,7 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/story/apercu');
 
     // Animations
     _chipsAnimCtrl = AnimationController(

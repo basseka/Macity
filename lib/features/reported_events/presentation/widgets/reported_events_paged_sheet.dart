@@ -4,6 +4,7 @@ import 'package:pulz_app/features/reported_events/domain/models/reported_event.d
 import 'package:pulz_app/features/reported_events/presentation/reported_event_detail_sheet.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/story_video_cache.dart';
 import 'package:pulz_app/features/reported_events/state/chat_provider.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Un media (photo ou video) d'une story, normalise pour le viewer.
 class _StoryMediaItem {
@@ -129,6 +130,7 @@ class _ReportedEventsPagedSheetState
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/stories');
     _current = widget.initialIndex;
     _pageCtrl = PageController(initialPage: widget.initialIndex);
     _progress = AnimationController(vsync: this, duration: _photoDuration)

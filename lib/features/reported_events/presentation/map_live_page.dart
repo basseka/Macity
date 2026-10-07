@@ -9,6 +9,7 @@ import 'package:pulz_app/features/reported_events/presentation/snap_camera_scree
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_carousel.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_legend.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 /// Page dediee "Ça bouge près de toi", facon Snap Map : la carte des
 /// signalements communautaires occupe tout l'ecran, et tout le reste flotte
@@ -35,7 +36,9 @@ class MapLivePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pad = MediaQuery.of(context).padding;
     final storiesBottom = pad.bottom + 12;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
+    return SuiviEcran(
+      nom: '/map-live',
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
       // Carte claire sous la barre d'etat : icones sombres.
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
@@ -127,6 +130,7 @@ class MapLivePage extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }

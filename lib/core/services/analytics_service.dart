@@ -29,6 +29,12 @@ class AnalyticsService {
   /// sources appellent `logScreenView` pour une même destination (le routeur
   /// ET la sélection de sous-rubrique émettent `/mode/food` sur un retour).
   static String? _dernierEcran;
+  static DateTime _dernierInstant = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// Fenêtre de déduplication. Bornée dans le temps : les écrans poussés par
+  /// `Navigator.push` (Map Live, chat…) ne ré-émettent rien au retour arrière,
+  /// donc sans limite une 2e ouverture de la Map Live serait avalée.
+  static const _fenetreDoublon = Duration(seconds: 2);
 
   /// À appeler une fois après Firebase.initializeApp().
   static Future<void> init() async {
@@ -64,8 +70,14 @@ class AnalyticsService {
   /// `/mode/food`, `/mode/food/Guinguette`. Cet alignement est ce qui permet la
   /// déduplication quand deux sources signalent la même destination.
   static Future<void> logScreenView(String nom) async {
-    if (nom.isEmpty || nom == _dernierEcran) return;
+    if (nom.isEmpty) return;
+    final maintenant = DateTime.now();
+    if (nom == _dernierEcran &&
+        maintenant.difference(_dernierInstant) < _fenetreDoublon) {
+      return;
+    }
     _dernierEcran = nom;
+    _dernierInstant = maintenant;
     if (!_pret) {
       _ecranEnAttente = nom;
       return;

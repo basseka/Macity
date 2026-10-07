@@ -12,6 +12,7 @@ import 'package:pulz_app/features/likes/data/liked_item_resolver.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/presentation/liked_item_detail_sheet.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 class LikedPlacesBottomSheet extends ConsumerWidget {
   const LikedPlacesBottomSheet({super.key, this.fromAccountMenu = false});
@@ -36,7 +37,9 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
       }
     }
 
-    return ClipRRect(
+    return SuiviEcran(
+      nom: '/favoris',
+      child: ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: Container(
         constraints: BoxConstraints(
@@ -191,6 +194,7 @@ class LikedPlacesBottomSheet extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
 

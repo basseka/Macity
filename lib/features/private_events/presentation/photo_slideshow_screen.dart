@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Diaporama plein ecran de l'album d'un event prive.
 ///
@@ -87,6 +88,7 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/event-prive/diaporama');
     _pager = PageController(initialPage: _index);
     if (_playing) _startTimer();
     // Precharge la photo suivante : pas de blanc pendant la lecture.

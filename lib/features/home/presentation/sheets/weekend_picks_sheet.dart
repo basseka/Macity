@@ -11,6 +11,7 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/weekend_picks_provider.dart';
 import 'package:pulz_app/features/sport/data/supabase_api_service.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 class WeekendPicksSheet extends ConsumerWidget {
   const WeekendPicksSheet({super.key});
@@ -38,7 +39,9 @@ class WeekendPicksSheet extends ConsumerWidget {
     final saturday = now.add(Duration(days: daysUntilSat == 0 && now.weekday != 6 ? 7 : daysUntilSat));
     final weekendLabel = DateFormat('d MMMM', 'fr_FR').format(saturday);
 
-    return Container(
+    return SuiviEcran(
+      nom: '/decouvrir/ce-week-end',
+      child: Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
         color: Color(0xFF1A1A2E),
@@ -109,6 +112,7 @@ class WeekendPicksSheet extends ConsumerWidget {
           ),
         ],
       ),
+    ),
     );
   }
 

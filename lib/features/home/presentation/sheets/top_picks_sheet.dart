@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 class TopPicksSheet extends ConsumerWidget {
   const TopPicksSheet({super.key});
@@ -46,7 +47,9 @@ class TopPicksSheet extends ConsumerWidget {
       );
     }
 
-    return DefaultTabController(
+    return SuiviEcran(
+      nom: '/decouvrir/top',
+      child: DefaultTabController(
       length: 3,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.85,
@@ -112,6 +115,7 @@ class TopPicksSheet extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
   }
 

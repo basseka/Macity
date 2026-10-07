@@ -8,6 +8,7 @@ import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/discovery_providers.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 class RightNowSheet extends ConsumerStatefulWidget {
   const RightNowSheet({super.key});
@@ -27,6 +28,12 @@ class RightNowSheet extends ConsumerStatefulWidget {
 }
 
 class _RightNowSheetState extends ConsumerState<RightNowSheet> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.logScreenView('/decouvrir/maintenant');
+  }
+
   static const _accent = Color(0xFFE91E8C);
 
   /// Filtre horaire : null = tout, sinon nombre d'heures max

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 class _Enigma {
   final String riddle;
@@ -116,6 +117,7 @@ class _TreasureHuntSheetState extends State<TreasureHuntSheet>
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/decouvrir/chasse-au-tresor');
     _enigma = _enigmas[Random().nextInt(_enigmas.length)];
     _sparkle = AnimationController(
       vsync: this,

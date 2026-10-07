@@ -5,6 +5,7 @@ import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/data/publication_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Écran de choix de la formule de diffusion d'un event public (particulier).
 /// Tier (Standard / Au top / À la une) × durée (1 semaine / 1 mois / jusqu'à
@@ -55,6 +56,7 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/publier-event/tarifs');
     _loadPrices();
   }
 

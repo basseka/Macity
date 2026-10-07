@@ -14,6 +14,7 @@ import 'package:pulz_app/features/private_events/domain/models/private_event.dar
 import 'package:pulz_app/features/private_events/presentation/photo_slideshow_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Album d'un event prive : toutes les photos partagees dans la discussion
 /// de GROUPE, en grille. Diaporama, enregistrement d'une ou de toutes les
@@ -134,6 +135,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/event-prive/album');
     _load(autoStart: widget.startSlideshow);
   }
 

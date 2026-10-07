@@ -6,6 +6,7 @@ import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/features/offers/data/subscription_interest_service.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
 import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 /// Detail plein ecran d'une offre. S'ouvre quand l'utilisateur tap une carte
 /// dans l'ExplorerScreen. Le CTA "J'en profite" reclame une place et ouvre
@@ -19,7 +20,9 @@ class OfferDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasImage = offer.imageUrl.isNotEmpty;
 
-    return Scaffold(
+    return SuiviEcran(
+      nom: '/offres/detail',
+      child: Scaffold(
       backgroundColor: const Color(0xFF1A0A2E),
       body: CustomScrollView(
         slivers: [
@@ -229,6 +232,7 @@ class OfferDetailScreen extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 

@@ -13,6 +13,7 @@ import 'package:pulz_app/features/reported_events/presentation/widgets/contribut
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/guest_list_pdf.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/album_button.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Liste des soirees privees creees par ce device. Permet de re-partager le
 /// lien+code et de supprimer un event.
@@ -30,6 +31,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/event-prive/mes-events');
     _reload();
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/onboarding/data/user_profile_service.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Fiche d'un contributeur de story : grande photo + prenom + ville + bio.
 /// Ouverte au tap sur l'avatar dans le viewer. Le profil public est recupere
@@ -75,6 +76,7 @@ class _ContributorProfileSheetState extends State<ContributorProfileSheet> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/profil-contributeur');
     _future = widget.preloaded != null
         ? Future.value(widget.preloaded)
         : _service.fetchPublicProfile(widget.userId);

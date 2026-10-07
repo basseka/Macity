@@ -14,6 +14,7 @@ import 'package:pulz_app/features/reported_events/presentation/widgets/contribut
 import 'package:pulz_app/features/private_events/presentation/widgets/host_card.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/confirm_attendance_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 const _accentColor = Color(0xFF00B4D8);
 
@@ -50,6 +51,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/event-prive/invitations');
     _reload();
   }
 

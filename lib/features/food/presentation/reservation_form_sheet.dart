@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/food/data/restaurant_reservation_service.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Bottom sheet pour creer une demande de reservation. Affiche un form
 /// minimal (date / heure / nb personnes / commentaire), envoie via l'edge
@@ -43,6 +44,12 @@ class ReservationFormSheet extends ConsumerStatefulWidget {
 }
 
 class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.logScreenView('/reservation');
+  }
+
   static const _primary = Color(0xFF7B2D8E);
   static const _dark = Color(0xFF4A1259);
 

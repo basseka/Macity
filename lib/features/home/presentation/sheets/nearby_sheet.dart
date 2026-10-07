@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/home/state/discovery_providers.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 class NearbySheet extends ConsumerStatefulWidget {
   const NearbySheet({super.key});
@@ -33,6 +34,7 @@ class _NearbySheetState extends ConsumerState<NearbySheet> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/decouvrir/autour-de-moi');
     _requestLocation();
   }
 

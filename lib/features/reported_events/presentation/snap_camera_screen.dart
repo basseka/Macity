@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/widgets/account_gate.dart';
 import 'package:pulz_app/features/reported_events/presentation/media_preview_screen.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Ecran camera plein ecran style Snapchat.
 ///
@@ -62,6 +63,7 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/story/camera');
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     _recordAnimCtrl = AnimationController(

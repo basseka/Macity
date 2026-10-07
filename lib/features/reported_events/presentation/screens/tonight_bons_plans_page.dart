@@ -9,6 +9,7 @@ import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 import 'package:pulz_app/features/reported_events/state/tonight_events_provider.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 /// Page plein écran "Les bons plans" / "Quoi faire ce soir" : liste petites
 /// annonces (FEED_LISTE.md) des events du jour, groupes par rubrique.
@@ -125,7 +126,9 @@ class TonightBonsPlansPage extends ConsumerWidget {
         : ref.watch(tonightEventsProvider);
     final liked = ref.watch(likesProvider);
 
-    return Scaffold(
+    return SuiviEcran(
+      nom: '/bons-plans-soir',
+      child: Scaffold(
       backgroundColor: AppColors.feedBg,
       body: SafeArea(
         child: Column(
@@ -258,6 +261,7 @@ class TonightBonsPlansPage extends ConsumerWidget {
           ],
         ),
       ),
+    ),
     );
   }
 

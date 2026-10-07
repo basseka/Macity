@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pulz_app/core/services/partner_metrics_service.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Pager swipable horizontalement entre les fiches détail de commerces.
 ///
@@ -50,6 +51,7 @@ class _CommercePagerViewState extends State<CommercePagerView> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/fiche-commerce');
     _ctrl = PageController(initialPage: widget.initialIndex);
     // Le pager contourne `showDetailSheet` (il appelle `buildDetailSheet`
     // directement) : sans ce comptage, toutes les fiches ouvertes par swipe

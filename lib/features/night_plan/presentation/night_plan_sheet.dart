@@ -6,6 +6,7 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/night_plan/data/night_plan_service.dart';
 import 'package:pulz_app/features/night_plan/domain/night_stop.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// « Compose ta soirée » : feuille de route dîner → événement → bar → boîte,
 /// construite autour du lieu d'un événement.
@@ -62,6 +63,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/decouvrir/plan-soiree');
     _future = NightPlanService().build(
       ville: widget.ville,
       anchorLat: widget.anchorLat,

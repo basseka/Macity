@@ -9,6 +9,7 @@ import 'package:pulz_app/core/services/stripe_service.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/publication_tarifs_screen.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 class CreateEventPage extends ConsumerStatefulWidget {
   final String? initialPhotoPath;
@@ -53,6 +54,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/publier-event');
     _pageController = PageController(initialPage: widget.initialStep);
     Future.microtask(() {
       if (widget.eventToEdit != null) {

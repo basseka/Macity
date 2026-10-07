@@ -16,6 +16,7 @@ import 'package:pulz_app/features/private_events/presentation/widgets/rsvp_avata
 import 'package:pulz_app/features/private_events/presentation/widgets/confirm_attendance_sheet.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/host_card.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Palette fixe (sombre), volontairement independante du flag global
 /// `AppColors.isLightTheme` (bascule selon la rubrique visitee : Night =
@@ -65,6 +66,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/coffre/ouvrir');
     if (widget.prefilledToken != null) {
       _tokenCtrl.text = widget.prefilledToken!;
       // Token deja rempli via le lien -> focus direct sur le code a taper.

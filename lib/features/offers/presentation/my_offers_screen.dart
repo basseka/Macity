@@ -7,6 +7,7 @@ import 'package:pulz_app/features/offers/data/offer_supabase_service.dart';
 import 'package:pulz_app/features/offers/domain/models/offer.dart';
 import 'package:pulz_app/features/offers/presentation/add_offer_bottom_sheet.dart';
 import 'package:pulz_app/features/offers/state/offers_provider.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 /// Ecran "Mes offres" — accessible depuis le menu compte d'un pro approuve.
 /// Liste toutes ses offres (actives + expirees) avec actions modifier / supprimer.
@@ -20,7 +21,9 @@ class MyOffersScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final offersAsync = ref.watch(myOffersProvider);
 
-    return Scaffold(
+    return SuiviEcran(
+      nom: '/offres/mes-offres',
+      child: Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         title: const Text(
@@ -89,6 +92,7 @@ class MyOffersScreen extends ConsumerWidget {
           );
         },
       ),
+    ),
     );
   }
 

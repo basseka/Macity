@@ -8,6 +8,7 @@ import 'package:pulz_app/features/private_events/data/private_event_service.dart
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/presentation/event_album_screen.dart';
 import 'package:pulz_app/features/private_events/presentation/private_event_chat_screen.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// « Mes souvenirs » : les events prives passes que j'ai organises ou ou
 /// j'etais inscrit, du plus recent au plus ancien, avec une mosaique des
@@ -20,6 +21,12 @@ class MemoriesScreen extends StatefulWidget {
 }
 
 class _MemoriesScreenState extends State<MemoriesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.logScreenView('/souvenirs');
+  }
+
   final _service = PrivateEventService();
   late Future<List<PrivateEventMemory>> _future = _load();
 

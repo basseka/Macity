@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/features/offers/data/subscription_interest_service.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 /// Ecran de proposition d'abonnement BeThere — 5.90 EUR/mois pour debloquer
 /// toutes les offres premium.
@@ -32,7 +33,9 @@ class SubscriptionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SuiviEcran(
+      nom: '/abonnement',
+      child: Scaffold(
       backgroundColor: const Color(0xFF1A0A2E),
       body: Stack(
         children: [
@@ -289,6 +292,7 @@ class SubscriptionScreen extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

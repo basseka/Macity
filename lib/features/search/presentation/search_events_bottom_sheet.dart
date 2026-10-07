@@ -13,6 +13,7 @@ import 'package:pulz_app/features/search/domain/search_result.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/match_row_card.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 class SearchEventsBottomSheet extends ConsumerStatefulWidget {
   const SearchEventsBottomSheet({super.key});
@@ -24,6 +25,12 @@ class SearchEventsBottomSheet extends ConsumerStatefulWidget {
 
 class _SearchEventsBottomSheetState
     extends ConsumerState<SearchEventsBottomSheet> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.logScreenView('/recherche');
+  }
+
   final _controller = TextEditingController();
   final _service = UnifiedSearchService();
   Timer? _debounce;

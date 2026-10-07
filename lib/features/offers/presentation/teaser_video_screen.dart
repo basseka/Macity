@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/features/offers/presentation/subscription_screen.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Vidéo de présentation jouée au tap sur une offre verrouillée, suivie de la
 /// proposition d'abonnement.
@@ -41,6 +42,7 @@ class _TeaserVideoScreenState extends State<TeaserVideoScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/abonnement/teaser');
     final c = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
     _c = c;
     c.addListener(_onTick);

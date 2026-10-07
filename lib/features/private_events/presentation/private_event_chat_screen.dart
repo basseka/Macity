@@ -19,6 +19,7 @@ import 'package:pulz_app/features/private_events/domain/models/private_event.dar
 import 'package:pulz_app/features/private_events/domain/models/private_event_message.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
+import 'package:pulz_app/core/services/analytics_service.dart';
 
 /// Palette fixe sombre, alignee sur le coffre et "Mes invitations".
 class _ChatColors {
@@ -134,6 +135,7 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.logScreenView('/event-prive/chat');
     _init();
   }
 

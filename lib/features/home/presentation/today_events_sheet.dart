@@ -9,6 +9,7 @@ import 'package:pulz_app/core/widgets/item_detail_sheet.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/home/state/today_events_provider.dart';
 import 'package:pulz_app/features/sport/domain/models/supabase_match.dart';
+import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 
 /// Represente un item generique dans la grille (event ou match).
 class _GridItem {
@@ -94,7 +95,9 @@ class TodayEventsSheet extends ConsumerWidget {
         ? ref.watch(allFutureEventsProvider)
         : ref.watch(todayTomorrowEventsProvider);
 
-    return DraggableScrollableSheet(
+    return SuiviEcran(
+      nom: '/decouvrir/aujourdhui',
+      child: DraggableScrollableSheet(
       initialChildSize: 0.92,
       minChildSize: 0.5,
       maxChildSize: 0.95,
@@ -171,6 +174,7 @@ class TodayEventsSheet extends ConsumerWidget {
           ),
         );
       },
+    ),
     );
   }
 
