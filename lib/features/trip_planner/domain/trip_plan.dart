@@ -9,6 +9,10 @@ enum TripMeal { matin, midi, soir }
 /// Sortie du soir apres le diner.
 enum TripNight { none, bar, barClub }
 
+/// Style musical souhaite pour la discotheque. Le nom de chaque valeur
+/// (sauf [any]) est la cle stockee dans `venues.music_genres`.
+enum TripMusic { any, electro, hiphop, latino, generaliste, rock }
+
 /// Type d'etape de la feuille de route.
 enum TripStopKind { breakfast, lunch, dinner, activity, drink, club }
 
@@ -20,6 +24,7 @@ class TripAnswers {
   final Set<TripMeal> meals;
   final bool activities;
   final TripNight night;
+  final TripMusic music;
 
   const TripAnswers({
     required this.group,
@@ -28,6 +33,7 @@ class TripAnswers {
     required this.meals,
     required this.activities,
     this.night = TripNight.none,
+    this.music = TripMusic.any,
   });
 }
 

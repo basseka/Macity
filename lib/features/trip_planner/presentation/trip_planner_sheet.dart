@@ -29,7 +29,7 @@ class TripPlannerSheet extends StatefulWidget {
   State<TripPlannerSheet> createState() => _TripPlannerSheetState();
 }
 
-enum _Step { group, people, days, meals, activities, night, plan }
+enum _Step { group, people, days, meals, activities, night, music, plan }
 
 class _TripPlannerSheetState extends State<TripPlannerSheet> {
   late final Future<TripPools> _poolsFuture =
@@ -42,6 +42,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
   final Set<TripMeal> _meals = {TripMeal.midi, TripMeal.soir};
   bool? _activities;
   TripNight? _night;
+  TripMusic? _music;
 
   TripPools? _pools;
   TripPlan? _plan;
@@ -56,6 +57,9 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
         _Step.activities,
         // Bar / discotheque : pas propose aux familles.
         if (_group != TripGroup.famille) _Step.night,
+        // Style musical : seulement si une discotheque est prevue.
+        if (_group != TripGroup.famille && _night == TripNight.barClub)
+          _Step.music,
       ];
 
   TripNight get _nightChoice =>
@@ -70,6 +74,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
         _Step.activities =>
           _activities != null && (_flow.last != _Step.activities || _hasSomething),
         _Step.night => _night != null && _hasSomething,
+        _Step.music => _music != null,
         _ => true,
       };
 
@@ -104,6 +109,9 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
         meals: {..._meals},
         activities: _activities ?? false,
         night: _nightChoice,
+        music: _nightChoice == TripNight.barClub
+            ? (_music ?? TripMusic.any)
+            : TripMusic.any,
       );
 
   Future<void> _generate() async {
@@ -279,6 +287,20 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
             _option('😴', 'Pas de sortie', null,
                 _night == TripNight.none, () => setState(() => _night = TripNight.none)),
             if (_night != null && !_hasSomething) _warning(),
+          ],
+        _Step.music => [
+            _title('Quelle musique en discothèque ?',
+                'On choisit le club selon vos goûts.'),
+            for (final (m, emoji, label, sub) in const [
+              (TripMusic.electro, '🎧', 'Électro / Techno', 'House, techno, électro'),
+              (TripMusic.hiphop, '🎤', 'Hip-hop / R&B / Afro', 'Rap, R&B, afrobeats, dancehall'),
+              (TripMusic.latino, '🎺', 'Latino / Reggaeton', 'Reggaeton, salsa, bachata'),
+              (TripMusic.generaliste, '🎶', 'Généraliste / Hits', 'Tubes du moment, années 80 à 2000'),
+              (TripMusic.rock, '🎸', 'Rock / Indie', 'Rock, indie, pop-rock'),
+              (TripMusic.any, '🤷', 'Peu importe', null),
+            ])
+              _option(emoji, label, sub, _music == m,
+                  () => setState(() => _music = m)),
           ],
         _Step.plan => const [],
       },

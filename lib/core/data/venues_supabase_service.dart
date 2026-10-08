@@ -45,6 +45,29 @@ class VenuesSupabaseService {
     return data.map((e) => _mapToCommerce(e as Map<String, dynamic>)).toList();
   }
 
+  /// Styles musicaux des discotheques de [ville] : id venue -> cles
+  /// ('electro', 'hiphop', 'latino', 'generaliste', 'rock'). Clubs sans
+  /// style renseigne absents de la map.
+  Future<Map<int, List<String>>> fetchClubMusicGenres({
+    required String ville,
+  }) async {
+    final response = await _dio.get('venues', queryParameters: {
+      'select': 'id,music_genres',
+      'is_active': 'eq.true',
+      'mode': 'eq.night',
+      'category': 'eq.Club Discotheque',
+      'ville': 'ilike.$ville*',
+      'music_genres': 'not.is.null',
+    });
+    final out = <int, List<String>>{};
+    for (final e in response.data as List) {
+      final m = e as Map<String, dynamic>;
+      final genres = (m['music_genres'] as List?)?.whereType<String>().toList();
+      if (genres != null && genres.isNotEmpty) out[(m['id'] as num).toInt()] = genres;
+    }
+    return out;
+  }
+
   /// Count venues for a given [mode] and [ville].
   Future<int> countVenues({
     required String mode,

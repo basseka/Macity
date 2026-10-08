@@ -37,11 +37,19 @@ class TripPlannerService {
       safe<CommerceModel>(_venues.fetchVenues(mode: 'culture', ville: ville)),
       safe<CommerceModel>(_venues.fetchVenues(mode: 'night', ville: ville)),
     ]);
+    // A part : colonne absente (migration non appliquee) = pas de styles.
+    final clubGenres = await _venues
+        .fetchClubMusicGenres(ville: ville)
+        .catchError((Object e) {
+      debugPrint('[TripPlanner] styles musicaux KO: $e');
+      return <int, List<String>>{};
+    });
     return TripPools(
       restaurants: results[0] as List<RestaurantVenue>,
       family: results[1] as List<FamilyVenue>,
       culture: results[2] as List<CommerceModel>,
       night: results[3] as List<CommerceModel>,
+      clubGenres: clubGenres,
     );
   }
 }
@@ -53,11 +61,15 @@ class TripPools {
   final List<CommerceModel> culture;
   final List<CommerceModel> night;
 
+  /// id venue -> styles musicaux de la discotheque (cf. [TripMusic]).
+  final Map<int, List<String>> clubGenres;
+
   const TripPools({
     required this.restaurants,
     required this.family,
     required this.culture,
     required this.night,
+    this.clubGenres = const {},
   });
 
   bool get isEmpty => restaurants.isEmpty && family.isEmpty && culture.isEmpty;
@@ -166,14 +178,33 @@ class TripPools {
       .map(_nightCandidate)
       .toList();
 
-  List<TripCandidate> _clubCandidates() => night
+  /// Discotheques, classees selon le style musical demande : un club du bon
+  /// style (+150) passe devant un partenaire d'un autre style (+100). Un club
+  /// au style inconnu reste proposable, juste devant ceux d'un autre style,
+  /// pour ne jamais laisser l'etape vide.
+  List<TripCandidate> _clubCandidates(TripMusic music) => night
       .where((c) => _matchesAny(c.categorie, _clubKeywords))
-      .map(_nightCandidate)
+      .map((c) {
+        final genres = clubGenres[c.sourceId] ?? const <String>[];
+        final affinity = music == TripMusic.any
+            ? 0
+            : genres.contains(music.name)
+                ? 5
+                : (genres.isEmpty ? 1 : 0);
+        return TripCandidate(
+          key: 'venue:${c.sourceId ?? c.nom}',
+          commerce: c,
+          isPartner: c.isPartner,
+          priority: 0,
+          affinity: affinity,
+        );
+      })
       .toList();
 
   /// Candidats notes pour une etape (sans notion de zone). [seed] fait varier
   /// l'ordre entre deux propositions sans faire passer un partenaire derriere.
-  List<(TripCandidate, int)> _scored(TripStopKind kind, TripGroup group, int seed) {
+  List<(TripCandidate, int)> _scored(TripStopKind kind, TripGroup group, int seed,
+      [TripMusic music = TripMusic.any]) {
     final list = switch (kind) {
       TripStopKind.breakfast ||
       TripStopKind.lunch ||
@@ -181,7 +212,7 @@ class TripPools {
         _restaurantCandidates(kind, group),
       TripStopKind.activity => _activityCandidates(group),
       TripStopKind.drink => _drinkCandidates(),
-      TripStopKind.club => _clubCandidates(),
+      TripStopKind.club => _clubCandidates(music),
     };
     final rnd = Random(seed * 31 + kind.index);
     return list
@@ -256,7 +287,7 @@ class TripPools {
   TripPlan build(TripAnswers a, {int seed = 0}) {
     final used = <String>{};
     final scored = {
-      for (final k in TripStopKind.values) k: _scored(k, a.group, seed),
+      for (final k in TripStopKind.values) k: _scored(k, a.group, seed, a.music),
     };
 
     final days = <TripDay>[];
@@ -294,7 +325,7 @@ class TripPools {
       ...rejected,
     };
     var c = _pick(
-      _scored(stop.kind, plan.answers.group, plan.seed),
+      _scored(stop.kind, plan.answers.group, plan.seed, plan.answers.music),
       exclude,
       _anchorOf(day.stops, skipKey: stop.candidate.key),
     );

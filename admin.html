@@ -3976,6 +3976,8 @@
 
     // ─── Auto-completion : noms de lieux (substring search, custom dropdown) ───
     let allVenues = [];          // cache full liste, filtree par rubrique au render
+    // Cles de venues.music_genres (= TripMusic cote app, hors "any").
+    const MUSIC_GENRES = ["electro", "hiphop", "latino", "generaliste", "rock"];
     let filteredVenues = [];     // sous-ensemble par mode (selon rubrique)
     let activeIndex = -1;        // index resultat surligne via fleches clavier
     const venueDropdown = document.getElementById("venue-dropdown");
@@ -4108,6 +4110,25 @@
       allVenues = all;
       refreshFilteredVenues();
       // L'onglet "Établissements" depend de allVenues + allEtabs.
+      if (typeof refreshVenuesView === "function") refreshVenuesView();
+      loadClubMusicGenres();
+    }
+
+    // Styles musicaux des discothèques (venues.music_genres), lus à part :
+    // si la migration n'est pas encore appliquée, seul ce champ manque.
+    async function loadClubMusicGenres() {
+      const { data, error } = await supabase
+        .from("venues")
+        .select("id, music_genres")
+        .eq("category", "Club Discotheque");
+      if (error) {
+        console.warn("[music_genres] colonne absente ?", error.message);
+        return;
+      }
+      const byId = new Map((data || []).map(r => [r.id, r.music_genres]));
+      for (const v of allVenues) {
+        if (byId.has(v.id)) v.music_genres = byId.get(v.id);
+      }
       if (typeof refreshVenuesView === "function") refreshVenuesView();
     }
 
@@ -10885,6 +10906,8 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         horaires: r.horaires || "",
         website: r.website_url || "",
         lienMaps: r.lien_maps || "",
+        // undefined = colonne pas encore chargée/créée (champ non affiché).
+        musicGenres: r.music_genres,
       }));
       // L'app ne lit `etablissements` QUE pour food. Pour night/culture/
       // famille elle lit `venues` (et sport → `sport_venues`), donc les
@@ -11226,6 +11249,11 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           : "Priorité d'affichage globale (display_priority)";
         const catAttr = isCatOverride ? ` data-cat="${escapeHtml(activeCat)}"` : "";
         prioCtrl = `<label class="venue-prio" title="${escapeHtml(title)}"><span>${escapeHtml(lbl)}</span><input type="number" data-role="prio-input"${catAttr} value="${val}" step="1" /></label>`;
+      }
+      // Discothèques : styles musicaux (choix de club dans « Organiser mon trip »).
+      if (f.source === "venues" && f.type === "Club Discotheque" && f.musicGenres !== undefined) {
+        const val = Array.isArray(f.musicGenres) ? f.musicGenres.join(", ") : "";
+        prioCtrl += `<label class="venue-prio" title="Styles musicaux, séparés par des virgules : ${MUSIC_GENRES.join(", ")}"><span>🎵</span><input type="text" data-role="music-input" value="${escapeHtml(val)}" placeholder="electro, hiphop…" style="width:150px" /></label>`;
       }
       // Pour les food etabs : bouton qui deplie les 5 inputs prio par cat.
       const isFoodEtab = f.source === "etablissements" && (f.rubrique || "").toLowerCase() === "food";
@@ -12139,6 +12167,41 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       }
       toast(toastMsg, true);
       renderVenuesList();
+    });
+
+    // Styles musicaux d'une discothèque -> UPDATE venues SET music_genres.
+    venuesList.addEventListener("change", async (ev) => {
+      const input = ev.target.closest('input[data-role="music-input"]');
+      if (!input) return;
+      const item = input.closest(".venue-item");
+      if (!item || item.dataset.source !== "venues") return;
+      const id = Number(item.dataset.id);
+      const keys = input.value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+      const unknown = keys.filter(k => !MUSIC_GENRES.includes(k));
+      if (unknown.length) {
+        toast(`Style inconnu : ${unknown.join(", ")} (autorisés : ${MUSIC_GENRES.join(", ")})`, false);
+        return;
+      }
+      const genres = [...new Set(keys)];
+      input.disabled = true;
+      const { data, error } = await supabase
+        .from("venues")
+        .update({ music_genres: genres.length ? genres : null })
+        .eq("id", id)
+        .select("id, music_genres");
+      input.disabled = false;
+      if (error) {
+        toast("Erreur styles : " + (error.message || "échec"), false);
+        return;
+      }
+      if (!data || data.length === 0) {
+        toast("⚠️ 0 ligne modifiée (RLS) — vérifie la policy « admin_update_venues ».", false);
+        return;
+      }
+      const row = allVenues.find(r => r.id === id);
+      if (row) row.music_genres = data[0].music_genres;
+      input.value = genres.join(", ");
+      toast(genres.length ? `Styles : ${genres.join(", ")} ✓` : "Styles retirés", true);
     });
 
     venuesList.addEventListener("input", (ev) => {
