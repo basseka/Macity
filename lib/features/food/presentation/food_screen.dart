@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,12 +59,12 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           SliverToBoxAdapter(
             child: EditorialMasthead(
               kicker: selectedCategory == null
-                  ? 'Rubrique · Plaisirs'
-                  : 'Food · $selectedCategory',
-              title: selectedCategory ?? 'Food',
+                  ? context.l10n.foodKickerHome
+                  : '${context.l10n.rubriqueFood} · $selectedCategory',
+              title: selectedCategory ?? context.l10n.rubriqueFood,
               accent: RubricColors.food,
               blurb: selectedCategory == null
-                  ? 'Restaurants, brunchs, marches — la carte gourmande de la ville.'
+                  ? context.l10n.foodBlurb
                   : null,
               onBack: selectedCategory == null
                   ? () => context.go('/home')
@@ -122,13 +123,13 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                           ),
                         ],
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.near_me, size: 14, color: Colors.white),
                           SizedBox(width: 5),
                           Text(
-                            'Carte',
+                            context.l10n.commonMap,
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -172,7 +173,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Categories',
+                          context.l10n.commonCategories,
                           style: TextStyle(
                             color: modeTheme.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -198,8 +199,8 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                   : venuesAsync.when(
                   data: (venues) {
                     if (venues.isEmpty) {
-                      return const EmptyStateWidget(
-                        message: 'Aucun lieu trouve pour cette categorie',
+                      return EmptyStateWidget(
+                        message: context.l10n.commonNoPlaceForCategory,
                         icon: Icons.restaurant,
                       );
                     }
@@ -215,7 +216,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                   loading: () =>
                       LoadingIndicator(color: modeTheme.primaryColor),
                   error: (error, _) => AppErrorWidget(
-                    message: 'Erreur lors du chargement des lieux',
+                    message: context.l10n.commonPlacesLoadError,
                     onRetry: () => ref.invalidate(foodVenuesProvider),
                   ),
                 ),
@@ -312,7 +313,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
     if (allVenues.isEmpty) {
       return Center(
         child: Text(
-          'Aucun restaurant',
+          context.l10n.foodNoRestaurant,
           style: TextStyle(fontSize: 13, color: AppColors.textFaint),
         ),
       );
@@ -381,7 +382,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       data: (grouped) => _buildGroupedVenuesList(grouped, modeTheme, ref),
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des lieux',
+        message: context.l10n.commonPlacesLoadError,
         onRetry: () => ref.invalidate(foodGroupedVenuesProvider),
       ),
     );

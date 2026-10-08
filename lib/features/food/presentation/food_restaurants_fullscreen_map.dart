@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -40,7 +41,7 @@ class FoodRestaurantsFullscreenMap extends ConsumerWidget {
           children: [
             VenuesMapView(
               venues: commerceList,
-              title: 'Restaurant le plus proche',
+              title: context.l10n.mapNearestRestaurant,
               accentColor: '#F97316',
               categoryColors: const {'Restaurant': '#F97316'},
               showLabels: true,
@@ -69,7 +70,7 @@ class FoodRestaurantsFullscreenMap extends ConsumerWidget {
       ),
       error: (_, __) => Stack(
         children: [
-          const Center(child: Text('Erreur de chargement')),
+          Center(child: Text(context.l10n.commonLoadError)),
           _buildListButton(ref, modeTheme),
         ],
       ),
@@ -100,6 +101,7 @@ class FoodRestaurantsFullscreenMap extends ConsumerWidget {
       );
 
   Widget _buildListButton(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     return Positioned(
       top: 8,
       right: 12,
@@ -125,13 +127,13 @@ class FoodRestaurantsFullscreenMap extends ConsumerWidget {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.list, size: 14, color: Colors.white),
                 SizedBox(width: 5),
                 Text(
-                  'Liste',
+                  context.l10n.commonList,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,

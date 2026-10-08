@@ -6789,6 +6789,192 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'S\'abonner pour 5,90 €/mois'**
   String get subSubscribe;
+
+  /// No description provided for @foodChipRestaurants.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurants'**
+  String get foodChipRestaurants;
+
+  /// No description provided for @foodChipGuinguette.
+  ///
+  /// In fr, this message translates to:
+  /// **'Guinguette'**
+  String get foodChipGuinguette;
+
+  /// No description provided for @foodChipBuffets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Buffets'**
+  String get foodChipBuffets;
+
+  /// No description provided for @foodChipTeaRoom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Salon de Thé'**
+  String get foodChipTeaRoom;
+
+  /// No description provided for @foodChipBrunch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brunch'**
+  String get foodChipBrunch;
+
+  /// No description provided for @foodChipTapas.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tapas'**
+  String get foodChipTapas;
+
+  /// No description provided for @foodChipPintxos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pintxos'**
+  String get foodChipPintxos;
+
+  /// No description provided for @foodChipFish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poisson'**
+  String get foodChipFish;
+
+  /// No description provided for @foodChipMeat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Viande'**
+  String get foodChipMeat;
+
+  /// No description provided for @foodLocateToSort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Active la localisation pour trier par proximité.'**
+  String get foodLocateToSort;
+
+  /// No description provided for @foodNearestToMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus proche de moi'**
+  String get foodNearestToMe;
+
+  /// No description provided for @foodPartners.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nos restaurants partenaires'**
+  String get foodPartners;
+
+  /// No description provided for @foodBannerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservez, découvrez, régalez-vous.'**
+  String get foodBannerTitle;
+
+  /// No description provided for @foodBannerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les meilleures tables vous attendent.'**
+  String get foodBannerSubtitle;
+
+  /// No description provided for @foodTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Food.'**
+  String get foodTitle;
+
+  /// No description provided for @foodSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des restaurants, des saveurs à partager.'**
+  String get foodSubtitle;
+
+  /// No description provided for @foodAroundMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autour de moi'**
+  String get foodAroundMe;
+
+  /// No description provided for @foodFavourite.
+  ///
+  /// In fr, this message translates to:
+  /// **'COUP DE CŒUR'**
+  String get foodFavourite;
+
+  /// No description provided for @foodKickerHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rubrique · Plaisirs'**
+  String get foodKickerHome;
+
+  /// No description provided for @foodBlurb.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurants, brunchs, marchés : la carte gourmande de la ville.'**
+  String get foodBlurb;
+
+  /// No description provided for @foodNoRestaurant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun restaurant'**
+  String get foodNoRestaurant;
+
+  /// No description provided for @mapNearestRestaurant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurant le plus proche'**
+  String get mapNearestRestaurant;
+
+  /// No description provided for @resErrDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis une date'**
+  String get resErrDate;
+
+  /// No description provided for @resErrTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis une heure'**
+  String get resErrTime;
+
+  /// No description provided for @resErrSignup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Termine ton inscription (prénom requis)'**
+  String get resErrSignup;
+
+  /// No description provided for @resSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande envoyée. Tu seras notifié dès la réponse.'**
+  String get resSent;
+
+  /// No description provided for @resBook.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserver'**
+  String get resBook;
+
+  /// No description provided for @resPeople.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nombre de personnes'**
+  String get resPeople;
+
+  /// No description provided for @resPhoneOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléphone (facultatif)'**
+  String get resPhoneOptional;
+
+  /// No description provided for @resComment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commentaire (allergies, occasion...)'**
+  String get resComment;
+
+  /// No description provided for @resSendRequest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer la demande'**
+  String get resSendRequest;
 }
 
 class _AppLocalizationsDelegate

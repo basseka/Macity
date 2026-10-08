@@ -3756,4 +3756,99 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get subSubscribe => 'S\'abonner pour 5,90 €/mois';
+
+  @override
+  String get foodChipRestaurants => 'Restaurants';
+
+  @override
+  String get foodChipGuinguette => 'Guinguette';
+
+  @override
+  String get foodChipBuffets => 'Buffets';
+
+  @override
+  String get foodChipTeaRoom => 'Salon de Thé';
+
+  @override
+  String get foodChipBrunch => 'Brunch';
+
+  @override
+  String get foodChipTapas => 'Tapas';
+
+  @override
+  String get foodChipPintxos => 'Pintxos';
+
+  @override
+  String get foodChipFish => 'Poisson';
+
+  @override
+  String get foodChipMeat => 'Viande';
+
+  @override
+  String get foodLocateToSort =>
+      'Active la localisation pour trier par proximité.';
+
+  @override
+  String get foodNearestToMe => 'Plus proche de moi';
+
+  @override
+  String get foodPartners => 'Nos restaurants partenaires';
+
+  @override
+  String get foodBannerTitle => 'Réservez, découvrez, régalez-vous.';
+
+  @override
+  String get foodBannerSubtitle => 'Les meilleures tables vous attendent.';
+
+  @override
+  String get foodTitle => 'Food.';
+
+  @override
+  String get foodSubtitle => 'Des restaurants, des saveurs à partager.';
+
+  @override
+  String get foodAroundMe => 'Autour de moi';
+
+  @override
+  String get foodFavourite => 'COUP DE CŒUR';
+
+  @override
+  String get foodKickerHome => 'Rubrique · Plaisirs';
+
+  @override
+  String get foodBlurb =>
+      'Restaurants, brunchs, marchés : la carte gourmande de la ville.';
+
+  @override
+  String get foodNoRestaurant => 'Aucun restaurant';
+
+  @override
+  String get mapNearestRestaurant => 'Restaurant le plus proche';
+
+  @override
+  String get resErrDate => 'Choisis une date';
+
+  @override
+  String get resErrTime => 'Choisis une heure';
+
+  @override
+  String get resErrSignup => 'Termine ton inscription (prénom requis)';
+
+  @override
+  String get resSent => 'Demande envoyée. Tu seras notifié dès la réponse.';
+
+  @override
+  String get resBook => 'Réserver';
+
+  @override
+  String get resPeople => 'Nombre de personnes';
+
+  @override
+  String get resPhoneOptional => 'Téléphone (facultatif)';
+
+  @override
+  String get resComment => 'Commentaire (allergies, occasion...)';
+
+  @override
+  String get resSendRequest => 'Envoyer la demande';
 }

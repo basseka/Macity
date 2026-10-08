@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -78,8 +79,8 @@ class FoodVenueCard extends ConsumerWidget {
                       color: const Color(0xFF7B2D8E).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'Ouvert',
+                    child: Text(
+                      context.l10n.commonOpen,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -153,7 +154,7 @@ class FoodVenueCard extends ConsumerWidget {
                 if (commerce.telephone.isNotEmpty)
                   _buildAction(
                     icon: Icons.phone_outlined,
-                    label: 'Appeler',
+                    label: context.l10n.commonCall,
                     color: modeTheme.primaryColor,
                     onTap: () async {
                       final uri = Uri(scheme: 'tel', path: commerce.telephone);
@@ -168,7 +169,7 @@ class FoodVenueCard extends ConsumerWidget {
                   ),
                 _buildAction(
                   icon: Icons.share_outlined,
-                  label: 'Partager',
+                  label: context.l10n.commonShare,
                   color: AppColors.textDim,
                   onTap: () {
                     final buffer = StringBuffer();
@@ -180,10 +181,10 @@ class FoodVenueCard extends ConsumerWidget {
                     final id = commerce.sourceId;
                     if (id != null && id > 0) {
                       final table = commerce.sourceTable ?? 'etablissement';
-                      buffer.writeln('\nDecouvre sur MaCity 👉');
+                      buffer.writeln('\n${context.l10n.shareFooterPointing}');
                       buffer.writeln('https://macity.app/lieu/$table/$id');
                     } else {
-                      buffer.writeln('\nDecouvre sur MaCity');
+                      buffer.writeln('\n${context.l10n.shareFooter}');
                     }
                     Share.share(buffer.toString());
                   },

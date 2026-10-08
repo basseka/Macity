@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -83,7 +84,7 @@ class RestaurantVenueCard extends ConsumerWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () => _share(),
+                onTap: () => _share(context),
                 child: Icon(
                   Icons.share_outlined,
                   color: AppColors.textFaint,
@@ -120,7 +121,7 @@ class RestaurantVenueCard extends ConsumerWidget {
     );
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(venue.name);
     buffer.writeln(venue.adresse);
@@ -130,10 +131,10 @@ class RestaurantVenueCard extends ConsumerWidget {
     // etablissement. App Links macity.app/food/* ouvrent la fiche dans l'app.
     final id = int.tryParse(venue.id);
     if (id != null && id > 0) {
-      buffer.writeln('\nDecouvre sur MaCity 👉');
+      buffer.writeln('\n${context.l10n.shareFooterPointing}');
       buffer.writeln('https://macity.app/lieu/etablissement/$id');
     } else {
-      buffer.writeln('\nDecouvre sur MaCity');
+      buffer.writeln('\n${context.l10n.shareFooter}');
     }
     Share.share(buffer.toString());
   }

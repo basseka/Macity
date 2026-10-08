@@ -3739,4 +3739,99 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get subSubscribe => 'Suscribirse por 5,90 €/mes';
+
+  @override
+  String get foodChipRestaurants => 'Restaurantes';
+
+  @override
+  String get foodChipGuinguette => 'Merendero';
+
+  @override
+  String get foodChipBuffets => 'Bufés';
+
+  @override
+  String get foodChipTeaRoom => 'Salón de té';
+
+  @override
+  String get foodChipBrunch => 'Brunch';
+
+  @override
+  String get foodChipTapas => 'Tapas';
+
+  @override
+  String get foodChipPintxos => 'Pintxos';
+
+  @override
+  String get foodChipFish => 'Pescado';
+
+  @override
+  String get foodChipMeat => 'Carne';
+
+  @override
+  String get foodLocateToSort =>
+      'Activa la ubicación para ordenar por cercanía.';
+
+  @override
+  String get foodNearestToMe => 'Más cerca de mí';
+
+  @override
+  String get foodPartners => 'Nuestros restaurantes asociados';
+
+  @override
+  String get foodBannerTitle => 'Reserva, descubre, disfruta.';
+
+  @override
+  String get foodBannerSubtitle => 'Las mejores mesas te esperan.';
+
+  @override
+  String get foodTitle => 'Comida.';
+
+  @override
+  String get foodSubtitle => 'Restaurantes y sabores para compartir.';
+
+  @override
+  String get foodAroundMe => 'Cerca de mí';
+
+  @override
+  String get foodFavourite => 'FAVORITO';
+
+  @override
+  String get foodKickerHome => 'Sección · Placeres';
+
+  @override
+  String get foodBlurb =>
+      'Restaurantes, brunchs, mercados: el mapa gastronómico de la ciudad.';
+
+  @override
+  String get foodNoRestaurant => 'Ningún restaurante';
+
+  @override
+  String get mapNearestRestaurant => 'Restaurante más cercano';
+
+  @override
+  String get resErrDate => 'Elige una fecha';
+
+  @override
+  String get resErrTime => 'Elige una hora';
+
+  @override
+  String get resErrSignup => 'Completa tu registro (nombre obligatorio)';
+
+  @override
+  String get resSent => 'Solicitud enviada. Te avisaremos cuando respondan.';
+
+  @override
+  String get resBook => 'Reservar';
+
+  @override
+  String get resPeople => 'Número de personas';
+
+  @override
+  String get resPhoneOptional => 'Teléfono (opcional)';
+
+  @override
+  String get resComment => 'Comentario (alergias, ocasión...)';
+
+  @override
+  String get resSendRequest => 'Enviar solicitud';
 }

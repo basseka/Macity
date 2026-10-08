@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -94,9 +96,9 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
+                      child: Text(context.l10n.commonCancel, style: TextStyle(color: AppColors.textFaint)),
                     ),
-                    Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text(context.l10n.commonDate, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -156,9 +158,9 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
+                      child: Text(context.l10n.commonCancel, style: TextStyle(color: AppColors.textFaint)),
                     ),
-                    Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text(context.l10n.commonTime, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -196,16 +198,16 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
   Future<void> _submit() async {
     setState(() => _error = null);
     if (_date == null) {
-      setState(() => _error = 'Choisis une date');
+      setState(() => _error = context.l10n.resErrDate);
       return;
     }
     if (_heure == null) {
-      setState(() => _error = 'Choisis une heure');
+      setState(() => _error = context.l10n.resErrTime);
       return;
     }
     final prenom = ref.read(userPrenomProvider).valueOrNull ?? '';
     if (prenom.isEmpty) {
-      setState(() => _error = 'Termine ton inscription (prénom requis)');
+      setState(() => _error = context.l10n.resErrSignup);
       return;
     }
 
@@ -225,9 +227,9 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
       if (!mounted) return;
       Navigator.of(context).pop(true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           backgroundColor: Color(0xFF22C55E),
-          content: Text('Demande envoyée. Tu seras notifié dès la réponse.'),
+          content: Text(context.l10n.resSent),
           duration: Duration(seconds: 4),
         ),
       );
@@ -278,7 +280,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Réserver',
+                          context.l10n.resBook,
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -311,9 +313,9 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                         Expanded(
                           child: _PickerButton(
                             icon: Icons.calendar_today,
-                            label: 'Date',
+                            label: context.l10n.commonDate,
                             value: _date != null
-                                ? DateFormat('d MMM yyyy', 'fr_FR').format(_date!)
+                                ? DateFormat('d MMM yyyy', context.dateLocale).format(_date!)
                                 : null,
                             onTap: _pickDate,
                           ),
@@ -322,7 +324,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                         Expanded(
                           child: _PickerButton(
                             icon: Icons.access_time,
-                            label: 'Heure',
+                            label: context.l10n.commonTime,
                             value: _heure != null
                                 ? '${_heure!.hour.toString().padLeft(2, '0')}:${_heure!.minute.toString().padLeft(2, '0')}'
                                 : null,
@@ -332,7 +334,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    _label('Nombre de personnes'),
+                    _label(context.l10n.resPeople),
                     const SizedBox(height: 6),
                     _NbPersonnesStepper(
                       value: _nbPersonnes,
@@ -342,7 +344,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                     TextField(
                       controller: _telCtrl,
                       keyboardType: TextInputType.phone,
-                      decoration: _input('Téléphone (facultatif)'),
+                      decoration: _input(context.l10n.resPhoneOptional),
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF1A0F2E),
@@ -352,7 +354,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: _commentaireCtrl,
-                      decoration: _input('Commentaire (allergies, occasion...)'),
+                      decoration: _input(context.l10n.resComment),
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFF1A0F2E),
@@ -412,7 +414,7 @@ class _ReservationFormSheetState extends ConsumerState<ReservationFormSheet> {
                           )
                         : const Icon(Icons.send, size: 16),
                     label: Text(
-                      _submitting ? 'Envoi...' : 'Envoyer la demande',
+                      _submitting ? context.l10n.emailVerifySending : context.l10n.resSendRequest,
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                     ),
                   ),

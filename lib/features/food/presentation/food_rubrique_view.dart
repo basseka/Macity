@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -211,8 +212,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
     if (_userPosition == null) {
       setState(() => _sortByProximity = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Active la localisation pour trier par proximité.'),
+        SnackBar(
+          content: Text(context.l10n.foodLocateToSort),
         ),
       );
     }
@@ -245,8 +246,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             const SizedBox(height: 18),
             _chipsRow(restaurantsAsync.valueOrNull ?? const []),
             ..._partnerSection(restaurantsAsync.valueOrNull ?? const []),
-            _sectionHeader('Restaurants',
-                actionLabel: 'Plus proche de moi',
+            _sectionHeader(context.l10n.foodChipRestaurants,
+                actionLabel: context.l10n.foodNearestToMe,
                 actionIcon: Icons.near_me_rounded,
                 actionPill: true,
                 actionActive: _sortByProximity,
@@ -364,7 +365,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                       color: active ? Colors.white : FoodTokens.ink),
                   const SizedBox(width: 5),
                   Text(
-                    c.label,
+                    _chipLabel(context, c.label),
                     style: FoodTokens.chip(
                       color: active ? Colors.white : FoodTokens.ink,
                     ),
@@ -382,7 +383,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   Widget _sectionHeader(String title,
       {required VoidCallback onSeeAll,
       double? fontSize,
-      String actionLabel = 'Voir tout',
+      String? actionLabel,
       IconData actionIcon = Icons.chevron_right,
       bool actionPill = false,
       bool actionActive = false,
@@ -406,7 +407,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             Icon(actionIcon, size: 15, color: fg),
             const SizedBox(width: 5),
             Text(
-              actionLabel,
+              actionLabel ?? context.l10n.commonSeeAll,
               style: FoodTokens.chip(color: fg, w: FontWeight.w600),
             ),
           ],
@@ -417,7 +418,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            actionLabel,
+            actionLabel ?? context.l10n.commonSeeAll,
             style: FoodTokens.chip(color: FoodTokens.forest),
           ),
           const SizedBox(width: 2),
@@ -463,7 +464,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   Widget _emptyCarousel() => Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         child: Text(
-          'Aucune adresse pour cette sélection.',
+          context.l10n.landingNoPlaceForSelection,
           style: FoodTokens.body(),
         ),
       );
@@ -487,7 +488,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
     partners.shuffle(math.Random(seed));
     final list = partners;
     return [
-      _sectionHeader('Nos restaurants partenaires',
+      _sectionHeader(context.l10n.foodPartners,
           showAction: false, onSeeAll: () {}),
       SizedBox(
         height: 212,
@@ -527,7 +528,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             const [];
     if (items.isEmpty) return const [];
     return [
-      _sectionHeader('Inspirations du moment',
+      _sectionHeader(context.l10n.landingInspirations,
           onSeeAll: () {}, fontSize: 11.5),
       SizedBox(
         height: 178,
@@ -617,7 +618,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
           );
 
     return [
-      _sectionHeader('Affinez votre recherche',
+      _sectionHeader(context.l10n.landingRefine,
           showAction: false, onSeeAll: () {}),
       SizedBox(
         height: 40,
@@ -629,7 +630,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
           separatorBuilder: (_, __) => const SizedBox(width: 6),
           itemBuilder: (_, i) {
             if (i == 0) {
-              return _cuisineChip('Tous', selected == null,
+              return _cuisineChip(context.l10n.refineAll, selected == null,
                   () => setState(() => _activeCuisine = null));
             }
             final c = cuisines[i - 1];
@@ -713,7 +714,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
           height: 390,
           child: VenuesMapView(
             venues: points,
-            title: 'Restaurants',
+            title: context.l10n.foodChipRestaurants,
             accentColor: '#0F3D2E', // FoodTokens.forest
             autoLocate: false,
             showClosestPanel: false,
@@ -789,10 +790,10 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Réservez, découvrez, régalez-vous.',
+                  Text(context.l10n.foodBannerTitle,
                       style: FoodTokens.bannerTitle()),
                   const SizedBox(height: 2),
-                  Text('Les meilleures tables vous attendent.',
+                  Text(context.l10n.foodBannerSubtitle,
                       style: FoodTokens.meta(color: FoodTokens.muted)),
                 ],
               ),
@@ -816,7 +817,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                   boxShadow: FoodTokens.ctaPill(),
                 ),
                 child: Text(
-                  'Découvrir',
+                  context.l10n.commonDiscover,
                   style: FoodTokens.chip(
                       color: Colors.white, w: FontWeight.w600),
                 ),
@@ -1049,7 +1050,7 @@ class _Hero extends StatelessWidget {
                           size: 17, color: FoodTokens.ink),
                     ),
                     const Spacer(),
-                    _mapLivePill(onMapLive),
+                    _mapLivePill(context, onMapLive),
                   ],
                 ),
               ),
@@ -1071,13 +1072,13 @@ class _Hero extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('Food.', style: FoodTokens.heroTitle()),
+                              Text(context.l10n.foodTitle, style: FoodTokens.heroTitle()),
                               const SizedBox(height: 8),
                               ConstrainedBox(
                                 constraints:
                                     const BoxConstraints(maxWidth: 230),
                                 child: Text(
-                                  'Des restaurants, des saveurs à partager.',
+                                  context.l10n.foodSubtitle,
                                   style: FoodTokens.body(
                                       color: Colors.white
                                           .withValues(alpha: 0.78)),
@@ -1124,7 +1125,7 @@ class _Hero extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        'En savoir plus',
+                                        context.l10n.commonLearnMore,
                                         style: FoodTokens.chip(
                                             color: Colors.white,
                                             w: FontWeight.w600),
@@ -1184,7 +1185,7 @@ class _Hero extends StatelessWidget {
   }
 
 
-  Widget _mapLivePill(VoidCallback onTap) {
+  Widget _mapLivePill(BuildContext context, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -1216,7 +1217,7 @@ class _Hero extends StatelessWidget {
                 size: 13, color: Colors.white),
             const SizedBox(width: 5),
             Text(
-              'Autour de moi',
+              context.l10n.foodAroundMe,
               style: FoodTokens.chip(color: Colors.white).copyWith(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -1331,7 +1332,7 @@ class _RestaurantCard extends StatelessWidget {
                       const Icon(Icons.star,
                           size: 6, color: Color(0xFF2A1E06)),
                       const SizedBox(width: 2),
-                      Text('PARTENAIRE',
+                      Text(context.l10n.commonPartner,
                           style: FoodTokens.tinyTag(
                             color: const Color(0xFF2A1E06),
                             size: 5,
@@ -1367,7 +1368,7 @@ class _RestaurantCard extends StatelessWidget {
                       const Icon(Icons.favorite,
                           size: 5, color: Color(0xFF08221C)),
                       const SizedBox(width: 2),
-                      Text('COUP DE CŒUR',
+                      Text(context.l10n.foodFavourite,
                           style: FoodTokens.tinyTag(
                             color: const Color(0xFF08221C),
                             size: 5,
@@ -1658,3 +1659,17 @@ class _InspirationCard extends StatelessWidget {
     );
   }
 }
+
+/// Libelle affiche d'un chip Food (c.label sert aussi de cle d'etat).
+String _chipLabel(BuildContext context, String label) => switch (label) {
+      'Restaurants' => context.l10n.foodChipRestaurants,
+      'Guinguette' => context.l10n.foodChipGuinguette,
+      'Buffets' => context.l10n.foodChipBuffets,
+      'Salon de Thé' => context.l10n.foodChipTeaRoom,
+      'Brunch' => context.l10n.foodChipBrunch,
+      'Tapas' => context.l10n.foodChipTapas,
+      'Pintxos' => context.l10n.foodChipPintxos,
+      'Poisson' => context.l10n.foodChipFish,
+      'Viande' => context.l10n.foodChipMeat,
+      _ => label,
+    };

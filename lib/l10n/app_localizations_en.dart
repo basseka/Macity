@@ -3720,4 +3720,98 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get subSubscribe => 'Subscribe for €5.90/month';
+
+  @override
+  String get foodChipRestaurants => 'Restaurants';
+
+  @override
+  String get foodChipGuinguette => 'Riverside café';
+
+  @override
+  String get foodChipBuffets => 'Buffets';
+
+  @override
+  String get foodChipTeaRoom => 'Tea room';
+
+  @override
+  String get foodChipBrunch => 'Brunch';
+
+  @override
+  String get foodChipTapas => 'Tapas';
+
+  @override
+  String get foodChipPintxos => 'Pintxos';
+
+  @override
+  String get foodChipFish => 'Fish';
+
+  @override
+  String get foodChipMeat => 'Meat';
+
+  @override
+  String get foodLocateToSort => 'Turn on location to sort by distance.';
+
+  @override
+  String get foodNearestToMe => 'Nearest to me';
+
+  @override
+  String get foodPartners => 'Our partner restaurants';
+
+  @override
+  String get foodBannerTitle => 'Book, discover, enjoy.';
+
+  @override
+  String get foodBannerSubtitle => 'The best tables await you.';
+
+  @override
+  String get foodTitle => 'Food.';
+
+  @override
+  String get foodSubtitle => 'Restaurants and flavours to share.';
+
+  @override
+  String get foodAroundMe => 'Around me';
+
+  @override
+  String get foodFavourite => 'EDITOR\'S PICK';
+
+  @override
+  String get foodKickerHome => 'Section · Treats';
+
+  @override
+  String get foodBlurb =>
+      'Restaurants, brunches, markets: the city\'s food map.';
+
+  @override
+  String get foodNoRestaurant => 'No restaurants';
+
+  @override
+  String get mapNearestRestaurant => 'Nearest restaurant';
+
+  @override
+  String get resErrDate => 'Pick a date';
+
+  @override
+  String get resErrTime => 'Pick a time';
+
+  @override
+  String get resErrSignup => 'Finish signing up (first name required)';
+
+  @override
+  String get resSent => 'Request sent. You\'ll be notified when they reply.';
+
+  @override
+  String get resBook => 'Book';
+
+  @override
+  String get resPeople => 'Number of people';
+
+  @override
+  String get resPhoneOptional => 'Phone (optional)';
+
+  @override
+  String get resComment => 'Comment (allergies, occasion...)';
+
+  @override
+  String get resSendRequest => 'Send request';
 }
