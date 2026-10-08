@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -73,25 +74,25 @@ class _PublishChoiceSheetState extends ConsumerState<PublishChoiceSheet> {
             ),
           ),
           const SizedBox(height: 18),
-          Text('Publier un event',
+          Text(context.l10n.publishEventTitle,
               style: GoogleFonts.geist(
                   color: AppColors.text, fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
-          Text('Choisis le type de publication',
+          Text(context.l10n.publishChooseType,
               style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 13)),
           const SizedBox(height: 20),
 
           // Retour pro : rappelle son palier d'abonnement et l'effet sur le
           // placement de ses events dans le feed.
           if (isProApproved) ...[
-            _tierBanner(proState.profile?.subscriptionTier ?? 'normal'),
+            _tierBanner(context, proState.profile?.subscriptionTier ?? 'normal'),
             const SizedBox(height: 14),
           ],
 
           _choice(
             emoji: '🔒',
-            title: 'Event privé',
-            subtitle: 'Coffre secret sur invitation — gratuit',
+            title: context.l10n.eventPrivateTitle,
+            subtitle: context.l10n.publishPrivateSubtitle,
             gradient: const [Color(0xFFE91E8C), Color(0xFF7B2D8E)],
             onTap: () {
               Navigator.of(context).pop();
@@ -101,8 +102,8 @@ class _PublishChoiceSheetState extends ConsumerState<PublishChoiceSheet> {
           const SizedBox(height: 10),
           _choice(
             emoji: '🌍',
-            title: 'Event public',
-            subtitle: 'Visible par tous — formules à partir de 1,99 €',
+            title: context.l10n.eventPublicTitle,
+            subtitle: context.l10n.eventPublicSubtitle,
             gradient: const [Color(0xFFFF6B00), Color(0xFFE91E63)],
             onTap: () {
               Navigator.of(context).pop();
@@ -116,10 +117,12 @@ class _PublishChoiceSheetState extends ConsumerState<PublishChoiceSheet> {
           const SizedBox(height: 10),
           _choice(
             emoji: '👔',
-            title: isProApproved ? 'Publier en tant que pro' : 'Accès Pro',
+            title: isProApproved
+                ? context.l10n.publishAsPro
+                : context.l10n.proAccessTitle,
             subtitle: isProApproved
-                ? 'Publication illimitée (compte pro validé)'
-                : 'Espace professionnel (inscription / connexion)',
+                ? context.l10n.publishProUnlimited
+                : context.l10n.publishProSpace,
             gradient: const [Color(0xFF4A1259), Color(0xFF7B2D8E)],
             onTap: () {
               Navigator.of(context).pop();
@@ -144,21 +147,21 @@ class _PublishChoiceSheetState extends ConsumerState<PublishChoiceSheet> {
   }
 
   /// Bandeau qui indique au pro son palier et l'effet sur ses publications.
-  Widget _tierBanner(String tier) {
+  Widget _tierBanner(BuildContext context, String tier) {
     final ({String label, String effet, List<Color> grad}) meta = switch (tier) {
       'premium' => (
-          label: '💎 Abonnement Premium',
-          effet: 'Tous vos events passent à la une du feed.',
+          label: context.l10n.tierPremium,
+          effet: context.l10n.tierPremiumEffect,
           grad: const [Color(0xFF7B2D8E), Color(0xFFA855F7)],
         ),
       'gold' => (
-          label: '🥇 Abonnement Gold',
-          effet: 'Tous vos events sont mis au top du feed.',
+          label: context.l10n.tierGold,
+          effet: context.l10n.tierGoldEffect,
           grad: const [Color(0xFFB8860B), Color(0xFFF59E0B)],
         ),
       _ => (
-          label: 'Abonnement Normal',
-          effet: 'Vos events apparaissent dans le feed standard.',
+          label: context.l10n.tierNormal,
+          effet: context.l10n.tierNormalEffect,
           grad: const [Color(0xFF3A3A3A), Color(0xFF5A5A5A)],
         ),
     };

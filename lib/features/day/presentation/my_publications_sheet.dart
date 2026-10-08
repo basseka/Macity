@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -67,7 +69,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                     icon: const Icon(Icons.chevron_left, size: 26),
                     color: AppColors.textDim,
                     onPressed: () => Navigator.pop(context),
-                    tooltip: 'Retour',
+                    tooltip: context.l10n.commonBack,
                   )
                 else
                   const SizedBox(width: 48),
@@ -88,6 +90,7 @@ class MyPublicationsSheet extends ConsumerWidget {
             ),
           ),
           _buildHeader(
+            context,
             (eventsAsync.valueOrNull?.length ?? 0) +
                 (storiesAsync.valueOrNull?.length ?? 0),
           ),
@@ -129,7 +132,7 @@ class MyPublicationsSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              'Chargement...',
+              context.l10n.commonLoading,
               style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
             ),
           ],
@@ -140,7 +143,7 @@ class MyPublicationsSheet extends ConsumerWidget {
     final events = eventsAsync.valueOrNull ?? const [];
     final stories = storiesAsync.valueOrNull ?? const [];
 
-    if (events.isEmpty && stories.isEmpty) return _buildEmpty();
+    if (events.isEmpty && stories.isEmpty) return _buildEmpty(context);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -148,7 +151,7 @@ class MyPublicationsSheet extends ConsumerWidget {
         // ── Section evenements ──
         if (events.isNotEmpty) ...[
           _sectionHeader(
-            'Mes evenements',
+            context.l10n.pubMyEvents,
             events.length,
             Icons.calendar_today_rounded,
             const Color(0xFF00B894),
@@ -183,7 +186,7 @@ class MyPublicationsSheet extends ConsumerWidget {
         if (stories.isNotEmpty) ...[
           if (events.isNotEmpty) const SizedBox(height: 12),
           _sectionHeader(
-            'Mes stories',
+            context.l10n.pubMyStories,
             stories.length,
             Icons.auto_awesome_rounded,
             const Color(0xFFE91E8C),
@@ -192,7 +195,7 @@ class MyPublicationsSheet extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 8, left: 2),
             child: Text(
-              'Conservees un temps limite. Supprimables a tout moment.',
+              context.l10n.pubStoriesKept,
               style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textFaint),
             ),
           ),
@@ -246,7 +249,7 @@ class MyPublicationsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(int count) {
+  Widget _buildHeader(BuildContext context, int count) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
       child: Row(
@@ -268,7 +271,7 @@ class MyPublicationsSheet extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mes publications',
+                  context.l10n.accountMyPosts,
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -288,7 +291,7 @@ class MyPublicationsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(40),
       child: Column(
@@ -309,7 +312,7 @@ class MyPublicationsSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            'Aucune publication',
+            context.l10n.pubNone,
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -318,7 +321,7 @@ class MyPublicationsSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Tes evenements crees apparaitront ici',
+            context.l10n.pubNoneHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),
           ),
@@ -349,9 +352,7 @@ class MyPublicationsSheet extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                n == 1
-                    ? '1 story en attente de reseau'
-                    : '$n stories en attente de reseau',
+                context.l10n.pubStoriesPending(n),
                 style: GoogleFonts.poppins(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -369,7 +370,7 @@ class MyPublicationsSheet extends ConsumerWidget {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: Text(
-                'Envoyer',
+                context.l10n.commonSend,
                 style: GoogleFonts.poppins(
                     fontSize: 12.5, fontWeight: FontWeight.w700),
               ),
@@ -386,18 +387,18 @@ class MyPublicationsSheet extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Supprimer',
+          context.l10n.commonDelete,
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Supprimer "${event.titre}" ?',
+          context.l10n.pubDeleteConfirm(event.titre),
           style: GoogleFonts.poppins(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              'Annuler',
+              context.l10n.commonCancel,
               style: GoogleFonts.poppins(color: AppColors.textFaint),
             ),
           ),
@@ -411,13 +412,13 @@ class MyPublicationsSheet extends ConsumerWidget {
               messenger.showSnackBar(
                 SnackBar(
                   content: Text(
-                    ok ? 'Publication supprimee' : 'Suppression impossible, reessaye',
+                    ok ? context.l10n.pubDeleted : context.l10n.pubDeleteFailed,
                   ),
                 ),
               );
             },
             child: Text(
-              'Supprimer',
+              context.l10n.commonDelete,
               style: GoogleFonts.poppins(
                 color: Colors.red,
                 fontWeight: FontWeight.w600,
@@ -431,24 +432,24 @@ class MyPublicationsSheet extends ConsumerWidget {
 
   void _confirmDeleteStory(BuildContext context, WidgetRef ref, ReportedEvent story) {
     final title = story.generated?.title ??
-        (story.rawTitle.isNotEmpty ? story.rawTitle : 'cette story');
+        (story.rawTitle.isNotEmpty ? story.rawTitle : context.l10n.pubThisStory);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Supprimer la story',
+          context.l10n.pubDeleteStory,
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         content: Text(
-          'Supprimer "$title" ? Cette action est definitive.',
+          context.l10n.pubDeleteStoryConfirm(title),
           style: GoogleFonts.poppins(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              'Annuler',
+              context.l10n.commonCancel,
               style: GoogleFonts.poppins(color: AppColors.textFaint),
             ),
           ),
@@ -466,13 +467,13 @@ class MyPublicationsSheet extends ConsumerWidget {
               messenger.showSnackBar(
                 SnackBar(
                   content: Text(
-                    ok ? 'Story supprimee' : 'Suppression impossible, reessaye',
+                    ok ? context.l10n.pubStoryDeleted : context.l10n.pubDeleteFailed,
                   ),
                 ),
               );
             },
             child: Text(
-              'Supprimer',
+              context.l10n.commonDelete,
               style: GoogleFonts.poppins(
                 color: Colors.red,
                 fontWeight: FontWeight.w600,
@@ -496,7 +497,7 @@ class _PublicationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateStr = event.date.isNotEmpty
-        ? DateFormat('EEE d MMM', 'fr_FR').format(DateTime.parse(event.date))
+        ? DateFormat('EEE d MMM', context.dateLocale).format(DateTime.parse(event.date))
         : '';
 
     return GestureDetector(
@@ -672,7 +673,7 @@ class _StoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final title = story.generated?.title ??
         (story.rawTitle.isNotEmpty ? story.rawTitle : story.category);
-    final dateStr = DateFormat('d MMM • HH:mm', 'fr_FR').format(story.createdAt.toLocal());
+    final dateStr = DateFormat('d MMM • HH:mm', context.dateLocale).format(story.createdAt.toLocal());
     final expired = story.expiresAt.isBefore(DateTime.now());
 
     return GestureDetector(
@@ -724,7 +725,7 @@ class _StoryCard extends StatelessWidget {
                           style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textFaint),
                         ),
                         const SizedBox(width: 6),
-                        _statusBadge(expired),
+                        _statusBadge(context, expired),
                       ],
                     ),
                   ],
@@ -750,9 +751,11 @@ class _StoryCard extends StatelessWidget {
     );
   }
 
-  Widget _statusBadge(bool expired) {
+  Widget _statusBadge(BuildContext context, bool expired) {
     final generating = story.isGenerating;
-    final label = generating ? 'En cours' : (expired ? 'Expiree' : 'En ligne');
+    final label = generating
+        ? context.l10n.pubStatusGenerating
+        : (expired ? context.l10n.pubStatusExpired : context.l10n.pubStatusOnline);
     final color = generating
         ? const Color(0xFF7B2D8E)
         : (expired ? AppColors.textFaint : const Color(0xFF00B894));

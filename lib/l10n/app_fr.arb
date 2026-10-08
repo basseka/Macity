@@ -850,5 +850,193 @@
   "chatBeFirst": "Sois le premier à poser une question !",
   "chatFinishSignup": "Termine ton inscription pour participer à la discussion.",
   "chatHint": "Pose une question...",
-  "chatReport": "Signaler"
+  "chatReport": "Signaler",
+  "optVenueIndoor": "Salle",
+  "optVenueOutdoor": "Extérieur",
+  "optVenueStudio": "Studio",
+  "optVenueOnline": "En ligne",
+  "optKids": "Enfants",
+  "optTeens": "Ados",
+  "optAdults": "Adultes",
+  "optSeniors": "Seniors",
+  "optAllAudiences": "Tous publics",
+  "optBeginner": "Débutant",
+  "optIntermediate": "Intermédiaire",
+  "optAdvanced": "Avancé",
+  "optAllLevels": "Tous niveaux",
+  "optIndividual": "Particulier",
+  "optNonProfit": "Association",
+  "optCompany": "Entreprise",
+  "optOpenEntry": "Libre",
+  "optApproval": "Sur validation",
+  "optWaitingList": "Liste d'attente",
+  "optDaily": "Quotidien",
+  "optWeekly": "Hebdomadaire",
+  "optMonthly": "Mensuel",
+  "errPickCategory": "Choisis une catégorie",
+  "errTitleRequired": "Le titre est requis",
+  "errMediaRequired": "Une photo ou vidéo est requise",
+  "errStartDateRequired": "La date de début est requise",
+  "errStartTimeRequired": "L'heure de début est requise",
+  "errAddressRequired": "Adresse du lieu requise",
+  "errLinkFormat": "Le lien doit commencer par http:// ou https://",
+  "errDateTimeBeforePublish": "Renseigne la date et l'heure avant de publier.",
+  "errInvalidData": "Données invalides (400). Vérifie les champs.",
+  "errAuthRequired": "Authentification requise ({code}).",
+  "@errAuthRequired": {
+    "description": "Erreur HTTP",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "errConflict": "Conflit (409). Évènement déjà existant ?",
+  "errFileTooLarge": "Fichier trop volumineux.",
+  "errServer": "Erreur serveur ({code}). Réessaye dans un instant.",
+  "@errServer": {
+    "description": "Erreur HTTP",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "errNetworkCode": "Erreur réseau ({code}).",
+  "@errNetworkCode": {
+    "description": "Erreur HTTP",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "errSlowConnection": "Connexion trop lente. Vérifie ton réseau.",
+  "errNetwork": "Erreur réseau. Vérifie ta connexion.",
+  "errNoInternet": "Pas de connexion internet.",
+  "errCheckFields": "Vérifie les champs",
+  "errPublishFailed": "Publication échouée",
+  "ceEditTitle": "Modifier l'évènement",
+  "ceCreateTitle": "Créer un évènement",
+  "commonPrevious": "Précédent",
+  "commonSkip": "Passer",
+  "commonNext": "Suivant",
+  "commonClose": "Fermer",
+  "ceUploadingVideo": "Publication de la vidéo...",
+  "ceUploading": "Publication en cours...",
+  "ceAlmostDone": "Presque terminé",
+  "ceBoostPending": "Event créé ! Le boost sera actif après validation du paiement.",
+  "ceEdited": "Évènement modifié\navec succès !",
+  "ceAdded": "Évènement ajouté\navec succès !",
+  "ceVisibleInRubrique": "Il sera visible dans la rubrique correspondante.",
+  "ceCreated": "Évènement créé !",
+  "ceBoostActiveAfterPayment": "Le boost sera actif dès que le paiement sera confirmé.",
+  "ceQuitTitle": "Quitter ?",
+  "ceQuitBody": "Les informations saisies seront perdues.",
+  "ceQuit": "Quitter",
+  "ceCompressing": "Compression de la vidéo...",
+  "ceUploadInProgress": "Upload en cours...",
+  "ceFinalizing": "Finalisation...",
+  "ceEssentials": "L'essentiel",
+  "ceEssentialsSubtitle": "Le minimum pour publier ton event.",
+  "ceScanFlyerSubtitle": "Remplit tout automatiquement",
+  "ceCategory": "Catégorie *",
+  "ceEventTitle": "Titre de l'évènement *",
+  "ceDescriptionOptional": "Description (optionnel)",
+  "ceTicketLinkOptional": "Lien billetterie ou site web (optionnel)",
+  "ceTeaserVideo": "Vidéo teaser (recommandée, 30s max)",
+  "cePhoto": "Photo *",
+  "ceDate": "Date *",
+  "ceTime": "Heure *",
+  "ceAddress": "Adresse *",
+  "ceFreeEvent": "Évènement gratuit",
+  "cePrice": "Prix (€)",
+  "ceTapToAddPhoto": "Appuie pour ajouter une photo",
+  "commonCamera": "Caméra",
+  "commonGallery": "Galerie",
+  "commonVideo": "Vidéo",
+  "ceAddVideo": "Ajouter\n(30 sec max)",
+  "commonDate": "Date",
+  "commonTime": "Heure",
+  "ceMoreInfo": "Plus d'infos",
+  "ceOptional": "Optionnel",
+  "ceDetailsHint": "Affine ton event ou clique \"Publier\" maintenant.",
+  "ceDescription": "Description",
+  "ceShortDescription": "Description courte (1-2 lignes)",
+  "ceLongDescription": "Description longue",
+  "ceDatesRecurrence": "Dates et récurrence",
+  "ceEndDate": "Date fin",
+  "ceEndTime": "Heure fin",
+  "ceVenueDetails": "Lieu détaillé",
+  "ceVenueName": "Nom du lieu (ex. salle des fêtes)",
+  "cePricingTickets": "Tarification & billetterie",
+  "ceReducedPrice": "Tarif réduit",
+  "ceGroupPrice": "Tarif groupe",
+  "ceEarlyBird": "Early bird",
+  "ceOrganizer": "Organisateur",
+  "ceName": "Nom",
+  "ceAudience": "Public & participants",
+  "ceTargetAudience": "Public cible",
+  "ceLevel": "Niveau",
+  "ceRegistration": "Inscription",
+  "ceTags": "Tags",
+  "ceAddTag": "Ajouter un tag",
+  "ceBoostTitle": "Booster ton event",
+  "ceBoostOptional": "OPTIONNEL",
+  "ceBoostSubtitle": "Augmente la visibilité de ton event",
+  "cePriceLoadError": "Erreur chargement prix",
+  "ceTapDays": "Touche les jours souhaités",
+  "publishChooseType": "Choisis le type de publication",
+  "publishPrivateSubtitle": "Coffre secret sur invitation, gratuit",
+  "publishAsPro": "Publier en tant que pro",
+  "publishProUnlimited": "Publication illimitée (compte pro validé)",
+  "publishProSpace": "Espace professionnel (inscription / connexion)",
+  "tierPremium": "💎 Abonnement Premium",
+  "tierPremiumEffect": "Tous vos events passent à la une du feed.",
+  "tierGold": "🥇 Abonnement Gold",
+  "tierGoldEffect": "Tous vos events sont mis au top du feed.",
+  "tierNormal": "Abonnement Normal",
+  "tierNormalEffect": "Vos events apparaissent dans le feed standard.",
+  "commonBack": "Retour",
+  "pubMyEvents": "Mes événements",
+  "pubMyStories": "Mes stories",
+  "pubStoriesKept": "Conservées un temps limité. Supprimables à tout moment.",
+  "pubNone": "Aucune publication",
+  "pubNoneHint": "Tes événements créés apparaîtront ici",
+  "pubStoriesPending": "{count, plural, =1{1 story en attente de réseau} other{{count} stories en attente de réseau}}",
+  "@pubStoriesPending": {
+    "description": "Stories en file d'attente",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonSend": "Envoyer",
+  "pubDeleteConfirm": "Supprimer « {title} » ?",
+  "@pubDeleteConfirm": {
+    "description": "Confirmation de suppression",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pubDeleted": "Publication supprimée",
+  "pubDeleteFailed": "Suppression impossible, réessaie",
+  "pubThisStory": "cette story",
+  "pubDeleteStory": "Supprimer la story",
+  "pubDeleteStoryConfirm": "Supprimer « {title} » ? Cette action est définitive.",
+  "@pubDeleteStoryConfirm": {
+    "description": "Confirmation de suppression",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pubStoryDeleted": "Story supprimée",
+  "pubStatusGenerating": "En cours",
+  "pubStatusExpired": "Expirée",
+  "pubStatusOnline": "En ligne"
 }

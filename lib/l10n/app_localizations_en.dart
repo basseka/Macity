@@ -1805,4 +1805,447 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatReport => 'Report';
+
+  @override
+  String get optVenueIndoor => 'Indoor venue';
+
+  @override
+  String get optVenueOutdoor => 'Outdoor';
+
+  @override
+  String get optVenueStudio => 'Studio';
+
+  @override
+  String get optVenueOnline => 'Online';
+
+  @override
+  String get optKids => 'Kids';
+
+  @override
+  String get optTeens => 'Teens';
+
+  @override
+  String get optAdults => 'Adults';
+
+  @override
+  String get optSeniors => 'Seniors';
+
+  @override
+  String get optAllAudiences => 'All audiences';
+
+  @override
+  String get optBeginner => 'Beginner';
+
+  @override
+  String get optIntermediate => 'Intermediate';
+
+  @override
+  String get optAdvanced => 'Advanced';
+
+  @override
+  String get optAllLevels => 'All levels';
+
+  @override
+  String get optIndividual => 'Individual';
+
+  @override
+  String get optNonProfit => 'Non-profit';
+
+  @override
+  String get optCompany => 'Company';
+
+  @override
+  String get optOpenEntry => 'Open';
+
+  @override
+  String get optApproval => 'Approval required';
+
+  @override
+  String get optWaitingList => 'Waiting list';
+
+  @override
+  String get optDaily => 'Daily';
+
+  @override
+  String get optWeekly => 'Weekly';
+
+  @override
+  String get optMonthly => 'Monthly';
+
+  @override
+  String get errPickCategory => 'Pick a category';
+
+  @override
+  String get errTitleRequired => 'A title is required';
+
+  @override
+  String get errMediaRequired => 'A photo or video is required';
+
+  @override
+  String get errStartDateRequired => 'A start date is required';
+
+  @override
+  String get errStartTimeRequired => 'A start time is required';
+
+  @override
+  String get errAddressRequired => 'The venue address is required';
+
+  @override
+  String get errLinkFormat => 'The link must start with http:// or https://';
+
+  @override
+  String get errDateTimeBeforePublish =>
+      'Fill in the date and time before posting.';
+
+  @override
+  String get errInvalidData => 'Invalid data (400). Check the fields.';
+
+  @override
+  String errAuthRequired(String code) {
+    return 'Authentication required ($code).';
+  }
+
+  @override
+  String get errConflict => 'Conflict (409). Does this event already exist?';
+
+  @override
+  String get errFileTooLarge => 'File too large.';
+
+  @override
+  String errServer(String code) {
+    return 'Server error ($code). Try again in a moment.';
+  }
+
+  @override
+  String errNetworkCode(String code) {
+    return 'Network error ($code).';
+  }
+
+  @override
+  String get errSlowConnection => 'Connection too slow. Check your network.';
+
+  @override
+  String get errNetwork => 'Network error. Check your connection.';
+
+  @override
+  String get errNoInternet => 'No internet connection.';
+
+  @override
+  String get errCheckFields => 'Check the fields';
+
+  @override
+  String get errPublishFailed => 'Posting failed';
+
+  @override
+  String get ceEditTitle => 'Edit event';
+
+  @override
+  String get ceCreateTitle => 'Create an event';
+
+  @override
+  String get commonPrevious => 'Back';
+
+  @override
+  String get commonSkip => 'Skip';
+
+  @override
+  String get commonNext => 'Next';
+
+  @override
+  String get commonClose => 'Close';
+
+  @override
+  String get ceUploadingVideo => 'Uploading the video...';
+
+  @override
+  String get ceUploading => 'Posting...';
+
+  @override
+  String get ceAlmostDone => 'Almost done';
+
+  @override
+  String get ceBoostPending =>
+      'Event created! The boost will start once payment is confirmed.';
+
+  @override
+  String get ceEdited => 'Event updated\nsuccessfully!';
+
+  @override
+  String get ceAdded => 'Event added\nsuccessfully!';
+
+  @override
+  String get ceVisibleInRubrique => 'It will show up in the matching section.';
+
+  @override
+  String get ceCreated => 'Event created!';
+
+  @override
+  String get ceBoostActiveAfterPayment =>
+      'The boost will start as soon as payment is confirmed.';
+
+  @override
+  String get ceQuitTitle => 'Leave?';
+
+  @override
+  String get ceQuitBody => 'What you entered will be lost.';
+
+  @override
+  String get ceQuit => 'Leave';
+
+  @override
+  String get ceCompressing => 'Compressing the video...';
+
+  @override
+  String get ceUploadInProgress => 'Uploading...';
+
+  @override
+  String get ceFinalizing => 'Finishing...';
+
+  @override
+  String get ceEssentials => 'The essentials';
+
+  @override
+  String get ceEssentialsSubtitle => 'The minimum to post your event.';
+
+  @override
+  String get ceScanFlyerSubtitle => 'Fills everything in automatically';
+
+  @override
+  String get ceCategory => 'Category *';
+
+  @override
+  String get ceEventTitle => 'Event title *';
+
+  @override
+  String get ceDescriptionOptional => 'Description (optional)';
+
+  @override
+  String get ceTicketLinkOptional => 'Ticket link or website (optional)';
+
+  @override
+  String get ceTeaserVideo => 'Teaser video (recommended, 30s max)';
+
+  @override
+  String get cePhoto => 'Photo *';
+
+  @override
+  String get ceDate => 'Date *';
+
+  @override
+  String get ceTime => 'Time *';
+
+  @override
+  String get ceAddress => 'Address *';
+
+  @override
+  String get ceFreeEvent => 'Free event';
+
+  @override
+  String get cePrice => 'Price (€)';
+
+  @override
+  String get ceTapToAddPhoto => 'Tap to add a photo';
+
+  @override
+  String get commonCamera => 'Camera';
+
+  @override
+  String get commonGallery => 'Gallery';
+
+  @override
+  String get commonVideo => 'Video';
+
+  @override
+  String get ceAddVideo => 'Add\n(30 sec max)';
+
+  @override
+  String get commonDate => 'Date';
+
+  @override
+  String get commonTime => 'Time';
+
+  @override
+  String get ceMoreInfo => 'More info';
+
+  @override
+  String get ceOptional => 'Optional';
+
+  @override
+  String get ceDetailsHint => 'Fine-tune your event or tap \"Post\" now.';
+
+  @override
+  String get ceDescription => 'Description';
+
+  @override
+  String get ceShortDescription => 'Short description (1-2 lines)';
+
+  @override
+  String get ceLongDescription => 'Long description';
+
+  @override
+  String get ceDatesRecurrence => 'Dates & recurrence';
+
+  @override
+  String get ceEndDate => 'End date';
+
+  @override
+  String get ceEndTime => 'End time';
+
+  @override
+  String get ceVenueDetails => 'Venue details';
+
+  @override
+  String get ceVenueName => 'Venue name (e.g. village hall)';
+
+  @override
+  String get cePricingTickets => 'Pricing & tickets';
+
+  @override
+  String get ceReducedPrice => 'Reduced price';
+
+  @override
+  String get ceGroupPrice => 'Group price';
+
+  @override
+  String get ceEarlyBird => 'Early bird';
+
+  @override
+  String get ceOrganizer => 'Organizer';
+
+  @override
+  String get ceName => 'Name';
+
+  @override
+  String get ceAudience => 'Audience & participants';
+
+  @override
+  String get ceTargetAudience => 'Target audience';
+
+  @override
+  String get ceLevel => 'Level';
+
+  @override
+  String get ceRegistration => 'Registration';
+
+  @override
+  String get ceTags => 'Tags';
+
+  @override
+  String get ceAddTag => 'Add a tag';
+
+  @override
+  String get ceBoostTitle => 'Boost your event';
+
+  @override
+  String get ceBoostOptional => 'OPTIONAL';
+
+  @override
+  String get ceBoostSubtitle => 'Increase your event\'s visibility';
+
+  @override
+  String get cePriceLoadError => 'Error loading prices';
+
+  @override
+  String get ceTapDays => 'Tap the days you want';
+
+  @override
+  String get publishChooseType => 'Choose how to post';
+
+  @override
+  String get publishPrivateSubtitle => 'Secret vault by invitation, free';
+
+  @override
+  String get publishAsPro => 'Post as a pro';
+
+  @override
+  String get publishProUnlimited => 'Unlimited posting (approved pro account)';
+
+  @override
+  String get publishProSpace => 'Business area (sign up / log in)';
+
+  @override
+  String get tierPremium => '💎 Premium plan';
+
+  @override
+  String get tierPremiumEffect => 'All your events are featured in the feed.';
+
+  @override
+  String get tierGold => '🥇 Gold plan';
+
+  @override
+  String get tierGoldEffect =>
+      'All your events are boosted to the top of the feed.';
+
+  @override
+  String get tierNormal => 'Standard plan';
+
+  @override
+  String get tierNormalEffect => 'Your events appear in the standard feed.';
+
+  @override
+  String get commonBack => 'Back';
+
+  @override
+  String get pubMyEvents => 'My events';
+
+  @override
+  String get pubMyStories => 'My stories';
+
+  @override
+  String get pubStoriesKept =>
+      'Kept for a limited time. You can delete them at any time.';
+
+  @override
+  String get pubNone => 'No posts yet';
+
+  @override
+  String get pubNoneHint => 'Events you create will show up here';
+
+  @override
+  String pubStoriesPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stories waiting for network',
+      one: '1 story waiting for network',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get commonSend => 'Send';
+
+  @override
+  String pubDeleteConfirm(String title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String get pubDeleted => 'Post deleted';
+
+  @override
+  String get pubDeleteFailed => 'Unable to delete, try again';
+
+  @override
+  String get pubThisStory => 'this story';
+
+  @override
+  String get pubDeleteStory => 'Delete story';
+
+  @override
+  String pubDeleteStoryConfirm(String title) {
+    return 'Delete \"$title\"? This cannot be undone.';
+  }
+
+  @override
+  String get pubStoryDeleted => 'Story deleted';
+
+  @override
+  String get pubStatusGenerating => 'Processing';
+
+  @override
+  String get pubStatusExpired => 'Expired';
+
+  @override
+  String get pubStatusOnline => 'Live';
 }

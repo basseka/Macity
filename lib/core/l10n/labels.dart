@@ -246,3 +246,64 @@ String storyCategoryLabel(BuildContext context, String id) {
     _ => id,
   };
 }
+
+/// Options du formulaire de creation d'event : la valeur francaise est
+/// enregistree en base (type de lieu, public, niveau...), on ne traduit
+/// qu'a l'affichage.
+String eventOptionLabel(BuildContext context, String value) {
+  final l10n = context.l10n;
+  return switch (value) {
+    'Salle' => l10n.optVenueIndoor,
+    'Exterieur' => l10n.optVenueOutdoor,
+    'Studio' => l10n.optVenueStudio,
+    'En ligne' => l10n.optVenueOnline,
+    'Enfants' => l10n.optKids,
+    'Ados' => l10n.optTeens,
+    'Adultes' => l10n.optAdults,
+    'Seniors' => l10n.optSeniors,
+    'Tous publics' => l10n.optAllAudiences,
+    'Debutant' => l10n.optBeginner,
+    'Intermediaire' => l10n.optIntermediate,
+    'Avance' => l10n.optAdvanced,
+    'Tous niveaux' => l10n.optAllLevels,
+    'Particulier' => l10n.optIndividual,
+    'Association' => l10n.optNonProfit,
+    'Entreprise' => l10n.optCompany,
+    'Libre' => l10n.optOpenEntry,
+    'Validation' => l10n.optApproval,
+    "Liste d'attente" => l10n.optWaitingList,
+    'Quotidien' => l10n.optDaily,
+    'Hebdomadaire' => l10n.optWeekly,
+    'Mensuel' => l10n.optMonthly,
+    _ => feedCategoryLabel(context, value),
+  };
+}
+
+/// Messages d'erreur produits en francais par le formulaire de creation
+/// d'event (state/provider sans acces a la langue). Inconnu = inchange.
+String createEventErrorLabel(BuildContext context, String msg) {
+  final l10n = context.l10n;
+  final code = RegExp(r'\((\d{3})\)').firstMatch(msg)?.group(1) ?? '';
+  return switch (msg) {
+    'Choisis une catégorie' => l10n.errPickCategory,
+    'Le titre est requis' => l10n.errTitleRequired,
+    'Une photo ou vidéo est requise' => l10n.errMediaRequired,
+    'La date de début est requise' => l10n.errStartDateRequired,
+    "L'heure de début est requise" => l10n.errStartTimeRequired,
+    'Adresse du lieu requise' => l10n.errAddressRequired,
+    'Le lien doit commencer par http:// ou https://' => l10n.errLinkFormat,
+    "Renseigne la date et l'heure avant de publier." =>
+      l10n.errDateTimeBeforePublish,
+    'Données invalides (400). Vérifie les champs.' => l10n.errInvalidData,
+    'Conflit (409). Évènement déjà existant ?' => l10n.errConflict,
+    'Fichier trop volumineux.' => l10n.errFileTooLarge,
+    'Connexion trop lente. Vérifie ton réseau.' => l10n.errSlowConnection,
+    'Erreur réseau. Vérifie ta connexion.' => l10n.errNetwork,
+    'Pas de connexion internet.' => l10n.errNoInternet,
+    _ when msg.startsWith('Authentification requise') =>
+      l10n.errAuthRequired(code),
+    _ when msg.startsWith('Erreur serveur') => l10n.errServer(code),
+    _ when msg.startsWith('Erreur réseau (') => l10n.errNetworkCode(code),
+    _ => msg,
+  };
+}

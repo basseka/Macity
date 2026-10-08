@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -115,9 +117,9 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Plus d\'infos',
+                  context.l10n.ceMoreInfo,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _darkColor),
                 ),
               ),
@@ -128,7 +130,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'Optionnel',
+                  context.l10n.ceOptional,
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.orange.shade700,
@@ -140,7 +142,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Affine ton event ou clique "Publier" maintenant.',
+            context.l10n.ceDetailsHint,
             style: TextStyle(fontSize: 11, color: AppColors.textFaint),
           ),
           const SizedBox(height: 14),
@@ -151,13 +153,13 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
 
           // Description
           _Section(
-            title: 'Description',
+            title: context.l10n.ceDescription,
             icon: Icons.description_outlined,
             initiallyExpanded: true,
             children: [
               TextFormField(
                 controller: _descCourteController,
-                decoration: _input('Description courte (1-2 lignes)'),
+                decoration: _input(context.l10n.ceShortDescription),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 maxLines: 2,
                 onChanged: notifier.updateDescriptionCourte,
@@ -165,7 +167,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: _descLongueController,
-                decoration: _input('Description longue'),
+                decoration: _input(context.l10n.ceLongDescription),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 maxLines: 5,
                 onChanged: notifier.updateDescriptionLongue,
@@ -175,14 +177,14 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
 
           // Dates / récurrence
           _Section(
-            title: 'Dates et récurrence',
+            title: context.l10n.ceDatesRecurrence,
             icon: Icons.event_repeat_outlined,
             children: [
               Row(
                 children: [
                   Expanded(
                     child: _DateButton(
-                      label: 'Date fin',
+                      label: context.l10n.ceEndDate,
                       value: state.dateFin,
                       onPicked: notifier.updateDateFin,
                     ),
@@ -190,7 +192,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _TimeButton(
-                      label: 'Heure fin',
+                      label: context.l10n.ceEndTime,
                       value: state.heureFin,
                       onPicked: notifier.updateHeureFin,
                     ),
@@ -204,7 +206,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 children: ['Quotidien', 'Hebdomadaire', 'Mensuel'].map((r) {
                   final selected = state.recurrenceType == r.toLowerCase();
                   return FilterChip(
-                    label: Text(r, style: TextStyle(fontSize: 11, color: AppColors.text)),
+                    label: Text(eventOptionLabel(context, r), style: TextStyle(fontSize: 11, color: AppColors.text)),
                     selected: selected,
                     selectedColor: _primaryColor.withValues(alpha: 0.15),
                     checkmarkColor: _primaryColor,
@@ -222,12 +224,12 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
 
           // Lieu détaillé
           _Section(
-            title: 'Lieu détaillé',
+            title: context.l10n.ceVenueDetails,
             icon: Icons.place_outlined,
             children: [
               TextFormField(
                 controller: _lieuNomController,
-                decoration: _input('Nom du lieu (ex. salle des fêtes)'),
+                decoration: _input(context.l10n.ceVenueName),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 onChanged: notifier.updateLieuNom,
               ),
@@ -238,7 +240,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 children: kLieuTypes.map((lt) {
                   final selected = state.lieuType == lt;
                   return ChoiceChip(
-                    label: Text(lt, style: TextStyle(fontSize: 11, color: AppColors.text)),
+                    label: Text(eventOptionLabel(context, lt), style: TextStyle(fontSize: 11, color: AppColors.text)),
                     selected: selected,
                     selectedColor: _primaryColor.withValues(alpha: 0.15),
                     checkmarkColor: _primaryColor,
@@ -254,7 +256,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
 
           // Tarification avancée + billetterie
           _Section(
-            title: 'Tarification & billetterie',
+            title: context.l10n.cePricingTickets,
             icon: Icons.confirmation_number_outlined,
             children: [
               if (!state.estGratuit) ...[
@@ -263,7 +265,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                     Expanded(
                       child: TextFormField(
                         controller: _prixReduitController,
-                        decoration: _input('Tarif réduit'),
+                        decoration: _input(context.l10n.ceReducedPrice),
                         style: TextStyle(fontSize: 13, color: AppColors.text),
                         keyboardType: TextInputType.number,
                         onChanged: notifier.updatePrixReduit,
@@ -273,7 +275,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                     Expanded(
                       child: TextFormField(
                         controller: _prixGroupeController,
-                        decoration: _input('Tarif groupe'),
+                        decoration: _input(context.l10n.ceGroupPrice),
                         style: TextStyle(fontSize: 13, color: AppColors.text),
                         keyboardType: TextInputType.number,
                         onChanged: notifier.updatePrixGroupe,
@@ -303,7 +305,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
 
           // Organisateur
           _Section(
-            title: 'Organisateur',
+            title: context.l10n.ceOrganizer,
             icon: Icons.person_outline,
             children: [
               Wrap(
@@ -312,7 +314,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 children: kOrganisateurTypes.map((t) {
                   final selected = state.organisateurType == t;
                   return ChoiceChip(
-                    label: Text(t, style: TextStyle(fontSize: 11, color: AppColors.text)),
+                    label: Text(eventOptionLabel(context, t), style: TextStyle(fontSize: 11, color: AppColors.text)),
                     selected: selected,
                     selectedColor: _primaryColor.withValues(alpha: 0.15),
                     checkmarkColor: _primaryColor,
@@ -326,7 +328,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: _orgNomController,
-                decoration: _input('Nom'),
+                decoration: _input(context.l10n.ceName),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 onChanged: notifier.updateOrganisateurNom,
               ),
@@ -341,7 +343,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: _orgTelController,
-                decoration: _input('Téléphone'),
+                decoration: _input(context.l10n.onboardingFieldPhone),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 keyboardType: TextInputType.phone,
                 onChanged: notifier.updateOrganisateurTelephone,
@@ -349,7 +351,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
               const SizedBox(height: 10),
               TextFormField(
                 controller: _orgSiteController,
-                decoration: _input('Site web'),
+                decoration: _input(context.l10n.websiteLabel),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 keyboardType: TextInputType.url,
                 onChanged: notifier.updateOrganisateurSite,
@@ -359,10 +361,10 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
 
           // Public & participants
           _Section(
-            title: 'Public & participants',
+            title: context.l10n.ceAudience,
             icon: Icons.group_outlined,
             children: [
-              _labelSmall('Public cible'),
+              _labelSmall(context.l10n.ceTargetAudience),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -370,7 +372,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 children: kPublicCible.map((p) {
                   final selected = state.publicCible == p;
                   return ChoiceChip(
-                    label: Text(p, style: TextStyle(fontSize: 11, color: AppColors.text)),
+                    label: Text(eventOptionLabel(context, p), style: TextStyle(fontSize: 11, color: AppColors.text)),
                     selected: selected,
                     selectedColor: _primaryColor.withValues(alpha: 0.15),
                     checkmarkColor: _primaryColor,
@@ -382,7 +384,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 }).toList(),
               ),
               const SizedBox(height: 10),
-              _labelSmall('Niveau'),
+              _labelSmall(context.l10n.ceLevel),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -390,7 +392,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 children: kNiveaux.map((n) {
                   final selected = state.niveau == n;
                   return ChoiceChip(
-                    label: Text(n, style: TextStyle(fontSize: 11, color: AppColors.text)),
+                    label: Text(eventOptionLabel(context, n), style: TextStyle(fontSize: 11, color: AppColors.text)),
                     selected: selected,
                     selectedColor: _primaryColor.withValues(alpha: 0.15),
                     checkmarkColor: _primaryColor,
@@ -426,7 +428,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 ],
               ),
               const SizedBox(height: 10),
-              _labelSmall('Inscription'),
+              _labelSmall(context.l10n.ceRegistration),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -434,7 +436,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                 children: kInscriptionTypes.map((i) {
                   final selected = state.inscriptionType == i;
                   return ChoiceChip(
-                    label: Text(i, style: TextStyle(fontSize: 11, color: AppColors.text)),
+                    label: Text(eventOptionLabel(context, i), style: TextStyle(fontSize: 11, color: AppColors.text)),
                     selected: selected,
                     selectedColor: _primaryColor.withValues(alpha: 0.15),
                     checkmarkColor: _primaryColor,
@@ -450,7 +452,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
 
           // Tags
           _Section(
-            title: 'Tags',
+            title: context.l10n.ceTags,
             icon: Icons.tag_outlined,
             children: [
               Wrap(
@@ -475,7 +477,7 @@ class _StepDetailsState extends ConsumerState<StepDetails> {
                   Expanded(
                     child: TextField(
                       controller: _tagController,
-                      decoration: _input('Ajouter un tag'),
+                      decoration: _input(context.l10n.ceAddTag),
                       style: TextStyle(fontSize: 13, color: AppColors.text),
                       onSubmitted: (v) {
                         final t = v.trim();
@@ -635,9 +637,9 @@ class _BoostSection extends ConsumerWidget {
             children: [
               const Icon(Icons.rocket_launch, size: 16, color: Color(0xFFFF6B00)),
               const SizedBox(width: 6),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Booster ton event',
+                  context.l10n.ceBoostTitle,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -651,8 +653,8 @@ class _BoostSection extends ConsumerWidget {
                   color: const Color(0xFFFF6B00).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'OPTIONNEL',
+                child: Text(
+                  context.l10n.ceBoostOptional,
                   style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Color(0xFFFF6B00)),
                 ),
               ),
@@ -660,7 +662,7 @@ class _BoostSection extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Augmente la visibilité de ton event',
+            context.l10n.ceBoostSubtitle,
             style: TextStyle(fontSize: 11, color: AppColors.textFaint),
           ),
           const SizedBox(height: 12),
@@ -686,8 +688,8 @@ class _BoostSection extends ConsumerWidget {
               }).toList(),
             ),
             loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            error: (_, __) => const Text(
-              'Erreur chargement prix',
+            error: (_, __) => Text(
+              context.l10n.cePriceLoadError,
               style: TextStyle(fontSize: 11, color: Colors.red),
             ),
           ),
@@ -826,7 +828,7 @@ class _DaysSelector extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Touche les jours souhaités',
+                      context.l10n.ceTapDays,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -844,7 +846,7 @@ class _DaysSelector extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Effacer',
+                          context.l10n.commonClear,
                           style: TextStyle(fontSize: 10, color: AppColors.textDim),
                         ),
                       ),
@@ -897,7 +899,7 @@ class _DaysSelector extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                DateFormat('MMM', 'fr_FR').format(day.date),
+                                DateFormat('MMM', context.dateLocale).format(day.date),
                                 style: TextStyle(
                                   fontSize: 8,
                                   color: isSelected ? Colors.white70 : AppColors.textFaint,
@@ -923,8 +925,8 @@ class _DaysSelector extends ConsumerWidget {
                   height: 56,
                   child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                 ),
-                error: (_, __) => const Text(
-                  'Erreur chargement',
+                error: (_, __) => Text(
+                  context.l10n.commonLoadError,
                   style: TextStyle(fontSize: 11, color: Colors.red),
                 ),
               ),
@@ -1019,7 +1021,7 @@ class _DateButton extends StatelessWidget {
             const SizedBox(width: 6),
             Flexible(
               child: Text(
-                hasValue ? DateFormat('d MMM', 'fr_FR').format(value!) : label,
+                hasValue ? DateFormat('d MMM', context.dateLocale).format(value!) : label,
                 style: TextStyle(
                   fontSize: 12,
                   color: hasValue ? _primaryColor : AppColors.textFaint,

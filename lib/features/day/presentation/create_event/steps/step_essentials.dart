@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -88,13 +90,13 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'L\'essentiel',
+          Text(
+            context.l10n.ceEssentials,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _darkColor),
           ),
           const SizedBox(height: 2),
           Text(
-            'Le minimum pour publier ton event.',
+            context.l10n.ceEssentialsSubtitle,
             style: TextStyle(fontSize: 12, color: AppColors.textFaint),
           ),
           const SizedBox(height: 14),
@@ -127,16 +129,16 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
                   children: [
                     const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
                     const SizedBox(width: 10),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Scanner un flyer (IA)',
+                            context.l10n.proScanFlyer,
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                           ),
                           Text(
-                            'Remplit tout automatiquement',
+                            context.l10n.ceScanFlyerSubtitle,
                             style: TextStyle(color: Colors.white70, fontSize: 10),
                           ),
                         ],
@@ -151,7 +153,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           ],
 
           // 1. Categorie : 7 chips alignes sur le feed
-          _label('Catégorie *'),
+          _label(context.l10n.ceCategory),
           const SizedBox(height: 6),
           Wrap(
             spacing: 6,
@@ -164,7 +166,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
               // une puce sombre (illisible).
               return ChoiceChip(
                 label: Text(
-                  cat,
+                  feedCategoryLabel(context, cat),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
@@ -193,7 +195,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           // 2. Titre
           TextFormField(
             controller: _titreController,
-            decoration: _input('Titre de l\'évènement *'),
+            decoration: _input(context.l10n.ceEventTitle),
             style: TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateTitre,
           ),
@@ -202,7 +204,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           // 2bis. Description courte
           TextFormField(
             controller: _descriptionController,
-            decoration: _input('Description (optionnel)'),
+            decoration: _input(context.l10n.ceDescriptionOptional),
             style: TextStyle(fontSize: 13, color: AppColors.text),
             maxLines: 3,
             minLines: 2,
@@ -214,7 +216,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           // 2ter. Lien billetterie / site web
           TextFormField(
             controller: _billetterieController,
-            decoration: _input('Lien billetterie ou site web (optionnel)'),
+            decoration: _input(context.l10n.ceTicketLinkOptional),
             style: TextStyle(fontSize: 13, color: AppColors.text),
             keyboardType: TextInputType.url,
             onChanged: notifier.updateLienBilletterie,
@@ -222,14 +224,14 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           const SizedBox(height: 14),
 
           // 3. Vidéo + Photo (vidéo en premier pour inciter au teaser)
-          _label('Vidéo teaser (recommandée, 30s max)'),
+          _label(context.l10n.ceTeaserVideo),
           const SizedBox(height: 6),
           _VideoPicker(
             videoPath: state.videoPath,
             onPicked: notifier.updateVideoPath,
           ),
           const SizedBox(height: 10),
-          _label('Photo *'),
+          _label(context.l10n.cePhoto),
           const SizedBox(height: 6),
           _PhotoPicker(
             photoPath: state.photoPath,
@@ -243,7 +245,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             children: [
               Expanded(
                 child: _DatePickerField(
-                  label: 'Date *',
+                  label: context.l10n.ceDate,
                   value: state.dateDebut,
                   onPicked: notifier.updateDateDebut,
                 ),
@@ -251,7 +253,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
               const SizedBox(width: 10),
               Expanded(
                 child: _TimePickerField(
-                  label: 'Heure *',
+                  label: context.l10n.ceTime,
                   value: state.heureDebut,
                   onPicked: notifier.updateHeureDebut,
                 ),
@@ -263,7 +265,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           // 5. Adresse + ville (ville auto)
           TextFormField(
             controller: _adresseController,
-            decoration: _input('Adresse *'),
+            decoration: _input(context.l10n.ceAddress),
             style: TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateLieuAdresse,
           ),
@@ -301,8 +303,8 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
           SwitchListTile(
             value: state.estGratuit,
             onChanged: notifier.updateEstGratuit,
-            title: const Text(
-              'Évènement gratuit',
+            title: Text(
+              context.l10n.ceFreeEvent,
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             activeTrackColor: _primaryColor.withValues(alpha: 0.4),
@@ -314,7 +316,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             const SizedBox(height: 6),
             TextFormField(
               controller: _prixController,
-              decoration: _input('Prix (€)'),
+              decoration: _input(context.l10n.cePrice),
               style: TextStyle(fontSize: 13, color: AppColors.text),
               keyboardType: TextInputType.number,
               onChanged: notifier.updatePrix,
@@ -398,7 +400,7 @@ class _PhotoPicker extends StatelessWidget {
                   File(photoPath!),
                   fit: BoxFit.cover,
                   width: double.infinity,
-                  errorBuilder: (_, __, ___) => _placeholder(),
+                  errorBuilder: (_, __, ___) => _placeholder(context),
                 ),
               )
             : (existingPhotoUrl != null && existingPhotoUrl!.isNotEmpty)
@@ -408,22 +410,22 @@ class _PhotoPicker extends StatelessWidget {
                       existingPhotoUrl!,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      errorBuilder: (_, __, ___) => _placeholder(),
+                      errorBuilder: (_, __, ___) => _placeholder(context),
                     ),
                   )
-                : _placeholder(),
+                : _placeholder(context),
       ),
     );
   }
 
-  Widget _placeholder() {
+  Widget _placeholder(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.add_a_photo_outlined, size: 32, color: AppColors.lineStrong),
         const SizedBox(height: 6),
         Text(
-          'Appuie pour ajouter une photo',
+          context.l10n.ceTapToAddPhoto,
           style: TextStyle(fontSize: 11, color: AppColors.textFaint),
         ),
       ],
@@ -439,12 +441,12 @@ class _PhotoPicker extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt, size: 20),
-              title: const Text('Caméra', style: TextStyle(fontSize: 13)),
+              title: Text(context.l10n.commonCamera, style: const TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, size: 20),
-              title: const Text('Galerie', style: TextStyle(fontSize: 13)),
+              title: Text(context.l10n.commonGallery, style: const TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -496,21 +498,21 @@ class _VideoPicker extends StatelessWidget {
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
-                        'Vidéo',
+                      child: Text(
+                        context.l10n.commonVideo,
                         style: TextStyle(color: Colors.white, fontSize: 10),
                       ),
                     ),
                   ),
                 ],
               )
-            : const Column(
+            : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.videocam_outlined, size: 36, color: Colors.grey),
                   SizedBox(height: 6),
                   Text(
-                    'Ajouter\n(30 sec max)',
+                    context.l10n.ceAddVideo,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 10, color: Colors.grey),
                   ),
@@ -529,12 +531,12 @@ class _VideoPicker extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.videocam, size: 20),
-              title: const Text('Caméra', style: TextStyle(fontSize: 13)),
+              title: Text(context.l10n.commonCamera, style: const TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.video_library, size: 20),
-              title: const Text('Galerie', style: TextStyle(fontSize: 13)),
+              title: Text(context.l10n.commonGallery, style: const TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -593,9 +595,9 @@ class _DatePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                      child: Text(context.l10n.commonCancel, style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
-                    Text('Date', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text(context.l10n.commonDate, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -653,7 +655,7 @@ class _DatePickerField extends StatelessWidget {
             const SizedBox(width: 6),
             Flexible(
               child: Text(
-                hasValue ? DateFormat('d MMM yyyy', 'fr_FR').format(value!) : label,
+                hasValue ? DateFormat('d MMM yyyy', context.dateLocale).format(value!) : label,
                 style: TextStyle(
                   fontSize: 12,
                   color: hasValue ? _primaryColor : AppColors.textFaint,
@@ -714,9 +716,9 @@ class _TimePickerField extends StatelessWidget {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text('Annuler', style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
+                      child: Text(context.l10n.commonCancel, style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                     ),
-                    Text('Heure', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+                    Text(context.l10n.commonTime, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);

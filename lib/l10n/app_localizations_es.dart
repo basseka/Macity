@@ -1812,4 +1812,450 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get chatReport => 'Denunciar';
+
+  @override
+  String get optVenueIndoor => 'Sala';
+
+  @override
+  String get optVenueOutdoor => 'Exterior';
+
+  @override
+  String get optVenueStudio => 'Estudio';
+
+  @override
+  String get optVenueOnline => 'En línea';
+
+  @override
+  String get optKids => 'Niños';
+
+  @override
+  String get optTeens => 'Adolescentes';
+
+  @override
+  String get optAdults => 'Adultos';
+
+  @override
+  String get optSeniors => 'Mayores';
+
+  @override
+  String get optAllAudiences => 'Todos los públicos';
+
+  @override
+  String get optBeginner => 'Principiante';
+
+  @override
+  String get optIntermediate => 'Intermedio';
+
+  @override
+  String get optAdvanced => 'Avanzado';
+
+  @override
+  String get optAllLevels => 'Todos los niveles';
+
+  @override
+  String get optIndividual => 'Particular';
+
+  @override
+  String get optNonProfit => 'Asociación';
+
+  @override
+  String get optCompany => 'Empresa';
+
+  @override
+  String get optOpenEntry => 'Libre';
+
+  @override
+  String get optApproval => 'Con validación';
+
+  @override
+  String get optWaitingList => 'Lista de espera';
+
+  @override
+  String get optDaily => 'Diaria';
+
+  @override
+  String get optWeekly => 'Semanal';
+
+  @override
+  String get optMonthly => 'Mensual';
+
+  @override
+  String get errPickCategory => 'Elige una categoría';
+
+  @override
+  String get errTitleRequired => 'El título es obligatorio';
+
+  @override
+  String get errMediaRequired => 'Se necesita una foto o un vídeo';
+
+  @override
+  String get errStartDateRequired => 'La fecha de inicio es obligatoria';
+
+  @override
+  String get errStartTimeRequired => 'La hora de inicio es obligatoria';
+
+  @override
+  String get errAddressRequired => 'La dirección del lugar es obligatoria';
+
+  @override
+  String get errLinkFormat => 'El enlace debe empezar por http:// o https://';
+
+  @override
+  String get errDateTimeBeforePublish =>
+      'Indica la fecha y la hora antes de publicar.';
+
+  @override
+  String get errInvalidData => 'Datos no válidos (400). Revisa los campos.';
+
+  @override
+  String errAuthRequired(String code) {
+    return 'Autenticación necesaria ($code).';
+  }
+
+  @override
+  String get errConflict => 'Conflicto (409). ¿El evento ya existe?';
+
+  @override
+  String get errFileTooLarge => 'Archivo demasiado grande.';
+
+  @override
+  String errServer(String code) {
+    return 'Error del servidor ($code). Inténtalo de nuevo en un momento.';
+  }
+
+  @override
+  String errNetworkCode(String code) {
+    return 'Error de red ($code).';
+  }
+
+  @override
+  String get errSlowConnection => 'Conexión demasiado lenta. Revisa tu red.';
+
+  @override
+  String get errNetwork => 'Error de red. Revisa tu conexión.';
+
+  @override
+  String get errNoInternet => 'Sin conexión a internet.';
+
+  @override
+  String get errCheckFields => 'Revisa los campos';
+
+  @override
+  String get errPublishFailed => 'No se pudo publicar';
+
+  @override
+  String get ceEditTitle => 'Editar evento';
+
+  @override
+  String get ceCreateTitle => 'Crear un evento';
+
+  @override
+  String get commonPrevious => 'Anterior';
+
+  @override
+  String get commonSkip => 'Omitir';
+
+  @override
+  String get commonNext => 'Siguiente';
+
+  @override
+  String get commonClose => 'Cerrar';
+
+  @override
+  String get ceUploadingVideo => 'Publicando el vídeo...';
+
+  @override
+  String get ceUploading => 'Publicando...';
+
+  @override
+  String get ceAlmostDone => 'Casi listo';
+
+  @override
+  String get ceBoostPending =>
+      '¡Evento creado! El impulso se activará cuando se confirme el pago.';
+
+  @override
+  String get ceEdited => '¡Evento editado\ncon éxito!';
+
+  @override
+  String get ceAdded => '¡Evento añadido\ncon éxito!';
+
+  @override
+  String get ceVisibleInRubrique => 'Aparecerá en la sección correspondiente.';
+
+  @override
+  String get ceCreated => '¡Evento creado!';
+
+  @override
+  String get ceBoostActiveAfterPayment =>
+      'El impulso se activará en cuanto se confirme el pago.';
+
+  @override
+  String get ceQuitTitle => '¿Salir?';
+
+  @override
+  String get ceQuitBody => 'Se perderá la información introducida.';
+
+  @override
+  String get ceQuit => 'Salir';
+
+  @override
+  String get ceCompressing => 'Comprimiendo el vídeo...';
+
+  @override
+  String get ceUploadInProgress => 'Subiendo...';
+
+  @override
+  String get ceFinalizing => 'Finalizando...';
+
+  @override
+  String get ceEssentials => 'Lo esencial';
+
+  @override
+  String get ceEssentialsSubtitle => 'Lo mínimo para publicar tu evento.';
+
+  @override
+  String get ceScanFlyerSubtitle => 'Lo rellena todo automáticamente';
+
+  @override
+  String get ceCategory => 'Categoría *';
+
+  @override
+  String get ceEventTitle => 'Título del evento *';
+
+  @override
+  String get ceDescriptionOptional => 'Descripción (opcional)';
+
+  @override
+  String get ceTicketLinkOptional =>
+      'Enlace de entradas o sitio web (opcional)';
+
+  @override
+  String get ceTeaserVideo => 'Vídeo teaser (recomendado, 30 s máx.)';
+
+  @override
+  String get cePhoto => 'Foto *';
+
+  @override
+  String get ceDate => 'Fecha *';
+
+  @override
+  String get ceTime => 'Hora *';
+
+  @override
+  String get ceAddress => 'Dirección *';
+
+  @override
+  String get ceFreeEvent => 'Evento gratuito';
+
+  @override
+  String get cePrice => 'Precio (€)';
+
+  @override
+  String get ceTapToAddPhoto => 'Toca para añadir una foto';
+
+  @override
+  String get commonCamera => 'Cámara';
+
+  @override
+  String get commonGallery => 'Galería';
+
+  @override
+  String get commonVideo => 'Vídeo';
+
+  @override
+  String get ceAddVideo => 'Añadir\n(30 s máx.)';
+
+  @override
+  String get commonDate => 'Fecha';
+
+  @override
+  String get commonTime => 'Hora';
+
+  @override
+  String get ceMoreInfo => 'Más información';
+
+  @override
+  String get ceOptional => 'Opcional';
+
+  @override
+  String get ceDetailsHint => 'Afina tu evento o pulsa \"Publicar\" ahora.';
+
+  @override
+  String get ceDescription => 'Descripción';
+
+  @override
+  String get ceShortDescription => 'Descripción corta (1-2 líneas)';
+
+  @override
+  String get ceLongDescription => 'Descripción larga';
+
+  @override
+  String get ceDatesRecurrence => 'Fechas y repetición';
+
+  @override
+  String get ceEndDate => 'Fecha de fin';
+
+  @override
+  String get ceEndTime => 'Hora de fin';
+
+  @override
+  String get ceVenueDetails => 'Detalles del lugar';
+
+  @override
+  String get ceVenueName => 'Nombre del lugar (p. ej. salón de actos)';
+
+  @override
+  String get cePricingTickets => 'Precios y entradas';
+
+  @override
+  String get ceReducedPrice => 'Precio reducido';
+
+  @override
+  String get ceGroupPrice => 'Precio de grupo';
+
+  @override
+  String get ceEarlyBird => 'Early bird';
+
+  @override
+  String get ceOrganizer => 'Organizador';
+
+  @override
+  String get ceName => 'Nombre';
+
+  @override
+  String get ceAudience => 'Público y participantes';
+
+  @override
+  String get ceTargetAudience => 'Público objetivo';
+
+  @override
+  String get ceLevel => 'Nivel';
+
+  @override
+  String get ceRegistration => 'Inscripción';
+
+  @override
+  String get ceTags => 'Etiquetas';
+
+  @override
+  String get ceAddTag => 'Añadir una etiqueta';
+
+  @override
+  String get ceBoostTitle => 'Impulsa tu evento';
+
+  @override
+  String get ceBoostOptional => 'OPCIONAL';
+
+  @override
+  String get ceBoostSubtitle => 'Aumenta la visibilidad de tu evento';
+
+  @override
+  String get cePriceLoadError => 'Error al cargar los precios';
+
+  @override
+  String get ceTapDays => 'Toca los días que quieras';
+
+  @override
+  String get publishChooseType => 'Elige el tipo de publicación';
+
+  @override
+  String get publishPrivateSubtitle => 'Cofre secreto con invitación, gratis';
+
+  @override
+  String get publishAsPro => 'Publicar como pro';
+
+  @override
+  String get publishProUnlimited =>
+      'Publicación ilimitada (cuenta pro validada)';
+
+  @override
+  String get publishProSpace => 'Espacio profesional (registro / acceso)';
+
+  @override
+  String get tierPremium => '💎 Suscripción Premium';
+
+  @override
+  String get tierPremiumEffect =>
+      'Todos tus eventos aparecen destacados en el feed.';
+
+  @override
+  String get tierGold => '🥇 Suscripción Gold';
+
+  @override
+  String get tierGoldEffect =>
+      'Todos tus eventos suben a lo más alto del feed.';
+
+  @override
+  String get tierNormal => 'Suscripción estándar';
+
+  @override
+  String get tierNormalEffect => 'Tus eventos aparecen en el feed estándar.';
+
+  @override
+  String get commonBack => 'Atrás';
+
+  @override
+  String get pubMyEvents => 'Mis eventos';
+
+  @override
+  String get pubMyStories => 'Mis stories';
+
+  @override
+  String get pubStoriesKept =>
+      'Se conservan un tiempo limitado. Puedes borrarlas cuando quieras.';
+
+  @override
+  String get pubNone => 'Sin publicaciones';
+
+  @override
+  String get pubNoneHint => 'Los eventos que crees aparecerán aquí';
+
+  @override
+  String pubStoriesPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stories esperando conexión',
+      one: '1 story esperando conexión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get commonSend => 'Enviar';
+
+  @override
+  String pubDeleteConfirm(String title) {
+    return '¿Eliminar «$title»?';
+  }
+
+  @override
+  String get pubDeleted => 'Publicación eliminada';
+
+  @override
+  String get pubDeleteFailed => 'No se puede eliminar, inténtalo de nuevo';
+
+  @override
+  String get pubThisStory => 'esta story';
+
+  @override
+  String get pubDeleteStory => 'Eliminar la story';
+
+  @override
+  String pubDeleteStoryConfirm(String title) {
+    return '¿Eliminar «$title»? Esta acción es definitiva.';
+  }
+
+  @override
+  String get pubStoryDeleted => 'Story eliminada';
+
+  @override
+  String get pubStatusGenerating => 'En proceso';
+
+  @override
+  String get pubStatusExpired => 'Caducada';
+
+  @override
+  String get pubStatusOnline => 'Publicada';
 }

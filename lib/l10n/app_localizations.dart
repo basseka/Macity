@@ -3393,6 +3393,846 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Signaler'**
   String get chatReport;
+
+  /// No description provided for @optVenueIndoor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Salle'**
+  String get optVenueIndoor;
+
+  /// No description provided for @optVenueOutdoor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Extérieur'**
+  String get optVenueOutdoor;
+
+  /// No description provided for @optVenueStudio.
+  ///
+  /// In fr, this message translates to:
+  /// **'Studio'**
+  String get optVenueStudio;
+
+  /// No description provided for @optVenueOnline.
+  ///
+  /// In fr, this message translates to:
+  /// **'En ligne'**
+  String get optVenueOnline;
+
+  /// No description provided for @optKids.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enfants'**
+  String get optKids;
+
+  /// No description provided for @optTeens.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ados'**
+  String get optTeens;
+
+  /// No description provided for @optAdults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adultes'**
+  String get optAdults;
+
+  /// No description provided for @optSeniors.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seniors'**
+  String get optSeniors;
+
+  /// No description provided for @optAllAudiences.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous publics'**
+  String get optAllAudiences;
+
+  /// No description provided for @optBeginner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Débutant'**
+  String get optBeginner;
+
+  /// No description provided for @optIntermediate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intermédiaire'**
+  String get optIntermediate;
+
+  /// No description provided for @optAdvanced.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avancé'**
+  String get optAdvanced;
+
+  /// No description provided for @optAllLevels.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous niveaux'**
+  String get optAllLevels;
+
+  /// No description provided for @optIndividual.
+  ///
+  /// In fr, this message translates to:
+  /// **'Particulier'**
+  String get optIndividual;
+
+  /// No description provided for @optNonProfit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Association'**
+  String get optNonProfit;
+
+  /// No description provided for @optCompany.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entreprise'**
+  String get optCompany;
+
+  /// No description provided for @optOpenEntry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Libre'**
+  String get optOpenEntry;
+
+  /// No description provided for @optApproval.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sur validation'**
+  String get optApproval;
+
+  /// No description provided for @optWaitingList.
+  ///
+  /// In fr, this message translates to:
+  /// **'Liste d\'attente'**
+  String get optWaitingList;
+
+  /// No description provided for @optDaily.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quotidien'**
+  String get optDaily;
+
+  /// No description provided for @optWeekly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hebdomadaire'**
+  String get optWeekly;
+
+  /// No description provided for @optMonthly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mensuel'**
+  String get optMonthly;
+
+  /// No description provided for @errPickCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis une catégorie'**
+  String get errPickCategory;
+
+  /// No description provided for @errTitleRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le titre est requis'**
+  String get errTitleRequired;
+
+  /// No description provided for @errMediaRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une photo ou vidéo est requise'**
+  String get errMediaRequired;
+
+  /// No description provided for @errStartDateRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'La date de début est requise'**
+  String get errStartDateRequired;
+
+  /// No description provided for @errStartTimeRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'heure de début est requise'**
+  String get errStartTimeRequired;
+
+  /// No description provided for @errAddressRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse du lieu requise'**
+  String get errAddressRequired;
+
+  /// No description provided for @errLinkFormat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le lien doit commencer par http:// ou https://'**
+  String get errLinkFormat;
+
+  /// No description provided for @errDateTimeBeforePublish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renseigne la date et l\'heure avant de publier.'**
+  String get errDateTimeBeforePublish;
+
+  /// No description provided for @errInvalidData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données invalides (400). Vérifie les champs.'**
+  String get errInvalidData;
+
+  /// Erreur HTTP
+  ///
+  /// In fr, this message translates to:
+  /// **'Authentification requise ({code}).'**
+  String errAuthRequired(String code);
+
+  /// No description provided for @errConflict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conflit (409). Évènement déjà existant ?'**
+  String get errConflict;
+
+  /// No description provided for @errFileTooLarge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fichier trop volumineux.'**
+  String get errFileTooLarge;
+
+  /// Erreur HTTP
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur serveur ({code}). Réessaye dans un instant.'**
+  String errServer(String code);
+
+  /// Erreur HTTP
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur réseau ({code}).'**
+  String errNetworkCode(String code);
+
+  /// No description provided for @errSlowConnection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion trop lente. Vérifie ton réseau.'**
+  String get errSlowConnection;
+
+  /// No description provided for @errNetwork.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur réseau. Vérifie ta connexion.'**
+  String get errNetwork;
+
+  /// No description provided for @errNoInternet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de connexion internet.'**
+  String get errNoInternet;
+
+  /// No description provided for @errCheckFields.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifie les champs'**
+  String get errCheckFields;
+
+  /// No description provided for @errPublishFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publication échouée'**
+  String get errPublishFailed;
+
+  /// No description provided for @ceEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'évènement'**
+  String get ceEditTitle;
+
+  /// No description provided for @ceCreateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un évènement'**
+  String get ceCreateTitle;
+
+  /// No description provided for @commonPrevious.
+  ///
+  /// In fr, this message translates to:
+  /// **'Précédent'**
+  String get commonPrevious;
+
+  /// No description provided for @commonSkip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer'**
+  String get commonSkip;
+
+  /// No description provided for @commonNext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivant'**
+  String get commonNext;
+
+  /// No description provided for @commonClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get commonClose;
+
+  /// No description provided for @ceUploadingVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publication de la vidéo...'**
+  String get ceUploadingVideo;
+
+  /// No description provided for @ceUploading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publication en cours...'**
+  String get ceUploading;
+
+  /// No description provided for @ceAlmostDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Presque terminé'**
+  String get ceAlmostDone;
+
+  /// No description provided for @ceBoostPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Event créé ! Le boost sera actif après validation du paiement.'**
+  String get ceBoostPending;
+
+  /// No description provided for @ceEdited.
+  ///
+  /// In fr, this message translates to:
+  /// **'Évènement modifié\navec succès !'**
+  String get ceEdited;
+
+  /// No description provided for @ceAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Évènement ajouté\navec succès !'**
+  String get ceAdded;
+
+  /// No description provided for @ceVisibleInRubrique.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il sera visible dans la rubrique correspondante.'**
+  String get ceVisibleInRubrique;
+
+  /// No description provided for @ceCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Évènement créé !'**
+  String get ceCreated;
+
+  /// No description provided for @ceBoostActiveAfterPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le boost sera actif dès que le paiement sera confirmé.'**
+  String get ceBoostActiveAfterPayment;
+
+  /// No description provided for @ceQuitTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quitter ?'**
+  String get ceQuitTitle;
+
+  /// No description provided for @ceQuitBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les informations saisies seront perdues.'**
+  String get ceQuitBody;
+
+  /// No description provided for @ceQuit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quitter'**
+  String get ceQuit;
+
+  /// No description provided for @ceCompressing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compression de la vidéo...'**
+  String get ceCompressing;
+
+  /// No description provided for @ceUploadInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Upload en cours...'**
+  String get ceUploadInProgress;
+
+  /// No description provided for @ceFinalizing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Finalisation...'**
+  String get ceFinalizing;
+
+  /// No description provided for @ceEssentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'essentiel'**
+  String get ceEssentials;
+
+  /// No description provided for @ceEssentialsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le minimum pour publier ton event.'**
+  String get ceEssentialsSubtitle;
+
+  /// No description provided for @ceScanFlyerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplit tout automatiquement'**
+  String get ceScanFlyerSubtitle;
+
+  /// No description provided for @ceCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégorie *'**
+  String get ceCategory;
+
+  /// No description provided for @ceEventTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre de l\'évènement *'**
+  String get ceEventTitle;
+
+  /// No description provided for @ceDescriptionOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description (optionnel)'**
+  String get ceDescriptionOptional;
+
+  /// No description provided for @ceTicketLinkOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien billetterie ou site web (optionnel)'**
+  String get ceTicketLinkOptional;
+
+  /// No description provided for @ceTeaserVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vidéo teaser (recommandée, 30s max)'**
+  String get ceTeaserVideo;
+
+  /// No description provided for @cePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo *'**
+  String get cePhoto;
+
+  /// No description provided for @ceDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date *'**
+  String get ceDate;
+
+  /// No description provided for @ceTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure *'**
+  String get ceTime;
+
+  /// No description provided for @ceAddress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse *'**
+  String get ceAddress;
+
+  /// No description provided for @ceFreeEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Évènement gratuit'**
+  String get ceFreeEvent;
+
+  /// No description provided for @cePrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix (€)'**
+  String get cePrice;
+
+  /// No description provided for @ceTapToAddPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appuie pour ajouter une photo'**
+  String get ceTapToAddPhoto;
+
+  /// No description provided for @commonCamera.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caméra'**
+  String get commonCamera;
+
+  /// No description provided for @commonGallery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Galerie'**
+  String get commonGallery;
+
+  /// No description provided for @commonVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vidéo'**
+  String get commonVideo;
+
+  /// No description provided for @ceAddVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter\n(30 sec max)'**
+  String get ceAddVideo;
+
+  /// No description provided for @commonDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date'**
+  String get commonDate;
+
+  /// No description provided for @commonTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure'**
+  String get commonTime;
+
+  /// No description provided for @ceMoreInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus d\'infos'**
+  String get ceMoreInfo;
+
+  /// No description provided for @ceOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Optionnel'**
+  String get ceOptional;
+
+  /// No description provided for @ceDetailsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Affine ton event ou clique \"Publier\" maintenant.'**
+  String get ceDetailsHint;
+
+  /// No description provided for @ceDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description'**
+  String get ceDescription;
+
+  /// No description provided for @ceShortDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description courte (1-2 lignes)'**
+  String get ceShortDescription;
+
+  /// No description provided for @ceLongDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description longue'**
+  String get ceLongDescription;
+
+  /// No description provided for @ceDatesRecurrence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dates et récurrence'**
+  String get ceDatesRecurrence;
+
+  /// No description provided for @ceEndDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date fin'**
+  String get ceEndDate;
+
+  /// No description provided for @ceEndTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure fin'**
+  String get ceEndTime;
+
+  /// No description provided for @ceVenueDetails.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu détaillé'**
+  String get ceVenueDetails;
+
+  /// No description provided for @ceVenueName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du lieu (ex. salle des fêtes)'**
+  String get ceVenueName;
+
+  /// No description provided for @cePricingTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tarification & billetterie'**
+  String get cePricingTickets;
+
+  /// No description provided for @ceReducedPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tarif réduit'**
+  String get ceReducedPrice;
+
+  /// No description provided for @ceGroupPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tarif groupe'**
+  String get ceGroupPrice;
+
+  /// No description provided for @ceEarlyBird.
+  ///
+  /// In fr, this message translates to:
+  /// **'Early bird'**
+  String get ceEarlyBird;
+
+  /// No description provided for @ceOrganizer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Organisateur'**
+  String get ceOrganizer;
+
+  /// No description provided for @ceName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom'**
+  String get ceName;
+
+  /// No description provided for @ceAudience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Public & participants'**
+  String get ceAudience;
+
+  /// No description provided for @ceTargetAudience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Public cible'**
+  String get ceTargetAudience;
+
+  /// No description provided for @ceLevel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Niveau'**
+  String get ceLevel;
+
+  /// No description provided for @ceRegistration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscription'**
+  String get ceRegistration;
+
+  /// No description provided for @ceTags.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tags'**
+  String get ceTags;
+
+  /// No description provided for @ceAddTag.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un tag'**
+  String get ceAddTag;
+
+  /// No description provided for @ceBoostTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Booster ton event'**
+  String get ceBoostTitle;
+
+  /// No description provided for @ceBoostOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'OPTIONNEL'**
+  String get ceBoostOptional;
+
+  /// No description provided for @ceBoostSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Augmente la visibilité de ton event'**
+  String get ceBoostSubtitle;
+
+  /// No description provided for @cePriceLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur chargement prix'**
+  String get cePriceLoadError;
+
+  /// No description provided for @ceTapDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Touche les jours souhaités'**
+  String get ceTapDays;
+
+  /// No description provided for @publishChooseType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis le type de publication'**
+  String get publishChooseType;
+
+  /// No description provided for @publishPrivateSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coffre secret sur invitation, gratuit'**
+  String get publishPrivateSubtitle;
+
+  /// No description provided for @publishAsPro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publier en tant que pro'**
+  String get publishAsPro;
+
+  /// No description provided for @publishProUnlimited.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publication illimitée (compte pro validé)'**
+  String get publishProUnlimited;
+
+  /// No description provided for @publishProSpace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espace professionnel (inscription / connexion)'**
+  String get publishProSpace;
+
+  /// No description provided for @tierPremium.
+  ///
+  /// In fr, this message translates to:
+  /// **'💎 Abonnement Premium'**
+  String get tierPremium;
+
+  /// No description provided for @tierPremiumEffect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous vos events passent à la une du feed.'**
+  String get tierPremiumEffect;
+
+  /// No description provided for @tierGold.
+  ///
+  /// In fr, this message translates to:
+  /// **'🥇 Abonnement Gold'**
+  String get tierGold;
+
+  /// No description provided for @tierGoldEffect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous vos events sont mis au top du feed.'**
+  String get tierGoldEffect;
+
+  /// No description provided for @tierNormal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Abonnement Normal'**
+  String get tierNormal;
+
+  /// No description provided for @tierNormalEffect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos events apparaissent dans le feed standard.'**
+  String get tierNormalEffect;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour'**
+  String get commonBack;
+
+  /// No description provided for @pubMyEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes événements'**
+  String get pubMyEvents;
+
+  /// No description provided for @pubMyStories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes stories'**
+  String get pubMyStories;
+
+  /// No description provided for @pubStoriesKept.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conservées un temps limité. Supprimables à tout moment.'**
+  String get pubStoriesKept;
+
+  /// No description provided for @pubNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune publication'**
+  String get pubNone;
+
+  /// No description provided for @pubNoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes événements créés apparaîtront ici'**
+  String get pubNoneHint;
+
+  /// Stories en file d'attente
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 story en attente de réseau} other{{count} stories en attente de réseau}}'**
+  String pubStoriesPending(int count);
+
+  /// No description provided for @commonSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer'**
+  String get commonSend;
+
+  /// Confirmation de suppression
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer « {title} » ?'**
+  String pubDeleteConfirm(String title);
+
+  /// No description provided for @pubDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publication supprimée'**
+  String get pubDeleted;
+
+  /// No description provided for @pubDeleteFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression impossible, réessaie'**
+  String get pubDeleteFailed;
+
+  /// No description provided for @pubThisStory.
+  ///
+  /// In fr, this message translates to:
+  /// **'cette story'**
+  String get pubThisStory;
+
+  /// No description provided for @pubDeleteStory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la story'**
+  String get pubDeleteStory;
+
+  /// Confirmation de suppression
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer « {title} » ? Cette action est définitive.'**
+  String pubDeleteStoryConfirm(String title);
+
+  /// No description provided for @pubStoryDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Story supprimée'**
+  String get pubStoryDeleted;
+
+  /// No description provided for @pubStatusGenerating.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get pubStatusGenerating;
+
+  /// No description provided for @pubStatusExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expirée'**
+  String get pubStatusExpired;
+
+  /// No description provided for @pubStatusOnline.
+  ///
+  /// In fr, this message translates to:
+  /// **'En ligne'**
+  String get pubStatusOnline;
 }
 
 class _AppLocalizationsDelegate

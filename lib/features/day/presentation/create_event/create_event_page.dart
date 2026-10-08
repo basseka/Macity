@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_provider.dart';
@@ -116,7 +118,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
           onPressed: () => _confirmExit(context),
         ),
         title: Text(
-          _isEditing ? 'Modifier l\'evenement' : 'Creer un evenement',
+          _isEditing ? context.l10n.ceEditTitle : context.l10n.ceCreateTitle,
           style: const TextStyle(
             color: _primaryDarkColor,
             fontSize: 15,
@@ -155,7 +157,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                     Expanded(
                       child: SingleChildScrollView(
                         child: Text(
-                          state.errorMessage!,
+                          createEventErrorLabel(context, state.errorMessage!),
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.text,
@@ -216,7 +218,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      child: const Text('Precedent', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                      child: Text(context.l10n.commonPrevious, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 if (state.currentStep > 0) const SizedBox(width: 10),
@@ -235,7 +237,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      child: const Text('Passer', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                      child: Text(context.l10n.commonSkip, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -267,8 +269,10 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                           )
                         : Text(
                             _isLastStep(state)
-                                ? (_isEditing ? 'Modifier' : 'Publier')
-                                : 'Suivant',
+                                ? (_isEditing
+                                    ? context.l10n.commonEdit
+                                    : context.l10n.commonPublish)
+                                : context.l10n.commonNext,
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
@@ -301,7 +305,9 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
               ),
               const SizedBox(height: 20),
               Text(
-                state.isVideo ? 'Publication de la video...' : 'Publication en cours...',
+                state.isVideo
+                    ? context.l10n.ceUploadingVideo
+                    : context.l10n.ceUploading,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14,
@@ -314,7 +320,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                 const _UploadSteps()
               else
                 Text(
-                  'Presque termine',
+                  context.l10n.ceAlmostDone,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 12,
@@ -348,7 +354,10 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
       if (widget.paidPublicMode && !_isEditing) {
         final event = await notifier.assembleEventForPublication();
         if (event == null && mounted) {
-          final msg = ref.read(createEventProvider).errorMessage ?? 'Vérifie les champs';
+          final raw = ref.read(createEventProvider).errorMessage;
+          final msg = raw != null
+              ? createEventErrorLabel(context, raw)
+              : context.l10n.errCheckFields;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.red.shade700,
@@ -371,7 +380,10 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
       final success = await notifier.submit();
       // Remonte toute erreur de submit via un SnackBar bien visible.
       if (!success && mounted) {
-        final msg = ref.read(createEventProvider).errorMessage ?? 'Publication echouee';
+        final raw = ref.read(createEventProvider).errorMessage;
+        final msg = raw != null
+            ? createEventErrorLabel(context, raw)
+            : context.l10n.errPublishFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red.shade700,
@@ -412,7 +424,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             // Stripe n'a pas pu s'ouvrir — event cree mais boost en attente
             _showSuccessAndPop(
               subtitle:
-                  'Event cree ! Le boost sera actif apres validation du paiement.',
+                  context.l10n.ceBoostPending,
             );
           }
         } else {
@@ -446,7 +458,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              _isEditing ? 'Evenement modifie\navec succes !' : 'Evenement ajoute\navec succes !',
+              _isEditing ? context.l10n.ceEdited : context.l10n.ceAdded,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
@@ -456,7 +468,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             ),
             const SizedBox(height: 6),
             Text(
-              subtitle ?? 'Il sera visible dans la rubrique correspondante.',
+              subtitle ?? context.l10n.ceVisibleInRubrique,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.textFaint),
             ),
@@ -477,8 +489,8 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Fermer',
+                child: Text(
+                  context.l10n.commonClose,
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -517,7 +529,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Evenement cree !',
+              context.l10n.ceCreated,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
@@ -527,7 +539,7 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Le boost sera actif des que le paiement sera confirme.',
+              context.l10n.ceBoostActiveAfterPayment,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.textFaint),
             ),
@@ -548,8 +560,8 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Fermer',
+                child: Text(
+                  context.l10n.commonClose,
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -570,16 +582,16 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Quitter ?'),
-        content: const Text('Les informations saisies seront perdues.'),
+        title: Text(context.l10n.ceQuitTitle),
+        content: Text(context.l10n.ceQuitBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Quitter', style: TextStyle(color: Colors.red)),
+            child: Text(context.l10n.ceQuit, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -641,7 +653,11 @@ class _UploadStepsState extends State<_UploadSteps> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _steps[i],
+                  [
+                    context.l10n.ceCompressing,
+                    context.l10n.ceUploadInProgress,
+                    context.l10n.ceFinalizing,
+                  ][i],
                   style: TextStyle(
                     color: i <= _step ? Colors.white : Colors.white24,
                     fontSize: 11,
