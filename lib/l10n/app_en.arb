@@ -1147,5 +1147,6 @@
   "resComment": "Comment (allergies, occasion...)",
   "resSendRequest": "Send request",
   "tripPlanTitle": "Plan my trip",
-  "tripPlanSubtitle": "Meals and activities, day by day, for your group."
+  "tripPlanSubtitle": "Meals and activities, day by day, for your group.",
+  "pvNameAge": "{name} · {age} y/o"
 }

@@ -759,18 +759,24 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: selected ? AppColors.magenta : AppColors.surfaceHi,
               borderRadius: BorderRadius.circular(AppRadius.chip),
             ),
-            child: Text(
-              label,
-              style: GoogleFonts.geist(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : AppColors.text,
+            // Une seule ligne : le libelle retrecit plutot que de passer a la
+            // ligne (police agrandie du telephone, langues plus longues).
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: GoogleFonts.geist(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : AppColors.text,
+                ),
               ),
             ),
           ),
@@ -1083,6 +1089,8 @@ class _GuestRow extends StatelessWidget {
           Expanded(
             child: Text(
               rsvp.prenom ?? context.l10n.storyAnonymous,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.geist(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -1192,6 +1200,8 @@ class _OpenerRow extends StatelessWidget {
                 children: [
                   Text(
                     prenom.isNotEmpty ? prenom : context.l10n.commonWithoutAccount,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.geist(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1269,7 +1279,11 @@ class _ConfirmedRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  c.age != null ? '$fullName · ${c.age} ans' : fullName,
+                  c.age != null
+                      ? context.l10n.pvNameAge(fullName, c.age!)
+                      : fullName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.geist(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

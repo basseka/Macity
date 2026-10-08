@@ -6987,6 +6987,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Repas et activités, jour par jour, selon votre groupe.'**
   String get tripPlanSubtitle;
+
+  /// Nom et age d'un confirme
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} · {age} ans'**
+  String pvNameAge(String name, int age);
 }
 
 class _AppLocalizationsDelegate

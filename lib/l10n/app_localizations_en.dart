@@ -3821,4 +3821,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tripPlanSubtitle =>
       'Meals and activities, day by day, for your group.';
+
+  @override
+  String pvNameAge(String name, int age) {
+    return '$name · $age y/o';
+  }
 }

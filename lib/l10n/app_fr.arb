@@ -1843,5 +1843,17 @@
   "resComment": "Commentaire (allergies, occasion...)",
   "resSendRequest": "Envoyer la demande",
   "tripPlanTitle": "Organiser mon trip",
-  "tripPlanSubtitle": "Repas et activités, jour par jour, selon votre groupe."
+  "tripPlanSubtitle": "Repas et activités, jour par jour, selon votre groupe.",
+  "pvNameAge": "{name} · {age} ans",
+  "@pvNameAge": {
+    "description": "Nom et age d'un confirme",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "age": {
+        "type": "int"
+      }
+    }
+  }
 }
