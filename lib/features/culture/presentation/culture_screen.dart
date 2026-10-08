@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -43,23 +45,25 @@ class CultureScreen extends ConsumerWidget {
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {
     return RubriqueConfig(
       theme: _culture,
-      eyebrowLeft: 'RUBRIQUE',
-      eyebrowRight: 'CITÉ',
-      title: 'Culture.',
-      subtitle: 'Musées, monuments, expos — l\'agenda culturel.',
-      sectionTitle: 'À découvrir',
-      chips: const [
-        RubriqueChip('Musées', Icons.museum_rounded, 'Musee'),
-        RubriqueChip('Monuments', Icons.account_balance_rounded,
-            'Monument historique'),
-        RubriqueChip('Bibliothèques', Icons.local_library_rounded,
-            'Bibliotheque'),
-        RubriqueChip('Galeries', Icons.palette_rounded, 'Galerie'),
+      eyebrowLeft: context.l10n.rubriqueEyebrow,
+      eyebrowRight: context.l10n.cultureEyebrowRight,
+      title: context.l10n.cultureTitle,
+      subtitle: context.l10n.cultureSubtitle,
+      sectionTitle: context.l10n.commonToDiscover,
+      chips: [
+        RubriqueChip(context.l10n.cultureChipMuseums, Icons.museum_rounded,
+            'Musee'),
+        RubriqueChip(context.l10n.cultureChipMonuments,
+            Icons.account_balance_rounded, 'Monument historique'),
+        RubriqueChip(context.l10n.cultureChipLibraries,
+            Icons.local_library_rounded, 'Bibliotheque'),
+        RubriqueChip(context.l10n.cultureChipGalleries, Icons.palette_rounded,
+            'Galerie'),
       ],
       rubriqueKey: 'culture',
-      bannerTitle: 'La ville se raconte.',
-      bannerSubtitle: 'Musées, expos et patrimoine vous attendent.',
-      bannerCta: 'Découvrir',
+      bannerTitle: context.l10n.cultureBannerTitle,
+      bannerSubtitle: context.l10n.cultureBannerSubtitle,
+      bannerCta: context.l10n.commonDiscover,
       onBack: () => context.go('/home'),
       // Section « Affinez votre recherche » : tous les lieux culture de la
       // ville (indépendant du chip du haut) + carte, filtrés par quartier.
@@ -86,7 +90,7 @@ class CultureScreen extends ConsumerWidget {
         all: all,
         visible: visible,
         accentColor: '#FF2DAA', // accent Culture
-        title: 'Lieux culturels',
+        title: context.l10n.cultureMapTitle,
       ),
       itemsBuilder: (ref, chipKey) {
         switch (chipKey) {
@@ -223,12 +227,14 @@ class CultureScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: EditorialMasthead(
               kicker: selectedCategory == null
-                  ? 'Rubrique · Cite'
-                  : 'Culture · $selectedCategory',
-              title: selectedCategory ?? 'Culture',
+                  ? context.l10n.cultureKickerHome
+                  : '${context.l10n.rubriqueCulture} · ${cultureCategoryLabel(context, selectedCategory)}',
+              title: selectedCategory == null
+                  ? context.l10n.rubriqueCulture
+                  : cultureCategoryLabel(context, selectedCategory),
               accent: RubricColors.culture,
               blurb: selectedCategory == null
-                  ? 'Cinema, theatre, expositions, danse — l\'agenda culturel.'
+                  ? context.l10n.cultureBlurb
                   : null,
               onBack: selectedCategory == null
                   ? () => context.go('/home')
@@ -286,6 +292,7 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildMuseumVenuesList(WidgetRef ref) {
+    final context = ref.context;
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(museumVenuesSupabaseProvider);
 
@@ -307,8 +314,8 @@ class CultureScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 320),
-                const EmptyStateWidget(
-                  message: 'Aucun musee trouve',
+                EmptyStateWidget(
+                  message: context.l10n.cultureNoMuseum,
                   icon: Icons.museum,
                 ),
               ],
@@ -330,7 +337,7 @@ class CultureScreen extends ConsumerWidget {
         },
         loading: () => LoadingIndicator(color: modeTheme.primaryColor),
         error: (error, _) => AppErrorWidget(
-          message: 'Erreur lors du chargement des musees',
+          message: context.l10n.cultureMuseumError,
           onRetry: () => ref.invalidate(museumVenuesSupabaseProvider),
         ),
       ),
@@ -340,6 +347,7 @@ class CultureScreen extends ConsumerWidget {
   // Liste plate de tous les events theatre + bouton "Filtrer par salle"
   // (meme pattern que Concert/Spectacle/DJ Set dans le mode Day).
   Widget _buildTheatreVenuesList(WidgetRef ref) {
+    final context = ref.context;
     final modeTheme = ref.watch(modeThemeProvider);
     final selectedVenue = ref.watch(selectedTheatreVenueProvider);
     final eventsState = ref.watch(cultureTheatreEventsProgressiveProvider);
@@ -349,8 +357,8 @@ class CultureScreen extends ConsumerWidget {
       return Center(child: LoadingIndicator(color: modeTheme.primaryColor));
     }
     if (events.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'Aucun evenement theatre a venir',
+      return EmptyStateWidget(
+        message: context.l10n.cultureNoTheatreEvent,
         icon: Icons.theater_comedy,
       );
     }
@@ -370,8 +378,8 @@ class CultureScreen extends ConsumerWidget {
         ),
         Expanded(
           child: filtered.isEmpty
-              ? const EmptyStateWidget(
-                  message: 'Aucun evenement pour ce filtre',
+              ? EmptyStateWidget(
+                  message: context.l10n.cultureNoEventForFilter,
                   icon: Icons.event_busy,
                 )
               : ListView.builder(
@@ -393,6 +401,7 @@ class CultureScreen extends ConsumerWidget {
     String? currentSelection,
     Color accent,
   ) {
+    final context = ref.context;
     final byVenue = <String, int>{};
     for (final e in events) {
       if (e.lieuNom.isEmpty) continue;
@@ -441,7 +450,7 @@ class CultureScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Filtrer par salle',
+                      context.l10n.filterByVenue,
                       style: TextStyle(
                         color: EditorialColors.text,
                         fontSize: 11,
@@ -458,7 +467,7 @@ class CultureScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
-                            'Effacer',
+                            context.l10n.commonClear,
                             style: TextStyle(
                               color: accent,
                               fontSize: 12,
@@ -485,7 +494,7 @@ class CultureScreen extends ConsumerWidget {
                   itemBuilder: (_, i) {
                     if (i == 0) {
                       return _TheatreVenueRow(
-                        label: 'Toutes les salles',
+                        label: context.l10n.feedAllVenues,
                         count: events.length,
                         selected: currentSelection == null,
                         accent: accent,
@@ -519,6 +528,7 @@ class CultureScreen extends ConsumerWidget {
   // Liste plate de tous les events cinema + bouton "Filtrer par salle"
   // (meme pattern que Theatre).
   Widget _buildCinemaVenuesList(WidgetRef ref) {
+    final context = ref.context;
     final modeTheme = ref.watch(modeThemeProvider);
     final selectedVenue = ref.watch(selectedCinemaVenueProvider);
     final eventsState = ref.watch(cultureCinemaEventsProgressiveProvider);
@@ -528,8 +538,8 @@ class CultureScreen extends ConsumerWidget {
       return Center(child: LoadingIndicator(color: modeTheme.primaryColor));
     }
     if (events.isEmpty) {
-      return const EmptyStateWidget(
-        message: 'Aucune seance de cinema a venir',
+      return EmptyStateWidget(
+        message: context.l10n.cultureNoScreening,
         icon: Icons.movie,
       );
     }
@@ -549,8 +559,8 @@ class CultureScreen extends ConsumerWidget {
         ),
         Expanded(
           child: filtered.isEmpty
-              ? const EmptyStateWidget(
-                  message: 'Aucune seance pour ce filtre',
+              ? EmptyStateWidget(
+                  message: context.l10n.cultureNoScreeningForFilter,
                   icon: Icons.event_busy,
                 )
               : ListView.builder(
@@ -572,6 +582,7 @@ class CultureScreen extends ConsumerWidget {
     String? currentSelection,
     Color accent,
   ) {
+    final context = ref.context;
     final byVenue = <String, int>{};
     for (final e in events) {
       if (e.lieuNom.isEmpty) continue;
@@ -620,7 +631,7 @@ class CultureScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Filtrer par salle',
+                      context.l10n.filterByVenue,
                       style: TextStyle(
                         color: EditorialColors.text,
                         fontSize: 11,
@@ -637,7 +648,7 @@ class CultureScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           child: Text(
-                            'Effacer',
+                            context.l10n.commonClear,
                             style: TextStyle(
                               color: accent,
                               fontSize: 12,
@@ -664,7 +675,7 @@ class CultureScreen extends ConsumerWidget {
                   itemBuilder: (_, i) {
                     if (i == 0) {
                       return _TheatreVenueRow(
-                        label: 'Toutes les salles',
+                        label: context.l10n.feedAllVenues,
                         count: events.length,
                         selected: currentSelection == null,
                         accent: accent,
@@ -696,6 +707,7 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildDanceVenuesList(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     final venuesAsync = ref.watch(danceVenuesProvider);
     return RefreshIndicator(
       onRefresh: () async {
@@ -715,14 +727,14 @@ class CultureScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 320),
-                const EmptyStateWidget(
-                  message: 'Aucune salle de danse trouvee',
+                EmptyStateWidget(
+                  message: context.l10n.cultureNoDance,
                   icon: Icons.music_note,
                 ),
               ],
             );
           }
-          final siblings = venues.map(DanceVenueCard.toCommerce).toList();
+          final siblings = venues.map((d) => DanceVenueCard.toCommerce(context, d)).toList();
           return ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -739,7 +751,7 @@ class CultureScreen extends ConsumerWidget {
         },
         loading: () => LoadingIndicator(color: modeTheme.primaryColor),
         error: (error, _) => AppErrorWidget(
-          message: 'Erreur lors du chargement des salles de danse',
+          message: context.l10n.cultureDanceError,
           onRetry: () => ref.invalidate(danceVenuesProvider),
         ),
       ),
@@ -747,6 +759,7 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildGalleryVenuesList(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     final venuesAsync = ref.watch(galleryVenuesSupabaseProvider);
 
     return RefreshIndicator(
@@ -767,8 +780,8 @@ class CultureScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 320),
-                const EmptyStateWidget(
-                  message: 'Aucune galerie trouvee',
+                EmptyStateWidget(
+                  message: context.l10n.cultureNoGallery,
                   icon: Icons.palette,
                 ),
               ],
@@ -786,7 +799,7 @@ class CultureScreen extends ConsumerWidget {
         },
         loading: () => LoadingIndicator(color: modeTheme.primaryColor),
         error: (error, _) => AppErrorWidget(
-          message: 'Erreur lors du chargement des galeries',
+          message: context.l10n.cultureGalleryError,
           onRetry: () => ref.invalidate(galleryVenuesSupabaseProvider),
         ),
       ),
@@ -794,6 +807,7 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildLibraryVenuesList(WidgetRef ref) {
+    final context = ref.context;
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(libraryVenuesSupabaseProvider);
 
@@ -815,8 +829,8 @@ class CultureScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 320),
-                const EmptyStateWidget(
-                  message: 'Aucune bibliotheque trouvee',
+                EmptyStateWidget(
+                  message: context.l10n.cultureNoLibrary,
                   icon: Icons.local_library,
                 ),
               ],
@@ -839,7 +853,7 @@ class CultureScreen extends ConsumerWidget {
         },
         loading: () => LoadingIndicator(color: modeTheme.primaryColor),
         error: (error, _) => AppErrorWidget(
-          message: 'Erreur lors du chargement des bibliotheques',
+          message: context.l10n.cultureLibraryError,
           onRetry: () => ref.invalidate(libraryVenuesSupabaseProvider),
         ),
       ),
@@ -847,6 +861,7 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildMonumentVenuesList(WidgetRef ref) {
+    final context = ref.context;
     final modeTheme = ref.watch(modeThemeProvider);
     final venuesAsync = ref.watch(monumentVenuesSupabaseProvider);
 
@@ -868,8 +883,8 @@ class CultureScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 320),
-                const EmptyStateWidget(
-                  message: 'Aucun monument trouve',
+                EmptyStateWidget(
+                  message: context.l10n.cultureNoMonument,
                   icon: Icons.account_balance,
                 ),
               ],
@@ -892,7 +907,7 @@ class CultureScreen extends ConsumerWidget {
         },
         loading: () => LoadingIndicator(color: modeTheme.primaryColor),
         error: (error, _) => AppErrorWidget(
-          message: 'Erreur lors du chargement des monuments',
+          message: context.l10n.cultureMonumentError,
           onRetry: () => ref.invalidate(monumentVenuesSupabaseProvider),
         ),
       ),
@@ -900,12 +915,13 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildGuidedToursList(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     final eventsAsync = ref.watch(cultureGuidedToursProvider);
     return eventsAsync.when(
       data: (events) {
         if (events.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucune visite guidee a venir',
+          return EmptyStateWidget(
+            message: context.l10n.cultureNoGuidedTour,
             icon: Icons.tour,
           );
         }
@@ -920,19 +936,20 @@ class CultureScreen extends ConsumerWidget {
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des visites guidees',
+        message: context.l10n.cultureGuidedTourError,
         onRetry: () => ref.invalidate(cultureGuidedToursProvider),
       ),
     );
   }
 
   Widget _buildMeettEventsList(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     final eventsAsync = ref.watch(cultureMeettEventsProvider);
     return eventsAsync.when(
       data: (events) {
         if (events.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucune exposition a venir',
+          return EmptyStateWidget(
+            message: context.l10n.cultureNoExhibition,
             icon: Icons.art_track,
           );
         }
@@ -947,13 +964,14 @@ class CultureScreen extends ConsumerWidget {
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des expositions',
+        message: context.l10n.cultureExhibitionError,
         onRetry: () => ref.invalidate(cultureMeettEventsProvider),
       ),
     );
   }
 
   Widget _buildCetteSemaineEventsList(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     final museumAsync = ref.watch(cultureMuseumEventsProvider);
     final theatreState = ref.watch(cultureTheatreEventsProgressiveProvider);
     final spectacleAsync = ref.watch(cultureSpectacleEventsProvider);
@@ -972,8 +990,8 @@ class CultureScreen extends ConsumerWidget {
           return LoadingIndicator(color: modeTheme.primaryColor);
         }
         if (allEvents.isEmpty) {
-          return const EmptyStateWidget(
-            message: 'Aucun evenement culturel a venir',
+          return EmptyStateWidget(
+            message: context.l10n.cultureNoEvent,
             icon: Icons.event,
           );
         }
@@ -999,7 +1017,7 @@ class CultureScreen extends ConsumerWidget {
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des evenements culturels',
+        message: context.l10n.cultureEventError,
         onRetry: () {
           ref.invalidate(cultureMuseumEventsProvider);
           ref.invalidate(cultureTheatreEventsProvider);
@@ -1058,6 +1076,7 @@ class CultureScreen extends ConsumerWidget {
   }
 
   Widget _buildCommerceVenuesList(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     final venuesAsync = ref.watch(cultureVenuesProvider);
     return RefreshIndicator(
       onRefresh: () async {
@@ -1077,8 +1096,8 @@ class CultureScreen extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 320),
-                const EmptyStateWidget(
-                  message: 'Aucun lieu culturel trouve pour cette categorie',
+                EmptyStateWidget(
+                  message: context.l10n.cultureNoVenueForCategory,
                   icon: Icons.museum,
                 ),
               ],
@@ -1096,7 +1115,7 @@ class CultureScreen extends ConsumerWidget {
         },
         loading: () => LoadingIndicator(color: modeTheme.primaryColor),
         error: (error, _) => AppErrorWidget(
-          message: 'Erreur lors du chargement des lieux culturels',
+          message: context.l10n.cultureVenueError,
           onRetry: () => ref.invalidate(cultureVenuesProvider),
         ),
       ),
@@ -1141,7 +1160,7 @@ class _TheatreFilterBar extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  active ? selectedVenue! : 'Filtrer par salle',
+                  active ? selectedVenue! : context.l10n.filterByVenue,
                   style: TextStyle(
                     color: active ? accent : EditorialColors.text,
                     fontSize: 11,
@@ -1249,9 +1268,9 @@ class _MuseumGridCard extends ConsumerWidget {
                           color: const Color(0xFF059669),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'BILLETS',
-                          style: TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.w700),
+                        child: Text(
+                          context.l10n.commonTickets,
+                          style: const TextStyle(color: Colors.white, fontSize: 6, fontWeight: FontWeight.w700),
                         ),
                       ),
                     ),
@@ -1377,7 +1396,7 @@ class _GalleryCard extends ConsumerWidget {
                             ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => _share(),
+                            onTap: () => _share(context),
                             child: Icon(Icons.share_outlined, color: AppColors.textFaint, size: 16),
                           ),
                         ],
@@ -1413,13 +1432,13 @@ class _GalleryCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(gallery.nom);
     if (gallery.adresse.isNotEmpty) buffer.writeln(gallery.adresse);
     if (gallery.horaires.isNotEmpty) buffer.writeln(gallery.horaires);
     if (gallery.siteWeb.isNotEmpty) buffer.writeln(gallery.siteWeb);
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
     Share.share(buffer.toString());
   }
 }

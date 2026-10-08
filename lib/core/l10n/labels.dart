@@ -84,3 +84,21 @@ String nightSectionLabel(BuildContext context, String key) {
     _ => key,
   };
 }
+
+/// Sous-rubriques Culture (cles searchTag : 'Musee', 'Theatre', 'A venir'...).
+String cultureCategoryLabel(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'Musee' => l10n.cultureCatMuseum,
+    'Cinema' => l10n.catCinema,
+    'Theatre' => l10n.cultureCatTheatre,
+    'Danse' => l10n.catDance,
+    "Galerie d'art" || 'Galerie' => l10n.cultureCatGallery,
+    'Monument historique' => l10n.cultureCatMonument,
+    'Bibliotheque' => l10n.cultureCatLibrary,
+    'Visites guidees' => l10n.cultureCatGuidedTours,
+    'Exposition' => l10n.cultureCatExhibition,
+    'A venir' => l10n.cultureCatUpcoming,
+    _ => key,
+  };
+}

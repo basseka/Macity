@@ -1293,6 +1293,420 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Tourisme'**
   String get modeShortTourisme;
+
+  /// No description provided for @rubriqueEyebrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'RUBRIQUE'**
+  String get rubriqueEyebrow;
+
+  /// No description provided for @commonToDiscover.
+  ///
+  /// In fr, this message translates to:
+  /// **'À découvrir'**
+  String get commonToDiscover;
+
+  /// No description provided for @commonDiscover.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrir'**
+  String get commonDiscover;
+
+  /// No description provided for @commonClear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get commonClear;
+
+  /// No description provided for @commonLoading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement...'**
+  String get commonLoading;
+
+  /// No description provided for @commonOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get commonOpen;
+
+  /// No description provided for @commonCall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appeler'**
+  String get commonCall;
+
+  /// No description provided for @commonShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager'**
+  String get commonShare;
+
+  /// No description provided for @commonTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'BILLETS'**
+  String get commonTickets;
+
+  /// No description provided for @commonTicketOffice.
+  ///
+  /// In fr, this message translates to:
+  /// **'BILLETTERIE'**
+  String get commonTicketOffice;
+
+  /// No description provided for @shareFooter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvre sur MaCity'**
+  String get shareFooter;
+
+  /// No description provided for @filterByVenue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Filtrer par salle'**
+  String get filterByVenue;
+
+  /// No description provided for @refineAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get refineAll;
+
+  /// No description provided for @landingPartners.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nos partenaires'**
+  String get landingPartners;
+
+  /// No description provided for @landingRefine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Affinez votre recherche'**
+  String get landingRefine;
+
+  /// No description provided for @landingNoPlaceForSelection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune adresse pour cette sélection.'**
+  String get landingNoPlaceForSelection;
+
+  /// No description provided for @landingUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contenu indisponible.'**
+  String get landingUnavailable;
+
+  /// No description provided for @landingNoPlaceForFilter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun lieu pour ce filtre.'**
+  String get landingNoPlaceForFilter;
+
+  /// No description provided for @landingInspirations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inspirations du moment'**
+  String get landingInspirations;
+
+  /// No description provided for @cultureEyebrowRight.
+  ///
+  /// In fr, this message translates to:
+  /// **'CITÉ'**
+  String get cultureEyebrowRight;
+
+  /// No description provided for @cultureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Culture.'**
+  String get cultureTitle;
+
+  /// No description provided for @cultureSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musées, monuments, expos : l\'agenda culturel.'**
+  String get cultureSubtitle;
+
+  /// No description provided for @cultureChipMuseums.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musées'**
+  String get cultureChipMuseums;
+
+  /// No description provided for @cultureChipMonuments.
+  ///
+  /// In fr, this message translates to:
+  /// **'Monuments'**
+  String get cultureChipMonuments;
+
+  /// No description provided for @cultureChipLibraries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bibliothèques'**
+  String get cultureChipLibraries;
+
+  /// No description provided for @cultureChipGalleries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Galeries'**
+  String get cultureChipGalleries;
+
+  /// No description provided for @cultureBannerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'La ville se raconte.'**
+  String get cultureBannerTitle;
+
+  /// No description provided for @cultureBannerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musées, expos et patrimoine vous attendent.'**
+  String get cultureBannerSubtitle;
+
+  /// No description provided for @cultureMapTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieux culturels'**
+  String get cultureMapTitle;
+
+  /// No description provided for @cultureKickerHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rubrique · Cité'**
+  String get cultureKickerHome;
+
+  /// No description provided for @cultureBlurb.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cinéma, théâtre, expositions, danse : l\'agenda culturel.'**
+  String get cultureBlurb;
+
+  /// No description provided for @cultureCatMuseum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musée'**
+  String get cultureCatMuseum;
+
+  /// No description provided for @cultureCatTheatre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Théâtre'**
+  String get cultureCatTheatre;
+
+  /// No description provided for @cultureCatGallery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Galerie d\'art'**
+  String get cultureCatGallery;
+
+  /// No description provided for @cultureCatMonument.
+  ///
+  /// In fr, this message translates to:
+  /// **'Monument historique'**
+  String get cultureCatMonument;
+
+  /// No description provided for @cultureCatLibrary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bibliothèque'**
+  String get cultureCatLibrary;
+
+  /// No description provided for @cultureCatGuidedTours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visites guidées'**
+  String get cultureCatGuidedTours;
+
+  /// No description provided for @cultureCatExhibition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exposition'**
+  String get cultureCatExhibition;
+
+  /// No description provided for @cultureCatUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get cultureCatUpcoming;
+
+  /// No description provided for @cultureNoMuseum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun musée trouvé'**
+  String get cultureNoMuseum;
+
+  /// No description provided for @cultureMuseumError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des musées'**
+  String get cultureMuseumError;
+
+  /// No description provided for @cultureNoTheatreEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement théâtre à venir'**
+  String get cultureNoTheatreEvent;
+
+  /// No description provided for @cultureNoEventForFilter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement pour ce filtre'**
+  String get cultureNoEventForFilter;
+
+  /// No description provided for @cultureNoScreening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune séance de cinéma à venir'**
+  String get cultureNoScreening;
+
+  /// No description provided for @cultureNoScreeningForFilter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune séance pour ce filtre'**
+  String get cultureNoScreeningForFilter;
+
+  /// No description provided for @cultureNoDance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune salle de danse trouvée'**
+  String get cultureNoDance;
+
+  /// No description provided for @cultureDanceError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des salles de danse'**
+  String get cultureDanceError;
+
+  /// No description provided for @cultureNoGallery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune galerie trouvée'**
+  String get cultureNoGallery;
+
+  /// No description provided for @cultureGalleryError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des galeries'**
+  String get cultureGalleryError;
+
+  /// No description provided for @cultureNoLibrary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune bibliothèque trouvée'**
+  String get cultureNoLibrary;
+
+  /// No description provided for @cultureLibraryError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des bibliothèques'**
+  String get cultureLibraryError;
+
+  /// No description provided for @cultureNoMonument.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun monument trouvé'**
+  String get cultureNoMonument;
+
+  /// No description provided for @cultureMonumentError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des monuments'**
+  String get cultureMonumentError;
+
+  /// No description provided for @cultureNoGuidedTour.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune visite guidée à venir'**
+  String get cultureNoGuidedTour;
+
+  /// No description provided for @cultureGuidedTourError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des visites guidées'**
+  String get cultureGuidedTourError;
+
+  /// No description provided for @cultureNoExhibition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune exposition à venir'**
+  String get cultureNoExhibition;
+
+  /// No description provided for @cultureExhibitionError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des expositions'**
+  String get cultureExhibitionError;
+
+  /// No description provided for @cultureNoEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement culturel à venir'**
+  String get cultureNoEvent;
+
+  /// No description provided for @cultureEventError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des événements culturels'**
+  String get cultureEventError;
+
+  /// No description provided for @cultureNoVenueForCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun lieu culturel trouvé pour cette catégorie'**
+  String get cultureNoVenueForCategory;
+
+  /// No description provided for @cultureVenueError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des lieux culturels'**
+  String get cultureVenueError;
+
+  /// No description provided for @museumCatArt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Art'**
+  String get museumCatArt;
+
+  /// No description provided for @museumCatHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Histoire'**
+  String get museumCatHistory;
+
+  /// No description provided for @museumCatScience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Science'**
+  String get museumCatScience;
+
+  /// No description provided for @danceGroupGeneral.
+  ///
+  /// In fr, this message translates to:
+  /// **'École générale'**
+  String get danceGroupGeneral;
+
+  /// No description provided for @danceGroupSpecialisation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Spécialisation & style'**
+  String get danceGroupSpecialisation;
+
+  /// No description provided for @danceGroupPro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Formation professionnelle'**
+  String get danceGroupPro;
+
+  /// No description provided for @danceGroupOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'École de danse'**
+  String get danceGroupOther;
+
+  /// Nombre de spectacles a venir d'une salle
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucun spectacle à venir} =1{1 spectacle à venir} other{{count} spectacles à venir}}'**
+  String theatreUpcomingShows(int count);
 }
 
 class _AppLocalizationsDelegate

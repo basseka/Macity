@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -231,7 +232,8 @@ class RubriqueConfig {
   /// chips, avant la section principale). Renvoie l'AsyncValue des lieux
   /// partenaires ; la section est masquée si null ou vide.
   final AsyncValue<List<RubriqueItem>> Function(WidgetRef ref)? partnersBuilder;
-  final String partnersTitle;
+  /// null = "Nos partenaires" dans la langue de l'app.
+  final String? partnersTitle;
 
   /// Section « Affinez votre recherche », insérée après « Inspirations » : ses
   /// propres items (typiquement TOUS les lieux de la ville, indépendamment du
@@ -240,7 +242,8 @@ class RubriqueConfig {
   /// équipées : Sport, Culture, Night).
   final AsyncValue<List<RubriqueItem>> Function(WidgetRef ref)?
       refineItemsBuilder;
-  final String refineTitle;
+  /// null = "Affinez votre recherche" dans la langue de l'app.
+  final String? refineTitle;
 
   /// Pills de filtre de la section « Affinez ». Null = carrousel non filtré.
   final RefineChipsBuilder? refineChipsBuilder;
@@ -266,9 +269,9 @@ class RubriqueConfig {
     this.extraSections,
     this.extraSectionsBottom,
     this.partnersBuilder,
-    this.partnersTitle = 'Nos partenaires',
+    this.partnersTitle,
     this.refineItemsBuilder,
-    this.refineTitle = 'Affinez votre recherche',
+    this.refineTitle,
     this.refineChipsBuilder,
     this.refineMapBuilder,
   });
@@ -396,7 +399,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                 if (items.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    child: Text('Aucune adresse pour cette sélection.',
+                    child: Text(context.l10n.landingNoPlaceForSelection,
                         style: RubriqueTheme.body()),
                   );
                 }
@@ -432,7 +435,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
               ),
               error: (_, __) => Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                child: Text('Contenu indisponible.',
+                child: Text(context.l10n.landingUnavailable,
                     style: RubriqueTheme.body()),
               ),
             ),
@@ -514,7 +517,8 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     final items = builder(ref).valueOrNull ?? const <RubriqueItem>[];
     if (items.isEmpty) return const [];
     return [
-      _sectionHeader(cfg.partnersTitle, t, showAction: false),
+      _sectionHeader(cfg.partnersTitle ?? context.l10n.landingPartners, t,
+          showAction: false),
       SizedBox(
         height: 212,
         child: ListView.separated(
@@ -549,12 +553,13 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     final items =
         chips.isEmpty ? all : all.where(chips[idx].test).toList();
     return [
-      _sectionHeader(cfg.refineTitle, t, showAction: false),
+      _sectionHeader(cfg.refineTitle ?? context.l10n.landingRefine, t,
+          showAction: false),
       if (chips.isNotEmpty) _refineChipRow(chips, idx, t),
       if (items.isEmpty)
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Text('Aucun lieu pour ce filtre.',
+          child: Text(context.l10n.landingNoPlaceForFilter,
               style: RubriqueTheme.body()),
         )
       else
@@ -622,7 +627,8 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                       const SizedBox(width: 5),
                     ],
                     Text(
-                      o.label,
+                      // 'Tous' = pill de tete posee par quartierChips().
+                      o.label == 'Tous' ? context.l10n.refineAll : o.label,
                       style: RubriqueTheme.chip(
                           color: active ? Colors.white : RubriqueTheme.ink),
                     ),
@@ -654,7 +660,8 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Voir tout', style: RubriqueTheme.chip(color: t.accent)),
+                Text(context.l10n.commonSeeAll,
+                    style: RubriqueTheme.chip(color: t.accent)),
                 const SizedBox(width: 2),
                 Icon(Icons.chevron_right, size: 15, color: t.accent),
               ],
@@ -673,7 +680,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             const <Inspiration>[];
     if (items.isEmpty) return const [];
     return [
-      _sectionHeader('Inspirations du moment', t, fontSize: 11.5),
+      _sectionHeader(context.l10n.landingInspirations, t, fontSize: 11.5),
       SizedBox(
         height: 178,
         child: ListView.separated(
@@ -1070,7 +1077,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text('En savoir plus',
+                                    Text(context.l10n.commonLearnMore,
                                         style: RubriqueTheme.chip(
                                             color: Colors.white,
                                             w: FontWeight.w600)),
@@ -1169,7 +1176,7 @@ class _ItemCard extends StatelessWidget {
                       const Icon(Icons.star,
                           size: 5, color: Color(0xFF2A1E06)),
                       const SizedBox(width: 2),
-                      Text('PARTENAIRE',
+                      Text(context.l10n.commonPartner,
                           style: RubriqueTheme.tinyTag(
                               color: const Color(0xFF2A1E06),
                               size: 5,
@@ -1196,7 +1203,7 @@ class _ItemCard extends StatelessWidget {
                       const Icon(Icons.star,
                           size: 5, color: Color(0xFF08221C)),
                       const SizedBox(width: 2),
-                      Text('À LA UNE',
+                      Text(context.l10n.homeBadgeFeatured.toUpperCase(),
                           style: RubriqueTheme.tinyTag(
                               color: const Color(0xFF08221C),
                               size: 5,

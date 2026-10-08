@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
@@ -15,12 +16,15 @@ class MuseumVenueCard extends ConsumerWidget {
 
   const MuseumVenueCard({super.key, required this.museum});
 
-  static const _categoryLabels = {
-    'art': 'Art',
-    'histoire': 'Histoire',
-    'science': 'Science',
-    'culture': 'Culture',
-  };
+  /// Libelle du groupe de musee (cle = colonne `groupe` en base).
+  static String _categoryLabel(BuildContext context, String key) =>
+      switch (key) {
+        'art' => context.l10n.museumCatArt,
+        'histoire' => context.l10n.museumCatHistory,
+        'science' => context.l10n.museumCatScience,
+        'culture' => context.l10n.rubriqueCulture,
+        _ => key,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -63,8 +67,8 @@ class MuseumVenueCard extends ConsumerWidget {
                             color: const Color(0xFF059669),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            'BILLETTERIE',
+                          child: Text(
+                            context.l10n.commonTicketOffice,
                             style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w700),
                           ),
                         ),
@@ -128,7 +132,7 @@ class MuseumVenueCard extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: () => _share(),
+                          onTap: () => _share(context),
                           child: Icon(
                             Icons.share_outlined,
                             color: AppColors.textFaint,
@@ -153,7 +157,7 @@ class MuseumVenueCard extends ConsumerWidget {
     final isHttp = museum.image.startsWith('http');
     final commerce = CommerceModel(
       nom: museum.name,
-      categorie: _categoryLabels[museum.category] ?? museum.category,
+      categorie: _categoryLabel(context, museum.category),
       adresse: museum.city,
       ville: museum.city,
       horaires: museum.horaires,
@@ -196,7 +200,7 @@ class MuseumVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(museum.name);
     if (museum.description.isNotEmpty) {
@@ -204,7 +208,7 @@ class MuseumVenueCard extends ConsumerWidget {
     }
     buffer.writeln(museum.city);
     buffer.writeln(museum.websiteUrl);
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
 
     Share.share(buffer.toString());
   }

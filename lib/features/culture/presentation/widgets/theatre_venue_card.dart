@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,8 +60,8 @@ class TheatreVenueCard extends ConsumerWidget {
                             color: const Color(0xFF059669),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            'BILLETTERIE',
+                          child: Text(
+                            context.l10n.commonTicketOffice,
                             style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w700),
                           ),
                         ),
@@ -123,9 +124,7 @@ class TheatreVenueCard extends ConsumerWidget {
                     // ── Nombre de spectacles ──
                     eventsAsync.when(
                       data: (events) => Text(
-                        events.isEmpty
-                            ? 'Aucun spectacle a venir'
-                            : '${events.length} spectacle${events.length > 1 ? 's' : ''} a venir',
+                        context.l10n.theatreUpcomingShows(events.length),
                         style: TextStyle(
                           fontSize: 10,
                           color: events.isEmpty ? AppColors.textFaint : modeTheme.primaryColor,
@@ -133,7 +132,7 @@ class TheatreVenueCard extends ConsumerWidget {
                         ),
                       ),
                       loading: () => Text(
-                        'Chargement...',
+                        context.l10n.commonLoading,
                         style: TextStyle(fontSize: 10, color: AppColors.textFaint),
                       ),
                       error: (_, __) => const SizedBox.shrink(),
@@ -156,7 +155,7 @@ class TheatreVenueCard extends ConsumerWidget {
                         if (theatre.websiteUrl != null)
                           const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: () => _share(),
+                          onTap: () => _share(context),
                           child: Icon(
                             Icons.share_outlined,
                             color: AppColors.textFaint,
@@ -205,7 +204,7 @@ class TheatreVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(theatre.name);
     if (theatre.description.isNotEmpty) {
@@ -215,7 +214,7 @@ class TheatreVenueCard extends ConsumerWidget {
     if (theatre.websiteUrl != null) {
       buffer.writeln(theatre.websiteUrl);
     }
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
 
     Share.share(buffer.toString());
   }

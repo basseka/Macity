@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
@@ -23,9 +24,10 @@ class DanceVenueCard extends ConsumerWidget {
   });
 
   /// Convertit un DanceVenue en CommerceModel — pour construire `pagerSiblings`.
-  static CommerceModel toCommerce(DanceVenue dance) => CommerceModel(
+  static CommerceModel toCommerce(BuildContext context, DanceVenue dance) =>
+      CommerceModel(
         nom: dance.name,
-        categorie: _categoryLabels[dance.category] ?? dance.category,
+        categorie: _categoryLabel(context, dance.category),
         adresse: dance.city,
         ville: dance.city,
         horaires: dance.horaires,
@@ -35,12 +37,15 @@ class DanceVenueCard extends ConsumerWidget {
         isVerified: dance.isVerified,
       );
 
-  static const _categoryLabels = {
-    'Ecole generale': 'Ecole generale',
-    'Specialisation': 'Specialisation & style',
-    'Formation pro': 'Formation professionnelle',
-    'Autre': 'Ecole de danse',
-  };
+  /// Libelle du groupe d'ecole (cle = valeur `categorie` en base).
+  static String _categoryLabel(BuildContext context, String key) =>
+      switch (key) {
+        'Ecole generale' => context.l10n.danceGroupGeneral,
+        'Specialisation' => context.l10n.danceGroupSpecialisation,
+        'Formation pro' => context.l10n.danceGroupPro,
+        'Autre' => context.l10n.danceGroupOther,
+        _ => key,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -126,7 +131,7 @@ class DanceVenueCard extends ConsumerWidget {
                         if (dance.websiteUrl != null)
                           const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: () => _share(),
+                          onTap: () => _share(context),
                           child: Icon(
                             Icons.share_outlined,
                             color: AppColors.textFaint,
@@ -150,7 +155,7 @@ class DanceVenueCard extends ConsumerWidget {
     final isHttp = dance.image.startsWith('http');
     CommerceRowCard.openDetail(
       context,
-      toCommerce(dance),
+      toCommerce(context, dance),
       imageAsset: isHttp ? null : dance.image,
       siblings: pagerSiblings,
       index: pagerIndex,
@@ -184,7 +189,7 @@ class DanceVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(dance.name);
     if (dance.description.isNotEmpty) {
@@ -194,7 +199,7 @@ class DanceVenueCard extends ConsumerWidget {
     if (dance.websiteUrl != null) {
       buffer.writeln(dance.websiteUrl);
     }
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
 
     Share.share(buffer.toString());
   }

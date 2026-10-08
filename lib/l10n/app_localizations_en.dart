@@ -661,4 +661,224 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modeShortTourisme => 'Tourism';
+
+  @override
+  String get rubriqueEyebrow => 'SECTION';
+
+  @override
+  String get commonToDiscover => 'To discover';
+
+  @override
+  String get commonDiscover => 'Discover';
+
+  @override
+  String get commonClear => 'Clear';
+
+  @override
+  String get commonLoading => 'Loading...';
+
+  @override
+  String get commonOpen => 'Open';
+
+  @override
+  String get commonCall => 'Call';
+
+  @override
+  String get commonShare => 'Share';
+
+  @override
+  String get commonTickets => 'TICKETS';
+
+  @override
+  String get commonTicketOffice => 'TICKETS';
+
+  @override
+  String get shareFooter => 'Discover it on MaCity';
+
+  @override
+  String get filterByVenue => 'Filter by venue';
+
+  @override
+  String get refineAll => 'All';
+
+  @override
+  String get landingPartners => 'Our partners';
+
+  @override
+  String get landingRefine => 'Refine your search';
+
+  @override
+  String get landingNoPlaceForSelection => 'No places for this selection.';
+
+  @override
+  String get landingUnavailable => 'Content unavailable.';
+
+  @override
+  String get landingNoPlaceForFilter => 'No places for this filter.';
+
+  @override
+  String get landingInspirations => 'Current inspirations';
+
+  @override
+  String get cultureEyebrowRight => 'CITY';
+
+  @override
+  String get cultureTitle => 'Culture.';
+
+  @override
+  String get cultureSubtitle =>
+      'Museums, monuments, exhibitions: the cultural calendar.';
+
+  @override
+  String get cultureChipMuseums => 'Museums';
+
+  @override
+  String get cultureChipMonuments => 'Monuments';
+
+  @override
+  String get cultureChipLibraries => 'Libraries';
+
+  @override
+  String get cultureChipGalleries => 'Galleries';
+
+  @override
+  String get cultureBannerTitle => 'The city tells its story.';
+
+  @override
+  String get cultureBannerSubtitle =>
+      'Museums, exhibitions and heritage await you.';
+
+  @override
+  String get cultureMapTitle => 'Cultural venues';
+
+  @override
+  String get cultureKickerHome => 'Section · City';
+
+  @override
+  String get cultureBlurb =>
+      'Cinema, theatre, exhibitions, dance: the cultural calendar.';
+
+  @override
+  String get cultureCatMuseum => 'Museums';
+
+  @override
+  String get cultureCatTheatre => 'Theatre';
+
+  @override
+  String get cultureCatGallery => 'Art galleries';
+
+  @override
+  String get cultureCatMonument => 'Historic monuments';
+
+  @override
+  String get cultureCatLibrary => 'Libraries';
+
+  @override
+  String get cultureCatGuidedTours => 'Guided tours';
+
+  @override
+  String get cultureCatExhibition => 'Exhibitions';
+
+  @override
+  String get cultureCatUpcoming => 'Upcoming';
+
+  @override
+  String get cultureNoMuseum => 'No museums found';
+
+  @override
+  String get cultureMuseumError => 'Error loading museums';
+
+  @override
+  String get cultureNoTheatreEvent => 'No upcoming theatre events';
+
+  @override
+  String get cultureNoEventForFilter => 'No events for this filter';
+
+  @override
+  String get cultureNoScreening => 'No upcoming screenings';
+
+  @override
+  String get cultureNoScreeningForFilter => 'No screenings for this filter';
+
+  @override
+  String get cultureNoDance => 'No dance studios found';
+
+  @override
+  String get cultureDanceError => 'Error loading dance studios';
+
+  @override
+  String get cultureNoGallery => 'No galleries found';
+
+  @override
+  String get cultureGalleryError => 'Error loading galleries';
+
+  @override
+  String get cultureNoLibrary => 'No libraries found';
+
+  @override
+  String get cultureLibraryError => 'Error loading libraries';
+
+  @override
+  String get cultureNoMonument => 'No monuments found';
+
+  @override
+  String get cultureMonumentError => 'Error loading monuments';
+
+  @override
+  String get cultureNoGuidedTour => 'No upcoming guided tours';
+
+  @override
+  String get cultureGuidedTourError => 'Error loading guided tours';
+
+  @override
+  String get cultureNoExhibition => 'No upcoming exhibitions';
+
+  @override
+  String get cultureExhibitionError => 'Error loading exhibitions';
+
+  @override
+  String get cultureNoEvent => 'No upcoming cultural events';
+
+  @override
+  String get cultureEventError => 'Error loading cultural events';
+
+  @override
+  String get cultureNoVenueForCategory =>
+      'No cultural venues found for this category';
+
+  @override
+  String get cultureVenueError => 'Error loading cultural venues';
+
+  @override
+  String get museumCatArt => 'Art';
+
+  @override
+  String get museumCatHistory => 'History';
+
+  @override
+  String get museumCatScience => 'Science';
+
+  @override
+  String get danceGroupGeneral => 'General school';
+
+  @override
+  String get danceGroupSpecialisation => 'Specialisation & style';
+
+  @override
+  String get danceGroupPro => 'Professional training';
+
+  @override
+  String get danceGroupOther => 'Dance school';
+
+  @override
+  String theatreUpcomingShows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count upcoming shows',
+      one: '1 upcoming show',
+      zero: 'No upcoming shows',
+    );
+    return '$_temp0';
+  }
 }

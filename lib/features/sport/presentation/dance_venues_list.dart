@@ -55,7 +55,7 @@ class DanceVenuesList extends ConsumerWidget {
           child: dancesAsync.when(
             data: (dances) {
               final siblings =
-                  dances.map(DanceVenueCard.toCommerce).toList();
+                  dances.map((d) => DanceVenueCard.toCommerce(context, d)).toList();
               final groupOrder = <String>[];
               for (final d in dances) {
                 if (d.group.isNotEmpty && !groupOrder.contains(d.group)) {

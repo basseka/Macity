@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
@@ -114,7 +115,7 @@ class MonumentVenueCard extends ConsumerWidget {
                         ),
                         const SizedBox(width: 8),
                         GestureDetector(
-                          onTap: () => _share(),
+                          onTap: () => _share(context),
                           child: Icon(
                             Icons.share_outlined,
                             color: AppColors.textFaint,
@@ -172,13 +173,13 @@ class MonumentVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(monument.name);
     buffer.writeln(monument.description);
     buffer.writeln(monument.adresse);
     buffer.writeln(monument.websiteUrl);
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
     Share.share(buffer.toString());
   }
 }
