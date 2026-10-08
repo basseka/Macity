@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devenir partenaire MaCity</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .cover { background: var(--nuit-grad); color: #fff; padding: 20mm 17mm; }
+  .cover-logo { width: 62mm; }
+  .cover h1 { color: #fff; font-size: 36pt; margin-top: 30mm; max-width: 150mm; }
+  .cover h1 em { font-style: normal; color: #FF7AB8; }
+  .cover .lead { color: #B5A8D0; font-size: 12.5pt; max-width: 140mm; }
+  .cover-phones { position: absolute; left: 22mm; right: 22mm; bottom: 26mm; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5mm; }
+  .cover-phones .phone { border-color: #2A1A4E; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+  .cover-phones .phone:nth-child(even) { transform: translateY(8mm); }
+  .cover-foot { position: absolute; left: 17mm; right: 17mm; bottom: 10mm; display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 7pt; letter-spacing: .18em; text-transform: uppercase; color: #7A6E95; }
+  .moments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-top: 4mm; }
+  .moment { border-radius: 4mm; padding: 5mm; background: var(--creme); border: 1px solid var(--ligne); }
+  .moment .ico { font-size: 17pt; }
+  .moment b { display: block; margin: 1.5mm 0 1mm; color: var(--nuit); }
+  .moment p { font-size: 8.6pt; color: var(--ardoise); margin: 0; }
+  .rubs { display: flex; flex-wrap: wrap; gap: 2mm; margin-top: 2mm; }
+  .rubs span { background: #fff; border: 1px solid var(--ligne); border-radius: 99px; padding: 1mm 3mm; font-size: 8.6pt; }
+  .excl { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 5mm; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .step { border-top: 3px solid var(--rose); padding-top: 3mm; font-size: 9pt; }
+  .step b { display: block; font-size: 17pt; color: var(--rose); line-height: 1; margin-bottom: 1.5mm; }
+  .contact-card { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; align-items: center; background: var(--nuit-grad); color: #fff; border-radius: 5mm; padding: 7mm; }
+  .contact-card .field { border-bottom-color: rgba(255,255,255,.35); }
+  .contact-card .field label { color: #B5A8D0; }
+  .qr { display: flex; gap: 5mm; align-items: center; }
+  .qr img { width: 28mm; border-radius: 3mm; background: #fff; }
+</style>
+</head>
+<body>
+
+<!-- 1. Couverture -->
+<section class="page cover">
+  <img class="cover-logo" src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <h1>Soyez là où votre ville <em>décide de sortir.</em></h1>
+  <p class="lead">Chaque jour, des habitants ouvrent MaCity pour choisir où manger, boire un verre, voir un concert ou occuper les enfants. Devenir partenaire, c'est faire partie de ce choix.</p>
+  <div class="cover-phones">
+    <div class="phone"><img src="visuels/accueil-a-la-une.jpg" alt=""></div>
+    <div class="phone"><img src="visuels/food-banniere-video.jpg" alt=""></div>
+    <div class="phone"><img src="visuels/compose-ta-soiree.jpg" alt=""></div>
+    <div class="phone"><img src="visuels/map-live.jpg" alt=""></div>
+  </div>
+  <div class="cover-foot"><span>Offre partenaires · 2026</span><span>macity.app</span></div>
+</section>
+
+<!-- 2. MaCity en bref -->
+<section class="page">
+  <div class="eyebrow">MaCity en bref</div>
+  <h1>L'app de ta ville</h1>
+  <p class="lead">MaCity rassemble dans une seule application tout ce qui bouge dans une ville : concerts, soirées, restaurants, sport, sorties en famille, culture et escapades. L'application est gratuite pour ses utilisateurs, disponible sur Android et iPhone.</p>
+
+  <div class="stats" style="margin-top:6mm">
+    <div class="stat"><b>5 000</b><span>personnes dans la communauté MaCity</span></div>
+    <div class="stat"><b>17 000+</b><span>événements à venir dans l'application</span></div>
+    <div class="stat"><b>21 000+</b><span>lieux référencés</span></div>
+    <div class="stat"><b>25</b><span>villes couvertes, dont Toulouse</span></div>
+    <div class="stat"><b>6</b><span>rubriques, chacune avec ses emplacements</span></div>
+  </div>
+
+  <h3 style="margin-top:8mm">Le moment où l'on ouvre MaCity</h3>
+  <p class="small">Une application de sortie ne s'ouvre pas au hasard : on l'ouvre au moment précis où l'on décide. C'est ce moment que vous achetez.</p>
+  <div class="moments">
+    <div class="moment"><div class="ico">🌙</div><b>« Quoi faire ce soir ? »</b><p>Le raccourci de l'accueil vers les concerts, soirées et spectacles du soir, classés par type.</p></div>
+    <div class="moment"><div class="ico">📍</div><b>Map Live</b><p>La carte de ce qui se passe maintenant autour de soi. Les partenaires y sont nommés et colorés.</p></div>
+    <div class="moment"><div class="ico">🍸</div><b>« Compose ta soirée »</b><p>L'utilisateur choisit un événement, l'app lui propose où dîner avant et où boire un verre après.</p></div>
+    <div class="moment"><div class="ico">🌧️</div><b>Le dimanche pluvieux</b><p>Un parent cherche une activité couverte pour l'après-midi. La rubrique Famille lui répond.</p></div>
+    <div class="moment"><div class="ico">🎁</div><b>Les offres MaCity</b><p>Un verre offert, une réduction : des avantages réservés aux utilisateurs, qui se réclament en un geste.</p></div>
+    <div class="moment"><div class="ico">⚡</div><b>En direct</b><p>Stories et publications live des lieux : on voit l'ambiance avant de se déplacer.</p></div>
+  </div>
+
+  <h3 style="margin-top:7mm">Six rubriques, six vitrines indépendantes</h3>
+  <div class="rubs"><span>🌙 Night</span><span>🍽️ Food</span><span>🎭 Culture</span><span>⚽ Sport</span><span>👨‍👩‍👧 Famille</span><span>✈️ Évasion</span></div>
+  <p class="small" style="margin-top:3mm">Chaque rubrique a ses propres emplacements : un restaurant ne prend jamais la place d'un club, un théâtre ne partage pas son espace avec une salle de sport.</p>
+
+  <div class="folio"><span>MaCity · Devenir partenaire</span><span>02</span></div>
+</section>
+
+<!-- 3. Emplacements : accueil -->
+<section class="page">
+  <div class="eyebrow">Où vous apparaissez · 1/3</div>
+  <h1>Sur la page d'accueil</h1>
+  <p class="lead">Le premier écran que tout le monde voit en ouvrant l'application. Captures réelles, non retouchées.</p>
+
+  <div class="spot" style="margin-top:6mm">
+    <div class="phone"><img src="visuels/accueil-a-la-une.jpg" alt=""></div>
+    <div>
+      <h2><span class="spot-num">1</span>Vos événements « À la une » <span class="pill pill--premium">Premium</span></h2>
+      <p>La première carte pleine largeur de l'accueil, avant tout le reste. Vos soirées, menus spéciaux, concerts et temps forts y remontent, avec la date, le lieu et un accès direct au détail.</p>
+      <p class="small">« À la une » est aussi l'un des trois onglets du haut de l'écran : une seconde porte d'entrée vers vos événements.</p>
+    </div>
+  </div>
+
+  <div class="spot">
+    <div class="phone"><img src="visuels/accueil-du-jour.jpg" alt=""></div>
+    <div>
+      <h2><span class="spot-num">2</span>L'encart « du jour » <span class="pill pill--premium">Premium</span></h2>
+      <p>« Le restaurant du jour », « Le club du jour », « L'activité du jour »… Un encart par rubrique, avec une grande photo, votre nom et un badge Partenaire doré.</p>
+      <p>C'est la <b>seule présence commerçante de l'écran d'accueil</b>. Elle est réservée aux partenaires Premium : c'est la différence la plus visible entre les formules.</p>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · Devenir partenaire</span><span>03</span></div>
+</section>
+
+<!-- 4. Emplacements : rubrique -->
+<section class="page">
+  <div class="eyebrow">Où vous apparaissez · 2/3</div>
+  <h1>Dans votre rubrique</h1>
+  <p class="lead">Quand un utilisateur ouvre Food, Night, Culture, Sport, Famille ou Évasion, voici ce qu'il voit en premier.</p>
+
+  <div class="spot" style="margin-top:6mm">
+    <div class="phone"><img src="visuels/food-banniere-video.jpg" alt=""></div>
+    <div>
+      <h2><span class="spot-num">3</span>La bannière vidéo <span class="pill pill--premium">Premium</span></h2>
+      <p>En tête de la rubrique, pleine largeur, sur un tiers de l'écran. <b>Votre vidéo s'y joue</b>, avec votre nom et un bouton « En savoir plus » qui ouvre votre site. C'est le plus grand format de l'application.</p>
+      <p class="small">Pas encore de vidéo ? Votre photo occupe la place, vous ne perdez rien. Une vidéo verticale de 15 à 30 secondes filmée au téléphone suffit, et nous pouvons la tourner avec vous.</p>
+    </div>
+  </div>
+
+  <div class="spot">
+    <div class="phone"><img src="visuels/food-partenaires-inspirations.jpg" alt=""></div>
+    <div>
+      <h2><span class="spot-num">4</span>« Inspirations du moment » <span class="pill pill--gold">Gold</span></h2>
+      <p>Un carrousel de grandes cartes photo, parcouru sans chercher : c'est là qu'on découvre une adresse à laquelle on n'aurait pas pensé. L'ordre est rebattu chaque heure pour que chaque partenaire passe devant à son tour.</p>
+      <h2 style="margin-top:5mm"><span class="spot-num">5</span>« Nos partenaires » <span class="pill pill--tous">Toutes formules</span></h2>
+      <p>Le carrousel qui regroupe tous les partenaires de la rubrique, badge visible sur chaque carte. Dans les listes, votre nom porte une étoile dorée.</p>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · Devenir partenaire</span><span>04</span></div>
+</section>
+
+<!-- 5. Emplacements : parcours -->
+<section class="page">
+  <div class="eyebrow">Où vous apparaissez · 3/3</div>
+  <h1>Dans les moments de décision</h1>
+  <p class="lead">Pas une bannière qu'on fait défiler : une recommandation au moment où l'utilisateur choisit.</p>
+
+  <div class="grid-3" style="margin-top:6mm; align-items:start">
+    <div>
+      <div class="phone" style="max-height:120mm"><img src="visuels/compose-ta-soiree.jpg" alt=""></div>
+      <h2 style="margin-top:5mm;font-size:12.5pt"><span class="spot-num">6</span>« Compose ta soirée »</h2>
+      <p><span class="pill pill--tous">Toutes formules</span></p>
+      <p class="small">L'utilisateur choisit un concert : l'app lui propose où dîner avant et où prendre un verre après. Les partenaires y figurent avec un bouton « Y aller » qui lance l'itinéraire.</p>
+    </div>
+    <div>
+      <div class="phone" style="max-height:120mm"><img src="visuels/offres-macity.jpg" alt=""></div>
+      <h2 style="margin-top:5mm;font-size:12.5pt"><span class="spot-num">7</span>Les offres MaCity</h2>
+      <p><span class="pill pill--tous">Toutes formules</span></p>
+      <p class="small">Votre avantage réservé aux utilisateurs : dessert offert, réduction, entrée offerte. Vous décidez du contenu, du nombre de places et de la durée. Une pastille signale l'offre sur votre fiche.</p>
+    </div>
+    <div>
+      <div class="phone" style="max-height:120mm"><img src="visuels/map-live.jpg" alt=""></div>
+      <h2 style="margin-top:5mm;font-size:12.5pt"><span class="spot-num">8</span>La carte</h2>
+      <p><span class="pill pill--classique">Dès Classique</span></p>
+      <p class="small">Sur la carte, les partenaires affichent leur nom et un point coloré, là où les autres lieux n'ont qu'un point gris. On vous repère au premier coup d'œil.</p>
+    </div>
+  </div>
+
+  <div class="box-rose" style="margin-top:7mm"><b>Comment la place tourne.</b> Les emplacements mis en avant tournent entre les partenaires d'une même formule, d'une même rubrique et d'une même ville : chacun passe à son tour, personne n'est privilégié. Pour ne partager avec personne, il existe l'option Exclusivité (page suivante).</div>
+
+  <div class="folio"><span>MaCity · Devenir partenaire</span><span>05</span></div>
+</section>
+
+<!-- 6. Formules -->
+<section class="page">
+  <div class="eyebrow">Les formules</div>
+  <h1>Trois formules, sans engagement</h1>
+  <p class="lead">Abonnement mensuel, résiliable à tout moment. Prix hors taxes, TVA 20 %.</p>
+
+  <div class="tiers" style="margin-top:5mm">
+    <div class="tier tier--classique">
+      <div class="tier-name">Classique</div>
+      <div class="tier-price">11,90 € <small>HT / mois</small></div>
+      <div class="tier-ttc">14,28 € TTC · moins de 40 centimes par jour</div>
+      <div class="tier-pitch">Être repérable au milieu de toute la ville.</div>
+      <ul class="clean">
+        <li>Badge Partenaire sur votre fiche</li>
+        <li>Étoile dorée dans toutes les listes de votre rubrique</li>
+        <li>Nom et point coloré sur la carte</li>
+        <li>Carrousel « Nos partenaires »</li>
+        <li>« Compose ta soirée » et offres MaCity</li>
+      </ul>
+      <div class="tier-foot">Des signes permanents, qui ne dépendent d'aucune rotation.</div>
+    </div>
+    <div class="tier tier--gold">
+      <div class="tier-name">Gold</div>
+      <div class="tier-price">79 € <small>HT / mois</small></div>
+      <div class="tier-ttc">94,80 € TTC</div>
+      <div class="tier-pitch">Une place dans les suggestions de votre rubrique.</div>
+      <ul class="clean">
+        <li>Tout Classique</li>
+        <li><b>Carrousel « Inspirations du moment »</b> en tête de rubrique</li>
+        <li>Votre photo et votre nom, accès direct à votre fiche</li>
+        <li>Ordre rebattu chaque heure</li>
+      </ul>
+      <div class="tier-foot">À la carte, une journée de mise en avant équivalente coûte 80 €. Gold, c'est ce prix pour tout le mois.</div>
+    </div>
+    <div class="tier tier--premium">
+      <div class="tier-name">Premium <span class="badge-reco">Le plus visible</span></div>
+      <div class="tier-price">179 € <small>HT / mois</small></div>
+      <div class="tier-ttc">214,80 € TTC</div>
+      <div class="tier-pitch">La première image que l'on voit, et la page d'accueil.</div>
+      <ul class="clean">
+        <li>Tout Gold</li>
+        <li><b>Bannière vidéo</b> en tête de votre rubrique</li>
+        <li><b>Encart « du jour »</b> sur l'accueil, réservé Premium</li>
+        <li>Vos événements <b>« À la une »</b></li>
+      </ul>
+      <div class="tier-foot">À la carte, une seule journée à cette position coûte 150 €.</div>
+    </div>
+  </div>
+
+  <div class="excl">
+    <div class="card card--dark">
+      <span class="pill pill--excl">Option Exclusivité</span>
+      <h2 style="color:#fff;margin-top:3mm">349 € HT / mois</h2>
+      <p class="small">418,80 € TTC · engagement 6 mois</p>
+      <p style="font-size:9pt">Vous êtes <b>le seul partenaire</b> affiché sur la bannière vidéo et l'encart « du jour » de votre rubrique, dans votre ville, 100 % du temps. Aucune rotation.</p>
+      <p class="small">Une seule place par rubrique et par ville. Premier arrivé, premier servi.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Mise en avant à la carte</h3>
+      <table class="tbl">
+        <tr><td>Un événement « Au top »</td><td class="c"><b>80 € HT</b> / jour</td></tr>
+        <tr><td>Un événement « À la une » et page d'accueil</td><td class="c"><b>150 € HT</b> / jour</td></tr>
+      </table>
+      <h3>Options sur devis</h3>
+      <p class="small">Parcours soirée, notification aux utilisateurs à proximité, bannière de ville, mise en avant d'une date précise (ouverture, festival).</p>
+    </div>
+  </div>
+
+
+  <div class="grid-2" style="margin-top:7mm">
+    <div class="box-rose"><b>Le calcul qui décide.</b> Deux journées de mise en avant à la carte coûtent 160 €. Un mois entier de Gold coûte 79 €, un mois de Premium 179 €. Dès deux jours par mois, l'abonnement est gagnant.</div>
+    <div class="box-rose"><b>Un prix fixe, sans commission.</b> Vous payez un montant connu d'avance, quel que soit le nombre de clients que MaCity vous amène. Aucun pourcentage prélevé sur vos ventes.</div>
+  </div>
+
+  <div class="folio"><span>MaCity · Devenir partenaire</span><span>06</span></div>
+</section>
+
+<!-- 7. Pour commencer -->
+<section class="page">
+  <div class="eyebrow">Pour commencer</div>
+  <h1>On commence par vous rencontrer</h1>
+
+  <div class="card" style="margin-top:5mm">
+    <span class="pill pill--tous">Partenariat découverte · gratuit</span>
+    <h2 style="margin-top:3mm">Votre lieu mis en valeur, sans frais</h2>
+    <div class="grid-2">
+      <div>
+        <p class="small"><b>Ce que MaCity vous offre</b></p>
+        <ul class="clean check">
+          <li>Votre fiche complète avec 6 photos d'ambiance</li>
+          <li>Un teaser vidéo pour votre fiche, sur demande</li>
+          <li>Une vidéo en collaboration publiée sur nos réseaux</li>
+          <li>Un compte pro : publiez vos événements vous-même, sans limite</li>
+        </ul>
+      </div>
+      <div>
+        <p class="small"><b>Ce qu'on vous demande en retour</b></p>
+        <ul class="clean">
+          <li>Une offre réservée aux utilisateurs MaCity</li>
+          <li>Faire vivre votre lieu dans l'app (photos, stories)</li>
+          <li>Accepter quelques flyers MaCity sur votre comptoir</li>
+        </ul>
+      </div>
+    </div>
+    <p class="small" style="margin-top:3mm">Quand vous voulez passer devant, une formule Classique, Gold ou Premium s'active en quelques minutes sur la même fiche.</p>
+  </div>
+
+  <h3 style="margin-top:8mm">Comment ça se passe</h3>
+  <div class="steps">
+    <div class="step"><b>1</b>Un rendez-vous de 30 minutes chez vous pour choisir la formule et préparer votre fiche.</div>
+    <div class="step"><b>2</b>On récupère ou on tourne vos photos et votre vidéo, au moment qui vous arrange.</div>
+    <div class="step"><b>3</b>Votre fiche, vos emplacements et votre compte pro sont en ligne. Vous pouvez faire évoluer votre formule à tout moment.</div>
+  </div>
+
+  <div class="box-note" style="margin-top:7mm"><b>Une seule condition, quelle que soit la formule :</b> des photos ou une vidéo sur votre fiche. Sans visuel, les emplacements n'ont rien à montrer. C'est la première chose que nous préparons ensemble.</div>
+
+  <div class="contact-card" style="margin-top:10mm">
+    <div>
+      <img src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity" style="width:48mm">
+      <p class="small" style="color:#B5A8D0;margin-top:3mm">Votre contact MaCity</p>
+      <div class="field"><label>Nom</label></div>
+      <div class="field"><label>Téléphone</label></div>
+      <div class="field"><label>Email</label></div>
+    </div>
+    <div class="qr">
+      <img src="../charte-graphique/04-elements-graphiques/qr-code/qr-code-macity-avec-logo-2000.png" alt="QR code MaCity">
+      <p style="font-size:9pt;color:#F5F0FF">Scannez pour installer MaCity et voir l'application en vrai.<br><span style="color:#B5A8D0">macity.app</span></p>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · BCM SOFT Technologies · SIRET 925 195 653 00017</span><span>07</span></div>
+</section>
+
+</body>
+</html>

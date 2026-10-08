@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel tuto invité</title>
+<style>
+  /* Carrousel Instagram 1080 x 1350. Une slide par rendu : carrousel.html#3 */
+  @font-face { font-family: Poppins; src: url(../../charte-graphique/03-typographies/Poppins/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(../../charte-graphique/03-typographies/Poppins/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(../../charte-graphique/03-typographies/Poppins/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(../../charte-graphique/03-typographies/Poppins/Poppins-ExtraBold.ttf); font-weight: 800; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1350px; overflow: hidden; background: #0A0514; }
+  body { font-family: Poppins, sans-serif; color: #fff; }
+  .s { display: none; position: relative; width: 1080px; height: 1350px; overflow: hidden;
+    background:
+      radial-gradient(60% 40% at 85% 15%, rgba(255,30,142,.35) 0%, rgba(255,30,142,0) 70%),
+      radial-gradient(60% 40% at 10% 90%, rgba(106,27,154,.5) 0%, rgba(106,27,154,0) 70%),
+      linear-gradient(180deg, #1A0A38 0%, #0A0514 100%); }
+  .s.on { display: block; }
+
+  .logo { position: absolute; top: 56px; left: 64px; height: 56px; }
+  .count { position: absolute; top: 66px; right: 64px; font-size: 26px; font-weight: 600; color: #B5A8D0; }
+
+  .head { position: absolute; top: 160px; left: 64px; right: 64px; }
+  .num { display: inline-flex; width: 84px; height: 84px; border-radius: 50%; background: #FF1E8E; font-size: 46px; font-weight: 800; align-items: center; justify-content: center; box-shadow: 0 0 40px rgba(255,30,142,.6); }
+  .head h2 { font-size: 66px; font-weight: 800; line-height: 1.05; letter-spacing: -.02em; margin-top: 26px; }
+  .head h2 em { font-style: normal; color: #FF1E8E; }
+  .head p { font-size: 32px; font-weight: 500; color: #D9CCF2; line-height: 1.35; margin-top: 18px; }
+  .head p b { color: #fff; font-weight: 700; }
+
+  .phone { position: absolute; left: 50%; transform: translateX(-50%); top: 520px; width: 520px; height: 900px; border-radius: 54px; border: 14px solid #05030F; background: #05030F; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.14); }
+  .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+
+  .swipe { position: absolute; bottom: 52px; right: 64px; font-size: 28px; font-weight: 700; color: #FF7AB8; z-index: 5; text-shadow: 0 2px 12px rgba(0,0,0,.6); }
+
+  /* Couverture */
+  .cover h1 { position: absolute; top: 230px; left: 64px; right: 64px; font-size: 104px; font-weight: 800; line-height: 1; letter-spacing: -.03em; }
+  .cover h1 em { font-style: normal; color: #FF1E8E; }
+  .cover .sub { position: absolute; top: 590px; left: 64px; right: 120px; font-size: 38px; font-weight: 500; color: #D9CCF2; line-height: 1.35; }
+  .chips { position: absolute; top: 790px; left: 64px; right: 64px; display: flex; flex-direction: column; gap: 22px; }
+  .chip { display: flex; align-items: center; gap: 24px; font-size: 38px; font-weight: 700; }
+  .chip span { display: inline-flex; width: 64px; height: 64px; border-radius: 50%; background: rgba(255,30,142,.18); border: 3px solid #FF1E8E; align-items: center; justify-content: center; font-size: 30px; }
+  .lock { position: absolute; right: -40px; top: 820px; font-size: 300px; opacity: .14; transform: rotate(14deg); }
+
+  /* Cartes annexe */
+  .cards { position: absolute; top: 470px; left: 64px; right: 64px; display: flex; flex-direction: column; gap: 32px; }
+  .card { background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.14); border-radius: 36px; padding: 40px 44px; }
+  .card h3 { font-size: 44px; font-weight: 800; margin-bottom: 12px; }
+  .card p { font-size: 30px; color: #D9CCF2; line-height: 1.4; font-weight: 500; }
+  .card p b { color: #fff; }
+
+  /* Fin */
+  .end { text-align: center; }
+  .end .big { position: absolute; top: 300px; left: 64px; right: 64px; font-size: 92px; font-weight: 800; line-height: 1.02; letter-spacing: -.02em; }
+  .end .big em { font-style: normal; color: #FF1E8E; }
+  .end .txt { position: absolute; top: 640px; left: 100px; right: 100px; font-size: 36px; color: #D9CCF2; line-height: 1.4; font-weight: 500; }
+  .end .cta { position: absolute; top: 860px; left: 50%; transform: translateX(-50%); background: #FF1E8E; border-radius: 999px; padding: 30px 64px; font-size: 42px; font-weight: 800; white-space: nowrap; box-shadow: 0 0 60px rgba(255,30,142,.55); }
+  .end .url { position: absolute; top: 1010px; left: 0; right: 0; font-size: 32px; color: #B5A8D0; font-weight: 600; }
+  .end .logo-big { position: absolute; bottom: 110px; left: 50%; transform: translateX(-50%); height: 110px; }
+</style>
+</head>
+<body>
+
+<!-- 1. Couverture -->
+<section class="s cover">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="lock">🔒</div>
+  <h1>Invité à une <em>soirée privée</em>&nbsp;?</h1>
+  <p class="sub">Tu as reçu un lien et un code sur MaCity. Voici comment entrer et confirmer ta venue.</p>
+  <div class="chips">
+    <div class="chip"><span>1</span>Clique sur le lien</div>
+    <div class="chip"><span>2</span>Tape le code</div>
+    <div class="chip"><span>3</span>« Je viens »</div>
+    <div class="chip"><span>4</span>Confirme ta venue</div>
+  </div>
+  <div class="swipe">Swipe →</div>
+</section>
+
+<!-- 2. Lien -->
+<section class="s">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="count">2/7</div>
+  <div class="head">
+    <span class="num">1</span>
+    <h2>Clique sur <em>le lien</em></h2>
+    <p>Dans le message reçu, touche le lien <b>macity.app/coffre</b>. Garde le <b>code</b> à 4 chiffres en tête.</p>
+  </div>
+  <div class="phone" style="background:#EFEAE2;border-color:#EFEAE2;height:780px"><img src="../visuels/1-invitation.jpg" alt="" style="object-fit:cover;object-position:center 100%"></div>
+</section>
+
+<!-- 3. Code -->
+<section class="s">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="count">3/7</div>
+  <div class="head">
+    <span class="num">2</span>
+    <h2>Tape <em>le code</em></h2>
+    <p>L'app s'ouvre, le lien est déjà rempli. Entre le code puis <b>« Ouvrir le coffre »</b>.</p>
+  </div>
+  <div class="phone"><img src="../visuels/2-code.jpg" alt="" style="object-position:0 8%"></div>
+</section>
+
+<!-- 4. Je viens -->
+<section class="s">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="count">4/7</div>
+  <div class="head">
+    <span class="num">3</span>
+    <h2>Accepte : <em>« Je viens »</em></h2>
+    <p>Tu découvres le lieu, la date et l'heure. Touche <b>« Je viens »</b> : tu es inscrit.</p>
+  </div>
+  <div class="phone"><img src="../visuels/3-je-viens.jpg" alt="" style="object-position:0 100%"></div>
+</section>
+
+<!-- 5. Confirmer -->
+<section class="s">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="count">5/7</div>
+  <div class="head">
+    <span class="num">4</span>
+    <h2>Confirme <em>ta venue</em></h2>
+    <p>Si l'organisateur le demande, touche le bouton vert et remplis : prénom, nom, e-mail, âge, téléphone.</p>
+  </div>
+  <div class="phone" style="background:#D9D9D9;border-color:#05030F"><img src="../visuels/5-formulaire.jpg" alt="" style="object-fit:contain;object-position:center top"></div>
+</section>
+
+<!-- 6. C'est bon -->
+<section class="s">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="count">6/7</div>
+  <div class="head">
+    <span class="num" style="background:#16A34A;box-shadow:0 0 40px rgba(22,163,74,.6)">✓</span>
+    <h2>C'est bon, <em>tu es sur la liste</em></h2>
+    <p>Tes infos ne vont qu'à l'organisateur et sont supprimées après la soirée. Retrouve ta soirée dans <b>« Mes invitations »</b>.</p>
+  </div>
+  <div class="cards" style="top:640px">
+    <div class="card"><h3>💬 Discussion</h3><p>Le groupe de la soirée, et <b>« Écrire à l'organisateur »</b> pour lui parler en privé.</p></div>
+    <div class="card"><h3>📸 Album photo</h3><p>Chacun ajoute ses photos de la soirée. À revoir en diaporama dans <b>« Mes souvenirs »</b>.</p></div>
+  </div>
+</section>
+
+<!-- 7. Fin -->
+<section class="s end">
+  <div class="count">7/7</div>
+  <div class="big">Organise ta <em>soirée privée</em> sur MaCity</div>
+  <p class="txt">Anniv, before, soirée entre potes : un lien, un code, et tes invités confirment en 1 minute. Gratuit.</p>
+  <div class="cta">Télécharge MaCity</div>
+  <div class="url">Lien en bio · macity.app</div>
+  <img class="logo-big" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+</section>
+
+<script>
+  const n = parseInt(location.hash.slice(1) || '1', 10);
+  document.querySelectorAll('.s')[n - 1].classList.add('on');
+</script>
+</body>
+</html>

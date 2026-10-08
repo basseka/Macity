@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity : partenariat établissements</title>
+<style>
+  :root{ --pink:#E91E8C; --purple:#7C3AED; --ink:#1B1533; --dim:#5C5276;
+         --line:#E7DFEA; --cream:#FDF3EB; }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:13mm 12mm 14mm 12mm; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        color:var(--ink); font-size:10pt; line-height:1.5;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  .cover{ background:linear-gradient(135deg,#14101C 0%,#3A1E58 50%,#A11A6B 100%);
+    color:#fff; border-radius:16px; padding:30px 34px 28px; margin-bottom:18px; }
+  .cover .kicker{ font-weight:700; letter-spacing:.24em; font-size:8.5pt;
+    color:#FFA8D2; text-transform:uppercase; }
+  .cover h1{ font-size:27pt; font-weight:900; margin:10px 0 8px; line-height:1.08; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover .base{ margin:0; color:#DDD3EC; font-size:11pt; max-width:150mm; }
+  .cover .meta{ margin-top:16px; display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{ background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.24);
+    padding:5px 13px; border-radius:20px; font-size:8.5pt; font-weight:600; }
+
+  h2{ font-size:15pt; font-weight:900; margin:20px 0 6px; padding-left:11px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:9pt; font-weight:600; color:var(--dim); margin-top:2px; }
+  p{ margin:6px 0; }
+  .lead{ color:var(--dim); }
+
+  .cols{ display:flex; gap:16px; margin-top:12px; }
+  .col{ flex:1; }
+  .col-title{ font-weight:900; font-size:11.5pt; margin:0 0 10px; }
+  .col-title.give{ color:var(--purple); }
+  .col-title.get{ color:var(--pink); }
+
+  .item{ border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+         margin-bottom:10px; page-break-inside:avoid; }
+  .item .num{ display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; color:#fff; font-weight:900;
+    font-size:10pt; margin-right:8px; flex-shrink:0; }
+  .col.give .item .num{ background:var(--purple); }
+  .col.get .item .num{ background:var(--pink); }
+  .item h3{ display:flex; align-items:center; gap:2px; margin:0 0 4px;
+    font-size:10.8pt; font-weight:800; }
+  .item p{ margin:0; font-size:9.3pt; color:var(--dim); }
+  .item .free{ display:inline-block; margin-top:6px; font-size:7.8pt; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:#0E7490;
+    background:#E0FBFF; padding:2px 9px; border-radius:10px; }
+  .item .charge{ display:inline-block; margin-top:6px; font-size:7.8pt; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:#B3123C;
+    background:#FFE9EF; padding:2px 9px; border-radius:10px; }
+
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:12px;
+    padding:14px 18px; margin:16px 0; page-break-inside:avoid; }
+  .box h4{ margin:0 0 6px; font-size:10.5pt; font-weight:900; }
+  .box p{ margin:2px 0; font-size:9.5pt; }
+
+  .steps{ display:flex; gap:12px; margin-top:10px; }
+  .steps .step{ flex:1; text-align:center; }
+  .steps .step .n{ display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:50%; background:var(--ink); color:#fff;
+    font-weight:900; font-size:12pt; margin-bottom:6px; }
+  .steps .step p{ margin:0; font-size:8.8pt; color:var(--dim); }
+
+  .cta{ background:linear-gradient(135deg,#E91E8C,#7C3AED); color:#fff;
+    border-radius:13px; padding:18px 22px; margin-top:16px; text-align:center; }
+  .cta h3{ margin:0 0 5px; color:#fff; font-size:13.5pt; }
+  .cta p{ margin:3px 0; color:#F6E6F2; }
+
+  .foot{ margin-top:20px; padding-top:9px; border-top:1px solid var(--line);
+    font-size:7.6pt; color:var(--dim); }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MaCity &middot; Partenariat établissements</div>
+  <h1>Votre lieu mis en avant,<br><span>gratuitement.</span></h1>
+  <p class="base">MaCity crée votre fiche, vos visuels et une vidéo diffusée sur nos
+  réseaux, sans aucun frais, auprès d'une communauté déjà forte de 5 000 personnes.
+  En échange, on vous demande simplement de faire vivre votre présence sur
+  l'application.</p>
+  <div class="meta">
+    <span class="chip">5 000 personnes déjà</span>
+    <span class="chip">100 % gratuit</span>
+    <span class="chip">Photos + vidéo</span>
+    <span class="chip">Compte pro illimité</span>
+    <span class="chip">Visibilité réseaux</span>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="col give">
+    <p class="col-title give">Ce que MaCity vous offre</p>
+
+    <div class="item">
+      <h3><span class="num">1</span>Votre fiche complète</h3>
+      <p>Création de votre fiche établissement avec 6 photos d'ambiance,
+      sélectionnées avec vous pour donner envie.</p>
+      <span class="free">Gratuit</span>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">2</span>Un teaser vidéo</h3>
+      <p>Sur demande, on peut aussi tourner un teaser vidéo de votre établissement
+      pour votre fiche.</p>
+      <span class="free">Gratuit</span>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">3</span>Une vidéo en collaboration</h3>
+      <p>MaCity tourne une vidéo avec vous (ambiance, équipe, spécialités) et la
+      publie sur ses réseaux : votre lieu vu par toute la communauté MaCity.</p>
+      <span class="free">Gratuit</span>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">4</span>Un compte pro sur l'appli</h3>
+      <p>Publiez vous-même, sans limite et sans frais, tous vos événements
+      directement depuis votre compte pro.</p>
+      <span class="free">Gratuit</span>
+    </div>
+  </div>
+
+  <div class="col get">
+    <p class="col-title get">Ce qu'on vous demande en retour</p>
+
+    <div class="item">
+      <h3><span class="num">1</span>Des offres exclusives MaCity</h3>
+      <p>Une réduction, un verre offert, un tarif préférentiel : une offre réservée
+      aux utilisateurs de l'application, visible sur votre fiche.</p>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">2</span>Faire pulser votre lieu sur la Map</h3>
+      <p>Publier régulièrement (photos, stories, ambiance du moment) pour que votre
+      établissement reste actif et visible sur la Map Live.</p>
+      <span class="charge">À votre charge</span>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">3</span>Accepter le dépôt de flyers</h3>
+      <p>Laisser à disposition de vos clients, sur le comptoir ou à l'entrée, des
+      flyers MaCity que nous déposons chez vous.</p>
+    </div>
+  </div>
+</div>
+
+<div class="box">
+  <h4>Comment ça démarre</h4>
+  <div class="steps">
+    <div class="step"><span class="n">1</span>
+      <p>On échange sur place, 30 minutes, pour cadrer votre fiche et vos offres</p>
+    </div>
+    <div class="step"><span class="n">2</span>
+      <p>On tourne les photos et la vidéo, à un moment qui vous convient</p>
+    </div>
+    <div class="step"><span class="n">3</span>
+      <p>Votre fiche, votre compte pro et votre vidéo sont en ligne</p>
+    </div>
+  </div>
+</div>
+
+<div class="cta">
+  <h3>Un partenariat sans engagement, sans facture</h3>
+  <p>Pas d'abonnement à payer pour ce format : juste de la visibilité offerte,
+  contre un peu de réciprocité.</p>
+</div>
+
+<div class="foot">
+  MaCity &middot; Partenariat établissements. Document de présentation, à
+  personnaliser selon l'établissement rencontré.
+</div>
+
+</body>
+</html>

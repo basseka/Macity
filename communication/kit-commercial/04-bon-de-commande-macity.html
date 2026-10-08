@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bon de commande MaCity</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .page { padding: 13mm 15mm 16mm; font-size: 8.8pt; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; }
+  .head img { width: 38mm; }
+  .head-right { text-align: right; font-size: 7.8pt; color: var(--ardoise); line-height: 1.45; }
+  .doc-title { font-size: 17pt; font-weight: 600; color: var(--nuit); letter-spacing: -.02em; margin: 4mm 0 1mm; }
+  .section-title { font-family: 'Geist Mono', monospace; font-size: 7.4pt; letter-spacing: .16em; text-transform: uppercase; color: var(--rose); margin: 4.5mm 0 1.5mm; font-weight: 500; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; column-gap: 7mm; }
+  .field { height: 7mm; margin-bottom: .6mm; }
+  .field label { font-size: 7.8pt; }
+  .field.full { grid-column: 1 / -1; }
+  .opts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.5mm; font-size: 8.4pt; }
+  table.order { width: 100%; border-collapse: collapse; font-size: 8.4pt; }
+  .order th { text-align: left; font-weight: 600; border-bottom: 1.3px solid var(--nuit); padding: 1.3mm 1.5mm; }
+  .order td { border-bottom: 1px solid var(--ligne); padding: 1.6mm 1.5mm; vertical-align: middle; }
+  .order td.r, .order th.r { text-align: right; white-space: nowrap; }
+  .order .blank { display: inline-block; min-width: 18mm; border-bottom: 1px solid #B9B2C6; height: 4mm; }
+  .totals { width: 70mm; margin-left: auto; margin-top: 2mm; font-size: 8.6pt; }
+  .totals div { display: flex; justify-content: space-between; padding: 1.2mm 1.5mm; border-bottom: 1px solid var(--ligne); }
+  .totals div.ttc { background: var(--nuit); color: #fff; font-weight: 600; border-radius: 1.5mm; border: 0; }
+  .totals .blank { display: inline-block; min-width: 22mm; border-bottom: 1px solid #B9B2C6; }
+  .totals .ttc .blank { border-bottom-color: rgba(255,255,255,.5); }
+  .sign { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 10mm; }
+  .sign-box { border: 1px solid var(--ligne); border-radius: 2.5mm; padding: 3mm; height: 50mm; font-size: 8pt; color: var(--ardoise); }
+  .sign-box b { color: var(--nuit); }
+  .conds { font-size: 8.4pt; color: var(--ardoise); line-height: 1.45; column-count: 2; column-gap: 7mm; }
+  .conds p { margin: 0 0 1.2mm; break-inside: avoid; }
+</style>
+</head>
+<body>
+<section class="page">
+  <div class="head">
+    <img src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-clair.png" alt="MaCity">
+    <div class="head-right"><b style="color:var(--nuit)">BCM SOFT Technologies</b>, éditeur de MaCity<br>8 chemin de la Prairie, 31850 Beaupuy<br>SIRET 925 195 653 00017 · macity.app</div>
+  </div>
+  <div class="doc-title">Bon de commande · Abonnement partenaire</div>
+  <div class="small">N° <span style="display:inline-block;min-width:30mm;border-bottom:1px solid #B9B2C6">&nbsp;</span> &nbsp;&nbsp; Date <span style="display:inline-block;min-width:30mm;border-bottom:1px solid #B9B2C6">&nbsp;</span> &nbsp;&nbsp; Commercial <span style="display:inline-block;min-width:45mm;border-bottom:1px solid #B9B2C6">&nbsp;</span></div>
+
+  <div class="section-title">1 · Le partenaire</div>
+  <div class="fields">
+    <div class="field"><label>Raison sociale</label></div>
+    <div class="field"><label>SIRET</label></div>
+    <div class="field full"><label>Adresse de facturation</label></div>
+    <div class="field"><label>Nom et fonction du signataire</label></div>
+    <div class="field"><label>N° de TVA intracommunautaire</label></div>
+    <div class="field"><label>Téléphone</label></div>
+    <div class="field"><label>Email (factures)</label></div>
+  </div>
+
+  <div class="section-title">2 · L'établissement mis en avant</div>
+  <div class="fields">
+    <div class="field"><label>Nom de l'établissement dans l'app</label></div>
+    <div class="field"><label>Ville</label></div>
+  </div>
+  <div style="margin-top:1.5mm"><span class="small" style="margin-right:3mm">Rubrique :</span>
+    <span class="opts" style="display:inline-grid;width:150mm;vertical-align:middle">
+      <span><i class="checkbox"></i>Night</span><span><i class="checkbox"></i>Food</span><span><i class="checkbox"></i>Culture</span><span><i class="checkbox"></i>Sport</span><span><i class="checkbox"></i>Famille</span><span><i class="checkbox"></i>Évasion</span>
+    </span>
+  </div>
+
+  <div class="section-title">3 · La commande</div>
+  <table class="order">
+    <tr><th style="width:8mm"></th><th>Formule ou option</th><th>Engagement</th><th class="r">Prix unitaire HT</th><th class="r">Quantité</th><th class="r">Total HT</th></tr>
+    <tr><td><i class="checkbox"></i></td><td><b>Classique</b> · badge, étoile, carte</td><td>Aucun</td><td class="r">11,90 € / mois</td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td></tr>
+    <tr><td><i class="checkbox"></i></td><td><b>Gold</b> · + « Inspirations du moment »</td><td>Aucun</td><td class="r">79,00 € / mois</td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td></tr>
+    <tr><td><i class="checkbox"></i></td><td><b>Premium</b> · + bannière vidéo, encart « du jour », « À la une »</td><td>Aucun</td><td class="r">179,00 € / mois</td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td></tr>
+    <tr><td><i class="checkbox"></i></td><td><b>Exclusivité</b> · seul sur la bannière et l'encart de la rubrique</td><td>6 mois minimum</td><td class="r">349,00 € / mois</td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td></tr>
+    <tr><td><i class="checkbox"></i></td><td>À la carte · événement « Au top », le(s) <span class="blank" style="min-width:32mm"></span></td><td>Ponctuel</td><td class="r">80,00 € / jour</td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td></tr>
+    <tr><td><i class="checkbox"></i></td><td>À la carte · événement « À la une », le(s) <span class="blank" style="min-width:30mm"></span></td><td>Ponctuel</td><td class="r">150,00 € / jour</td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td></tr>
+    <tr><td><i class="checkbox"></i></td><td>Option sur devis : <span class="blank" style="min-width:55mm"></span></td><td><span class="blank"></span></td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td><td class="r"><span class="blank"></span></td></tr>
+  </table>
+
+  <div style="display:grid;grid-template-columns:1fr 72mm;gap:6mm;align-items:start;margin-top:2mm">
+    <div class="fields" style="grid-template-columns:1fr">
+      <div class="field"><label>Date de début de l'abonnement</label></div>
+      <div style="font-size:8.4pt;margin-top:1.5mm"><span class="small" style="margin-right:2mm">Règlement mensuel par :</span><i class="checkbox"></i>Prélèvement &nbsp; <i class="checkbox"></i>Virement &nbsp; <i class="checkbox"></i>Carte bancaire</div>
+      <div class="field"><label>Remise ou conditions particulières</label></div>
+      <div class="field"><label></label></div>
+    </div>
+    <div class="totals">
+      <div><span>Total mensuel HT</span><span class="blank"></span></div>
+      <div><span>TVA 20 %</span><span class="blank"></span></div>
+      <div class="ttc"><span>Total mensuel TTC</span><span class="blank"></span></div>
+    </div>
+  </div>
+
+  <div class="section-title">4 · Éléments à fournir pour la mise en ligne</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2mm;font-size:8.3pt">
+    <span><i class="checkbox"></i>6 photos d'ambiance</span>
+    <span><i class="checkbox"></i>Vidéo verticale 15-30 s</span>
+    <span><i class="checkbox"></i>Offre MaCity (contenu, places, durée)</span>
+    <span><i class="checkbox"></i>Tournage à planifier par MaCity</span>
+  </div>
+
+  <div class="folio"><span>MaCity · Bon de commande partenaire</span><span>1/2</span></div>
+</section>
+
+<section class="page">
+  <div class="head">
+    <img src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-clair.png" alt="MaCity">
+    <div class="head-right">Bon de commande N° <span style="display:inline-block;min-width:28mm;border-bottom:1px solid #B9B2C6">&nbsp;</span></div>
+  </div>
+  <div class="section-title" style="margin-top:8mm">5 · Conditions</div>
+  <div class="conds">
+    <p><b>Durée.</b> Les formules Classique, Gold et Premium sont mensuelles, sans engagement de durée, et résiliables à tout moment. L'option Exclusivité engage le partenaire pour 6 mois à compter de la date de début, puis se poursuit sans engagement.</p>
+    <p><b>Exclusivité.</b> Une seule exclusivité est attribuée par rubrique et par ville. Elle n'est acquise qu'après confirmation écrite de MaCity que la place est disponible.</p>
+    <p><b>Rotation.</b> Hors exclusivité, les emplacements mis en avant sont partagés à parts égales entre les partenaires d'une même formule, d'une même rubrique et d'une même ville.</p>
+    <p><b>Visuels.</b> L'affichage dans les emplacements nécessite au moins une photo ou une vidéo sur la fiche. Le partenaire garantit détenir les droits sur les visuels transmis et autorise MaCity à les diffuser pendant la durée de l'abonnement.</p>
+    <p><b>Résultats.</b> MaCity s'engage sur la présence de l'établissement dans les emplacements de la formule choisie, et non sur un nombre de visites, de clients ou de ventes.</p>
+    <p><b>Prix.</b> Prix exprimés hors taxes, TVA au taux en vigueur (20 %). Facturation mensuelle.</p>
+  </div>
+
+  <div class="sign">
+    <div class="sign-box"><b>Le partenaire</b><br>Date, nom, signature et cachet, précédés de la mention « Bon pour accord »</div>
+    <div class="sign-box"><b>Pour MaCity</b><br>Date, nom et signature</div>
+  </div>
+
+  <div class="folio"><span>MaCity · Bon de commande partenaire · Exemplaire à conserver par chaque partie</span><span>2/2</span></div>
+</section>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide du commercial MaCity</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .cover { background: var(--nuit-grad); color: #fff; }
+  .cover h1 { color: #fff; font-size: 34pt; margin-top: 55mm; }
+  .cover .lead { color: #B5A8D0; }
+  .cover-tag { display: inline-block; margin-top: 6mm; font-family: 'Geist Mono', monospace; font-size: 7.5pt; letter-spacing: .18em; text-transform: uppercase; color: #FFD88A; border: 1px solid rgba(255,216,138,.4); border-radius: 99px; padding: 1.2mm 3.5mm; }
+  .toc { position: absolute; left: 17mm; right: 17mm; bottom: 26mm; display: grid; grid-template-columns: 1fr 1fr; gap: 2mm 8mm; font-size: 9.5pt; color: #F5F0FF; }
+  .toc span { color: #FF7AB8; font-family: 'Geist Mono', monospace; margin-right: 3mm; }
+  .ladder { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2.5mm; margin-top: 4mm; }
+  .rung { border-radius: 3.5mm; padding: 4mm 3.5mm; font-size: 8.4pt; border: 1px solid var(--ligne); background: #fff; }
+  .rung b { display: block; font-size: 10pt; margin: 1mm 0; color: var(--nuit); }
+  .rung .price { font-weight: 600; color: var(--rose); font-size: 9.5pt; }
+  .rung--free { background: var(--vert-clair); border-color: transparent; }
+  .rung--prem { background: var(--premium-clair); border-color: transparent; }
+  .rung--excl { background: var(--nuit); color: #F5F0FF; border: 0; }
+  .rung--excl b { color: #fff; }
+  .rung--excl .price { color: #FFD88A; }
+  .arrow-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2.5mm; font-size: 7.8pt; color: var(--ardoise); margin-top: 1.5mm; }
+  .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .phase { border-top: 3px solid var(--rose); padding-top: 3mm; }
+  .phase h3 { margin-top: 0; }
+  .phase ul.clean li { font-size: 8.6pt; }
+  .obj { display: grid; grid-template-columns: 58mm 1fr; gap: 5mm; padding: 2.8mm 0; border-bottom: 1px solid var(--ligne); font-size: 8.8pt; }
+  .obj q { font-weight: 600; color: var(--nuit); quotes: '« ' ' »'; }
+  .rub { border: 1px solid var(--ligne); border-radius: 3.5mm; padding: 3.5mm 4mm; font-size: 8.4pt; }
+  .rub-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5mm; }
+  .rub-head b { font-size: 10.5pt; color: var(--nuit); }
+  .rub-head span { font-family: 'Geist Mono', monospace; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; color: var(--rose); }
+  .rub p { margin: 0 0 1.2mm; }
+  .rub .open { color: var(--vert); }
+  .rub .trap { color: #B42318; }
+  .todo { font-size: 8.8pt; }
+  .todo li { margin-bottom: 1.4mm; }
+</style>
+</head>
+<body>
+
+<!-- 1. Couverture -->
+<section class="page cover">
+  <img src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity" style="width:58mm">
+  <h1>Guide du commercial</h1>
+  <p class="lead">Tout ce qu'il faut pour présenter MaCity, choisir la bonne formule, répondre aux objections et faire signer.</p>
+  <div class="cover-tag">Document interne · ne pas remettre au prospect</div>
+  <div class="toc">
+    <div><span>01</span>Ce que tu vends</div>
+    <div><span>05</span>Rubrique par rubrique</div>
+    <div><span>02</span>Ce qu'on dit, ce qu'on ne dit pas</div>
+    <div><span>06</span>Les objections</div>
+    <div><span>03</span>L'échelle des formules</div>
+    <div><span>07</span>Calendrier et contacts</div>
+    <div><span>04</span>Le rendez-vous, étape par étape</div>
+    <div><span>08</span>Après la signature</div>
+  </div>
+</section>
+
+<!-- 2. Ce que tu vends + règles -->
+<section class="page">
+  <div class="eyebrow">01 · Ce que tu vends</div>
+  <h1>Une place au moment où l'on décide</h1>
+  <p class="lead">MaCity est l'application qui dit quoi faire dans sa ville : ce soir, ce week-end, avec les enfants, quand il pleut. Tu ne vends pas de la publicité au kilomètre : tu vends une présence <b>au moment précis où quelqu'un choisit où aller</b>.</p>
+
+  <div class="card" style="margin-top:4mm">
+    <p style="margin:0"><b>Ton pitch en une phrase :</b> « Quand quelqu'un ouvre MaCity pour savoir où sortir ce soir, on fait en sorte que ce soit chez vous qu'il tombe, pour un prix fixe par mois, sans commission et sans engagement. »</p>
+  </div>
+
+  <div class="eyebrow" style="margin-top:8mm">02 · Ce qu'on dit, ce qu'on ne dit pas</div>
+  <div class="grid-2">
+    <div>
+      <h3 style="margin-top:0">Les chiffres à utiliser</h3>
+      <ul class="clean check">
+        <li><b>5 000 personnes</b> dans la communauté MaCity</li>
+        <li><b>17 000+ événements</b> à venir dans l'application, dont plus de 2 200 à Toulouse</li>
+        <li><b>21 000+ lieux</b> référencés</li>
+        <li><b>25 villes</b> couvertes, 6 rubriques</li>
+        <li>Application <b>gratuite</b> pour les utilisateurs, Android et iPhone</li>
+      </ul>
+      <h3>Les arguments qui marchent</h3>
+      <ul class="clean check">
+        <li><b>Le moment de décision</b> : on ouvre MaCity quand on cherche quoi faire, pas pour passer le temps.</li>
+        <li><b>Le prix fixe</b> : pas de commission par client, contrairement aux plateformes de réservation.</li>
+        <li><b>Sans engagement</b> : on juge sur un mois, on arrête quand on veut.</li>
+        <li><b>La démonstration</b> : montre l'app en vrai, sur ton téléphone, avec un partenaire de sa rubrique.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Ce qu'on ne promet jamais</h3>
+      <ul class="clean cross">
+        <li><b>Un nombre de clients, de couverts ou d'entrées.</b> Tu serais jugé dessus le mois suivant. On vend de la visibilité au bon moment.</li>
+        <li><b>Un nombre d'utilisateurs actifs.</b> On parle de la communauté (5 000) et du contenu, pas d'audience quotidienne.</li>
+        <li><b>La validation des offres par QR côté commerçant.</b> Le client présente un code, mais l'écran qui permet au commerçant de le scanner et de le valider n'existe pas encore.</li>
+        <li><b>Des statistiques détaillées</b> de vues ou de clics sur la fiche, tant qu'elles ne sont pas disponibles dans l'espace pro.</li>
+        <li><b>Une exclusivité déjà prise</b> : vérifie toujours auprès de MaCity avant de la proposer.</li>
+      </ul>
+      <div class="box-warn" style="margin-top:4mm">Un doute sur ce que l'app fait vraiment ? Ne l'affirme pas. Note la question et reviens vers le prospect avec la réponse : c'est plus crédible qu'une promesse tenue à moitié.</div>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · Guide du commercial · Interne</span><span>02</span></div>
+</section>
+
+<!-- 3. L'échelle des formules -->
+<section class="page">
+  <div class="eyebrow">03 · L'échelle des formules</div>
+  <h1>Faire monter, marche après marche</h1>
+  <p class="lead">Chaque formule inclut la précédente. Ton objectif n'est pas de vendre Premium à tout le monde, mais de mettre chaque prospect sur la bonne marche, puis de le faire monter.</p>
+
+  <div class="ladder">
+    <div class="rung rung--free"><span class="pill pill--tous">Porte d'entrée</span><b>Découverte</b><div class="price">Gratuit</div><p style="margin:1.5mm 0 0">Fiche, 6 photos, vidéo, compte pro. En échange : une offre MaCity et des flyers.</p></div>
+    <div class="rung"><span class="pill pill--classique">Classique</span><b>Être repéré</b><div class="price">11,90 € HT</div><p style="margin:1.5mm 0 0">Badge, étoile dans les listes, nom sur la carte.</p></div>
+    <div class="rung"><span class="pill pill--gold">Gold</span><b>Être suggéré</b><div class="price">79 € HT</div><p style="margin:1.5mm 0 0">+ carrousel « Inspirations du moment ».</p></div>
+    <div class="rung rung--prem"><span class="pill pill--premium">Premium</span><b>Être vu en premier</b><div class="price">179 € HT</div><p style="margin:1.5mm 0 0">+ bannière vidéo, encart « du jour » sur l'accueil, « À la une ».</p></div>
+    <div class="rung rung--excl"><span class="pill pill--excl">Exclusivité</span><b>Sans partage</b><div class="price">349 € HT</div><p style="margin:1.5mm 0 0">Seul sur la bannière et l'encart, 6 mois d'engagement.</p></div>
+  </div>
+  <div class="arrow-row"><span>Pour entrer quand le budget bloque</span><span>Petit budget, veut exister</span><span>Veut être découvert</span><span>A un événement ou une ouverture à remplir</span><span>Leader de sa rubrique, veut verrouiller</span></div>
+
+  <div class="grid-2" style="margin-top:7mm">
+    <div>
+      <h3 style="margin-top:0">Quand proposer quoi</h3>
+      <ul class="clean">
+        <li><b>Premium d'abord</b> quand le prospect a une échéance : une soirée à remplir, une ouverture, une saison qui démarre. C'est le seul qui le place sur l'accueil.</li>
+        <li><b>Gold</b> pour un lieu régulier qui veut être découvert sans événement particulier : restaurant, bar, salle de loisirs.</li>
+        <li><b>Classique</b> quand le budget bloque mais que le prospect veut exister : 40 centimes par jour.</li>
+        <li><b>Découverte gratuite</b> quand il n'est pas prêt à payer : tu gardes le contact, sa fiche devient belle, et tu reviens dans un mois.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Les règles à connaître</h3>
+      <ul class="clean">
+        <li>Classique, Gold, Premium : <b>mensuel, sans engagement</b>, résiliable à tout moment.</li>
+        <li>Exclusivité : <b>6 mois d'engagement</b>, puis sans engagement. <b>Une seule place par rubrique et par ville</b>.</li>
+        <li>Les emplacements tournent entre partenaires d'une même formule, rubrique et ville. À 4 Premium Food à Toulouse, chacun a un quart du temps de bannière.</li>
+        <li>À la carte : 80 € HT / jour « Au top », 150 € HT / jour « À la une ». Utile pour un événement isolé, mais <b>dès deux jours par mois, l'abonnement coûte moins cher</b>.</li>
+        <li>Options sur devis (parcours soirée, notification de proximité, bannière de ville) : tu remontes la demande, MaCity chiffre.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box-note" style="margin-top:5mm"><b>La seule condition technique :</b> sans photo ni vidéo sur la fiche, aucun emplacement ne peut s'afficher. Pas de signature sans prévoir comment on récupère les visuels.</div>
+
+  <div class="folio"><span>MaCity · Guide du commercial · Interne</span><span>03</span></div>
+</section>
+
+<!-- 4. Le rendez-vous -->
+<section class="page">
+  <div class="eyebrow">04 · Le rendez-vous</div>
+  <h1>Trente minutes, trois temps</h1>
+
+  <div class="timeline" style="margin-top:5mm">
+    <div class="phase">
+      <h3>Avant</h3>
+      <ul class="clean">
+        <li>Ouvre MaCity sur la ville du prospect : sa fiche existe-t-elle ? Est-elle belle ?</li>
+        <li>Repère ses concurrents déjà partenaires dans sa rubrique.</li>
+        <li>Regarde son Instagram : événements à venir, ouverture, saison.</li>
+        <li>Imprime la plaquette et la fiche tarifs, prends deux bons de commande.</li>
+        <li>Charge ton téléphone, installe l'app, teste le parcours de sa rubrique.</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <h3>Pendant</h3>
+      <ul class="clean">
+        <li><b>Écoute d'abord</b> (10 min) : qu'est-ce qui le remplit, qu'est-ce qui reste vide, que paie-t-il déjà en communication ?</li>
+        <li><b>Montre l'app</b> (10 min) : l'accueil, sa rubrique, un partenaire en bannière. Laisse-le toucher.</li>
+        <li><b>Propose une seule formule</b> (5 min), celle qui répond à ce qu'il t'a dit. La plaquette sert à montrer, pas à lire.</li>
+        <li><b>Conclus</b> (5 min) : bon de commande, ou date de relance fixée ensemble.</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <h3>Après</h3>
+      <ul class="clean">
+        <li>Le jour même : message de remerciement avec la plaquette en PDF.</li>
+        <li>Pas signé : relance à 48 heures, avec une réponse précise à son objection.</li>
+        <li>Toujours pas : propose la Découverte gratuite pour garder le lien.</li>
+        <li>Note chaque rendez-vous : lieu, contact, formule proposée, objection, prochaine date.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top:9mm">Les questions qui ouvrent la discussion</h3>
+  <div class="grid-2">
+    <ul class="clean">
+      <li>« Quels soirs de la semaine sont les plus difficiles à remplir ? »</li>
+      <li>« Comment les gens qui ne vous connaissent pas encore vous trouvent-ils aujourd'hui ? »</li>
+      <li>« Qu'avez-vous de prévu dans les deux prochains mois ? »</li>
+    </ul>
+    <ul class="clean">
+      <li>« Vous payez une commission sur vos réservations en ligne ? »</li>
+      <li>« Qui s'occupe de votre communication, et combien de temps ça vous prend ? »</li>
+      <li>« Si vous deviez faire venir vingt personnes de plus ce mois-ci, vous feriez quoi ? »</li>
+    </ul>
+  </div>
+
+  <div class="box-rose" style="margin-top:6mm"><b>La démonstration vaut toutes les plaquettes.</b> Un gérant qui voit un concurrent en bannière vidéo dans sa propre rubrique comprend l'offre en dix secondes. Commence toujours par l'app, jamais par le prix.</div>
+
+  <div class="folio"><span>MaCity · Guide du commercial · Interne</span><span>04</span></div>
+</section>
+
+<!-- 5. Rubriques -->
+<section class="page">
+  <div class="eyebrow">05 · Rubrique par rubrique</div>
+  <h1>Chaque rubrique a son acheteur</h1>
+  <p class="lead" style="font-size:10.5pt">Ce qui change d'une rubrique à l'autre n'est pas le prix, c'est la raison d'acheter. Par ordre de priorité :</p>
+
+  <div class="grid-2" style="gap:4mm;margin-top:3mm">
+    <div class="rub">
+      <div class="rub-head"><b>🌙 Night</b><span>Priorité 1 · vente facile</span></div>
+      <p><b>Cible :</b> clubs, bars à cocktails, rooftops, collectifs et organisateurs de soirées, salles de concert moyennes.</p>
+      <p class="open"><b>Phrase :</b> « Vos soirées apparaissent en tête de l'application le jeudi et le vendredi, au moment où les gens décident. »</p>
+      <p class="trap"><b>Piège :</b> appeler le matin ; le gérant n'est pas toujours celui qui vend la soirée.</p>
+      <p><b>Formule :</b> Premium (événements « À la une »).</p>
+    </div>
+    <div class="rub">
+      <div class="rub-head"><b>⚽ Sport</b><span>Priorité 2</span></div>
+      <p><b>Cible :</b> padel, escalade, salles privées, clubs semi-pros, organisateurs de courses.</p>
+      <p class="open"><b>Phrase :</b> « On vous aide à remplir vos créneaux creux, le mardi 14 h plutôt que le samedi matin. »</p>
+      <p class="trap"><b>Piège :</b> les salles mesurent le coût par inscription ; ne te bats pas sur le volume.</p>
+      <p><b>Moment :</b> septembre et janvier.</p>
+    </div>
+    <div class="rub">
+      <div class="rub-head"><b>✈️ Évasion</b><span>Priorité 3 · deux fenêtres</span></div>
+      <p><b>Cible :</b> stations pyrénéennes, thermes, hébergements insolites, œnotourisme, comités du tourisme.</p>
+      <p class="open"><b>Phrase :</b> « Votre clientèle vit à deux heures de chez vous, et elle utilise MaCity. »</p>
+      <p class="trap"><b>Piège :</b> la fenêtre des stations ferme fin octobre ; les grandes marques n'achètent pas d'abonnement.</p>
+      <p><b>Moment :</b> septembre à novembre.</p>
+    </div>
+    <div class="rub">
+      <div class="rub-head"><b>🎭 Culture</b><span>Priorité 4 · décision lente</span></div>
+      <p><b>Cible :</b> théâtres privés, cinémas indépendants, festivals, salles moyennes, galeries.</p>
+      <p class="open"><b>Phrase :</b> « On vous amène un public de 25 à 35 ans. » On vend du rajeunissement, pas des billets.</p>
+      <p class="trap"><b>Piège :</b> arriver en octobre, quand la saison est bouclée depuis juin.</p>
+      <p><b>Moment :</b> avril à juin ; festivals 4 à 6 mois avant.</p>
+    </div>
+    <div class="rub">
+      <div class="rub-head"><b>👨‍👩‍👧 Famille</b><span>Priorité 5 · saisonnière</span></div>
+      <p><b>Cible :</b> activités couvertes (bowling, trampoline, escape game), accrobranche, fermes pédagogiques, ateliers enfants.</p>
+      <p class="open"><b>Phrase :</b> « Un dimanche pluvieux, un parent ouvre MaCity pour trouver une activité couverte. »</p>
+      <p class="trap"><b>Piège :</b> personne ne paie en novembre ; retourne-le : c'est sans engagement, on arrête et on reprend.</p>
+      <p><b>Moment :</b> 6 semaines avant chaque vacances scolaires (zone C).</p>
+    </div>
+    <div class="rub">
+      <div class="rub-head"><b>🍽️ Food</b><span>Priorité 6 · gros vivier</span></div>
+      <p><b>Cible :</b> ouvertures récentes (la meilleure cible), guinguettes, terrasses, brunchs, indépendants.</p>
+      <p class="open"><b>Phrase :</b> « Un prix fixe par mois, zéro commission par couvert. »</p>
+      <p class="trap"><b>Piège :</b> promettre des couverts ; appeler entre 11 h et 15 h ou le soir ; les chaînes (décision au siège).</p>
+      <p><b>Moment :</b> toute l'année pour les ouvertures, avril-mai pour les terrasses.</p>
+    </div>
+  </div>
+
+  <div class="box-note" style="margin-top:5mm"><b>La première semaine :</b> dix clubs et bars de nuit, cinq structures de padel ou d'escalade, trois stations pyrénéennes. Trois rubriques travaillées sérieusement valent mieux que six survolées.</div>
+
+  <div class="folio"><span>MaCity · Guide du commercial · Interne</span><span>05</span></div>
+</section>
+
+<!-- 6. Objections -->
+<section class="page">
+  <div class="eyebrow">06 · Les objections</div>
+  <h1>Ce qu'on va te répondre</h1>
+  <p class="lead" style="font-size:10.5pt">Une objection n'est pas un refus : c'est une question à laquelle on n'a pas encore répondu.</p>
+
+  <div style="margin-top:4mm">
+    <div class="obj"><q>Combien de clients ça va m'apporter ?</q><div>« Je ne vais pas vous promettre un chiffre, personne d'honnête ne le peut. Ce que je vous garantis, c'est d'être visible au moment où les gens choisissent où sortir. C'est sans engagement : jugez sur un mois. »</div></div>
+    <div class="obj"><q>Je n'ai pas le budget.</q><div>« Classique, c'est 11,90 € par mois, moins de 40 centimes par jour. Et si même ça bloque, on commence par la Découverte gratuite : fiche, photos et vidéo offertes. »</div></div>
+    <div class="obj"><q>J'ai déjà Instagram et Google.</q><div>« Instagram parle à ceux qui vous suivent déjà. MaCity parle à ceux qui ne vous connaissent pas encore et cherchent quoi faire ce soir. Les deux se complètent. »</div></div>
+    <div class="obj"><q>Je ne connais pas votre application.</q><div>« C'est normal, elle est jeune. Regardez : (démonstration). 5 000 personnes dans la communauté, plus de 17 000 événements, 25 villes. Et vos concurrents y sont déjà. »</div></div>
+    <div class="obj"><q>Je passe déjà par une plateforme de réservation.</q><div>« Elle vous prend une commission sur chaque couvert. Nous, c'est un prix fixe, quel que soit le nombre de clients. Plus ça marche, moins ça vous coûte en proportion. »</div></div>
+    <div class="obj"><q>Je n'ai pas de vidéo.</q><div>« Votre photo prend la place en attendant. Quinze secondes filmées au téléphone suffisent, et on peut la tourner avec vous. »</div></div>
+    <div class="obj"><q>Mon concurrent est déjà dessus.</q><div>« Justement : aujourd'hui, c'est lui qu'on voit à votre place. Les emplacements tournent à parts égales, et si vous voulez être seul sur la bannière, il y a l'Exclusivité. »</div></div>
+    <div class="obj"><q>Je dois réfléchir.</q><div>« Bien sûr. Qu'est-ce qui vous fait hésiter ? » Puis fixe une date de relance ensemble, sous 48 heures, et laisse la plaquette et la fiche tarifs.</div></div>
+    <div class="obj"><q>Et si je veux arrêter ?</q><div>« Vous arrêtez quand vous voulez, sans frais. Seule l'Exclusivité demande 6 mois, parce qu'on bloque la place pour vous seul. »</div></div>
+    <div class="obj"><q>Vous avez des statistiques ?</q><div>Ne promets pas de tableau de bord. « On vous fait un point avec vous au bout d'un mois. » Remonte la demande : c'est une information utile pour MaCity.</div></div>
+  </div>
+
+  <div class="folio"><span>MaCity · Guide du commercial · Interne</span><span>06</span></div>
+</section>
+
+<!-- 7. Calendrier et contacts -->
+<section class="page">
+  <div class="eyebrow">07 · Calendrier et contacts</div>
+  <h1>Appeler qui, et quand</h1>
+
+  <table class="tbl" style="margin-top:4mm">
+    <tr><th>Période</th><th>Cible prioritaire</th><th>Pourquoi</th></tr>
+    <tr><td>Janvier</td><td>Sport, salles et clubs</td><td>Bonnes résolutions, pic d'inscriptions</td></tr>
+    <tr><td>Février et mars</td><td>Famille</td><td>Six semaines avant les vacances de printemps</td></tr>
+    <tr><td>Avril à juin</td><td>Culture</td><td>Les saisons se bouclent en juin pour septembre</td></tr>
+    <tr><td>Avril et mai</td><td>Food, guinguettes et terrasses</td><td>Saison courte, urgence réelle</td></tr>
+    <tr><td>Juin</td><td>Famille</td><td>Vacances d'été, le plus gros pic de l'année</td></tr>
+    <tr><td>Septembre</td><td>Sport et Night</td><td>Rentrée sportive, nouvelles saisons de soirées</td></tr>
+    <tr><td>Septembre et octobre</td><td>Évasion, stations de ski</td><td>Plans de communication hiver en cours</td></tr>
+    <tr><td>Octobre et novembre</td><td>Évasion, comités du tourisme</td><td>Budgets de l'année suivante</td></tr>
+    <tr><td>Toute l'année</td><td>Food, ouvertures récentes</td><td>Un nouveau restaurant ouvre chaque semaine</td></tr>
+  </table>
+
+  <h3 style="margin-top:7mm">Le bon canal selon la rubrique</h3>
+  <table class="tbl">
+    <tr><th>Rubrique</th><th>Canal</th><th>Quand</th><th>Qui demander</th></tr>
+    <tr><td>Night</td><td>Message Instagram, puis téléphone</td><td>15 h à 18 h, mardi à jeudi</td><td>Gérant ou programmateur</td></tr>
+    <tr><td>Sport</td><td>Téléphone, puis mail nominatif</td><td>10 h à 12 h</td><td>Responsable de salle</td></tr>
+    <tr><td>Culture</td><td>Mail nominatif, LinkedIn</td><td>Sur rendez-vous</td><td>Chargé de communication</td></tr>
+    <tr><td>Famille</td><td>Téléphone</td><td>10 h à 12 h, hors mercredi</td><td>Gérant</td></tr>
+    <tr><td>Food</td><td>Visite sur place, puis téléphone</td><td>15 h à 17 h, jamais en service</td><td>Le patron</td></tr>
+    <tr><td>Évasion</td><td>Mail nominatif, LinkedIn</td><td>9 h à 11 h</td><td>Directeur ou responsable marketing</td></tr>
+  </table>
+
+  <div class="grid-2" style="margin-top:6mm">
+    <div class="box-rose"><b>La règle des deux appels.</b> Le premier ne vend rien : « Qui s'occupe de la communication chez vous, et à quelle adresse puis-je lui écrire ? » Le second, nominatif, a dix fois plus de chances d'aboutir.</div>
+    <div class="box-rose"><b>Trouver le bon nom.</b> Fiche Google pour le téléphone qui décroche, Pappers ou Societe.com pour le nom du gérant, Instagram pour Night et Food, LinkedIn pour Culture et Évasion. Jamais d'adresse inventée.</div>
+  </div>
+
+  <div class="folio"><span>MaCity · Guide du commercial · Interne</span><span>07</span></div>
+</section>
+
+<!-- 8. Après la signature -->
+<section class="page">
+  <div class="eyebrow">08 · Après la signature</div>
+  <h1>De la signature à la mise en ligne</h1>
+  <p class="lead" style="font-size:10.5pt">Un partenaire signé mais invisible dans l'app, c'est un partenaire perdu le mois suivant. Rien n'est vendu tant que la fiche n'est pas en ligne.</p>
+
+  <div class="grid-2" style="margin-top:5mm">
+    <div>
+      <h3 style="margin-top:0">À récupérer au rendez-vous</h3>
+      <ul class="clean check todo">
+        <li>Bon de commande <b>rempli et signé</b>, un exemplaire pour chacun</li>
+        <li>Raison sociale, <b>SIRET</b>, adresse de facturation</li>
+        <li>Nom, téléphone et email du contact au quotidien</li>
+        <li>Adresse, horaires, site, réseaux sociaux à jour</li>
+        <li><b>6 photos</b> d'ambiance minimum, bien éclairées</li>
+        <li>Une <b>vidéo verticale</b> de 15 à 30 secondes (Premium surtout)</li>
+        <li>L'<b>offre MaCity</b> : contenu, nombre de places, durée</li>
+        <li>Les événements à venir à mettre « À la une » (Premium)</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Ensuite</h3>
+      <ul class="clean todo">
+        <li><b>Le jour même :</b> transmets le bon de commande et les éléments à MaCity. C'est MaCity qui active la formule dans l'outil d'administration.</li>
+        <li><b>Pas de photos ?</b> Fixe tout de suite un créneau de tournage avec MaCity.</li>
+        <li><b>Sous 72 heures :</b> vérifie toi-même dans l'app que le partenaire apparaît au bon endroit, puis envoie-lui la capture.</li>
+        <li><b>Au bout d'un mois :</b> rappelle-le. Qu'a-t-il remarqué ? C'est le bon moment pour proposer la formule au-dessus.</li>
+      </ul>
+      <div class="box-note" style="margin-top:5mm"><b>Exclusivité :</b> avant de faire signer, confirme auprès de MaCity que la place est libre dans cette rubrique et cette ville. Une exclusivité vendue deux fois n'est plus une exclusivité.</div>
+    </div>
+  </div>
+
+  <div class="card card--dark" style="margin-top:9mm">
+    <h2 style="color:#fff">Tes contacts chez MaCity</h2>
+    <div class="grid-2">
+      <div><div class="field" style="border-bottom-color:rgba(255,255,255,.35)"><label style="color:#B5A8D0">Activation des partenaires</label></div><div class="field" style="border-bottom-color:rgba(255,255,255,.35)"><label style="color:#B5A8D0">Tournage photos et vidéos</label></div></div>
+      <div><div class="field" style="border-bottom-color:rgba(255,255,255,.35)"><label style="color:#B5A8D0">Facturation</label></div><div class="field" style="border-bottom-color:rgba(255,255,255,.35)"><label style="color:#B5A8D0">Exclusivités disponibles</label></div></div>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · Guide du commercial · Interne</span><span>08</span></div>
+</section>
+
+</body>
+</html>

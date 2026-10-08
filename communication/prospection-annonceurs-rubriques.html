@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prospection annonceurs MaCity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #1c1620;
+    --muted: #6b6270;
+    --line: #ebe5ec;
+    --card: #faf7f9;
+    --rose: #ff1e8e;
+    --rose-soft: #ffe8f3;
+    --green: #0e9f6e;  --green-soft: #ddf5ec;
+    --amber: #c27400; --amber-soft: #fdf0d9;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Inter", system-ui, sans-serif; line-height: 1.5; font-size: 14px; }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+
+  .hero { background: linear-gradient(135deg, #1c1620 0%, #3a1630 60%, #8a0f50 100%); color: #fff; border-radius: 18px; padding: 30px 28px; }
+  .kicker { font-size: 12px; font-weight: 800; letter-spacing: .18em; color: #ff7fbf; }
+  .hero h1 { margin: 8px 0 4px; font-size: 32px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+  .hero h1 span { color: #ff5fae; }
+  .hero p { margin: 10px 0 0; color: #e9dfe8; max-width: 620px; }
+
+  h2 { font-size: 21px; font-weight: 800; letter-spacing: -.02em; margin: 36px 0 4px; padding-left: 14px; border-left: 5px solid var(--rose); }
+  .sub { color: var(--muted); font-size: 13px; font-weight: 600; margin: 0 0 14px 19px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; font-size: 12.5px; color: var(--muted); }
+  .tag { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 11px; font-weight: 700; }
+  .t-easy { background: var(--green-soft); color: var(--green); }
+  .t-long { background: var(--amber-soft); color: var(--amber); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .rub { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; break-inside: avoid; page-break-inside: avoid; }
+  .rub h3 { margin: 0 0 4px; font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .rub .why { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .rub .why b { color: var(--rose); }
+  .rub h4 { margin: 10px 0 6px; }
+  .rub ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .rub li { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; font-size: 13px; }
+  .rub li.known { border-color: var(--rose); }
+  .rub li.known::after { content: " ★"; color: var(--rose); }
+
+  .rub h3 { flex-wrap: wrap; }
+  .price { margin-left: auto; background: var(--rose); color: #fff; border-radius: 10px; padding: 3px 10px; font-size: 15px; font-weight: 800; white-space: nowrap; }
+  .price small { font-size: 11px; font-weight: 600; opacity: .85; }
+  .pnote { margin: 0 0 8px; text-align: right; font-size: 11.5px; color: var(--muted); }
+  .pricebox { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; font-size: 13.5px; }
+  .pricebox b { color: var(--rose); }
+  .transverse { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .tcard { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .tcard strong { display: block; font-size: 15px; }
+  .tcard span { color: var(--muted); font-size: 13px; }
+
+  .tips { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; counter-reset: t; }
+  .tips li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; counter-increment: t; break-inside: avoid; }
+  .tips li::before { content: counter(t); width: 34px; height: 34px; border-radius: 50%; background: var(--rose-soft); color: var(--rose); font-weight: 800; display: grid; place-items: center; }
+  .tips strong { display: block; }
+  .tips span { color: var(--muted); font-size: 13.5px; }
+
+  .warn { margin-top: 24px; padding: 16px 18px; border-radius: 14px; background: var(--rose-soft); font-size: 13.5px; }
+  .warn b { color: var(--rose); }
+  .warn ul { margin: 6px 0 0; padding-left: 18px; }
+  footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11.5px; }
+
+  @media print { main { padding: 0; } .pagebreak { page-break-before: always; } }
+</style>
+</head>
+<body>
+<main>
+
+  <section class="hero">
+    <div class="kicker">MACITY · TOULOUSE · USAGE INTERNE</div>
+    <h1>Qui démarcher<br><span>pour chaque rubrique</span></h1>
+    <p>Un annonceur par grosse rubrique de l'application. Pour chacune : les cibles locales, plus rapides à signer, puis les grandes marques, au cycle de décision plus long.</p>
+  </section>
+
+  <h2>Les cibles par rubrique</h2>
+  <div class="sub">Pistes à qualifier : budgets et contacts à vérifier</div>
+  <div class="legend">
+    <span><span class="tag t-easy">Local</span> signature rapide</span>
+    <span><span class="tag t-long">Grande marque</span> passe souvent par une agence</span>
+    <span><span style="color:var(--rose);font-weight:800">★</span> déjà partenaire ou présent dans l'app</span>
+  </div>
+
+  <div class="pricebox"><b>Prix estimatifs :</b> spot vidéo en bannière de rubrique, par mois et par ville, hors taxes. Base 249 € (offre proposée, non validée), modulée selon l'audience de la rubrique. À réajuster dès qu'on aura les statistiques de fréquentation par rubrique. Toutes rubriques (Pack ville) : 990 € HT/mois.</div>
+
+  <div class="grid">
+    <div class="rub">
+      <h3>🍽️ Food<span class="price">349 €<small> HT/mois</small></span></h3>
+      <p class="pnote">rubrique phare</p>
+      <p class="why"><b>Argument :</b> on cherche où manger au moment de décider.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li>Halles de la Cartoucherie</li><li>Marché Victor Hugo (commerçants)</li><li class="known">Le Bouillon</li><li>Chaînes toulousaines burger / brunch</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Uber Eats</li><li>Deliveroo</li></ul>
+    </div>
+
+    <div class="rub">
+      <h3>🌙 Night<span class="price">349 €<small> HT/mois</small></span></h3>
+      <p class="pnote">rubrique phare</p>
+      <p class="why"><b>Argument :</b> « rentrer en sécurité », le VTC est l'annonceur naturel de la nuit.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li class="known">Le Bikini</li><li class="known">Le Métronum</li><li class="known">Clubs et bars à concerts de la base</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Uber</li><li>Bolt</li><li>Heetch</li></ul>
+    </div>
+
+    <div class="rub">
+      <h3>🎭 Culture<span class="price">249 €<small> HT/mois</small></span></h3>
+      <p class="pnote">prix de base</p>
+      <p class="why"><b>Argument :</b> des billets à écouler à date fixe, donc un vrai besoin de visibilité.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li>Théâtre du Capitole</li><li>Les Abattoirs</li><li>Quai des Savoirs</li><li>Salles de spectacle</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Fnac Spectacles</li><li>Ticketmaster</li></ul>
+    </div>
+
+    <div class="rub">
+      <h3>👨‍👩‍👧 Family<span class="price">249 €<small> HT/mois</small></span></h3>
+      <p class="pnote">prix de base</p>
+      <p class="why"><b>Argument :</b> week-ends et vacances scolaires, les parents décident en dernière minute.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li>Cité de l'espace</li><li>Aeroscopia</li><li>Halle de la Machine</li><li>African Safari</li><li class="known">Prison Island</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Walibi Sud-Ouest</li></ul>
+    </div>
+
+    <div class="rub">
+      <h3>⚽ Sport<span class="price">249 €<small> HT/mois</small></span></h3>
+      <p class="pnote">prix de base</p>
+      <p class="why"><b>Argument :</b> les petits clubs veulent remplir leurs tribunes, et Decathlon fait beaucoup de local.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li>Fenix Toulouse Handball</li><li>Toulouse Olympique XIII</li><li>Salles de sport et d'escalade locales</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Stade Toulousain</li><li>TFC</li><li>Decathlon</li><li>Basic-Fit</li><li>Fitness Park</li></ul>
+    </div>
+
+    <div class="rub">
+      <h3>🎮 Gaming<span class="price">149 €<small> HT/mois</small></span></h3>
+      <p class="pnote">niche, porte d'entrée</p>
+      <p class="why"><b>Argument :</b> un public jeune, très difficile à toucher ailleurs.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li>Laser games</li><li>Salles de réalité virtuelle</li><li>Bars gaming</li><li>Toulouse Game Show</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Micromania</li><li>Opérateurs fibre</li></ul>
+    </div>
+
+    <div class="rub">
+      <h3>🏔️ Évasion<span class="price">199 €<small> HT/mois</small></span></h3>
+      <p class="pnote">audience plus saisonnière</p>
+      <p class="why"><b>Argument :</b> le week-end hors de Toulouse, neige l'hiver, mer et montagne l'été.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li>Les Bateaux Toulousains</li><li>Luchon et stations thermales</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Tourisme Occitanie</li><li>N'PY (stations des Pyrénées)</li><li>Trains liO</li><li>BlaBlaCar</li></ul>
+    </div>
+
+    <div class="rub">
+      <h3>🗺️ Tourisme<span class="price">149 €<small> HT/mois</small></span></h3>
+      <p class="pnote">niche, porte d'entrée</p>
+      <p class="why"><b>Argument :</b> nouveaux arrivants et visiteurs qui découvrent la ville.</p>
+      <h4><span class="tag t-easy">Local</span></h4>
+      <ul><li>Office de tourisme de Toulouse</li><li>Hôtels indépendants</li></ul>
+      <h4><span class="tag t-long">Grande marque</span></h4>
+      <ul><li>Aéroport Toulouse-Blagnac</li></ul>
+    </div>
+  </div>
+
+
+  <h2>Les annonceurs « toutes rubriques »</h2>
+  <div class="sub">Les candidats naturels au Pack ville (6 rubriques) · 990 € HT/mois estimé</div>
+  <div class="transverse">
+    <div class="tcard"><strong>Tisséo</strong><span>Les transports en commun, utiles à toutes les sorties.</span></div>
+    <div class="tcard"><strong>Banques et néobanques</strong><span>Très actives auprès des étudiants à la rentrée.</span></div>
+    <div class="tcard"><strong>Opérateurs et résidences étudiantes</strong><span>Même cible, même période.</span></div>
+    <div class="tcard"><strong>Toulouse Métropole et Mairie</strong><span>Pour leurs propres événements. Lien avec le portail mairie.</span></div>
+  </div>
+
+  <h2>Comment démarcher</h2>
+  <div class="sub">Dans cet ordre</div>
+  <ol class="tips">
+    <li><div><strong>Commencer par ceux qui sont déjà dans l'app</strong><span>Bikini, les salles, les lieux Family ont déjà une fiche : on leur montre leur page et la bannière qui la surmonterait. C'est la vente la plus simple.</span></div></li>
+    <li><div><strong>Garder les grandes marques pour plus tard</strong><span>Uber, Decathlon ou le Stade Toulousain achètent via des agences et demandent des chiffres d'audience. Y aller avec des statistiques par rubrique.</span></div></li>
+    <li><div><strong>Night : pas de marques d'alcool</strong><span>La publicité pour l'alcool est très encadrée par la loi Évin sur une app grand public. Les VTC et les salles de concert passent sans problème.</span></div></li>
+  </ol>
+
+  <div class="warn">
+    <b>À régler avant de vendre le premier spot de marque :</b>
+    <ul>
+      <li>valider les prix de l'offre (249 €, 449 € et 990 €) ;</li>
+      <li>coder la rotation des vidéos de marque dans la bannière de rubrique : aujourd'hui elle ne montre que les partenaires Premium, et une vidéo de repli à défaut.</li>
+    </ul>
+  </div>
+
+  <footer>MaCity · Prospection annonceurs par rubrique · document interne. Les noms cités sont des pistes à qualifier.</footer>
+</main>
+</body>
+</html>

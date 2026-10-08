@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuto invité event privé</title>
+<style>
+  @font-face { font-family: Geist; src: url(../charte-graphique/03-typographies/Geist/Geist-Regular.ttf); font-weight: 400; }
+  @font-face { font-family: Geist; src: url(../charte-graphique/03-typographies/Geist/Geist-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Geist; src: url(../charte-graphique/03-typographies/Geist/Geist-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: 'Geist Mono'; src: url(../charte-graphique/03-typographies/GeistMono/GeistMono-Medium.ttf); font-weight: 500; }
+
+  :root { --rose: #FF1E8E; --magenta: #E91E63; --vert: #16A34A; --nuit: #1A0F2E; --ardoise: #4A4458; --faint: #8A819F; --creme: #FAFAF7; --ligne: rgba(26,15,46,.12); }
+  @page { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #D9D5DF; color: var(--nuit); font-family: Geist, system-ui, sans-serif; font-size: 10pt; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { position: relative; width: 297mm; height: 210mm; margin: 10mm auto; padding: 13mm 14mm 14mm; background: #fff; overflow: hidden; break-after: page; }
+  @media print { body { background: none; } .page { margin: 0; } }
+
+  .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .top img { width: 34mm; }
+  .eyebrow { font-family: 'Geist Mono', monospace; font-size: 7.5pt; letter-spacing: .2em; text-transform: uppercase; color: var(--rose); }
+  h1 { font-size: 23pt; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; margin: 1.5mm 0 1.5mm; }
+  h1 em { font-style: normal; color: var(--rose); }
+  .lead { font-size: 10.5pt; color: var(--ardoise); margin: 0; max-width: 200mm; }
+
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5mm; margin-top: 5mm; }
+  .step { display: flex; flex-direction: column; }
+  .num { display: inline-flex; width: 8mm; height: 8mm; border-radius: 50%; background: var(--rose); color: #fff; font-weight: 700; font-size: 11pt; align-items: center; justify-content: center; }
+  .step h2 { font-size: 11.5pt; font-weight: 700; margin: 2mm 0 1mm; line-height: 1.2; }
+  .step p { font-size: 8.6pt; color: var(--ardoise); margin: 0 0 2.5mm; min-height: 14mm; }
+  .phone { border-radius: 4mm; border: 1.2mm solid var(--nuit); overflow: hidden; background: var(--nuit); box-shadow: 0 5px 14px rgba(26,15,46,.18); height: 86mm; }
+  .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .phone--msg { background: #EFEAE2; border-color: #EFEAE2; }
+  .phone--msg img { object-fit: contain; object-position: center; }
+  .tag { display: inline-block; margin-top: 1.5mm; font-family: 'Geist Mono', monospace; font-size: 6.6pt; letter-spacing: .12em; text-transform: uppercase; padding: .6mm 2mm; border-radius: 99px; }
+  .tag--ok { background: #E4F4EC; color: var(--vert); }
+  .tag--rose { background: #FFE6F2; color: #B0105E; }
+
+  .done { margin-top: 5mm; background: var(--nuit); color: #fff; border-radius: 4mm; padding: 4mm 6mm; display: flex; gap: 5mm; align-items: center; font-size: 10pt; }
+  .done b { color: #6EE7A0; }
+
+  .foot { position: absolute; left: 14mm; right: 14mm; bottom: 7mm; display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 6.6pt; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+
+  .annexe { display: grid; grid-template-columns: 62mm 1fr 1fr; gap: 8mm; margin-top: 7mm; align-items: start; }
+  .card { background: var(--creme); border: 1px solid var(--ligne); border-radius: 4mm; padding: 5mm; }
+  .card h2 { font-size: 13pt; margin: 0 0 2mm; }
+  .card .ico { font-size: 18pt; }
+  .card ul { margin: 0; padding-left: 4.5mm; font-size: 9pt; color: var(--ardoise); }
+  .card ul li { margin-bottom: 1.4mm; }
+  .crop { border-radius: 3mm; overflow: hidden; margin: 3mm 0; border: 1px solid var(--ligne); }
+  .crop img { width: 100%; display: block; }
+  .btn { display: inline-block; border: 1.5px solid var(--magenta); color: var(--magenta); border-radius: 99px; padding: 1.2mm 5mm; font-weight: 600; font-size: 9pt; margin: 2mm 2mm 2mm 0; }
+  .btn--full { background: var(--magenta); color: #fff; }
+  .faq { margin-top: 7mm; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+  .faq div { border-top: 2.5px solid var(--rose); padding-top: 2.5mm; font-size: 8.8pt; color: var(--ardoise); }
+  .faq b { display: block; color: var(--nuit); font-size: 9.5pt; margin-bottom: .8mm; }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <div class="top">
+    <div>
+      <div class="eyebrow">Tuto invité · Event privé</div>
+      <h1>Tu es invité ? <em>Accepte et confirme</em> en 1 minute.</h1>
+      <p class="lead">Tu as reçu un lien et un code pour une soirée privée sur MaCity. Voici comment entrer, dire que tu viens et confirmer ta venue.</p>
+    </div>
+    <img src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-clair.png" alt="MaCity">
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <span class="num">1</span>
+      <h2>Clique sur le lien</h2>
+      <p>Dans le message reçu, touche le lien <b>macity.app/coffre/…</b> et garde le <b>code</b> en tête.</p>
+      <div class="phone phone--msg"><img src="visuels/1-invitation.jpg" alt=""></div>
+    </div>
+    <div class="step">
+      <span class="num">2</span>
+      <h2>Tape le code</h2>
+      <p>L'app s'ouvre, le lien est déjà rempli. Entre le code à 4 chiffres puis <b>« Ouvrir le coffre »</b>.</p>
+      <div class="phone"><img src="visuels/2-code.jpg" alt=""></div>
+    </div>
+    <div class="step">
+      <span class="num">3</span>
+      <h2>Accepte : « Je viens »</h2>
+      <p>Tu découvres le lieu, la date et l'heure. Touche <b>« Je viens »</b> : tu es inscrit.</p>
+      <div class="phone"><img src="visuels/3-je-viens.jpg" alt="" style="object-position:0 62%"></div>
+      <span class="tag tag--ok">Inscrit</span>
+    </div>
+    <div class="step">
+      <span class="num">4</span>
+      <h2>Confirme ta venue</h2>
+      <p>Si l'organisateur le demande, un bouton vert apparaît : <b>« Confirmer ma venue »</b>.</p>
+      <div class="phone"><img src="visuels/4-confirmer.jpg" alt="" style="object-position:0 60%"></div>
+      <span class="tag tag--rose">Demandé par l'organisateur</span>
+    </div>
+    <div class="step">
+      <span class="num">5</span>
+      <h2>Remplis le formulaire</h2>
+      <p>Prénom, nom, e-mail, âge, téléphone. Tout est obligatoire. Puis <b>« Confirmer ma venue »</b>.</p>
+      <div class="phone" style="background:#D9D9D9;border-color:#D9D9D9"><img src="visuels/5-formulaire.jpg" alt="" style="object-fit:contain;object-position:center"></div>
+      <span class="tag tag--ok">Confirmé</span>
+    </div>
+  </div>
+
+  <div class="done">
+    <span style="font-size:16pt">✅</span>
+    <span><b>« Venue confirmée, l'organisateur est prévenu »</b> : c'est bon, tu es sur la liste. Tes infos ne sont vues que par l'organisateur et sont supprimées après la soirée.</span>
+  </div>
+
+  <div class="foot"><span>MaCity · Tuto invité event privé</span><span>1 / 2</span></div>
+</section>
+
+<section class="page">
+  <div class="top">
+    <div>
+      <div class="eyebrow">Et après ?</div>
+      <h1>Retrouve ta soirée, <em>discute et partage tes photos</em></h1>
+    </div>
+    <img src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-clair.png" alt="MaCity">
+  </div>
+
+  <div class="annexe">
+    <div>
+      <div class="phone" style="height:118mm"><img src="visuels/6-menu.jpg" alt="" style="object-position:0 70%"></div>
+      <p style="font-size:8.6pt;color:var(--ardoise);margin-top:2.5mm">Menu de ton profil → <b>« Mes invitations »</b> : toutes les soirées où tu as dit « Je viens ».</p>
+    </div>
+
+    <div class="card">
+      <div class="ico">💬</div>
+      <h2>La discussion</h2>
+      <span class="btn">Discussion</span><span class="btn">Écrire à l'organisateur</span>
+      <ul>
+        <li><b>Discussion</b> : le groupe de la soirée. Pose une question, dis bonjour aux autres invités, envoie une photo.</li>
+        <li><b>Écrire à l'organisateur</b> : un message privé, lui seul le voit.</li>
+        <li>Après la soirée, la discussion reste lisible mais on ne peut plus écrire.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="ico">📸</div>
+      <h2>L'album photo</h2>
+      <div class="crop"><img src="visuels/7-album.jpg" alt=""></div>
+      <ul>
+        <li>Chaque invité ajoute ses photos : depuis la galerie (plusieurs d'un coup) ou en direct.</li>
+        <li>Les photos envoyées dans la discussion arrivent aussi dans l'album.</li>
+        <li>Regarde-le en <b>diaporama</b>. Après la soirée, il est dans <b>« Mes souvenirs »</b> : tu peux encore ajouter des photos pendant 7 jours.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="faq">
+    <div><b>« Code incorrect » ?</b>Vérifie les 4 chiffres reçus avec le lien, ou demande-les à l'organisateur.</div>
+    <div><b>Pas encore de compte MaCity ?</b>L'app te demande de créer ton profil, puis ton inscription se fait toute seule.</div>
+    <div><b>Tu ne peux plus venir ?</b>Dans « Mes invitations », touche <strong>« Annuler ma venue »</strong> pour libérer ta place.</div>
+  </div>
+
+  <div class="foot"><span>MaCity · macity.app</span><span>2 / 2</span></div>
+</section>
+
+</body>
+</html>

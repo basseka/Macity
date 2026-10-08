@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity : partenariat événements</title>
+<style>
+  :root{ --pink:#E91E8C; --purple:#7C3AED; --ink:#1B1533; --dim:#5C5276;
+         --line:#E7DFEA; --cream:#FDF3EB; }
+  *{ box-sizing:border-box; }
+  @page { size:A4; margin:13mm 12mm 14mm 12mm; }
+  html,body{ margin:0; padding:0; }
+  body{ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        color:var(--ink); font-size:10pt; line-height:1.5;
+        -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+  .cover{ background:linear-gradient(135deg,#14101C 0%,#3A1E58 50%,#A11A6B 100%);
+    color:#fff; border-radius:16px; padding:30px 34px 28px; margin-bottom:18px; }
+  .cover .kicker{ font-weight:700; letter-spacing:.24em; font-size:8.5pt;
+    color:#FFA8D2; text-transform:uppercase; }
+  .cover h1{ font-size:27pt; font-weight:900; margin:10px 0 8px; line-height:1.08; }
+  .cover h1 span{ color:#FF6FB4; }
+  .cover .base{ margin:0; color:#DDD3EC; font-size:11pt; max-width:150mm; }
+  .cover .meta{ margin-top:16px; display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{ background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.24);
+    padding:5px 13px; border-radius:20px; font-size:8.5pt; font-weight:600; }
+
+  h2{ font-size:15pt; font-weight:900; margin:20px 0 6px; padding-left:11px;
+      border-left:5px solid var(--pink); line-height:1.2; }
+  h2 .sub{ display:block; font-size:9pt; font-weight:600; color:var(--dim); margin-top:2px; }
+  p{ margin:6px 0; }
+  .lead{ color:var(--dim); }
+
+  .cols{ display:flex; gap:16px; margin-top:12px; }
+  .col{ flex:1; }
+  .col-title{ font-weight:900; font-size:11.5pt; margin:0 0 10px; }
+  .col-title.give{ color:var(--purple); }
+  .col-title.get{ color:var(--pink); }
+
+  .item{ border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+         margin-bottom:10px; page-break-inside:avoid; }
+  .item .num{ display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; color:#fff; font-weight:900;
+    font-size:10pt; margin-right:8px; flex-shrink:0; }
+  .col.give .item .num{ background:var(--purple); }
+  .col.get .item .num{ background:var(--pink); }
+  .item h3{ display:flex; align-items:center; gap:2px; margin:0 0 4px;
+    font-size:10.8pt; font-weight:800; }
+  .item p{ margin:0; font-size:9.3pt; color:var(--dim); }
+  .item .need{ display:inline-block; margin-top:6px; font-size:7.8pt; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:#0E7490;
+    background:#E0FBFF; padding:2px 9px; border-radius:10px; }
+
+  .box{ background:var(--cream); border:1px solid #EFDCCB; border-radius:12px;
+    padding:14px 18px; margin:16px 0; page-break-inside:avoid; }
+  .box h4{ margin:0 0 6px; font-size:10.5pt; font-weight:900; }
+  .box p{ margin:2px 0; font-size:9.5pt; }
+
+  .partners{ display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
+  .partners .p-chip{ background:#fff; border:1px solid #EFDCCB; border-radius:10px;
+    padding:8px 14px; font-size:9pt; font-weight:700; color:var(--ink); }
+
+  .cta{ background:linear-gradient(135deg,#E91E8C,#7C3AED); color:#fff;
+    border-radius:13px; padding:18px 22px; margin-top:16px; text-align:center; }
+  .cta h3{ margin:0 0 5px; color:#fff; font-size:13.5pt; }
+  .cta p{ margin:3px 0; color:#F6E6F2; }
+
+  .foot{ margin-top:20px; padding-top:9px; border-top:1px solid var(--line);
+    font-size:7.6pt; color:var(--dim); }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">MaCity &middot; Partenariat événements</div>
+  <h1>Votre événement à la une,<br><span>gratuitement.</span></h1>
+  <p class="base">Avec juste une affiche et une date, MaCity met votre événement en
+  avant auprès de sa communauté, déjà 5 000 personnes : diffusion à la une, teaser
+  vidéo, et couverture vidéo le jour même.</p>
+  <div class="meta">
+    <span class="chip">5 000 personnes déjà</span>
+    <span class="chip">Diffusion à la une</span>
+    <span class="chip">Teaser vidéo</span>
+    <span class="chip">Vidéaste le jour J</span>
+    <span class="chip">Post réseaux en collab</span>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="col give">
+    <p class="col-title give">Ce que MaCity fait</p>
+
+    <div class="item">
+      <h3><span class="num">1</span>Diffusion à la une</h3>
+      <p>Avec votre affiche et la date, on diffuse votre événement à la une de
+      l'application, visible par toute la communauté MaCity.</p>
+      <span class="need">Besoin : affiche + date</span>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">2</span>Un teaser vidéo</h3>
+      <p>On réalise un teaser vidéo de l'événement pour accompagner sa fiche sur
+      l'application.</p>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">3</span>Une annonce de partenariat</h3>
+      <p>On publie sur nos réseaux qu'on est partenaire de votre événement, en amont
+      de la date.</p>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">4</span>Un vidéaste le jour J</h3>
+      <p>On envoie un vidéaste sur place pour filmer l'événement, puis on publie une
+      vidéo en collaboration avec vous sur les réseaux.</p>
+    </div>
+  </div>
+
+  <div class="col get">
+    <p class="col-title get">Ce qu'on vous demande en retour</p>
+
+    <div class="item">
+      <h3><span class="num">1</span>Nous afficher sur vos écrans</h3>
+      <p>Si vous disposez d'écrans sur place, afficher MaCity dessus le jour de
+      l'événement.</p>
+    </div>
+
+    <div class="item">
+      <h3><span class="num">2</span>Accepter le dépôt de flyers</h3>
+      <p>Nous laisser déposer quelques flyers MaCity sur place, à disposition de vos
+      visiteurs.</p>
+    </div>
+  </div>
+</div>
+
+<div class="box">
+  <h4>Déjà partenaires de</h4>
+  <div class="partners">
+    <span class="p-chip">Miss France Haute-Garonne</span>
+    <span class="p-chip">Festival Kizomba</span>
+  </div>
+  <p style="margin-top:8px; color:var(--dim); font-size:8.8pt;">N'hésitez pas à nous
+  demander comment s'est passée la collaboration avec eux.</p>
+</div>
+
+<div class="box">
+  <h4>Une autre idée de collaboration ?</h4>
+  <p>Ce format n'est pas figé : si vous préférez proposer autre chose en échange de
+  la visibilité, on est ouverts à en discuter.</p>
+</div>
+
+<div class="cta">
+  <h3>Le but : la visibilité, pour vous comme pour nous</h3>
+  <p>Pas d'argent échangé pour ce partenariat, juste de la visibilité mutuelle.</p>
+</div>
+
+<div class="foot">
+  MaCity &middot; Partenariat événements. Document de présentation, à personnaliser
+  selon l'événement rencontré.
+</div>
+
+</body>
+</html>

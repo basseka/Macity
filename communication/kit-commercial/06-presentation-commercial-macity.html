@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Présentation commercial MaCity</title>
+<link rel="stylesheet" href="kit.css">
+<style>
+  .cover { background: var(--nuit-grad); color: #fff; padding: 20mm 17mm; }
+  .cover-logo { width: 58mm; }
+  .cover h1 { color: #fff; font-size: 34pt; margin-top: 26mm; max-width: 160mm; }
+  .cover h1 em { font-style: normal; color: #FF7AB8; }
+  .cover .lead { color: #B5A8D0; font-size: 12.5pt; max-width: 150mm; }
+  .cover-duo { position: absolute; left: 17mm; right: 17mm; bottom: 26mm; display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+  .cover-duo .cd { border-radius: 5mm; padding: 6mm; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); }
+  .cover-duo .cd b { display: block; font-size: 15pt; color: #fff; margin: 2mm 0 1.5mm; }
+  .cover-duo .cd p { color: #B5A8D0; font-size: 9.5pt; margin: 0; }
+  .cover-duo .ico { font-size: 20pt; }
+  .cover-foot { position: absolute; left: 17mm; right: 17mm; bottom: 10mm; display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 7pt; letter-spacing: .18em; text-transform: uppercase; color: #7A6E95; }
+
+  .rubs { display: flex; flex-wrap: wrap; gap: 2mm; margin-top: 2mm; }
+  .rubs span { background: #fff; border: 1px solid var(--ligne); border-radius: 99px; padding: 1mm 3mm; font-size: 8.6pt; }
+  .phones-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 5mm; }
+  .phones-4 .phone { max-height: 78mm; }
+  .phones-4 p { font-size: 8pt; color: var(--ardoise); margin-top: 1.5mm; text-align: center; }
+
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 5mm; }
+  .vs .col { border-radius: 4mm; padding: 5mm; }
+  .vs .col--etab { background: var(--creme); border: 1px solid var(--ligne); border-top: 4px solid var(--rose); }
+  .vs .col--marque { background: var(--nuit); color: #F5F0FF; }
+  .vs .col--marque h2 { color: #fff; }
+  .vs .col--marque .small { color: #B5A8D0; }
+  .vs .ico { font-size: 20pt; }
+  .vs dl { margin: 3mm 0 0; font-size: 8.8pt; }
+  .vs dt { font-family: 'Geist Mono', monospace; font-size: 6.8pt; letter-spacing: .14em; text-transform: uppercase; color: var(--rose); margin-top: 2.6mm; }
+  .vs .col--marque dt { color: #FF7AB8; }
+  .vs dd { margin: .6mm 0 0; }
+
+  .pill--marque { background: var(--nuit); color: #FF7AB8; }
+  .tbl--map td, .tbl--map th { font-size: 8.4pt; padding: 1.5mm 1.6mm; }
+  .tbl--map th.c { width: 17mm; }
+  .tbl--map .zone td { background: var(--sable); font-weight: 600; color: var(--nuit); font-size: 7.6pt; letter-spacing: .1em; text-transform: uppercase; font-family: 'Geist Mono', monospace; }
+  .mk { color: #FF1E8E; font-weight: 700; }
+
+  .packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-top: 4mm; }
+  .pack { border-radius: 4mm; padding: 5mm 4.5mm; border: 1px solid var(--ligne); background: #fff; display: flex; flex-direction: column; }
+  .pack--hi { background: var(--grad); color: #fff; border: 0; }
+  .pack .tier-name { color: var(--rose); }
+  .pack--hi .tier-name { color: #FFD88A; }
+  .pack ul.clean li { font-size: 8.6pt; }
+  .pack--hi ul.clean li::before { background: #FFD88A; }
+  .specs { display: grid; grid-template-columns: 40mm 1fr; gap: 6mm; align-items: start; margin-top: 4mm; }
+  .specs .phone { max-height: 66mm; }
+
+  .qual { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .qual .card h3 { margin-top: 0; }
+  .qual ol { margin: 0; padding-left: 5mm; font-size: 8.8pt; }
+  .qual ol li { margin-bottom: 1.4mm; }
+</style>
+</head>
+<body>
+
+<!-- 1. Couverture -->
+<section class="page cover">
+  <img class="cover-logo" src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <h1>Ce que tu vas vendre, <em>et à qui.</em></h1>
+  <p class="lead">L'application, ses emplacements et ses deux offres : celle des établissements qui veulent passer à la une, et celle des marques qui veulent diffuser leur spot vidéo.</p>
+  <div class="cover-duo">
+    <div class="cd"><div class="ico">🍽️</div><b>Les établissements</b><p>Restaurants, bars, clubs, salles, activités. Ils veulent être trouvés et choisis : fiche, mise en avant, « À la une ».</p></div>
+    <div class="cd"><div class="ico">🥤</div><b>Les marques</b><p>Boissons, enseignes, événements, services. Elles n'ont pas de lieu à remplir : elles veulent être vues, avec un spot vidéo en tête des rubriques.</p></div>
+  </div>
+  <div class="cover-foot"><span>Présentation interne · commercial · octobre 2026</span><span>macity.app</span></div>
+</section>
+
+<!-- 2. MaCity en bref -->
+<section class="page">
+  <div class="eyebrow">L'application en deux minutes</div>
+  <h1>MaCity, l'app de ta ville</h1>
+  <p class="lead">Une seule application gratuite, sur Android et iPhone, qui rassemble tout ce qui bouge dans une ville : concerts, soirées, restaurants, sport, sorties en famille, culture et escapades. On l'ouvre au moment précis où l'on décide où aller : c'est ce moment que nos clients achètent.</p>
+
+  <div class="stats" style="margin-top:5mm">
+    <div class="stat"><b>5 000</b><span>personnes dans la communauté MaCity</span></div>
+    <div class="stat"><b>17 000+</b><span>événements à venir dans l'application</span></div>
+    <div class="stat"><b>21 000+</b><span>lieux référencés</span></div>
+    <div class="stat"><b>25</b><span>villes couvertes, dont Toulouse</span></div>
+    <div class="stat"><b>6</b><span>rubriques, chacune avec sa vitrine</span></div>
+  </div>
+
+  <h3 style="margin-top:7mm">Six rubriques, six vitrines</h3>
+  <div class="rubs"><span>🌙 Night</span><span>🍽️ Food</span><span>🎭 Culture</span><span>⚽ Sport</span><span>👨‍👩‍👧 Famille</span><span>✈️ Évasion</span></div>
+  <p class="small" style="margin-top:3mm">Chaque rubrique a ses propres emplacements, et chaque ville les siens. Un restaurant de Toulouse n'occupe pas la même place qu'un club de Bordeaux. C'est ce qui permet de vendre la même surface plusieurs fois, sans que personne ne se marche dessus.</p>
+
+  <h3 style="margin-top:6mm">Ce que voit l'utilisateur</h3>
+  <div class="phones-4">
+    <div><div class="phone"><img src="visuels/accueil-a-la-une.jpg" alt=""></div><p>L'accueil et « À la une »</p></div>
+    <div><div class="phone"><img src="visuels/food-banniere-video.jpg" alt=""></div><p>Une rubrique et sa bannière vidéo</p></div>
+    <div><div class="phone"><img src="visuels/compose-ta-soiree.jpg" alt=""></div><p>« Compose ta soirée »</p></div>
+    <div><div class="phone"><img src="visuels/map-live.jpg" alt=""></div><p>La Map Live</p></div>
+  </div>
+
+  <div class="box-rose" style="margin-top:6mm"><b>À retenir pour le rendez-vous.</b> MaCity n'est pas un réseau social où l'on fait défiler : c'est une application de décision. Quand quelqu'un l'ouvre, il cherche où aller ce soir, où manger, quoi faire dimanche. Être visible à ce moment-là vaut plus qu'une impression perdue dans un fil.</div>
+
+  <div class="folio"><span>MaCity · Présentation commercial</span><span>02</span></div>
+</section>
+
+<!-- 3. Deux clients -->
+<section class="page">
+  <div class="eyebrow">Deux clients, deux ventes</div>
+  <h1>Le premier réflexe : savoir à qui tu parles</h1>
+  <p class="lead">Un établissement et une marque n'achètent pas la même chose. Le premier veut des clients chez lui. La seconde veut que son nom et son image soient vus. Ne leur présente jamais la même grille.</p>
+
+  <div class="vs">
+    <div class="col col--etab">
+      <div class="ico">🍽️</div>
+      <h2>L'établissement</h2>
+      <p class="small">« Je veux qu'on vienne chez moi. »</p>
+      <dl>
+        <dt>Qui</dt><dd>Restaurant, bar, club, salle de concert, théâtre, salle de sport, activité famille, domaine, hôtel.</dd>
+        <dt>Ce qu'il veut</dt><dd>Être trouvé et choisi : sa fiche, ses événements « À la une », sa place sur la carte, son offre réservée aux utilisateurs.</dd>
+        <dt>Ce qu'il achète</dt><dd>Un abonnement : Classique, Gold, Premium, ou l'Exclusivité de sa rubrique. Plus des journées « À la une » à la carte.</dd>
+        <dt>Où il apparaît</dt><dd>Dans <b>sa</b> rubrique, sa ville. Sa fiche est le cœur de tout : la vidéo, le bouton, l'itinéraire mènent chez lui.</dd>
+        <dt>Prix</dt><dd>De 11,90 € à 349 € HT par mois.</dd>
+        <dt>Interlocuteur</dt><dd>Le gérant ou le propriétaire, souvent sur place.</dd>
+      </dl>
+    </div>
+    <div class="col col--marque">
+      <div class="ico">🥤</div>
+      <h2>La marque</h2>
+      <p class="small">« Je veux que mon nom soit vu par les bonnes personnes. »</p>
+      <dl>
+        <dt>Qui</dt><dd>Marque de boisson (soft, café, eau, bière, spiritueux), enseigne, festival, transport, banque, application, agence média.</dd>
+        <dt>Ce qu'elle veut</dt><dd>De la notoriété auprès des gens qui sortent. Elle n'a pas de fiche à remplir ni de lieu où envoyer les gens.</dd>
+        <dt>Ce qu'elle achète</dt><dd>Un <b>spot vidéo</b> diffusé dans la bannière principale de une, plusieurs ou toutes les rubriques, sur une ville et une durée.</dd>
+        <dt>Où elle apparaît</dt><dd>Uniquement dans la bannière en tête de rubrique. Le bouton « En savoir plus » ouvre son site ou sa campagne.</dd>
+        <dt>Prix</dt><dd>De 249 € HT par mois à 990 € HT par mois, ou une campagne d'une semaine.</dd>
+        <dt>Interlocuteur</dt><dd>Responsable marketing, chef de secteur, agence média ou distributeur.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="box-note" style="margin-top:5mm"><b>Le cas qui piège :</b> un bar qui veut « passer sa pub » est un établissement, pas une marque. Il a un lieu, donc une fiche : vends-lui Premium (bannière vidéo + « À la une »), pas un spot. À l'inverse, une marque qui demande « À la une » n'a pas d'événement à y mettre : propose-lui le spot.</div>
+
+  <div class="folio"><span>MaCity · Présentation commercial</span><span>03</span></div>
+</section>
+
+<!-- 4. Carte des emplacements -->
+<section class="page">
+  <div class="eyebrow">Les emplacements</div>
+  <h1>Qui peut acheter quoi</h1>
+  <p class="lead">Tous les emplacements payants de l'application, et l'offre qui y donne accès. Le spot marque n'occupe qu'une surface : la bannière vidéo.</p>
+
+  <table class="tbl tbl--map" style="margin-top:4mm">
+    <tr>
+      <th>Emplacement</th>
+      <th class="c" style="color:#0369A1">Classique</th>
+      <th class="c" style="color:#8A6A1F">Gold</th>
+      <th class="c" style="color:var(--premium)">Premium</th>
+      <th class="c">Exclusivité</th>
+      <th class="c" style="color:var(--rose)">Marque</th>
+    </tr>
+    <tr class="zone"><td colspan="6">Page d'accueil</td></tr>
+    <tr><td><b>« À la une »</b> : première carte pleine largeur de l'accueil, et onglet du haut</td><td class="c no">·</td><td class="c no">·</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">·</td></tr>
+    <tr><td><b>Encart « du jour »</b> : « Le restaurant du jour », « Le club du jour »…</td><td class="c no">·</td><td class="c no">·</td><td class="c yes">✓</td><td class="c yes">seul</td><td class="c no">·</td></tr>
+    <tr class="zone"><td colspan="6">En tête de chaque rubrique (Food, Night, Culture, Sport, Famille, Évasion)</td></tr>
+    <tr><td><b>Bannière vidéo</b> : pleine largeur, le plus grand format de l'app</td><td class="c no">·</td><td class="c no">·</td><td class="c yes">✓</td><td class="c yes">seul</td><td class="c mk">✓ spot</td></tr>
+    <tr><td><b>« Inspirations du moment »</b> : carrousel de grandes photos</td><td class="c no">·</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">·</td></tr>
+    <tr><td><b>« Nos partenaires »</b> : carrousel de tous les partenaires</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">·</td></tr>
+    <tr class="zone"><td colspan="6">Partout ailleurs</td></tr>
+    <tr><td>Badge Partenaire et étoile dorée dans les listes</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">·</td></tr>
+    <tr><td>Nom et point coloré sur la carte et la Map Live</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">·</td></tr>
+    <tr><td>« Compose ta soirée » et offres MaCity</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">·</td></tr>
+  </table>
+
+  <div class="grid-2" style="margin-top:6mm">
+    <div class="spot" style="grid-template-columns:38mm 1fr;margin:0">
+      <div class="phone"><img src="visuels/accueil-a-la-une.jpg" alt=""></div>
+      <div><h2 style="font-size:12pt">« À la une »</h2><p class="small">Réservé aux établissements : c'est un <b>événement</b> (soirée, concert, menu spécial) qui passe à la une, avec sa date et son lieu. Inclus dans Premium, ou à la journée.</p></div>
+    </div>
+    <div class="spot" style="grid-template-columns:38mm 1fr;margin:0">
+      <div class="phone"><img src="visuels/food-banniere-video.jpg" alt=""></div>
+      <div><h2 style="font-size:12pt">La bannière vidéo</h2><p class="small">La seule surface partagée entre établissements Premium et marques. La vidéo se joue en boucle, sans le son, et laisse la place à la suivante toutes les 10 secondes.</p></div>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · Présentation commercial</span><span>04</span></div>
+</section>
+
+<!-- 5. Offre établissements -->
+<section class="page">
+  <div class="eyebrow">Offre 1 · Établissements</div>
+  <h1>Faire monter, de la fiche à la une</h1>
+  <p class="lead">Abonnement mensuel, sans engagement. Prix hors taxes, TVA 20 %. Le détail est dans la plaquette partenaires et la fiche tarifs.</p>
+
+  <div class="tiers" style="margin-top:4mm">
+    <div class="tier tier--classique">
+      <div class="tier-name">Classique</div>
+      <div class="tier-price">11,90 € <small>HT / mois</small></div>
+      <div class="tier-ttc">14,28 € TTC</div>
+      <div class="tier-pitch">Être repérable.</div>
+      <ul class="clean">
+        <li>Badge et étoile dorée</li>
+        <li>Nom et point coloré sur la carte</li>
+        <li>« Nos partenaires », « Compose ta soirée », offres MaCity</li>
+      </ul>
+      <div class="tier-foot">Pour : le petit commerce qui veut juste exister à côté des autres.</div>
+    </div>
+    <div class="tier tier--gold">
+      <div class="tier-name">Gold</div>
+      <div class="tier-price">79 € <small>HT / mois</small></div>
+      <div class="tier-ttc">94,80 € TTC</div>
+      <div class="tier-pitch">Être suggéré.</div>
+      <ul class="clean">
+        <li>Tout Classique</li>
+        <li>« Inspirations du moment » en tête de rubrique</li>
+      </ul>
+      <div class="tier-foot">Pour : le lieu qui veut être découvert par de nouveaux clients.</div>
+    </div>
+    <div class="tier tier--premium">
+      <div class="tier-name">Premium</div>
+      <div class="tier-price">179 € <small>HT / mois</small></div>
+      <div class="tier-ttc">214,80 € TTC</div>
+      <div class="tier-pitch">Être vu en premier.</div>
+      <ul class="clean">
+        <li>Tout Gold</li>
+        <li><b>Bannière vidéo</b> de sa rubrique</li>
+        <li><b>Encart « du jour »</b> sur l'accueil</li>
+        <li>Ses événements <b>« À la une »</b></li>
+      </ul>
+      <div class="tier-foot">Pour : celui qui dit « je veux être à la une ».</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:5mm">
+    <div class="card card--dark">
+      <span class="pill pill--excl">Exclusivité</span>
+      <h2 style="color:#fff;margin:3mm 0 1mm">349 € HT / mois</h2>
+      <p class="small">418,80 € TTC · engagement 6 mois</p>
+      <p style="font-size:8.8pt;margin:0">Seul établissement sur la bannière vidéo et l'encart « du jour » de sa rubrique, dans sa ville, sans rotation. Une seule place par rubrique et par ville.</p>
+      <p class="small" style="margin-top:2mm">Une rubrique en Exclusivité n'accepte <b>aucun spot marque</b>. Vérifie avant de vendre l'un ou l'autre.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">« À la une » à la carte</h3>
+      <table class="tbl">
+        <tr><td>Un événement « Au top »</td><td class="c"><b>80 € HT</b> / jour</td></tr>
+        <tr><td>Un événement « À la une » et page d'accueil</td><td class="c"><b>150 € HT</b> / jour</td></tr>
+      </table>
+      <p class="small" style="margin-top:2.5mm">L'argument qui fait signer : deux journées à la carte coûtent 160 €, un mois de Premium 179 €. Dès que le client parle de « plusieurs dates », l'abonnement gagne.</p>
+    </div>
+  </div>
+
+  <div class="box-rose" style="margin-top:5mm"><b>Porte d'entrée : le partenariat découverte gratuit.</b> Fiche complète avec 6 photos, teaser vidéo, vidéo en collaboration sur nos réseaux et compte pro, contre une offre réservée aux utilisateurs et quelques flyers au comptoir. Quand le client veut passer devant, une formule s'active sur la même fiche.</div>
+
+  <div class="folio"><span>MaCity · Présentation commercial</span><span>05</span></div>
+</section>
+
+<!-- 6. Offre marques -->
+<section class="page">
+  <div class="eyebrow">Offre 2 · Marques</div>
+  <h1>Le spot vidéo en tête des rubriques</h1>
+  <p class="lead">La marque diffuse sa vidéo dans la bannière principale des rubriques choisies (Food, Night, Culture, Sport, Famille, Évasion), sur une ville, pour une durée donnée. Elle prend une place dans la rotation, à égalité avec les établissements Premium.</p>
+
+  <div class="packs">
+    <div class="pack">
+      <div class="tier-name">Spot rubrique</div>
+      <div class="tier-price">249 € <small>HT / mois</small></div>
+      <div class="tier-ttc">298,80 € TTC · une rubrique, une ville</div>
+      <ul class="clean">
+        <li>Une place dans la rotation de la bannière</li>
+        <li>Bouton « En savoir plus » vers son site</li>
+        <li>Changement de vidéo une fois par mois</li>
+      </ul>
+      <div class="tier-foot">Exemple : un café de spécialité sur Food.</div>
+    </div>
+    <div class="pack pack--hi">
+      <div class="tier-name">Pack univers</div>
+      <div class="tier-price">449 € <small>HT / mois</small></div>
+      <div class="tier-ttc">538,80 € TTC · deux rubriques, une ville</div>
+      <ul class="clean">
+        <li>Tout Spot rubrique, sur deux rubriques</li>
+        <li>Les paires naturelles : Night + Food, Culture + Night, Famille + Évasion</li>
+      </ul>
+      <div class="tier-foot">Exemple : une marque de boisson sur Night + Food.</div>
+    </div>
+    <div class="pack">
+      <div class="tier-name">Pack ville</div>
+      <div class="tier-price">990 € <small>HT / mois</small></div>
+      <div class="tier-ttc">1 188 € TTC · six rubriques, une ville</div>
+      <ul class="clean">
+        <li>Le spot en tête de toutes les rubriques</li>
+        <li>Deux vidéos différentes possibles selon la rubrique</li>
+      </ul>
+      <div class="tier-foot">Exemple : un festival, un transport, une banque.</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:4mm">
+    <div class="card">
+      <h3 style="margin-top:0">Campagne courte</h3>
+      <table class="tbl">
+        <tr><td>Une semaine, une rubrique</td><td class="c"><b>90 € HT</b></td></tr>
+        <tr><td>Une semaine, toutes les rubriques</td><td class="c"><b>390 € HT</b></td></tr>
+      </table>
+      <p class="small" style="margin-top:2mm">Pour un lancement produit, un week-end de festival, une soirée sponsorisée.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Options</h3>
+      <ul class="clean" style="font-size:8.8pt">
+        <li><b>Exclusivité de catégorie</b> : +30 %, seule marque de son secteur (ex. seule bière) dans les rubriques achetées</li>
+        <li><b>Plusieurs villes</b> : -15 % dès la deuxième ville</li>
+        <li><b>Engagement 3 mois</b> : un mois offert sur le quatrième</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="specs">
+    <div class="phone"><img src="visuels/food-banniere-video.jpg" alt=""></div>
+    <div>
+      <h3 style="margin-top:0">La vidéo à fournir</h3>
+      <ul class="clean" style="font-size:8.8pt">
+        <li><b>Muette</b> : la bannière se joue sans le son. Le message doit passer à l'image, texte et logo compris.</li>
+        <li><b>Courte</b> : 6 à 10 secondes utiles, en boucle. La bannière passe au suivant après 10 secondes.</li>
+        <li><b>Format horizontal</b> (16:9) ou carré, avec l'essentiel au centre : la bannière est large et basse, les bords haut et bas sont rognés.</li>
+        <li><b>Logo dès la première seconde</b>, pas en carton final.</li>
+        <li>MP4, 1080 px de large, moins de 15 Mo. Pas de vidéo ? On peut la monter à partir de ses visuels, sur devis.</li>
+      </ul>
+      <p class="small" style="margin-top:2mm">Le spot n'a ni fiche, ni « À la une », ni place sur la carte : c'est de la visibilité pure. Si la marque veut aussi être recommandée dans les lieux qui la servent, c'est un partenariat à monter avec ces établissements.</p>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · Présentation commercial</span><span>06</span></div>
+</section>
+
+<!-- 7. Règles et qualification -->
+<section class="page">
+  <div class="eyebrow">Avant de signer</div>
+  <h1>Les bonnes questions, les règles à tenir</h1>
+
+  <div class="qual" style="margin-top:5mm">
+    <div class="card">
+      <h3>Face à un établissement</h3>
+      <ol>
+        <li>Qu'est-ce qui remplit votre salle aujourd'hui ? Bouche-à-oreille, Instagram, Google ?</li>
+        <li>Avez-vous des soirées ou des temps forts à mettre « À la une » ce mois-ci ?</li>
+        <li>Avez-vous une vidéo ou des photos récentes de votre lieu ?</li>
+        <li>Seriez-vous prêt à offrir un avantage aux utilisateurs MaCity ?</li>
+      </ol>
+      <p class="small" style="margin-top:3mm"><b>Ta route :</b> découverte gratuite → Classique → Gold → Premium. « Je veux être à la une » = Premium ou journées à la carte.</p>
+    </div>
+    <div class="card">
+      <h3>Face à une marque</h3>
+      <ol>
+        <li>Quel public visez-vous : les sorties du soir, les familles, les sportifs ?</li>
+        <li>Sur quelles villes et à quelle période (lancement, saison, événement) ?</li>
+        <li>Avez-vous déjà un spot vidéo, et peut-il fonctionner sans le son ?</li>
+        <li>Vers quelle page doit renvoyer le bouton « En savoir plus » ?</li>
+      </ol>
+      <p class="small" style="margin-top:3mm"><b>Ta route :</b> campagne d'une semaine pour tester → Spot rubrique ou Pack univers au mois → Pack ville.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:7mm">Les règles</h3>
+  <ul class="clean">
+    <li><b>Une rubrique en Exclusivité est fermée aux marques</b>, dans cette ville. Vérifie toujours avec MaCity avant de vendre une bannière.</li>
+    <li><b>Une marque ne remplace jamais un établissement</b> : elle prend une place de plus dans la rotation, à égalité avec les Premium.</li>
+    <li><b>Pas de chiffres inventés</b> : on parle de 5 000 personnes dans la communauté et du catalogue. Jamais de nombre de vues garanti.</li>
+    <li><b>La vidéo est validée par MaCity</b> avant diffusion : contenu choquant, mensonger ou concurrent direct de l'app refusé.</li>
+  </ul>
+
+  <div class="box-warn" style="margin-top:5mm"><b>Marques d'alcool : loi Évin.</b> La publicité pour l'alcool est autorisée sur internet, mais encadrée : contenu informatif (produit, origine, degré, mode de consommation), mention obligatoire « L'abus d'alcool est dangereux pour la santé, à consommer avec modération », aucune association à la réussite, à la séduction ou au sport. Chez MaCity : <b>alcool uniquement en Night, Food et Culture</b>, jamais en Sport ni en Famille. Toute vidéo d'alcool passe par MaCity avant signature.</div>
+
+  <div class="contact-card" style="margin-top:7mm;display:grid;grid-template-columns:1fr 1fr;gap:6mm;align-items:center;background:var(--nuit-grad);color:#fff;border-radius:5mm;padding:7mm">
+    <div>
+      <img src="../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity" style="width:44mm">
+      <p class="small" style="color:#B5A8D0;margin-top:3mm">Les autres documents du kit</p>
+      <p style="font-size:8.8pt;margin:0;color:#F5F0FF">Plaquette partenaires et fiche tarifs à remettre aux établissements. Bon de commande à faire signer. Guide commercial pour le détail du rendez-vous.</p>
+    </div>
+    <div>
+      <p class="small" style="color:#B5A8D0;margin:0">Contact MaCity</p>
+      <p style="font-size:10pt;margin:1mm 0 0;color:#fff">contact@macity.app<br>macity.app</p>
+    </div>
+  </div>
+
+  <div class="folio"><span>MaCity · BCM SOFT Technologies · Document interne, ne pas remettre au prospect</span><span>07</span></div>
+</section>
+
+</body>
+</html>

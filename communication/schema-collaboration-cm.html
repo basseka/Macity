@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circuit de validation CM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8fa;
+    --surface: #ffffff;
+    --ink: #1c1620;
+    --muted: #6b6270;
+    --line: #e6e0e8;
+    --rose: #ff1e8e;
+    --rose-soft: #ffe3f1;
+    --teal: #0e9f9a;
+    --teal-soft: #dcf4f2;
+    --violet: #6d4ae0;
+    --violet-soft: #ebe5fd;
+    --arrow: #4a4250;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141017;
+      --surface: #1f1924;
+      --ink: #f4eff6;
+      --muted: #a89fae;
+      --line: #352d3b;
+      --rose: #ff4fa6;
+      --rose-soft: #3d1a2d;
+      --teal: #3cc9c2;
+      --teal-soft: #13312f;
+      --violet: #9d85f5;
+      --violet-soft: #29214a;
+      --arrow: #c9c0ce;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141017;
+    --surface: #1f1924;
+    --ink: #f4eff6;
+    --muted: #a89fae;
+    --line: #352d3b;
+    --rose: #ff4fa6;
+    --rose-soft: #3d1a2d;
+    --teal: #3cc9c2;
+    --teal-soft: #13312f;
+    --violet: #9d85f5;
+    --violet-soft: #29214a;
+    --arrow: #c9c0ce;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", system-ui, sans-serif;
+    line-height: 1.5;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 40px 16px 64px; }
+  .brand { font-weight: 800; color: var(--rose); letter-spacing: -0.02em; font-size: 15px; }
+  h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 800; letter-spacing: -0.03em; margin: 4px 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 28px; max-width: 640px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px;
+  }
+  svg { width: 100%; height: auto; display: block; }
+  svg text { font-family: "Inter", system-ui, sans-serif; fill: var(--ink); }
+  .node-name { font-size: 22px; font-weight: 800; }
+  .node-role { font-size: 13px; font-weight: 600; }
+  .node-sub { font-size: 12.5px; fill: var(--muted); }
+  .lbl { font-size: 12.5px; font-weight: 600; }
+  .lbl-bg { fill: var(--surface); }
+  .arrow { stroke: var(--arrow); stroke-width: 2; fill: none; }
+  .dashed { stroke-dasharray: 6 5; }
+  h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin: 40px 0 14px; }
+  .steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .steps li {
+    display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  }
+  .num {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--rose-soft); color: var(--rose);
+    display: grid; place-items: center; font-weight: 800;
+  }
+  .steps strong { display: block; }
+  .steps span { color: var(--muted); font-size: 14px; }
+  .roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .role { border-top: 4px solid; }
+  .role h3 { margin: 0; font-size: 18px; font-weight: 800; }
+  .role .tag { font-size: 13px; font-weight: 600; margin: 2px 0 10px; }
+  .role ul { margin: 0; padding-left: 18px; font-size: 14px; }
+  .role li { margin: 4px 0; }
+  .r-marion { border-top-color: var(--teal); } .r-marion .tag { color: var(--teal); }
+  .r-pauline { border-top-color: var(--rose); } .r-pauline .tag { color: var(--rose); }
+  .r-joris { border-top-color: var(--violet); } .r-joris .tag { color: var(--violet); }
+  .rule {
+    margin-top: 28px; padding: 16px 18px; border-radius: 14px;
+    background: var(--rose-soft); color: var(--ink); font-weight: 600;
+  }
+  .rule b { color: var(--rose); }
+</style>
+</head>
+<body>
+<main>
+  <div class="brand">MaCity</div>
+  <h1>Circuit de collaboration réseaux sociaux</h1>
+  <p class="lead">Qui produit, qui soutient, qui valide. Aucune publication, TikTok ou Instagram, ne sort sans le feu vert de Pauline.</p>
+
+  <div class="card">
+    <svg viewBox="0 0 900 600" role="img" aria-label="Schéma : Marion soumet ses publications TikTok à Pauline, Joris fournit les contenus techniques et vidéo à Pauline et soutient Marion sur le contenu et la DA, Pauline valide tout avant publication sur TikTok et Instagram.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--arrow)"/>
+        </marker>
+      </defs>
+
+      <!-- Marion -->
+      <rect x="30" y="40" width="250" height="130" rx="16" fill="var(--teal-soft)" stroke="var(--teal)" stroke-width="2"/>
+      <text x="52" y="78" class="node-name">Marion</text>
+      <text x="52" y="102" class="node-role" style="fill:var(--teal)">Stagiaire CM</text>
+      <text x="52" y="126" class="node-sub">Gère le compte TikTok</text>
+      <text x="52" y="146" class="node-sub">Crée et prépare les posts</text>
+
+      <!-- Joris -->
+      <rect x="620" y="40" width="250" height="130" rx="16" fill="var(--violet-soft)" stroke="var(--violet)" stroke-width="2"/>
+      <text x="642" y="78" class="node-name">Joris</text>
+      <text x="642" y="102" class="node-role" style="fill:var(--violet)">Technique et production vidéo</text>
+      <text x="642" y="126" class="node-sub">Tournage, montage, formats</text>
+      <text x="642" y="146" class="node-sub">Contenus techniques</text>
+
+      <!-- Pauline -->
+      <rect x="315" y="250" width="270" height="150" rx="18" fill="var(--rose-soft)" stroke="var(--rose)" stroke-width="3"/>
+      <text x="340" y="290" class="node-name">Pauline</text>
+      <text x="340" y="314" class="node-role" style="fill:var(--rose)">Chef CM</text>
+      <text x="340" y="338" class="node-sub">Gère le compte Instagram</text>
+      <rect x="340" y="352" width="220" height="30" rx="15" fill="var(--rose)"/>
+      <text x="450" y="372" text-anchor="middle" style="fill:#fff;font-size:13px;font-weight:800">Valide 100 % des posts</text>
+
+      <!-- Joris <-> Marion : soutien -->
+      <path d="M612 105 L288 105" class="arrow dashed" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <rect x="350" y="80" width="200" height="50" rx="8" class="lbl-bg"/>
+      <text x="450" y="100" text-anchor="middle" class="lbl" style="fill:var(--violet)">Soutien à Marion</text>
+      <text x="450" y="119" text-anchor="middle" class="node-sub">validation contenu et DA</text>
+
+      <!-- Marion -> Pauline -->
+      <path d="M155 172 C155 260 220 310 307 315" class="arrow" marker-end="url(#ah)"/>
+      <rect x="40" y="215" width="190" height="46" rx="8" class="lbl-bg"/>
+      <text x="135" y="234" text-anchor="middle" class="lbl" style="fill:var(--teal)">Soumet TOUTES</text>
+      <text x="135" y="252" text-anchor="middle" class="lbl" style="fill:var(--teal)">ses publications</text>
+
+      <!-- Joris -> Pauline -->
+      <path d="M745 172 C745 260 680 310 593 315" class="arrow" marker-end="url(#ah)"/>
+      <rect x="665" y="207" width="215" height="62" rx="8" class="lbl-bg"/>
+      <text x="772" y="226" text-anchor="middle" class="lbl" style="fill:var(--violet)">Fournit vidéos et</text>
+      <text x="772" y="244" text-anchor="middle" class="lbl" style="fill:var(--violet)">contenus techniques</text>
+      <text x="772" y="262" text-anchor="middle" class="node-sub">avant publication</text>
+
+      <!-- Pauline -> Marion : retours -->
+      <path d="M315 360 C240 360 110 330 95 180" class="arrow dashed" marker-end="url(#ah)"/>
+      <rect x="140" y="340" width="130" height="24" rx="6" class="lbl-bg"/>
+      <text x="205" y="357" text-anchor="middle" class="node-sub">corrections si refus</text>
+
+      <!-- Sorties -->
+      <rect x="80" y="490" width="250" height="80" rx="16" fill="var(--surface)" stroke="var(--teal)" stroke-width="2"/>
+      <text x="205" y="525" text-anchor="middle" class="node-name" style="font-size:19px">TikTok</text>
+      <text x="205" y="549" text-anchor="middle" class="node-sub">publié par Marion</text>
+
+      <rect x="570" y="490" width="250" height="80" rx="16" fill="var(--surface)" stroke="var(--rose)" stroke-width="2"/>
+      <text x="695" y="525" text-anchor="middle" class="node-name" style="font-size:19px">Instagram</text>
+      <text x="695" y="549" text-anchor="middle" class="node-sub">publié par Pauline</text>
+
+      <path d="M400 402 C380 450 300 460 260 484" class="arrow" marker-end="url(#ah)"/>
+      <path d="M500 402 C520 450 600 460 640 484" class="arrow" marker-end="url(#ah)"/>
+      <rect x="250" y="425" width="110" height="24" rx="6" class="lbl-bg"/>
+      <text x="305" y="442" text-anchor="middle" class="lbl" style="fill:var(--rose)">Feu vert</text>
+      <rect x="540" y="425" width="110" height="24" rx="6" class="lbl-bg"/>
+      <text x="595" y="442" text-anchor="middle" class="lbl" style="fill:var(--rose)">Feu vert</text>
+    </svg>
+  </div>
+
+  <h2>Le circuit d'une publication</h2>
+  <ol class="steps">
+    <li><div class="num">1</div><div><strong>Joris produit</strong><span>Tournage, montage et contenus techniques. Il les fournit à Pauline et à Marion selon le compte visé.</span></div></li>
+    <li><div class="num">2</div><div><strong>Marion prépare ses posts TikTok</strong><span>Texte, son, montage final. Elle s'appuie sur Joris pour vérifier le contenu et la DA (direction artistique).</span></div></li>
+    <li><div class="num">3</div><div><strong>Soumission à Pauline</strong><span>Toutes les publications de Marion et les contenus de Joris passent par Pauline avant d'être postés.</span></div></li>
+    <li><div class="num">4</div><div><strong>Validation ou retours</strong><span>Pauline valide, ou renvoie avec des corrections. On reboucle sur l'étape 2 jusqu'au feu vert.</span></div></li>
+    <li><div class="num">5</div><div><strong>Publication</strong><span>Marion publie sur TikTok, Pauline publie sur Instagram.</span></div></li>
+  </ol>
+
+  <h2>Qui fait quoi</h2>
+  <div class="roles">
+    <div class="card role r-marion">
+      <h3>Marion</h3>
+      <div class="tag">Stagiaire CM, TikTok</div>
+      <ul>
+        <li>Anime le compte TikTok</li>
+        <li>Crée et prépare les publications</li>
+        <li>Soumet chaque post à Pauline</li>
+        <li>Publie une fois validé</li>
+      </ul>
+    </div>
+    <div class="card role r-pauline">
+      <h3>Pauline</h3>
+      <div class="tag">Chef CM, Instagram</div>
+      <ul>
+        <li>Anime le compte Instagram</li>
+        <li>Valide toutes les publications, sans exception</li>
+        <li>Garante de la ligne éditoriale</li>
+        <li>Fait les retours à Marion</li>
+      </ul>
+    </div>
+    <div class="card role r-joris">
+      <h3>Joris</h3>
+      <div class="tag">Technique et production vidéo</div>
+      <ul>
+        <li>Tourne et monte les vidéos</li>
+        <li>Fournit les contenus à Pauline avant post</li>
+        <li>Soutient Marion sur le contenu et la DA</li>
+        <li>Veille à la qualité technique</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="rule"><b>Règle d'or :</b> rien n'est publié sans la validation de Pauline.</div>
+</main>
+</body>
+</html>

@@ -79,6 +79,11 @@
   <fieldset>
     <legend>⚡ Carrousel auto depuis l'app</legend>
     <p class="sub" style="margin:0 0 8px;">Pioche dans les events publiés sur MaCity (ville du champ « Ville » plus bas) et remplit une diapo par type, photo comprise. Tu peux ensuite retoucher chaque diapo ou demander un autre event.</p>
+    <label>Thème</label>
+    <select id="autoTheme">
+      <option value="sorties">Sorties (tous publics)</option>
+      <option value="enfants">👶 Enfants et famille</option>
+    </select>
     <label>Période</label>
     <select id="autoPeriode">
       <option value="soir">Ce soir</option>
@@ -923,20 +928,58 @@ const TYPES_AUTO = [
   { id: "sport",     label: "SPORT",      on: false, or: "(rubrique.eq.sport)" },
 ];
 
-// Cases a cocher (memorisees).
-(function rendreTypesAuto() {
+// Theme « Enfants et famille ». La rubrique family de la base est polluee
+// (stand-up, fitness, conferences, ateliers de conversation pour adultes) :
+// un event n'est garde que s'il parle d'enfants ET n'a rien d'un plan adulte.
+const MOTS_ENFANTS = /(enfant|\bkids?\b|jeune public|tout[- ]petit|b[ée]b[ée]|famil|parents?\b|d[èe]s \d+ ?ans|\d+ ?[-à] ?\d+ ?ans|conte|comptine|marionnette|go[ûu]ter|[ée]veil|cirque|magie|magicien|clown|halloween|carnaval|chasse aux|ludique|dinosaure|pirate|princesse|super-?h[ée]ros)/;
+const MOTS_ADULTES = /(stand[- ]?up|comedy|humoriste|sexy|fitness|cardio|conf[ée]rence|emploi|g[ée]n[ée]alogie|[ée]crivain public|conversation en fran|coup de pouce num|ap[ée]ro|ap[ée]ritif|d[ée]gustation|\bvins?\b|bi[èe]res?\b|cocktail|club\b|soir[ée]e|networking|afterwork|business|summit|insights|dict[ée]e|18 ?\+|adultes? uniquement|r[ée]serv[ée] aux adultes|improvisation|sushi|gyoza)/;
+
+/** Types du theme enfants. `re` : vocabulaire exige en plus des mots enfants. */
+const TYPES_ENFANTS = [
+  { id: "spectacle_enf", label: "SPECTACLE ENFANT", on: true,
+    re: /(spectacle|th[ée][âa]tre|cirque|conte|marionnette|magie|magicien|clown|com[ée]die musicale|concert|cin[ée]-?concert)/ },
+  { id: "atelier_enf",   label: "ATELIER ENFANT",   on: true,
+    re: /(atelier|stage|initiation|cr[ée]atif|bricolage|dessin|peinture|modelage|lego|robot|exp[ée]rience|p[âa]tisserie)/ },
+  { id: "musee_enf",     label: "MUSÉE & DÉCOUVERTE", on: true,
+    re: /(mus[ée]|expo|visite|patrimoine|science|espace|plan[ée]tarium|dinosaure|aquarium|r[ée]serve)/ },
+  { id: "nature_enf",    label: "SORTIE NATURE",    on: false,
+    re: /(nature|jardin|parc\b|ferme|animaux|for[êe]t|balade|plantes|potager|oiseaux|square)/ },
+  // Vocabulaire exige dans le titre (dansNom) : « fete » ou « salon » dans une
+  // description ne fait pas d'un event une fete pour enfants.
+  { id: "fete_enf",      label: "FÊTE EN FAMILLE",  on: true, dansNom: true,
+    re: /(f[êe]te|festival|carnaval|halloween|no[ëe]l|march[ée] de|kermesse|salon|chasse aux)/ },
+  // Lieux permanents (table family_venues), partenaires en priorite.
+  { id: "parc_enf",      label: "PARC & ANIMAUX",   on: true, lieux: true,
+    categories: ["Parc animalier", "Parc d'attractions", "Ferme pedagogique", "Aire de jeux"] },
+  { id: "fun_enf",       label: "ACTIVITÉ FUN",     on: true, lieux: true,
+    categories: ["Escape game", "Bowling", "Laser game", "Patinoire", "Piscine"] },
+];
+
+const themeAuto = () => $("autoTheme").value;
+const typesDuTheme = () => (themeAuto() === "enfants" ? TYPES_ENFANTS : TYPES_AUTO);
+// Cle historique conservee pour le theme « sorties ».
+const cleTypes = () => (themeAuto() === "enfants" ? "macity_auto_types_enfants" : "macity_auto_types");
+
+// Cases a cocher (memorisees par theme).
+function rendreTypesAuto() {
   let memo = null;
-  try { memo = JSON.parse(localStorage.getItem("macity_auto_types") || "null"); } catch (e) {}
-  $("autoTypes").innerHTML = TYPES_AUTO.map((t) => {
+  try { memo = JSON.parse(localStorage.getItem(cleTypes()) || "null"); } catch (e) {}
+  $("autoTypes").innerHTML = typesDuTheme().map((t) => {
     const coche = memo ? memo.includes(t.id) : t.on;
     return `<label style="display:flex; gap:6px; align-items:center; margin:0; font-size:12px;">
       <input type="checkbox" data-type-auto="${t.id}" ${coche ? "checked" : ""} style="width:auto; margin:0;"> ${t.label}</label>`;
   }).join("");
-  $("autoTypes").addEventListener("change", () => {
-    const ids = [...document.querySelectorAll("[data-type-auto]:checked")].map((x) => x.dataset.typeAuto);
-    memoriser("macity_auto_types", JSON.stringify(ids));
-  });
-})();
+}
+$("autoTypes").addEventListener("change", () => {
+  const ids = [...document.querySelectorAll("[data-type-auto]:checked")].map((x) => x.dataset.typeAuto);
+  memoriser(cleTypes(), JSON.stringify(ids));
+});
+try { const t = localStorage.getItem("macity_auto_theme"); if (t) $("autoTheme").value = t; } catch (e) {}
+$("autoTheme").addEventListener("change", () => {
+  memoriser("macity_auto_theme", themeAuto());
+  rendreTypesAuto();
+});
+rendreTypesAuto();
 
 // Champs « Du / Au » visibles seulement pour « Date précise ou plage ».
 (function initDatesAuto() {
@@ -1000,14 +1043,146 @@ function libelleDates(debut, fin, mois) {
   return `DU ${a.getDate()}${moisA} AU ${b.getDate()} ${mois[b.getMonth()]}`;
 }
 
+const QUAND_ENFANTS = { soir: "AUJOURD'HUI", weekend: "CE WEEK-END", semaine: "CETTE SEMAINE" };
+
 function titreCouverture(periode) {
-  if (periode !== "dates") return TITRE_COUV[periode];
-  const [debut, fin] = bornesPeriode(periode);
-  return `QUOI FAIRE\n${libelleDates(debut, fin, MOIS_COURTS)}`;
+  const dates = periode === "dates" ? libelleDates(...bornesPeriode(periode), MOIS_COURTS) : "";
+  if (themeAuto() === "enfants") return `SORTIES ENFANTS\n${dates || QUAND_ENFANTS[periode]}`;
+  return dates ? `QUOI FAIRE\n${dates}` : TITRE_COUV[periode];
+}
+
+/** GET PostgREST avec une nouvelle tentative en cas d'echec reseau ponctuel. */
+async function lireTable(table, params, quoi) {
+  let res = null;
+  for (let essai = 0; essai < 2; essai++) {
+    try {
+      res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
+        headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` },
+      });
+      if (res.ok) break;
+    } catch (e) { res = null; }
+    await new Promise((r) => setTimeout(r, 800));
+  }
+  if (!res || !res.ok) throw new Error(`lecture ${quoi} : ${res ? "HTTP " + res.status : "réseau"}`);
+  return res.json();
+}
+
+// Une seule lecture par generation, partagee par tous les types enfants.
+const cacheEnfants = new Map();
+
+/** Events « enfants » de la periode : rubrique family + tout event qui cite les enfants. */
+function lireEventsEnfants(ville, debut, fin) {
+  const cle = `ev|${ville}|${debut}|${fin}`;
+  if (!cacheEnfants.has(cle)) {
+    const p = new URLSearchParams({
+      select: "identifiant,source,nom_de_la_manifestation,descriptif_court,lieu_nom,date_debut,date_fin,horaires,dates_affichage_horaires,photo_url,rubrique,categorie_de_la_manifestation",
+      ville: `ilike.${ville}`,
+      photo_url: "neq.",
+      date_debut: `lte.${fin}`,
+      or: "(rubrique.eq.family,categorie_de_la_manifestation.ilike.*enfant*,nom_de_la_manifestation.ilike.*enfant*,descriptif_court.ilike.*enfant*,descriptif_court.ilike.*jeune public*,descriptif_court.ilike.*famille*)",
+      order: "date_debut.asc",
+      limit: "400",
+    });
+    p.append("date_fin", `gte.${debut}`);
+    p.append("categorie_de_la_manifestation", "not.ilike.*cin*ma*");
+    const lecture = lireTable("scraped_events", p, "events enfants");
+    lecture.catch(() => cacheEnfants.delete(cle));
+    cacheEnfants.set(cle, lecture);
+  }
+  return cacheEnfants.get(cle);
+}
+
+/** Lieux permanents pour enfants (family_venues) de la ville. */
+function lireLieuxEnfants(ville) {
+  const cle = `lieux|${ville}`;
+  if (!cacheEnfants.has(cle)) {
+    const p = new URLSearchParams({
+      select: "id,name,category,description,adresse,ville,horaires,tarif,age_min,is_partner,partner_tier,photo,photos,display_priority",
+      ville: `ilike.${ville}`,
+      is_active: "eq.true",
+      limit: "300",
+    });
+    const lecture = lireTable("family_venues", p, "lieux enfants");
+    lecture.catch(() => cacheEnfants.delete(cle));
+    cacheEnfants.set(cle, lecture);
+  }
+  return cacheEnfants.get(cle);
+}
+
+/** Lieu family_venues -> meme forme qu'un event (champs lus par les diapos). */
+function lieuEnCandidat(v) {
+  const photos = [v.photo, ...(Array.isArray(v.photos) ? v.photos : [])].filter((u) => u && /^https?:/.test(u));
+  const commune = ((v.adresse || "").match(/\d{5}\s+(.+)$/) || [])[1] || v.ville || "";
+  return {
+    identifiant: `fv_${v.id}`,
+    source: "family_venue",
+    nom_de_la_manifestation: v.name || "",
+    descriptif_court: v.description || "",
+    lieu_nom: commune.trim(),
+    date_debut: "", date_fin: "", horaires: "", dates_affichage_horaires: "",
+    photo_url: photos[0] || "",
+    photos,
+    lieu: v,
+  };
+}
+
+async function chercherCandidatsEnfants(type, ville, debut, fin) {
+  if (type.lieux) {
+    const lieux = await lireLieuxEnfants(ville);
+    const tier = (v) => (v.partner_tier === "premium" ? 8 : v.partner_tier === "gold" ? 5 : v.is_partner ? 3 : 0);
+    return lieux
+      .filter((v) => type.categories.includes(v.category))
+      .map((v) => {
+        const c = lieuEnCandidat(v);
+        // Partenaires d'abord : c'est aussi de la visibilite vendue.
+        c._score = tier(v) + ((v.description || "").trim().length > 30 ? 2 : 0) +
+          (v.age_min !== null && v.age_min !== undefined ? 1 : 0) + (v.category === "Piscine" ? -2 : 0);
+        return c;
+      })
+      .filter((c) => c.photos.length)
+      .sort((a, b) => b._score - a._score)
+      .slice(0, 10);
+  }
+  const rows = await lireEventsEnfants(ville, debut, fin);
+  const jours = (e) => (e.date_fin ? (new Date(e.date_fin) - new Date(e.date_debut)) / 864e5 : 0);
+  const texteEv = (e) => `${e.nom_de_la_manifestation || ""} ${e.descriptif_court || ""} ${e.categorie_de_la_manifestation || ""}`.toLowerCase();
+  const vus = new Set();
+  return rows
+    .filter((e) => {
+      const t = texteEv(e);
+      const cible = type.dansNom ? (e.nom_de_la_manifestation || "").toLowerCase() : t;
+      if (!MOTS_ENFANTS.test(t) || MOTS_ADULTES.test(t) || !type.re.test(cible)) return false;
+      const k = (e.nom_de_la_manifestation || "").toLowerCase().replace(/\W+/g, "");
+      if (vus.has(k)) return false;
+      vus.add(k);
+      return true;
+    })
+    .map((e) => {
+      const t = texteEv(e);
+      e._score =
+        ((e.descriptif_court || "").trim().length > 30 ? 3 : 0) +
+        ((e.lieu_nom || "").trim() ? 1 : 0) +
+        ((e.nom_de_la_manifestation || "").length <= 40 ? 1 : 0) +
+        // Public explicitement enfant : le meilleur signal.
+        (/(jeune public|enfant|tout[- ]petit|d[èe]s \d+ ?ans)/.test(t) ? 3 : 0) +
+        // Les sorties enfants durent souvent (visites, expos) : penalite douce.
+        (jours(e) <= 3 ? 1 : jours(e) <= 60 ? 0 : -2) +
+        (e.source === "manual_admin" ? 2 : 0);
+      return e;
+    })
+    .sort((a, b) => b._score - a._score || a.date_debut.localeCompare(b.date_debut))
+    .slice(0, 12);
 }
 
 /** Candidats d'un type, du plus « prêt a publier » au moins bon. */
 async function chercherCandidats(type, ville, debut, fin) {
+  const bruts = themeAuto() === "enfants"
+    ? await chercherCandidatsEnfants(type, ville, debut, fin)
+    : await chercherCandidatsSorties(type, ville, debut, fin);
+  return classerParVisuel(bruts);
+}
+
+async function chercherCandidatsSorties(type, ville, debut, fin) {
   const p = new URLSearchParams({
     select: "identifiant,source,nom_de_la_manifestation,descriptif_court,lieu_nom,date_debut,date_fin,horaires,dates_affichage_horaires,photo_url,rubrique,categorie_de_la_manifestation",
     ville: `ilike.${ville}`,
@@ -1059,7 +1234,8 @@ async function chercherCandidats(type, ville, debut, fin) {
       if (vus.has(k)) return false;
       vus.add(k);
       if (type.id === "food" && !culinaire(e)) return false;
-      return score(e) > -4;
+      e._score = score(e);
+      return e._score > -4;
     })
     .sort((a, b) => score(b) - score(a) || a.date_debut.localeCompare(b.date_debut))
     .slice(0, 12);
@@ -1104,6 +1280,107 @@ function champsDepuisEvent(e, type, periode) {
   };
 }
 
+// ── Choix des meilleurs visuels ─────────────────────────────────────────────
+// Chaque photo candidate recoit une note : taille reelle (metadonnees du
+// relais wsrv), format proche du 4:5 d'Instagram, et analyse d'une miniature
+// (couleurs, contraste, part de blanc : un flyer ou un logo sur fond blanc
+// fait un mauvais visuel de carrousel). Une image cassee est ecartee.
+const IMAGE_CASSEE = -99;
+const cacheVisuel = new Map();
+
+/** Miniature 48 x 48 -> bonus/malus de -6 a +3 ; null si illisible. */
+function noteMiniature(url) {
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    const t = setTimeout(() => resolve(null), 10000);
+    im.onerror = () => { clearTimeout(t); resolve(null); };
+    im.onload = () => {
+      clearTimeout(t);
+      try {
+        const N = 48;
+        const c = document.createElement("canvas");
+        c.width = N; c.height = N;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(im, 0, 0, N, N);
+        const px = ctx.getImageData(0, 0, N, N).data;
+        let blancs = 0, aretes = 0, sL = 0, sL2 = 0, sRg = 0, sRg2 = 0, sYb = 0, sYb2 = 0;
+        const lum = new Float32Array(N * N);
+        for (let i = 0; i < N * N; i++) {
+          const r = px[i * 4], g = px[i * 4 + 1], b = px[i * 4 + 2];
+          const l = 0.299 * r + 0.587 * g + 0.114 * b;
+          lum[i] = l; sL += l; sL2 += l * l;
+          if (r > 235 && g > 235 && b > 235) blancs++;
+          const rg = r - g, yb = 0.5 * (r + g) - b;
+          sRg += rg; sRg2 += rg * rg; sYb += yb; sYb2 += yb * yb;
+        }
+        for (let y = 0; y < N; y++) for (let x = 0; x < N - 1; x++) {
+          if (Math.abs(lum[y * N + x] - lum[y * N + x + 1]) > 60) aretes++;
+        }
+        const n = N * N;
+        const contraste = Math.sqrt(Math.max(0, sL2 / n - (sL / n) ** 2));
+        const mRg = sRg / n, mYb = sYb / n;
+        const couleurs = Math.sqrt(Math.max(0, sRg2 / n - mRg * mRg) + Math.max(0, sYb2 / n - mYb * mYb)) +
+          0.3 * Math.sqrt(mRg * mRg + mYb * mYb);
+        const partBlanc = blancs / n, partAretes = aretes / (N * (N - 1));
+        let note = couleurs > 60 ? 3 : couleurs > 35 ? 2 : couleurs > 20 ? 0 : -2;
+        if (contraste < 25) note -= 2;
+        note -= partBlanc > 0.45 ? 3 : partBlanc > 0.3 ? 1 : 0;
+        // Beaucoup de transitions franches : souvent du texte (affiche, flyer).
+        if (partAretes > 0.3) note -= 1;
+        resolve(note);
+      } catch (e) { resolve(null); }
+    };
+    im.src = `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=48&h=48&fit=cover&output=jpg`;
+  });
+}
+
+/** Note globale d'une photo (plus c'est haut, mieux c'est). */
+function noteVisuelle(url) {
+  if (!url || !/^https?:/.test(url)) return Promise.resolve(IMAGE_CASSEE);
+  if (!cacheVisuel.has(url)) {
+    cacheVisuel.set(url, (async () => {
+      let note = 0;
+      try {
+        const r = await fetch(`https://wsrv.nl/?url=${encodeURIComponent(url)}&output=json`);
+        const m = await r.json();
+        if (!r.ok || m.status === "error" || !m.width) return IMAGE_CASSEE;
+        const petit = Math.min(m.width, m.height);
+        note += petit < 400 ? -6 : petit < 600 ? -3 : petit < 900 ? 0 : petit < 1200 ? 2 : 3;
+        const ratio = m.width / m.height;
+        note += ratio > 1.9 || ratio < 0.5 ? -2 : ratio >= 0.6 && ratio <= 1.4 ? 2 : 0;
+        // Transparence ou palette : logo plutot que photo.
+        if (m.hasAlpha || m.isPalette) note -= 3;
+      } catch (e) { /* metadonnees indisponibles : note neutre */ }
+      // Image generique de la base (default_escape_game.jpg…) : jamais en premier.
+      if (/\/default[_-][^/]*$/i.test(url)) note -= 8;
+      const mini = await noteMiniature(url);
+      return note + (mini ?? 0);
+    })());
+  }
+  return cacheVisuel.get(url);
+}
+
+/**
+ * Reclasse les candidats en tenant compte du visuel. Les 8 premiers (par note
+ * de contenu) sont analyses ; pour un lieu, la meilleure de ses photos devient
+ * sa photo. Les images cassees sortent de la liste.
+ */
+async function classerParVisuel(candidats) {
+  const tete = candidats.slice(0, 8), reste = candidats.slice(8);
+  await Promise.all(tete.map(async (c) => {
+    const urls = c.photos && c.photos.length ? c.photos.slice(0, 6) : [c.photo_url];
+    const notes = await Promise.all(urls.map(noteVisuelle));
+    const i = notes.indexOf(Math.max(...notes));
+    c._vis = notes[i];
+    c.photo_url = urls[i];
+  }));
+  const bons = tete
+    .filter((c) => c._vis !== IMAGE_CASSEE)
+    .sort((a, b) => (b._score + b._vis) - (a._score + a._vis));
+  return [...bons, ...reste];
+}
+
 /** Charge une photo de la base via le relais CORS ; null si echec. */
 function chargerPhotoAuto(url) {
   return new Promise((resolve) => {
@@ -1132,6 +1409,13 @@ async function appliquerCandidat(d, idx, periode) {
     heure: d.v.heure || "",
     periode,
   };
+  // Lieu permanent : pas de date, on affiche l'age conseille.
+  if (e.lieu) {
+    const age = e.lieu.age_min;
+    const aPartir = age !== null && age !== undefined && age > 0 ? `dès ${age} ans` : "";
+    d.v = { ...d.v, date: aPartir.toUpperCase(), heure: "" };
+    d.ev.libre = aPartir;
+  }
   const im = await chargerPhotoAuto(e.photo_url);
   d.img = im;
   d.imgData = im ? compresser(im, 1400) : null;
@@ -1142,13 +1426,14 @@ $("autoGen").onclick = async () => {
   const etat = $("etatAuto");
   const ville = ($("ville").value || "").trim();
   const periode = $("autoPeriode").value;
-  const choisis = TYPES_AUTO.filter((t) =>
+  const choisis = typesDuTheme().filter((t) =>
     document.querySelector(`[data-type-auto="${t.id}"]`)?.checked);
   if (!ville) { etat.textContent = "Renseigne la ville (champ « Ville »)."; etat.style.color = "#f87171"; return; }
   if (!choisis.length) { etat.textContent = "Coche au moins un type d'event."; etat.style.color = "#f87171"; return; }
   if (periode === "dates" && !$("autoDu").value) { etat.textContent = "Choisis au moins la date « Du »."; etat.style.color = "#f87171"; return; }
 
   const [debut, fin] = bornesPeriode(periode);
+  cacheEnfants.clear();
   etat.style.color = "var(--dim)";
   etat.textContent = `Recherche des events à ${ville} (${debut} → ${fin})…`;
   $("autoGen").disabled = true;
@@ -1159,7 +1444,7 @@ $("autoGen").onclick = async () => {
     // volume est faible.
     const resultats = [];
     for (const t of choisis) {
-      etat.textContent = `Recherche ${t.label.toLowerCase()} à ${ville}…`;
+      etat.textContent = `Recherche ${t.label.toLowerCase()} à ${ville} et tri des visuels…`;
       try {
         resultats.push({ t, c: await chercherCandidats(t, ville, debut, fin) });
       } catch (e) {
@@ -1253,10 +1538,14 @@ $("autoAutre").onclick = async () => {
 const EMOJI_TYPE = {
   concert: "🎶", soiree: "🪩", food: "🍽️", spectacle: "🎭",
   famille: "👨‍👩‍👧", expo: "🖼️", sport: "🏟️",
+  spectacle_enf: "🎪", atelier_enf: "🎨", musee_enf: "🦕", nature_enf: "🌳",
+  fete_enf: "🎉", parc_enf: "🦁", fun_enf: "🎳",
 };
 const FIN_TYPE = {
   concert: "🎸✨", soiree: "💃🔥", food: "😋", spectacle: "👏✨",
   famille: "🎈", expo: "🎨", sport: "💪",
+  spectacle_enf: "👏🎈", atelier_enf: "✂️✨", musee_enf: "🔭", nature_enf: "🍃",
+  fete_enf: "🎈", parc_enf: "🐾", fun_enf: "🤩",
 };
 const CHIFFRES = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 const JOURS_LONGS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
@@ -1296,7 +1585,7 @@ function quandLegende(ev, periode) {
   const h = (ev.heure || "").replace(/^Dès\s*/i, "");
   const aH = h ? ` à ${h}` : "";
   if (ev.fin && ev.fin !== ev.debut) return `jusqu'au ${dateLongue(ev.fin)}`;
-  if (periode === "soir") return `ce soir${aH}`;
+  if (periode === "soir") return `${themeAuto() === "enfants" ? "aujourd'hui" : "ce soir"}${aH}`;
   const j = dateLongue(ev.debut);
   return j ? `${j}${aH}` : (h ? `dès ${h}` : "");
 }
@@ -1322,13 +1611,19 @@ function genererLegende() {
   }
   const n = plans.length;
   const lignes = [];
-  let accroche = ACCROCHE_PERIODE[periode] || "CE WEEK-END";
+  const enfants = themeAuto() === "enfants";
+  let accroche = enfants ? (QUAND_ENFANTS[periode] || "CE WEEK-END") : (ACCROCHE_PERIODE[periode] || "CE WEEK-END");
   if (periode === "dates") {
     const [debut, fin] = bornesPeriode(periode);
     accroche = (debut === fin ? "LE " : "") + libelleDates(debut, fin, MOIS_MAJ);
   }
-  lignes.push(`🚨 TU NE SAIS PAS QUOI FAIRE ${accroche} ? 👀`, "");
-  lignes.push(`MaCity t'a sélectionné ${n} plan${n > 1 ? "s" : ""} à découvrir à ${ville} 🔥`, "");
+  if (enfants) {
+    lignes.push(`👶 QUOI FAIRE AVEC LES ENFANTS ${accroche} ? 🎈`, "");
+    lignes.push(`MaCity t'a sélectionné ${n} sortie${n > 1 ? "s" : ""} en famille à ${ville} ✨`, "");
+  } else {
+    lignes.push(`🚨 TU NE SAIS PAS QUOI FAIRE ${accroche} ? 👀`, "");
+    lignes.push(`MaCity t'a sélectionné ${n} plan${n > 1 ? "s" : ""} à découvrir à ${ville} 🔥`, "");
+  }
   plans.forEach((d, i) => {
     const ev = infosPlan(d);
     const v = d.v || {};
@@ -1341,7 +1636,9 @@ function genererLegende() {
     lignes.push(`${casseTitre(ev.nom)}${quand ? ", " + quand : ""} ${FIN_TYPE[ev.type] || "✨"}`.trim());
     lignes.push("");
   });
-  lignes.push("📲 Retrouve encore plus de concerts, soirées, événements et bons plans directement sur MaCity.", "");
+  lignes.push(enfants
+    ? "📲 Retrouve toutes les sorties en famille, ateliers et spectacles jeune public directement sur MaCity."
+    : "📲 Retrouve encore plus de concerts, soirées, événements et bons plans directement sur MaCity.", "");
   lignes.push("👉 Télécharge l'application : lien en bio", "");
   const choix = plans.map((_, i) => `le ${CHIFFRES[i + 1] || i + 1}`);
   const question = choix.length > 1
@@ -1349,7 +1646,9 @@ function genererLegende() {
     : choix[0];
   lignes.push(n > 1 ? `💬 Alors, tu choisis ${question} ? 👇` : "💬 Tu y vas ? Dis-le en commentaire 👇", "");
   const v = motHashtag(ville);
-  lignes.push(`#MaCity #${v} #Agenda${v} #SortirA${v} #BonPlan${v}`);
+  lignes.push(enfants
+    ? `#MaCity #${v} #SortieEnfants #EnFamille #${v}AvecEnfants #SortirA${v}`
+    : `#MaCity #${v} #Agenda${v} #SortirA${v} #BonPlan${v}`);
   $("legende").value = lignes.join("\n");
   memoriser("macity_legende", $("legende").value);
   $("etatLegende").textContent = `${$("legende").value.length} / 2200 caractères`;
@@ -1541,6 +1840,10 @@ document.fonts.ready.then(() => {
   const q = new URLSearchParams(location.search);
   if (q.get("auto") === "1") {
     if (q.get("ville")) $("ville").value = q.get("ville");
+    if (q.get("theme")) {
+      $("autoTheme").value = q.get("theme");
+      $("autoTheme").dispatchEvent(new Event("change"));
+    }
     if (q.get("periode")) $("autoPeriode").value = q.get("periode");
     // ?du=2026-11-14&au=2026-11-16 : date precise ou plage.
     if (q.get("du")) {

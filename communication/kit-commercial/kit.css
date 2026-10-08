@@ -1,0 +1,138 @@
+/* Kit commercial MaCity : styles communs, A4 portrait, conforme à la charte graphique */
+@font-face { font-family: Geist; src: url(../charte-graphique/03-typographies/Geist/Geist-Regular.ttf); font-weight: 400; }
+@font-face { font-family: Geist; src: url(../charte-graphique/03-typographies/Geist/Geist-Medium.ttf); font-weight: 500; }
+@font-face { font-family: Geist; src: url(../charte-graphique/03-typographies/Geist/Geist-SemiBold.ttf); font-weight: 600; }
+@font-face { font-family: Geist; src: url(../charte-graphique/03-typographies/Geist/Geist-Bold.ttf); font-weight: 700; }
+@font-face { font-family: 'Geist Mono'; src: url(../charte-graphique/03-typographies/GeistMono/GeistMono-Medium.ttf); font-weight: 500; }
+
+:root {
+  --rose: #FF1E8E;
+  --magenta: #E91E63;
+  --violet: #6A1B9A;
+  --nuit: #1A0F2E;
+  --encre: #15121C;
+  --ardoise: #4A4458;
+  --faint: #8A819F;
+  --creme: #FAFAF7;
+  --sable: #F1EEE9;
+  --ligne: rgba(26, 15, 46, .12);
+  --or: #C79A3E;
+  --or-clair: #FBF3E0;
+  --premium: #8E24AA;
+  --premium-clair: #F6E8FA;
+  --classique: #0EA5E9;
+  --classique-clair: #E6F5FD;
+  --vert: #0E8A4F;
+  --vert-clair: #E4F4EC;
+  --grad: linear-gradient(135deg, #E91E63 0%, #6A1B9A 60%, #4B1174 100%);
+  --nuit-grad: radial-gradient(120% 80% at 50% 30%, #2A1A4E 0%, #1A0A38 45%, #05030F 100%);
+}
+
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: #D9D5DF; color: var(--encre);
+  font-family: Geist, system-ui, sans-serif; font-size: 10pt; line-height: 1.5;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.page {
+  position: relative; width: 210mm; height: 297mm; margin: 10mm auto;
+  padding: 18mm 17mm 20mm; background: #fff; overflow: hidden;
+  break-after: page; page-break-after: always;
+}
+@media print { body { background: none; } .page { margin: 0; } }
+@media screen and (max-width: 820px) {
+  .page { width: 100%; height: auto; margin: 0 0 12px; padding: 28px 16px 56px; }
+  .grid-2, .grid-3, .grid-4, .tiers, .spot { grid-template-columns: 1fr !important; }
+}
+
+.folio {
+  position: absolute; left: 17mm; right: 17mm; bottom: 9mm; display: flex; justify-content: space-between;
+  font-family: 'Geist Mono', monospace; font-size: 6.8pt; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--faint); border-top: 1px solid var(--ligne); padding-top: 3mm;
+}
+.eyebrow { font-family: 'Geist Mono', monospace; font-weight: 500; font-size: 7.6pt; letter-spacing: .2em; text-transform: uppercase; color: var(--rose); margin-bottom: 2.5mm; }
+h1 { font-size: 24pt; font-weight: 500; letter-spacing: -.03em; line-height: 1.08; margin: 0 0 4mm; color: var(--nuit); }
+h2 { font-size: 15pt; font-weight: 600; letter-spacing: -.02em; margin: 0 0 3mm; color: var(--nuit); }
+h3 { font-size: 11pt; font-weight: 600; margin: 5mm 0 2mm; color: var(--nuit); }
+p { margin: 0 0 2.5mm; }
+.lead { font-size: 11.5pt; color: var(--ardoise); max-width: 165mm; }
+.small { font-size: 8.5pt; color: var(--ardoise); }
+.muted { color: var(--faint); }
+.rose { color: var(--rose); }
+b, strong { font-weight: 600; }
+ul.clean { list-style: none; padding: 0; margin: 0; }
+ul.clean li { position: relative; padding-left: 5mm; margin-bottom: 1.6mm; }
+ul.clean li::before { content: ''; position: absolute; left: 0; top: 2.1mm; width: 2mm; height: 2mm; border-radius: 50%; background: var(--rose); }
+ul.check li::before { content: '✓'; background: none; color: var(--vert); font-weight: 700; top: 0; width: auto; height: auto; }
+ul.cross li::before { content: '✕'; background: none; color: #DC2626; font-weight: 700; top: 0; width: auto; height: auto; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; }
+
+.card { background: var(--creme); border: 1px solid var(--ligne); border-radius: 4mm; padding: 5mm; }
+.card--dark { background: var(--nuit); color: #F5F0FF; border: 0; }
+.card--dark .small { color: #B5A8D0; }
+.box-note { background: #FFF6DA; border-left: 3px solid #E0A800; border-radius: 2mm; padding: 3mm 4mm; font-size: 8.8pt; color: #5B4500; }
+.box-warn { background: #FDECEC; border-left: 3px solid #DC2626; border-radius: 2mm; padding: 3mm 4mm; font-size: 8.8pt; color: #7A1616; }
+.box-rose { background: #FFE6F2; border-left: 3px solid var(--rose); border-radius: 2mm; padding: 3mm 4mm; font-size: 9pt; color: #6B0A3B; }
+
+/* Pastilles de palier */
+.pill { display: inline-block; font-family: 'Geist Mono', monospace; font-weight: 500; font-size: 6.8pt; letter-spacing: .12em; text-transform: uppercase; padding: .7mm 2.2mm; border-radius: 99px; vertical-align: middle; }
+.pill--premium { background: var(--premium-clair); color: var(--premium); }
+.pill--gold { background: var(--or-clair); color: #8A6A1F; }
+.pill--classique { background: var(--classique-clair); color: #0369A1; }
+.pill--tous { background: var(--vert-clair); color: var(--vert); }
+.pill--excl { background: var(--nuit); color: #FFD88A; }
+
+/* Téléphones */
+.phone { border-radius: 5mm; border: 1.4mm solid var(--nuit); overflow: hidden; background: var(--nuit); box-shadow: 0 6px 18px rgba(26, 15, 46, .18); }
+.phone img { width: 100%; display: block; }
+
+/* Chiffres */
+.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; }
+.stat { background: var(--nuit); color: #fff; border-radius: 4mm; padding: 4.5mm 3.5mm; }
+.stat b { display: block; font-size: 17pt; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; color: #FF7AB8; }
+.stat span { font-size: 8pt; color: #B5A8D0; display: block; margin-top: 1mm; line-height: 1.3; }
+@media screen and (max-width: 820px) { .stats { grid-template-columns: 1fr 1fr; } }
+
+/* Tableaux */
+table.tbl { width: 100%; border-collapse: collapse; font-size: 8.8pt; }
+.tbl th { text-align: left; font-weight: 600; color: var(--nuit); border-bottom: 1.5px solid var(--nuit); padding: 1.6mm 2mm; vertical-align: bottom; }
+.tbl td { border-bottom: 1px solid var(--ligne); padding: 1.7mm 2mm; vertical-align: top; }
+.tbl td.c, .tbl th.c { text-align: center; }
+.tbl .yes { color: var(--vert); font-weight: 700; }
+.tbl .no { color: #C9C3D3; }
+.tbl tr.total td { font-weight: 600; background: var(--creme); }
+
+/* Formules */
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; align-items: stretch; }
+.tier { border-radius: 4mm; border: 1px solid var(--ligne); padding: 5mm 4.5mm; display: flex; flex-direction: column; background: #fff; }
+.tier--classique { border-top: 4px solid var(--classique); }
+.tier--gold { border-top: 4px solid var(--or); }
+.tier--premium { border: 0; color: #fff; background: var(--grad); }
+.tier-name { font-family: 'Geist Mono', monospace; font-size: 8pt; letter-spacing: .18em; text-transform: uppercase; font-weight: 500; }
+.tier--classique .tier-name { color: #0369A1; }
+.tier--gold .tier-name { color: #8A6A1F; }
+.tier-price { font-size: 25pt; font-weight: 600; letter-spacing: -.03em; line-height: 1; margin-top: 3mm; }
+.tier-price small { font-size: 9pt; font-weight: 500; letter-spacing: 0; }
+.tier-ttc { font-size: 8pt; opacity: .7; margin: 1mm 0 3mm; }
+.tier-pitch { font-weight: 600; font-size: 9.5pt; margin-bottom: 3mm; line-height: 1.35; }
+.tier ul.clean li { font-size: 8.6pt; }
+.tier--premium ul.clean li::before { background: #FFD88A; }
+.tier-foot { margin-top: auto; padding-top: 3mm; font-size: 8pt; opacity: .8; border-top: 1px solid rgba(26, 15, 46, .1); }
+.tier--premium .tier-foot { border-top-color: rgba(255, 255, 255, .25); }
+.badge-reco { display: inline-block; background: #FFD88A; color: var(--nuit); font-size: 7pt; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .6mm 2mm; border-radius: 99px; margin-left: 2mm; vertical-align: middle; }
+
+/* Emplacements */
+.spot { display: grid; grid-template-columns: 50mm 1fr; gap: 7mm; align-items: start; margin-bottom: 6mm; }
+.spot-num { display: inline-flex; width: 6.5mm; height: 6.5mm; border-radius: 50%; background: var(--rose); color: #fff; font-weight: 700; font-size: 9pt; align-items: center; justify-content: center; margin-right: 2mm; vertical-align: middle; }
+.spot h2 { font-size: 13.5pt; margin-bottom: 2mm; }
+.spot .phone { max-height: 101mm; }
+
+/* Formulaires */
+.field { border-bottom: 1px solid #B9B2C6; height: 8mm; position: relative; margin-bottom: 1.5mm; }
+.field label { position: absolute; left: 0; bottom: 1.2mm; font-size: 8.3pt; color: var(--ardoise); }
+.checkbox { display: inline-block; width: 3.6mm; height: 3.6mm; border: 1.3px solid var(--nuit); border-radius: .8mm; vertical-align: -0.6mm; margin-right: 2mm; }
