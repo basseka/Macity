@@ -3024,4 +3024,356 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pdfExportFailed => 'PDF export failed, try again';
+
+  @override
+  String get interestConcert => 'Concerts';
+
+  @override
+  String get interestFestival => 'Festivals';
+
+  @override
+  String get interestSpectacle => 'Live shows';
+
+  @override
+  String get interestStandup => 'Stand-up / Comedy';
+
+  @override
+  String get interestOpera => 'Opera / Classical';
+
+  @override
+  String get interestDj => 'DJ set / Electro';
+
+  @override
+  String get interestConference => 'Conferences / Talks';
+
+  @override
+  String get interestAtelier => 'Workshops';
+
+  @override
+  String get interestFootball => 'Football';
+
+  @override
+  String get interestRugby => 'Rugby';
+
+  @override
+  String get interestBasketball => 'Basketball';
+
+  @override
+  String get interestTennis => 'Tennis';
+
+  @override
+  String get interestHandball => 'Handball';
+
+  @override
+  String get interestCourse => 'Running';
+
+  @override
+  String get interestFitness => 'Fitness / Weights';
+
+  @override
+  String get interestYoga => 'Yoga / Pilates';
+
+  @override
+  String get interestNatation => 'Swimming';
+
+  @override
+  String get interestCyclisme => 'Cycling';
+
+  @override
+  String get interestArtsMartiaux => 'Martial arts / Combat sports';
+
+  @override
+  String get interestExpo => 'Exhibitions';
+
+  @override
+  String get interestTheatre => 'Theatre';
+
+  @override
+  String get interestMusee => 'Museums';
+
+  @override
+  String get interestCinema => 'Cinema';
+
+  @override
+  String get interestDanse => 'Dance';
+
+  @override
+  String get interestVisite => 'Guided tours';
+
+  @override
+  String get interestLecture => 'Reading / Literature';
+
+  @override
+  String get interestPhoto => 'Photography';
+
+  @override
+  String get interestSpectacleEnfant => 'Kids\' shows';
+
+  @override
+  String get interestParc => 'Parks / Gardens';
+
+  @override
+  String get interestCinemaFamille => 'Cinema';
+
+  @override
+  String get interestBowling => 'Bowling / Laser tag';
+
+  @override
+  String get interestAtelierEnfant => 'Creative workshops';
+
+  @override
+  String get interestFeteForaine => 'Funfairs';
+
+  @override
+  String get interestZoo => 'Zoo / Aquarium';
+
+  @override
+  String get interestRestaurant => 'Restaurants';
+
+  @override
+  String get interestBrunch => 'Brunches';
+
+  @override
+  String get interestCafe => 'Cafés / Tea rooms';
+
+  @override
+  String get interestMarche => 'Markets / Food markets';
+
+  @override
+  String get interestDegustation => 'Tastings / Wine';
+
+  @override
+  String get interestFoodTruck => 'Food trucks';
+
+  @override
+  String get interestCoursCuisine => 'Cooking classes';
+
+  @override
+  String get interestBienetre => 'Wellness / Spa';
+
+  @override
+  String get interestEsport => 'E-sports / Tournaments';
+
+  @override
+  String get interestConvention => 'Conventions / Fairs';
+
+  @override
+  String get interestBarJeux => 'Board game bars';
+
+  @override
+  String get interestLan => 'LAN party';
+
+  @override
+  String get interestManga => 'Manga / Anime';
+
+  @override
+  String get interestVr => 'Virtual reality';
+
+  @override
+  String get interestEscapeGame => 'Escape rooms';
+
+  @override
+  String get interestBar => 'Bars / Pubs';
+
+  @override
+  String get interestClub => 'Clubs / Nightclubs';
+
+  @override
+  String get interestSoiree => 'Themed parties';
+
+  @override
+  String get interestConcertLive => 'Live gigs / Showcases';
+
+  @override
+  String get interestKaraoke => 'Karaoke';
+
+  @override
+  String get interestAfterwork => 'Afterwork';
+
+  @override
+  String get interestVisiteGuidee => 'Guided tours';
+
+  @override
+  String get interestBalade => 'Walks / Hikes';
+
+  @override
+  String get interestPatrimoine => 'Heritage / Monuments';
+
+  @override
+  String get interestNature => 'Nature / Outdoors';
+
+  @override
+  String get interestCroisiere => 'River cruises';
+
+  @override
+  String get interestOenotourisme => 'Wine tourism';
+
+  @override
+  String get prefsUpdated => 'Preferences updated';
+
+  @override
+  String get commonErrorRetry => 'Error, please try again';
+
+  @override
+  String get prefsProfileSubtitle => 'Change your name/nickname and photo';
+
+  @override
+  String get prefsMyTownHalls => 'My town halls';
+
+  @override
+  String get prefsMyTownHallsSubtitle =>
+      'Get notifications from several town halls';
+
+  @override
+  String get prefsMyHub => 'My Hub';
+
+  @override
+  String get prefsMyHubSubtitle => 'Choose your main city for events';
+
+  @override
+  String get prefsInterests => 'Interests';
+
+  @override
+  String get prefsInterestsSubtitle =>
+      'Pick your activities to get relevant notifications. Tap a category to fine-tune your choices.';
+
+  @override
+  String get prefsNameHint => 'E.g. Alex';
+
+  @override
+  String get prefsBio => 'Bio';
+
+  @override
+  String get prefsBioHint => 'A few words about you (shown on your stories)';
+
+  @override
+  String get prefsAddCity => 'Add a city...';
+
+  @override
+  String get mairieLoading => 'Loading news...';
+
+  @override
+  String get mairieOffline => 'Oops, no connection';
+
+  @override
+  String get mairieLoadError => 'Unable to load notifications';
+
+  @override
+  String get mairieMyCities => 'My Cities';
+
+  @override
+  String get mairieNoCity => 'No city';
+
+  @override
+  String mairieNewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'news items',
+      one: 'news item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mairieAll => 'All';
+
+  @override
+  String get mairieNoNewsForCity => 'No news from this town hall';
+
+  @override
+  String get mairieNothingNew => 'Nothing new!';
+
+  @override
+  String mairieCityNoNews(String city) {
+    return '$city hasn\'t posted any news yet';
+  }
+
+  @override
+  String get mairieNoNews => 'No news for now';
+
+  @override
+  String get mairieWillNotify => 'You\'ll be notified of anything new';
+
+  @override
+  String get mairieNew => 'NEW';
+
+  @override
+  String get timeYesterday => 'Yesterday';
+
+  @override
+  String get mairieUpdated => 'Town halls updated';
+
+  @override
+  String get mairieManage => 'Manage my town halls';
+
+  @override
+  String get mairieManageSubtitle => 'Add or remove the cities you follow';
+
+  @override
+  String get mairieNoneFollowed => 'No town halls followed yet';
+
+  @override
+  String get offerAt => 'At';
+
+  @override
+  String get offerValid => 'Valid';
+
+  @override
+  String get offerNoExpiry => 'No expiry date';
+
+  @override
+  String offerUntil(String date) {
+    return 'until $date';
+  }
+
+  @override
+  String get offerAvailability => 'Availability';
+
+  @override
+  String get offerUnlimited => 'Unlimited';
+
+  @override
+  String get offerUnlimitedShort => '∞ Unlimited';
+
+  @override
+  String get offerValidateFailed => 'Unable to validate the offer';
+
+  @override
+  String get offerGeneratingCode => 'Generating the code...';
+
+  @override
+  String get offerAlreadyUsed => 'ALREADY USED';
+
+  @override
+  String get offerShowMerchant => 'SHOW TO THE MERCHANT';
+
+  @override
+  String get offerCodeCopied => 'Code copied!';
+
+  @override
+  String get offerTapToCopy => 'Tap to copy';
+
+  @override
+  String get offerShowCodeHint =>
+      'Show this code to the merchant to get the offer';
+
+  @override
+  String get premiumRestos => 'Restaurants';
+
+  @override
+  String get premiumBars => 'Bars';
+
+  @override
+  String get premiumWellness => 'Wellness';
+
+  @override
+  String get premiumTitle => 'Premium offers';
+
+  @override
+  String get premiumPitch =>
+      '3 more exclusive offers every month, in your favourite categories.';
+
+  @override
+  String get premiumUnlock => 'Unlock · €5.90/month';
 }

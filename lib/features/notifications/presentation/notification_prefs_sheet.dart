@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -205,12 +208,12 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
                 Icon(Icons.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 10),
-                Text('Preferences mises a jour'),
+                Text(context.l10n.prefsUpdated),
               ],
             ),
             backgroundColor: _darkColor,
@@ -222,7 +225,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur, reessayez')),
+          SnackBar(content: Text(context.l10n.commonErrorRetry)),
         );
       }
     } finally {
@@ -293,7 +296,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                       icon: const Icon(Icons.chevron_left, size: 26),
                       color: AppColors.textDim,
                       onPressed: () => Navigator.pop(context),
-                      tooltip: 'Retour',
+                      tooltip: context.l10n.commonBack,
                     )
                   else
                     const SizedBox(width: 48),
@@ -313,10 +316,10 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 ],
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'Mon profil',
+                context.l10n.accountProfile,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -333,33 +336,32 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                 children: [
                   // ── Mon profil ──
                   _buildSectionHeader(
-                    'Mon profil',
-                    'Modifie ton prenom/pseudo et ta photo',
+                    context.l10n.accountProfile,
+                    context.l10n.prefsProfileSubtitle,
                   ),
                   if (!_loading) _buildProfileSection(),
 
                   // ── Mes mairies ──
                   const SizedBox(height: 16),
                   _buildSectionHeader(
-                    'Mes mairies',
-                    'Recevez les notifications de plusieurs mairies',
+                    context.l10n.prefsMyTownHalls,
+                    context.l10n.prefsMyTownHallsSubtitle,
                   ),
                   if (!_loading) _buildMultiVilleSelector(),
 
                   // ── Hub ville ──
                   const SizedBox(height: 16),
                   _buildSectionHeader(
-                    'Mon Hub',
-                    'Choisissez votre ville principale pour les evenements',
+                    context.l10n.prefsMyHub,
+                    context.l10n.prefsMyHubSubtitle,
                   ),
                   if (!_loading) _buildHubCitySelector(),
 
                   // ── Centres d'interet detailles ──
                   const SizedBox(height: 16),
                   _buildSectionHeader(
-                    'Centres d\'interet',
-                    'Selectionnez vos activites pour des notifications pertinentes. '
-                        'Appuyez sur une categorie pour affiner vos choix.',
+                    context.l10n.prefsInterests,
+                    context.l10n.prefsInterestsSubtitle,
                   ),
                   if (_loading)
                     const Padding(
@@ -404,7 +406,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Enregistrer'),
+                        : Text(context.l10n.commonSave),
                   ),
                 ),
               ),
@@ -475,7 +477,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Prenom ou pseudo',
+                  context.l10n.onboardingFieldName,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -490,7 +492,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                     color: Colors.white,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Ex: Carlos',
+                    hintText: context.l10n.prefsNameHint,
                     hintStyle: TextStyle(
                       fontSize: 13,
                       color: AppColors.textFaint,
@@ -524,7 +526,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
           // ── Bio (description publique affichee sur la fiche contributeur) ──
           const SizedBox(height: 14),
           Text(
-            'Bio',
+            context.l10n.prefsBio,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -539,7 +541,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
             maxLength: 200,
             style: const TextStyle(fontSize: 14, color: Colors.white),
             decoration: InputDecoration(
-              hintText: 'Quelques mots sur toi (visible sur tes stories)',
+              hintText: context.l10n.prefsBioHint,
               hintStyle: TextStyle(fontSize: 13, color: AppColors.textFaint),
               isDense: true,
               counterStyle: TextStyle(color: AppColors.textFaint, fontSize: 10),
@@ -584,18 +586,18 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera, color: _darkColor),
-              title: const Text('Prendre une photo'),
+              title: Text(context.l10n.onboardingTakePhoto),
               onTap: () => Navigator.pop(ctx, _AvatarAction.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: _darkColor),
-              title: const Text('Choisir dans la galerie'),
+              title: Text(context.l10n.onboardingChooseFromGallery),
               onTap: () => Navigator.pop(ctx, _AvatarAction.gallery),
             ),
             if (hasAvatar)
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                title: const Text('Retirer la photo',
+                title: Text(context.l10n.onboardingRemovePhoto,
                     style: TextStyle(color: Colors.redAccent)),
                 onTap: () => Navigator.pop(ctx, _AvatarAction.remove),
               ),
@@ -629,7 +631,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de selectionner cette image')),
+          SnackBar(content: Text(context.l10n.onboardingImageError)),
         );
       }
     }
@@ -714,7 +716,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      cat.label,
+                      _categoryLabel(context, cat.mode, cat.label),
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -785,7 +787,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            item.label,
+                            interestLabel(context, item.tag),
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
@@ -881,7 +883,7 @@ class _NotificationPrefsSheetState extends ConsumerState<NotificationPrefsSheet>
           controller: _villeController,
           style: GoogleFonts.inter(fontSize: 14),
           decoration: InputDecoration(
-            hintText: 'Ajouter une ville...',
+            hintText: context.l10n.prefsAddCity,
             hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 13),
             prefixIcon: Icon(Icons.add_location_alt, size: 20, color: AppColors.textFaint),
             filled: true,
@@ -1016,4 +1018,12 @@ class _CommuneResult {
     required this.codePostal,
     required this.departement,
   });
+}
+
+/// Libelle traduit d'une categorie d'interets (mode DB), repli sur [fallback].
+String _categoryLabel(BuildContext context, String mode, String fallback) {
+  for (final m in AppMode.values) {
+    if (m.name == mode) return modeLabel(context, m);
+  }
+  return fallback;
 }

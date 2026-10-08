@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:pulz_app/features/offers/presentation/subscription_screen.dart';
 import 'package:pulz_app/core/services/analytics_service.dart';
@@ -141,7 +142,7 @@ class _TeaserVideoScreenState extends State<TeaserVideoScreen> {
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),
-              child: const Text('Passer', style: TextStyle(fontSize: 13)),
+              child: Text(context.l10n.commonSkip, style: const TextStyle(fontSize: 13)),
             ),
           ),
 

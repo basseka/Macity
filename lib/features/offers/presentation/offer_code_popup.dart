@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -83,7 +84,7 @@ class _OfferCodePopupState extends State<OfferCodePopup>
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Impossible de valider l\'offre';
+          _error = context.l10n.offerValidateFailed;
           _loading = false;
         });
       }
@@ -225,7 +226,7 @@ class _OfferCodePopupState extends State<OfferCodePopup>
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              'Generation du code...',
+                              context.l10n.offerGeneratingCode,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.white.withValues(alpha: 0.5),
@@ -250,8 +251,8 @@ class _OfferCodePopupState extends State<OfferCodePopup>
                             // Label
                             Text(
                               _claim?.isRedeemed == true
-                                  ? 'DEJA UTILISE'
-                                  : 'A PRESENTER AU COMMERCANT',
+                                  ? context.l10n.offerAlreadyUsed
+                                  : context.l10n.offerShowMerchant,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -339,8 +340,8 @@ class _OfferCodePopupState extends State<OfferCodePopup>
                               duration: const Duration(milliseconds: 200),
                               child: Text(
                                 _copied
-                                    ? 'Code copie !'
-                                    : 'Appuyez pour copier',
+                                    ? context.l10n.offerCodeCopied
+                                    : context.l10n.offerTapToCopy,
                                 key: ValueKey(_copied),
                                 style: TextStyle(
                                   fontSize: 11,
@@ -377,7 +378,7 @@ class _OfferCodePopupState extends State<OfferCodePopup>
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          'Presentez ce code au commercant pour beneficier de l\'offre',
+                                          context.l10n.offerShowCodeHint,
                                           style: TextStyle(
                                             fontSize: 11,
                                             color: Colors.white.withValues(alpha: 0.45),
@@ -408,8 +409,8 @@ class _OfferCodePopupState extends State<OfferCodePopup>
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 elevation: 0,
                               ),
-                              child: const Text(
-                                'Fermer',
+                              child: Text(
+                                context.l10n.commonClose,
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -157,12 +158,12 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 10),
-              Text('Mairies mises a jour'),
+              Text(context.l10n.mairieUpdated),
             ],
           ),
           backgroundColor: _darkColor,
@@ -174,7 +175,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur, reessayez')),
+        SnackBar(content: Text(context.l10n.commonErrorRetry)),
       );
     }
   }
@@ -223,7 +224,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Gerer mes mairies',
+                        context.l10n.mairieManage,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -231,7 +232,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                         ),
                       ),
                       Text(
-                        'Ajoutez ou retirez les villes suivies',
+                        context.l10n.mairieManageSubtitle,
                         style: GoogleFonts.poppins(
                           fontSize: 11,
                           color: AppColors.textDim,
@@ -269,7 +270,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Aucune mairie suivie pour le moment',
+                                context.l10n.mairieNoneFollowed,
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
                                   color: AppColors.textDim,
@@ -319,7 +320,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                       ),
                       cursorColor: _primaryColor,
                       decoration: InputDecoration(
-                        hintText: 'Ajouter une ville...',
+                        hintText: context.l10n.prefsAddCity,
                         hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 13),
                         prefixIcon: Icon(Icons.add_location_alt, size: 20, color: AppColors.textFaint),
                         filled: true,
@@ -422,7 +423,7 @@ class _ManageMairiesSheetState extends ConsumerState<ManageMairiesSheet> {
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
                             : Text(
-                                'Enregistrer',
+                                context.l10n.commonSave,
                                 style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700),
                               ),
                       ),

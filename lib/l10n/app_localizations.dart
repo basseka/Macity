@@ -5475,6 +5475,678 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Export PDF impossible, réessaie'**
   String get pdfExportFailed;
+
+  /// No description provided for @interestConcert.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concerts'**
+  String get interestConcert;
+
+  /// No description provided for @interestFestival.
+  ///
+  /// In fr, this message translates to:
+  /// **'Festivals'**
+  String get interestFestival;
+
+  /// No description provided for @interestSpectacle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Spectacles vivants'**
+  String get interestSpectacle;
+
+  /// No description provided for @interestStandup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Stand-up / Humour'**
+  String get interestStandup;
+
+  /// No description provided for @interestOpera.
+  ///
+  /// In fr, this message translates to:
+  /// **'Opéra / Classique'**
+  String get interestOpera;
+
+  /// No description provided for @interestDj.
+  ///
+  /// In fr, this message translates to:
+  /// **'DJ set / Électro'**
+  String get interestDj;
+
+  /// No description provided for @interestConference.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conférences / Talks'**
+  String get interestConference;
+
+  /// No description provided for @interestAtelier.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ateliers / Workshops'**
+  String get interestAtelier;
+
+  /// No description provided for @interestFootball.
+  ///
+  /// In fr, this message translates to:
+  /// **'Football'**
+  String get interestFootball;
+
+  /// No description provided for @interestRugby.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rugby'**
+  String get interestRugby;
+
+  /// No description provided for @interestBasketball.
+  ///
+  /// In fr, this message translates to:
+  /// **'Basketball'**
+  String get interestBasketball;
+
+  /// No description provided for @interestTennis.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tennis'**
+  String get interestTennis;
+
+  /// No description provided for @interestHandball.
+  ///
+  /// In fr, this message translates to:
+  /// **'Handball'**
+  String get interestHandball;
+
+  /// No description provided for @interestCourse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course / Running'**
+  String get interestCourse;
+
+  /// No description provided for @interestFitness.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fitness / Musculation'**
+  String get interestFitness;
+
+  /// No description provided for @interestYoga.
+  ///
+  /// In fr, this message translates to:
+  /// **'Yoga / Pilates'**
+  String get interestYoga;
+
+  /// No description provided for @interestNatation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Natation'**
+  String get interestNatation;
+
+  /// No description provided for @interestCyclisme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cyclisme'**
+  String get interestCyclisme;
+
+  /// No description provided for @interestArtsMartiaux.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arts martiaux / Combat'**
+  String get interestArtsMartiaux;
+
+  /// No description provided for @interestExpo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expositions'**
+  String get interestExpo;
+
+  /// No description provided for @interestTheatre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Théâtre'**
+  String get interestTheatre;
+
+  /// No description provided for @interestMusee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musées'**
+  String get interestMusee;
+
+  /// No description provided for @interestCinema.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cinéma'**
+  String get interestCinema;
+
+  /// No description provided for @interestDanse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Danse'**
+  String get interestDanse;
+
+  /// No description provided for @interestVisite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visites guidées'**
+  String get interestVisite;
+
+  /// No description provided for @interestLecture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture / Littérature'**
+  String get interestLecture;
+
+  /// No description provided for @interestPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photographie'**
+  String get interestPhoto;
+
+  /// No description provided for @interestSpectacleEnfant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Spectacles enfants'**
+  String get interestSpectacleEnfant;
+
+  /// No description provided for @interestParc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parcs / Jardins'**
+  String get interestParc;
+
+  /// No description provided for @interestCinemaFamille.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cinéma'**
+  String get interestCinemaFamille;
+
+  /// No description provided for @interestBowling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bowling / Laser game'**
+  String get interestBowling;
+
+  /// No description provided for @interestAtelierEnfant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ateliers créatifs'**
+  String get interestAtelierEnfant;
+
+  /// No description provided for @interestFeteForaine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fêtes foraines'**
+  String get interestFeteForaine;
+
+  /// No description provided for @interestZoo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Zoo / Aquarium'**
+  String get interestZoo;
+
+  /// No description provided for @interestRestaurant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurants'**
+  String get interestRestaurant;
+
+  /// No description provided for @interestBrunch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brunchs'**
+  String get interestBrunch;
+
+  /// No description provided for @interestCafe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cafés / Salons de thé'**
+  String get interestCafe;
+
+  /// No description provided for @interestMarche.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marchés / Food markets'**
+  String get interestMarche;
+
+  /// No description provided for @interestDegustation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dégustations / Vin'**
+  String get interestDegustation;
+
+  /// No description provided for @interestFoodTruck.
+  ///
+  /// In fr, this message translates to:
+  /// **'Food trucks'**
+  String get interestFoodTruck;
+
+  /// No description provided for @interestCoursCuisine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cours de cuisine'**
+  String get interestCoursCuisine;
+
+  /// No description provided for @interestBienetre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bien-être / Spa'**
+  String get interestBienetre;
+
+  /// No description provided for @interestEsport.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-sport / Tournois'**
+  String get interestEsport;
+
+  /// No description provided for @interestConvention.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conventions / Salons'**
+  String get interestConvention;
+
+  /// No description provided for @interestBarJeux.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bar à jeux'**
+  String get interestBarJeux;
+
+  /// No description provided for @interestLan.
+  ///
+  /// In fr, this message translates to:
+  /// **'LAN party'**
+  String get interestLan;
+
+  /// No description provided for @interestManga.
+  ///
+  /// In fr, this message translates to:
+  /// **'Manga / Anime'**
+  String get interestManga;
+
+  /// No description provided for @interestVr.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réalité virtuelle'**
+  String get interestVr;
+
+  /// No description provided for @interestEscapeGame.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escape games'**
+  String get interestEscapeGame;
+
+  /// No description provided for @interestBar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bars / Pubs'**
+  String get interestBar;
+
+  /// No description provided for @interestClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clubs / Discothèques'**
+  String get interestClub;
+
+  /// No description provided for @interestSoiree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soirées thématiques'**
+  String get interestSoiree;
+
+  /// No description provided for @interestConcertLive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concerts live / Showcase'**
+  String get interestConcertLive;
+
+  /// No description provided for @interestKaraoke.
+  ///
+  /// In fr, this message translates to:
+  /// **'Karaoké'**
+  String get interestKaraoke;
+
+  /// No description provided for @interestAfterwork.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afterwork'**
+  String get interestAfterwork;
+
+  /// No description provided for @interestVisiteGuidee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visites guidées'**
+  String get interestVisiteGuidee;
+
+  /// No description provided for @interestBalade.
+  ///
+  /// In fr, this message translates to:
+  /// **'Balades / Randonnées'**
+  String get interestBalade;
+
+  /// No description provided for @interestPatrimoine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Patrimoine / Monuments'**
+  String get interestPatrimoine;
+
+  /// No description provided for @interestNature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nature / Plein air'**
+  String get interestNature;
+
+  /// No description provided for @interestCroisiere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Croisières fluviales'**
+  String get interestCroisiere;
+
+  /// No description provided for @interestOenotourisme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Œnotourisme'**
+  String get interestOenotourisme;
+
+  /// No description provided for @prefsUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préférences mises à jour'**
+  String get prefsUpdated;
+
+  /// No description provided for @commonErrorRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur, réessayez'**
+  String get commonErrorRetry;
+
+  /// No description provided for @prefsProfileSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifie ton prénom/pseudo et ta photo'**
+  String get prefsProfileSubtitle;
+
+  /// No description provided for @prefsMyTownHalls.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes mairies'**
+  String get prefsMyTownHalls;
+
+  /// No description provided for @prefsMyTownHallsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recevez les notifications de plusieurs mairies'**
+  String get prefsMyTownHallsSubtitle;
+
+  /// No description provided for @prefsMyHub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon Hub'**
+  String get prefsMyHub;
+
+  /// No description provided for @prefsMyHubSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez votre ville principale pour les événements'**
+  String get prefsMyHubSubtitle;
+
+  /// No description provided for @prefsInterests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Centres d\'intérêt'**
+  String get prefsInterests;
+
+  /// No description provided for @prefsInterestsSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionnez vos activités pour des notifications pertinentes. Appuyez sur une catégorie pour affiner vos choix.'**
+  String get prefsInterestsSubtitle;
+
+  /// No description provided for @prefsNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : Carlos'**
+  String get prefsNameHint;
+
+  /// No description provided for @prefsBio.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bio'**
+  String get prefsBio;
+
+  /// No description provided for @prefsBioHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quelques mots sur toi (visible sur tes stories)'**
+  String get prefsBioHint;
+
+  /// No description provided for @prefsAddCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une ville...'**
+  String get prefsAddCity;
+
+  /// No description provided for @mairieLoading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement des actus...'**
+  String get mairieLoading;
+
+  /// No description provided for @mairieOffline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oups, pas de connexion'**
+  String get mairieOffline;
+
+  /// No description provided for @mairieLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les notifications'**
+  String get mairieLoadError;
+
+  /// No description provided for @mairieMyCities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes Villes'**
+  String get mairieMyCities;
+
+  /// No description provided for @mairieNoCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune ville'**
+  String get mairieNoCity;
+
+  /// Nombre d'actus
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{actu} other{actus}}'**
+  String mairieNewsCount(int count);
+
+  /// No description provided for @mairieAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get mairieAll;
+
+  /// No description provided for @mairieNoNewsForCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune actu pour cette mairie'**
+  String get mairieNoNewsForCity;
+
+  /// No description provided for @mairieNothingNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de neuf !'**
+  String get mairieNothingNew;
+
+  /// Mairie sans actu
+  ///
+  /// In fr, this message translates to:
+  /// **'{city} n\'a pas encore publié d\'actualité'**
+  String mairieCityNoNews(String city);
+
+  /// No description provided for @mairieNoNews.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune actualité pour le moment'**
+  String get mairieNoNews;
+
+  /// No description provided for @mairieWillNotify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu seras notifié des nouveautés'**
+  String get mairieWillNotify;
+
+  /// No description provided for @mairieNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'NOUVEAU'**
+  String get mairieNew;
+
+  /// No description provided for @timeYesterday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get timeYesterday;
+
+  /// No description provided for @mairieUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mairies mises à jour'**
+  String get mairieUpdated;
+
+  /// No description provided for @mairieManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gérer mes mairies'**
+  String get mairieManage;
+
+  /// No description provided for @mairieManageSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez ou retirez les villes suivies'**
+  String get mairieManageSubtitle;
+
+  /// No description provided for @mairieNoneFollowed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune mairie suivie pour le moment'**
+  String get mairieNoneFollowed;
+
+  /// No description provided for @offerAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chez'**
+  String get offerAt;
+
+  /// No description provided for @offerValid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valable'**
+  String get offerValid;
+
+  /// No description provided for @offerNoExpiry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans date limite'**
+  String get offerNoExpiry;
+
+  /// Fin de validite
+  ///
+  /// In fr, this message translates to:
+  /// **'jusqu\'au {date}'**
+  String offerUntil(String date);
+
+  /// No description provided for @offerAvailability.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponibilité'**
+  String get offerAvailability;
+
+  /// No description provided for @offerUnlimited.
+  ///
+  /// In fr, this message translates to:
+  /// **'Illimitées'**
+  String get offerUnlimited;
+
+  /// No description provided for @offerUnlimitedShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'∞ Illimité'**
+  String get offerUnlimitedShort;
+
+  /// No description provided for @offerValidateFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de valider l\'offre'**
+  String get offerValidateFailed;
+
+  /// No description provided for @offerGeneratingCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Génération du code...'**
+  String get offerGeneratingCode;
+
+  /// No description provided for @offerAlreadyUsed.
+  ///
+  /// In fr, this message translates to:
+  /// **'DÉJÀ UTILISÉ'**
+  String get offerAlreadyUsed;
+
+  /// No description provided for @offerShowMerchant.
+  ///
+  /// In fr, this message translates to:
+  /// **'À PRÉSENTER AU COMMERÇANT'**
+  String get offerShowMerchant;
+
+  /// No description provided for @offerCodeCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code copié !'**
+  String get offerCodeCopied;
+
+  /// No description provided for @offerTapToCopy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appuyez pour copier'**
+  String get offerTapToCopy;
+
+  /// No description provided for @offerShowCodeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Présentez ce code au commerçant pour bénéficier de l\'offre'**
+  String get offerShowCodeHint;
+
+  /// No description provided for @premiumRestos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restos'**
+  String get premiumRestos;
+
+  /// No description provided for @premiumBars.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bars'**
+  String get premiumBars;
+
+  /// No description provided for @premiumWellness.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bien-être'**
+  String get premiumWellness;
+
+  /// No description provided for @premiumTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Offres premium'**
+  String get premiumTitle;
+
+  /// No description provided for @premiumPitch.
+  ///
+  /// In fr, this message translates to:
+  /// **'3 offres exclusives de plus chaque mois, dans tes catégories préférées.'**
+  String get premiumPitch;
+
+  /// No description provided for @premiumUnlock.
+  ///
+  /// In fr, this message translates to:
+  /// **'Débloquer · 5,90 €/mois'**
+  String get premiumUnlock;
 }
 
 class _AppLocalizationsDelegate

@@ -1,9 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/notifications/data/mairie_notifications_service.dart';
 import 'package:pulz_app/features/notifications/presentation/manage_mairies_sheet.dart';
@@ -23,8 +24,6 @@ class MairieNotificationsSheet extends ConsumerStatefulWidget {
       builder: (_) => const MairieNotificationsSheet(),
     );
   }
-
-  static final _dateFormat = DateFormat('dd/MM/yyyy a HH:mm', 'fr_FR');
 
   static const _headerGradient = LinearGradient(
     begin: Alignment.topLeft,
@@ -156,7 +155,7 @@ class _MairieNotificationsSheetState
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Chargement des actus...',
+                      context.l10n.mairieLoading,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: AppColors.textFaint,
@@ -181,7 +180,7 @@ class _MairieNotificationsSheetState
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Oups, pas de connexion',
+                      context.l10n.mairieOffline,
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -190,7 +189,7 @@ class _MairieNotificationsSheetState
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Impossible de charger les notifications',
+                      context.l10n.mairieLoadError,
                       style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textFaint),
                     ),
                     const SizedBox(height: 16),
@@ -203,7 +202,7 @@ class _MairieNotificationsSheetState
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          'Reessayer',
+                          context.l10n.commonRetry,
                           style: GoogleFonts.poppins(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -263,7 +262,7 @@ class _MairieNotificationsSheetState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  villes.length > 1 ? 'Mes Villes' : 'Ma Ville',
+                  villes.length > 1 ? context.l10n.mairieMyCities : context.l10n.navMyCity,
                   style: GoogleFonts.poppins(
                     fontSize: 9,
                     fontWeight: FontWeight.w500,
@@ -273,7 +272,7 @@ class _MairieNotificationsSheetState
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  city.isNotEmpty ? city : 'Aucune ville',
+                  city.isNotEmpty ? city : context.l10n.mairieNoCity,
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -307,7 +306,7 @@ class _MairieNotificationsSheetState
                     ),
                   ),
                   Text(
-                    count == 1 ? 'actu' : 'actus',
+                    context.l10n.mairieNewsCount(count),
                     style: GoogleFonts.poppins(
                       fontSize: 9,
                       fontWeight: FontWeight.w500,
@@ -347,7 +346,7 @@ class _MairieNotificationsSheetState
         runSpacing: 6,
         children: allItems.map((ville) {
           final isAll = ville == null;
-          final label = isAll ? 'Toutes' : ville;
+          final label = isAll ? context.l10n.mairieAll : ville;
           final isSelected = _selectedVille == ville;
 
           return GestureDetector(
@@ -419,7 +418,7 @@ class _MairieNotificationsSheetState
           ),
           const SizedBox(height: 12),
           Text(
-            'Aucune actu pour cette mairie',
+            context.l10n.mairieNoNewsForCity,
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -452,7 +451,7 @@ class _MairieNotificationsSheetState
           ),
           const SizedBox(height: 18),
           Text(
-            'Rien de neuf !',
+            context.l10n.mairieNothingNew,
             style: GoogleFonts.poppins(
               fontSize: 17,
               fontWeight: FontWeight.w600,
@@ -462,8 +461,8 @@ class _MairieNotificationsSheetState
           const SizedBox(height: 6),
           Text(
             city.isNotEmpty
-                ? '$city n\'a pas encore publie d\'actualite'
-                : 'Aucune actualite pour le moment',
+                ? context.l10n.mairieCityNoNews(city)
+                : context.l10n.mairieNoNews,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 13,
@@ -486,7 +485,7 @@ class _MairieNotificationsSheetState
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    'Tu seras notifie des nouveautes',
+                    context.l10n.mairieWillNotify,
                     style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: const Color(0xFF7B2D8E).withValues(alpha: 0.6),
@@ -521,7 +520,7 @@ class _NotificationCard extends StatelessWidget {
         notification.photoUrl != null && notification.photoUrl!.isNotEmpty;
     final hasLink =
         notification.linkUrl != null && notification.linkUrl!.isNotEmpty;
-    final timeAgo = _formatTimeAgo(notification.createdAt);
+    final timeAgo = _formatTimeAgo(context, notification.createdAt);
     final villeName = notification.ville.replaceAll(RegExp(r'\s*\(.*\)$'), '');
 
     return GestureDetector(
@@ -622,7 +621,7 @@ class _NotificationCard extends StatelessWidget {
                           ],
                         ),
                         child: Text(
-                          'NOUVEAU',
+                          context.l10n.mairieNew,
                           style: GoogleFonts.poppins(
                             fontSize: 8,
                             fontWeight: FontWeight.w700,
@@ -747,7 +746,7 @@ class _NotificationCard extends StatelessWidget {
                               size: 13, color: Colors.white),
                           const SizedBox(width: 6),
                           Text(
-                            'En savoir plus',
+                            context.l10n.commonLearnMore,
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -793,14 +792,16 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  String _formatTimeAgo(DateTime date) {
+  String _formatTimeAgo(BuildContext context, DateTime date) {
     final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return 'A l\'instant';
-    if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'Il y a ${diff.inHours}h';
-    if (diff.inDays == 1) return 'Hier';
-    if (diff.inDays < 7) return 'Il y a ${diff.inDays}j';
-    return MairieNotificationsSheet._dateFormat.format(date);
+    final l10n = context.l10n;
+    String cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+    if (diff.inMinutes < 1) return cap(l10n.timeJustNow);
+    if (diff.inMinutes < 60) return cap(l10n.timeMinutesAgo(diff.inMinutes));
+    if (diff.inHours < 24) return cap(l10n.timeHoursAgo(diff.inHours));
+    if (diff.inDays == 1) return l10n.timeYesterday;
+    if (diff.inDays < 7) return cap(l10n.timeDaysAgo(diff.inDays));
+    return formatDayAtTime(context, date);
   }
 
   Future<void> _openLink(String url) async {

@@ -1,4 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -137,7 +140,7 @@ class OfferDetailScreen extends StatelessWidget {
                     onTap: () => _showBusinessSheet(context),
                     child: _InfoBlock(
                       icon: Icons.storefront_rounded,
-                      label: 'Chez',
+                      label: context.l10n.offerAt,
                       value: offer.businessName,
                       subValue: offer.businessAddress.isNotEmpty
                           ? offer.businessAddress
@@ -160,22 +163,24 @@ class OfferDetailScreen extends StatelessWidget {
                       Expanded(
                         child: _InfoBlock(
                           icon: Icons.event_available_rounded,
-                          label: 'Valable',
+                          label: context.l10n.offerValid,
                           value: offer.hasNoExpiration
-                              ? 'Sans date limite'
-                              : 'jusqu\'au ${_formatDate(offer.expiresAt)}',
+                              ? context.l10n.offerNoExpiry
+                              : context.l10n.offerUntil(DateFormat('d MMM yyyy',
+                                      context.dateLocale)
+                                  .format(offer.expiresAt)),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: _InfoBlock(
                           icon: Icons.confirmation_number_rounded,
-                          label: 'Disponibilite',
+                          label: context.l10n.offerAvailability,
                           value: offer.isUnlimited
-                              ? 'Illimitees'
+                              ? context.l10n.offerUnlimited
                               : (offer.hasSpots
                                   ? '${offer.remainingSpots} / ${offer.totalSpots}'
-                                  : 'Complet'),
+                                  : context.l10n.offerSoldOut),
                           valueColor: offer.isUnlimited
                               ? const Color(0xFFE8A0BF)
                               : (offer.hasSpots
@@ -221,7 +226,7 @@ class OfferDetailScreen extends StatelessWidget {
                 elevation: 0,
               ),
               child: Text(
-                'J\'en profite',
+                context.l10n.offerClaim,
                 style: GoogleFonts.geist(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -275,13 +280,6 @@ class OfferDetailScreen extends StatelessWidget {
     }
   }
 
-  static String _formatDate(DateTime d) {
-    const months = [
-      'janv.', 'fevr.', 'mars', 'avr.', 'mai', 'juin',
-      'juil.', 'aout', 'sept.', 'oct.', 'nov.', 'dec.',
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
-  }
 }
 
 class _RoundIconButton extends StatelessWidget {
@@ -331,10 +329,10 @@ class _SpotsBadge extends StatelessWidget {
       ),
       child: Text(
         offer.isUnlimited
-            ? '∞ Illimite'
+            ? context.l10n.offerUnlimitedShort
             : (hasSpots
-                ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
-                : 'Complet'),
+                ? context.l10n.offerSpotsLeft(offer.remainingSpots)
+                : context.l10n.offerSoldOut),
         style: GoogleFonts.geist(
           fontSize: 12,
           fontWeight: FontWeight.w700,
@@ -542,7 +540,7 @@ class _OfferPhotoFullScreen extends StatelessWidget {
                         onPressed: onItinerary,
                         icon: const Icon(Icons.directions_rounded),
                         label: Text(
-                          'Itinéraire',
+                          context.l10n.mapDirections,
                           style: GoogleFonts.geist(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

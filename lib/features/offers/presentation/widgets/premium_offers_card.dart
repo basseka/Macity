@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
@@ -81,9 +82,9 @@ class PremiumOffersCard extends ConsumerWidget {
                   style: TextStyle(color: Color(0xFFF5197F), fontSize: 14),
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Offres premium',
+                    context.l10n.premiumTitle,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -118,9 +119,8 @@ class PremiumOffersCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 6),
-            const Text(
-              '3 offres exclusives de plus chaque mois, dans tes catégories '
-              'préférées.',
+            Text(
+              context.l10n.premiumPitch,
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
@@ -162,8 +162,8 @@ class PremiumOffersCard extends ConsumerWidget {
                 ),
                 alignment: Alignment.center,
                 // Prix reel de l'abonnement BeThere, cf. subscription_screen.
-                child: const Text(
-                  'Débloquer · 5,90 €/mois',
+                child: Text(
+                  context.l10n.premiumUnlock,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -210,7 +210,12 @@ class _ChipVerrouille extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              categorie.label,
+              switch (categorie.label) {
+                'Restos' => context.l10n.premiumRestos,
+                'Bars' => context.l10n.premiumBars,
+                'Bien-être' => context.l10n.premiumWellness,
+                _ => categorie.label,
+              },
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(

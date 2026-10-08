@@ -3054,4 +3054,357 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pdfExportFailed => 'Export PDF impossible, réessaie';
+
+  @override
+  String get interestConcert => 'Concerts';
+
+  @override
+  String get interestFestival => 'Festivals';
+
+  @override
+  String get interestSpectacle => 'Spectacles vivants';
+
+  @override
+  String get interestStandup => 'Stand-up / Humour';
+
+  @override
+  String get interestOpera => 'Opéra / Classique';
+
+  @override
+  String get interestDj => 'DJ set / Électro';
+
+  @override
+  String get interestConference => 'Conférences / Talks';
+
+  @override
+  String get interestAtelier => 'Ateliers / Workshops';
+
+  @override
+  String get interestFootball => 'Football';
+
+  @override
+  String get interestRugby => 'Rugby';
+
+  @override
+  String get interestBasketball => 'Basketball';
+
+  @override
+  String get interestTennis => 'Tennis';
+
+  @override
+  String get interestHandball => 'Handball';
+
+  @override
+  String get interestCourse => 'Course / Running';
+
+  @override
+  String get interestFitness => 'Fitness / Musculation';
+
+  @override
+  String get interestYoga => 'Yoga / Pilates';
+
+  @override
+  String get interestNatation => 'Natation';
+
+  @override
+  String get interestCyclisme => 'Cyclisme';
+
+  @override
+  String get interestArtsMartiaux => 'Arts martiaux / Combat';
+
+  @override
+  String get interestExpo => 'Expositions';
+
+  @override
+  String get interestTheatre => 'Théâtre';
+
+  @override
+  String get interestMusee => 'Musées';
+
+  @override
+  String get interestCinema => 'Cinéma';
+
+  @override
+  String get interestDanse => 'Danse';
+
+  @override
+  String get interestVisite => 'Visites guidées';
+
+  @override
+  String get interestLecture => 'Lecture / Littérature';
+
+  @override
+  String get interestPhoto => 'Photographie';
+
+  @override
+  String get interestSpectacleEnfant => 'Spectacles enfants';
+
+  @override
+  String get interestParc => 'Parcs / Jardins';
+
+  @override
+  String get interestCinemaFamille => 'Cinéma';
+
+  @override
+  String get interestBowling => 'Bowling / Laser game';
+
+  @override
+  String get interestAtelierEnfant => 'Ateliers créatifs';
+
+  @override
+  String get interestFeteForaine => 'Fêtes foraines';
+
+  @override
+  String get interestZoo => 'Zoo / Aquarium';
+
+  @override
+  String get interestRestaurant => 'Restaurants';
+
+  @override
+  String get interestBrunch => 'Brunchs';
+
+  @override
+  String get interestCafe => 'Cafés / Salons de thé';
+
+  @override
+  String get interestMarche => 'Marchés / Food markets';
+
+  @override
+  String get interestDegustation => 'Dégustations / Vin';
+
+  @override
+  String get interestFoodTruck => 'Food trucks';
+
+  @override
+  String get interestCoursCuisine => 'Cours de cuisine';
+
+  @override
+  String get interestBienetre => 'Bien-être / Spa';
+
+  @override
+  String get interestEsport => 'E-sport / Tournois';
+
+  @override
+  String get interestConvention => 'Conventions / Salons';
+
+  @override
+  String get interestBarJeux => 'Bar à jeux';
+
+  @override
+  String get interestLan => 'LAN party';
+
+  @override
+  String get interestManga => 'Manga / Anime';
+
+  @override
+  String get interestVr => 'Réalité virtuelle';
+
+  @override
+  String get interestEscapeGame => 'Escape games';
+
+  @override
+  String get interestBar => 'Bars / Pubs';
+
+  @override
+  String get interestClub => 'Clubs / Discothèques';
+
+  @override
+  String get interestSoiree => 'Soirées thématiques';
+
+  @override
+  String get interestConcertLive => 'Concerts live / Showcase';
+
+  @override
+  String get interestKaraoke => 'Karaoké';
+
+  @override
+  String get interestAfterwork => 'Afterwork';
+
+  @override
+  String get interestVisiteGuidee => 'Visites guidées';
+
+  @override
+  String get interestBalade => 'Balades / Randonnées';
+
+  @override
+  String get interestPatrimoine => 'Patrimoine / Monuments';
+
+  @override
+  String get interestNature => 'Nature / Plein air';
+
+  @override
+  String get interestCroisiere => 'Croisières fluviales';
+
+  @override
+  String get interestOenotourisme => 'Œnotourisme';
+
+  @override
+  String get prefsUpdated => 'Préférences mises à jour';
+
+  @override
+  String get commonErrorRetry => 'Erreur, réessayez';
+
+  @override
+  String get prefsProfileSubtitle => 'Modifie ton prénom/pseudo et ta photo';
+
+  @override
+  String get prefsMyTownHalls => 'Mes mairies';
+
+  @override
+  String get prefsMyTownHallsSubtitle =>
+      'Recevez les notifications de plusieurs mairies';
+
+  @override
+  String get prefsMyHub => 'Mon Hub';
+
+  @override
+  String get prefsMyHubSubtitle =>
+      'Choisissez votre ville principale pour les événements';
+
+  @override
+  String get prefsInterests => 'Centres d\'intérêt';
+
+  @override
+  String get prefsInterestsSubtitle =>
+      'Sélectionnez vos activités pour des notifications pertinentes. Appuyez sur une catégorie pour affiner vos choix.';
+
+  @override
+  String get prefsNameHint => 'Ex : Carlos';
+
+  @override
+  String get prefsBio => 'Bio';
+
+  @override
+  String get prefsBioHint => 'Quelques mots sur toi (visible sur tes stories)';
+
+  @override
+  String get prefsAddCity => 'Ajouter une ville...';
+
+  @override
+  String get mairieLoading => 'Chargement des actus...';
+
+  @override
+  String get mairieOffline => 'Oups, pas de connexion';
+
+  @override
+  String get mairieLoadError => 'Impossible de charger les notifications';
+
+  @override
+  String get mairieMyCities => 'Mes Villes';
+
+  @override
+  String get mairieNoCity => 'Aucune ville';
+
+  @override
+  String mairieNewsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'actus',
+      one: 'actu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mairieAll => 'Toutes';
+
+  @override
+  String get mairieNoNewsForCity => 'Aucune actu pour cette mairie';
+
+  @override
+  String get mairieNothingNew => 'Rien de neuf !';
+
+  @override
+  String mairieCityNoNews(String city) {
+    return '$city n\'a pas encore publié d\'actualité';
+  }
+
+  @override
+  String get mairieNoNews => 'Aucune actualité pour le moment';
+
+  @override
+  String get mairieWillNotify => 'Tu seras notifié des nouveautés';
+
+  @override
+  String get mairieNew => 'NOUVEAU';
+
+  @override
+  String get timeYesterday => 'Hier';
+
+  @override
+  String get mairieUpdated => 'Mairies mises à jour';
+
+  @override
+  String get mairieManage => 'Gérer mes mairies';
+
+  @override
+  String get mairieManageSubtitle => 'Ajoutez ou retirez les villes suivies';
+
+  @override
+  String get mairieNoneFollowed => 'Aucune mairie suivie pour le moment';
+
+  @override
+  String get offerAt => 'Chez';
+
+  @override
+  String get offerValid => 'Valable';
+
+  @override
+  String get offerNoExpiry => 'Sans date limite';
+
+  @override
+  String offerUntil(String date) {
+    return 'jusqu\'au $date';
+  }
+
+  @override
+  String get offerAvailability => 'Disponibilité';
+
+  @override
+  String get offerUnlimited => 'Illimitées';
+
+  @override
+  String get offerUnlimitedShort => '∞ Illimité';
+
+  @override
+  String get offerValidateFailed => 'Impossible de valider l\'offre';
+
+  @override
+  String get offerGeneratingCode => 'Génération du code...';
+
+  @override
+  String get offerAlreadyUsed => 'DÉJÀ UTILISÉ';
+
+  @override
+  String get offerShowMerchant => 'À PRÉSENTER AU COMMERÇANT';
+
+  @override
+  String get offerCodeCopied => 'Code copié !';
+
+  @override
+  String get offerTapToCopy => 'Appuyez pour copier';
+
+  @override
+  String get offerShowCodeHint =>
+      'Présentez ce code au commerçant pour bénéficier de l\'offre';
+
+  @override
+  String get premiumRestos => 'Restos';
+
+  @override
+  String get premiumBars => 'Bars';
+
+  @override
+  String get premiumWellness => 'Bien-être';
+
+  @override
+  String get premiumTitle => 'Offres premium';
+
+  @override
+  String get premiumPitch =>
+      '3 offres exclusives de plus chaque mois, dans tes catégories préférées.';
+
+  @override
+  String get premiumUnlock => 'Débloquer · 5,90 €/mois';
 }
