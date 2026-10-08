@@ -273,7 +273,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
             _title('Et la soirée ?', 'Après le dîner, dans le même quartier.'),
             _option('🍸', 'Un verre en bar', 'Bar à cocktails, pub, bar de nuit',
                 _night == TripNight.bar, () => setState(() => _night = TripNight.bar)),
-            _option('🪩', 'Bar puis discothèque', 'Pour finir la nuit en club',
+            _option('💃', 'Bar puis discothèque', 'Pour finir la nuit en club',
                 _night == TripNight.barClub,
                 () => setState(() => _night = TripNight.barClub)),
             _option('😴', 'Pas de sortie', null,
@@ -582,7 +582,7 @@ class _StopCard extends StatelessWidget {
     TripStopKind.dinner: '🌙',
     TripStopKind.activity: '🎯',
     TripStopKind.drink: '🍸',
-    TripStopKind.club: '🪩',
+    TripStopKind.club: '💃',
   };
 
   /// « à 5 min à pied » sous 2 km (~80 m/min), sinon la distance en km.
