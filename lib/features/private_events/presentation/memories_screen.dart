@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -44,7 +46,7 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
         elevation: 0,
         iconTheme: IconThemeData(color: AppColors.text),
         title: Text(
-          'Mes souvenirs',
+          context.l10n.accountMemories,
           style: GoogleFonts.geist(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.text),
         ),
       ),
@@ -82,12 +84,11 @@ class _MemoriesScreenState extends State<MemoriesScreen> {
             children: [
               const Icon(Icons.auto_awesome, size: 48, color: AppColors.magenta),
               const SizedBox(height: 12),
-              Text('Pas encore de souvenirs',
+              Text(context.l10n.memNone,
                   style: GoogleFonts.geist(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.text)),
               const SizedBox(height: 6),
               Text(
-                'Tes soirées privées passées (organisées ou où tu étais inscrit) '
-                'apparaîtront ici avec leurs photos.',
+                context.l10n.memNoneHint,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.geist(fontSize: 13, color: AppColors.textDim),
               ),
@@ -101,17 +102,17 @@ class _MemoryCard extends StatelessWidget {
   final PrivateEventMemory memory;
   const _MemoryCard({required this.memory});
 
-  String get _dateLabel {
+  String _dateLabel(BuildContext context) {
     final d = DateTime.tryParse(memory.date);
     if (d == null) return memory.date;
-    return DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(d);
+    return DateFormat('EEEE d MMMM yyyy', context.dateLocale).format(d);
   }
 
   /// Fin de la periode d'ajout de photos (J+7).
-  String? get _openUntil {
+  String? _openUntil(BuildContext context) {
     final d = DateTime.tryParse(memory.date);
     if (d == null || memory.archived) return null;
-    return DateFormat('d MMM', 'fr_FR').format(d.add(const Duration(days: 7)));
+    return DateFormat('d MMM', context.dateLocale).format(d.add(const Duration(days: 7)));
   }
 
   void _openAlbum(BuildContext context, {bool slideshow = false}) => EventAlbumScreen.open(
@@ -153,23 +154,23 @@ class _MemoryCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       _Tag(
-                        m.isHost ? 'Organisateur' : 'Invité',
+                        m.isHost ? context.l10n.pcHost : context.l10n.memGuestRole,
                         m.isHost ? AppColors.magenta : const Color(0xFF00B4D8),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    [_dateLabel, if (m.lieu.isNotEmpty) m.lieu].join(' · '),
+                    [_dateLabel(context), if (m.lieu.isNotEmpty) m.lieu].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.geist(fontSize: 12, color: AppColors.textDim),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${m.photoCount} photo${m.photoCount > 1 ? 's' : ''} · '
-                    '${m.participants} participant${m.participants > 1 ? 's' : ''}'
-                    '${_openUntil != null ? ' · ajout de photos jusqu\'au $_openUntil' : ''}',
+                    '${context.l10n.alPhotoCount(m.photoCount)} · '
+                    '${context.l10n.memParticipants(m.participants)}'
+                    '${_openUntil(context) != null ? ' · ${context.l10n.memAddUntil(_openUntil(context)!)}' : ''}',
                     style: GoogleFonts.geist(fontSize: 11, color: AppColors.textFaint),
                   ),
                 ],
@@ -179,18 +180,18 @@ class _MemoryCard extends StatelessWidget {
               children: [
                 _Action(
                   icon: Icons.play_circle_outline,
-                  label: 'Diaporama',
+                  label: context.l10n.memSlideshow,
                   enabled: m.photoCount > 0,
                   onTap: () => _openAlbum(context, slideshow: true),
                 ),
                 _Action(
                   icon: Icons.photo_library_outlined,
-                  label: 'Album',
+                  label: context.l10n.invAlbum,
                   onTap: () => _openAlbum(context),
                 ),
                 _Action(
                   icon: Icons.forum_outlined,
-                  label: 'Discussion',
+                  label: context.l10n.pvChat,
                   onTap: () => PrivateEventChatScreen.open(
                     context,
                     token: m.accessToken,

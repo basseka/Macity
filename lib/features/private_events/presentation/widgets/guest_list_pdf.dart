@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:pulz_app/l10n/app_localizations.dart';
+import 'package:pulz_app/l10n/app_localizations_fr.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart' show BuildContext, Offset, Rect, RenderBox, ScaffoldMessenger, SnackBar, Text, debugPrint;
@@ -43,10 +46,10 @@ class GuestListPdf {
     return b.toString().replaceAll(RegExp(r'\s{2,}'), ' ').trim();
   }
 
-  static String _eventLine(PrivateEvent e) {
+  static String _eventLine(PrivateEvent e, String locale) {
     final d = DateTime.tryParse(e.date);
     final parts = <String>[
-      if (d != null) DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(d) else e.date,
+      if (d != null) DateFormat('EEEE d MMMM yyyy', locale).format(d) else e.date,
       if (e.heure.isNotEmpty) e.heure,
       if (e.lieu.isNotEmpty) e.lieu,
     ];
@@ -57,8 +60,10 @@ class GuestListPdf {
   static Future<File> build({
     required PrivateEvent event,
     required List<PrivateEventConfirmation> confirmations,
+    AppLocalizations? l10n,
   }) async {
-    final bytes = await buildBytes(event: event, confirmations: confirmations);
+    final bytes = await buildBytes(
+        event: event, confirmations: confirmations, l10n: l10n);
     final dir = await getTemporaryDirectory();
     final slug = _clean(event.title)
         .toLowerCase()
@@ -70,19 +75,24 @@ class GuestListPdf {
   }
 
   /// Contenu du PDF (sans fichier : testable).
+  /// [l10n] = langue de l'organisateur (null = francais, ex. tests).
   static Future<Uint8List> buildBytes({
     required PrivateEvent event,
     required List<PrivateEventConfirmation> confirmations,
+    AppLocalizations? l10n,
   }) async {
+    final t = l10n ?? AppLocalizationsFr();
+    final locale = t.localeName;
     final doc = pw.Document(
-      title: 'Liste des invités - ${_clean(event.title)}',
+      title: '${t.pdfGuestList} - ${_clean(event.title)}',
       author: 'MaCity',
     );
-    final fmtDate = DateFormat("dd/MM/yyyy 'à' HH'h'mm", 'fr_FR');
+    final fmtDate = DateFormat(
+        locale == 'fr' ? "dd/MM/yyyy 'à' HH'h'mm" : 'dd/MM/yyyy HH:mm', locale);
     final n = confirmations.length;
     final summary = event.maxParticipants != null
-        ? '$n confirmé${n > 1 ? 's' : ''} / ${event.maxParticipants} places'
-        : '$n confirmé${n > 1 ? 's' : ''}';
+        ? t.pdfSummaryMax(n, event.maxParticipants!)
+        : t.pdfSummary(n);
 
     pw.Widget sectionTitle(String t) => pw.Padding(
           padding: const pw.EdgeInsets.only(top: 16, bottom: 6),
@@ -113,19 +123,19 @@ class GuestListPdf {
             ? pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('Liste des invités',
+                  pw.Text(t.pdfGuestList,
                       style: pw.TextStyle(fontSize: 11, color: _grey)),
                   pw.SizedBox(height: 2),
                   pw.Text(_clean(event.title),
                       style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 4),
-                  pw.Text(_eventLine(event), style: const pw.TextStyle(fontSize: 11)),
+                  pw.Text(_clean(_eventLine(event, locale)), style: const pw.TextStyle(fontSize: 11)),
                   pw.SizedBox(height: 4),
                   pw.Text(summary,
                       style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: _magenta)),
                   pw.SizedBox(height: 2),
                   pw.Text(
-                    'Généré le ${fmtDate.format(DateTime.now())} avec MaCity',
+                    _clean(t.pdfGenerated(fmtDate.format(DateTime.now()))),
                     style: pw.TextStyle(fontSize: 8, color: _grey),
                   ),
                   pw.Divider(color: PdfColor.fromInt(0xFFDDD6E3)),
@@ -136,7 +146,7 @@ class GuestListPdf {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(
-              'Document confidentiel : données personnelles, à ne pas diffuser au-delà de l\'organisation de la soirée.',
+              _clean(t.pdfConfidential),
               style: pw.TextStyle(fontSize: 7, color: _grey),
             ),
             pw.Text('${ctx.pageNumber} / ${ctx.pagesCount}',
@@ -144,13 +154,21 @@ class GuestListPdf {
           ],
         ),
         build: (ctx) => [
-          sectionTitle('Confirmés ($n)  ·  ordre de confirmation'),
+          sectionTitle(_clean(t.pdfConfirmedSection(n))),
           if (confirmations.isEmpty)
-            pw.Text('Aucune confirmation pour le moment.',
+            pw.Text(_clean(t.pdfNoConfirm),
                 style: pw.TextStyle(fontSize: 10, color: _grey))
           else
             table(
-              ['N°', 'Nom', 'Prénom', 'Âge', 'Téléphone', 'E-mail', 'Confirmé le'],
+              [
+                t.pdfColNumber,
+                t.cfLastName,
+                t.cfFirstName,
+                t.cfAge,
+                t.onboardingFieldPhone,
+                t.cfEmail,
+                t.pdfColConfirmedOn,
+              ].map(_clean).toList(),
               [
                 for (var i = 0; i < n; i++)
                   [
@@ -187,16 +205,19 @@ class GuestListPdf {
       origin = box.localToGlobal(Offset.zero) & box.size;
     }
     try {
-      final file = await build(event: event, confirmations: confirmations);
+      final file = await build(
+          event: event,
+          confirmations: confirmations,
+          l10n: buttonContext.l10n);
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/pdf')],
-        text: 'Liste des invités : ${event.title}',
+        text: buttonContext.l10n.pdfShareText(event.title),
         sharePositionOrigin: origin,
       );
     } catch (e) {
       debugPrint('[guest-list-pdf] $e');
       messenger?.showSnackBar(
-        const SnackBar(content: Text('Export PDF impossible, réessaie')),
+        SnackBar(content: Text(buttonContext.l10n.pdfExportFailed)),
       );
     }
   }

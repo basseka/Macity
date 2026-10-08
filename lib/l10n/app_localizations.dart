@@ -4689,6 +4689,792 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Partage le lien et le code séparément, par message ou WhatsApp.'**
   String get pvShareSeparately;
+
+  /// No description provided for @vaultErrLink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien invalide (format UUID attendu)'**
+  String get vaultErrLink;
+
+  /// No description provided for @vaultErrNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun coffre trouvé avec ce lien'**
+  String get vaultErrNotFound;
+
+  /// No description provided for @vaultErrWrongCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code incorrect'**
+  String get vaultErrWrongCode;
+
+  /// No description provided for @vaultErrPast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet event est passé'**
+  String get vaultErrPast;
+
+  /// No description provided for @vaultErrOpenLimit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce coffre a atteint sa limite d\'ouvertures'**
+  String get vaultErrOpenLimit;
+
+  /// No description provided for @vaultErrInvalidData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donnée invalide'**
+  String get vaultErrInvalidData;
+
+  /// No description provided for @vaultErrProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complète ton profil MaCity pour continuer'**
+  String get vaultErrProfile;
+
+  /// No description provided for @vaultErrDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès refusé'**
+  String get vaultErrDenied;
+
+  /// No description provided for @vaultErrFull.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est complet, plus de place'**
+  String get vaultErrFull;
+
+  /// No description provided for @vaultErrEnded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soirée terminée : consultation seule'**
+  String get vaultErrEnded;
+
+  /// No description provided for @vaultErrComeFirst.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indique d\'abord que tu viens à la soirée'**
+  String get vaultErrComeFirst;
+
+  /// No description provided for @vaultErrNetwork.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur réseau, réessaie'**
+  String get vaultErrNetwork;
+
+  /// No description provided for @vaultOpened.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coffre ouvert'**
+  String get vaultOpened;
+
+  /// No description provided for @vaultTypeLinkCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tape le lien et le code reçus'**
+  String get vaultTypeLinkCode;
+
+  /// No description provided for @vaultHostShared.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'organisateur t\'a partagé un token + un code à 4 chiffres.'**
+  String get vaultHostShared;
+
+  /// No description provided for @vaultLinkToken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien (token)'**
+  String get vaultLinkToken;
+
+  /// No description provided for @vaultPaste.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coller'**
+  String get vaultPaste;
+
+  /// No description provided for @vaultCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code'**
+  String get vaultCode;
+
+  /// No description provided for @vaultOpening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouverture...'**
+  String get vaultOpening;
+
+  /// No description provided for @vaultOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir le coffre'**
+  String get vaultOpen;
+
+  /// No description provided for @vaultAttendanceConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Venue confirmée, l\'organisateur est prévenu'**
+  String get vaultAttendanceConfirmed;
+
+  /// No description provided for @vaultFullShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complet'**
+  String get vaultFullShort;
+
+  /// Places restantes
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 place restante} other{{count} places restantes}}'**
+  String vaultSpotsLeft(int count);
+
+  /// No description provided for @vaultOpenedBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'COFFRE OUVERT'**
+  String get vaultOpenedBadge;
+
+  /// Nombre de venues
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 personne vient} other{{count} personnes viennent}}'**
+  String vaultPeopleComing(int count);
+
+  /// No description provided for @vaultCancelMine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler ma venue'**
+  String get vaultCancelMine;
+
+  /// No description provided for @vaultImComing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je viens'**
+  String get vaultImComing;
+
+  /// No description provided for @vaultConfirmedEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Venue confirmée · modifier'**
+  String get vaultConfirmedEdit;
+
+  /// No description provided for @vaultConfirmMine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer ma venue'**
+  String get vaultConfirmMine;
+
+  /// No description provided for @vaultHostAsksConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'organisateur demande de confirmer ta venue (nom, âge, téléphone…).'**
+  String get vaultHostAsksConfirm;
+
+  /// No description provided for @invNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune invitation'**
+  String get invNone;
+
+  /// No description provided for @invNoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quand tu cliqueras « Je viens » sur un coffre, l\'event apparaîtra ici.'**
+  String get invNoneHint;
+
+  /// No description provided for @invImComingBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'JE VIENS'**
+  String get invImComingBadge;
+
+  /// No description provided for @invCancelTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler ta venue ?'**
+  String get invCancelTitle;
+
+  /// No description provided for @invCancelBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu pourras toujours revenir en cliquant « Je viens » depuis le coffre.'**
+  String get invCancelBody;
+
+  /// No description provided for @invKeep.
+  ///
+  /// In fr, this message translates to:
+  /// **'Garder'**
+  String get invKeep;
+
+  /// No description provided for @invCancelFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'annulation'**
+  String get invCancelFailed;
+
+  /// No description provided for @invAlbum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Album'**
+  String get invAlbum;
+
+  /// No description provided for @invWriteHost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écrire à l\'organisateur'**
+  String get invWriteHost;
+
+  /// No description provided for @invCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Venue annulée'**
+  String get invCancelled;
+
+  /// No description provided for @invNobodyElse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne d\'autre n\'a encore confirmé.'**
+  String get invNobodyElse;
+
+  /// Liste des presents
+  ///
+  /// In fr, this message translates to:
+  /// **'Présents ({count} / {max})'**
+  String invPresentMax(int count, int max);
+
+  /// Liste des presents
+  ///
+  /// In fr, this message translates to:
+  /// **'Présents ({count})'**
+  String invPresent(int count);
+
+  /// No description provided for @invConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé'**
+  String get invConfirmed;
+
+  /// No description provided for @invConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get invConfirm;
+
+  /// Soi-meme dans la liste
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} (moi)'**
+  String invMe(String name);
+
+  /// No description provided for @cfErrName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom et prénom obligatoires'**
+  String get cfErrName;
+
+  /// No description provided for @cfErrEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail invalide'**
+  String get cfErrEmail;
+
+  /// No description provided for @cfErrAge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Âge invalide'**
+  String get cfErrAge;
+
+  /// No description provided for @cfErrPhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro de téléphone invalide'**
+  String get cfErrPhone;
+
+  /// No description provided for @cfSendFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'envoi, réessaie'**
+  String get cfSendFailed;
+
+  /// No description provided for @cfEditMine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier ma confirmation'**
+  String get cfEditMine;
+
+  /// Mention de confidentialite
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour « {title} ». Ces infos sont envoyées uniquement à l\'organisateur et supprimées après la soirée.'**
+  String cfPrivacy(String title);
+
+  /// No description provided for @cfFirstName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prénom'**
+  String get cfFirstName;
+
+  /// No description provided for @cfLastName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom'**
+  String get cfLastName;
+
+  /// No description provided for @cfEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail'**
+  String get cfEmail;
+
+  /// No description provided for @cfAge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Âge'**
+  String get cfAge;
+
+  /// No description provided for @pcErrGuestLeft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette personne n\'est plus inscrite à l\'event : la conversation privée n\'est plus possible.'**
+  String get pcErrGuestLeft;
+
+  /// No description provided for @pcErrYouAreHost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu es l\'organisateur de cet event : écris à tes participants depuis « Mes events privés », bouton 💬 à côté de chacun.'**
+  String get pcErrYouAreHost;
+
+  /// No description provided for @pcErrNotGoing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu n\'es plus inscrit à cet event : fais « Je viens » pour écrire à l\'organisateur.'**
+  String get pcErrNotGoing;
+
+  /// No description provided for @pcErrGone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet event n\'existe plus (supprimé ou passé depuis plus de 7 jours).'**
+  String get pcErrGone;
+
+  /// No description provided for @pcErrNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette discussion n\'est plus accessible.'**
+  String get pcErrNoAccess;
+
+  /// No description provided for @pcErrLoad.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger la discussion. Vérifie ta connexion et réessaie.'**
+  String get pcErrLoad;
+
+  /// No description provided for @pcPhotoSendFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'envoi de la photo'**
+  String get pcPhotoSendFailed;
+
+  /// No description provided for @pcDeleteMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer ce message ?'**
+  String get pcDeleteMessage;
+
+  /// No description provided for @pcCannotDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu ne peux pas supprimer ce message'**
+  String get pcCannotDelete;
+
+  /// No description provided for @pcAlbumTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Album photos'**
+  String get pcAlbumTooltip;
+
+  /// No description provided for @pcGuest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Participant'**
+  String get pcGuest;
+
+  /// No description provided for @pcHost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Organisateur'**
+  String get pcHost;
+
+  /// Sous-titre DM
+  ///
+  /// In fr, this message translates to:
+  /// **'Message privé · {title}'**
+  String pcPrivateMessage(String title);
+
+  /// No description provided for @pcPrivateChat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussion privée'**
+  String get pcPrivateChat;
+
+  /// No description provided for @pcEmptyDmToGuest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écris en privé à ce participant : lui seul verra tes messages.'**
+  String get pcEmptyDmToGuest;
+
+  /// No description provided for @pcEmptyDmToHost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écris en privé à l\'organisateur : lui seul verra tes messages.'**
+  String get pcEmptyDmToHost;
+
+  /// No description provided for @pcEmptyGroup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pose une question à l\'organisateur ou dis bonjour aux autres invités !'**
+  String get pcEmptyGroup;
+
+  /// No description provided for @pcPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo'**
+  String get pcPhoto;
+
+  /// No description provided for @pcCaptionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoute une légende...'**
+  String get pcCaptionHint;
+
+  /// No description provided for @pcMessageHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écris un message...'**
+  String get pcMessageHint;
+
+  /// No description provided for @pcMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moi'**
+  String get pcMe;
+
+  /// No description provided for @alRemovePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer cette photo ?'**
+  String get alRemovePhoto;
+
+  /// No description provided for @alRemoveAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle sera retirée de l\'album et de la discussion pour tout le monde.'**
+  String get alRemoveAll;
+
+  /// No description provided for @alRemoveMine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle sera retirée de l\'album et de la discussion.'**
+  String get alRemoveMine;
+
+  /// No description provided for @alCannotRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu ne peux pas retirer cette photo'**
+  String get alCannotRemove;
+
+  /// No description provided for @alRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo retirée de l\'album'**
+  String get alRemoved;
+
+  /// No description provided for @alLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger l\'album. Vérifie ta connexion.'**
+  String get alLoadError;
+
+  /// No description provided for @alNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet album n\'est pas accessible.'**
+  String get alNoAccess;
+
+  /// No description provided for @alPickMany.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir dans la galerie (plusieurs)'**
+  String get alPickMany;
+
+  /// No description provided for @alProfileRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complète ton profil pour ajouter des photos'**
+  String get alProfileRequired;
+
+  /// No description provided for @alAddRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajout refusé'**
+  String get alAddRefused;
+
+  /// Photos ajoutees
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 photo ajoutée à l\'album} other{{count} photos ajoutées à l\'album}}'**
+  String alAdded(int count);
+
+  /// Ajout partiel
+  ///
+  /// In fr, this message translates to:
+  /// **'{ok} / {total} photos ajoutées, réessaie pour les autres'**
+  String alAddedPartial(int ok, int total);
+
+  /// Enregistrement limite
+  ///
+  /// In fr, this message translates to:
+  /// **'Les {max} premières photos ont été proposées. Enregistre les autres une par une depuis le diaporama.'**
+  String alFirstProposed(int max);
+
+  /// No description provided for @alSaveFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'enregistrer les photos'**
+  String get alSaveFailed;
+
+  /// No description provided for @alTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'📸 Album'**
+  String get alTitle;
+
+  /// No description provided for @alSaveAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout enregistrer'**
+  String get alSaveAll;
+
+  /// Progression envoi
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi {done} / {total}'**
+  String alSending(int done, int total);
+
+  /// No description provided for @alAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get alAdd;
+
+  /// No description provided for @alNoPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de photo'**
+  String get alNoPhoto;
+
+  /// No description provided for @alNoPhotoArchived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne n\'a partagé de photo pendant cette soirée.'**
+  String get alNoPhotoArchived;
+
+  /// No description provided for @alNoPhotoHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoute tes photos ici, ou partage-les dans la discussion : elles apparaissent automatiquement dans l\'album.'**
+  String get alNoPhotoHint;
+
+  /// No description provided for @alAddPhotos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter des photos'**
+  String get alAddPhotos;
+
+  /// No description provided for @alOpenChat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir la discussion'**
+  String get alOpenChat;
+
+  /// Nombre de photos
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String alPhotoCount(int count);
+
+  /// No description provided for @alFrozen.
+  ///
+  /// In fr, this message translates to:
+  /// **'album figé'**
+  String get alFrozen;
+
+  /// No description provided for @alLongPressHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'appui long sur une photo pour la retirer'**
+  String get alLongPressHint;
+
+  /// No description provided for @memNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de souvenirs'**
+  String get memNone;
+
+  /// No description provided for @memNoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes soirées privées passées (organisées ou où tu étais inscrit) apparaîtront ici avec leurs photos.'**
+  String get memNoneHint;
+
+  /// No description provided for @memGuestRole.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invité'**
+  String get memGuestRole;
+
+  /// Participants
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 participant} other{{count} participants}}'**
+  String memParticipants(int count);
+
+  /// Fin d'ajout de photos
+  ///
+  /// In fr, this message translates to:
+  /// **'ajout de photos jusqu\'au {date}'**
+  String memAddUntil(String date);
+
+  /// No description provided for @memSlideshow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaporama'**
+  String get memSlideshow;
+
+  /// No description provided for @ssSaveFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'enregistrer cette photo'**
+  String get ssSaveFailed;
+
+  /// No description provided for @ssPause.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pause'**
+  String get ssPause;
+
+  /// No description provided for @ssPlay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture'**
+  String get ssPlay;
+
+  /// No description provided for @ssRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer de l\'album'**
+  String get ssRemove;
+
+  /// No description provided for @ssSaveShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer / partager'**
+  String get ssSaveShare;
+
+  /// No description provided for @abAlbum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Album photo'**
+  String get abAlbum;
+
+  /// No description provided for @abSeeAlbum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir l\'album'**
+  String get abSeeAlbum;
+
+  /// No description provided for @abFirstPhotos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoute les premières photos de la soirée'**
+  String get abFirstPhotos;
+
+  /// Bouton album
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 photo · diaporama} other{{count} photos · diaporama}}'**
+  String abSlideshowCount(int count);
+
+  /// No description provided for @hostOrganizedBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'ORGANISÉ PAR'**
+  String get hostOrganizedBy;
+
+  /// No description provided for @pdfGuestList.
+  ///
+  /// In fr, this message translates to:
+  /// **'Liste des invités'**
+  String get pdfGuestList;
+
+  /// Resume PDF
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 confirmé / {max} places} other{{count} confirmés / {max} places}}'**
+  String pdfSummaryMax(int count, int max);
+
+  /// Resume PDF
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 confirmé} other{{count} confirmés}}'**
+  String pdfSummary(int count);
+
+  /// Pied de titre PDF
+  ///
+  /// In fr, this message translates to:
+  /// **'Généré le {date} avec MaCity'**
+  String pdfGenerated(String date);
+
+  /// No description provided for @pdfConfidential.
+  ///
+  /// In fr, this message translates to:
+  /// **'Document confidentiel : données personnelles, à ne pas diffuser au-delà de l\'organisation de la soirée.'**
+  String get pdfConfidential;
+
+  /// Section PDF
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmés ({count})  ·  ordre de confirmation'**
+  String pdfConfirmedSection(int count);
+
+  /// No description provided for @pdfNoConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune confirmation pour le moment.'**
+  String get pdfNoConfirm;
+
+  /// No description provided for @pdfColNumber.
+  ///
+  /// In fr, this message translates to:
+  /// **'N°'**
+  String get pdfColNumber;
+
+  /// No description provided for @pdfColConfirmedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmé le'**
+  String get pdfColConfirmedOn;
+
+  /// Texte de partage PDF
+  ///
+  /// In fr, this message translates to:
+  /// **'Liste des invités : {title}'**
+  String pdfShareText(String title);
+
+  /// No description provided for @pdfExportFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export PDF impossible, réessaie'**
+  String get pdfExportFailed;
 }
 
 class _AppLocalizationsDelegate

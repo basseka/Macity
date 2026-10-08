@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 
@@ -42,7 +43,7 @@ class AlbumButton extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      empty ? 'Album photo' : 'Voir l\'album',
+                      empty ? context.l10n.abAlbum : context.l10n.abSeeAlbum,
                       style: GoogleFonts.geist(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -51,8 +52,8 @@ class AlbumButton extends StatelessWidget {
                     ),
                     Text(
                       empty
-                          ? 'Ajoute les premières photos de la soirée'
-                          : '$photoCount photo${photoCount > 1 ? 's' : ''} · diaporama',
+                          ? context.l10n.abFirstPhotos
+                          : context.l10n.abSlideshowCount(photoCount),
                       style: GoogleFonts.geist(fontSize: 11, color: AppColors.textDim),
                     ),
                   ],

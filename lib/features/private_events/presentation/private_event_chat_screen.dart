@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
@@ -201,27 +202,24 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     if (widget.isDm) {
       // Cote hote (inscrit vise) : la personne a annule sa venue.
       if (e.code == PrivateEventError.notGoing && widget.dmWithUserId != null) {
-        return 'Cette personne n\'est plus inscrite à l\'event : '
-            'la conversation privée n\'est plus possible.';
+        return context.l10n.pcErrGuestLeft;
       }
       // Cote « Écrire à l'organisateur » : le serveur renvoie not_going quand
       // c'est l'organisateur lui-meme qui ouvre ce bouton (son propre event).
       if (e.code == PrivateEventError.notGoing) {
-        return 'Tu es l\'organisateur de cet event : écris à tes participants '
-            'depuis « Mes events privés », bouton 💬 à côté de chacun.';
+        return context.l10n.pcErrYouAreHost;
       }
       if (e.code == PrivateEventError.forbidden) {
-        return 'Tu n\'es plus inscrit à cet event : fais « Je viens » '
-            'pour écrire à l\'organisateur.';
+        return context.l10n.pcErrNotGoing;
       }
     }
     if (e.code == PrivateEventError.notFound) {
-      return 'Cet event n\'existe plus (supprimé ou passé depuis plus de 7 jours).';
+      return context.l10n.pcErrGone;
     }
     if (e.code == PrivateEventError.forbidden) {
-      return 'Cette discussion n\'est plus accessible.';
+      return context.l10n.pcErrNoAccess;
     }
-    return 'Impossible de charger la discussion. Vérifie ta connexion et réessaie.';
+    return context.l10n.pcErrLoad;
   }
 
   void _scrollToBottom() {
@@ -255,14 +253,14 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined,
                   color: _ChatColors.text),
-              title: Text('Prendre une photo',
+              title: Text(context.l10n.onboardingTakePhoto,
                   style: GoogleFonts.geist(color: _ChatColors.text)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined,
                   color: _ChatColors.text),
-              title: Text('Choisir dans la galerie',
+              title: Text(context.l10n.onboardingChooseFromGallery,
                   style: GoogleFonts.geist(color: _ChatColors.text)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
@@ -297,7 +295,7 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         _uploadingPhoto = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Echec de l\'envoi de la photo')),
+        SnackBar(content: Text(context.l10n.pcPhotoSendFailed)),
       );
     }
   }
@@ -325,8 +323,8 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     }
     if (raw.isNotEmpty && BadWordsFilter.contains(raw)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Message refuse : langage inapproprie'),
+        SnackBar(
+          content: Text(context.l10n.chatRejected),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -360,11 +358,11 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         _askSignup();
       } else if (e.code == PrivateEventError.archived) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(e.message ?? 'Soirée terminée : consultation seule'),
+          content: Text(e.message ?? context.l10n.vaultErrEnded),
         ));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Echec de l\'envoi, reessaie')),
+          SnackBar(content: Text(context.l10n.cfSendFailed)),
         );
       }
     } finally {
@@ -376,16 +374,16 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer ce message ?'),
+        title: Text(context.l10n.pcDeleteMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Supprimer',
+            child: Text(
+              context.l10n.commonDelete,
               style: TextStyle(color: Colors.red),
             ),
           ),
@@ -404,13 +402,13 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         setState(() => _messages.removeWhere((m) => m.id == msg.id));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tu ne peux pas supprimer ce message')),
+          SnackBar(content: Text(context.l10n.pcCannotDelete)),
         );
       }
     } on PrivateEventException {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Echec de la suppression')),
+        SnackBar(content: Text(context.l10n.commonDeleteFailed)),
       );
     }
   }
@@ -460,7 +458,7 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
         actions: [
           if (!widget.isDm)
             IconButton(
-              tooltip: 'Album photos',
+              tooltip: context.l10n.pcAlbumTooltip,
               onPressed: () => EventAlbumScreen.open(
                 context,
                 token: widget.token,
@@ -476,7 +474,7 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
           children: [
             Text(
               widget.isDm
-                  ? '🔒 ${widget.dmName?.trim().isNotEmpty == true ? widget.dmName!.trim() : (widget.isHost ? 'Participant' : 'Organisateur')}'
+                  ? '🔒 ${widget.dmName?.trim().isNotEmpty == true ? widget.dmName!.trim() : (widget.isHost ? context.l10n.pcGuest : context.l10n.pcHost)}'
                   : widget.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -488,8 +486,8 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
             ),
             Text(
               widget.isDm
-                  ? 'Message privé · ${widget.title}'
-                  : 'Discussion privee',
+                  ? context.l10n.pcPrivateMessage(widget.title)
+                  : context.l10n.pcPrivateChat,
               style: GoogleFonts.geist(
                 fontSize: 11,
                 color: _ChatColors.textFaint,
@@ -530,9 +528,9 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
       return _centerText(
         widget.isDm
             ? (widget.isHost
-                ? 'Écris en privé à ce participant : lui seul verra tes messages.'
-                : 'Écris en privé à l\'organisateur : lui seul verra tes messages.')
-            : 'Pose une question a l\'organisateur ou dis bonjour aux autres invites !',
+                ? context.l10n.pcEmptyDmToGuest
+                : context.l10n.pcEmptyDmToHost)
+            : context.l10n.pcEmptyGroup,
       );
     }
     final iAmHost = _iAmHost;
@@ -585,7 +583,7 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
                 onPressed: _sending || _uploadingPhoto ? null : _pickPhoto,
                 icon: const Icon(Icons.add_photo_alternate_outlined),
                 color: _ChatColors.textDim,
-                tooltip: 'Photo',
+                tooltip: context.l10n.pcPhoto,
               ),
               Expanded(
                 child: TextField(
@@ -599,8 +597,8 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
                   cursorColor: AppColors.magenta,
                   decoration: InputDecoration(
                     hintText: _pendingPhotoPath != null
-                        ? 'Ajoute une legende...'
-                        : 'Ecris un message...',
+                        ? context.l10n.pcCaptionHint
+                        : context.l10n.pcMessageHint,
                     hintStyle: GoogleFonts.geist(
                       fontSize: 13,
                       color: _ChatColors.textFaint,
@@ -752,7 +750,7 @@ class _MessageBubble extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => _openProfile(context),
                       child: Text(
-                        isMine ? 'Moi' : msg.prenom,
+                        isMine ? context.l10n.pcMe : msg.prenom,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.geist(
                           fontSize: 13,
@@ -915,7 +913,7 @@ class _HostBadge extends StatelessWidget {
           const Icon(Icons.star_rounded, size: 11, color: _ChatColors.bg),
           const SizedBox(width: 3),
           Text(
-            'Organisateur',
+            context.l10n.pcHost,
             style: GoogleFonts.geist(
               fontSize: 10,
               fontWeight: FontWeight.w800,

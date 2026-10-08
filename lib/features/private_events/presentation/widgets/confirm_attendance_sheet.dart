@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
@@ -92,16 +93,16 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
   /// Memes regles que la RPC, pour un message immediat sans aller-retour.
   String? _validate() {
     if (_prenomCtrl.text.trim().isEmpty || _nomCtrl.text.trim().isEmpty) {
-      return 'Nom et prénom obligatoires';
+      return context.l10n.cfErrName;
     }
     if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
         .hasMatch(_emailCtrl.text.trim())) {
-      return 'Adresse e-mail invalide';
+      return context.l10n.cfErrEmail;
     }
     final age = int.tryParse(_ageCtrl.text.trim());
-    if (age == null || age < 1 || age > 120) return 'Âge invalide';
+    if (age == null || age < 1 || age > 120) return context.l10n.cfErrAge;
     if (_telCtrl.text.replaceAll(RegExp(r'\D'), '').length < 6) {
-      return 'Numéro de téléphone invalide';
+      return context.l10n.cfErrPhone;
     }
     return null;
   }
@@ -134,8 +135,8 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
       setState(() {
         _busy = false;
         _error = e.code == PrivateEventError.network
-            ? 'Échec de l\'envoi, réessaie'
-            : (e.message ?? 'Échec de l\'envoi, réessaie');
+            ? context.l10n.cfSendFailed
+            : (e.message ?? context.l10n.cfSendFailed);
       });
     }
   }
@@ -180,8 +181,8 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
                       const SizedBox(height: 14),
                       Text(
                         _alreadyConfirmed
-                            ? 'Modifier ma confirmation'
-                            : 'Confirmer ma venue',
+                            ? context.l10n.cfEditMine
+                            : context.l10n.vaultConfirmMine,
                         style: GoogleFonts.geist(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -190,8 +191,7 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Pour « ${widget.eventTitle} ». Ces infos sont envoyées '
-                        'uniquement à l\'organisateur et supprimées après la soirée.',
+                        context.l10n.cfPrivacy(widget.eventTitle),
                         style: GoogleFonts.geist(
                             fontSize: 12, color: AppColors.textDim),
                       ),
@@ -199,16 +199,16 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
                       Row(
                         children: [
                           Expanded(
-                              child: _input('Prénom', _prenomCtrl,
+                              child: _input(context.l10n.cfFirstName, _prenomCtrl,
                                   autofill: AutofillHints.givenName)),
                           const SizedBox(width: 10),
                           Expanded(
-                              child: _input('Nom', _nomCtrl,
+                              child: _input(context.l10n.cfLastName, _nomCtrl,
                                   autofill: AutofillHints.familyName)),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _input('E-mail', _emailCtrl,
+                      _input(context.l10n.cfEmail, _emailCtrl,
                           keyboard: TextInputType.emailAddress,
                           autofill: AutofillHints.email),
                       const SizedBox(height: 12),
@@ -216,7 +216,7 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
                         children: [
                           SizedBox(
                             width: 96,
-                            child: _input('Âge', _ageCtrl,
+                            child: _input(context.l10n.cfAge, _ageCtrl,
                                 keyboard: TextInputType.number,
                                 formatters: [
                                   FilteringTextInputFormatter.digitsOnly,
@@ -225,7 +225,7 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: _input('Téléphone', _telCtrl,
+                            child: _input(context.l10n.onboardingFieldPhone, _telCtrl,
                                 keyboard: TextInputType.phone,
                                 autofill: AutofillHints.telephoneNumber),
                           ),
@@ -261,8 +261,8 @@ class _ConfirmAttendanceSheetState extends State<ConfirmAttendanceSheet> {
                                 )
                               : Text(
                                   _alreadyConfirmed
-                                      ? 'Enregistrer'
-                                      : 'Confirmer ma venue',
+                                      ? context.l10n.commonSave
+                                      : context.l10n.vaultConfirmMine,
                                   style: GoogleFonts.geist(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700),

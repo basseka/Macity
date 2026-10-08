@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -25,7 +26,7 @@ class HostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final prenom = host.prenom?.trim() ?? '';
-    final name = prenom.isNotEmpty ? prenom : 'Organisateur';
+    final name = prenom.isNotEmpty ? prenom : context.l10n.pcHost;
     final ville = host.ville?.trim() ?? '';
     final avatar = host.avatarUrl;
     final hasPhoto = avatar != null && avatar.isNotEmpty;
@@ -73,7 +74,7 @@ class HostCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ORGANISE PAR',
+                    context.l10n.hostOrganizedBy,
                     style: GoogleFonts.geistMono(
                       fontSize: 9,
                       fontWeight: FontWeight.w700,

@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -83,7 +85,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
         backgroundColor: _CoffreColors.bg,
         elevation: 0,
         title: Text(
-          'Mes invitations',
+          context.l10n.accountInvitations,
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -149,7 +151,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
             ),
             const SizedBox(height: 18),
             Text(
-              'Aucune invitation',
+              context.l10n.invNone,
               style: GoogleFonts.geist(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -158,7 +160,7 @@ class _MyInvitationsScreenState extends State<MyInvitationsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Quand tu cliqueras "Je viens" sur un coffre, l\'event apparaitra ici.',
+              context.l10n.invNoneHint,
               textAlign: TextAlign.center,
               style: GoogleFonts.geist(
                 fontSize: 13,
@@ -180,10 +182,10 @@ class _InvitationTile extends StatelessWidget {
   final VoidCallback? onAlbum;
   const _InvitationTile({required this.event, required this.onTap, this.onAlbum});
 
-  String _friendlyDate(String iso) {
+  String _friendlyDate(BuildContext context, String iso) {
     final d = DateTime.tryParse(iso);
     if (d == null) return iso;
-    return DateFormat('EEE d MMM', 'fr_FR').format(d);
+    return DateFormat('EEE d MMM', context.dateLocale).format(d);
   }
 
   @override
@@ -247,7 +249,7 @@ class _InvitationTile extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _friendlyDate(event.date) +
+                          _friendlyDate(context, event.date) +
                               (event.heure.isNotEmpty
                                   ? ' · ${event.heure}'
                                   : ''),
@@ -316,7 +318,7 @@ class _InvitationTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'JE VIENS',
+                      context.l10n.invImComingBadge,
                       style: GoogleFonts.geistMono(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -390,14 +392,14 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
     if (updated == null || !mounted) return;
     setState(() => _rsvps = updated);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Venue confirmée, l\'organisateur est prévenu')),
+      SnackBar(content: Text(context.l10n.vaultAttendanceConfirmed)),
     );
   }
 
   String _friendlyDate(String iso) {
     final d = DateTime.tryParse(iso);
     if (d == null) return iso;
-    return DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(d);
+    return DateFormat('EEEE d MMMM yyyy', context.dateLocale).format(d);
   }
 
   Future<void> _openMaps() async {
@@ -420,22 +422,22 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
       builder: (ctx) => AlertDialog(
         backgroundColor: _CoffreColors.surface,
         title: Text(
-          'Annuler ta venue ?',
+          context.l10n.invCancelTitle,
           style: GoogleFonts.geist(color: _CoffreColors.text),
         ),
         content: Text(
-          'Tu pourras toujours revenir en cliquant "Je viens" depuis le coffre.',
+          context.l10n.invCancelBody,
           style: GoogleFonts.geist(color: _CoffreColors.textDim, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Garder'),
+            child: Text(context.l10n.invKeep),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Annuler ma venue',
+            child: Text(
+              context.l10n.vaultCancelMine,
               style: TextStyle(color: Color(0xFFFF6B6B)),
             ),
           ),
@@ -456,7 +458,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
       if (!mounted) return;
       setState(() => _cancelling = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Echec de l\'annulation')),
+        SnackBar(content: Text(context.l10n.invCancelFailed)),
       );
     }
   }
@@ -508,7 +510,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                         icon: Icon(Icons.close,
                             size: 20, color: _CoffreColors.textDim),
                         onPressed: () => Navigator.of(context).pop(),
-                        tooltip: 'Fermer',
+                        tooltip: context.l10n.commonClose,
                       ),
                     ),
                   ],
@@ -607,7 +609,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                                         icon: const Icon(Icons.map_outlined,
                                             size: 18),
                                         label: Text(
-                                          'Itineraire',
+                                          context.l10n.mapDirections,
                                           style: GoogleFonts.geist(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
@@ -670,7 +672,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                   ),
                   icon: const Icon(Icons.forum_outlined, size: 18),
                   label: Text(
-                    'Discussion',
+                    context.l10n.pvChat,
                     style: GoogleFonts.geist(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -696,7 +698,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                     ),
                     icon: const Icon(Icons.photo_library_outlined, size: 18),
                     label: Text(
-                      'Album',
+                      context.l10n.invAlbum,
                       style: GoogleFonts.geist(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -724,7 +726,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                       ),
                       icon: const Icon(Icons.lock_outline, size: 18),
                       label: Text(
-                        'Écrire à l\'organisateur',
+                        context.l10n.invWriteHost,
                         style: GoogleFonts.geist(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -773,7 +775,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                           size: 18,
                         ),
                   label: Text(
-                    _cancelled ? 'Venue annulee' : 'Annuler ma venue',
+                    _cancelled ? context.l10n.invCancelled : context.l10n.vaultCancelMine,
                     style: GoogleFonts.geist(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -832,7 +834,7 @@ class _GuestsBlock extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.card),
         ),
         child: Text(
-          'Personne d\'autre n\'a encore confirme.',
+          context.l10n.invNobodyElse,
           style: GoogleFonts.geist(
             fontSize: 12,
             color: _CoffreColors.textFaint,
@@ -846,8 +848,8 @@ class _GuestsBlock extends StatelessWidget {
       children: [
         Text(
           maxParticipants != null
-              ? 'Presents (${rsvps.length} / $maxParticipants)'
-              : 'Presents (${rsvps.length})',
+              ? context.l10n.invPresentMax(rsvps.length, maxParticipants!)
+              : context.l10n.invPresent(rsvps.length),
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -887,7 +889,7 @@ class _GuestRow extends StatelessWidget {
   /// A droite du pseudo : bouton « Confirmer » (moi, pas encore confirme),
   /// « Confirmé » cliquable pour corriger (moi, confirme), coche verte (un
   /// autre participant confirme), coche simple sinon.
-  Widget _trailing() {
+  Widget _trailing(BuildContext context) {
     if (confirmationRequise && isMe) {
       final done = rsvp.confirmed;
       return SizedBox(
@@ -904,7 +906,7 @@ class _GuestRow extends StatelessWidget {
           ),
           icon: Icon(done ? Icons.verified : Icons.how_to_reg, size: 15),
           label: Text(
-            done ? 'Confirmé' : 'Confirmer',
+            done ? context.l10n.invConfirmed : context.l10n.invConfirm,
             style: GoogleFonts.geist(fontSize: 12, fontWeight: FontWeight.w700),
           ),
         ),
@@ -959,8 +961,9 @@ class _GuestRow extends StatelessWidget {
           Expanded(
             child: Text(
               isMe
-                  ? '${prenom.isNotEmpty ? prenom : 'Anonyme'} (moi)'
-                  : (prenom.isNotEmpty ? prenom : 'Anonyme'),
+                  ? context.l10n.invMe(
+                      prenom.isNotEmpty ? prenom : context.l10n.storyAnonymous)
+                  : (prenom.isNotEmpty ? prenom : context.l10n.storyAnonymous),
               style: GoogleFonts.geist(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -968,7 +971,7 @@ class _GuestRow extends StatelessWidget {
               ),
             ),
           ),
-          _trailing(),
+          _trailing(context),
         ],
       ),
       ),

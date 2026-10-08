@@ -2539,4 +2539,504 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get pvShareSeparately =>
       'Comparte el enlace y el código por separado, por mensaje o WhatsApp.';
+
+  @override
+  String get vaultErrLink => 'Enlace no válido (se espera formato UUID)';
+
+  @override
+  String get vaultErrNotFound => 'No hay ningún cofre con este enlace';
+
+  @override
+  String get vaultErrWrongCode => 'Código incorrecto';
+
+  @override
+  String get vaultErrPast => 'Este evento ya pasó';
+
+  @override
+  String get vaultErrOpenLimit =>
+      'Este cofre ha alcanzado su límite de aperturas';
+
+  @override
+  String get vaultErrInvalidData => 'Dato no válido';
+
+  @override
+  String get vaultErrProfile => 'Completa tu perfil de MaCity para continuar';
+
+  @override
+  String get vaultErrDenied => 'Acceso denegado';
+
+  @override
+  String get vaultErrFull => 'Está completo, no quedan plazas';
+
+  @override
+  String get vaultErrEnded => 'Evento terminado: solo consulta';
+
+  @override
+  String get vaultErrComeFirst => 'Primero indica que vas al evento';
+
+  @override
+  String get vaultErrNetwork => 'Error de red, inténtalo de nuevo';
+
+  @override
+  String get vaultOpened => 'Cofre abierto';
+
+  @override
+  String get vaultTypeLinkCode => 'Introduce el enlace y el código recibidos';
+
+  @override
+  String get vaultHostShared =>
+      'El organizador te ha compartido un token + un código de 4 cifras.';
+
+  @override
+  String get vaultLinkToken => 'Enlace (token)';
+
+  @override
+  String get vaultPaste => 'Pegar';
+
+  @override
+  String get vaultCode => 'Código';
+
+  @override
+  String get vaultOpening => 'Abriendo...';
+
+  @override
+  String get vaultOpen => 'Abrir el cofre';
+
+  @override
+  String get vaultAttendanceConfirmed =>
+      'Asistencia confirmada, el organizador ha sido avisado';
+
+  @override
+  String get vaultFullShort => 'Completo';
+
+  @override
+  String vaultSpotsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plazas libres',
+      one: '1 plaza libre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaultOpenedBadge => 'COFRE ABIERTO';
+
+  @override
+  String vaultPeopleComing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personas van',
+      one: '1 persona va',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaultCancelMine => 'Cancelar mi asistencia';
+
+  @override
+  String get vaultImComing => 'Voy';
+
+  @override
+  String get vaultConfirmedEdit => 'Asistencia confirmada · editar';
+
+  @override
+  String get vaultConfirmMine => 'Confirmar mi asistencia';
+
+  @override
+  String get vaultHostAsksConfirm =>
+      'El organizador te pide confirmar tu asistencia (nombre, edad, teléfono…).';
+
+  @override
+  String get invNone => 'Ninguna invitación';
+
+  @override
+  String get invNoneHint =>
+      'Cuando pulses «Voy» en un cofre, el evento aparecerá aquí.';
+
+  @override
+  String get invImComingBadge => 'VOY';
+
+  @override
+  String get invCancelTitle => '¿Cancelar tu asistencia?';
+
+  @override
+  String get invCancelBody =>
+      'Siempre puedes volver pulsando «Voy» desde el cofre.';
+
+  @override
+  String get invKeep => 'Mantener';
+
+  @override
+  String get invCancelFailed => 'No se pudo cancelar';
+
+  @override
+  String get invAlbum => 'Álbum';
+
+  @override
+  String get invWriteHost => 'Escribir al organizador';
+
+  @override
+  String get invCancelled => 'Asistencia cancelada';
+
+  @override
+  String get invNobodyElse => 'Nadie más ha confirmado todavía.';
+
+  @override
+  String invPresentMax(int count, int max) {
+    return 'Asistentes ($count / $max)';
+  }
+
+  @override
+  String invPresent(int count) {
+    return 'Asistentes ($count)';
+  }
+
+  @override
+  String get invConfirmed => 'Confirmado';
+
+  @override
+  String get invConfirm => 'Confirmar';
+
+  @override
+  String invMe(String name) {
+    return '$name (yo)';
+  }
+
+  @override
+  String get cfErrName => 'Nombre y apellidos obligatorios';
+
+  @override
+  String get cfErrEmail => 'Email no válido';
+
+  @override
+  String get cfErrAge => 'Edad no válida';
+
+  @override
+  String get cfErrPhone => 'Número de teléfono no válido';
+
+  @override
+  String get cfSendFailed => 'Error al enviar, inténtalo de nuevo';
+
+  @override
+  String get cfEditMine => 'Editar mi confirmación';
+
+  @override
+  String cfPrivacy(String title) {
+    return 'Para «$title». Estos datos solo se envían al organizador y se borran después del evento.';
+  }
+
+  @override
+  String get cfFirstName => 'Nombre';
+
+  @override
+  String get cfLastName => 'Apellidos';
+
+  @override
+  String get cfEmail => 'Email';
+
+  @override
+  String get cfAge => 'Edad';
+
+  @override
+  String get pcErrGuestLeft =>
+      'Esta persona ya no está apuntada: la conversación privada ya no es posible.';
+
+  @override
+  String get pcErrYouAreHost =>
+      'Eres el organizador de este evento: escribe a tus invitados desde «Mis eventos privados», botón 💬 junto a cada uno.';
+
+  @override
+  String get pcErrNotGoing =>
+      'Ya no estás apuntado: pulsa «Voy» para escribir al organizador.';
+
+  @override
+  String get pcErrGone =>
+      'Este evento ya no existe (eliminado o terminado hace más de 7 días).';
+
+  @override
+  String get pcErrNoAccess => 'Esta conversación ya no está disponible.';
+
+  @override
+  String get pcErrLoad =>
+      'No se puede cargar la conversación. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get pcPhotoSendFailed => 'Error al enviar la foto';
+
+  @override
+  String get pcDeleteMessage => '¿Eliminar este mensaje?';
+
+  @override
+  String get pcCannotDelete => 'No puedes eliminar este mensaje';
+
+  @override
+  String get pcAlbumTooltip => 'Álbum de fotos';
+
+  @override
+  String get pcGuest => 'Invitado';
+
+  @override
+  String get pcHost => 'Organizador';
+
+  @override
+  String pcPrivateMessage(String title) {
+    return 'Mensaje privado · $title';
+  }
+
+  @override
+  String get pcPrivateChat => 'Conversación privada';
+
+  @override
+  String get pcEmptyDmToGuest =>
+      'Escribe en privado a este invitado: solo él verá tus mensajes.';
+
+  @override
+  String get pcEmptyDmToHost =>
+      'Escribe en privado al organizador: solo él verá tus mensajes.';
+
+  @override
+  String get pcEmptyGroup =>
+      '¡Haz una pregunta al organizador o saluda a los demás invitados!';
+
+  @override
+  String get pcPhoto => 'Foto';
+
+  @override
+  String get pcCaptionHint => 'Añade un pie de foto...';
+
+  @override
+  String get pcMessageHint => 'Escribe un mensaje...';
+
+  @override
+  String get pcMe => 'Yo';
+
+  @override
+  String get alRemovePhoto => '¿Quitar esta foto?';
+
+  @override
+  String get alRemoveAll =>
+      'Se quitará del álbum y de la conversación para todos.';
+
+  @override
+  String get alRemoveMine => 'Se quitará del álbum y de la conversación.';
+
+  @override
+  String get alCannotRemove => 'No puedes quitar esta foto';
+
+  @override
+  String get alRemoved => 'Foto quitada del álbum';
+
+  @override
+  String get alLoadError => 'No se puede cargar el álbum. Revisa tu conexión.';
+
+  @override
+  String get alNoAccess => 'Este álbum no está disponible.';
+
+  @override
+  String get alPickMany => 'Elegir de la galería (varias)';
+
+  @override
+  String get alProfileRequired => 'Completa tu perfil para añadir fotos';
+
+  @override
+  String get alAddRefused => 'Subida rechazada';
+
+  @override
+  String alAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos añadidas al álbum',
+      one: '1 foto añadida al álbum',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String alAddedPartial(int ok, int total) {
+    return '$ok / $total fotos añadidas, inténtalo de nuevo con las demás';
+  }
+
+  @override
+  String alFirstProposed(int max) {
+    return 'Se han propuesto las $max primeras fotos. Guarda las demás una a una desde el pase de diapositivas.';
+  }
+
+  @override
+  String get alSaveFailed => 'No se pueden guardar las fotos';
+
+  @override
+  String get alTitle => '📸 Álbum';
+
+  @override
+  String get alSaveAll => 'Guardar todo';
+
+  @override
+  String alSending(int done, int total) {
+    return 'Enviando $done / $total';
+  }
+
+  @override
+  String get alAdd => 'Añadir';
+
+  @override
+  String get alNoPhoto => 'Aún no hay fotos';
+
+  @override
+  String get alNoPhotoArchived => 'Nadie compartió fotos durante este evento.';
+
+  @override
+  String get alNoPhotoHint =>
+      'Añade tus fotos aquí o compártelas en la conversación: aparecen en el álbum automáticamente.';
+
+  @override
+  String get alAddPhotos => 'Añadir fotos';
+
+  @override
+  String get alOpenChat => 'Abrir la conversación';
+
+  @override
+  String alPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '1 foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get alFrozen => 'álbum cerrado';
+
+  @override
+  String get alLongPressHint => 'mantén pulsada una foto para quitarla';
+
+  @override
+  String get memNone => 'Aún no hay recuerdos';
+
+  @override
+  String get memNoneHint =>
+      'Tus eventos privados pasados (organizados o a los que te apuntaste) aparecerán aquí con sus fotos.';
+
+  @override
+  String get memGuestRole => 'Invitado';
+
+  @override
+  String memParticipants(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count participantes',
+      one: '1 participante',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String memAddUntil(String date) {
+    return 'se pueden añadir fotos hasta el $date';
+  }
+
+  @override
+  String get memSlideshow => 'Diapositivas';
+
+  @override
+  String get ssSaveFailed => 'No se puede guardar esta foto';
+
+  @override
+  String get ssPause => 'Pausa';
+
+  @override
+  String get ssPlay => 'Reproducir';
+
+  @override
+  String get ssRemove => 'Quitar del álbum';
+
+  @override
+  String get ssSaveShare => 'Guardar / compartir';
+
+  @override
+  String get abAlbum => 'Álbum de fotos';
+
+  @override
+  String get abSeeAlbum => 'Ver el álbum';
+
+  @override
+  String get abFirstPhotos => 'Añade las primeras fotos del evento';
+
+  @override
+  String abSlideshowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos · diapositivas',
+      one: '1 foto · diapositivas',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hostOrganizedBy => 'ORGANIZADO POR';
+
+  @override
+  String get pdfGuestList => 'Lista de invitados';
+
+  @override
+  String pdfSummaryMax(int count, int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count confirmados / $max plazas',
+      one: '1 confirmado / $max plazas',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdfSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count confirmados',
+      one: '1 confirmado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdfGenerated(String date) {
+    return 'Generado el $date con MaCity';
+  }
+
+  @override
+  String get pdfConfidential =>
+      'Documento confidencial: datos personales, no difundir más allá de la organización del evento.';
+
+  @override
+  String pdfConfirmedSection(int count) {
+    return 'Confirmados ($count)  ·  por orden de confirmación';
+  }
+
+  @override
+  String get pdfNoConfirm => 'Aún no hay confirmaciones.';
+
+  @override
+  String get pdfColNumber => 'N.º';
+
+  @override
+  String get pdfColConfirmedOn => 'Confirmado el';
+
+  @override
+  String pdfShareText(String title) {
+    return 'Lista de invitados: $title';
+  }
+
+  @override
+  String get pdfExportFailed =>
+      'No se pudo exportar el PDF, inténtalo de nuevo';
 }

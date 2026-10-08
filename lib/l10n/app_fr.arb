@@ -1208,5 +1208,308 @@
   "pvSharePreparing": "Préparation du partage…",
   "pvShareFailed": "Partage impossible, réessaie",
   "pvVaultCreated": "Coffre créé !",
-  "pvShareSeparately": "Partage le lien et le code séparément, par message ou WhatsApp."
+  "pvShareSeparately": "Partage le lien et le code séparément, par message ou WhatsApp.",
+  "vaultErrLink": "Lien invalide (format UUID attendu)",
+  "vaultErrNotFound": "Aucun coffre trouvé avec ce lien",
+  "vaultErrWrongCode": "Code incorrect",
+  "vaultErrPast": "Cet event est passé",
+  "vaultErrOpenLimit": "Ce coffre a atteint sa limite d'ouvertures",
+  "vaultErrInvalidData": "Donnée invalide",
+  "vaultErrProfile": "Complète ton profil MaCity pour continuer",
+  "vaultErrDenied": "Accès refusé",
+  "vaultErrFull": "C'est complet, plus de place",
+  "vaultErrEnded": "Soirée terminée : consultation seule",
+  "vaultErrComeFirst": "Indique d'abord que tu viens à la soirée",
+  "vaultErrNetwork": "Erreur réseau, réessaie",
+  "vaultOpened": "Coffre ouvert",
+  "vaultTypeLinkCode": "Tape le lien et le code reçus",
+  "vaultHostShared": "L'organisateur t'a partagé un token + un code à 4 chiffres.",
+  "vaultLinkToken": "Lien (token)",
+  "vaultPaste": "Coller",
+  "vaultCode": "Code",
+  "vaultOpening": "Ouverture...",
+  "vaultOpen": "Ouvrir le coffre",
+  "vaultAttendanceConfirmed": "Venue confirmée, l'organisateur est prévenu",
+  "vaultFullShort": "Complet",
+  "vaultSpotsLeft": "{count, plural, =1{1 place restante} other{{count} places restantes}}",
+  "@vaultSpotsLeft": {
+    "description": "Places restantes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultOpenedBadge": "COFFRE OUVERT",
+  "vaultPeopleComing": "{count, plural, =1{1 personne vient} other{{count} personnes viennent}}",
+  "@vaultPeopleComing": {
+    "description": "Nombre de venues",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "vaultCancelMine": "Annuler ma venue",
+  "vaultImComing": "Je viens",
+  "vaultConfirmedEdit": "Venue confirmée · modifier",
+  "vaultConfirmMine": "Confirmer ma venue",
+  "vaultHostAsksConfirm": "L'organisateur demande de confirmer ta venue (nom, âge, téléphone…).",
+  "invNone": "Aucune invitation",
+  "invNoneHint": "Quand tu cliqueras « Je viens » sur un coffre, l'event apparaîtra ici.",
+  "invImComingBadge": "JE VIENS",
+  "invCancelTitle": "Annuler ta venue ?",
+  "invCancelBody": "Tu pourras toujours revenir en cliquant « Je viens » depuis le coffre.",
+  "invKeep": "Garder",
+  "invCancelFailed": "Échec de l'annulation",
+  "invAlbum": "Album",
+  "invWriteHost": "Écrire à l'organisateur",
+  "invCancelled": "Venue annulée",
+  "invNobodyElse": "Personne d'autre n'a encore confirmé.",
+  "invPresentMax": "Présents ({count} / {max})",
+  "@invPresentMax": {
+    "description": "Liste des presents",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "invPresent": "Présents ({count})",
+  "@invPresent": {
+    "description": "Liste des presents",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "invConfirmed": "Confirmé",
+  "invConfirm": "Confirmer",
+  "invMe": "{name} (moi)",
+  "@invMe": {
+    "description": "Soi-meme dans la liste",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cfErrName": "Nom et prénom obligatoires",
+  "cfErrEmail": "Adresse e-mail invalide",
+  "cfErrAge": "Âge invalide",
+  "cfErrPhone": "Numéro de téléphone invalide",
+  "cfSendFailed": "Échec de l'envoi, réessaie",
+  "cfEditMine": "Modifier ma confirmation",
+  "cfPrivacy": "Pour « {title} ». Ces infos sont envoyées uniquement à l'organisateur et supprimées après la soirée.",
+  "@cfPrivacy": {
+    "description": "Mention de confidentialite",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "cfFirstName": "Prénom",
+  "cfLastName": "Nom",
+  "cfEmail": "E-mail",
+  "cfAge": "Âge",
+  "pcErrGuestLeft": "Cette personne n'est plus inscrite à l'event : la conversation privée n'est plus possible.",
+  "pcErrYouAreHost": "Tu es l'organisateur de cet event : écris à tes participants depuis « Mes events privés », bouton 💬 à côté de chacun.",
+  "pcErrNotGoing": "Tu n'es plus inscrit à cet event : fais « Je viens » pour écrire à l'organisateur.",
+  "pcErrGone": "Cet event n'existe plus (supprimé ou passé depuis plus de 7 jours).",
+  "pcErrNoAccess": "Cette discussion n'est plus accessible.",
+  "pcErrLoad": "Impossible de charger la discussion. Vérifie ta connexion et réessaie.",
+  "pcPhotoSendFailed": "Échec de l'envoi de la photo",
+  "pcDeleteMessage": "Supprimer ce message ?",
+  "pcCannotDelete": "Tu ne peux pas supprimer ce message",
+  "pcAlbumTooltip": "Album photos",
+  "pcGuest": "Participant",
+  "pcHost": "Organisateur",
+  "pcPrivateMessage": "Message privé · {title}",
+  "@pcPrivateMessage": {
+    "description": "Sous-titre DM",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pcPrivateChat": "Discussion privée",
+  "pcEmptyDmToGuest": "Écris en privé à ce participant : lui seul verra tes messages.",
+  "pcEmptyDmToHost": "Écris en privé à l'organisateur : lui seul verra tes messages.",
+  "pcEmptyGroup": "Pose une question à l'organisateur ou dis bonjour aux autres invités !",
+  "pcPhoto": "Photo",
+  "pcCaptionHint": "Ajoute une légende...",
+  "pcMessageHint": "Écris un message...",
+  "pcMe": "Moi",
+  "alRemovePhoto": "Retirer cette photo ?",
+  "alRemoveAll": "Elle sera retirée de l'album et de la discussion pour tout le monde.",
+  "alRemoveMine": "Elle sera retirée de l'album et de la discussion.",
+  "alCannotRemove": "Tu ne peux pas retirer cette photo",
+  "alRemoved": "Photo retirée de l'album",
+  "alLoadError": "Impossible de charger l'album. Vérifie ta connexion.",
+  "alNoAccess": "Cet album n'est pas accessible.",
+  "alPickMany": "Choisir dans la galerie (plusieurs)",
+  "alProfileRequired": "Complète ton profil pour ajouter des photos",
+  "alAddRefused": "Ajout refusé",
+  "alAdded": "{count, plural, =1{1 photo ajoutée à l'album} other{{count} photos ajoutées à l'album}}",
+  "@alAdded": {
+    "description": "Photos ajoutees",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alAddedPartial": "{ok} / {total} photos ajoutées, réessaie pour les autres",
+  "@alAddedPartial": {
+    "description": "Ajout partiel",
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "alFirstProposed": "Les {max} premières photos ont été proposées. Enregistre les autres une par une depuis le diaporama.",
+  "@alFirstProposed": {
+    "description": "Enregistrement limite",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "alSaveFailed": "Impossible d'enregistrer les photos",
+  "alTitle": "📸 Album",
+  "alSaveAll": "Tout enregistrer",
+  "alSending": "Envoi {done} / {total}",
+  "@alSending": {
+    "description": "Progression envoi",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "alAdd": "Ajouter",
+  "alNoPhoto": "Pas encore de photo",
+  "alNoPhotoArchived": "Personne n'a partagé de photo pendant cette soirée.",
+  "alNoPhotoHint": "Ajoute tes photos ici, ou partage-les dans la discussion : elles apparaissent automatiquement dans l'album.",
+  "alAddPhotos": "Ajouter des photos",
+  "alOpenChat": "Ouvrir la discussion",
+  "alPhotoCount": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "@alPhotoCount": {
+    "description": "Nombre de photos",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alFrozen": "album figé",
+  "alLongPressHint": "appui long sur une photo pour la retirer",
+  "memNone": "Pas encore de souvenirs",
+  "memNoneHint": "Tes soirées privées passées (organisées ou où tu étais inscrit) apparaîtront ici avec leurs photos.",
+  "memGuestRole": "Invité",
+  "memParticipants": "{count, plural, =1{1 participant} other{{count} participants}}",
+  "@memParticipants": {
+    "description": "Participants",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "memAddUntil": "ajout de photos jusqu'au {date}",
+  "@memAddUntil": {
+    "description": "Fin d'ajout de photos",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "memSlideshow": "Diaporama",
+  "ssSaveFailed": "Impossible d'enregistrer cette photo",
+  "ssPause": "Pause",
+  "ssPlay": "Lecture",
+  "ssRemove": "Retirer de l'album",
+  "ssSaveShare": "Enregistrer / partager",
+  "abAlbum": "Album photo",
+  "abSeeAlbum": "Voir l'album",
+  "abFirstPhotos": "Ajoute les premières photos de la soirée",
+  "abSlideshowCount": "{count, plural, =1{1 photo · diaporama} other{{count} photos · diaporama}}",
+  "@abSlideshowCount": {
+    "description": "Bouton album",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hostOrganizedBy": "ORGANISÉ PAR",
+  "pdfGuestList": "Liste des invités",
+  "pdfSummaryMax": "{count, plural, =1{1 confirmé / {max} places} other{{count} confirmés / {max} places}}",
+  "@pdfSummaryMax": {
+    "description": "Resume PDF",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfSummary": "{count, plural, =1{1 confirmé} other{{count} confirmés}}",
+  "@pdfSummary": {
+    "description": "Resume PDF",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfGenerated": "Généré le {date} avec MaCity",
+  "@pdfGenerated": {
+    "description": "Pied de titre PDF",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfConfidential": "Document confidentiel : données personnelles, à ne pas diffuser au-delà de l'organisation de la soirée.",
+  "pdfConfirmedSection": "Confirmés ({count})  ·  ordre de confirmation",
+  "@pdfConfirmedSection": {
+    "description": "Section PDF",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pdfNoConfirm": "Aucune confirmation pour le moment.",
+  "pdfColNumber": "N°",
+  "pdfColConfirmedOn": "Confirmé le",
+  "pdfShareText": "Liste des invités : {title}",
+  "@pdfShareText": {
+    "description": "Texte de partage PDF",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pdfExportFailed": "Export PDF impossible, réessaie"
 }

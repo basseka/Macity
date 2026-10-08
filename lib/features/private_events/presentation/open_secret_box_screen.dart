@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -122,12 +124,12 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
   Future<void> _open() async {
     final token = _tokenCtrl.text.trim().toLowerCase();
     if (!_uuidRegex.hasMatch(token)) {
-      setState(() => _error = 'Lien invalide (format UUID attendu)');
+      setState(() => _error = context.l10n.vaultErrLink);
       return;
     }
     final code = _passcodeCtrl.text.trim();
     if (code.length != 4 || int.tryParse(code) == null) {
-      setState(() => _error = 'Le code doit faire 4 chiffres');
+      setState(() => _error = context.l10n.pvErrCode);
       return;
     }
     setState(() {
@@ -159,27 +161,27 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
   String _humanizeError(PrivateEventException e) {
     switch (e.code) {
       case PrivateEventError.notFound:
-        return 'Aucun coffre trouve avec ce lien';
+        return context.l10n.vaultErrNotFound;
       case PrivateEventError.wrongPasscode:
-        return 'Code incorrect';
+        return context.l10n.vaultErrWrongCode;
       case PrivateEventError.expired:
-        return 'Cet event est passé';
+        return context.l10n.vaultErrPast;
       case PrivateEventError.quotaExceeded:
-        return 'Ce coffre a atteint sa limite d\'ouvertures';
+        return context.l10n.vaultErrOpenLimit;
       case PrivateEventError.invalidInput:
-        return e.message ?? 'Donnee invalide';
+        return e.message ?? context.l10n.vaultErrInvalidData;
       case PrivateEventError.profileRequired:
-        return 'Complete ton profil MaCity pour continuer';
+        return context.l10n.vaultErrProfile;
       case PrivateEventError.forbidden:
-        return e.message ?? 'Acces refuse';
+        return e.message ?? context.l10n.vaultErrDenied;
       case PrivateEventError.full:
-        return 'C\'est complet, plus de place';
+        return context.l10n.vaultErrFull;
       case PrivateEventError.archived:
-        return e.message ?? 'Soirée terminée : consultation seule';
+        return e.message ?? context.l10n.vaultErrEnded;
       case PrivateEventError.notGoing:
-        return e.message ?? 'Indique d\'abord que tu viens à la soirée';
+        return e.message ?? context.l10n.vaultErrComeFirst;
       case PrivateEventError.network:
-        return 'Erreur reseau, reessaie';
+        return context.l10n.vaultErrNetwork;
     }
   }
 
@@ -206,7 +208,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
           },
         ),
         title: Text(
-          _revealed != null ? 'Coffre ouvert' : 'Ouvrir un coffre',
+          _revealed != null ? context.l10n.vaultOpened : context.l10n.accountOpenVault,
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -272,7 +274,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
         ),
         const SizedBox(height: 22),
         Text(
-          'Tape le lien et le code recus',
+          context.l10n.vaultTypeLinkCode,
           textAlign: TextAlign.center,
           style: GoogleFonts.geist(
             fontSize: 14,
@@ -282,7 +284,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
         ),
         const SizedBox(height: 4),
         Text(
-          'L\'organisateur t\'a partage un token + un code 4 chiffres.',
+          context.l10n.vaultHostShared,
           textAlign: TextAlign.center,
           style: GoogleFonts.geist(fontSize: 12, color: _CoffreColors.textDim),
         ),
@@ -290,7 +292,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
 
         // Token
         Text(
-          'Lien (token)',
+          context.l10n.vaultLinkToken,
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -340,7 +342,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
               child: IconButton(
                 onPressed: _pasteToken,
                 icon: const Icon(Icons.content_paste, size: 18),
-                tooltip: 'Coller',
+                tooltip: context.l10n.vaultPaste,
                 color: AppColors.magenta,
               ),
             ),
@@ -350,7 +352,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
 
         // Passcode
         Text(
-          'Code',
+          context.l10n.vaultCode,
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -421,7 +423,7 @@ class _OpenSecretBoxScreenState extends State<OpenSecretBoxScreen>
             onPressed: _busy ? null : _open,
             icon: const Icon(Icons.lock_open, size: 20),
             label: Text(
-              _busy ? 'Ouverture...' : 'Ouvrir le coffre',
+              _busy ? context.l10n.vaultOpening : context.l10n.vaultOpen,
               style: GoogleFonts.geist(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -516,7 +518,7 @@ class _RevealViewState extends State<_RevealView> {
     if (updated == null || !mounted) return;
     setState(() => _rsvps = updated);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Venue confirmée, l\'organisateur est prévenu')),
+      SnackBar(content: Text(context.l10n.vaultAttendanceConfirmed)),
     );
   }
 
@@ -554,7 +556,7 @@ class _RevealViewState extends State<_RevealView> {
       }
       if (e is PrivateEventException && e.code == PrivateEventError.full) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('C\'est complet, plus de place')),
+          SnackBar(content: Text(context.l10n.vaultErrFull)),
         );
         return;
       }
@@ -568,7 +570,7 @@ class _RevealViewState extends State<_RevealView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Echec, reessaie')),
+        SnackBar(content: Text(context.l10n.commonFailedRetry)),
       );
     }
   }
@@ -578,14 +580,14 @@ class _RevealViewState extends State<_RevealView> {
     final max = widget.event.maxParticipants;
     if (max == null) return '';
     final left = max - _rsvps.length;
-    if (left <= 0) return ' · Complet';
-    return ' · $left place${left > 1 ? 's' : ''} restante${left > 1 ? 's' : ''}';
+    if (left <= 0) return ' · ${context.l10n.vaultFullShort}';
+    return ' · ${context.l10n.vaultSpotsLeft(left)}';
   }
 
   String _friendlyDate() {
     final d = DateTime.tryParse(widget.event.date);
     if (d == null) return widget.event.date;
-    return DateFormat('EEEE d MMMM yyyy', 'fr_FR').format(d);
+    return DateFormat('EEEE d MMMM yyyy', context.dateLocale).format(d);
   }
 
   Future<void> _openMaps() async {
@@ -633,7 +635,7 @@ class _RevealViewState extends State<_RevealView> {
               ),
               const SizedBox(height: 8),
               Text(
-                'COFFRE OUVERT',
+                context.l10n.vaultOpenedBadge,
                 style: GoogleFonts.geistMono(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -721,7 +723,7 @@ class _RevealViewState extends State<_RevealView> {
                           onPressed: _openMaps,
                           icon: const Icon(Icons.map_outlined, size: 18),
                           label: Text(
-                            'Itineraire',
+                            context.l10n.mapDirections,
                             style: GoogleFonts.geist(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -772,8 +774,8 @@ class _RevealViewState extends State<_RevealView> {
                   const SizedBox(width: 6),
                   Text(
                     (_rsvps.isEmpty
-                            ? 'Personne pour l\'instant'
-                            : '${_rsvps.length} ${_rsvps.length > 1 ? "personnes viennent" : "personne vient"}') +
+                            ? context.l10n.pvNobodyYet
+                            : context.l10n.vaultPeopleComing(_rsvps.length)) +
                         _placesLabel(),
                     style: GoogleFonts.geist(
                       fontSize: 13,
@@ -796,7 +798,7 @@ class _RevealViewState extends State<_RevealView> {
                         onPressed: _busy ? null : _toggleRsvp,
                         icon: const Icon(Icons.close, size: 16),
                         label: Text(
-                          _busy ? '...' : 'Annuler ma venue',
+                          _busy ? '...' : context.l10n.vaultCancelMine,
                           style: GoogleFonts.geist(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -814,7 +816,11 @@ class _RevealViewState extends State<_RevealView> {
                         onPressed: (_busy || _isFull) ? null : _toggleRsvp,
                         icon: Icon(_isFull ? Icons.block : Icons.check, size: 18),
                         label: Text(
-                          _busy ? 'Envoi...' : (_isFull ? 'Complet' : 'Je viens'),
+                          _busy
+                              ? context.l10n.emailVerifySending
+                              : (_isFull
+                                  ? context.l10n.vaultFullShort
+                                  : context.l10n.vaultImComing),
                           style: GoogleFonts.geist(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -842,7 +848,7 @@ class _RevealViewState extends State<_RevealView> {
                           onPressed: _openConfirmation,
                           icon: const Icon(Icons.verified, size: 18),
                           label: Text(
-                            'Venue confirmée · modifier',
+                            context.l10n.vaultConfirmedEdit,
                             style: GoogleFonts.geist(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -860,7 +866,7 @@ class _RevealViewState extends State<_RevealView> {
                           onPressed: _openConfirmation,
                           icon: const Icon(Icons.how_to_reg, size: 18),
                           label: Text(
-                            'Confirmer ma venue',
+                            context.l10n.vaultConfirmMine,
                             style: GoogleFonts.geist(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -878,7 +884,7 @@ class _RevealViewState extends State<_RevealView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'L\'organisateur demande de confirmer ta venue (nom, âge, téléphone…).',
+                  context.l10n.vaultHostAsksConfirm,
                   style: GoogleFonts.geist(fontSize: 11, color: _CoffreColors.textFaint),
                 ),
               ],
@@ -895,7 +901,7 @@ class _RevealViewState extends State<_RevealView> {
                   ),
                   icon: const Icon(Icons.forum_outlined, size: 18),
                   label: Text(
-                    'Discussion',
+                    context.l10n.pvChat,
                     style: GoogleFonts.geist(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

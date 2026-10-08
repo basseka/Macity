@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -153,7 +155,7 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
       );
     } catch (_) {
       messenger?.showSnackBar(
-        const SnackBar(content: Text('Impossible d\'enregistrer cette photo')),
+        SnackBar(content: Text(context.l10n.ssSaveFailed)),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -182,8 +184,8 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
   Widget build(BuildContext context) {
     final photos = _photos;
     final current = photos[_index];
-    final author = (current.prenom?.trim().isNotEmpty ?? false) ? current.prenom!.trim() : 'Anonyme';
-    final when = DateFormat("EEE d MMM 'à' HH'h'mm", 'fr_FR').format(current.createdAt.toLocal());
+    final author = (current.prenom?.trim().isNotEmpty ?? false) ? current.prenom!.trim() : context.l10n.storyAnonymous;
+    final when = formatDayAtTime(context, current.createdAt.toLocal());
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -225,7 +227,7 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
                   if (photos.length > 1)
                     IconButton(
                       onPressed: _togglePlay,
-                      tooltip: _playing ? 'Pause' : 'Lecture',
+                      tooltip: _playing ? context.l10n.ssPause : context.l10n.ssPlay,
                       icon: Icon(
                         _playing ? Icons.pause_circle_filled : Icons.play_circle_fill,
                         color: Colors.white,
@@ -235,13 +237,13 @@ class _PhotoSlideshowScreenState extends State<PhotoSlideshowScreen> {
                   if (widget.onDelete != null && (widget.canDelete?.call(current) ?? false))
                     IconButton(
                       onPressed: _delete,
-                      tooltip: 'Retirer de l\'album',
+                      tooltip: context.l10n.ssRemove,
                       icon: const Icon(Icons.delete_outline, color: Colors.white),
                     ),
                   Builder(
                     builder: (btnCtx) => IconButton(
                       onPressed: () => _save(btnCtx),
-                      tooltip: 'Enregistrer / partager',
+                      tooltip: context.l10n.ssSaveShare,
                       icon: _saving
                           ? const SizedBox(
                               width: 20,

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:image_picker/image_picker.dart';
@@ -91,17 +92,17 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Retirer cette photo ?'),
+        title: Text(context.l10n.alRemovePhoto),
         content: Text(
           _iAmHost && p.userId != _userId
-              ? 'Elle sera retirée de l\'album et de la discussion pour tout le monde.'
-              : 'Elle sera retirée de l\'album et de la discussion.',
+              ? context.l10n.alRemoveAll
+              : context.l10n.alRemoveMine,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Retirer', style: TextStyle(color: Colors.red)),
+            child: Text(context.l10n.commonRemove, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -115,14 +116,14 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
         userId: _userId!,
       );
       if (!deleted) {
-        messenger.showSnackBar(const SnackBar(content: Text('Tu ne peux pas retirer cette photo')));
+        messenger.showSnackBar(SnackBar(content: Text(context.l10n.alCannotRemove)));
         return false;
       }
       if (mounted) setState(() => _photos = [...?_photos]..removeWhere((x) => x.id == p.id));
-      messenger.showSnackBar(const SnackBar(content: Text('Photo retirée de l\'album')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.alRemoved)));
       return true;
     } on PrivateEventException {
-      messenger.showSnackBar(const SnackBar(content: Text('Échec, réessaie')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.commonFailedRetry)));
       return false;
     }
   }
@@ -157,8 +158,8 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
     } on PrivateEventException catch (e) {
       if (!mounted) return;
       setState(() => _error = e.code == PrivateEventError.network
-          ? 'Impossible de charger l\'album. Vérifie ta connexion.'
-          : 'Cet album n\'est pas accessible.');
+          ? context.l10n.alLoadError
+          : context.l10n.alNoAccess);
     }
   }
 
@@ -181,7 +182,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
           children: [
             ListTile(
               leading: Icon(Icons.photo_library_outlined, color: AppColors.text),
-              title: Text('Choisir dans la galerie (plusieurs)',
+              title: Text(context.l10n.alPickMany,
                   style: GoogleFonts.geist(color: AppColors.text)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
@@ -229,8 +230,8 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
           // Refus definitif (album fige, profil manquant, acces) : on arrete.
           if (e.code != PrivateEventError.network) {
             stopReason = e.code == PrivateEventError.profileRequired
-                ? 'Complète ton profil pour ajouter des photos'
-                : (e.message ?? 'Ajout refusé');
+                ? context.l10n.alProfileRequired
+                : (e.message ?? context.l10n.alAddRefused);
             break;
           }
         } catch (_) {/* echec d'upload d'une photo : on passe a la suivante */}
@@ -248,8 +249,8 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
     messenger.showSnackBar(SnackBar(
       content: Text(stopReason ??
           (ok == picked.length
-              ? '$ok photo${ok > 1 ? 's' : ''} ajoutée${ok > 1 ? 's' : ''} à l\'album'
-              : '$ok / ${picked.length} photos ajoutées, réessaie pour les autres')),
+              ? context.l10n.alAdded(ok)
+              : context.l10n.alAddedPartial(ok, picked.length))),
     ));
     if (ok > 0) _load();
   }
@@ -293,13 +294,12 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
       await Share.shareXFiles(files, text: widget.title, sharePositionOrigin: origin);
       if (photos.length > max) {
         messenger?.showSnackBar(SnackBar(
-          content: Text('Les $max premières photos ont été proposées. '
-              'Enregistre les autres une par une depuis le diaporama.'),
+          content: Text(context.l10n.alFirstProposed(max)),
         ));
       }
     } catch (_) {
       messenger?.showSnackBar(
-        const SnackBar(content: Text('Impossible d\'enregistrer les photos')),
+        SnackBar(content: Text(context.l10n.alSaveFailed)),
       );
     } finally {
       if (mounted) setState(() => _savingAll = false);
@@ -320,7 +320,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '📸 Album',
+              context.l10n.alTitle,
               style: GoogleFonts.geist(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.text),
             ),
             Text(
@@ -335,7 +335,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
           if (photos != null && photos.isNotEmpty)
             Builder(
               builder: (btnCtx) => IconButton(
-                tooltip: 'Tout enregistrer',
+                tooltip: context.l10n.alSaveAll,
                 onPressed: _savingAll ? null : () => _saveAll(btnCtx),
                 icon: _savingAll
                     ? const SizedBox(
@@ -369,7 +369,9 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
                           )
                         : const Icon(Icons.add_a_photo_outlined),
                     label: Text(
-                      _uploading ? 'Envoi $_uploadDone / $_uploadTotal' : 'Ajouter',
+                      _uploading
+                          ? context.l10n.alSending(_uploadDone, _uploadTotal)
+                          : context.l10n.alAdd,
                       style: GoogleFonts.geist(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -406,15 +408,14 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
               const Icon(Icons.photo_library_outlined, size: 48, color: AppColors.magenta),
               const SizedBox(height: 12),
               Text(
-                'Pas encore de photo',
+                context.l10n.alNoPhoto,
                 style: GoogleFonts.geist(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.text),
               ),
               const SizedBox(height: 6),
               Text(
                 widget.archived
-                    ? 'Personne n\'a partagé de photo pendant cette soirée.'
-                    : 'Ajoute tes photos ici, ou partage-les dans la discussion : '
-                        'elles apparaissent automatiquement dans l\'album.',
+                    ? context.l10n.alNoPhotoArchived
+                    : context.l10n.alNoPhotoHint,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.geist(fontSize: 13, color: AppColors.textDim),
               ),
@@ -423,7 +424,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
                 ElevatedButton.icon(
                   onPressed: _uploading ? null : _addPhotos,
                   icon: const Icon(Icons.add_a_photo_outlined, size: 18),
-                  label: const Text('Ajouter des photos'),
+                  label: Text(context.l10n.alAddPhotos),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.magenta,
                     foregroundColor: Colors.white,
@@ -439,7 +440,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
                     isHost: widget.isHost,
                   ).then((_) => _load()),
                   icon: const Icon(Icons.forum_outlined, size: 18),
-                  label: const Text('Ouvrir la discussion'),
+                  label: Text(context.l10n.alOpenChat),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.magenta,
                     side: const BorderSide(color: AppColors.magenta),
@@ -460,9 +461,9 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
               child: Text(
-                '${photos.length} photo${photos.length > 1 ? 's' : ''}'
-                '${widget.archived ? ' · album figé' : ''}'
-                '${_iAmHost ? ' · appui long sur une photo pour la retirer' : ''}',
+                '${context.l10n.alPhotoCount(photos.length)}'
+                '${widget.archived ? ' · ${context.l10n.alFrozen}' : ''}'
+                '${_iAmHost ? ' · ${context.l10n.alLongPressHint}' : ''}',
                 style: GoogleFonts.geist(fontSize: 12, color: AppColors.textDim),
               ),
             ),

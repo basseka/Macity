@@ -2526,4 +2526,502 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pvShareSeparately =>
       'Share the link and code separately, by message or WhatsApp.';
+
+  @override
+  String get vaultErrLink => 'Invalid link (UUID format expected)';
+
+  @override
+  String get vaultErrNotFound => 'No vault found with this link';
+
+  @override
+  String get vaultErrWrongCode => 'Wrong code';
+
+  @override
+  String get vaultErrPast => 'This event is over';
+
+  @override
+  String get vaultErrOpenLimit => 'This vault has reached its open limit';
+
+  @override
+  String get vaultErrInvalidData => 'Invalid data';
+
+  @override
+  String get vaultErrProfile => 'Complete your MaCity profile to continue';
+
+  @override
+  String get vaultErrDenied => 'Access denied';
+
+  @override
+  String get vaultErrFull => 'It\'s full, no spots left';
+
+  @override
+  String get vaultErrEnded => 'Event over: view only';
+
+  @override
+  String get vaultErrComeFirst => 'First say you\'re coming to the event';
+
+  @override
+  String get vaultErrNetwork => 'Network error, try again';
+
+  @override
+  String get vaultOpened => 'Vault opened';
+
+  @override
+  String get vaultTypeLinkCode => 'Enter the link and code you received';
+
+  @override
+  String get vaultHostShared =>
+      'The host shared a token + a 4-digit code with you.';
+
+  @override
+  String get vaultLinkToken => 'Link (token)';
+
+  @override
+  String get vaultPaste => 'Paste';
+
+  @override
+  String get vaultCode => 'Code';
+
+  @override
+  String get vaultOpening => 'Opening...';
+
+  @override
+  String get vaultOpen => 'Open the vault';
+
+  @override
+  String get vaultAttendanceConfirmed =>
+      'Confirmed, the host has been notified';
+
+  @override
+  String get vaultFullShort => 'Full';
+
+  @override
+  String vaultSpotsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spots left',
+      one: '1 spot left',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaultOpenedBadge => 'VAULT OPENED';
+
+  @override
+  String vaultPeopleComing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people are coming',
+      one: '1 person is coming',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get vaultCancelMine => 'I\'m not coming anymore';
+
+  @override
+  String get vaultImComing => 'I\'m in';
+
+  @override
+  String get vaultConfirmedEdit => 'Confirmed · edit';
+
+  @override
+  String get vaultConfirmMine => 'Confirm I am coming';
+
+  @override
+  String get vaultHostAsksConfirm =>
+      'The host asks you to confirm (name, age, phone…).';
+
+  @override
+  String get invNone => 'No invitations';
+
+  @override
+  String get invNoneHint =>
+      'When you tap \"I\'m in\" on a vault, the event will show up here.';
+
+  @override
+  String get invImComingBadge => 'I\'M IN';
+
+  @override
+  String get invCancelTitle => 'Not coming anymore?';
+
+  @override
+  String get invCancelBody =>
+      'You can always come back by tapping \"I\'m in\" from the vault.';
+
+  @override
+  String get invKeep => 'Keep';
+
+  @override
+  String get invCancelFailed => 'Cancellation failed';
+
+  @override
+  String get invAlbum => 'Album';
+
+  @override
+  String get invWriteHost => 'Message the host';
+
+  @override
+  String get invCancelled => 'Cancelled';
+
+  @override
+  String get invNobodyElse => 'Nobody else has confirmed yet.';
+
+  @override
+  String invPresentMax(int count, int max) {
+    return 'Attending ($count / $max)';
+  }
+
+  @override
+  String invPresent(int count) {
+    return 'Attending ($count)';
+  }
+
+  @override
+  String get invConfirmed => 'Confirmed';
+
+  @override
+  String get invConfirm => 'Confirm';
+
+  @override
+  String invMe(String name) {
+    return '$name (me)';
+  }
+
+  @override
+  String get cfErrName => 'First and last name required';
+
+  @override
+  String get cfErrEmail => 'Invalid email address';
+
+  @override
+  String get cfErrAge => 'Invalid age';
+
+  @override
+  String get cfErrPhone => 'Invalid phone number';
+
+  @override
+  String get cfSendFailed => 'Sending failed, try again';
+
+  @override
+  String get cfEditMine => 'Edit my confirmation';
+
+  @override
+  String cfPrivacy(String title) {
+    return 'For \"$title\". This info is only sent to the host and deleted after the event.';
+  }
+
+  @override
+  String get cfFirstName => 'First name';
+
+  @override
+  String get cfLastName => 'Last name';
+
+  @override
+  String get cfEmail => 'Email';
+
+  @override
+  String get cfAge => 'Age';
+
+  @override
+  String get pcErrGuestLeft =>
+      'This person is no longer signed up: private messaging is no longer possible.';
+
+  @override
+  String get pcErrYouAreHost =>
+      'You are the host of this event: message your guests from \"My private events\", 💬 button next to each one.';
+
+  @override
+  String get pcErrNotGoing =>
+      'You are no longer signed up: tap \"I\'m in\" to message the host.';
+
+  @override
+  String get pcErrGone =>
+      'This event no longer exists (deleted or over for more than 7 days).';
+
+  @override
+  String get pcErrNoAccess => 'This chat is no longer accessible.';
+
+  @override
+  String get pcErrLoad =>
+      'Unable to load the chat. Check your connection and try again.';
+
+  @override
+  String get pcPhotoSendFailed => 'Photo sending failed';
+
+  @override
+  String get pcDeleteMessage => 'Delete this message?';
+
+  @override
+  String get pcCannotDelete => 'You can\'t delete this message';
+
+  @override
+  String get pcAlbumTooltip => 'Photo album';
+
+  @override
+  String get pcGuest => 'Guest';
+
+  @override
+  String get pcHost => 'Host';
+
+  @override
+  String pcPrivateMessage(String title) {
+    return 'Private message · $title';
+  }
+
+  @override
+  String get pcPrivateChat => 'Private chat';
+
+  @override
+  String get pcEmptyDmToGuest =>
+      'Message this guest privately: only they will see your messages.';
+
+  @override
+  String get pcEmptyDmToHost =>
+      'Message the host privately: only they will see your messages.';
+
+  @override
+  String get pcEmptyGroup =>
+      'Ask the host a question or say hi to the other guests!';
+
+  @override
+  String get pcPhoto => 'Photo';
+
+  @override
+  String get pcCaptionHint => 'Add a caption...';
+
+  @override
+  String get pcMessageHint => 'Write a message...';
+
+  @override
+  String get pcMe => 'Me';
+
+  @override
+  String get alRemovePhoto => 'Remove this photo?';
+
+  @override
+  String get alRemoveAll =>
+      'It will be removed from the album and the chat for everyone.';
+
+  @override
+  String get alRemoveMine => 'It will be removed from the album and the chat.';
+
+  @override
+  String get alCannotRemove => 'You can\'t remove this photo';
+
+  @override
+  String get alRemoved => 'Photo removed from the album';
+
+  @override
+  String get alLoadError => 'Unable to load the album. Check your connection.';
+
+  @override
+  String get alNoAccess => 'This album is not accessible.';
+
+  @override
+  String get alPickMany => 'Choose from gallery (several)';
+
+  @override
+  String get alProfileRequired => 'Complete your profile to add photos';
+
+  @override
+  String get alAddRefused => 'Upload refused';
+
+  @override
+  String alAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos added to the album',
+      one: '1 photo added to the album',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String alAddedPartial(int ok, int total) {
+    return '$ok / $total photos added, try again for the others';
+  }
+
+  @override
+  String alFirstProposed(int max) {
+    return 'The first $max photos were offered. Save the others one by one from the slideshow.';
+  }
+
+  @override
+  String get alSaveFailed => 'Unable to save the photos';
+
+  @override
+  String get alTitle => '📸 Album';
+
+  @override
+  String get alSaveAll => 'Save all';
+
+  @override
+  String alSending(int done, int total) {
+    return 'Sending $done / $total';
+  }
+
+  @override
+  String get alAdd => 'Add';
+
+  @override
+  String get alNoPhoto => 'No photos yet';
+
+  @override
+  String get alNoPhotoArchived => 'Nobody shared any photos during this event.';
+
+  @override
+  String get alNoPhotoHint =>
+      'Add your photos here, or share them in the chat: they show up in the album automatically.';
+
+  @override
+  String get alAddPhotos => 'Add photos';
+
+  @override
+  String get alOpenChat => 'Open the chat';
+
+  @override
+  String alPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get alFrozen => 'album locked';
+
+  @override
+  String get alLongPressHint => 'long-press a photo to remove it';
+
+  @override
+  String get memNone => 'No memories yet';
+
+  @override
+  String get memNoneHint =>
+      'Your past private events (hosted or attended) will show up here with their photos.';
+
+  @override
+  String get memGuestRole => 'Guest';
+
+  @override
+  String memParticipants(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count guests',
+      one: '1 guest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String memAddUntil(String date) {
+    return 'photos can be added until $date';
+  }
+
+  @override
+  String get memSlideshow => 'Slideshow';
+
+  @override
+  String get ssSaveFailed => 'Unable to save this photo';
+
+  @override
+  String get ssPause => 'Pause';
+
+  @override
+  String get ssPlay => 'Play';
+
+  @override
+  String get ssRemove => 'Remove from album';
+
+  @override
+  String get ssSaveShare => 'Save / share';
+
+  @override
+  String get abAlbum => 'Photo album';
+
+  @override
+  String get abSeeAlbum => 'See the album';
+
+  @override
+  String get abFirstPhotos => 'Add the first photos of the event';
+
+  @override
+  String abSlideshowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos · slideshow',
+      one: '1 photo · slideshow',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get hostOrganizedBy => 'HOSTED BY';
+
+  @override
+  String get pdfGuestList => 'Guest list';
+
+  @override
+  String pdfSummaryMax(int count, int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count confirmed / $max spots',
+      one: '1 confirmed / $max spots',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdfSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count confirmed',
+      one: '1 confirmed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pdfGenerated(String date) {
+    return 'Generated on $date with MaCity';
+  }
+
+  @override
+  String get pdfConfidential =>
+      'Confidential document: personal data, not to be shared beyond the event organisation.';
+
+  @override
+  String pdfConfirmedSection(int count) {
+    return 'Confirmed ($count)  ·  in order of confirmation';
+  }
+
+  @override
+  String get pdfNoConfirm => 'No confirmations yet.';
+
+  @override
+  String get pdfColNumber => 'No.';
+
+  @override
+  String get pdfColConfirmedOn => 'Confirmed on';
+
+  @override
+  String pdfShareText(String title) {
+    return 'Guest list: $title';
+  }
+
+  @override
+  String get pdfExportFailed => 'PDF export failed, try again';
 }
