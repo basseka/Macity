@@ -556,5 +556,65 @@
   "sportCatBasketball": "Basketball",
   "sportCatHandball": "Handball",
   "sportCatGala": "Gala / Matchs",
-  "sportCatOlympics": "JO 2028"
+  "sportCatOlympics": "JO 2028",
+  "familyEyebrowRight": "EN TRIBU",
+  "familyTitle": "Famille.",
+  "familySubtitle": "Cinéma, parcs, ateliers : sortir avec les enfants.",
+  "familySectionTitle": "À faire en famille",
+  "familyBannerTitle": "Des souvenirs à créer en tribu.",
+  "familyBannerSubtitle": "Les meilleures sorties enfants vous attendent.",
+  "familyMapTitle": "Lieux famille",
+  "familyAllAges": "Pour tous",
+  "familyAge0to3": "0-3 ans",
+  "familyUpToAge": "Jusqu'à {max} ans",
+  "@familyUpToAge": {
+    "description": "Filtre d'age",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "familyKickerHome": "Rubrique · En tribu",
+  "familyNoEvent": "Aucun événement famille pour le moment",
+  "familySessions": "SÉANCES",
+  "priceLabel": "Tarif : {price}",
+  "@priceLabel": {
+    "description": "Tarif d'un lieu",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "shareFooterPointing": "Découvre sur MaCity 👉",
+  "familyGroupEntertainment": "Divertissements",
+  "familyGroupKidsPlay": "Jeux d'enfants",
+  "familyGroupAnimals": "Animaux et Nature",
+  "familyGroupWater": "Activité aquatique",
+  "familyGroupOutdoor": "Sortie en plein air",
+  "familyGroupDiscover": "Découvrir",
+  "familyCatCalendar": "Calendrier",
+  "familyCatThemePark": "Parc d'attractions",
+  "familyCatLaserGame": "Laser game",
+  "familyCatEscapeGame": "Escape game",
+  "familyCatBowling": "Bowling",
+  "familyCatIceRink": "Patinoire",
+  "familyCatPlayground": "Aire de jeux",
+  "familyCatLeisurePark": "Parc de loisirs",
+  "familyCatWildlifePark": "Parc animalier",
+  "familyCatFarm": "Ferme pédagogique",
+  "familyCatAquarium": "Aquarium",
+  "familyCatZoo": "Zoo",
+  "familyCatBotanicGarden": "Jardin botanique",
+  "familyCatWaterPark": "Centre aquatique",
+  "familyCatParks": "Parcs",
+  "familyCatWalks": "Balades familiales",
+  "familyCatTreetop": "Accrobranche",
+  "familyCatMiniGolf": "Mini golf",
+  "familyCatLeisureBase": "Base de loisirs",
+  "familyCatKidsMuseum": "Musée pour enfants",
+  "familyCatPlanetarium": "Planétarium",
+  "familyCatWorkshop": "Atelier créatif",
+  "familyCatRestaurant": "Restaurant familial"
 }

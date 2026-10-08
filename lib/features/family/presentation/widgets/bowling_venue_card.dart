@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -83,7 +85,7 @@ class BowlingVenueCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => _share(),
+                            onTap: () => _share(context),
                             child: Icon(
                               Icons.share_outlined,
                               color: AppColors.textFaint,
@@ -106,7 +108,7 @@ class BowlingVenueCard extends ConsumerWidget {
   void _openDetail(BuildContext context) {
     final commerce = CommerceModel(
       nom: bowling.name,
-      categorie: 'Bowling',
+      categorie: familyCategoryLabel(context, 'Bowling'),
       adresse: bowling.adresse,
       horaires: bowling.horaires,
       telephone: bowling.telephone,
@@ -141,13 +143,13 @@ class BowlingVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(bowling.name);
     buffer.writeln(bowling.adresse);
     buffer.writeln(bowling.telephone);
     buffer.writeln(bowling.websiteUrl);
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
     Share.share(buffer.toString());
   }
 }

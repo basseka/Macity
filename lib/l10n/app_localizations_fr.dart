@@ -1247,4 +1247,142 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sportCatOlympics => 'JO 2028';
+
+  @override
+  String get familyEyebrowRight => 'EN TRIBU';
+
+  @override
+  String get familyTitle => 'Famille.';
+
+  @override
+  String get familySubtitle =>
+      'Cinéma, parcs, ateliers : sortir avec les enfants.';
+
+  @override
+  String get familySectionTitle => 'À faire en famille';
+
+  @override
+  String get familyBannerTitle => 'Des souvenirs à créer en tribu.';
+
+  @override
+  String get familyBannerSubtitle =>
+      'Les meilleures sorties enfants vous attendent.';
+
+  @override
+  String get familyMapTitle => 'Lieux famille';
+
+  @override
+  String get familyAllAges => 'Pour tous';
+
+  @override
+  String get familyAge0to3 => '0-3 ans';
+
+  @override
+  String familyUpToAge(int max) {
+    return 'Jusqu\'à $max ans';
+  }
+
+  @override
+  String get familyKickerHome => 'Rubrique · En tribu';
+
+  @override
+  String get familyNoEvent => 'Aucun événement famille pour le moment';
+
+  @override
+  String get familySessions => 'SÉANCES';
+
+  @override
+  String priceLabel(String price) {
+    return 'Tarif : $price';
+  }
+
+  @override
+  String get shareFooterPointing => 'Découvre sur MaCity 👉';
+
+  @override
+  String get familyGroupEntertainment => 'Divertissements';
+
+  @override
+  String get familyGroupKidsPlay => 'Jeux d\'enfants';
+
+  @override
+  String get familyGroupAnimals => 'Animaux et Nature';
+
+  @override
+  String get familyGroupWater => 'Activité aquatique';
+
+  @override
+  String get familyGroupOutdoor => 'Sortie en plein air';
+
+  @override
+  String get familyGroupDiscover => 'Découvrir';
+
+  @override
+  String get familyCatCalendar => 'Calendrier';
+
+  @override
+  String get familyCatThemePark => 'Parc d\'attractions';
+
+  @override
+  String get familyCatLaserGame => 'Laser game';
+
+  @override
+  String get familyCatEscapeGame => 'Escape game';
+
+  @override
+  String get familyCatBowling => 'Bowling';
+
+  @override
+  String get familyCatIceRink => 'Patinoire';
+
+  @override
+  String get familyCatPlayground => 'Aire de jeux';
+
+  @override
+  String get familyCatLeisurePark => 'Parc de loisirs';
+
+  @override
+  String get familyCatWildlifePark => 'Parc animalier';
+
+  @override
+  String get familyCatFarm => 'Ferme pédagogique';
+
+  @override
+  String get familyCatAquarium => 'Aquarium';
+
+  @override
+  String get familyCatZoo => 'Zoo';
+
+  @override
+  String get familyCatBotanicGarden => 'Jardin botanique';
+
+  @override
+  String get familyCatWaterPark => 'Centre aquatique';
+
+  @override
+  String get familyCatParks => 'Parcs';
+
+  @override
+  String get familyCatWalks => 'Balades familiales';
+
+  @override
+  String get familyCatTreetop => 'Accrobranche';
+
+  @override
+  String get familyCatMiniGolf => 'Mini golf';
+
+  @override
+  String get familyCatLeisureBase => 'Base de loisirs';
+
+  @override
+  String get familyCatKidsMuseum => 'Musée pour enfants';
+
+  @override
+  String get familyCatPlanetarium => 'Planétarium';
+
+  @override
+  String get familyCatWorkshop => 'Atelier créatif';
+
+  @override
+  String get familyCatRestaurant => 'Restaurant familial';
 }

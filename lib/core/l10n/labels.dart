@@ -150,3 +150,43 @@ String sportCategoryLabel(BuildContext context, String key) {
     _ => key,
   };
 }
+
+/// Groupes et sous-rubriques Famille (cles : nom de groupe ou searchTag).
+String familyCategoryLabel(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'Famille' => l10n.rubriqueFamily,
+    'A venir' => l10n.cultureCatUpcoming,
+    'Divertissements' => l10n.familyGroupEntertainment,
+    "Jeux d'enfants" => l10n.familyGroupKidsPlay,
+    'Animaux et Nature' => l10n.familyGroupAnimals,
+    'Activite Aquatique' => l10n.familyGroupWater,
+    'Sortie en Plein Air' => l10n.familyGroupOutdoor,
+    'Decouvrir' => l10n.familyGroupDiscover,
+    "Parc d'attractions" => l10n.familyCatThemePark,
+    'Laser game' => l10n.familyCatLaserGame,
+    'Escape game' => l10n.familyCatEscapeGame,
+    'Bowling' => l10n.familyCatBowling,
+    'Cinema' || 'Cinéma' => l10n.catCinema,
+    'Patinoire' => l10n.familyCatIceRink,
+    'Aire de jeux' => l10n.familyCatPlayground,
+    'Parc de loisirs' => l10n.familyCatLeisurePark,
+    'Parc animalier' => l10n.familyCatWildlifePark,
+    'Ferme pedagogique' || 'Ferme pédagogique' => l10n.familyCatFarm,
+    'Aquarium' => l10n.familyCatAquarium,
+    'Zoo' => l10n.familyCatZoo,
+    'Jardin botanique' => l10n.familyCatBotanicGarden,
+    'Centre aquatique' => l10n.familyCatWaterPark,
+    'Piscine' => l10n.sportCatPool,
+    'Parcs' => l10n.familyCatParks,
+    'Balade familiale' => l10n.familyCatWalks,
+    'Accrobranche' => l10n.familyCatTreetop,
+    'Mini golf' => l10n.familyCatMiniGolf,
+    'Base de loisirs' => l10n.familyCatLeisureBase,
+    'Musee pour enfants' => l10n.familyCatKidsMuseum,
+    'Planetarium' => l10n.familyCatPlanetarium,
+    'Atelier creatif' => l10n.familyCatWorkshop,
+    'Restaurant familial' => l10n.familyCatRestaurant,
+    _ => key,
+  };
+}

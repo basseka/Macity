@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -80,7 +82,7 @@ class IceRinkVenueCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => _share(),
+                            onTap: () => _share(context),
                             child: Icon(
                               Icons.share_outlined,
                               color: AppColors.textFaint,
@@ -107,7 +109,7 @@ class IceRinkVenueCard extends ConsumerWidget {
     ].join('\n\n');
     final commerce = CommerceModel(
       nom: venue.name,
-      categorie: 'Patinoire',
+      categorie: familyCategoryLabel(context, 'Patinoire'),
       adresse: venue.adresse,
       horaires: venue.horaires,
       telephone: venue.telephone,
@@ -144,14 +146,14 @@ class IceRinkVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(venue.name);
     buffer.writeln(venue.adresse);
     buffer.writeln(venue.tarif);
     buffer.writeln(venue.telephone);
     buffer.writeln(venue.websiteUrl);
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
     Share.share(buffer.toString());
   }
 }

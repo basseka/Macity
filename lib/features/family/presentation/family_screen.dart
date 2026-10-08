@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
@@ -78,20 +80,21 @@ class FamilyScreen extends ConsumerWidget {
     // du chip = le nom de la rubrique ; le carrousel affiche tous les types
     // de cette rubrique via familyGroupVenuesProvider.
     final chips = FamilyCategoryData.browsableGroups
-        .map((g) => RubriqueChip(g.name, _iconForGroup(g.name), g.name))
+        .map((g) => RubriqueChip(familyCategoryLabel(context, g.name),
+            _iconForGroup(g.name), g.name))
         .toList();
     return RubriqueConfig(
       theme: _famille,
-      eyebrowLeft: 'RUBRIQUE',
-      eyebrowRight: 'EN TRIBU',
-      title: 'Famille.',
-      subtitle: 'Cinéma, parcs, ateliers — sortir avec les enfants.',
-      sectionTitle: 'À faire en famille',
+      eyebrowLeft: context.l10n.rubriqueEyebrow,
+      eyebrowRight: context.l10n.familyEyebrowRight,
+      title: context.l10n.familyTitle,
+      subtitle: context.l10n.familySubtitle,
+      sectionTitle: context.l10n.familySectionTitle,
       chips: chips,
       rubriqueKey: 'family',
-      bannerTitle: 'Des souvenirs à créer en tribu.',
-      bannerSubtitle: 'Les meilleures sorties enfants vous attendent.',
-      bannerCta: 'Découvrir',
+      bannerTitle: context.l10n.familyBannerTitle,
+      bannerSubtitle: context.l10n.familyBannerSubtitle,
+      bannerCta: context.l10n.commonDiscover,
       onBack: () => context.go('/home'),
       // Section « Affinez votre recherche » : tous les lieux famille de la
       // ville (indépendant du chip du haut) + carte, filtrés par tranche d'âge.
@@ -102,15 +105,18 @@ class FamilyScreen extends ConsumerWidget {
         all: all,
         visible: visible,
         accentColor: '#F2A20C', // accent Famille
-        title: 'Lieux famille',
+        title: context.l10n.familyMapTitle,
       ),
       // Filtre par âge : garde les lieux dont l'âge min recommandé <= au seuil
       // choisi. Un lieu sans âge renseigné n'est jamais masqué.
       refineChipsBuilder: (_) => [
-        RefineChip('Pour tous', (_) => true, icon: Icons.child_care_rounded),
+        RefineChip(context.l10n.familyAllAges, (_) => true,
+            icon: Icons.child_care_rounded),
         for (final max in const [3, 5, 12])
           RefineChip(
-            max == 3 ? '0-3 ans' : 'Jusqu\'à $max ans',
+            max == 3
+                ? context.l10n.familyAge0to3
+                : context.l10n.familyUpToAge(max),
             (it) => it.ageMin == null || it.ageMin! <= max,
             icon: Icons.child_care_rounded,
           ),
@@ -139,12 +145,14 @@ class FamilyScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: EditorialMasthead(
               kicker: selectedCategory == null
-                  ? 'Rubrique · En tribu'
-                  : 'Famille · $selectedCategory',
-              title: selectedCategory ?? 'Famille',
+                  ? context.l10n.familyKickerHome
+                  : '${context.l10n.rubriqueFamily} · ${familyCategoryLabel(context, selectedCategory)}',
+              title: selectedCategory == null
+                  ? context.l10n.rubriqueFamily
+                  : familyCategoryLabel(context, selectedCategory),
               accent: RubricColors.family,
               blurb: selectedCategory == null
-                  ? 'Cinema, parcs, ateliers — sortir avec les enfants.'
+                  ? context.l10n.familySubtitle
                   : null,
               onBack: selectedCategory == null
                   ? () => context.go('/home')
@@ -178,6 +186,7 @@ class FamilyScreen extends ConsumerWidget {
 
   /// Affiche les venues d'une categorie depuis Supabase, groupees par groupe.
   Widget _buildCategoryVenues(WidgetRef ref, String category, ModeTheme modeTheme) {
+    final context = ref.context;
     final venuesAsync = ref.watch(familySupabaseVenuesProvider(category));
 
     return RefreshIndicator(
@@ -193,10 +202,10 @@ class FamilyScreen extends ConsumerWidget {
         if (venues.isEmpty) {
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            children: const [
+            children: [
               SizedBox(height: 320),
               EmptyStateWidget(
-                message: 'Aucun lieu trouve pour cette categorie',
+                message: context.l10n.commonNoPlaceForCategory,
                 icon: Icons.family_restroom,
               ),
             ],
@@ -312,7 +321,7 @@ class FamilyScreen extends ConsumerWidget {
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
       error: (error, _) => AppErrorWidget(
-        message: 'Erreur lors du chargement des lieux',
+        message: context.l10n.commonPlacesLoadError,
         onRetry: () => ref.invalidate(familySupabaseVenuesProvider(category)),
       ),
     ),
@@ -373,8 +382,8 @@ class FamilyScreen extends ConsumerWidget {
             const SizedBox(height: 320),
             scrapedAsync.isLoading
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-                : const EmptyStateWidget(
-                    message: 'Aucun evenement famille pour le moment',
+                : EmptyStateWidget(
+                    message: context.l10n.familyNoEvent,
                     icon: Icons.family_restroom,
                   ),
           ],

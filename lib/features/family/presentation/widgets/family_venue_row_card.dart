@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,8 +122,8 @@ class FamilyVenueRowCard extends ConsumerWidget {
                               color: const Color(0xFF059669),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'BILLETS',
+                            child: Text(
+                              context.l10n.commonTickets,
                               style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w700),
                             ),
                           ),
@@ -164,7 +166,7 @@ class FamilyVenueRowCard extends ConsumerWidget {
                             ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => _share(),
+                            onTap: () => _share(context),
                             child: Icon(Icons.share_outlined, color: AppColors.textFaint, size: 16),
                           ),
                         ],
@@ -238,7 +240,7 @@ class FamilyVenueRowCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(venue.name);
     buffer.writeln(venue.adresse);
@@ -246,10 +248,10 @@ class FamilyVenueRowCard extends ConsumerWidget {
     if (venue.websiteUrl.isNotEmpty) buffer.writeln(venue.websiteUrl);
     // Lien profond cliquable vers la fiche MaCity (family_venues).
     if (venue.id > 0) {
-      buffer.writeln('\nDecouvre sur MaCity 👉');
+      buffer.writeln('\n${context.l10n.shareFooterPointing}');
       buffer.writeln('https://macity.app/lieu/family_venue/${venue.id}');
     } else {
-      buffer.writeln('\nDecouvre sur MaCity');
+      buffer.writeln('\n${context.l10n.shareFooter}');
     }
     Share.share(buffer.toString());
   }

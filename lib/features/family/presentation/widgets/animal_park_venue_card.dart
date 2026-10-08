@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -54,8 +56,8 @@ class AnimalParkVenueCard extends ConsumerWidget {
                               color: const Color(0xFF059669),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'BILLETTERIE',
+                            child: Text(
+                              context.l10n.commonTicketOffice,
                               style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w700),
                             ),
                           ),
@@ -105,7 +107,7 @@ class AnimalParkVenueCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => _share(),
+                            onTap: () => _share(context),
                             child: Icon(
                               Icons.share_outlined,
                               color: AppColors.textFaint,
@@ -129,7 +131,7 @@ class AnimalParkVenueCard extends ConsumerWidget {
     const imagePath = 'assets/images/sc_parc_animalier.jpg';
     final commerce = CommerceModel(
       nom: park.name,
-      categorie: 'Parc animalier',
+      categorie: familyCategoryLabel(context, 'Parc animalier'),
       adresse: park.adresse,
       horaires: park.horaires,
       telephone: park.telephone,
@@ -168,14 +170,14 @@ class AnimalParkVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(park.name);
     buffer.writeln(park.description);
     buffer.writeln(park.adresse);
     buffer.writeln(park.telephone);
     buffer.writeln(park.websiteUrl);
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
     Share.share(buffer.toString());
   }
 }

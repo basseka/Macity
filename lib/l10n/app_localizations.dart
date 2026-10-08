@@ -2349,6 +2349,270 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'JO 2028'**
   String get sportCatOlympics;
+
+  /// No description provided for @familyEyebrowRight.
+  ///
+  /// In fr, this message translates to:
+  /// **'EN TRIBU'**
+  String get familyEyebrowRight;
+
+  /// No description provided for @familyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Famille.'**
+  String get familyTitle;
+
+  /// No description provided for @familySubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cinéma, parcs, ateliers : sortir avec les enfants.'**
+  String get familySubtitle;
+
+  /// No description provided for @familySectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À faire en famille'**
+  String get familySectionTitle;
+
+  /// No description provided for @familyBannerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des souvenirs à créer en tribu.'**
+  String get familyBannerTitle;
+
+  /// No description provided for @familyBannerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les meilleures sorties enfants vous attendent.'**
+  String get familyBannerSubtitle;
+
+  /// No description provided for @familyMapTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieux famille'**
+  String get familyMapTitle;
+
+  /// No description provided for @familyAllAges.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour tous'**
+  String get familyAllAges;
+
+  /// No description provided for @familyAge0to3.
+  ///
+  /// In fr, this message translates to:
+  /// **'0-3 ans'**
+  String get familyAge0to3;
+
+  /// Filtre d'age
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu\'à {max} ans'**
+  String familyUpToAge(int max);
+
+  /// No description provided for @familyKickerHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rubrique · En tribu'**
+  String get familyKickerHome;
+
+  /// No description provided for @familyNoEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement famille pour le moment'**
+  String get familyNoEvent;
+
+  /// No description provided for @familySessions.
+  ///
+  /// In fr, this message translates to:
+  /// **'SÉANCES'**
+  String get familySessions;
+
+  /// Tarif d'un lieu
+  ///
+  /// In fr, this message translates to:
+  /// **'Tarif : {price}'**
+  String priceLabel(String price);
+
+  /// No description provided for @shareFooterPointing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvre sur MaCity 👉'**
+  String get shareFooterPointing;
+
+  /// No description provided for @familyGroupEntertainment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Divertissements'**
+  String get familyGroupEntertainment;
+
+  /// No description provided for @familyGroupKidsPlay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jeux d\'enfants'**
+  String get familyGroupKidsPlay;
+
+  /// No description provided for @familyGroupAnimals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Animaux et Nature'**
+  String get familyGroupAnimals;
+
+  /// No description provided for @familyGroupWater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité aquatique'**
+  String get familyGroupWater;
+
+  /// No description provided for @familyGroupOutdoor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sortie en plein air'**
+  String get familyGroupOutdoor;
+
+  /// No description provided for @familyGroupDiscover.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrir'**
+  String get familyGroupDiscover;
+
+  /// No description provided for @familyCatCalendar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier'**
+  String get familyCatCalendar;
+
+  /// No description provided for @familyCatThemePark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parc d\'attractions'**
+  String get familyCatThemePark;
+
+  /// No description provided for @familyCatLaserGame.
+  ///
+  /// In fr, this message translates to:
+  /// **'Laser game'**
+  String get familyCatLaserGame;
+
+  /// No description provided for @familyCatEscapeGame.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escape game'**
+  String get familyCatEscapeGame;
+
+  /// No description provided for @familyCatBowling.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bowling'**
+  String get familyCatBowling;
+
+  /// No description provided for @familyCatIceRink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Patinoire'**
+  String get familyCatIceRink;
+
+  /// No description provided for @familyCatPlayground.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aire de jeux'**
+  String get familyCatPlayground;
+
+  /// No description provided for @familyCatLeisurePark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parc de loisirs'**
+  String get familyCatLeisurePark;
+
+  /// No description provided for @familyCatWildlifePark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parc animalier'**
+  String get familyCatWildlifePark;
+
+  /// No description provided for @familyCatFarm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ferme pédagogique'**
+  String get familyCatFarm;
+
+  /// No description provided for @familyCatAquarium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aquarium'**
+  String get familyCatAquarium;
+
+  /// No description provided for @familyCatZoo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Zoo'**
+  String get familyCatZoo;
+
+  /// No description provided for @familyCatBotanicGarden.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jardin botanique'**
+  String get familyCatBotanicGarden;
+
+  /// No description provided for @familyCatWaterPark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Centre aquatique'**
+  String get familyCatWaterPark;
+
+  /// No description provided for @familyCatParks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parcs'**
+  String get familyCatParks;
+
+  /// No description provided for @familyCatWalks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Balades familiales'**
+  String get familyCatWalks;
+
+  /// No description provided for @familyCatTreetop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accrobranche'**
+  String get familyCatTreetop;
+
+  /// No description provided for @familyCatMiniGolf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mini golf'**
+  String get familyCatMiniGolf;
+
+  /// No description provided for @familyCatLeisureBase.
+  ///
+  /// In fr, this message translates to:
+  /// **'Base de loisirs'**
+  String get familyCatLeisureBase;
+
+  /// No description provided for @familyCatKidsMuseum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musée pour enfants'**
+  String get familyCatKidsMuseum;
+
+  /// No description provided for @familyCatPlanetarium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planétarium'**
+  String get familyCatPlanetarium;
+
+  /// No description provided for @familyCatWorkshop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Atelier créatif'**
+  String get familyCatWorkshop;
+
+  /// No description provided for @familyCatRestaurant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurant familial'**
+  String get familyCatRestaurant;
 }
 
 class _AppLocalizationsDelegate

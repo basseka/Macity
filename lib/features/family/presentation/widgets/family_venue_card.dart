@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -135,7 +137,7 @@ class FamilyVenueCard extends ConsumerWidget {
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.phone_outlined,
-                    label: 'Appeler',
+                    label: context.l10n.commonCall,
                     color: modeTheme.primaryColor,
                     onTap: () => _callPhone(),
                   ),
@@ -144,9 +146,9 @@ class FamilyVenueCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 _buildActionButton(
                   icon: Icons.share_outlined,
-                  label: 'Partager',
+                  label: context.l10n.commonShare,
                   color: AppColors.textDim,
-                  onTap: () => _share(),
+                  onTap: () => _share(context),
                 ),
               ],
             ),
@@ -209,7 +211,7 @@ class FamilyVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(commerce.nom);
     if (commerce.categorie.isNotEmpty) {
@@ -218,7 +220,7 @@ class FamilyVenueCard extends ConsumerWidget {
     if (commerce.adresse.isNotEmpty) {
       buffer.writeln(commerce.adresse);
     }
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
 
     Share.share(buffer.toString());
   }
