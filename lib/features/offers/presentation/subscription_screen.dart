@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/features/offers/data/subscription_interest_service.dart';
@@ -13,23 +14,23 @@ import 'package:pulz_app/core/widgets/suivi_ecran.dart';
 class SubscriptionScreen extends StatelessWidget {
   const SubscriptionScreen({super.key});
 
-  static const _benefits = <_Benefit>[
-    _Benefit(
-      icon: Icons.lock_open_rounded,
-      title: 'Toutes les offres premium debloquees',
-      subtitle: 'Cafe offert, reductions, places de concert, experiences...',
-    ),
-    _Benefit(
-      icon: Icons.local_fire_department_rounded,
-      title: 'Nouvelles offres chaque semaine',
-      subtitle: 'Selectionnees par BeThere chez les meilleurs commerces.',
-    ),
-    _Benefit(
-      icon: Icons.cancel_rounded,
-      title: 'Annulable a tout moment',
-      subtitle: 'Sans engagement. Tu arretes quand tu veux.',
-    ),
-  ];
+  static List<_Benefit> _benefits(BuildContext context) => [
+        _Benefit(
+          icon: Icons.lock_open_rounded,
+          title: context.l10n.subAllPremium,
+          subtitle: context.l10n.subAllPremiumSub,
+        ),
+        _Benefit(
+          icon: Icons.local_fire_department_rounded,
+          title: context.l10n.subWeekly,
+          subtitle: context.l10n.subWeeklySub,
+        ),
+        _Benefit(
+          icon: Icons.cancel_rounded,
+          title: context.l10n.subCancel,
+          subtitle: context.l10n.subCancelSub,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +115,7 @@ class SubscriptionScreen extends StatelessWidget {
 
                           // Titre hero
                           Text(
-                            'Profite des meilleures\noffres de ta ville.',
+                            context.l10n.subHeadline,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.geist(
                               fontSize: 28,
@@ -127,7 +128,7 @@ class SubscriptionScreen extends StatelessWidget {
                           const SizedBox(height: 14),
 
                           Text(
-                            'Un abonnement, des centaines d\'offres premium\nselectionnees chez les commerces partenaires.',
+                            context.l10n.subPitch,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.geist(
                               fontSize: 14,
@@ -200,7 +201,7 @@ class SubscriptionScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'par mois',
+                                  context.l10n.subPerMonth,
                                   style: GoogleFonts.geist(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
@@ -215,7 +216,7 @@ class SubscriptionScreen extends StatelessWidget {
                           const SizedBox(height: 32),
 
                           // Liste des benefices
-                          for (final b in _benefits) ...[
+                          for (final b in _benefits(context)) ...[
                             _BenefitRow(benefit: b),
                             const SizedBox(height: 16),
                           ],
@@ -223,7 +224,7 @@ class SubscriptionScreen extends StatelessWidget {
                           const SizedBox(height: 16),
                           // Legal mini
                           Text(
-                            'Renouvellement automatique. Annulable a tout moment depuis les reglages.',
+                            context.l10n.subAutoRenew,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.geist(
                               fontSize: 11,
@@ -249,9 +250,9 @@ class SubscriptionScreen extends StatelessWidget {
                         // (Android). Apple impose IAP pour les abonnements
                         // digitaux consommes dans l'app -> 30%/15% commission.
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content:
-                                Text('Paiement bientot disponible'),
+                                Text(context.l10n.subPaymentSoon),
                             duration: Duration(seconds: 2),
                           ),
                         );
@@ -265,7 +266,7 @@ class SubscriptionScreen extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: Text(
-                        'S\'abonner pour 5,90€/mois',
+                        context.l10n.subSubscribe,
                         style: GoogleFonts.geist(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -278,7 +279,7 @@ class SubscriptionScreen extends StatelessWidget {
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(
-                      'Plus tard',
+                      context.l10n.commonLater,
                       style: GoogleFonts.geist(
                         fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.6),

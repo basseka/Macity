@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/pro_auth/data/pro_auth_service.dart';
@@ -51,11 +52,11 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
   /// Le login existant ne passe pas par cette validation (users historiques
   /// avec d'anciens mdp courts doivent pouvoir se reconnecter).
   String? _validatePasswordStrong(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Le mot de passe est requis';
+    if (v == null || v.trim().isEmpty) return context.l10n.pwdRequired;
     final p = v.trim();
-    if (p.length < 10) return 'Au moins 10 caracteres';
-    if (!RegExp(r'[A-Z]').hasMatch(p)) return 'Au moins 1 majuscule';
-    if (!RegExp(r'\d').hasMatch(p)) return 'Au moins 1 chiffre';
+    if (p.length < 10) return context.l10n.pwdMin10;
+    if (!RegExp(r'[A-Z]').hasMatch(p)) return context.l10n.pwdUppercase;
+    if (!RegExp(r'\d').hasMatch(p)) return context.l10n.pwdDigit;
     return null;
   }
 
@@ -64,9 +65,9 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
     final p = _passwordController.text;
     if (p.isEmpty) return const SizedBox.shrink();
     final checks = <({String label, bool ok})>[
-      (label: '10+ caracteres', ok: p.length >= 10),
-      (label: '1 majuscule', ok: RegExp(r'[A-Z]').hasMatch(p)),
-      (label: '1 chiffre', ok: RegExp(r'\d').hasMatch(p)),
+      (label: context.l10n.pwdHint10, ok: p.length >= 10),
+      (label: context.l10n.pwdHintUpper, ok: RegExp(r'[A-Z]').hasMatch(p)),
+      (label: context.l10n.pwdHintDigit, ok: RegExp(r'\d').hasMatch(p)),
     ];
     return Padding(
       padding: const EdgeInsets.only(top: 6, left: 4),
@@ -144,7 +145,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
               const SizedBox(height: 10),
 
               Text(
-                'Espace Professionnel',
+                context.l10n.proSpaceTitle,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -164,16 +165,16 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 padding: const EdgeInsets.all(3),
                 child: Row(
                   children: [
-                    _buildTab('Inscription', !_isLoginMode),
-                    _buildTab('Connexion', _isLoginMode),
+                    _buildTab(context.l10n.onboardingTabSignUp, !_isLoginMode),
+                    _buildTab(context.l10n.onboardingTabLogin, _isLoginMode),
                   ],
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 _isLoginMode
-                    ? 'Connectez-vous a votre compte'
-                    : 'Inscrivez-vous pour publier des evenements',
+                    ? context.l10n.proLoginSubtitle
+                    : context.l10n.proSignupSubtitle,
                 style: TextStyle(
                   fontSize: 11,
                   color: AppColors.textDim,
@@ -188,12 +189,12 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   controller: _emailController,
                   style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
-                    label: 'Email',
+                    label: context.l10n.cfEmail,
                     icon: Icons.email_outlined,
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'L\'email est requis'
+                      ? context.l10n.proEmailRequired
                       : null,
                 ),
                 const SizedBox(height: 10),
@@ -201,7 +202,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   controller: _passwordController,
                   style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
-                    label: 'Mot de passe',
+                    label: context.l10n.proPassword,
                     icon: Icons.lock_outline,
                   ).copyWith(
                     suffixIcon: IconButton(
@@ -218,7 +219,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   ),
                   obscureText: _obscurePassword,
                   validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Le mot de passe est requis'
+                      ? context.l10n.pwdRequired
                       : null,
                 ),
                 const SizedBox(height: 6),
@@ -228,8 +229,8 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                     onTap: _isResetting ? null : _resetPassword,
                     child: Text(
                       _isResetting
-                          ? 'Envoi en cours...'
-                          : 'Mot de passe oublie ?',
+                          ? context.l10n.proSendingInProgress
+                          : context.l10n.proForgotPassword,
                       style: TextStyle(
                         fontSize: 11,
                         color: _isResetting ? Colors.grey : _primaryColor,
@@ -244,11 +245,11 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   controller: _nomController,
                   style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
-                    label: 'Nom de la structure',
+                    label: context.l10n.proStructureName,
                     icon: Icons.business_outlined,
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Le nom est requis'
+                      ? context.l10n.proNameRequired
                       : null,
                 ),
                 const SizedBox(height: 10),
@@ -262,7 +263,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   dropdownColor: Colors.white,
                   iconEnabledColor: _primaryColor,
                   decoration: _inputDecoration(
-                    label: 'Type de structure',
+                    label: context.l10n.proStructureType,
                     icon: Icons.category_outlined,
                   ),
                   items: _typeLabels.entries
@@ -270,7 +271,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                         (e) => DropdownMenuItem(
                           value: e.key,
                           child: Text(
-                            e.value,
+                            _typeLabel(context, e.key, e.value),
                             style: const TextStyle(
                               fontSize: 13,
                               color: Color(0xFF1A0F2E),
@@ -290,12 +291,12 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   controller: _emailController,
                   style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
-                    label: 'Email',
+                    label: context.l10n.cfEmail,
                     icon: Icons.email_outlined,
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'L\'email est requis'
+                      ? context.l10n.proEmailRequired
                       : null,
                 ),
                 const SizedBox(height: 10),
@@ -303,7 +304,7 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   controller: _passwordController,
                   style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
-                    label: 'Mot de passe',
+                    label: context.l10n.proPassword,
                     icon: Icons.lock_outline,
                   ).copyWith(
                     suffixIcon: IconButton(
@@ -328,12 +329,12 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                   controller: _telephoneController,
                   style: TextStyle(fontSize: 13, color: AppColors.text),
                   decoration: _inputDecoration(
-                    label: 'Telephone',
+                    label: context.l10n.onboardingFieldPhone,
                     icon: Icons.phone_outlined,
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Le telephone est requis'
+                      ? context.l10n.proPhoneRequired
                       : null,
                 ),
               ],
@@ -391,8 +392,8 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                       )
                     : Text(
                         _isLoginMode
-                            ? 'Se connecter'
-                            : 'Valider l\'inscription',
+                            ? context.l10n.onboardingSubmitLogin
+                            : context.l10n.proSubmitSignup,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -462,8 +463,8 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 elevation: 0,
               ),
-              child: const Text(
-                'Fermer',
+              child: Text(
+                context.l10n.commonClose,
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
@@ -538,8 +539,8 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Entrez votre email d\'abord'),
+        SnackBar(
+          content: Text(context.l10n.proEnterEmailFirst),
           backgroundColor: Colors.orange,
         ),
       );
@@ -550,16 +551,16 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
       await ProAuthService().resetPassword(email);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email de reinitialisation envoye !'),
+        SnackBar(
+          content: Text(context.l10n.proResetSent),
           backgroundColor: _primaryColor,
         ),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur lors de l\'envoi. Verifiez votre email.'),
+        SnackBar(
+          content: Text(context.l10n.proResetFailed),
           backgroundColor: Colors.red,
         ),
       );
@@ -619,7 +620,16 @@ class _ProLoginSheetState extends ConsumerState<ProLoginSheet> {
     // Login direct d'un user deja approuve → ecran de succes classique
     setState(() {
       _showSuccess = true;
-      _successMessage = 'Connexion reussie !';
+      _successMessage = context.l10n.proLoginSuccess;
     });
   }
 }
+
+/// Type de structure (cle stockee en base), traduit a l'affichage.
+String _typeLabel(BuildContext context, String key, String fallback) =>
+    switch (key) {
+      'association' => context.l10n.proTypeAssociation,
+      'etablissement_prive' => context.l10n.proTypePrivate,
+      'personne_morale' => context.l10n.proTypeLegalEntity,
+      _ => fallback,
+    };

@@ -1647,5 +1647,168 @@
   "premiumWellness": "Bien-être",
   "premiumTitle": "Offres premium",
   "premiumPitch": "3 offres exclusives de plus chaque mois, dans tes catégories préférées.",
-  "premiumUnlock": "Débloquer · 5,90 €/mois"
+  "premiumUnlock": "Débloquer · 5,90 €/mois",
+  "proTypeAssociation": "Association",
+  "proTypePrivate": "Établissement privé",
+  "proTypeLegalEntity": "Personne morale approuvée",
+  "pwdRequired": "Le mot de passe est requis",
+  "pwdMin10": "Au moins 10 caractères",
+  "pwdUppercase": "Au moins 1 majuscule",
+  "pwdDigit": "Au moins 1 chiffre",
+  "pwdHint10": "10+ caractères",
+  "pwdHintUpper": "1 majuscule",
+  "pwdHintDigit": "1 chiffre",
+  "proSpaceTitle": "Espace Professionnel",
+  "proLoginSubtitle": "Connectez-vous à votre compte",
+  "proSignupSubtitle": "Inscrivez-vous pour publier des événements",
+  "proEmailRequired": "L'email est requis",
+  "proPassword": "Mot de passe",
+  "proSendingInProgress": "Envoi en cours...",
+  "proForgotPassword": "Mot de passe oublié ?",
+  "proStructureName": "Nom de la structure",
+  "proNameRequired": "Le nom est requis",
+  "proStructureType": "Type de structure",
+  "proPhoneRequired": "Le téléphone est requis",
+  "proSubmitSignup": "Valider l'inscription",
+  "proEnterEmailFirst": "Entrez votre email d'abord",
+  "proResetSent": "Email de réinitialisation envoyé !",
+  "proResetFailed": "Erreur lors de l'envoi. Vérifiez votre email.",
+  "proLoginSuccess": "Connexion réussie !",
+  "proEnter6Digits": "Entrez les 6 chiffres du code",
+  "proNewCodeSent": "Nouveau code envoyé par mail",
+  "proResendFailed": "Erreur lors du renvoi du code",
+  "proApproved": "Compte approuvé ! Bienvenue sur MaCity",
+  "proEmailVerification": "Vérification par email",
+  "proCodeSentTo": "Un code à 6 chiffres a été envoyé à\n",
+  "proLogout": "Se déconnecter",
+  "proEmailVerified": "Email vérifié !",
+  "proPendingTitle": "Compte en cours de validation",
+  "proPendingBody": "Notre équipe va t'appeler très bientôt au numéro que tu as renseigné pour finaliser la validation de ton compte.\n\nUne fois ton compte approuvé, tu pourras publier des offres et accéder à toutes les fonctionnalités pro.",
+  "proWaitCall": "OK, j'attends l'appel",
+  "pveNoListing": "Aucune fiche associée à votre compte pro.\nRéclamez votre établissement depuis sa fiche pour pouvoir l'éditer.",
+  "pveLoadError": "Erreur de chargement : {error}",
+  "@pveLoadError": {
+    "description": "Erreur",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pveUploadFailed": "Échec de l'envoi : {error}",
+  "@pveUploadFailed": {
+    "description": "Erreur",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pveDeleteFailed": "Échec de la suppression : {error}",
+  "@pveDeleteFailed": {
+    "description": "Erreur",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pveFilmNow": "Filmer maintenant",
+  "pvePickVideo": "Choisir une vidéo dans la galerie",
+  "pveCoverUpdated": "Pochette mise à jour",
+  "pveCoverUploadFailed": "Échec de l'envoi de la pochette : {error}",
+  "@pveCoverUploadFailed": {
+    "description": "Erreur",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pveCompressing": "Compression...",
+  "pveCompressed": "Compressée : {size} MB",
+  "@pveCompressed": {
+    "description": "Taille video",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "pveUploadPct": "Envoi {pct} %",
+  "@pveUploadPct": {
+    "description": "Progression",
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "pveVideoUploaded": "Vidéo envoyée avec succès",
+  "pveDeleteVideo": "Supprimer la vidéo ?",
+  "pveUnknownError": "Erreur inconnue",
+  "pveAutoSaved": "Vos modifications sont enregistrées automatiquement.",
+  "pveCoverSection": "Pochette (visible dans la liste)",
+  "pveCoverHint": "Image principale affichée sur la carte de votre établissement dans les listes.",
+  "pvePhotosSection": "Photos de la fiche détail",
+  "pvePhotosHint": "Jusqu'à 6 photos. Apparaissent dans l'ordre sur la fiche détail.",
+  "pveVideoSection": "Vidéo teaser",
+  "pveVideoHint": "Filmez avec le téléphone ou choisissez dans la galerie. Max 30 s, 50 MB après compression automatique.",
+  "pveDone": "Terminé",
+  "pveCover": "Pochette",
+  "pvePhotoGridHint": "Appui long pour supprimer · Tap pour remplacer",
+  "pveAddVideo": "Ajouter une vidéo",
+  "pvePreparing": "Préparation...",
+  "pveDeletePhoto": "Supprimer cette photo ?",
+  "aoEditTitle": "Modifier l'offre",
+  "aoBusinessName": "Nom de l'établissement",
+  "aoBusinessNameRequired": "Le nom de l'établissement est requis",
+  "aoTitle": "Titre de l'offre (ex : massage offert)",
+  "aoDescription": "Description (ex : 30 min offertes pour toute réservation)",
+  "aoEmoji": "Emoji (1 seul)",
+  "aoAddPhoto": "Ajouter une photo",
+  "aoSpotsRequired": "Le nombre de places est requis",
+  "aoValidNumber": "Entrez un nombre valide",
+  "aoUnlimitedSpots": "Places illimitées",
+  "aoExpiryDate": "Date d'expiration",
+  "aoExpiryRequired": "La date d'expiration est requise",
+  "aoNoExpiry": "Sans date d'expiration",
+  "aoEditing": "Modification en cours...",
+  "aoFixFields": "Vérifie les champs en rouge avant de publier",
+  "aoEdited": "Offre modifiée avec succès !",
+  "aoPublished": "Offre publiée avec succès !",
+  "commonErrorWith": "Erreur : {error}",
+  "@commonErrorWith": {
+    "description": "Erreur",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "aoProRequired": "Connexion pro requise",
+  "aoPendingBody": "Ton compte pro est bien créé. Notre équipe va t'appeler très bientôt au numéro renseigné pour valider ton inscription. Tu pourras publier des offres dès que ton compte sera approuvé.",
+  "aoProRequiredBody": "Tu dois être connecté avec un compte pro approuvé pour publier une offre.",
+  "commonOk": "OK",
+  "moDeleteOffer": "Supprimer cette offre ?",
+  "moDeleted": "Offre supprimée",
+  "moNoExpiry": "Sans expiration",
+  "moExpired": "Expirée",
+  "moFull": "Complète",
+  "moLive": "En cours",
+  "moInactive": "Inactive",
+  "moNone": "Aucune offre encore",
+  "moNoneHint": "Crée ta première offre promotionnelle pour attirer plus de clients.",
+  "subAllPremium": "Toutes les offres premium débloquées",
+  "subAllPremiumSub": "Café offert, réductions, places de concert, expériences...",
+  "subWeekly": "Nouvelles offres chaque semaine",
+  "subWeeklySub": "Sélectionnées chez les meilleurs commerces.",
+  "subCancel": "Annulable à tout moment",
+  "subCancelSub": "Sans engagement. Tu arrêtes quand tu veux.",
+  "subHeadline": "Profite des meilleures\noffres de ta ville.",
+  "subPitch": "Un abonnement, des centaines d'offres premium\nsélectionnées chez les commerces partenaires.",
+  "subPerMonth": "par mois",
+  "subAutoRenew": "Renouvellement automatique. Annulable à tout moment depuis les réglages.",
+  "subPaymentSoon": "Paiement bientôt disponible",
+  "subSubscribe": "S'abonner pour 5,90 €/mois"
 }

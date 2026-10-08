@@ -3391,4 +3391,352 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get premiumUnlock => 'Desbloquear · 5,90 €/mes';
+
+  @override
+  String get proTypeAssociation => 'Asociación';
+
+  @override
+  String get proTypePrivate => 'Establecimiento privado';
+
+  @override
+  String get proTypeLegalEntity => 'Persona jurídica aprobada';
+
+  @override
+  String get pwdRequired => 'La contraseña es obligatoria';
+
+  @override
+  String get pwdMin10 => 'Al menos 10 caracteres';
+
+  @override
+  String get pwdUppercase => 'Al menos 1 mayúscula';
+
+  @override
+  String get pwdDigit => 'Al menos 1 cifra';
+
+  @override
+  String get pwdHint10 => '10+ caracteres';
+
+  @override
+  String get pwdHintUpper => '1 mayúscula';
+
+  @override
+  String get pwdHintDigit => '1 cifra';
+
+  @override
+  String get proSpaceTitle => 'Espacio profesional';
+
+  @override
+  String get proLoginSubtitle => 'Inicia sesión en tu cuenta';
+
+  @override
+  String get proSignupSubtitle => 'Regístrate para publicar eventos';
+
+  @override
+  String get proEmailRequired => 'El email es obligatorio';
+
+  @override
+  String get proPassword => 'Contraseña';
+
+  @override
+  String get proSendingInProgress => 'Enviando...';
+
+  @override
+  String get proForgotPassword => '¿Has olvidado tu contraseña?';
+
+  @override
+  String get proStructureName => 'Nombre de la entidad';
+
+  @override
+  String get proNameRequired => 'El nombre es obligatorio';
+
+  @override
+  String get proStructureType => 'Tipo de entidad';
+
+  @override
+  String get proPhoneRequired => 'El teléfono es obligatorio';
+
+  @override
+  String get proSubmitSignup => 'Completar el registro';
+
+  @override
+  String get proEnterEmailFirst => 'Introduce primero tu email';
+
+  @override
+  String get proResetSent => '¡Email de restablecimiento enviado!';
+
+  @override
+  String get proResetFailed => 'Error al enviar. Revisa tu email.';
+
+  @override
+  String get proLoginSuccess => '¡Sesión iniciada!';
+
+  @override
+  String get proEnter6Digits => 'Introduce las 6 cifras del código';
+
+  @override
+  String get proNewCodeSent => 'Nuevo código enviado por email';
+
+  @override
+  String get proResendFailed => 'Error al reenviar el código';
+
+  @override
+  String get proApproved => '¡Cuenta aprobada! Bienvenido a MaCity';
+
+  @override
+  String get proEmailVerification => 'Verificación por email';
+
+  @override
+  String get proCodeSentTo => 'Se ha enviado un código de 6 cifras a\n';
+
+  @override
+  String get proLogout => 'Cerrar sesión';
+
+  @override
+  String get proEmailVerified => '¡Email verificado!';
+
+  @override
+  String get proPendingTitle => 'Cuenta pendiente de validación';
+
+  @override
+  String get proPendingBody =>
+      'Nuestro equipo te llamará muy pronto al número que indicaste para terminar de validar tu cuenta.\n\nCuando esté aprobada, podrás publicar ofertas y usar todas las funciones pro.';
+
+  @override
+  String get proWaitCall => 'OK, espero la llamada';
+
+  @override
+  String get pveNoListing =>
+      'No hay ninguna ficha vinculada a tu cuenta pro.\nReclama tu establecimiento desde su ficha para poder editarla.';
+
+  @override
+  String pveLoadError(String error) {
+    return 'Error de carga: $error';
+  }
+
+  @override
+  String pveUploadFailed(String error) {
+    return 'Error al subir: $error';
+  }
+
+  @override
+  String pveDeleteFailed(String error) {
+    return 'Error al eliminar: $error';
+  }
+
+  @override
+  String get pveFilmNow => 'Grabar ahora';
+
+  @override
+  String get pvePickVideo => 'Elegir un vídeo de la galería';
+
+  @override
+  String get pveCoverUpdated => 'Portada actualizada';
+
+  @override
+  String pveCoverUploadFailed(String error) {
+    return 'Error al subir la portada: $error';
+  }
+
+  @override
+  String get pveCompressing => 'Comprimiendo...';
+
+  @override
+  String pveCompressed(String size) {
+    return 'Comprimido: $size MB';
+  }
+
+  @override
+  String pveUploadPct(int pct) {
+    return 'Subiendo $pct %';
+  }
+
+  @override
+  String get pveVideoUploaded => 'Vídeo subido correctamente';
+
+  @override
+  String get pveDeleteVideo => '¿Eliminar el vídeo?';
+
+  @override
+  String get pveUnknownError => 'Error desconocido';
+
+  @override
+  String get pveAutoSaved => 'Tus cambios se guardan automáticamente.';
+
+  @override
+  String get pveCoverSection => 'Portada (visible en la lista)';
+
+  @override
+  String get pveCoverHint =>
+      'Imagen principal que aparece en la tarjeta de tu establecimiento en las listas.';
+
+  @override
+  String get pvePhotosSection => 'Fotos de la ficha';
+
+  @override
+  String get pvePhotosHint => 'Hasta 6 fotos. Aparecen en orden en la ficha.';
+
+  @override
+  String get pveVideoSection => 'Vídeo teaser';
+
+  @override
+  String get pveVideoHint =>
+      'Graba con el móvil o elige de la galería. Máx. 30 s, 50 MB tras la compresión automática.';
+
+  @override
+  String get pveDone => 'Listo';
+
+  @override
+  String get pveCover => 'Portada';
+
+  @override
+  String get pvePhotoGridHint =>
+      'Mantén pulsado para eliminar · Toca para reemplazar';
+
+  @override
+  String get pveAddVideo => 'Añadir un vídeo';
+
+  @override
+  String get pvePreparing => 'Preparando...';
+
+  @override
+  String get pveDeletePhoto => '¿Eliminar esta foto?';
+
+  @override
+  String get aoEditTitle => 'Editar oferta';
+
+  @override
+  String get aoBusinessName => 'Nombre del establecimiento';
+
+  @override
+  String get aoBusinessNameRequired =>
+      'El nombre del establecimiento es obligatorio';
+
+  @override
+  String get aoTitle => 'Título de la oferta (p. ej. masaje gratis)';
+
+  @override
+  String get aoDescription =>
+      'Descripción (p. ej. 30 min gratis con cada reserva)';
+
+  @override
+  String get aoEmoji => 'Emoji (solo 1)';
+
+  @override
+  String get aoAddPhoto => 'Añadir una foto';
+
+  @override
+  String get aoSpotsRequired => 'El número de plazas es obligatorio';
+
+  @override
+  String get aoValidNumber => 'Introduce un número válido';
+
+  @override
+  String get aoUnlimitedSpots => 'Plazas ilimitadas';
+
+  @override
+  String get aoExpiryDate => 'Fecha de caducidad';
+
+  @override
+  String get aoExpiryRequired => 'La fecha de caducidad es obligatoria';
+
+  @override
+  String get aoNoExpiry => 'Sin fecha de caducidad';
+
+  @override
+  String get aoEditing => 'Guardando...';
+
+  @override
+  String get aoFixFields => 'Revisa los campos en rojo antes de publicar';
+
+  @override
+  String get aoEdited => '¡Oferta editada con éxito!';
+
+  @override
+  String get aoPublished => '¡Oferta publicada con éxito!';
+
+  @override
+  String commonErrorWith(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get aoProRequired => 'Se necesita una cuenta pro';
+
+  @override
+  String get aoPendingBody =>
+      'Tu cuenta pro se ha creado. Nuestro equipo te llamará muy pronto al número indicado para validarla. Podrás publicar ofertas en cuanto esté aprobada.';
+
+  @override
+  String get aoProRequiredBody =>
+      'Necesitas iniciar sesión con una cuenta pro aprobada para publicar una oferta.';
+
+  @override
+  String get commonOk => 'OK';
+
+  @override
+  String get moDeleteOffer => '¿Eliminar esta oferta?';
+
+  @override
+  String get moDeleted => 'Oferta eliminada';
+
+  @override
+  String get moNoExpiry => 'Sin caducidad';
+
+  @override
+  String get moExpired => 'Caducada';
+
+  @override
+  String get moFull => 'Completa';
+
+  @override
+  String get moLive => 'Activa';
+
+  @override
+  String get moInactive => 'Inactiva';
+
+  @override
+  String get moNone => 'Todavía no hay ofertas';
+
+  @override
+  String get moNoneHint =>
+      'Crea tu primera oferta promocional para atraer más clientes.';
+
+  @override
+  String get subAllPremium => 'Todas las ofertas premium desbloqueadas';
+
+  @override
+  String get subAllPremiumSub =>
+      'Café gratis, descuentos, entradas de concierto, experiencias...';
+
+  @override
+  String get subWeekly => 'Nuevas ofertas cada semana';
+
+  @override
+  String get subWeeklySub => 'Seleccionadas en los mejores comercios.';
+
+  @override
+  String get subCancel => 'Cancela cuando quieras';
+
+  @override
+  String get subCancelSub => 'Sin permanencia. Lo dejas cuando quieras.';
+
+  @override
+  String get subHeadline => 'Disfruta de las mejores\nofertas de tu ciudad.';
+
+  @override
+  String get subPitch =>
+      'Una suscripción, cientos de ofertas premium\nseleccionadas en comercios asociados.';
+
+  @override
+  String get subPerMonth => 'al mes';
+
+  @override
+  String get subAutoRenew =>
+      'Renovación automática. Cancela cuando quieras desde los ajustes.';
+
+  @override
+  String get subPaymentSoon => 'Pago disponible próximamente';
+
+  @override
+  String get subSubscribe => 'Suscribirse por 5,90 €/mes';
 }

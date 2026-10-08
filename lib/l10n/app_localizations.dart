@@ -6147,6 +6147,648 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Débloquer · 5,90 €/mois'**
   String get premiumUnlock;
+
+  /// No description provided for @proTypeAssociation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Association'**
+  String get proTypeAssociation;
+
+  /// No description provided for @proTypePrivate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Établissement privé'**
+  String get proTypePrivate;
+
+  /// No description provided for @proTypeLegalEntity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne morale approuvée'**
+  String get proTypeLegalEntity;
+
+  /// No description provided for @pwdRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mot de passe est requis'**
+  String get pwdRequired;
+
+  /// No description provided for @pwdMin10.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au moins 10 caractères'**
+  String get pwdMin10;
+
+  /// No description provided for @pwdUppercase.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au moins 1 majuscule'**
+  String get pwdUppercase;
+
+  /// No description provided for @pwdDigit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au moins 1 chiffre'**
+  String get pwdDigit;
+
+  /// No description provided for @pwdHint10.
+  ///
+  /// In fr, this message translates to:
+  /// **'10+ caractères'**
+  String get pwdHint10;
+
+  /// No description provided for @pwdHintUpper.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 majuscule'**
+  String get pwdHintUpper;
+
+  /// No description provided for @pwdHintDigit.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 chiffre'**
+  String get pwdHintDigit;
+
+  /// No description provided for @proSpaceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espace Professionnel'**
+  String get proSpaceTitle;
+
+  /// No description provided for @proLoginSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous à votre compte'**
+  String get proLoginSubtitle;
+
+  /// No description provided for @proSignupSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrivez-vous pour publier des événements'**
+  String get proSignupSubtitle;
+
+  /// No description provided for @proEmailRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'email est requis'**
+  String get proEmailRequired;
+
+  /// No description provided for @proPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get proPassword;
+
+  /// No description provided for @proSendingInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi en cours...'**
+  String get proSendingInProgress;
+
+  /// No description provided for @proForgotPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe oublié ?'**
+  String get proForgotPassword;
+
+  /// No description provided for @proStructureName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de la structure'**
+  String get proStructureName;
+
+  /// No description provided for @proNameRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le nom est requis'**
+  String get proNameRequired;
+
+  /// No description provided for @proStructureType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de structure'**
+  String get proStructureType;
+
+  /// No description provided for @proPhoneRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le téléphone est requis'**
+  String get proPhoneRequired;
+
+  /// No description provided for @proSubmitSignup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider l\'inscription'**
+  String get proSubmitSignup;
+
+  /// No description provided for @proEnterEmailFirst.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez votre email d\'abord'**
+  String get proEnterEmailFirst;
+
+  /// No description provided for @proResetSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email de réinitialisation envoyé !'**
+  String get proResetSent;
+
+  /// No description provided for @proResetFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors de l\'envoi. Vérifiez votre email.'**
+  String get proResetFailed;
+
+  /// No description provided for @proLoginSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion réussie !'**
+  String get proLoginSuccess;
+
+  /// No description provided for @proEnter6Digits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez les 6 chiffres du code'**
+  String get proEnter6Digits;
+
+  /// No description provided for @proNewCodeSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau code envoyé par mail'**
+  String get proNewCodeSent;
+
+  /// No description provided for @proResendFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du renvoi du code'**
+  String get proResendFailed;
+
+  /// No description provided for @proApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte approuvé ! Bienvenue sur MaCity'**
+  String get proApproved;
+
+  /// No description provided for @proEmailVerification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérification par email'**
+  String get proEmailVerification;
+
+  /// No description provided for @proCodeSentTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un code à 6 chiffres a été envoyé à\n'**
+  String get proCodeSentTo;
+
+  /// No description provided for @proLogout.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get proLogout;
+
+  /// No description provided for @proEmailVerified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Email vérifié !'**
+  String get proEmailVerified;
+
+  /// No description provided for @proPendingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte en cours de validation'**
+  String get proPendingTitle;
+
+  /// No description provided for @proPendingBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notre équipe va t\'appeler très bientôt au numéro que tu as renseigné pour finaliser la validation de ton compte.\n\nUne fois ton compte approuvé, tu pourras publier des offres et accéder à toutes les fonctionnalités pro.'**
+  String get proPendingBody;
+
+  /// No description provided for @proWaitCall.
+  ///
+  /// In fr, this message translates to:
+  /// **'OK, j\'attends l\'appel'**
+  String get proWaitCall;
+
+  /// No description provided for @pveNoListing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune fiche associée à votre compte pro.\nRéclamez votre établissement depuis sa fiche pour pouvoir l\'éditer.'**
+  String get pveNoListing;
+
+  /// Erreur
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de chargement : {error}'**
+  String pveLoadError(String error);
+
+  /// Erreur
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'envoi : {error}'**
+  String pveUploadFailed(String error);
+
+  /// Erreur
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression : {error}'**
+  String pveDeleteFailed(String error);
+
+  /// No description provided for @pveFilmNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Filmer maintenant'**
+  String get pveFilmNow;
+
+  /// No description provided for @pvePickVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une vidéo dans la galerie'**
+  String get pvePickVideo;
+
+  /// No description provided for @pveCoverUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pochette mise à jour'**
+  String get pveCoverUpdated;
+
+  /// Erreur
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'envoi de la pochette : {error}'**
+  String pveCoverUploadFailed(String error);
+
+  /// No description provided for @pveCompressing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compression...'**
+  String get pveCompressing;
+
+  /// Taille video
+  ///
+  /// In fr, this message translates to:
+  /// **'Compressée : {size} MB'**
+  String pveCompressed(String size);
+
+  /// Progression
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi {pct} %'**
+  String pveUploadPct(int pct);
+
+  /// No description provided for @pveVideoUploaded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vidéo envoyée avec succès'**
+  String get pveVideoUploaded;
+
+  /// No description provided for @pveDeleteVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la vidéo ?'**
+  String get pveDeleteVideo;
+
+  /// No description provided for @pveUnknownError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur inconnue'**
+  String get pveUnknownError;
+
+  /// No description provided for @pveAutoSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos modifications sont enregistrées automatiquement.'**
+  String get pveAutoSaved;
+
+  /// No description provided for @pveCoverSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pochette (visible dans la liste)'**
+  String get pveCoverSection;
+
+  /// No description provided for @pveCoverHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Image principale affichée sur la carte de votre établissement dans les listes.'**
+  String get pveCoverHint;
+
+  /// No description provided for @pvePhotosSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photos de la fiche détail'**
+  String get pvePhotosSection;
+
+  /// No description provided for @pvePhotosHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu\'à 6 photos. Apparaissent dans l\'ordre sur la fiche détail.'**
+  String get pvePhotosHint;
+
+  /// No description provided for @pveVideoSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vidéo teaser'**
+  String get pveVideoSection;
+
+  /// No description provided for @pveVideoHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Filmez avec le téléphone ou choisissez dans la galerie. Max 30 s, 50 MB après compression automatique.'**
+  String get pveVideoHint;
+
+  /// No description provided for @pveDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get pveDone;
+
+  /// No description provided for @pveCover.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pochette'**
+  String get pveCover;
+
+  /// No description provided for @pvePhotoGridHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appui long pour supprimer · Tap pour remplacer'**
+  String get pvePhotoGridHint;
+
+  /// No description provided for @pveAddVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une vidéo'**
+  String get pveAddVideo;
+
+  /// No description provided for @pvePreparing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préparation...'**
+  String get pvePreparing;
+
+  /// No description provided for @pveDeletePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer cette photo ?'**
+  String get pveDeletePhoto;
+
+  /// No description provided for @aoEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'offre'**
+  String get aoEditTitle;
+
+  /// No description provided for @aoBusinessName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de l\'établissement'**
+  String get aoBusinessName;
+
+  /// No description provided for @aoBusinessNameRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le nom de l\'établissement est requis'**
+  String get aoBusinessNameRequired;
+
+  /// No description provided for @aoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre de l\'offre (ex : massage offert)'**
+  String get aoTitle;
+
+  /// No description provided for @aoDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description (ex : 30 min offertes pour toute réservation)'**
+  String get aoDescription;
+
+  /// No description provided for @aoEmoji.
+  ///
+  /// In fr, this message translates to:
+  /// **'Emoji (1 seul)'**
+  String get aoEmoji;
+
+  /// No description provided for @aoAddPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une photo'**
+  String get aoAddPhoto;
+
+  /// No description provided for @aoSpotsRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le nombre de places est requis'**
+  String get aoSpotsRequired;
+
+  /// No description provided for @aoValidNumber.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez un nombre valide'**
+  String get aoValidNumber;
+
+  /// No description provided for @aoUnlimitedSpots.
+  ///
+  /// In fr, this message translates to:
+  /// **'Places illimitées'**
+  String get aoUnlimitedSpots;
+
+  /// No description provided for @aoExpiryDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date d\'expiration'**
+  String get aoExpiryDate;
+
+  /// No description provided for @aoExpiryRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'La date d\'expiration est requise'**
+  String get aoExpiryRequired;
+
+  /// No description provided for @aoNoExpiry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans date d\'expiration'**
+  String get aoNoExpiry;
+
+  /// No description provided for @aoEditing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification en cours...'**
+  String get aoEditing;
+
+  /// No description provided for @aoFixFields.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifie les champs en rouge avant de publier'**
+  String get aoFixFields;
+
+  /// No description provided for @aoEdited.
+  ///
+  /// In fr, this message translates to:
+  /// **'Offre modifiée avec succès !'**
+  String get aoEdited;
+
+  /// No description provided for @aoPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Offre publiée avec succès !'**
+  String get aoPublished;
+
+  /// Erreur
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur : {error}'**
+  String commonErrorWith(String error);
+
+  /// No description provided for @aoProRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion pro requise'**
+  String get aoProRequired;
+
+  /// No description provided for @aoPendingBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton compte pro est bien créé. Notre équipe va t\'appeler très bientôt au numéro renseigné pour valider ton inscription. Tu pourras publier des offres dès que ton compte sera approuvé.'**
+  String get aoPendingBody;
+
+  /// No description provided for @aoProRequiredBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu dois être connecté avec un compte pro approuvé pour publier une offre.'**
+  String get aoProRequiredBody;
+
+  /// No description provided for @commonOk.
+  ///
+  /// In fr, this message translates to:
+  /// **'OK'**
+  String get commonOk;
+
+  /// No description provided for @moDeleteOffer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer cette offre ?'**
+  String get moDeleteOffer;
+
+  /// No description provided for @moDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Offre supprimée'**
+  String get moDeleted;
+
+  /// No description provided for @moNoExpiry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans expiration'**
+  String get moNoExpiry;
+
+  /// No description provided for @moExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expirée'**
+  String get moExpired;
+
+  /// No description provided for @moFull.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complète'**
+  String get moFull;
+
+  /// No description provided for @moLive.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get moLive;
+
+  /// No description provided for @moInactive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inactive'**
+  String get moInactive;
+
+  /// No description provided for @moNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune offre encore'**
+  String get moNone;
+
+  /// No description provided for @moNoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crée ta première offre promotionnelle pour attirer plus de clients.'**
+  String get moNoneHint;
+
+  /// No description provided for @subAllPremium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les offres premium débloquées'**
+  String get subAllPremium;
+
+  /// No description provided for @subAllPremiumSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Café offert, réductions, places de concert, expériences...'**
+  String get subAllPremiumSub;
+
+  /// No description provided for @subWeekly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelles offres chaque semaine'**
+  String get subWeekly;
+
+  /// No description provided for @subWeeklySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionnées chez les meilleurs commerces.'**
+  String get subWeeklySub;
+
+  /// No description provided for @subCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulable à tout moment'**
+  String get subCancel;
+
+  /// No description provided for @subCancelSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans engagement. Tu arrêtes quand tu veux.'**
+  String get subCancelSub;
+
+  /// No description provided for @subHeadline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profite des meilleures\noffres de ta ville.'**
+  String get subHeadline;
+
+  /// No description provided for @subPitch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un abonnement, des centaines d\'offres premium\nsélectionnées chez les commerces partenaires.'**
+  String get subPitch;
+
+  /// No description provided for @subPerMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'par mois'**
+  String get subPerMonth;
+
+  /// No description provided for @subAutoRenew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renouvellement automatique. Annulable à tout moment depuis les réglages.'**
+  String get subAutoRenew;
+
+  /// No description provided for @subPaymentSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement bientôt disponible'**
+  String get subPaymentSoon;
+
+  /// No description provided for @subSubscribe.
+  ///
+  /// In fr, this message translates to:
+  /// **'S\'abonner pour 5,90 €/mois'**
+  String get subSubscribe;
 }
 
 class _AppLocalizationsDelegate

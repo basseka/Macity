@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -56,15 +57,14 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
         _record = rec;
         _loading = false;
         if (rec == null) {
-          _error = 'Aucune fiche associee a votre compte pro.\n'
-              'Reclamez votre etablissement depuis sa fiche pour pouvoir l\'editer.';
+          _error = context.l10n.pveNoListing;
         }
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'Erreur de chargement : $e';
+        _error = context.l10n.pveLoadError('$e');
       });
     }
   }
@@ -110,7 +110,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       if (!mounted) return;
       setState(() => _uploadingSlots.remove(slot));
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Echec upload : $e')),
+        SnackBar(content: Text(context.l10n.pveUploadFailed('$e'))),
       );
     }
   }
@@ -131,7 +131,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Echec suppression : $e')),
+        SnackBar(content: Text(context.l10n.pveDeleteFailed('$e'))),
       );
     }
   }
@@ -151,7 +151,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                 color: _primaryColor,
               ),
               title: Text(
-                isVideo ? 'Filmer maintenant' : 'Prendre une photo',
+                isVideo ? context.l10n.pveFilmNow : context.l10n.onboardingTakePhoto,
                 style: TextStyle(color: AppColors.text),
               ),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
@@ -160,8 +160,8 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
               leading: const Icon(Icons.photo_library, color: _primaryColor),
               title: Text(
                 isVideo
-                    ? 'Choisir une video dans la galerie'
-                    : 'Choisir dans la galerie',
+                    ? context.l10n.pvePickVideo
+                    : context.l10n.onboardingChooseFromGallery,
                 style: TextStyle(color: AppColors.text),
               ),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
@@ -202,8 +202,8 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
         _uploadingCover = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pochette mise a jour'),
+        SnackBar(
+          content: Text(context.l10n.pveCoverUpdated),
           backgroundColor: Color(0xFF4CAF50),
         ),
       );
@@ -211,7 +211,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       if (!mounted) return;
       setState(() => _uploadingCover = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Echec upload pochette : $e')),
+        SnackBar(content: Text(context.l10n.pveCoverUploadFailed('$e'))),
       );
     }
   }
@@ -224,7 +224,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
 
     setState(() {
       _uploadingVideo = true;
-      _videoStatus = 'Compression...';
+      _videoStatus = context.l10n.pveCompressing;
       _videoProgress = 0.0;
     });
     try {
@@ -244,13 +244,14 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
         onCompressed: (kb) {
           if (!mounted) return;
           setState(() {
-            _videoStatus = 'Compressee : ${(kb / 1024).toStringAsFixed(1)} MB';
+            _videoStatus = context.l10n
+                .pveCompressed((kb / 1024).toStringAsFixed(1));
           });
         },
         onProgress: (pct) {
           if (!mounted) return;
           setState(() {
-            _videoStatus = 'Upload ${(pct * 100).round()} %';
+            _videoStatus = context.l10n.pveUploadPct((pct * 100).round());
             _videoProgress = pct;
           });
         },
@@ -268,8 +269,8 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
         _videoProgress = 0.0;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Video uploadee avec succes'),
+        SnackBar(
+          content: Text(context.l10n.pveVideoUploaded),
           backgroundColor: Color(0xFF4CAF50),
         ),
       );
@@ -293,7 +294,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
         _videoStatus = '';
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Echec upload : $e')),
+        SnackBar(content: Text(context.l10n.pveUploadFailed('$e'))),
       );
     }
   }
@@ -305,17 +306,17 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text('Supprimer la video ?',
+        title: Text(context.l10n.pveDeleteVideo,
             style: TextStyle(color: AppColors.text, fontSize: 15)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Annuler',
+            child: Text(context.l10n.commonCancel,
                 style: TextStyle(color: AppColors.textFaint)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Supprimer',
+            child: Text(context.l10n.commonDelete,
                 style: TextStyle(color: Color(0xFFE91E8C))),
           ),
         ],
@@ -333,7 +334,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Echec suppression : $e')),
+        SnackBar(content: Text(context.l10n.pveDeleteFailed('$e'))),
       );
     }
   }
@@ -370,7 +371,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
     }
     final rec = _record;
     if (rec == null) {
-      return _buildError(_error ?? 'Erreur inconnue');
+      return _buildError(_error ?? context.l10n.pveUnknownError);
     }
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -391,13 +392,13 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
               ),
             ),
             child: Row(
-              children: const [
+              children: [
                 Icon(Icons.cloud_done_outlined,
                     size: 14, color: Color(0xFF4CAF50)),
                 SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Vos modifications sont enregistrees automatiquement.',
+                    context.l10n.pveAutoSaved,
                     style: TextStyle(color: Color(0xFF4CAF50), fontSize: 11),
                   ),
                 ),
@@ -405,30 +406,28 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
             ),
           ),
           const SizedBox(height: 14),
-          _sectionTitle('Pochette (visible dans la liste)'),
+          _sectionTitle(context.l10n.pveCoverSection),
           const SizedBox(height: 4),
           Text(
-            'Image principale affichee sur la carte de votre etablissement '
-            'dans les listes.',
+            context.l10n.pveCoverHint,
             style: TextStyle(color: AppColors.textFaint, fontSize: 11),
           ),
           const SizedBox(height: 10),
           _coverTile(rec),
           const SizedBox(height: 22),
-          _sectionTitle('Photos de la fiche detail'),
+          _sectionTitle(context.l10n.pvePhotosSection),
           const SizedBox(height: 4),
           Text(
-            'Jusqu\'a 6 photos. Apparaissent dans l\'ordre sur la fiche detail.',
+            context.l10n.pvePhotosHint,
             style: TextStyle(color: AppColors.textFaint, fontSize: 11),
           ),
           const SizedBox(height: 10),
           _photoGrid(rec),
           const SizedBox(height: 22),
-          _sectionTitle('Video teaser'),
+          _sectionTitle(context.l10n.pveVideoSection),
           const SizedBox(height: 4),
           Text(
-            'Filmez avec le telephone ou choisissez dans la galerie. '
-            'Max 30 sec — 50 MB apres compression auto.',
+            context.l10n.pveVideoHint,
             style: TextStyle(color: AppColors.textFaint, fontSize: 11),
           ),
           const SizedBox(height: 10),
@@ -439,8 +438,8 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
             child: ElevatedButton.icon(
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Icons.check_rounded, size: 18),
-              label: const Text(
-                'Termine',
+              label: Text(
+                context.l10n.pveDone,
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               style: ElevatedButton.styleFrom(
@@ -550,7 +549,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                             color: AppColors.textFaint, size: 32),
                         SizedBox(height: 4),
                         Text(
-                          'Pochette',
+                          context.l10n.pveCover,
                           style: TextStyle(
                               color: AppColors.textFaint, fontSize: 11),
                         ),
@@ -625,8 +624,8 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                         color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        'Appui long pour supprimer · Tap pour remplacer',
+                      child: Text(
+                        context.l10n.pvePhotoGridHint,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.white, fontSize: 10),
                       ),
@@ -641,7 +640,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                             color: AppColors.textFaint, size: 40),
                         SizedBox(height: 6),
                         Text(
-                          'Ajouter une video',
+                          context.l10n.pveAddVideo,
                           style: TextStyle(
                               color: AppColors.textFaint, fontSize: 12),
                         ),
@@ -667,7 +666,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                           const SizedBox(height: 10),
                           Text(
                             _videoStatus.isEmpty
-                                ? 'Preparation...'
+                                ? context.l10n.pvePreparing
                                 : _videoStatus,
                             style: const TextStyle(
                                 color: Colors.white, fontSize: 12),
@@ -740,17 +739,17 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text('Supprimer cette photo ?',
+        title: Text(context.l10n.pveDeletePhoto,
             style: TextStyle(color: AppColors.text, fontSize: 15)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Annuler',
+            child: Text(context.l10n.commonCancel,
                 style: TextStyle(color: AppColors.textFaint)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Supprimer',
+            child: Text(context.l10n.commonDelete,
                 style: TextStyle(color: Color(0xFFE91E8C))),
           ),
         ],
@@ -784,7 +783,7 @@ class _ProVenueEditSheetState extends ConsumerState<ProVenueEditSheet> {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 13),
               ),
-              child: const Text('Fermer'),
+              child: Text(context.l10n.commonClose),
             ),
           ),
         ],

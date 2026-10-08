@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -132,7 +133,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
 
               // Title
               Text(
-                _isEditing ? 'Modifier l\'offre' : 'Creer une offre',
+                _isEditing ? context.l10n.aoEditTitle : context.l10n.accountCreateOffer,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -175,12 +176,12 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               TextFormField(
                 controller: _businessNameController,
                 decoration: _inputDecoration(
-                  label: "Nom de l'etablissement",
+                  label: context.l10n.aoBusinessName,
                   icon: Icons.business_outlined,
                 ),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 validator: (v) => (v == null || v.trim().isEmpty)
-                    ? "Le nom de l'etablissement est requis"
+                    ? context.l10n.aoBusinessNameRequired
                     : null,
               ),
               const SizedBox(height: 10),
@@ -189,12 +190,12 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               TextFormField(
                 controller: _titleController,
                 decoration: _inputDecoration(
-                  label: "Titre de l'offre (ex: Massage offert)",
+                  label: context.l10n.aoTitle,
                   icon: Icons.local_offer,
                 ),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
                 validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Le titre est requis'
+                    ? context.l10n.errTitleRequired
                     : null,
               ),
               const SizedBox(height: 10),
@@ -203,7 +204,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: _inputDecoration(
-                  label: 'Description (ex: 30 min offert pour toute reservation)',
+                  label: context.l10n.aoDescription,
                   icon: Icons.description_outlined,
                 ),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
@@ -215,7 +216,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               TextFormField(
                 controller: _emojiController,
                 decoration: _inputDecoration(
-                  label: 'Emoji (1 seul)',
+                  label: context.l10n.aoEmoji,
                   icon: Icons.emoji_emotions_outlined,
                 ),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
@@ -227,7 +228,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                 OutlinedButton.icon(
                   onPressed: _pickPhoto,
                   icon: const Icon(Icons.photo_camera, size: 16),
-                  label: const Text('Ajouter une photo', style: TextStyle(fontSize: 12)),
+                  label: Text(context.l10n.aoAddPhoto, style: const TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _primaryColor,
                     side: BorderSide(color: _primaryColor.withValues(alpha: 0.2)),
@@ -273,7 +274,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               TextFormField(
                 controller: _addressController,
                 decoration: _inputDecoration(
-                  label: 'Adresse',
+                  label: context.l10n.pvAddress,
                   icon: Icons.location_on_outlined,
                 ),
                 style: TextStyle(fontSize: 13, color: AppColors.text),
@@ -285,7 +286,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                 TextFormField(
                   controller: _spotsController,
                   decoration: _inputDecoration(
-                    label: 'Nombre de places',
+                    label: context.l10n.pvSeats,
                     icon: Icons.people_outline,
                   ),
                   style: TextStyle(fontSize: 13, color: AppColors.text),
@@ -293,11 +294,11 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   validator: (v) {
                     if (_unlimitedSpots) return null;
                     if (v == null || v.trim().isEmpty) {
-                      return 'Le nombre de places est requis';
+                      return context.l10n.aoSpotsRequired;
                     }
                     final n = int.tryParse(v.trim());
                     if (n == null || n <= 0) {
-                      return 'Entrez un nombre valide';
+                      return context.l10n.aoValidNumber;
                     }
                     return null;
                   },
@@ -307,7 +308,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               // Toggle "Places illimitees"
               _CompactToggle(
                 value: _unlimitedSpots,
-                label: 'Places illimitees',
+                label: context.l10n.aoUnlimitedSpots,
                 icon: Icons.all_inclusive_rounded,
                 color: _primaryColor,
                 onChanged: (v) => setState(() => _unlimitedSpots = v),
@@ -323,14 +324,14 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                       decoration: _inputDecoration(
                         label: _expiresAt != null
                             ? DateFormat('dd/MM/yyyy').format(_expiresAt!)
-                            : "Date d'expiration",
+                            : context.l10n.aoExpiryDate,
                         icon: Icons.calendar_today,
                       ),
                       style: TextStyle(fontSize: 13, color: AppColors.text),
                       validator: (_) {
                         if (_noExpiration) return null;
                         return _expiresAt == null
-                            ? "La date d'expiration est requise"
+                            ? context.l10n.aoExpiryRequired
                             : null;
                       },
                     ),
@@ -341,7 +342,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
               // Toggle "Sans date d'expiration"
               _CompactToggle(
                 value: _noExpiration,
-                label: "Sans date d'expiration",
+                label: context.l10n.aoNoExpiry,
                 icon: Icons.event_repeat_rounded,
                 color: _primaryColor,
                 onChanged: (v) => setState(() => _noExpiration = v),
@@ -370,7 +371,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                         ),
                       )
                     : Text(
-                        _isEditing ? 'Enregistrer' : 'Publier',
+                        _isEditing ? context.l10n.commonSave : context.l10n.commonPublish,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -390,8 +391,8 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                child: const Text(
-                  'Annuler',
+                child: Text(
+                  context.l10n.commonCancel,
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -438,8 +439,8 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
                       const SizedBox(height: 14),
                       Text(
                         _isEditing
-                            ? 'Modification en cours...'
-                            : 'Publication en cours...',
+                            ? context.l10n.aoEditing
+                            : context.l10n.ceUploading,
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -506,12 +507,12 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt, size: 20),
-              title: const Text('Camera', style: TextStyle(fontSize: 13)),
+              title: Text(context.l10n.commonCamera, style: const TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, size: 20),
-              title: const Text('Galerie', style: TextStyle(fontSize: 13)),
+              title: Text(context.l10n.commonGallery, style: const TextStyle(fontSize: 13)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
           ],
@@ -533,8 +534,8 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
 
     if (!_formKey.currentState!.validate()) {
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Verifie les champs en rouge avant de publier'),
+        SnackBar(
+          content: Text(context.l10n.aoFixFields),
           backgroundColor: Colors.orange,
           duration: Duration(seconds: 3),
         ),
@@ -606,8 +607,8 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(_isEditing
-              ? 'Offre modifiee avec succes !'
-              : 'Offre publiee avec succes !'),
+              ? context.l10n.aoEdited
+              : context.l10n.aoPublished),
           backgroundColor: const Color(0xFF7B2D8E),
           duration: const Duration(seconds: 3),
         ),
@@ -615,7 +616,7 @@ class _AddOfferBottomSheetState extends ConsumerState<AddOfferBottomSheet> {
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
-          content: Text('Erreur : $e'),
+          content: Text(context.l10n.commonErrorWith('$e')),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 5),
         ),
@@ -672,8 +673,8 @@ class _PendingApprovalSheet extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             hasProfile
-                ? 'Compte en cours de validation'
-                : 'Connexion pro requise',
+                ? context.l10n.proPendingTitle
+                : context.l10n.aoProRequired,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -684,8 +685,8 @@ class _PendingApprovalSheet extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             hasProfile
-                ? 'Ton compte pro est bien créé. Notre équipe va t\'appeler très bientôt au numéro renseigné pour valider ton inscription. Tu pourras publier des offres dès que ton compte sera approuvé.'
-                : 'Tu dois être connecté avec un compte pro approuvé pour publier une offre.',
+                ? context.l10n.aoPendingBody
+                : context.l10n.aoProRequiredBody,
             style: TextStyle(
               fontSize: 13,
               color: AppColors.textFaint,
@@ -707,8 +708,8 @@ class _PendingApprovalSheet extends StatelessWidget {
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                'OK',
+              child: Text(
+                context.l10n.commonOk,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ),

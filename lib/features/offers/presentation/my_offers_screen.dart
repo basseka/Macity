@@ -1,4 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,8 +29,8 @@ class MyOffersScreen extends ConsumerWidget {
       child: Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        title: const Text(
-          'Mes offres',
+        title: Text(
+          context.l10n.accountMyOffers,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             color: _primaryDarkColor,
@@ -39,7 +42,7 @@ class MyOffersScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded, color: _primaryColor),
-            tooltip: 'Creer une offre',
+            tooltip: context.l10n.accountCreateOffer,
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -58,7 +61,7 @@ class MyOffersScreen extends ConsumerWidget {
         ),
         error: (e, _) => Center(
           child: Text(
-            'Erreur : $e',
+            context.l10n.commonErrorWith('$e'),
             style: GoogleFonts.geist(color: AppColors.textFaint),
           ),
         ),
@@ -114,7 +117,7 @@ class MyOffersScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer cette offre ?'),
+        title: Text(context.l10n.moDeleteOffer),
         content: Text(
           '«${offer.title}» sera definitivement supprimee. Cette action est irreversible.',
           style: const TextStyle(fontSize: 13),
@@ -122,12 +125,12 @@ class MyOffersScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Supprimer'),
+            child: Text(context.l10n.commonDelete),
           ),
         ],
       ),
@@ -140,8 +143,8 @@ class MyOffersScreen extends ConsumerWidget {
       ref.invalidate(activeOffersProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Offre supprimee'),
+          SnackBar(
+            content: Text(context.l10n.moDeleted),
             backgroundColor: _primaryColor,
           ),
         );
@@ -150,7 +153,7 @@ class MyOffersScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur suppression : $e'),
+            content: Text(context.l10n.pveDeleteFailed('$e')),
             backgroundColor: Colors.red,
           ),
         );
@@ -268,8 +271,9 @@ class _MyOfferTile extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       offer.hasNoExpiration
-                          ? 'Sans expiration'
-                          : _formatDate(offer.expiresAt),
+                          ? context.l10n.moNoExpiry
+                          : DateFormat('d MMM yyyy', context.dateLocale)
+                              .format(offer.expiresAt),
                       style: GoogleFonts.geist(
                         fontSize: 11,
                         color: isExpired
@@ -286,7 +290,7 @@ class _MyOfferTile extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: onEdit,
                         icon: const Icon(Icons.edit_outlined, size: 16),
-                        label: const Text('Modifier'),
+                        label: Text(context.l10n.commonEdit),
                         style: OutlinedButton.styleFrom(
                           foregroundColor:
                               MyOffersScreen._primaryDarkColor,
@@ -305,7 +309,7 @@ class _MyOfferTile extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: onDelete,
                         icon: const Icon(Icons.delete_outline, size: 16),
-                        label: const Text('Supprimer'),
+                        label: Text(context.l10n.commonDelete),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red.shade600,
                           side: BorderSide(color: Colors.red.shade300),
@@ -338,13 +342,6 @@ class _MyOfferTile extends StatelessWidget {
     );
   }
 
-  static String _formatDate(DateTime d) {
-    const months = [
-      'janv.', 'fevr.', 'mars', 'avr.', 'mai', 'juin',
-      'juil.', 'aout', 'sept.', 'oct.', 'nov.', 'dec.',
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
-  }
 }
 
 class _StatusChip extends StatelessWidget {
@@ -361,10 +358,10 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, icon) = switch ((isExpired, isComplete, isLive)) {
-      (true, _, _) => ('Expiree', Colors.grey, Icons.history_rounded),
-      (_, true, _) => ('Complete', Colors.orange, Icons.block_rounded),
-      (_, _, true) => ('En cours', Colors.green, Icons.circle),
-      _ => ('Inactive', Colors.grey, Icons.pause_circle_outline_rounded),
+      (true, _, _) => (context.l10n.moExpired, Colors.grey, Icons.history_rounded),
+      (_, true, _) => (context.l10n.moFull, Colors.orange, Icons.block_rounded),
+      (_, _, true) => (context.l10n.moLive, Colors.green, Icons.circle),
+      _ => (context.l10n.moInactive, Colors.grey, Icons.pause_circle_outline_rounded),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -419,8 +416,8 @@ class _EmptyState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Aucune offre encore',
+            Text(
+              context.l10n.moNone,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -429,7 +426,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Cree ta premiere offre promotionnelle pour attirer plus de clients.',
+              context.l10n.moNoneHint,
               textAlign: TextAlign.center,
               style: GoogleFonts.geist(
                 fontSize: 13,
@@ -441,7 +438,7 @@ class _EmptyState extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onCreate,
               icon: const Icon(Icons.add, size: 16),
-              label: const Text('Creer une offre'),
+              label: Text(context.l10n.accountCreateOffer),
               style: ElevatedButton.styleFrom(
                 backgroundColor: MyOffersScreen._primaryColor,
                 foregroundColor: Colors.white,

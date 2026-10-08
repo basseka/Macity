@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,8 +33,8 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
     final code = _codeController.text.trim();
     if (code.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Entrez les 6 chiffres du code'),
+        SnackBar(
+          content: Text(context.l10n.proEnter6Digits),
           backgroundColor: Colors.orange,
         ),
       );
@@ -55,16 +56,16 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
       await ref.read(proAuthProvider.notifier).resendCode();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nouveau code envoye par mail'),
+        SnackBar(
+          content: Text(context.l10n.proNewCodeSent),
           backgroundColor: _primaryColor,
         ),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur lors du renvoi du code'),
+        SnackBar(
+          content: Text(context.l10n.proResendFailed),
           backgroundColor: Colors.red,
         ),
       );
@@ -82,8 +83,8 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
       if (next.status == ProAuthStatus.approved) {
         // L'admin a valide via admin.html pendant qu'on etait sur l'ecran.
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Compte approuve ! Bienvenue sur MaCity'),
+          SnackBar(
+            content: Text(context.l10n.proApproved),
             backgroundColor: _primaryColor,
           ),
         );
@@ -142,8 +143,8 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
             ),
             const SizedBox(height: 18),
 
-            const Text(
-              'Verification par email',
+            Text(
+              context.l10n.proEmailVerification,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -161,8 +162,8 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
                   height: 1.4,
                 ),
                 children: [
-                  const TextSpan(
-                    text: 'Un code a 6 chiffres a ete envoye a\n',
+                  TextSpan(
+                    text: context.l10n.proCodeSentTo,
                   ),
                   TextSpan(
                     text: email,
@@ -178,7 +179,7 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
             const SizedBox(height: 8),
 
             Text(
-              'Pas recu ? Pensez a verifier vos spams / courriers indesirables.',
+              context.l10n.emailVerifySpamHint,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -264,8 +265,8 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'Valider',
+                    : Text(
+                        context.l10n.commonValidate,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -278,7 +279,9 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
             TextButton(
               onPressed: _isResending ? null : _resend,
               child: Text(
-                _isResending ? 'Envoi en cours...' : 'Renvoyer le code',
+                _isResending
+                    ? context.l10n.proSendingInProgress
+                    : context.l10n.emailVerifyResend,
                 style: TextStyle(
                   fontSize: 13,
                   color: _isResending ? Colors.grey : _primaryColor,
@@ -290,8 +293,8 @@ class _ProPendingSheetState extends ConsumerState<ProPendingSheet> {
             TextButton(
               onPressed: () =>
                   ref.read(proAuthProvider.notifier).disconnect(),
-              child: const Text(
-                'Se deconnecter',
+              child: Text(
+                context.l10n.proLogout,
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey,
@@ -359,8 +362,8 @@ class _AwaitingAdminApprovalView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            const Text(
-              'Email verifie !',
+            Text(
+              context.l10n.proEmailVerified,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -369,8 +372,8 @@ class _AwaitingAdminApprovalView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Compte en cours de validation',
+            Text(
+              context.l10n.proPendingTitle,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -379,8 +382,8 @@ class _AwaitingAdminApprovalView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Notre equipe va t\'appeler tres bientot au numero que tu as renseigne pour finaliser la validation de ton compte.\n\nUne fois ton compte approuve, tu pourras publier des offres et acceder a toutes les fonctionnalites pro.',
+            Text(
+              context.l10n.proPendingBody,
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.black54,
@@ -402,8 +405,8 @@ class _AwaitingAdminApprovalView extends StatelessWidget {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'OK, j\'attends l\'appel',
+                child: Text(
+                  context.l10n.proWaitCall,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
               ),
