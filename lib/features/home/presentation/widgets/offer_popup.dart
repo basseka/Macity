@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,7 @@ class OfferPopup extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _buildImage(),
-                              _buildInfo(),
+                              _buildInfo(context),
                             ],
                           ),
                         ],
@@ -89,9 +90,9 @@ class OfferPopup extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'J\'en profite',
-                        style: TextStyle(
+                      child: Text(
+                        context.l10n.offerClaim,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.3,
@@ -185,7 +186,7 @@ class OfferPopup extends StatelessWidget {
     );
   }
 
-  Widget _buildInfo() {
+  Widget _buildInfo(BuildContext context) {
     final hasImage = offer.imageAsset.isNotEmpty || offer.imageUrl.isNotEmpty;
 
     return Padding(
@@ -283,8 +284,8 @@ class OfferPopup extends StatelessWidget {
                       ),
                       child: Text(
                         offer.hasSpots
-                            ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
-                            : 'Complet',
+                            ? context.l10n.offerSpotsLeft(offer.remainingSpots)
+                            : context.l10n.offerSoldOut,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,

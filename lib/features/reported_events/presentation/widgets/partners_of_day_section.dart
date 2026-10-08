@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,7 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
       child: Column(
         children: [
           Text(
-            'Plus de recherche ? Regarde le feed',
+            context.l10n.feedMoreSearch,
             textAlign: TextAlign.center,
             style: GoogleFonts.geist(
               fontSize: 12.5,
@@ -108,12 +109,12 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TonightNeonDisc(
-            label: 'Quoi faire ce soir',
+            label: context.l10n.tonightWhatToDo,
             eventCount: ref.watch(nightEventsCountProvider),
             onTap: () => TonightBonsPlansPage.show(
               context,
               nightOnly: true,
-              title: 'Quoi faire ce soir',
+              title: context.l10n.tonightWhatToDo,
             ),
           ),
           for (final m in media) _mediaBubble(m),
@@ -389,7 +390,7 @@ class _PartnerCard extends StatelessWidget {
                     const Icon(Icons.star, size: 10, color: Color(0xFF2A1E06)),
                     const SizedBox(width: 3),
                     Text(
-                      'PARTENAIRE',
+                      context.l10n.commonPartner,
                       style: GoogleFonts.geist(
                         fontSize: 8,
                         fontWeight: FontWeight.w800,

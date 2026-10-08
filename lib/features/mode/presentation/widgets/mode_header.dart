@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -29,7 +30,7 @@ class ModeHeader extends ConsumerWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            '${appMode.emoji} ${appMode.label}',
+            '${appMode.emoji} ${modeLabel(context, appMode)}',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

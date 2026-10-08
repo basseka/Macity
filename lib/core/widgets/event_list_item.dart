@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -527,7 +528,9 @@ class _FavoriteButtonState extends State<_FavoriteButton>
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: widget.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
+      label: widget.isFavorite
+          ? context.l10n.favoritesRemove
+          : context.l10n.favoritesAdd,
       child: GestureDetector(
         onTap: _handleTap,
         child: ScaleTransition(

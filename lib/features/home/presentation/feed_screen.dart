@@ -57,6 +57,8 @@ import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dar
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/core/widgets/home_nav_tabs.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/widgets/home_quick_pills.dart';
 import 'package:pulz_app/features/home/state/feed_filter_intent_provider.dart';
 import 'package:pulz_app/features/home/state/feed_mode_provider.dart';
@@ -225,6 +227,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool _dateLoading = false;
   // Filtre categorie de la vue resultats-dates (independant du filtre Feed).
   String? _dateCategoryFilter;
+
+  /// Libelle traduit, en minuscules, pour "Aucun evenement X a venir".
+  static String _labelForEmpty(BuildContext context, String label) {
+    if (label.isEmpty) return label;
+    final key = label[0].toUpperCase() + label.substring(1);
+    return feedCategoryLabel(context, key).toLowerCase();
+  }
 
   static String _isoDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -471,8 +480,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   Widget _buildDateResultsView() {
     final r = _dateRange;
     final title = r == null
-        ? 'Évènements'
-        : 'Du ${_frDate(r.start)} au ${_frDate(r.end)}';
+        ? context.l10n.feedEvents
+        : context.l10n.feedDateRange(_frDate(r.start), _frDate(r.end));
     final all = _dateResults ?? const <Event>[];
     // Liste filtree par categorie (chips). Sans filtre = tout.
     final filtered = _dateCategoryFilter == null
@@ -506,8 +515,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     if (_dateResults != null)
                       Text(
                         _dateCategoryFilter == null
-                            ? '${all.length} évènement${all.length > 1 ? 's' : ''} sur la période'
-                            : '${filtered.length}/${all.length} · ${_dateCategoryFilter!}',
+                            ? context.l10n.feedEventsInPeriod(all.length)
+                            : '${filtered.length}/${all.length} · ${feedCategoryLabel(context, _dateCategoryFilter!)}',
                         style: GoogleFonts.geist(
                           fontSize: 11,
                           color: AppColors.textDim,
@@ -519,7 +528,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               TextButton(
                 onPressed: _pickDatesAndSearch,
                 child: Text(
-                  'Modifier',
+                  context.l10n.commonEdit,
                   style: GoogleFonts.geist(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -543,7 +552,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               : all.isEmpty
                   ? Center(
                       child: Text(
-                        'Aucun évènement sur cette période',
+                        context.l10n.feedNoEventsInPeriod,
                         style: GoogleFonts.geist(
                             fontSize: 13, color: AppColors.textFaint),
                       ),
@@ -551,7 +560,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   : filtered.isEmpty
                       ? Center(
                           child: Text(
-                            'Aucun évènement « ${_dateCategoryFilter ?? ''} » sur cette période',
+                            context.l10n.feedNoEventsInPeriodForCategory(
+                                feedCategoryLabel(context, _dateCategoryFilter ?? '')),
                             style: GoogleFonts.geist(
                                 fontSize: 13, color: AppColors.textFaint),
                           ),
@@ -604,7 +614,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               ),
               child: Text(
-                cat,
+                feedCategoryLabel(context, cat),
                 style: GoogleFonts.geist(
                   fontSize: 11,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
@@ -655,7 +665,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ),
               ),
               child: Text(
-                cat,
+                feedCategoryLabel(context, cat),
                 style: GoogleFonts.geist(
                   fontSize: 11,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
@@ -927,7 +937,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Rechercher un lieu, un event...',
+                      context.l10n.feedSearchPlaceholder,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.geist(
                         fontSize: 12.5,
@@ -974,7 +984,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         onChanged: _onSearchChanged,
         style: GoogleFonts.geist(fontSize: 14, color: AppColors.text),
         decoration: InputDecoration(
-          hintText: 'Nom, lieu, artiste...',
+          hintText: context.l10n.feedSearchHint,
           hintStyle: GoogleFonts.geist(fontSize: 13, color: AppColors.textFaint),
           prefixIcon: const Icon(Icons.search, color: AppColors.magenta, size: 18),
           suffixIcon: IconButton(
@@ -1039,7 +1049,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Rechercher un evenement, un lieu...',
+                      context.l10n.feedSearchPlaceholderAlt,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.geist(
                         fontSize: 13,
@@ -1095,9 +1105,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       initialDateRange: _dateRange,
       firstDate: DateTime(now.year, now.month, now.day),
       lastDate: now.add(const Duration(days: 365)),
-      locale: const Locale('fr', 'FR'),
-      helpText: 'Choisir une période',
-      saveText: 'Valider',
+      helpText: context.l10n.feedPickPeriod,
+      saveText: context.l10n.commonValidate,
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -1175,7 +1184,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 dense: true,
                 visualDensity: VisualDensity.compact,
                 title: Text(
-                  mode.label,
+                  modeLabel(context, mode),
                   style: const TextStyle(color: Colors.white, fontSize: 10),
                 ),
                 onTap: () {
@@ -1190,7 +1199,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.article, color: Colors.purpleAccent, size: 18),
-                title: const Text('Mes publications', style: TextStyle(color: Colors.white, fontSize: 10)),
+                title: Text(ctx.l10n.accountMyPosts, style: const TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
                   Navigator.pop(ctx);
                   MyPublicationsSheet.show(context);
@@ -1199,7 +1208,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.card_giftcard, color: Colors.amber, size: 18),
-                title: const Text('Offres', style: TextStyle(color: Colors.white, fontSize: 10)),
+                title: Text(ctx.l10n.feedMenuOffers, style: const TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 2;
                   Navigator.pop(ctx);
@@ -1209,7 +1218,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.account_balance, color: Colors.blueAccent, size: 18),
-                title: const Text('Mairies', style: TextStyle(color: Colors.white, fontSize: 10)),
+                title: Text(ctx.l10n.feedMenuTownHalls, style: const TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 4;
                   Navigator.pop(ctx);
@@ -1219,7 +1228,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.tune, color: Colors.tealAccent, size: 18),
-                title: const Text('Preferences', style: TextStyle(color: Colors.white, fontSize: 10)),
+                title: Text(ctx.l10n.feedMenuPreferences, style: const TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
                   Navigator.pop(ctx);
                   NotificationPrefsSheet.show(context);
@@ -1228,7 +1237,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ListTile(
                 dense: true,
                 leading: const Icon(Icons.login, color: Colors.orangeAccent, size: 18),
-                title: const Text('Connexion', style: TextStyle(color: Colors.white, fontSize: 10)),
+                title: Text(ctx.l10n.onboardingTabLogin, style: const TextStyle(color: Colors.white, fontSize: 10)),
                 onTap: () {
                   Navigator.pop(ctx);
                   showModalBottomSheet(
@@ -1318,7 +1327,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           children: [
             _buildChip(
-              label: 'Toutes les salles',
+              label: context.l10n.feedAllVenues,
               selected: _activeSalle == null,
               isSubFilter: true,
               onTap: () => _switchSalle(null),
@@ -1512,7 +1521,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             if (_searchController.text.split(' ').where((w) => w.length > 1).length >= 3) ...[
               const SizedBox(height: 12),
               Text(
-                'Recherche en cours...',
+                context.l10n.feedSearching,
                 style: GoogleFonts.geist(fontSize: 12, color: AppColors.textFaint),
               ),
             ],
@@ -1550,7 +1559,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'POUR TOI',
+                      context.l10n.feedForYou,
                       style: GoogleFonts.geistMono(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
@@ -1585,7 +1594,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           if (_searchResults != null && _searchResults!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              'AUTRES RESULTATS',
+              context.l10n.feedOtherResults,
               style: GoogleFonts.geistMono(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
@@ -1607,7 +1616,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             Icon(Icons.search, size: 48, color: AppColors.textFaint),
             const SizedBox(height: 10),
             Text(
-              'Tape au moins 2 lettres',
+              context.l10n.feedTypeAtLeast2,
               style: GoogleFonts.geist(fontSize: 13, color: AppColors.textFaint),
             ),
           ],
@@ -1618,7 +1627,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     if (_searchResults!.isEmpty) {
       return Center(
         child: Text(
-          'Aucun resultat',
+          context.l10n.feedNoResults,
           style: GoogleFonts.geist(fontSize: 13, color: AppColors.textFaint),
         ),
       );
@@ -1780,7 +1789,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   boxShadow: AppShadows.neon(AppColors.magenta, blur: 8, y: 2),
                 ),
                 child: Text(
-                  'GRATUIT',
+                  context.l10n.commonFree,
                   style: GoogleFonts.geistMono(
                     fontSize: 8,
                     fontWeight: FontWeight.w700,
@@ -1911,7 +1920,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             Icon(emptyIcon, size: 48, color: AppColors.textFaint),
             const SizedBox(height: 12),
             Text(
-              'Aucun evenement $label a venir',
+              context.l10n.feedNoUpcomingEventsFor(
+                  _labelForEmpty(context, label)),
               style: GoogleFonts.geist(fontSize: 14, color: AppColors.textFaint),
             ),
           ],
@@ -1939,7 +1949,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         networkImage: hasNet ? e.photoPath : null,
         assetImage: pochette,
         videoUrl: e.videoUrl,
-        badge: e.isFree ? 'GRATUIT' : '',
+        badge: e.isFree ? context.l10n.commonFree : '',
         tag: e.categorie,
         timeLabel: e.horaires.toUpperCase().trim(),
         onTap: () => EventFullscreenPopup.showPaged(
@@ -2031,7 +2041,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         networkImage: hasNet ? e.photoPath : null,
         assetImage: pochette,
         videoUrl: e.videoUrl,
-        badge: e.isFree ? 'GRATUIT' : '',
+        badge: e.isFree ? context.l10n.commonFree : '',
         tag: e.categorie,
         timeLabel: e.horaires.toUpperCase().trim(),
         onTap: () => EventFullscreenPopup.showPaged(
@@ -2093,7 +2103,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   Icon(Icons.event_busy, size: 48, color: AppColors.textFaint),
                   const SizedBox(height: 12),
                   Text(
-                    'Aucun evenement a venir',
+                    context.l10n.feedNoUpcomingEvents,
                     style: GoogleFonts.geist(fontSize: 14, color: AppColors.textFaint),
                   ),
                 ],
@@ -2111,7 +2121,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             Icon(Icons.event_busy, size: 48, color: Colors.white.withValues(alpha: 0.2)),
             const SizedBox(height: 12),
             Text(
-              'Aucun evenement a venir',
+              context.l10n.feedNoUpcomingEvents,
               style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.4)),
             ),
           ],
@@ -2800,10 +2810,10 @@ class _DayHeaderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = day == today
-        ? "Aujourd'hui"
+        ? context.l10n.commonToday
         : day == tomorrow
-            ? 'Demain'
-            : _capitalize(DateFormat('EEEE', 'fr_FR').format(day));
+            ? context.l10n.commonTomorrow
+            : _capitalize(DateFormat('EEEE', context.dateLocale).format(day));
     return Row(
       children: [
         Expanded(
@@ -2821,7 +2831,7 @@ class _DayHeaderRow extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                DateFormat('EEEE d MMMM', 'fr_FR').format(day).toUpperCase(),
+                DateFormat('EEEE d MMMM', context.dateLocale).format(day).toUpperCase(),
                 style: GoogleFonts.geistMono(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
@@ -3112,7 +3122,7 @@ class _VenueRowCard extends StatelessWidget {
             // Bouton Maps
             IconButton(
               icon: const Icon(Icons.map_outlined, size: 22, color: textSecondary),
-              tooltip: 'Ouvrir sur la carte',
+              tooltip: context.l10n.feedOpenOnMap,
               visualDensity: VisualDensity.compact,
               onPressed: _openMaps,
             ),

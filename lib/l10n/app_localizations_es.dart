@@ -367,4 +367,300 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get emailVerifyResend => 'Reenviar el código';
+
+  @override
+  String get commonToday => 'Hoy';
+
+  @override
+  String get commonTomorrow => 'Mañana';
+
+  @override
+  String get commonFree => 'GRATIS';
+
+  @override
+  String get commonValidate => 'Aceptar';
+
+  @override
+  String get commonEdit => 'Editar';
+
+  @override
+  String get catAll => 'Todo';
+
+  @override
+  String get catConcerts => 'Conciertos';
+
+  @override
+  String get catParty => 'Fiestas';
+
+  @override
+  String get catShow => 'Espectáculos';
+
+  @override
+  String get catDance => 'Danza';
+
+  @override
+  String get catCinema => 'Cine';
+
+  @override
+  String get modeDay => 'Conciertos y espectáculos';
+
+  @override
+  String get modeSport => 'Deporte y eventos deportivos';
+
+  @override
+  String get modeCulture => 'Cultura y arte';
+
+  @override
+  String get modeFamily => 'En familia';
+
+  @override
+  String get modeFood => 'Comida y estilo de vida';
+
+  @override
+  String get modeGaming => 'Gaming y cultura pop';
+
+  @override
+  String get modeNight => 'Noche y salidas';
+
+  @override
+  String get modeTourisme => 'Turismo y descubrimientos';
+
+  @override
+  String get feedEvents => 'Eventos';
+
+  @override
+  String feedDateRange(String start, String end) {
+    return 'Del $start al $end';
+  }
+
+  @override
+  String feedEventsInPeriod(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eventos en este periodo',
+      one: '1 evento en este periodo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get feedNoEventsInPeriod => 'No hay eventos en este periodo';
+
+  @override
+  String feedNoEventsInPeriodForCategory(String category) {
+    return 'No hay eventos de «$category» en este periodo';
+  }
+
+  @override
+  String get feedSearchPlaceholder => 'Busca un lugar, un evento...';
+
+  @override
+  String get feedSearchPlaceholderAlt => 'Busca un evento, un lugar...';
+
+  @override
+  String get feedSearchHint => 'Nombre, lugar, artista...';
+
+  @override
+  String get feedPickPeriod => 'Elige un periodo';
+
+  @override
+  String get feedMenuOffers => 'Ofertas';
+
+  @override
+  String get feedMenuTownHalls => 'Ayuntamientos';
+
+  @override
+  String get feedMenuPreferences => 'Preferencias';
+
+  @override
+  String get feedAllVenues => 'Todas las salas';
+
+  @override
+  String get feedSearching => 'Buscando...';
+
+  @override
+  String get feedForYou => 'PARA TI';
+
+  @override
+  String get feedOtherResults => 'OTROS RESULTADOS';
+
+  @override
+  String get feedTypeAtLeast2 => 'Escribe al menos 2 letras';
+
+  @override
+  String get feedNoResults => 'Sin resultados';
+
+  @override
+  String feedNoUpcomingEventsFor(String label) {
+    return 'No hay próximos eventos de $label';
+  }
+
+  @override
+  String get feedNoUpcomingEvents => 'No hay próximos eventos';
+
+  @override
+  String get feedOpenOnMap => 'Abrir en el mapa';
+
+  @override
+  String get commonSeeAll => 'Ver todo';
+
+  @override
+  String get commonLearnMore => 'Más información';
+
+  @override
+  String get homeFeaturedPrefix => 'Lo más';
+
+  @override
+  String get homeFeaturedAccent => 'destacado';
+
+  @override
+  String get homeTopPrefix => 'En el';
+
+  @override
+  String get homeTopAccent => 'top';
+
+  @override
+  String get homeBadgeFeatured => 'Destacado';
+
+  @override
+  String get homeBadgeTop => 'Top';
+
+  @override
+  String get homeBadgeYourSelection => 'Tu selección';
+
+  @override
+  String get homeBadgePinned => 'FIJADO';
+
+  @override
+  String get homePillTop => 'Top';
+
+  @override
+  String get offersLoadError => 'No se pueden cargar las ofertas';
+
+  @override
+  String get offersNone => 'No hay ofertas disponibles';
+
+  @override
+  String get offerClaim => '¡Lo quiero!';
+
+  @override
+  String get offersSwipeHint => 'Desliza para descubrir';
+
+  @override
+  String get offerSoldOut => 'Agotado';
+
+  @override
+  String offerSpotsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plazas',
+      one: '1 plaza',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tonightTitle => 'Los mejores planes';
+
+  @override
+  String get tonightWhatToDo => 'Qué hacer esta noche';
+
+  @override
+  String get tonightNothingToday => '¿Nada hoy? Mira mañana';
+
+  @override
+  String tonightOutingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count PLANES',
+      one: '1 PLAN',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tonightOutingsMany => '99+ PLANES';
+
+  @override
+  String tonightA11yEmpty(String city) {
+    return 'Nada hoy en $city, mira mañana, botón';
+  }
+
+  @override
+  String tonightA11yCount(int count, String city) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Los mejores planes en $city, $count planes, botón',
+      one: 'Los mejores planes en $city, 1 plan, botón',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tonightA11y(String city) {
+    return 'Los mejores planes en $city, botón';
+  }
+
+  @override
+  String get tonightLoadError => 'No se pueden cargar los planes.';
+
+  @override
+  String get tonightNothingTonight => 'Nada esta noche en esta ciudad.';
+
+  @override
+  String get tonightNothingTodayCity => 'Hoy no hay planes en esta ciudad.';
+
+  @override
+  String get tonightSectionConcerts => 'Conciertos';
+
+  @override
+  String get tonightSectionParties => 'Fiestas';
+
+  @override
+  String get tonightSectionShows => 'Espectáculos';
+
+  @override
+  String get tonightSectionOther => 'Otros planes';
+
+  @override
+  String get priceFree => 'Gratis';
+
+  @override
+  String get priceUnknown => 'Precio no indicado';
+
+  @override
+  String get priceFreeEntry => 'entrada libre';
+
+  @override
+  String todayAt(String time) {
+    return 'Hoy a las $time';
+  }
+
+  @override
+  String get feedMoreSearch => '¿Quieres más? Mira el feed';
+
+  @override
+  String get commonPartner => 'SOCIO';
+
+  @override
+  String get favoritesRemove => 'Quitar de favoritos';
+
+  @override
+  String get favoritesAdd => 'Añadir a favoritos';
+
+  @override
+  String get modeShortDay => 'Concierto';
+
+  @override
+  String get modeShortGaming => 'Gaming';
+
+  @override
+  String get modeShortNight => 'Noche';
+
+  @override
+  String get modeShortTourisme => 'Turismo';
 }

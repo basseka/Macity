@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -56,8 +58,8 @@ class BoostedEventsCarousel extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
           child: _SectionTitle(
-            prefix: 'À la',
-            accent: 'une',
+            prefix: context.l10n.homeFeaturedPrefix,
+            accent: context.l10n.homeFeaturedAccent,
             icon: Icons.star,
             onSeeAll: onSeeAll,
           ),
@@ -99,7 +101,7 @@ class _BoostedCard extends StatelessWidget {
     final hasPhoto = event.resolvedPhoto != null && event.resolvedPhoto!.isNotEmpty;
     final parsed = DateTime.tryParse(event.date);
     final dateLabel = parsed != null
-        ? DateFormat('EEE d MMM', 'fr_FR').format(parsed)
+        ? DateFormat('EEE d MMM', context.dateLocale).format(parsed)
         : event.date;
 
     return AdminPinGesture(
@@ -192,10 +194,10 @@ class _BoostedCard extends StatelessWidget {
                     const SizedBox(width: 5),
                     Text(
                       (event.priority == 'ADMIN'
-                              ? 'ÉPINGLÉ'
+                              ? context.l10n.homeBadgePinned
                               : (event.categorie.isNotEmpty
                                   ? event.categorie
-                                  : 'À LA UNE'))
+                                  : context.l10n.homeBadgeFeatured))
                           .toUpperCase(),
                       style: GoogleFonts.geistMono(
                         fontSize: 9,
@@ -317,7 +319,7 @@ class _BoostedCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'En savoir plus',
+                              context.l10n.commonLearnMore,
                               style: GoogleFonts.geist(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -374,11 +376,11 @@ class BoostedP2Carousel extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 10, 16, 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
               child: _SectionTitle(
-                prefix: 'Au',
-                accent: 'top',
+                prefix: context.l10n.homeTopPrefix,
+                accent: context.l10n.homeTopAccent,
                 icon: Icons.trending_up,
               ),
             ),
@@ -425,7 +427,7 @@ class _P2Card extends StatelessWidget {
         event.resolvedPhoto!.startsWith('http');
     final parsed = DateTime.tryParse(event.date);
     final dateLabel = parsed != null
-        ? DateFormat('EEE d MMM', 'fr_FR').format(parsed)
+        ? DateFormat('EEE d MMM', context.dateLocale).format(parsed)
         : event.date;
 
     return AdminPinGesture(
@@ -517,7 +519,9 @@ class _P2Card extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      event.priority == 'ADMIN' ? 'EPINGLE' : 'AU TOP',
+                      event.priority == 'ADMIN'
+                          ? context.l10n.homeBadgePinned
+                          : context.l10n.homeBadgeTop.toUpperCase(),
                       style: GoogleFonts.geistMono(
                         fontSize: 8,
                         fontWeight: FontWeight.w700,
@@ -685,7 +689,7 @@ class _SectionTitle extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Voir tout',
+                  context.l10n.commonSeeAll,
                   style: GoogleFonts.geist(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,

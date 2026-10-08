@@ -130,5 +130,175 @@
   "emailVerifyResendFailed": "Impossible de renvoyer le code",
   "emailVerifyConfirm": "Confirmer",
   "emailVerifySending": "Envoi…",
-  "emailVerifyResend": "Renvoyer le code"
+  "emailVerifyResend": "Renvoyer le code",
+  "commonToday": "Aujourd'hui",
+  "commonTomorrow": "Demain",
+  "commonFree": "GRATUIT",
+  "commonValidate": "Valider",
+  "commonEdit": "Modifier",
+  "catAll": "Tout",
+  "catConcerts": "Concerts",
+  "catParty": "Soirée",
+  "catShow": "Spectacle",
+  "catDance": "Danse",
+  "catCinema": "Cinéma",
+  "modeDay": "Concerts & Spectacles",
+  "modeSport": "Sport & événements sportifs",
+  "modeCulture": "Culture & Arts",
+  "modeFamily": "En Famille",
+  "modeFood": "Food & lifestyle",
+  "modeGaming": "Gaming & pop culture",
+  "modeNight": "Nuit & sorties",
+  "modeTourisme": "Tourisme & découvertes",
+  "feedEvents": "Évènements",
+  "feedDateRange": "Du {start} au {end}",
+  "@feedDateRange": {
+    "description": "Titre de la recherche par dates",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "feedEventsInPeriod": "{count, plural, =1{1 évènement sur la période} other{{count} évènements sur la période}}",
+  "@feedEventsInPeriod": {
+    "description": "Nombre de resultats de la recherche par dates",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedNoEventsInPeriod": "Aucun évènement sur cette période",
+  "feedNoEventsInPeriodForCategory": "Aucun évènement « {category} » sur cette période",
+  "@feedNoEventsInPeriodForCategory": {
+    "description": "Recherche par dates filtree vide",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "feedSearchPlaceholder": "Rechercher un lieu, un event...",
+  "feedSearchPlaceholderAlt": "Rechercher un événement, un lieu...",
+  "feedSearchHint": "Nom, lieu, artiste...",
+  "feedPickPeriod": "Choisir une période",
+  "feedMenuOffers": "Offres",
+  "feedMenuTownHalls": "Mairies",
+  "feedMenuPreferences": "Préférences",
+  "feedAllVenues": "Toutes les salles",
+  "feedSearching": "Recherche en cours...",
+  "feedForYou": "POUR TOI",
+  "feedOtherResults": "AUTRES RÉSULTATS",
+  "feedTypeAtLeast2": "Tape au moins 2 lettres",
+  "feedNoResults": "Aucun résultat",
+  "feedNoUpcomingEventsFor": "Aucun événement {label} à venir",
+  "@feedNoUpcomingEventsFor": {
+    "description": "Liste vide d'une categorie",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "feedNoUpcomingEvents": "Aucun événement à venir",
+  "feedOpenOnMap": "Ouvrir sur la carte",
+  "commonSeeAll": "Voir tout",
+  "commonLearnMore": "En savoir plus",
+  "homeFeaturedPrefix": "À la",
+  "homeFeaturedAccent": "une",
+  "homeTopPrefix": "Au",
+  "homeTopAccent": "top",
+  "homeBadgeFeatured": "À la une",
+  "homeBadgeTop": "Au top",
+  "homeBadgeYourSelection": "Ta sélection",
+  "homeBadgePinned": "ÉPINGLÉ",
+  "homePillTop": "Top",
+  "offersLoadError": "Impossible de charger les offres",
+  "offersNone": "Aucune offre disponible",
+  "offerClaim": "J'en profite",
+  "offersSwipeHint": "Glisse pour découvrir",
+  "offerSoldOut": "Complet",
+  "offerSpotsLeft": "{count, plural, =1{1 place} other{{count} places}}",
+  "@offerSpotsLeft": {
+    "description": "Places restantes sur une offre",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tonightTitle": "Les bons plans",
+  "tonightWhatToDo": "Quoi faire ce soir",
+  "tonightNothingToday": "Rien aujourd'hui ? Regarde demain",
+  "tonightOutingsCount": "{count, plural, =1{1 SORTIE} other{{count} SORTIES}}",
+  "@tonightOutingsCount": {
+    "description": "Pastille compteur du bandeau bons plans",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tonightOutingsMany": "99+ SORTIES",
+  "tonightA11yEmpty": "Rien aujourd'hui à {city}, regarde demain, bouton",
+  "@tonightA11yEmpty": {
+    "description": "Accessibilite",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "tonightA11yCount": "{count, plural, =1{Les bons plans à {city}, 1 sortie, bouton} other{Les bons plans à {city}, {count} sorties, bouton}}",
+  "@tonightA11yCount": {
+    "description": "Accessibilite",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "tonightA11y": "Les bons plans à {city}, bouton",
+  "@tonightA11y": {
+    "description": "Accessibilite",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "tonightLoadError": "Impossible de charger les bons plans.",
+  "tonightNothingTonight": "Rien ce soir dans cette ville.",
+  "tonightNothingTodayCity": "Aucun bon plan aujourd'hui dans cette ville.",
+  "tonightSectionConcerts": "Concerts",
+  "tonightSectionParties": "Soirées",
+  "tonightSectionShows": "Spectacles",
+  "tonightSectionOther": "Autres sorties",
+  "priceFree": "Gratuit",
+  "priceUnknown": "Tarif non communiqué",
+  "priceFreeEntry": "entrée libre",
+  "todayAt": "Aujourd'hui à {time}",
+  "@todayAt": {
+    "description": "Horaire du jour",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "feedMoreSearch": "Plus de recherche ? Regarde le feed",
+  "commonPartner": "PARTENAIRE",
+  "favoritesRemove": "Retirer des favoris",
+  "favoritesAdd": "Ajouter aux favoris",
+  "modeShortDay": "Concert",
+  "modeShortGaming": "Gaming",
+  "modeShortNight": "Nuit",
+  "modeShortTourisme": "Tourisme"
 }

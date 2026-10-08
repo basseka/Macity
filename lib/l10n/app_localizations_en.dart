@@ -365,4 +365,300 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emailVerifyResend => 'Resend the code';
+
+  @override
+  String get commonToday => 'Today';
+
+  @override
+  String get commonTomorrow => 'Tomorrow';
+
+  @override
+  String get commonFree => 'FREE';
+
+  @override
+  String get commonValidate => 'Confirm';
+
+  @override
+  String get commonEdit => 'Edit';
+
+  @override
+  String get catAll => 'All';
+
+  @override
+  String get catConcerts => 'Concerts';
+
+  @override
+  String get catParty => 'Parties';
+
+  @override
+  String get catShow => 'Shows';
+
+  @override
+  String get catDance => 'Dance';
+
+  @override
+  String get catCinema => 'Cinema';
+
+  @override
+  String get modeDay => 'Concerts & Shows';
+
+  @override
+  String get modeSport => 'Sport & sporting events';
+
+  @override
+  String get modeCulture => 'Culture & Arts';
+
+  @override
+  String get modeFamily => 'Family time';
+
+  @override
+  String get modeFood => 'Food & lifestyle';
+
+  @override
+  String get modeGaming => 'Gaming & pop culture';
+
+  @override
+  String get modeNight => 'Nightlife & going out';
+
+  @override
+  String get modeTourisme => 'Tourism & discoveries';
+
+  @override
+  String get feedEvents => 'Events';
+
+  @override
+  String feedDateRange(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String feedEventsInPeriod(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count events in this period',
+      one: '1 event in this period',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get feedNoEventsInPeriod => 'No events in this period';
+
+  @override
+  String feedNoEventsInPeriodForCategory(String category) {
+    return 'No \"$category\" events in this period';
+  }
+
+  @override
+  String get feedSearchPlaceholder => 'Search for a place, an event...';
+
+  @override
+  String get feedSearchPlaceholderAlt => 'Search for an event, a place...';
+
+  @override
+  String get feedSearchHint => 'Name, place, artist...';
+
+  @override
+  String get feedPickPeriod => 'Choose your dates';
+
+  @override
+  String get feedMenuOffers => 'Offers';
+
+  @override
+  String get feedMenuTownHalls => 'Town halls';
+
+  @override
+  String get feedMenuPreferences => 'Preferences';
+
+  @override
+  String get feedAllVenues => 'All venues';
+
+  @override
+  String get feedSearching => 'Searching...';
+
+  @override
+  String get feedForYou => 'FOR YOU';
+
+  @override
+  String get feedOtherResults => 'OTHER RESULTS';
+
+  @override
+  String get feedTypeAtLeast2 => 'Type at least 2 letters';
+
+  @override
+  String get feedNoResults => 'No results';
+
+  @override
+  String feedNoUpcomingEventsFor(String label) {
+    return 'No upcoming $label events';
+  }
+
+  @override
+  String get feedNoUpcomingEvents => 'No upcoming events';
+
+  @override
+  String get feedOpenOnMap => 'Open on the map';
+
+  @override
+  String get commonSeeAll => 'See all';
+
+  @override
+  String get commonLearnMore => 'Learn more';
+
+  @override
+  String get homeFeaturedPrefix => 'In the';
+
+  @override
+  String get homeFeaturedAccent => 'spotlight';
+
+  @override
+  String get homeTopPrefix => 'Top';
+
+  @override
+  String get homeTopAccent => 'picks';
+
+  @override
+  String get homeBadgeFeatured => 'Featured';
+
+  @override
+  String get homeBadgeTop => 'Top pick';
+
+  @override
+  String get homeBadgeYourSelection => 'Your selection';
+
+  @override
+  String get homeBadgePinned => 'PINNED';
+
+  @override
+  String get homePillTop => 'Top';
+
+  @override
+  String get offersLoadError => 'Unable to load offers';
+
+  @override
+  String get offersNone => 'No offers available';
+
+  @override
+  String get offerClaim => 'Get the deal';
+
+  @override
+  String get offersSwipeHint => 'Swipe to explore';
+
+  @override
+  String get offerSoldOut => 'Sold out';
+
+  @override
+  String offerSpotsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count spots',
+      one: '1 spot',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tonightTitle => 'Best picks';
+
+  @override
+  String get tonightWhatToDo => 'What to do tonight';
+
+  @override
+  String get tonightNothingToday => 'Nothing today? Check tomorrow';
+
+  @override
+  String tonightOutingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count OUTINGS',
+      one: '1 OUTING',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tonightOutingsMany => '99+ OUTINGS';
+
+  @override
+  String tonightA11yEmpty(String city) {
+    return 'Nothing today in $city, check tomorrow, button';
+  }
+
+  @override
+  String tonightA11yCount(int count, String city) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Best picks in $city, $count outings, button',
+      one: 'Best picks in $city, 1 outing, button',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tonightA11y(String city) {
+    return 'Best picks in $city, button';
+  }
+
+  @override
+  String get tonightLoadError => 'Unable to load the best picks.';
+
+  @override
+  String get tonightNothingTonight => 'Nothing tonight in this city.';
+
+  @override
+  String get tonightNothingTodayCity => 'No picks today in this city.';
+
+  @override
+  String get tonightSectionConcerts => 'Concerts';
+
+  @override
+  String get tonightSectionParties => 'Parties';
+
+  @override
+  String get tonightSectionShows => 'Shows';
+
+  @override
+  String get tonightSectionOther => 'Other outings';
+
+  @override
+  String get priceFree => 'Free';
+
+  @override
+  String get priceUnknown => 'Price not specified';
+
+  @override
+  String get priceFreeEntry => 'free entry';
+
+  @override
+  String todayAt(String time) {
+    return 'Today at $time';
+  }
+
+  @override
+  String get feedMoreSearch => 'Want more? Check the feed';
+
+  @override
+  String get commonPartner => 'PARTNER';
+
+  @override
+  String get favoritesRemove => 'Remove from favorites';
+
+  @override
+  String get favoritesAdd => 'Add to favorites';
+
+  @override
+  String get modeShortDay => 'Concert';
+
+  @override
+  String get modeShortGaming => 'Gaming';
+
+  @override
+  String get modeShortNight => 'Night';
+
+  @override
+  String get modeShortTourisme => 'Tourism';
 }

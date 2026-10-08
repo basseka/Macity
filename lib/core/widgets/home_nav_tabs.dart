@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,17 +49,17 @@ class HomeNavTabs extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _btn(context, ref, HomeNavTab.food,
-                  Icons.restaurant_rounded, 'Food', tile),
+                  Icons.restaurant_rounded, rubriqueLabel(context, 'food'), tile, slotWidth),
               _btn(context, ref, HomeNavTab.famille,
-                  Icons.family_restroom_rounded, 'Famille', tile),
+                  Icons.family_restroom_rounded, rubriqueLabel(context, 'family'), tile, slotWidth),
               _btn(context, ref, HomeNavTab.culture,
-                  Icons.theater_comedy_rounded, 'Culture', tile),
+                  Icons.theater_comedy_rounded, rubriqueLabel(context, 'culture'), tile, slotWidth),
               _btn(context, ref, HomeNavTab.sport,
-                  Icons.sports_soccer_rounded, 'Sport', tile),
+                  Icons.sports_soccer_rounded, rubriqueLabel(context, 'sport'), tile, slotWidth),
               _btn(context, ref, HomeNavTab.night,
-                  Icons.nightlife_rounded, 'Night', tile),
+                  Icons.nightlife_rounded, rubriqueLabel(context, 'night'), tile, slotWidth),
               _btn(context, ref, HomeNavTab.evasion,
-                  Icons.flight_takeoff_rounded, 'Évasion', tile),
+                  Icons.flight_takeoff_rounded, rubriqueLabel(context, 'tourisme'), tile, slotWidth),
             ],
           );
         },
@@ -73,6 +74,7 @@ class HomeNavTabs extends ConsumerWidget {
     IconData icon,
     String label,
     double size,
+    double slotWidth,
   ) {
     final colors = _tileColorsByTab[tab]!;
     final iconSize = size * 0.44;
@@ -100,17 +102,25 @@ class HomeNavTabs extends ConsumerWidget {
             child: Icon(icon, size: iconSize, color: colors.icon),
           ),
           const SizedBox(height: 5),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              fontSize: fontSize,
-              fontWeight: FontWeight.w600,
-              letterSpacing: -0.1,
-              color: AppColors.isLightTheme
-                  ? const Color(0xFF1A0F2E)
-                  : const Color(0xFFF5F0FF),
+          // Largeur bornee + scaleDown : un libelle long (ex. "Escapadas",
+          // "Deporte" en espagnol) retrecit au lieu de deborder sur le voisin.
+          SizedBox(
+            // Largeur d'une colonne (6 colonnes) : la rangee ne deborde jamais.
+            width: slotWidth - 4,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: GoogleFonts.inter(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.1,
+                  color: AppColors.isLightTheme
+                      ? const Color(0xFF1A0F2E)
+                      : const Color(0xFFF5F0FF),
+                ),
+              ),
             ),
           ),
         ],

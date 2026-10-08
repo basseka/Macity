@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 
@@ -46,7 +47,7 @@ class HomeModeCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                mode.label,
+                modeLabel(context, mode),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,

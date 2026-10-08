@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -21,16 +23,18 @@ class TonightBonsPlansPage extends ConsumerWidget {
   const TonightBonsPlansPage({
     super.key,
     this.nightOnly = false,
-    this.title = 'Les bons plans',
+    this.title,
   });
 
   final bool nightOnly;
-  final String title;
+
+  /// null = "Les bons plans" dans la langue de l'app.
+  final String? title;
 
   static Future<void> show(
     BuildContext context, {
     bool nightOnly = false,
-    String title = 'Les bons plans',
+    String? title,
   }) {
     return Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
@@ -105,12 +109,12 @@ class TonightBonsPlansPage extends ConsumerWidget {
     }
   }
 
-  static String _shortLabelFor(String rubrique) {
+  static String _shortLabelFor(BuildContext context, String rubrique) {
     final mode = AppMode.values.firstWhere(
       (m) => m.name == rubrique,
       orElse: () => AppMode.day,
     );
-    return mode.shortLabel;
+    return modeShortLabel(context, mode);
   }
 
   /// "14h30, 17h00, 20h30" -> "14h30" (premiere seance).
@@ -144,7 +148,7 @@ class TonightBonsPlansPage extends ConsumerWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    title,
+                    title ?? context.l10n.tonightTitle,
                     style: GoogleFonts.outfit(
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
@@ -166,13 +170,13 @@ class TonightBonsPlansPage extends ConsumerWidget {
                   child: CircularProgressIndicator(color: AppColors.magenta),
                 ),
                 error: (_, __) =>
-                    _empty("Impossible de charger les bons plans."),
+                    _empty(context.l10n.tonightLoadError),
                 data: (events) {
                   if (events.isEmpty) {
                     return _empty(
                       nightOnly
-                          ? "Rien ce soir dans cette ville."
-                          : "Aucun bon plan aujourd'hui dans cette ville.",
+                          ? context.l10n.tonightNothingTonight
+                          : context.l10n.tonightNothingTodayCity,
                     );
                   }
                   final byRubrique = <String, List<Event>>{};
@@ -213,14 +217,15 @@ class TonightBonsPlansPage extends ConsumerWidget {
                         final isFavorite = liked.contains(event.identifiant);
                         return EventListItem(
                           imageUrl: event.photoPath ?? '',
-                          categoryLabel: _shortLabelFor(event.rubrique),
+                          categoryLabel: _shortLabelFor(context, event.rubrique),
                           category: _categoryFor(event.rubrique),
                           price: event.isFree
-                              ? 'Gratuit'
+                              ? context.l10n.priceFree
                               : (event.tarifNormal.isNotEmpty
                                   ? event.tarifNormal
-                                  : 'Tarif non communiqué'),
-                          priceNote: event.isFree ? 'entrée libre' : null,
+                                  : context.l10n.priceUnknown),
+                          priceNote:
+                              event.isFree ? context.l10n.priceFreeEntry : null,
                           isFree: event.isFree,
                           name: event.titre,
                           time: _firstShowTime(event.horaires),
@@ -229,8 +234,8 @@ class TonightBonsPlansPage extends ConsumerWidget {
                           postalCode: event.codePostal > 0
                               ? '${event.codePostal}'
                               : null,
-                          timestamp:
-                              "Aujourd'hui à ${_firstShowTime(event.horaires)}",
+                          timestamp: context.l10n
+                              .todayAt(_firstShowTime(event.horaires)),
                           isFavorite: isFavorite,
                           onTap: () => EventFullscreenPopup.show(
                             context,
@@ -250,7 +255,9 @@ class TonightBonsPlansPage extends ConsumerWidget {
                       }).toList();
 
                       return EventListSection(
-                        title: nightOnly ? rubrique : mode.label,
+                        title: nightOnly
+                            ? nightSectionLabel(context, rubrique)
+                            : modeLabel(context, mode),
                         items: items,
                       );
                     },

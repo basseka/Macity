@@ -1,4 +1,6 @@
 import 'dart:ui' as ui;
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,8 +34,8 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
   }
 
   String _dayLabel() {
-    final wd = DateFormat('EEEE', 'fr_FR').format(DateTime.now());
-    if (wd.isEmpty) return 'Aujourd\'hui';
+    final wd = DateFormat('EEEE', context.dateLocale).format(DateTime.now());
+    if (wd.isEmpty) return context.l10n.commonToday;
     return '${wd[0].toUpperCase()}${wd.substring(1)}';
   }
 
@@ -50,10 +52,10 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
 
     final kicker = _dayLabel();
     final semanticsLabel = isConfirmedEmpty
-        ? 'Rien aujourd\'hui à $city, regarde demain, bouton'
+        ? context.l10n.tonightA11yEmpty(city)
         : hasPill
-            ? 'Les bons plans à $city, $count ${count == 1 ? "sortie" : "sorties"}, bouton'
-            : 'Les bons plans à $city, bouton';
+            ? context.l10n.tonightA11yCount(count, city)
+            : context.l10n.tonightA11y(city);
 
     return Semantics(
       button: true,
@@ -172,7 +174,7 @@ class _TitleLine extends StatelessWidget {
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
         child: Text(
-          'Rien aujourd\'hui ? Regarde demain',
+          context.l10n.tonightNothingToday,
           maxLines: 1,
           style: _style,
         ),
@@ -185,7 +187,7 @@ class _TitleLine extends StatelessWidget {
         blendMode: BlendMode.srcIn,
         shaderCallback: (bounds) =>
             AppGradients.tonightAccentText.createShader(bounds),
-        child: Text('Les bons plans', maxLines: 1, style: _style),
+        child: Text(context.l10n.tonightTitle, maxLines: 1, style: _style),
       ),
     );
   }
@@ -202,8 +204,8 @@ class _CounterPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = count > 99
-        ? '99+ SORTIES'
-        : '$count ${count == 1 ? "SORTIE" : "SORTIES"}';
+        ? context.l10n.tonightOutingsMany
+        : context.l10n.tonightOutingsCount(count);
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.chip),
       child: BackdropFilter(

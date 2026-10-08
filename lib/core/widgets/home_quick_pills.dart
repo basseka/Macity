@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -46,7 +47,7 @@ class HomeQuickPills extends ConsumerWidget {
           Expanded(
             child: _Pill(
               icon: Icons.star_rounded,
-              label: 'À la une',
+              label: context.l10n.homeBadgeFeatured,
               isActive: tab == BoostedCarouselTab.featured,
               onTap: () => ref.read(boostedCarouselTabProvider.notifier).state =
                   BoostedCarouselTab.featured,
@@ -56,7 +57,7 @@ class HomeQuickPills extends ConsumerWidget {
           Expanded(
             child: _Pill(
               icon: Icons.trending_up_rounded,
-              label: 'Top',
+              label: context.l10n.homePillTop,
               isActive: tab == BoostedCarouselTab.top,
               onTap: () => ref.read(boostedCarouselTabProvider.notifier).state =
                   BoostedCarouselTab.top,
@@ -66,7 +67,7 @@ class HomeQuickPills extends ConsumerWidget {
           Expanded(
             child: _Pill(
               icon: Icons.card_giftcard_rounded,
-              label: 'Offres',
+              label: context.l10n.feedMenuOffers,
               isActive: false,
               onTap: () => context.go('/explorer'),
             ),

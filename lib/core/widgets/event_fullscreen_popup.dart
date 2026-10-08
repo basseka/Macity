@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/gestures.dart';
@@ -179,7 +180,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    badge!.toUpperCase(),
+                                    _badgeLabel(context, badge!).toUpperCase(),
                                     style: GoogleFonts.geistMono(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700,
@@ -1760,3 +1761,12 @@ class _EventInfoSheet extends StatelessWidget {
     );
   }
 }
+
+/// Libelle affiche du badge. La valeur francaise ('A la une', 'Au top',
+/// 'Ta sélection') reste la cle passee par les appelants.
+String _badgeLabel(BuildContext context, String badge) => switch (badge) {
+      'A la une' => context.l10n.homeBadgeFeatured,
+      'Au top' => context.l10n.homeBadgeTop,
+      'Ta sélection' => context.l10n.homeBadgeYourSelection,
+      _ => badge,
+    };

@@ -789,6 +789,510 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Renvoyer le code'**
   String get emailVerifyResend;
+
+  /// No description provided for @commonToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get commonToday;
+
+  /// No description provided for @commonTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demain'**
+  String get commonTomorrow;
+
+  /// No description provided for @commonFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'GRATUIT'**
+  String get commonFree;
+
+  /// No description provided for @commonValidate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider'**
+  String get commonValidate;
+
+  /// No description provided for @commonEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get commonEdit;
+
+  /// No description provided for @catAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout'**
+  String get catAll;
+
+  /// No description provided for @catConcerts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concerts'**
+  String get catConcerts;
+
+  /// No description provided for @catParty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soirée'**
+  String get catParty;
+
+  /// No description provided for @catShow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Spectacle'**
+  String get catShow;
+
+  /// No description provided for @catDance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Danse'**
+  String get catDance;
+
+  /// No description provided for @catCinema.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cinéma'**
+  String get catCinema;
+
+  /// No description provided for @modeDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concerts & Spectacles'**
+  String get modeDay;
+
+  /// No description provided for @modeSport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sport & événements sportifs'**
+  String get modeSport;
+
+  /// No description provided for @modeCulture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Culture & Arts'**
+  String get modeCulture;
+
+  /// No description provided for @modeFamily.
+  ///
+  /// In fr, this message translates to:
+  /// **'En Famille'**
+  String get modeFamily;
+
+  /// No description provided for @modeFood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Food & lifestyle'**
+  String get modeFood;
+
+  /// No description provided for @modeGaming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gaming & pop culture'**
+  String get modeGaming;
+
+  /// No description provided for @modeNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nuit & sorties'**
+  String get modeNight;
+
+  /// No description provided for @modeTourisme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tourisme & découvertes'**
+  String get modeTourisme;
+
+  /// No description provided for @feedEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Évènements'**
+  String get feedEvents;
+
+  /// Titre de la recherche par dates
+  ///
+  /// In fr, this message translates to:
+  /// **'Du {start} au {end}'**
+  String feedDateRange(String start, String end);
+
+  /// Nombre de resultats de la recherche par dates
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 évènement sur la période} other{{count} évènements sur la période}}'**
+  String feedEventsInPeriod(int count);
+
+  /// No description provided for @feedNoEventsInPeriod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun évènement sur cette période'**
+  String get feedNoEventsInPeriod;
+
+  /// Recherche par dates filtree vide
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun évènement « {category} » sur cette période'**
+  String feedNoEventsInPeriodForCategory(String category);
+
+  /// No description provided for @feedSearchPlaceholder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un lieu, un event...'**
+  String get feedSearchPlaceholder;
+
+  /// No description provided for @feedSearchPlaceholderAlt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un événement, un lieu...'**
+  String get feedSearchPlaceholderAlt;
+
+  /// No description provided for @feedSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom, lieu, artiste...'**
+  String get feedSearchHint;
+
+  /// No description provided for @feedPickPeriod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une période'**
+  String get feedPickPeriod;
+
+  /// No description provided for @feedMenuOffers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Offres'**
+  String get feedMenuOffers;
+
+  /// No description provided for @feedMenuTownHalls.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mairies'**
+  String get feedMenuTownHalls;
+
+  /// No description provided for @feedMenuPreferences.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préférences'**
+  String get feedMenuPreferences;
+
+  /// No description provided for @feedAllVenues.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les salles'**
+  String get feedAllVenues;
+
+  /// No description provided for @feedSearching.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche en cours...'**
+  String get feedSearching;
+
+  /// No description provided for @feedForYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'POUR TOI'**
+  String get feedForYou;
+
+  /// No description provided for @feedOtherResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'AUTRES RÉSULTATS'**
+  String get feedOtherResults;
+
+  /// No description provided for @feedTypeAtLeast2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tape au moins 2 lettres'**
+  String get feedTypeAtLeast2;
+
+  /// No description provided for @feedNoResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun résultat'**
+  String get feedNoResults;
+
+  /// Liste vide d'une categorie
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement {label} à venir'**
+  String feedNoUpcomingEventsFor(String label);
+
+  /// No description provided for @feedNoUpcomingEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement à venir'**
+  String get feedNoUpcomingEvents;
+
+  /// No description provided for @feedOpenOnMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir sur la carte'**
+  String get feedOpenOnMap;
+
+  /// No description provided for @commonSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout'**
+  String get commonSeeAll;
+
+  /// No description provided for @commonLearnMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'En savoir plus'**
+  String get commonLearnMore;
+
+  /// No description provided for @homeFeaturedPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'À la'**
+  String get homeFeaturedPrefix;
+
+  /// No description provided for @homeFeaturedAccent.
+  ///
+  /// In fr, this message translates to:
+  /// **'une'**
+  String get homeFeaturedAccent;
+
+  /// No description provided for @homeTopPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au'**
+  String get homeTopPrefix;
+
+  /// No description provided for @homeTopAccent.
+  ///
+  /// In fr, this message translates to:
+  /// **'top'**
+  String get homeTopAccent;
+
+  /// No description provided for @homeBadgeFeatured.
+  ///
+  /// In fr, this message translates to:
+  /// **'À la une'**
+  String get homeBadgeFeatured;
+
+  /// No description provided for @homeBadgeTop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au top'**
+  String get homeBadgeTop;
+
+  /// No description provided for @homeBadgeYourSelection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ta sélection'**
+  String get homeBadgeYourSelection;
+
+  /// No description provided for @homeBadgePinned.
+  ///
+  /// In fr, this message translates to:
+  /// **'ÉPINGLÉ'**
+  String get homeBadgePinned;
+
+  /// No description provided for @homePillTop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Top'**
+  String get homePillTop;
+
+  /// No description provided for @offersLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les offres'**
+  String get offersLoadError;
+
+  /// No description provided for @offersNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune offre disponible'**
+  String get offersNone;
+
+  /// No description provided for @offerClaim.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'en profite'**
+  String get offerClaim;
+
+  /// No description provided for @offersSwipeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Glisse pour découvrir'**
+  String get offersSwipeHint;
+
+  /// No description provided for @offerSoldOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complet'**
+  String get offerSoldOut;
+
+  /// Places restantes sur une offre
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 place} other{{count} places}}'**
+  String offerSpotsLeft(int count);
+
+  /// No description provided for @tonightTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les bons plans'**
+  String get tonightTitle;
+
+  /// No description provided for @tonightWhatToDo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quoi faire ce soir'**
+  String get tonightWhatToDo;
+
+  /// No description provided for @tonightNothingToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien aujourd\'hui ? Regarde demain'**
+  String get tonightNothingToday;
+
+  /// Pastille compteur du bandeau bons plans
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 SORTIE} other{{count} SORTIES}}'**
+  String tonightOutingsCount(int count);
+
+  /// No description provided for @tonightOutingsMany.
+  ///
+  /// In fr, this message translates to:
+  /// **'99+ SORTIES'**
+  String get tonightOutingsMany;
+
+  /// Accessibilite
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien aujourd\'hui à {city}, regarde demain, bouton'**
+  String tonightA11yEmpty(String city);
+
+  /// Accessibilite
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Les bons plans à {city}, 1 sortie, bouton} other{Les bons plans à {city}, {count} sorties, bouton}}'**
+  String tonightA11yCount(int count, String city);
+
+  /// Accessibilite
+  ///
+  /// In fr, this message translates to:
+  /// **'Les bons plans à {city}, bouton'**
+  String tonightA11y(String city);
+
+  /// No description provided for @tonightLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les bons plans.'**
+  String get tonightLoadError;
+
+  /// No description provided for @tonightNothingTonight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien ce soir dans cette ville.'**
+  String get tonightNothingTonight;
+
+  /// No description provided for @tonightNothingTodayCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun bon plan aujourd\'hui dans cette ville.'**
+  String get tonightNothingTodayCity;
+
+  /// No description provided for @tonightSectionConcerts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concerts'**
+  String get tonightSectionConcerts;
+
+  /// No description provided for @tonightSectionParties.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soirées'**
+  String get tonightSectionParties;
+
+  /// No description provided for @tonightSectionShows.
+  ///
+  /// In fr, this message translates to:
+  /// **'Spectacles'**
+  String get tonightSectionShows;
+
+  /// No description provided for @tonightSectionOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres sorties'**
+  String get tonightSectionOther;
+
+  /// No description provided for @priceFree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gratuit'**
+  String get priceFree;
+
+  /// No description provided for @priceUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tarif non communiqué'**
+  String get priceUnknown;
+
+  /// No description provided for @priceFreeEntry.
+  ///
+  /// In fr, this message translates to:
+  /// **'entrée libre'**
+  String get priceFreeEntry;
+
+  /// Horaire du jour
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui à {time}'**
+  String todayAt(String time);
+
+  /// No description provided for @feedMoreSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de recherche ? Regarde le feed'**
+  String get feedMoreSearch;
+
+  /// No description provided for @commonPartner.
+  ///
+  /// In fr, this message translates to:
+  /// **'PARTENAIRE'**
+  String get commonPartner;
+
+  /// No description provided for @favoritesRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer des favoris'**
+  String get favoritesRemove;
+
+  /// No description provided for @favoritesAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter aux favoris'**
+  String get favoritesAdd;
+
+  /// No description provided for @modeShortDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concert'**
+  String get modeShortDay;
+
+  /// No description provided for @modeShortGaming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gaming'**
+  String get modeShortGaming;
+
+  /// No description provided for @modeShortNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nuit'**
+  String get modeShortNight;
+
+  /// No description provided for @modeShortTourisme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tourisme'**
+  String get modeShortTourisme;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,7 +27,7 @@ class ModeChipBar extends ConsumerWidget {
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
             child: ChoiceChip(
-              label: Text(mode.label),
+              label: Text(modeLabel(context, mode)),
               selected: isSelected,
               onSelected: (_) {
                 ref.read(currentModeProvider.notifier).setMode(mode.name);

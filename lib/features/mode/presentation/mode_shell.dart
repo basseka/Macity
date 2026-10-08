@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -245,7 +246,7 @@ class ModeShell extends ConsumerWidget {
                 dense: true,
                 visualDensity: VisualDensity.compact,
                 title: Text(
-                  mode.label,
+                  modeLabel(context, mode),
                   style: const TextStyle(color: Colors.white, fontSize: 10),
                 ),
                 onTap: () {
@@ -407,7 +408,7 @@ class _ModeBubbleBarState extends ConsumerState<_ModeBubbleBar> {
             final m = entry.value;
             final isActive = index == modeIndex;
             final image = _modeImages[m]!;
-            final label = m.shortLabel;
+            final label = modeShortLabel(context, m);
 
             return GestureDetector(
               onTap: () => ref.read(currentModeProvider.notifier).setMode(m.name),
@@ -493,7 +494,7 @@ class _SubcategoryBreadcrumb extends ConsumerWidget {
                 ),
                 const SizedBox(width: 2),
                 Text(
-                  mode.shortLabel,
+                  modeShortLabel(context, mode),
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     color: modeTheme.primaryColor,

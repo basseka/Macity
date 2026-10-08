@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:pulz_app/core/l10n/language_sheet.dart';
 import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,20 +84,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
       ),
     );
-  }
-
-  /// Libelle traduit d'une rubrique (r.$2 = libelle francais de reference).
-  static String _rubriqueLabel(BuildContext context, String mode) {
-    final l10n = context.l10n;
-    return switch (mode) {
-      'food' => l10n.rubriqueFood,
-      'culture' => l10n.rubriqueCulture,
-      'family' => l10n.rubriqueFamily,
-      'night' => l10n.rubriqueNight,
-      'sport' => l10n.rubriqueSport,
-      'tourisme' => l10n.rubriqueEvasion,
-      _ => mode,
-    };
   }
 
   @override
@@ -626,7 +613,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         runSpacing: 8,
         children: _rubriques.map((r) {
           final mode = r.$1;
-          final label = _rubriqueLabel(context, mode);
+          final label = rubriqueLabel(context, mode);
           final icon = r.$3;
           final selected = _selectedModes.contains(mode);
           return GestureDetector(

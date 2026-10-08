@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -50,12 +51,12 @@ class BannerCarouselDialog extends ConsumerWidget {
     }
 
     if (hasError) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
-            'Impossible de charger les offres',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            context.l10n.offersLoadError,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ),
       );
@@ -72,12 +73,12 @@ class BannerCarouselDialog extends ConsumerWidget {
     ];
 
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
-            'Aucune offre disponible',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            context.l10n.offersNone,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ),
       );
@@ -189,9 +190,9 @@ class _BannerCarouselState extends State<_BannerCarousel>
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'J\'en profite',
-                  style: TextStyle(
+                child: Text(
+                  context.l10n.offerClaim,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.3,
@@ -214,7 +215,7 @@ class _BannerCarouselState extends State<_BannerCarousel>
                       Icon(Icons.swipe, color: Colors.white.withValues(alpha: 0.5), size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        'Glisse pour decouvrir',
+                        context.l10n.offersSwipeHint,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w400,
@@ -485,8 +486,8 @@ class _BannerCarouselState extends State<_BannerCarousel>
                                   ),
                                   child: Text(
                                     offer.hasSpots
-                                        ? '${offer.remainingSpots} place${offer.remainingSpots > 1 ? 's' : ''}'
-                                        : 'Complet',
+                                        ? context.l10n.offerSpotsLeft(offer.remainingSpots)
+                                        : context.l10n.offerSoldOut,
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,

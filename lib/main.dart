@@ -45,7 +45,7 @@ void main() {
         ),
       );
 
-      await initializeDateFormatting('fr_FR');
+      await initializeDateFormatting(); // fr, en, es (cf. context.dateLocale)
       await initOnboardingState();
       await initLocaleState();
 

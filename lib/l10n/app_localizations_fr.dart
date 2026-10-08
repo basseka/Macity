@@ -369,4 +369,301 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get emailVerifyResend => 'Renvoyer le code';
+
+  @override
+  String get commonToday => 'Aujourd\'hui';
+
+  @override
+  String get commonTomorrow => 'Demain';
+
+  @override
+  String get commonFree => 'GRATUIT';
+
+  @override
+  String get commonValidate => 'Valider';
+
+  @override
+  String get commonEdit => 'Modifier';
+
+  @override
+  String get catAll => 'Tout';
+
+  @override
+  String get catConcerts => 'Concerts';
+
+  @override
+  String get catParty => 'Soirée';
+
+  @override
+  String get catShow => 'Spectacle';
+
+  @override
+  String get catDance => 'Danse';
+
+  @override
+  String get catCinema => 'Cinéma';
+
+  @override
+  String get modeDay => 'Concerts & Spectacles';
+
+  @override
+  String get modeSport => 'Sport & événements sportifs';
+
+  @override
+  String get modeCulture => 'Culture & Arts';
+
+  @override
+  String get modeFamily => 'En Famille';
+
+  @override
+  String get modeFood => 'Food & lifestyle';
+
+  @override
+  String get modeGaming => 'Gaming & pop culture';
+
+  @override
+  String get modeNight => 'Nuit & sorties';
+
+  @override
+  String get modeTourisme => 'Tourisme & découvertes';
+
+  @override
+  String get feedEvents => 'Évènements';
+
+  @override
+  String feedDateRange(String start, String end) {
+    return 'Du $start au $end';
+  }
+
+  @override
+  String feedEventsInPeriod(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count évènements sur la période',
+      one: '1 évènement sur la période',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get feedNoEventsInPeriod => 'Aucun évènement sur cette période';
+
+  @override
+  String feedNoEventsInPeriodForCategory(String category) {
+    return 'Aucun évènement « $category » sur cette période';
+  }
+
+  @override
+  String get feedSearchPlaceholder => 'Rechercher un lieu, un event...';
+
+  @override
+  String get feedSearchPlaceholderAlt => 'Rechercher un événement, un lieu...';
+
+  @override
+  String get feedSearchHint => 'Nom, lieu, artiste...';
+
+  @override
+  String get feedPickPeriod => 'Choisir une période';
+
+  @override
+  String get feedMenuOffers => 'Offres';
+
+  @override
+  String get feedMenuTownHalls => 'Mairies';
+
+  @override
+  String get feedMenuPreferences => 'Préférences';
+
+  @override
+  String get feedAllVenues => 'Toutes les salles';
+
+  @override
+  String get feedSearching => 'Recherche en cours...';
+
+  @override
+  String get feedForYou => 'POUR TOI';
+
+  @override
+  String get feedOtherResults => 'AUTRES RÉSULTATS';
+
+  @override
+  String get feedTypeAtLeast2 => 'Tape au moins 2 lettres';
+
+  @override
+  String get feedNoResults => 'Aucun résultat';
+
+  @override
+  String feedNoUpcomingEventsFor(String label) {
+    return 'Aucun événement $label à venir';
+  }
+
+  @override
+  String get feedNoUpcomingEvents => 'Aucun événement à venir';
+
+  @override
+  String get feedOpenOnMap => 'Ouvrir sur la carte';
+
+  @override
+  String get commonSeeAll => 'Voir tout';
+
+  @override
+  String get commonLearnMore => 'En savoir plus';
+
+  @override
+  String get homeFeaturedPrefix => 'À la';
+
+  @override
+  String get homeFeaturedAccent => 'une';
+
+  @override
+  String get homeTopPrefix => 'Au';
+
+  @override
+  String get homeTopAccent => 'top';
+
+  @override
+  String get homeBadgeFeatured => 'À la une';
+
+  @override
+  String get homeBadgeTop => 'Au top';
+
+  @override
+  String get homeBadgeYourSelection => 'Ta sélection';
+
+  @override
+  String get homeBadgePinned => 'ÉPINGLÉ';
+
+  @override
+  String get homePillTop => 'Top';
+
+  @override
+  String get offersLoadError => 'Impossible de charger les offres';
+
+  @override
+  String get offersNone => 'Aucune offre disponible';
+
+  @override
+  String get offerClaim => 'J\'en profite';
+
+  @override
+  String get offersSwipeHint => 'Glisse pour découvrir';
+
+  @override
+  String get offerSoldOut => 'Complet';
+
+  @override
+  String offerSpotsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count places',
+      one: '1 place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tonightTitle => 'Les bons plans';
+
+  @override
+  String get tonightWhatToDo => 'Quoi faire ce soir';
+
+  @override
+  String get tonightNothingToday => 'Rien aujourd\'hui ? Regarde demain';
+
+  @override
+  String tonightOutingsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count SORTIES',
+      one: '1 SORTIE',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tonightOutingsMany => '99+ SORTIES';
+
+  @override
+  String tonightA11yEmpty(String city) {
+    return 'Rien aujourd\'hui à $city, regarde demain, bouton';
+  }
+
+  @override
+  String tonightA11yCount(int count, String city) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Les bons plans à $city, $count sorties, bouton',
+      one: 'Les bons plans à $city, 1 sortie, bouton',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String tonightA11y(String city) {
+    return 'Les bons plans à $city, bouton';
+  }
+
+  @override
+  String get tonightLoadError => 'Impossible de charger les bons plans.';
+
+  @override
+  String get tonightNothingTonight => 'Rien ce soir dans cette ville.';
+
+  @override
+  String get tonightNothingTodayCity =>
+      'Aucun bon plan aujourd\'hui dans cette ville.';
+
+  @override
+  String get tonightSectionConcerts => 'Concerts';
+
+  @override
+  String get tonightSectionParties => 'Soirées';
+
+  @override
+  String get tonightSectionShows => 'Spectacles';
+
+  @override
+  String get tonightSectionOther => 'Autres sorties';
+
+  @override
+  String get priceFree => 'Gratuit';
+
+  @override
+  String get priceUnknown => 'Tarif non communiqué';
+
+  @override
+  String get priceFreeEntry => 'entrée libre';
+
+  @override
+  String todayAt(String time) {
+    return 'Aujourd\'hui à $time';
+  }
+
+  @override
+  String get feedMoreSearch => 'Plus de recherche ? Regarde le feed';
+
+  @override
+  String get commonPartner => 'PARTENAIRE';
+
+  @override
+  String get favoritesRemove => 'Retirer des favoris';
+
+  @override
+  String get favoritesAdd => 'Ajouter aux favoris';
+
+  @override
+  String get modeShortDay => 'Concert';
+
+  @override
+  String get modeShortGaming => 'Gaming';
+
+  @override
+  String get modeShortNight => 'Nuit';
+
+  @override
+  String get modeShortTourisme => 'Tourisme';
 }
