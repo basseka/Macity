@@ -679,5 +679,31 @@
         "type": "int"
       }
     }
-  }
+  },
+  "detailPartner": "Partenaire",
+  "detailPartnerEstate": "Domaine partenaire",
+  "detailClaim": "Revendiquer",
+  "detailLiked": "Aimé",
+  "detailLike": "Aimer",
+  "detailOpeningHours": "Horaires : {hours}",
+  "@detailOpeningHours": {
+    "description": "Texte de partage",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewsTitle": "Avis",
+  "reviewsGive": "Donner mon avis",
+  "reviewsEdit": "Modifier mon avis",
+  "reviewsNone": "Aucun avis pour le moment. Sois le premier !",
+  "reviewsLoadError": "Impossible de charger les avis",
+  "reviewsNotRated": "Pas encore noté",
+  "reviewsYou": "Toi",
+  "reviewsPickRating": "Choisis une note avant de publier",
+  "reviewsPostFailed": "Échec : réessaie dans un instant",
+  "reviewsDeleteFailed": "Échec de la suppression",
+  "reviewsHint": "Ton ressenti, en quelques mots...",
+  "commonPublish": "Publier"
 }

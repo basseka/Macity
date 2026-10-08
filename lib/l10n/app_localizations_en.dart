@@ -1480,4 +1480,60 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get detailPartner => 'Partner';
+
+  @override
+  String get detailPartnerEstate => 'Partner estate';
+
+  @override
+  String get detailClaim => 'Claim';
+
+  @override
+  String get detailLiked => 'Liked';
+
+  @override
+  String get detailLike => 'Like';
+
+  @override
+  String detailOpeningHours(String hours) {
+    return 'Opening hours: $hours';
+  }
+
+  @override
+  String get reviewsTitle => 'Reviews';
+
+  @override
+  String get reviewsGive => 'Write a review';
+
+  @override
+  String get reviewsEdit => 'Edit my review';
+
+  @override
+  String get reviewsNone => 'No reviews yet. Be the first!';
+
+  @override
+  String get reviewsLoadError => 'Unable to load reviews';
+
+  @override
+  String get reviewsNotRated => 'Not rated yet';
+
+  @override
+  String get reviewsYou => 'You';
+
+  @override
+  String get reviewsPickRating => 'Pick a rating before posting';
+
+  @override
+  String get reviewsPostFailed => 'Failed: try again in a moment';
+
+  @override
+  String get reviewsDeleteFailed => 'Deletion failed';
+
+  @override
+  String get reviewsHint => 'Your thoughts, in a few words...';
+
+  @override
+  String get commonPublish => 'Post';
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -101,7 +103,7 @@ class ReviewsSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              'Avis',
+              context.l10n.reviewsTitle,
               style: GoogleFonts.geist(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -140,7 +142,9 @@ class ReviewsSection extends ConsumerWidget {
                 color: Colors.white,
               ),
               label: Text(
-                s.mine == null ? 'Donner mon avis' : 'Modifier mon avis',
+                s.mine == null
+                    ? context.l10n.reviewsGive
+                    : context.l10n.reviewsEdit,
                 style: GoogleFonts.geist(
                   fontSize: 12,
                   color: Colors.white,
@@ -167,7 +171,7 @@ class ReviewsSection extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: Text(
-                  'Aucun avis pour le moment. Sois le premier !',
+                  context.l10n.reviewsNone,
                   style: GoogleFonts.geist(
                     fontSize: 12,
                     color: Colors.white.withValues(alpha: 0.6),
@@ -207,7 +211,7 @@ class ReviewsSection extends ConsumerWidget {
           error: (_, __) => Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              'Impossible de charger les avis',
+              context.l10n.reviewsLoadError,
               style: GoogleFonts.geist(
                 fontSize: 12,
                 color: Colors.white.withValues(alpha: 0.6),
@@ -229,7 +233,7 @@ class _SummaryPill extends StatelessWidget {
   Widget build(BuildContext context) {
     if (summary == null || summary!.reviewCount == 0) {
       return Text(
-        'Pas encore note',
+        context.l10n.reviewsNotRated,
         style: GoogleFonts.geist(
           fontSize: 11,
           color: Colors.white.withValues(alpha: 0.6),
@@ -273,7 +277,7 @@ class _ReviewTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = DateFormat('d MMM yyyy', 'fr_FR').format(review.createdAt);
+    final formatted = DateFormat('d MMM yyyy', context.dateLocale).format(review.createdAt);
     final hasAuthor = review.displayName.isNotEmpty;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -327,7 +331,7 @@ class _ReviewTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Toi',
+                    context.l10n.reviewsYou,
                     style: GoogleFonts.geist(
                       fontSize: 9,
                       color: Colors.white,

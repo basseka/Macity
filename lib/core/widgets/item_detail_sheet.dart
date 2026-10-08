@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -269,12 +271,12 @@ class ItemDetailSheet extends ConsumerWidget {
                                               ),
                                             ],
                                           ),
-                                          child: const Row(
+                                          child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Icon(Icons.verified_outlined, size: 13, color: Colors.white),
                                               SizedBox(width: 4),
-                                              Text('Revendiquer', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
+                                              Text(context.l10n.detailClaim, style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
                                             ],
                                           ),
                                         ),
@@ -329,7 +331,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                   const Icon(Icons.star,
                                       size: 13, color: Color(0xFF2A1E06)),
                                   const SizedBox(width: 5),
-                                  Text(partnerLabel,
+                                  Text(actionLabel(context, partnerLabel),
                                       style: const TextStyle(
                                         fontSize: 11,
                                         color: Color(0xFF2A1E06),
@@ -503,7 +505,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                     : () => _declencher(primaryAction!),
                                 icon: Icon(primaryAction!.icon, size: 18),
                                 label: Text(
-                                  primaryAction!.label,
+                                  actionLabel(context, primaryAction!.label),
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -539,7 +541,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                         : _openUrl(secondaryButton!.url),
                                 icon: Icon(secondaryButton!.icon, size: 18),
                                 label: Text(
-                                  secondaryButton!.label,
+                                  actionLabel(context, secondaryButton!.label),
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -573,7 +575,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                   icon: isLiked
                                       ? Icons.favorite
                                       : Icons.favorite_border,
-                                  label: isLiked ? 'Aime' : 'Aimer',
+                                  label: isLiked ? context.l10n.detailLiked : context.l10n.detailLike,
                                   color:
                                       isLiked ? Colors.red : Colors.white,
                                   onTap: () => ref
@@ -590,14 +592,14 @@ class ItemDetailSheet extends ConsumerWidget {
                               if (shareText.isNotEmpty)
                                 _buildPillButton(
                                   icon: Icons.share_outlined,
-                                  label: 'Partager',
+                                  label: context.l10n.commonShare,
                                   color: Colors.white,
                                   onTap: () => Share.share(shareText),
                                 ),
                               ...secondaryActions.map(
                                 (action) => _buildPillButton(
                                   icon: action.icon,
-                                  label: action.label,
+                                  label: actionLabel(context, action.label),
                                   color: Colors.white,
                                   onTap: () => _declencher(action),
                                 ),

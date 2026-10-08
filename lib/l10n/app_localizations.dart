@@ -2799,6 +2799,114 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =1{1 arrêt} other{{count} arrêts}}'**
   String transportStops(int count);
+
+  /// No description provided for @detailPartner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partenaire'**
+  String get detailPartner;
+
+  /// No description provided for @detailPartnerEstate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Domaine partenaire'**
+  String get detailPartnerEstate;
+
+  /// No description provided for @detailClaim.
+  ///
+  /// In fr, this message translates to:
+  /// **'Revendiquer'**
+  String get detailClaim;
+
+  /// No description provided for @detailLiked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aimé'**
+  String get detailLiked;
+
+  /// No description provided for @detailLike.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aimer'**
+  String get detailLike;
+
+  /// Texte de partage
+  ///
+  /// In fr, this message translates to:
+  /// **'Horaires : {hours}'**
+  String detailOpeningHours(String hours);
+
+  /// No description provided for @reviewsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avis'**
+  String get reviewsTitle;
+
+  /// No description provided for @reviewsGive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donner mon avis'**
+  String get reviewsGive;
+
+  /// No description provided for @reviewsEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier mon avis'**
+  String get reviewsEdit;
+
+  /// No description provided for @reviewsNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun avis pour le moment. Sois le premier !'**
+  String get reviewsNone;
+
+  /// No description provided for @reviewsLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les avis'**
+  String get reviewsLoadError;
+
+  /// No description provided for @reviewsNotRated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore noté'**
+  String get reviewsNotRated;
+
+  /// No description provided for @reviewsYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toi'**
+  String get reviewsYou;
+
+  /// No description provided for @reviewsPickRating.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis une note avant de publier'**
+  String get reviewsPickRating;
+
+  /// No description provided for @reviewsPostFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec : réessaie dans un instant'**
+  String get reviewsPostFailed;
+
+  /// No description provided for @reviewsDeleteFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression'**
+  String get reviewsDeleteFailed;
+
+  /// No description provided for @reviewsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton ressenti, en quelques mots...'**
+  String get reviewsHint;
+
+  /// No description provided for @commonPublish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publier'**
+  String get commonPublish;
 }
 
 class _AppLocalizationsDelegate

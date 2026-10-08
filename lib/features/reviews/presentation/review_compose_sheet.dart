@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -75,7 +76,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
 
   Future<void> _submit() async {
     if (_rating < 1) {
-      setState(() => _error = 'Choisis une note avant de publier');
+      setState(() => _error = context.l10n.reviewsPickRating);
       return;
     }
     setState(() {
@@ -98,7 +99,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = 'Echec : reessaye dans un instant';
+        _error = context.l10n.reviewsPostFailed;
       });
     }
   }
@@ -122,7 +123,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _error = 'Echec de la suppression';
+        _error = context.l10n.reviewsDeleteFailed;
       });
     }
   }
@@ -160,7 +161,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  isEdit ? 'Modifier mon avis' : 'Donner mon avis',
+                  isEdit ? context.l10n.reviewsEdit : context.l10n.reviewsGive,
                   style: GoogleFonts.geist(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -201,7 +202,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
                     color: AppColors.text,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Ton ressenti, en quelques mots...',
+                    hintText: context.l10n.reviewsHint,
                     hintStyle: GoogleFonts.geist(
                       fontSize: 13,
                       color: AppColors.textFaint,
@@ -245,7 +246,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
                           color: Color(0xFFFF6B6B),
                         ),
                         label: Text(
-                          'Supprimer',
+                          context.l10n.commonDelete,
                           style: GoogleFonts.geist(
                             fontSize: 12,
                             color: const Color(0xFFFF6B6B),
@@ -286,7 +287,7 @@ class _ReviewComposeSheetState extends State<ReviewComposeSheet> {
                                 ),
                               )
                             : Text(
-                                isEdit ? 'Modifier' : 'Publier',
+                                isEdit ? context.l10n.commonEdit : context.l10n.commonPublish,
                                 style: GoogleFonts.geist(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,

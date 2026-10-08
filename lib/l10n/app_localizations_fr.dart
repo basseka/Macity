@@ -1499,4 +1499,60 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get detailPartner => 'Partenaire';
+
+  @override
+  String get detailPartnerEstate => 'Domaine partenaire';
+
+  @override
+  String get detailClaim => 'Revendiquer';
+
+  @override
+  String get detailLiked => 'Aimé';
+
+  @override
+  String get detailLike => 'Aimer';
+
+  @override
+  String detailOpeningHours(String hours) {
+    return 'Horaires : $hours';
+  }
+
+  @override
+  String get reviewsTitle => 'Avis';
+
+  @override
+  String get reviewsGive => 'Donner mon avis';
+
+  @override
+  String get reviewsEdit => 'Modifier mon avis';
+
+  @override
+  String get reviewsNone => 'Aucun avis pour le moment. Sois le premier !';
+
+  @override
+  String get reviewsLoadError => 'Impossible de charger les avis';
+
+  @override
+  String get reviewsNotRated => 'Pas encore noté';
+
+  @override
+  String get reviewsYou => 'Toi';
+
+  @override
+  String get reviewsPickRating => 'Choisis une note avant de publier';
+
+  @override
+  String get reviewsPostFailed => 'Échec : réessaie dans un instant';
+
+  @override
+  String get reviewsDeleteFailed => 'Échec de la suppression';
+
+  @override
+  String get reviewsHint => 'Ton ressenti, en quelques mots...';
+
+  @override
+  String get commonPublish => 'Publier';
 }

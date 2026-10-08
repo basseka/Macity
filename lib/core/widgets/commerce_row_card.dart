@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
@@ -359,7 +360,7 @@ class CommerceRowCard extends ConsumerWidget {
                         _buildActionIcon(
                           Icons.share_outlined,
                           AppColors.textFaint,
-                          () => Share.share(_buildShareTextFor(commerce)),
+                          () => Share.share(_buildShareTextFor(commerce, context)),
                         ),
                       ],
                     ),
@@ -403,6 +404,7 @@ class CommerceRowCard extends ConsumerWidget {
   static ItemDetailSheet buildDetailSheet(
     CommerceModel commerce, {
     String? imageAsset,
+    BuildContext? context,
   }) {
     final image = _resolveImageFor(commerce, imageAsset);
     final isNetwork = image != null && image.startsWith('http');
@@ -462,7 +464,7 @@ class CommerceRowCard extends ConsumerWidget {
               url: 'tel:${commerce.telephone.replaceAll(' ', '')}',
             ),
         ],
-        shareText: _buildShareTextFor(commerce),
+        shareText: _buildShareTextFor(commerce, context),
         reviewsTarget: (commerce.sourceId != null && commerce.sourceTable != null)
             ? ReviewsTarget(
                 kind: commerce.sourceTable!,
@@ -487,7 +489,7 @@ class CommerceRowCard extends ConsumerWidget {
     PartnerMetricsService.ficheVue(commerce.sourceTable, commerce.sourceId);
     ItemDetailSheet.show(
       context,
-      buildDetailSheet(commerce, imageAsset: imageAsset),
+      buildDetailSheet(commerce, imageAsset: imageAsset, context: context),
     );
   }
 
@@ -730,19 +732,23 @@ class CommerceRowCard extends ConsumerWidget {
     return _defaultGenericVideo;
   }
 
-  static String _buildShareTextFor(CommerceModel commerce) {
+  /// [context] null = textes francais (appelant sans acces a la langue).
+  static String _buildShareTextFor(CommerceModel commerce,
+      [BuildContext? context]) {
+    final l10n = context?.l10n;
     final buffer = StringBuffer();
     buffer.writeln(commerce.nom);
     if (commerce.adresse.isNotEmpty) buffer.writeln(commerce.adresse);
     if (commerce.horaires.isNotEmpty) {
-      buffer.writeln('Horaires: ${commerce.horaires}');
+      buffer.writeln(l10n?.detailOpeningHours(commerce.horaires) ??
+          'Horaires: ${commerce.horaires}');
     }
     final link = buildShareLink(commerce);
     if (link != null) {
-      buffer.writeln('\nDecouvre sur MaCity 👉');
+      buffer.writeln('\n${l10n?.shareFooterPointing ?? 'Decouvre sur MaCity 👉'}');
       buffer.writeln(link);
     } else {
-      buffer.writeln('\nDecouvre sur MaCity');
+      buffer.writeln('\n${l10n?.shareFooter ?? 'Decouvre sur MaCity'}');
     }
     return buffer.toString();
   }
@@ -922,7 +928,7 @@ class _ClaimButton extends StatelessWidget {
             Icon(Icons.verified_outlined, size: small ? 8 : 12, color: Colors.white),
             SizedBox(width: small ? 2 : 4),
             Text(
-              'Revendiquer',
+              context.l10n.detailClaim,
               style: TextStyle(
                 fontSize: small ? 7 : 10,
                 color: Colors.white,

@@ -84,7 +84,8 @@ class _CommercePagerViewState extends State<CommercePagerView> {
         // passe d'une fiche à l'autre. Les drags verticaux (scroll dans
         // l'ItemDetailSheet) restent gérés par le contenu.
         itemBuilder: (_, i) =>
-            CommerceRowCard.buildDetailSheet(widget.commerces[i]),
+            CommerceRowCard.buildDetailSheet(widget.commerces[i],
+                context: context),
       ),
     );
   }

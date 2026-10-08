@@ -210,3 +210,21 @@ String tourismeCategoryLabel(BuildContext context, String key) {
     _ => key,
   };
 }
+
+/// Libelles d'actions et de badges passes en francais aux fiches detail
+/// (ItemDetailSheet, popups) : 'Site web', 'Maps', 'Appeler'...
+String actionLabel(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'Site web' => l10n.websiteLabel,
+    'Appeler' => l10n.commonCall,
+    'Partager' => l10n.commonShare,
+    'Billetterie' => l10n.ticketsLabel,
+    'Billets' => l10n.ticketsShort,
+    'Itineraire' || 'Itinéraire' => l10n.mapDirections,
+    'Partenaire' => l10n.detailPartner,
+    'Domaine partenaire' => l10n.detailPartnerEstate,
+    'En savoir plus' => l10n.commonLearnMore,
+    _ => key,
+  };
+}
