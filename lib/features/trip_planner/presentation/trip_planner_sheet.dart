@@ -42,7 +42,8 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
   final Set<TripMeal> _meals = {TripMeal.midi, TripMeal.soir};
   bool? _activities;
   TripNight? _night;
-  TripMusic? _music;
+  /// Styles coches ; {TripMusic.any} = « Peu importe ».
+  final Set<TripMusic> _music = {};
 
   TripPools? _pools;
   TripPlan? _plan;
@@ -74,9 +75,21 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
         _Step.activities =>
           _activities != null && (_flow.last != _Step.activities || _hasSomething),
         _Step.night => _night != null && _hasSomething,
-        _Step.music => _music != null,
+        _Step.music => _music.isNotEmpty,
         _ => true,
       };
+
+  /// Choix multiple ; « Peu importe » est exclusif des styles.
+  void _toggleMusic(TripMusic m) {
+    if (m == TripMusic.any) {
+      final wasAny = _music.contains(TripMusic.any);
+      _music.clear();
+      if (!wasAny) _music.add(TripMusic.any);
+      return;
+    }
+    _music.remove(TripMusic.any);
+    if (!_music.remove(m)) _music.add(m);
+  }
 
   void _next() {
     final flow = _flow;
@@ -110,8 +123,8 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
         activities: _activities ?? false,
         night: _nightChoice,
         music: _nightChoice == TripNight.barClub
-            ? (_music ?? TripMusic.any)
-            : TripMusic.any,
+            ? _music.where((m) => m != TripMusic.any).toSet()
+            : const {},
       );
 
   Future<void> _generate() async {
@@ -290,7 +303,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
           ],
         _Step.music => [
             _title('Quelle musique en discothèque ?',
-                'On choisit le club selon vos goûts.'),
+                'Plusieurs choix possibles. On choisit le club selon vos goûts.'),
             for (final (m, emoji, label, sub) in const [
               (TripMusic.electro, '🎧', 'Électro / Techno', 'House, techno, électro'),
               (TripMusic.hiphop, '🎤', 'Hip-hop / R&B / Afro', 'Rap, R&B, afrobeats, dancehall'),
@@ -299,8 +312,8 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
               (TripMusic.rock, '🎸', 'Rock / Indie', 'Rock, indie, pop-rock'),
               (TripMusic.any, '🤷', 'Peu importe', null),
             ])
-              _option(emoji, label, sub, _music == m,
-                  () => setState(() => _music = m)),
+              _option(emoji, label, sub, _music.contains(m),
+                  () => setState(() => _toggleMusic(m))),
           ],
         _Step.plan => const [],
       },

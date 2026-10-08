@@ -24,7 +24,8 @@ class TripAnswers {
   final Set<TripMeal> meals;
   final bool activities;
   final TripNight night;
-  final TripMusic music;
+  /// Styles voulus (plusieurs possibles). Vide = peu importe.
+  final Set<TripMusic> music;
 
   const TripAnswers({
     required this.group,
@@ -33,7 +34,7 @@ class TripAnswers {
     required this.meals,
     required this.activities,
     this.night = TripNight.none,
-    this.music = TripMusic.any,
+    this.music = const {},
   });
 }
 

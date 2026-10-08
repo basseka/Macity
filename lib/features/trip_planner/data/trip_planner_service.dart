@@ -178,17 +178,18 @@ class TripPools {
       .map(_nightCandidate)
       .toList();
 
-  /// Discotheques, classees selon le style musical demande : un club du bon
-  /// style (+150) passe devant un partenaire d'un autre style (+100). Un club
-  /// au style inconnu reste proposable, juste devant ceux d'un autre style,
-  /// pour ne jamais laisser l'etape vide.
-  List<TripCandidate> _clubCandidates(TripMusic music) => night
+  /// Discotheques, classees selon les styles musicaux demandes : un club
+  /// d'un des styles voulus (+150) passe devant un partenaire d'un autre
+  /// style (+100). Un club au style inconnu reste proposable, juste devant
+  /// ceux d'un autre style, pour ne jamais laisser l'etape vide.
+  List<TripCandidate> _clubCandidates(Set<TripMusic> music) => night
       .where((c) => _matchesAny(c.categorie, _clubKeywords))
       .map((c) {
         final genres = clubGenres[c.sourceId] ?? const <String>[];
-        final affinity = music == TripMusic.any
+        final wanted = music.map((m) => m.name).toSet();
+        final affinity = wanted.isEmpty
             ? 0
-            : genres.contains(music.name)
+            : genres.any(wanted.contains)
                 ? 5
                 : (genres.isEmpty ? 1 : 0);
         return TripCandidate(
@@ -204,7 +205,7 @@ class TripPools {
   /// Candidats notes pour une etape (sans notion de zone). [seed] fait varier
   /// l'ordre entre deux propositions sans faire passer un partenaire derriere.
   List<(TripCandidate, int)> _scored(TripStopKind kind, TripGroup group, int seed,
-      [TripMusic music = TripMusic.any]) {
+      [Set<TripMusic> music = const {}]) {
     final list = switch (kind) {
       TripStopKind.breakfast ||
       TripStopKind.lunch ||
