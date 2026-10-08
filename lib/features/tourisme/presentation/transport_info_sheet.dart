@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -97,7 +98,7 @@ class TransportInfoView extends ConsumerWidget {
               children: [
                 const Icon(Icons.directions_bus, size: 48, color: Colors.grey),
                 const SizedBox(height: 12),
-                Text('Infos transport pour $city\nbientot disponibles',
+                Text(context.l10n.transportComingSoon(city),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textFaint, fontSize: 14)),
                 if (site != null) ...[
@@ -119,12 +120,13 @@ class TransportInfoView extends ConsumerWidget {
             ],
 
             // Resume
-            _buildSummaryCards(transport, modeTheme),
+            _buildSummaryCards(context, transport, modeTheme),
             const SizedBox(height: 16),
 
             // Metro
             if (transport.metroCount > 0) ...[
-              _sectionTitle('Metro', Icons.subway, '${transport.metroCount} stations'),
+              _sectionTitle(context.l10n.transportMetro, Icons.subway,
+                  context.l10n.transportStations(transport.metroCount)),
               const SizedBox(height: 8),
               _buildStationChips(transport.metro, const Color(0xFF1565C0)),
               const SizedBox(height: 16),
@@ -132,7 +134,8 @@ class TransportInfoView extends ConsumerWidget {
 
             // Tram
             if (transport.tramCount > 0) ...[
-              _sectionTitle('Tramway', Icons.tram, '${transport.tramCount} arrets'),
+              _sectionTitle(context.l10n.transportTram, Icons.tram,
+                  context.l10n.transportStops(transport.tramCount)),
               const SizedBox(height: 8),
               _buildStationChips(transport.tram.take(30).toList(), const Color(0xFF2E7D32)),
               const SizedBox(height: 16),
@@ -140,7 +143,8 @@ class TransportInfoView extends ConsumerWidget {
 
             // Velo
             if (transport.veloCount > 0) ...[
-              _sectionTitle('Velo en libre-service', Icons.pedal_bike, '${transport.veloCount} stations'),
+              _sectionTitle(context.l10n.transportBike, Icons.pedal_bike,
+                  context.l10n.transportStations(transport.veloCount)),
               const SizedBox(height: 8),
               if (transport.velo['name'] != null && (transport.velo['name'] as String).isNotEmpty)
                 Text(transport.velo['name'] as String,
@@ -150,7 +154,7 @@ class TransportInfoView extends ConsumerWidget {
         );
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (_, __) => const Center(child: Text('Erreur de chargement')),
+      error: (_, __) => Center(child: Text(context.l10n.commonLoadError)),
     );
   }
 
@@ -178,15 +182,16 @@ class TransportInfoView extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryCards(CityTransport transport, dynamic modeTheme) {
+  Widget _buildSummaryCards(
+      BuildContext context, CityTransport transport, dynamic modeTheme) {
     return Row(
       children: [
         if (transport.metroCount > 0)
-          _summaryCard(Icons.subway, '${transport.metroCount}', 'Metro', const Color(0xFF1565C0)),
+          _summaryCard(Icons.subway, '${transport.metroCount}', context.l10n.transportMetro, const Color(0xFF1565C0)),
         if (transport.tramCount > 0)
-          _summaryCard(Icons.tram, '${transport.tramCount}', 'Tram', const Color(0xFF2E7D32)),
+          _summaryCard(Icons.tram, '${transport.tramCount}', context.l10n.transportTram, const Color(0xFF2E7D32)),
         if (transport.veloCount > 0)
-          _summaryCard(Icons.pedal_bike, '${transport.veloCount}', 'Velo', const Color(0xFFE65100)),
+          _summaryCard(Icons.pedal_bike, '${transport.veloCount}', context.l10n.transportBikeShort, const Color(0xFFE65100)),
       ],
     );
   }

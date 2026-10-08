@@ -190,3 +190,23 @@ String familyCategoryLabel(BuildContext context, String key) {
     _ => key,
   };
 }
+
+/// Categories Tourisme (cles : categorie des points touristiques en base).
+String tourismeCategoryLabel(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'Tourisme' => l10n.tourismeTitle,
+    'Visiter' => l10n.tourismeVisit,
+    'Se deplacer' => l10n.tourismeGetAround,
+    'Categories' => l10n.commonCategories,
+    'Monument' => l10n.tourismeCatMonument,
+    'Musee' => l10n.tourismeCatMuseum,
+    'Attraction' => l10n.tourismeCatAttraction,
+    'Site naturel' => l10n.tourismeCatNature,
+    'Place' => l10n.tourismeCatSquare,
+    'Lieu culturel' => l10n.tourismeCatCultural,
+    'Office de tourisme' => l10n.tourismeCatTouristOffice,
+    'Quartier' => l10n.tourismeCatDistrict,
+    _ => key,
+  };
+}

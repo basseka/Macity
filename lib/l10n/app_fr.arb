@@ -616,5 +616,68 @@
   "familyCatKidsMuseum": "Musée pour enfants",
   "familyCatPlanetarium": "Planétarium",
   "familyCatWorkshop": "Atelier créatif",
-  "familyCatRestaurant": "Restaurant familial"
+  "familyCatRestaurant": "Restaurant familial",
+  "evasionTitle": "Évasion.",
+  "evasionSubtitle": "Escapades et week-ends autour de chez vous.",
+  "evasionWithinHours": "À {hours}h",
+  "@evasionWithinHours": {
+    "description": "Temps de trajet",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "evasionNoPlaceForFilter": "Aucune adresse pour ce filtre.",
+  "tourismeKickerHome": "Rubrique · Visite",
+  "tourismeTitle": "Tourisme",
+  "tourismeBlurb": "Monuments, transports, incontournables : la ville pour les visiteurs.",
+  "tourismeTopMustSee": "Top incontournables",
+  "tourismeVisit": "Visiter",
+  "tourismeGetAround": "Se déplacer",
+  "tourismeNoPlace": "Aucun lieu à visiter",
+  "commonError": "Erreur",
+  "tourismeCatMonument": "Monuments",
+  "tourismeCatMuseum": "Musées",
+  "tourismeCatAttraction": "Attractions",
+  "tourismeCatNature": "Sites naturels",
+  "tourismeCatSquare": "Places",
+  "tourismeCatCultural": "Lieux culturels",
+  "tourismeCatTouristOffice": "Office de tourisme",
+  "tourismeCatDistrict": "Quartiers",
+  "tourismeTipTodo": "À faire",
+  "tourismeTipFood": "Gastronomie",
+  "tourismeTipExcursion": "Excursions",
+  "tourismeTipDeals": "Bons plans",
+  "transportComingSoon": "Infos transport pour {city}\nbientôt disponibles",
+  "@transportComingSoon": {
+    "description": "Transport pas encore renseigne",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "transportMetro": "Métro",
+  "transportTram": "Tramway",
+  "transportBike": "Vélo en libre-service",
+  "transportBikeShort": "Vélo",
+  "transportStations": "{count, plural, =1{1 station} other{{count} stations}}",
+  "@transportStations": {
+    "description": "Nombre de stations",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transportStops": "{count, plural, =1{1 arrêt} other{{count} arrêts}}",
+  "@transportStops": {
+    "description": "Nombre d'arrets",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:pulz_app/core/utils/image_url.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/data/premium_banner_service.dart';
 import 'dart:async';
 import 'dart:ui';
@@ -131,7 +132,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
     final partners = all.where((v) => v.isPartner).toList();
     if (partners.isEmpty) return const [];
     return [
-      _sectionHeader('Nos partenaires'),
+      _sectionHeader(context.l10n.landingPartners),
       _venueCarousel(partners),
       const SizedBox(height: 20),
     ];
@@ -144,7 +145,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
             const [];
     if (items.isEmpty) return const [];
     return [
-      _sectionHeader('Inspirations du moment'),
+      _sectionHeader(context.l10n.landingInspirations),
       SizedBox(
         height: 178,
         child: ListView.separated(
@@ -177,7 +178,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
         ? all
         : all.where((v) => v.travelTimeH <= _maxHours!).toList();
     return [
-      _sectionHeader('Affinez votre recherche'),
+      _sectionHeader(context.l10n.landingRefine),
       SizedBox(
         height: 34,
         child: ListView(
@@ -185,7 +186,8 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 18),
           children: [
-            for (final h in const [1, 2, 3]) _chip('À ${h}h', h),
+            for (final h in const [1, 2, 3])
+              _chip(context.l10n.evasionWithinHours(h), h),
           ],
         ),
       ),
@@ -193,7 +195,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
       if (list.isEmpty)
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Text('Aucune adresse pour ce filtre.',
+          child: Text(context.l10n.evasionNoPlaceForFilter,
               style: GoogleFonts.poppins(fontSize: 13, color: _muted)),
         )
       else
@@ -314,7 +316,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
                   color: const Color(0xC70B1410),
                   borderRadius: BorderRadius.circular(FoodTokens.rPill),
                 ),
-                child: Text('À ${v.travelTimeH}h',
+                child: Text(context.l10n.evasionWithinHours(v.travelTimeH),
                     style: FoodTokens.tinyTag(
                         color: Colors.white,
                         size: 8,
@@ -348,7 +350,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
                       const Icon(Icons.star,
                           size: 6, color: Color(0xFF2A1E06)),
                       const SizedBox(width: 2),
-                      Text('PARTENAIRE',
+                      Text(context.l10n.commonPartner,
                           style: FoodTokens.tinyTag(
                             color: const Color(0xFF2A1E06),
                             size: 5,
@@ -676,7 +678,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Évasion.',
+                        context.l10n.evasionTitle,
                         style: GoogleFonts.poppins(
                           fontSize: 24,
                           fontWeight: FontWeight.w500,
@@ -689,7 +691,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 230),
                         child: Text(
-                          'Escapades et week-ends autour de chez vous.',
+                          context.l10n.evasionSubtitle,
                           style: GoogleFonts.poppins(
                             fontSize: 12.5,
                             height: 1.3,
@@ -734,7 +736,7 @@ class _EvasionScreenState extends ConsumerState<EvasionScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'En savoir plus',
+                                context.l10n.commonLearnMore,
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,

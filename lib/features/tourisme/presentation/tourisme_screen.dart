@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -69,12 +71,14 @@ class TourismeScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: EditorialMasthead(
               kicker: selectedCategory == null
-                  ? 'Rubrique · Visite'
-                  : 'Tourisme · $selectedCategory',
-              title: selectedCategory ?? 'Tourisme',
+                  ? context.l10n.tourismeKickerHome
+                  : '${context.l10n.tourismeTitle} · ${tourismeCategoryLabel(context, selectedCategory)}',
+              title: selectedCategory == null
+                  ? context.l10n.tourismeTitle
+                  : tourismeCategoryLabel(context, selectedCategory),
               accent: RubricColors.tourisme,
               blurb: selectedCategory == null
-                  ? 'Monuments, transports, top picks — la ville pour les visiteurs.'
+                  ? context.l10n.tourismeBlurb
                   : null,
               onBack: selectedCategory == null
                   ? () => context.go('/home')
@@ -109,13 +113,13 @@ class TourismeScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text('\u2B50', style: TextStyle(fontSize: 14)),
                         SizedBox(width: 6),
                         Text(
-                          'Top incontournables',
+                          context.l10n.tourismeTopMustSee,
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
                         ),
                       ],
@@ -200,7 +204,7 @@ class TourismeScreen extends ConsumerWidget {
                     Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
                     const SizedBox(width: 4),
                     Text(
-                      'Categories',
+                      context.l10n.commonCategories,
                       style: TextStyle(
                         color: modeTheme.primaryColor,
                         fontWeight: FontWeight.w600,
@@ -216,9 +220,9 @@ class TourismeScreen extends ConsumerWidget {
       );
       },
       loading: () => const Center(child: LoadingIndicator()),
-      error: (_, __) => const Center(
+      error: (_, __) => Center(
         child: EmptyStateWidget(
-          message: 'Erreur de chargement',
+          message: context.l10n.commonLoadError,
           icon: Icons.error_outline,
         ),
       ),
@@ -257,7 +261,7 @@ class TourismeScreen extends ConsumerWidget {
                   Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
                   const SizedBox(width: 4),
                   Text(
-                    'Categories',
+                    context.l10n.commonCategories,
                     style: TextStyle(
                       color: modeTheme.primaryColor,
                       fontWeight: FontWeight.w600,
@@ -334,7 +338,7 @@ class TourismeScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Visiter',
+                  context.l10n.tourismeVisit,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: modeTheme.primaryColor),
                 ),
               ),
@@ -349,7 +353,7 @@ class TourismeScreen extends ConsumerWidget {
                     children: [
                       Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
                       const SizedBox(width: 4),
-                      Text('Categories', style: TextStyle(color: modeTheme.primaryColor, fontWeight: FontWeight.w600, fontSize: 11)),
+                      Text(context.l10n.commonCategories, style: TextStyle(color: modeTheme.primaryColor, fontWeight: FontWeight.w600, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -372,7 +376,9 @@ class TourismeScreen extends ConsumerWidget {
               catCounts.remove('Tram');
 
               if (catCounts.isEmpty) {
-                return const EmptyStateWidget(message: 'Aucun lieu a visiter', icon: Icons.travel_explore);
+                return EmptyStateWidget(
+                    message: context.l10n.tourismeNoPlace,
+                    icon: Icons.travel_explore);
               }
 
               final categories = catCounts.entries.toList()
@@ -389,7 +395,7 @@ class TourismeScreen extends ConsumerWidget {
                   final image = _categoryImages[cat.key] ?? 'assets/images/pochette_visite.webp';
                   return DaySubcategoryCard(
                     emoji: '',
-                    label: '${cat.key} (${cat.value})',
+                    label: '${tourismeCategoryLabel(context, cat.key)} (${cat.value})',
                     image: image,
                     gradient: LinearGradient(
                       begin: Alignment.topLeft, end: Alignment.bottomRight,
@@ -401,7 +407,8 @@ class TourismeScreen extends ConsumerWidget {
               );
             },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-            error: (_, __) => const EmptyStateWidget(message: 'Erreur', icon: Icons.error_outline),
+            error: (_, __) => EmptyStateWidget(
+                message: context.l10n.commonError, icon: Icons.error_outline),
           ),
         ),
       ],
@@ -426,7 +433,7 @@ class TourismeScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  category,
+                  tourismeCategoryLabel(context, category),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
@@ -458,7 +465,7 @@ class TourismeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        backLabel,
+                        tourismeCategoryLabel(context, backLabel),
                         style: TextStyle(
                           color: modeTheme.primaryColor,
                           fontWeight: FontWeight.w600,
@@ -491,7 +498,7 @@ class TourismeScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Se deplacer',
+                  context.l10n.tourismeGetAround,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: modeTheme.primaryColor),
                 ),
               ),
@@ -505,7 +512,7 @@ class TourismeScreen extends ConsumerWidget {
                     children: [
                       Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
                       const SizedBox(width: 4),
-                      Text('Categories', style: TextStyle(color: modeTheme.primaryColor, fontWeight: FontWeight.w600, fontSize: 11)),
+                      Text(context.l10n.commonCategories, style: TextStyle(color: modeTheme.primaryColor, fontWeight: FontWeight.w600, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -520,6 +527,7 @@ class TourismeScreen extends ConsumerWidget {
   }
 
   Widget _buildPointsList(WidgetRef ref, String category) {
+    final context = ref.context;
     // "Activites" → tips IA depuis city_tourisme_tips
     if (category == 'Activites') {
       return _buildTipsView(ref);
@@ -547,11 +555,12 @@ class TourismeScreen extends ConsumerWidget {
         );
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (_, __) => const EmptyStateWidget(message: 'Erreur de chargement', icon: Icons.error_outline),
+      error: (_, __) => EmptyStateWidget(message: context.l10n.commonLoadError, icon: Icons.error_outline),
     );
   }
 
   Widget _buildTipsView(WidgetRef ref) {
+    final context = ref.context;
     final tipsAsync = ref.watch(cityTourismeTipsProvider);
     final modeTheme = ref.watch(modeThemeProvider);
 
@@ -577,12 +586,12 @@ class TourismeScreen extends ConsumerWidget {
         };
 
         final categoryLabels = {
-          'activite': 'A faire',
-          'gastronomie': 'Gastronomie',
-          'quartier': 'Quartiers',
-          'excursion': 'Excursions',
-          'bon_plan': 'Bons plans',
-          'transport': 'Se deplacer',
+          'activite': context.l10n.tourismeTipTodo,
+          'gastronomie': context.l10n.tourismeTipFood,
+          'quartier': context.l10n.tourismeCatDistrict,
+          'excursion': context.l10n.tourismeTipExcursion,
+          'bon_plan': context.l10n.tourismeTipDeals,
+          'transport': context.l10n.tourismeGetAround,
         };
 
         final order = ['activite', 'gastronomie', 'quartier', 'excursion', 'bon_plan', 'transport'];
@@ -632,7 +641,8 @@ class TourismeScreen extends ConsumerWidget {
         );
       },
       loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-      error: (_, __) => const EmptyStateWidget(message: 'Erreur', icon: Icons.error_outline),
+      error: (_, __) => EmptyStateWidget(
+                message: context.l10n.commonError, icon: Icons.error_outline),
     );
   }
 }

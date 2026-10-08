@@ -2613,6 +2613,192 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Restaurant familial'**
   String get familyCatRestaurant;
+
+  /// No description provided for @evasionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Évasion.'**
+  String get evasionTitle;
+
+  /// No description provided for @evasionSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escapades et week-ends autour de chez vous.'**
+  String get evasionSubtitle;
+
+  /// Temps de trajet
+  ///
+  /// In fr, this message translates to:
+  /// **'À {hours}h'**
+  String evasionWithinHours(int hours);
+
+  /// No description provided for @evasionNoPlaceForFilter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune adresse pour ce filtre.'**
+  String get evasionNoPlaceForFilter;
+
+  /// No description provided for @tourismeKickerHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rubrique · Visite'**
+  String get tourismeKickerHome;
+
+  /// No description provided for @tourismeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tourisme'**
+  String get tourismeTitle;
+
+  /// No description provided for @tourismeBlurb.
+  ///
+  /// In fr, this message translates to:
+  /// **'Monuments, transports, incontournables : la ville pour les visiteurs.'**
+  String get tourismeBlurb;
+
+  /// No description provided for @tourismeTopMustSee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Top incontournables'**
+  String get tourismeTopMustSee;
+
+  /// No description provided for @tourismeVisit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visiter'**
+  String get tourismeVisit;
+
+  /// No description provided for @tourismeGetAround.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déplacer'**
+  String get tourismeGetAround;
+
+  /// No description provided for @tourismeNoPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun lieu à visiter'**
+  String get tourismeNoPlace;
+
+  /// No description provided for @commonError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur'**
+  String get commonError;
+
+  /// No description provided for @tourismeCatMonument.
+  ///
+  /// In fr, this message translates to:
+  /// **'Monuments'**
+  String get tourismeCatMonument;
+
+  /// No description provided for @tourismeCatMuseum.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musées'**
+  String get tourismeCatMuseum;
+
+  /// No description provided for @tourismeCatAttraction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attractions'**
+  String get tourismeCatAttraction;
+
+  /// No description provided for @tourismeCatNature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sites naturels'**
+  String get tourismeCatNature;
+
+  /// No description provided for @tourismeCatSquare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Places'**
+  String get tourismeCatSquare;
+
+  /// No description provided for @tourismeCatCultural.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieux culturels'**
+  String get tourismeCatCultural;
+
+  /// No description provided for @tourismeCatTouristOffice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Office de tourisme'**
+  String get tourismeCatTouristOffice;
+
+  /// No description provided for @tourismeCatDistrict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quartiers'**
+  String get tourismeCatDistrict;
+
+  /// No description provided for @tourismeTipTodo.
+  ///
+  /// In fr, this message translates to:
+  /// **'À faire'**
+  String get tourismeTipTodo;
+
+  /// No description provided for @tourismeTipFood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gastronomie'**
+  String get tourismeTipFood;
+
+  /// No description provided for @tourismeTipExcursion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Excursions'**
+  String get tourismeTipExcursion;
+
+  /// No description provided for @tourismeTipDeals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bons plans'**
+  String get tourismeTipDeals;
+
+  /// Transport pas encore renseigne
+  ///
+  /// In fr, this message translates to:
+  /// **'Infos transport pour {city}\nbientôt disponibles'**
+  String transportComingSoon(String city);
+
+  /// No description provided for @transportMetro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Métro'**
+  String get transportMetro;
+
+  /// No description provided for @transportTram.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tramway'**
+  String get transportTram;
+
+  /// No description provided for @transportBike.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vélo en libre-service'**
+  String get transportBike;
+
+  /// No description provided for @transportBikeShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vélo'**
+  String get transportBikeShort;
+
+  /// Nombre de stations
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 station} other{{count} stations}}'**
+  String transportStations(int count);
+
+  /// Nombre d'arrets
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 arrêt} other{{count} arrêts}}'**
+  String transportStops(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -1385,4 +1385,118 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get familyCatRestaurant => 'Restaurant familial';
+
+  @override
+  String get evasionTitle => 'Évasion.';
+
+  @override
+  String get evasionSubtitle => 'Escapades et week-ends autour de chez vous.';
+
+  @override
+  String evasionWithinHours(int hours) {
+    return 'À ${hours}h';
+  }
+
+  @override
+  String get evasionNoPlaceForFilter => 'Aucune adresse pour ce filtre.';
+
+  @override
+  String get tourismeKickerHome => 'Rubrique · Visite';
+
+  @override
+  String get tourismeTitle => 'Tourisme';
+
+  @override
+  String get tourismeBlurb =>
+      'Monuments, transports, incontournables : la ville pour les visiteurs.';
+
+  @override
+  String get tourismeTopMustSee => 'Top incontournables';
+
+  @override
+  String get tourismeVisit => 'Visiter';
+
+  @override
+  String get tourismeGetAround => 'Se déplacer';
+
+  @override
+  String get tourismeNoPlace => 'Aucun lieu à visiter';
+
+  @override
+  String get commonError => 'Erreur';
+
+  @override
+  String get tourismeCatMonument => 'Monuments';
+
+  @override
+  String get tourismeCatMuseum => 'Musées';
+
+  @override
+  String get tourismeCatAttraction => 'Attractions';
+
+  @override
+  String get tourismeCatNature => 'Sites naturels';
+
+  @override
+  String get tourismeCatSquare => 'Places';
+
+  @override
+  String get tourismeCatCultural => 'Lieux culturels';
+
+  @override
+  String get tourismeCatTouristOffice => 'Office de tourisme';
+
+  @override
+  String get tourismeCatDistrict => 'Quartiers';
+
+  @override
+  String get tourismeTipTodo => 'À faire';
+
+  @override
+  String get tourismeTipFood => 'Gastronomie';
+
+  @override
+  String get tourismeTipExcursion => 'Excursions';
+
+  @override
+  String get tourismeTipDeals => 'Bons plans';
+
+  @override
+  String transportComingSoon(String city) {
+    return 'Infos transport pour $city\nbientôt disponibles';
+  }
+
+  @override
+  String get transportMetro => 'Métro';
+
+  @override
+  String get transportTram => 'Tramway';
+
+  @override
+  String get transportBike => 'Vélo en libre-service';
+
+  @override
+  String get transportBikeShort => 'Vélo';
+
+  @override
+  String transportStations(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count stations',
+      one: '1 station',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String transportStops(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count arrêts',
+      one: '1 arrêt',
+    );
+    return '$_temp0';
+  }
 }
