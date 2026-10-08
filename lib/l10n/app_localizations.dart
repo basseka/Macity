@@ -3093,6 +3093,108 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Date'**
   String get dateFilterDate;
+
+  /// No description provided for @liveTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'En direct'**
+  String get liveTitle;
+
+  /// No description provided for @liveAroundYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'autour de vous'**
+  String get liveAroundYou;
+
+  /// No description provided for @liveStoryFallback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Story Map Live'**
+  String get liveStoryFallback;
+
+  /// No description provided for @timeJustNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'à l\'instant'**
+  String get timeJustNow;
+
+  /// Temps relatif
+  ///
+  /// In fr, this message translates to:
+  /// **'il y a {count} min'**
+  String timeMinutesAgo(int count);
+
+  /// Temps relatif
+  ///
+  /// In fr, this message translates to:
+  /// **'il y a {count}h'**
+  String timeHoursAgo(int count);
+
+  /// Temps relatif
+  ///
+  /// In fr, this message translates to:
+  /// **'il y a {count}j'**
+  String timeDaysAgo(int count);
+
+  /// No description provided for @ofDayFood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le restaurant du jour'**
+  String get ofDayFood;
+
+  /// No description provided for @ofDayFamily.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'activité du jour'**
+  String get ofDayFamily;
+
+  /// No description provided for @ofDayCulture.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le point culture'**
+  String get ofDayCulture;
+
+  /// No description provided for @ofDaySport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le moment Sport'**
+  String get ofDaySport;
+
+  /// No description provided for @ofDayNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le club du jour'**
+  String get ofDayNight;
+
+  /// No description provided for @ofDayEvasion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le moment évasion'**
+  String get ofDayEvasion;
+
+  /// No description provided for @cityPickerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une ville'**
+  String get cityPickerTitle;
+
+  /// No description provided for @cityPickerHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une ville...'**
+  String get cityPickerHint;
+
+  /// No description provided for @cityPickerNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune ville trouvée'**
+  String get cityPickerNone;
+
+  /// No description provided for @cityPickerError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de recherche'**
+  String get cityPickerError;
 }
 
 class _AppLocalizationsDelegate

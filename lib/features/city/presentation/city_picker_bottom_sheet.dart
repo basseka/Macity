@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,7 +67,7 @@ class _CityPickerBottomSheetState
             child: Column(
               children: [
                 Text(
-                  'Choisir une ville',
+                  context.l10n.cityPickerTitle,
                   style: GoogleFonts.geist(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -112,7 +113,7 @@ class _CityPickerBottomSheetState
               autofocus: true,
               style: GoogleFonts.geist(fontSize: 14, color: AppColors.text),
               decoration: InputDecoration(
-                hintText: 'Rechercher une ville...',
+                hintText: context.l10n.cityPickerHint,
                 hintStyle: GoogleFonts.geist(color: AppColors.textFaint),
                 prefixIcon: const Icon(Icons.search, color: AppColors.magenta),
                 suffixIcon: _searchController.text.isNotEmpty
@@ -159,7 +160,7 @@ class _CityPickerBottomSheetState
                 if (cities.isEmpty) {
                   return Center(
                     child: Text(
-                      'Aucune ville trouvee',
+                      context.l10n.cityPickerNone,
                       style: GoogleFonts.geist(
                         color: AppColors.textFaint,
                         fontSize: 14,
@@ -192,7 +193,7 @@ class _CityPickerBottomSheetState
               ),
               error: (error, _) => Center(
                 child: Text(
-                  'Erreur de recherche',
+                  context.l10n.cityPickerError,
                   style: GoogleFonts.geist(color: AppColors.textFaint),
                 ),
               ),

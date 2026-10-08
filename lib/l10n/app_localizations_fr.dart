@@ -1666,4 +1666,61 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dateFilterDate => 'Date';
+
+  @override
+  String get liveTitle => 'En direct';
+
+  @override
+  String get liveAroundYou => 'autour de vous';
+
+  @override
+  String get liveStoryFallback => 'Story Map Live';
+
+  @override
+  String get timeJustNow => 'à l\'instant';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return 'il y a $count min';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return 'il y a ${count}h';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return 'il y a ${count}j';
+  }
+
+  @override
+  String get ofDayFood => 'Le restaurant du jour';
+
+  @override
+  String get ofDayFamily => 'L\'activité du jour';
+
+  @override
+  String get ofDayCulture => 'Le point culture';
+
+  @override
+  String get ofDaySport => 'Le moment Sport';
+
+  @override
+  String get ofDayNight => 'Le club du jour';
+
+  @override
+  String get ofDayEvasion => 'Le moment évasion';
+
+  @override
+  String get cityPickerTitle => 'Choisir une ville';
+
+  @override
+  String get cityPickerHint => 'Rechercher une ville...';
+
+  @override
+  String get cityPickerNone => 'Aucune ville trouvée';
+
+  @override
+  String get cityPickerError => 'Erreur de recherche';
 }

@@ -498,5 +498,22 @@
   "commonRetry": "Reintentar",
   "dateFilter7Days": "7 días",
   "dateFilter30Days": "30 días",
-  "dateFilterDate": "Fecha"
+  "dateFilterDate": "Fecha",
+  "liveTitle": "En directo",
+  "liveAroundYou": "cerca de ti",
+  "liveStoryFallback": "Story Map Live",
+  "timeJustNow": "ahora mismo",
+  "timeMinutesAgo": "hace {count} min",
+  "timeHoursAgo": "hace {count} h",
+  "timeDaysAgo": "hace {count} d",
+  "ofDayFood": "El restaurante del día",
+  "ofDayFamily": "La actividad del día",
+  "ofDayCulture": "El rincón cultural",
+  "ofDaySport": "El momento deporte",
+  "ofDayNight": "El club del día",
+  "ofDayEvasion": "El momento escapada",
+  "cityPickerTitle": "Elige una ciudad",
+  "cityPickerHint": "Busca una ciudad...",
+  "cityPickerNone": "No se ha encontrado ninguna ciudad",
+  "cityPickerError": "Error de búsqueda"
 }

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -126,7 +127,7 @@ class _SectionHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'En direct',
+            context.l10n.liveTitle,
             style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -136,7 +137,7 @@ class _SectionHeader extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            'autour de vous',
+            context.l10n.liveAroundYou,
             style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -176,7 +177,7 @@ class _SectionHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Voir tout',
+                  context.l10n.commonSeeAll,
                   style: GoogleFonts.geist(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -245,7 +246,7 @@ class _LiveCard extends ConsumerWidget {
             ? event.rawTitle
             : (event.locationName.isNotEmpty
                 ? event.locationName
-                : 'Story Map Live'));
+                : context.l10n.liveStoryFallback));
     final card = ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: SizedBox(
@@ -360,7 +361,7 @@ class _LiveCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _relativeTime(event.createdAt),
+                    _relativeTime(context, event.createdAt),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.geist(
@@ -447,11 +448,12 @@ class _LiveCard extends ConsumerWidget {
     );
   }
 
-  String _relativeTime(DateTime created) {
+  String _relativeTime(BuildContext context, DateTime created) {
     final diff = DateTime.now().difference(created);
-    if (diff.inSeconds < 60) return 'à l\'instant';
-    if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'il y a ${diff.inHours}h';
-    return 'il y a ${diff.inDays}j';
+    final l10n = context.l10n;
+    if (diff.inSeconds < 60) return l10n.timeJustNow;
+    if (diff.inMinutes < 60) return l10n.timeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.timeHoursAgo(diff.inHours);
+    return l10n.timeDaysAgo(diff.inDays);
   }
 }

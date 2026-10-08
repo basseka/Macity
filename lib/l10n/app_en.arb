@@ -498,5 +498,22 @@
   "commonRetry": "Try again",
   "dateFilter7Days": "7 days",
   "dateFilter30Days": "30 days",
-  "dateFilterDate": "Date"
+  "dateFilterDate": "Date",
+  "liveTitle": "Live",
+  "liveAroundYou": "around you",
+  "liveStoryFallback": "Map Live story",
+  "timeJustNow": "just now",
+  "timeMinutesAgo": "{count} min ago",
+  "timeHoursAgo": "{count}h ago",
+  "timeDaysAgo": "{count}d ago",
+  "ofDayFood": "Restaurant of the day",
+  "ofDayFamily": "Activity of the day",
+  "ofDayCulture": "Culture spotlight",
+  "ofDaySport": "Sport moment",
+  "ofDayNight": "Club of the day",
+  "ofDayEvasion": "Getaway moment",
+  "cityPickerTitle": "Choose a city",
+  "cityPickerHint": "Search for a city...",
+  "cityPickerNone": "No city found",
+  "cityPickerError": "Search error"
 }

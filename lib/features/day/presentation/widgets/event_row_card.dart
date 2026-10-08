@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -176,7 +177,7 @@ class EventRowCard extends ConsumerWidget {
                             boxShadow: AppShadows.neon(AppColors.magenta, blur: 6, y: 1),
                           ),
                           child: Text(
-                            'GRATUIT',
+                            context.l10n.commonFree,
                             style: GoogleFonts.geistMono(
                               color: Colors.white,
                               fontSize: 7,
@@ -283,7 +284,7 @@ class EventRowCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => _shareEvent(),
+                            onTap: () => _shareEvent(context),
                             child: Icon(
                               Icons.share_outlined,
                               color: AppColors.textFaint,
@@ -361,7 +362,7 @@ class EventRowCard extends ConsumerWidget {
     );
   }
 
-  void _shareEvent() {
+  void _shareEvent(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(event.titre);
     if (event.dateDebut.isNotEmpty) {
@@ -373,7 +374,7 @@ class EventRowCard extends ConsumerWidget {
     if (event.isFree) {
       buffer.writeln('Gratuit !');
     }
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
 
     Share.share(buffer.toString());
   }

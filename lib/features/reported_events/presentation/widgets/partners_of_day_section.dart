@@ -253,7 +253,7 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
               children: [
                 Expanded(
                   child: Text(
-                    r.title,
+                    _ofDayTitle(context, r.key, r.title),
                     style: GoogleFonts.geist(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
@@ -496,3 +496,15 @@ class _BouncingArrowState extends State<_BouncingArrow>
     );
   }
 }
+
+/// Titre traduit d'un encart « du jour » (r.key = rubrique, r.title = repli).
+String _ofDayTitle(BuildContext context, String key, String fallback) =>
+    switch (key) {
+      'food' => context.l10n.ofDayFood,
+      'family' => context.l10n.ofDayFamily,
+      'culture' => context.l10n.ofDayCulture,
+      'sport' => context.l10n.ofDaySport,
+      'night' => context.l10n.ofDayNight,
+      'evasion' => context.l10n.ofDayEvasion,
+      _ => fallback,
+    };

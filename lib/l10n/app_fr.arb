@@ -768,5 +768,46 @@
   "commonRetry": "Réessayer",
   "dateFilter7Days": "7 jours",
   "dateFilter30Days": "30 jours",
-  "dateFilterDate": "Date"
+  "dateFilterDate": "Date",
+  "liveTitle": "En direct",
+  "liveAroundYou": "autour de vous",
+  "liveStoryFallback": "Story Map Live",
+  "timeJustNow": "à l'instant",
+  "timeMinutesAgo": "il y a {count} min",
+  "@timeMinutesAgo": {
+    "description": "Temps relatif",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "il y a {count}h",
+  "@timeHoursAgo": {
+    "description": "Temps relatif",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "timeDaysAgo": "il y a {count}j",
+  "@timeDaysAgo": {
+    "description": "Temps relatif",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ofDayFood": "Le restaurant du jour",
+  "ofDayFamily": "L'activité du jour",
+  "ofDayCulture": "Le point culture",
+  "ofDaySport": "Le moment Sport",
+  "ofDayNight": "Le club du jour",
+  "ofDayEvasion": "Le moment évasion",
+  "cityPickerTitle": "Choisir une ville",
+  "cityPickerHint": "Rechercher une ville...",
+  "cityPickerNone": "Aucune ville trouvée",
+  "cityPickerError": "Erreur de recherche"
 }

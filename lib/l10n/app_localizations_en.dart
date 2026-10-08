@@ -1645,4 +1645,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dateFilterDate => 'Date';
+
+  @override
+  String get liveTitle => 'Live';
+
+  @override
+  String get liveAroundYou => 'around you';
+
+  @override
+  String get liveStoryFallback => 'Map Live story';
+
+  @override
+  String get timeJustNow => 'just now';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String get ofDayFood => 'Restaurant of the day';
+
+  @override
+  String get ofDayFamily => 'Activity of the day';
+
+  @override
+  String get ofDayCulture => 'Culture spotlight';
+
+  @override
+  String get ofDaySport => 'Sport moment';
+
+  @override
+  String get ofDayNight => 'Club of the day';
+
+  @override
+  String get ofDayEvasion => 'Getaway moment';
+
+  @override
+  String get cityPickerTitle => 'Choose a city';
+
+  @override
+  String get cityPickerHint => 'Search for a city...';
+
+  @override
+  String get cityPickerNone => 'No city found';
+
+  @override
+  String get cityPickerError => 'Search error';
 }
