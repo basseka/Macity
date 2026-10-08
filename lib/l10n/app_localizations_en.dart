@@ -2248,4 +2248,282 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pubStatusOnline => 'Live';
+
+  @override
+  String dateAtTime(String date, String time) {
+    return '$date at $time';
+  }
+
+  @override
+  String get commonFailedRetry => 'Failed, try again';
+
+  @override
+  String get commonDeleteFailed => 'Deletion failed';
+
+  @override
+  String get commonActivate => 'Turn on';
+
+  @override
+  String get commonRemove => 'Remove';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonCopy => 'Copy';
+
+  @override
+  String get commonCopied => 'Copied to clipboard';
+
+  @override
+  String get commonWithoutAccount => 'No account';
+
+  @override
+  String get commonPast => 'Past';
+
+  @override
+  String get pvConfirmOn => 'Confirmation on: your guests can now confirm';
+
+  @override
+  String get pvConfirmOff => 'Confirmation off';
+
+  @override
+  String get pvDeleteVault => 'Delete this vault?';
+
+  @override
+  String pvDeleteVaultBody(String title) {
+    return 'Guests will no longer be able to access \"$title\".';
+  }
+
+  @override
+  String get pvNewEvent => 'New event';
+
+  @override
+  String get pvNone => 'No private events';
+
+  @override
+  String get pvNoneHint =>
+      'Create a secret vault and invite your friends with a link + code.';
+
+  @override
+  String get pvChat => 'Chat';
+
+  @override
+  String get pvThisPerson => 'this person';
+
+  @override
+  String pvRemoveGuest(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get pvRemoveGuestBody =>
+      'They will be removed from the guest list (and confirmed list), won\'t be able to sign up again and will lose access to the event chat.';
+
+  @override
+  String get pvRemoveFailed => 'Removal failed, try again';
+
+  @override
+  String get pvEnableConfirmTitle => 'Turn on confirmation?';
+
+  @override
+  String get pvEnableConfirmBody =>
+      'The PDF lists guests who confirmed they are coming, with their first and last name. Turn on confirmation so your guests can fill in the form from \"My invitations\".';
+
+  @override
+  String get pvConfirmOnPdf =>
+      'Confirmation on: the PDF will be ready after the first confirmation';
+
+  @override
+  String get pvNoConfirmYet =>
+      'Nobody has confirmed yet: the PDF lists confirmed guests with their full name';
+
+  @override
+  String get pvNoOpeners =>
+      'Nobody opened the vault without signing up.\nOpens are visible with the latest version of the app.';
+
+  @override
+  String get pvNoConfirmations =>
+      'No confirmations yet.\nGuests confirm from \"My invitations\".';
+
+  @override
+  String pvSignedUpMax(int count, int max) {
+    return 'Signed up $count / $max';
+  }
+
+  @override
+  String pvSignedUp(int count) {
+    return 'Signed up ($count)';
+  }
+
+  @override
+  String get pvTabGuests => 'Guests';
+
+  @override
+  String get pvTabSeen => '👀 Seen';
+
+  @override
+  String get pvTabConfirmed => '✅ Confirmed';
+
+  @override
+  String get pvNobodyYet => 'Nobody yet';
+
+  @override
+  String pvOpens(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count opens',
+      one: '1 open',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pvLastOn(String when) {
+    return 'last on $when';
+  }
+
+  @override
+  String pvConfirmedOn(String when) {
+    return 'confirmed on $when';
+  }
+
+  @override
+  String get pvFull => 'full';
+
+  @override
+  String pvSignedUpCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count signed up',
+      one: '1 signed up',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pvGuestConfirmation => 'Guest confirmation';
+
+  @override
+  String get pvGuestConfirmationOn => 'On: name, age and phone requested';
+
+  @override
+  String get pvOff => 'Off';
+
+  @override
+  String get pvPhotoUploadFailed => 'Photo upload failed';
+
+  @override
+  String get pvErrTitle => 'Give your event a title';
+
+  @override
+  String get pvErrDate => 'Pick a date';
+
+  @override
+  String get pvErrCode => 'The code must be 4 digits';
+
+  @override
+  String get pvErrSeats => 'Number of spots: between 1 and 1000 (or empty)';
+
+  @override
+  String get pvErrInvalidField => 'Invalid field';
+
+  @override
+  String get pvErrEditFailed => 'Update failed, try again';
+
+  @override
+  String get pvErrCreateFailed => 'Creation failed, try again';
+
+  @override
+  String get pvEditTitle => 'Edit private event';
+
+  @override
+  String get pvCreateTitle => 'Create a private event';
+
+  @override
+  String get pvEditSubtitle => 'The link and code already sent stay valid';
+
+  @override
+  String get pvCreateSubtitle => 'Secret vault shared with a link + code';
+
+  @override
+  String get pvAddPoster => 'Add a poster (optional)';
+
+  @override
+  String get pvTitle => 'Title';
+
+  @override
+  String get pvTitleHint => '...\'s birthday';
+
+  @override
+  String get pvPlaceHint => 'My place, club...';
+
+  @override
+  String get pvAddress => 'Address';
+
+  @override
+  String get pvAddressHint => '5 X Street, London';
+
+  @override
+  String get pvDescriptionHint => 'BYOB, dress code...';
+
+  @override
+  String get pvSecretCode => 'Secret code to share (4 digits)';
+
+  @override
+  String get pvSeats => 'Number of spots';
+
+  @override
+  String pvSeatsAlready(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count already signed up. Empty = unlimited.',
+      one: '1 already signed up. Empty = unlimited.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pvSeatsHint => 'Empty = unlimited. \"Full\" once reached.';
+
+  @override
+  String get pvEnableConfirmation => 'Turn on confirmation';
+
+  @override
+  String get pvEnableConfirmationHint =>
+      'Each guest confirms with first name, last name, email, age and phone. Only you can see this info.';
+
+  @override
+  String get pvCreateMine => 'Create my event';
+
+  @override
+  String get pvPickDate => 'Pick a date';
+
+  @override
+  String get pvShareOnList => '🤫 You\'re on the list.';
+
+  @override
+  String get pvShareTeaser =>
+      'A private event is waiting for you… Open the vault to find out where, when and all the details 👀';
+
+  @override
+  String pvShareCode(String code) {
+    return '🔑 Code: $code';
+  }
+
+  @override
+  String get pvSharePreparing => 'Preparing to share…';
+
+  @override
+  String get pvShareFailed => 'Unable to share, try again';
+
+  @override
+  String get pvVaultCreated => 'Vault created!';
+
+  @override
+  String get pvShareSeparately =>
+      'Share the link and code separately, by message or WhatsApp.';
 }

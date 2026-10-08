@@ -1038,5 +1038,175 @@
   "pubStoryDeleted": "Story supprimée",
   "pubStatusGenerating": "En cours",
   "pubStatusExpired": "Expirée",
-  "pubStatusOnline": "En ligne"
+  "pubStatusOnline": "En ligne",
+  "dateAtTime": "{date} à {time}",
+  "@dateAtTime": {
+    "description": "Date et heure",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "commonFailedRetry": "Échec, réessaie",
+  "commonDeleteFailed": "Échec de la suppression",
+  "commonActivate": "Activer",
+  "commonRemove": "Retirer",
+  "commonSave": "Enregistrer",
+  "commonCopy": "Copier",
+  "commonCopied": "Copié dans le presse-papiers",
+  "commonWithoutAccount": "Sans compte",
+  "commonPast": "Passé",
+  "pvConfirmOn": "Confirmation activée : tes participants peuvent confirmer",
+  "pvConfirmOff": "Confirmation désactivée",
+  "pvDeleteVault": "Supprimer ce coffre ?",
+  "pvDeleteVaultBody": "L'event « {title} » ne sera plus accessible aux invités.",
+  "@pvDeleteVaultBody": {
+    "description": "Suppression coffre",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "pvNewEvent": "Nouvel event",
+  "pvNone": "Aucun event privé",
+  "pvNoneHint": "Crée un coffre secret et invite tes amis avec un lien + code.",
+  "pvChat": "Discussion",
+  "pvThisPerson": "cette personne",
+  "pvRemoveGuest": "Retirer {name} ?",
+  "@pvRemoveGuest": {
+    "description": "Retrait invite",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pvRemoveGuestBody": "Elle sera supprimée de la liste des participants (et des confirmés), ne pourra plus se réinscrire et n'aura plus accès à la discussion de la soirée.",
+  "pvRemoveFailed": "Échec du retrait, réessaie",
+  "pvEnableConfirmTitle": "Activer la confirmation ?",
+  "pvEnableConfirmBody": "Le PDF liste les participants qui ont confirmé leur venue avec leur nom et prénom. Active la confirmation : tes participants pourront remplir le formulaire depuis « Mes invitations ».",
+  "pvConfirmOnPdf": "Confirmation activée : le PDF sera prêt dès la 1re confirmation",
+  "pvNoConfirmYet": "Personne n'a encore confirmé : le PDF liste les confirmés avec leur nom et prénom",
+  "pvNoOpeners": "Personne n'a ouvert le coffre sans s'inscrire.\nLes ouvertures sont visibles avec la dernière version de l'app.",
+  "pvNoConfirmations": "Aucune confirmation pour l'instant.\nLes participants confirment depuis « Mes invitations ».",
+  "pvSignedUpMax": "Inscrits {count} / {max}",
+  "@pvSignedUpMax": {
+    "description": "Compteur inscrits",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "pvSignedUp": "Inscrits ({count})",
+  "@pvSignedUp": {
+    "description": "Compteur inscrits",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pvTabGuests": "Participants",
+  "pvTabSeen": "👀 Vus",
+  "pvTabConfirmed": "✅ Confirmés",
+  "pvNobodyYet": "Personne pour l'instant",
+  "pvOpens": "{count, plural, =1{1 ouverture} other{{count} ouvertures}}",
+  "@pvOpens": {
+    "description": "Ouvertures du coffre",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pvLastOn": "dernière le {when}",
+  "@pvLastOn": {
+    "description": "Derniere ouverture",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "pvConfirmedOn": "confirmé le {when}",
+  "@pvConfirmedOn": {
+    "description": "Date de confirmation",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "pvFull": "complet",
+  "pvSignedUpCount": "{count, plural, =1{1 inscrit} other{{count} inscrits}}",
+  "@pvSignedUpCount": {
+    "description": "Nombre d'inscrits",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pvGuestConfirmation": "Confirmation des participants",
+  "pvGuestConfirmationOn": "Activée : nom, âge, téléphone demandés",
+  "pvOff": "Désactivée",
+  "pvPhotoUploadFailed": "Échec de l'envoi de la photo",
+  "pvErrTitle": "Donne un titre à ton event",
+  "pvErrDate": "Choisis une date",
+  "pvErrCode": "Le code doit faire 4 chiffres",
+  "pvErrSeats": "Nombre de places : entre 1 et 1000 (ou vide)",
+  "pvErrInvalidField": "Champ invalide",
+  "pvErrEditFailed": "Échec de la modification, réessaie",
+  "pvErrCreateFailed": "Échec de la création, réessaie",
+  "pvEditTitle": "Modifier l'event privé",
+  "pvCreateTitle": "Créer un event privé",
+  "pvEditSubtitle": "Le lien et le code déjà envoyés restent valables",
+  "pvCreateSubtitle": "Coffre secret partagé par lien + code",
+  "pvAddPoster": "Ajouter une affiche (optionnel)",
+  "pvTitle": "Titre",
+  "pvTitleHint": "Anniv de ...",
+  "pvPlaceHint": "Chez moi, club...",
+  "pvAddress": "Adresse",
+  "pvAddressHint": "5 rue X, Toulouse",
+  "pvDescriptionHint": "BYOB, dress code...",
+  "pvSecretCode": "Code secret à partager (4 chiffres)",
+  "pvSeats": "Nombre de places",
+  "pvSeatsAlready": "{count, plural, =1{1 déjà inscrit. Vide = illimité.} other{{count} déjà inscrits. Vide = illimité.}}",
+  "@pvSeatsAlready": {
+    "description": "Places deja prises",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pvSeatsHint": "Vide = illimité. « Complet » une fois atteint.",
+  "pvEnableConfirmation": "Activer la confirmation",
+  "pvEnableConfirmationHint": "Chaque participant confirme sa venue avec nom, prénom, e-mail, âge et téléphone. Toi seul vois ces infos.",
+  "pvCreateMine": "Créer mon event",
+  "pvPickDate": "Choisir une date",
+  "pvShareOnList": "🤫 Tu es sur la liste.",
+  "pvShareTeaser": "Un événement privé t'attend… Ouvre le coffre pour découvrir où, quand et tous les détails 👀",
+  "pvShareCode": "🔑 Code : {code}",
+  "@pvShareCode": {
+    "description": "Code du coffre",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "pvSharePreparing": "Préparation du partage…",
+  "pvShareFailed": "Partage impossible, réessaie",
+  "pvVaultCreated": "Coffre créé !",
+  "pvShareSeparately": "Partage le lien et le code séparément, par message ou WhatsApp."
 }

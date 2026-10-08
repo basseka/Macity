@@ -4233,6 +4233,462 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'En ligne'**
   String get pubStatusOnline;
+
+  /// Date et heure
+  ///
+  /// In fr, this message translates to:
+  /// **'{date} à {time}'**
+  String dateAtTime(String date, String time);
+
+  /// No description provided for @commonFailedRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec, réessaie'**
+  String get commonFailedRetry;
+
+  /// No description provided for @commonDeleteFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la suppression'**
+  String get commonDeleteFailed;
+
+  /// No description provided for @commonActivate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer'**
+  String get commonActivate;
+
+  /// No description provided for @commonRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer'**
+  String get commonRemove;
+
+  /// No description provided for @commonSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get commonSave;
+
+  /// No description provided for @commonCopy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier'**
+  String get commonCopy;
+
+  /// No description provided for @commonCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copié dans le presse-papiers'**
+  String get commonCopied;
+
+  /// No description provided for @commonWithoutAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans compte'**
+  String get commonWithoutAccount;
+
+  /// No description provided for @commonPast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passé'**
+  String get commonPast;
+
+  /// No description provided for @pvConfirmOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmation activée : tes participants peuvent confirmer'**
+  String get pvConfirmOn;
+
+  /// No description provided for @pvConfirmOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmation désactivée'**
+  String get pvConfirmOff;
+
+  /// No description provided for @pvDeleteVault.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer ce coffre ?'**
+  String get pvDeleteVault;
+
+  /// Suppression coffre
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'event « {title} » ne sera plus accessible aux invités.'**
+  String pvDeleteVaultBody(String title);
+
+  /// No description provided for @pvNewEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvel event'**
+  String get pvNewEvent;
+
+  /// No description provided for @pvNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun event privé'**
+  String get pvNone;
+
+  /// No description provided for @pvNoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crée un coffre secret et invite tes amis avec un lien + code.'**
+  String get pvNoneHint;
+
+  /// No description provided for @pvChat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussion'**
+  String get pvChat;
+
+  /// No description provided for @pvThisPerson.
+  ///
+  /// In fr, this message translates to:
+  /// **'cette personne'**
+  String get pvThisPerson;
+
+  /// Retrait invite
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer {name} ?'**
+  String pvRemoveGuest(String name);
+
+  /// No description provided for @pvRemoveGuestBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle sera supprimée de la liste des participants (et des confirmés), ne pourra plus se réinscrire et n\'aura plus accès à la discussion de la soirée.'**
+  String get pvRemoveGuestBody;
+
+  /// No description provided for @pvRemoveFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec du retrait, réessaie'**
+  String get pvRemoveFailed;
+
+  /// No description provided for @pvEnableConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer la confirmation ?'**
+  String get pvEnableConfirmTitle;
+
+  /// No description provided for @pvEnableConfirmBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le PDF liste les participants qui ont confirmé leur venue avec leur nom et prénom. Active la confirmation : tes participants pourront remplir le formulaire depuis « Mes invitations ».'**
+  String get pvEnableConfirmBody;
+
+  /// No description provided for @pvConfirmOnPdf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmation activée : le PDF sera prêt dès la 1re confirmation'**
+  String get pvConfirmOnPdf;
+
+  /// No description provided for @pvNoConfirmYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne n\'a encore confirmé : le PDF liste les confirmés avec leur nom et prénom'**
+  String get pvNoConfirmYet;
+
+  /// No description provided for @pvNoOpeners.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne n\'a ouvert le coffre sans s\'inscrire.\nLes ouvertures sont visibles avec la dernière version de l\'app.'**
+  String get pvNoOpeners;
+
+  /// No description provided for @pvNoConfirmations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune confirmation pour l\'instant.\nLes participants confirment depuis « Mes invitations ».'**
+  String get pvNoConfirmations;
+
+  /// Compteur inscrits
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrits {count} / {max}'**
+  String pvSignedUpMax(int count, int max);
+
+  /// Compteur inscrits
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrits ({count})'**
+  String pvSignedUp(int count);
+
+  /// No description provided for @pvTabGuests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Participants'**
+  String get pvTabGuests;
+
+  /// No description provided for @pvTabSeen.
+  ///
+  /// In fr, this message translates to:
+  /// **'👀 Vus'**
+  String get pvTabSeen;
+
+  /// No description provided for @pvTabConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'✅ Confirmés'**
+  String get pvTabConfirmed;
+
+  /// No description provided for @pvNobodyYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne pour l\'instant'**
+  String get pvNobodyYet;
+
+  /// Ouvertures du coffre
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 ouverture} other{{count} ouvertures}}'**
+  String pvOpens(int count);
+
+  /// Derniere ouverture
+  ///
+  /// In fr, this message translates to:
+  /// **'dernière le {when}'**
+  String pvLastOn(String when);
+
+  /// Date de confirmation
+  ///
+  /// In fr, this message translates to:
+  /// **'confirmé le {when}'**
+  String pvConfirmedOn(String when);
+
+  /// No description provided for @pvFull.
+  ///
+  /// In fr, this message translates to:
+  /// **'complet'**
+  String get pvFull;
+
+  /// Nombre d'inscrits
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 inscrit} other{{count} inscrits}}'**
+  String pvSignedUpCount(int count);
+
+  /// No description provided for @pvGuestConfirmation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmation des participants'**
+  String get pvGuestConfirmation;
+
+  /// No description provided for @pvGuestConfirmationOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activée : nom, âge, téléphone demandés'**
+  String get pvGuestConfirmationOn;
+
+  /// No description provided for @pvOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivée'**
+  String get pvOff;
+
+  /// No description provided for @pvPhotoUploadFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de l\'envoi de la photo'**
+  String get pvPhotoUploadFailed;
+
+  /// No description provided for @pvErrTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donne un titre à ton event'**
+  String get pvErrTitle;
+
+  /// No description provided for @pvErrDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisis une date'**
+  String get pvErrDate;
+
+  /// No description provided for @pvErrCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le code doit faire 4 chiffres'**
+  String get pvErrCode;
+
+  /// No description provided for @pvErrSeats.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nombre de places : entre 1 et 1000 (ou vide)'**
+  String get pvErrSeats;
+
+  /// No description provided for @pvErrInvalidField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Champ invalide'**
+  String get pvErrInvalidField;
+
+  /// No description provided for @pvErrEditFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la modification, réessaie'**
+  String get pvErrEditFailed;
+
+  /// No description provided for @pvErrCreateFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échec de la création, réessaie'**
+  String get pvErrCreateFailed;
+
+  /// No description provided for @pvEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'event privé'**
+  String get pvEditTitle;
+
+  /// No description provided for @pvCreateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un event privé'**
+  String get pvCreateTitle;
+
+  /// No description provided for @pvEditSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le lien et le code déjà envoyés restent valables'**
+  String get pvEditSubtitle;
+
+  /// No description provided for @pvCreateSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coffre secret partagé par lien + code'**
+  String get pvCreateSubtitle;
+
+  /// No description provided for @pvAddPoster.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une affiche (optionnel)'**
+  String get pvAddPoster;
+
+  /// No description provided for @pvTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get pvTitle;
+
+  /// No description provided for @pvTitleHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniv de ...'**
+  String get pvTitleHint;
+
+  /// No description provided for @pvPlaceHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chez moi, club...'**
+  String get pvPlaceHint;
+
+  /// No description provided for @pvAddress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse'**
+  String get pvAddress;
+
+  /// No description provided for @pvAddressHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'5 rue X, Toulouse'**
+  String get pvAddressHint;
+
+  /// No description provided for @pvDescriptionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'BYOB, dress code...'**
+  String get pvDescriptionHint;
+
+  /// No description provided for @pvSecretCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code secret à partager (4 chiffres)'**
+  String get pvSecretCode;
+
+  /// No description provided for @pvSeats.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nombre de places'**
+  String get pvSeats;
+
+  /// Places deja prises
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 déjà inscrit. Vide = illimité.} other{{count} déjà inscrits. Vide = illimité.}}'**
+  String pvSeatsAlready(int count);
+
+  /// No description provided for @pvSeatsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vide = illimité. « Complet » une fois atteint.'**
+  String get pvSeatsHint;
+
+  /// No description provided for @pvEnableConfirmation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer la confirmation'**
+  String get pvEnableConfirmation;
+
+  /// No description provided for @pvEnableConfirmationHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque participant confirme sa venue avec nom, prénom, e-mail, âge et téléphone. Toi seul vois ces infos.'**
+  String get pvEnableConfirmationHint;
+
+  /// No description provided for @pvCreateMine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer mon event'**
+  String get pvCreateMine;
+
+  /// No description provided for @pvPickDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir une date'**
+  String get pvPickDate;
+
+  /// No description provided for @pvShareOnList.
+  ///
+  /// In fr, this message translates to:
+  /// **'🤫 Tu es sur la liste.'**
+  String get pvShareOnList;
+
+  /// No description provided for @pvShareTeaser.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un événement privé t\'attend… Ouvre le coffre pour découvrir où, quand et tous les détails 👀'**
+  String get pvShareTeaser;
+
+  /// Code du coffre
+  ///
+  /// In fr, this message translates to:
+  /// **'🔑 Code : {code}'**
+  String pvShareCode(String code);
+
+  /// No description provided for @pvSharePreparing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préparation du partage…'**
+  String get pvSharePreparing;
+
+  /// No description provided for @pvShareFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partage impossible, réessaie'**
+  String get pvShareFailed;
+
+  /// No description provided for @pvVaultCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coffre créé !'**
+  String get pvVaultCreated;
+
+  /// No description provided for @pvShareSeparately.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partage le lien et le code séparément, par message ou WhatsApp.'**
+  String get pvShareSeparately;
 }
 
 class _AppLocalizationsDelegate

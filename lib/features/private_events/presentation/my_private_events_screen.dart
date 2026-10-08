@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -74,15 +76,15 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
       if (!mounted) return true;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(enabled
-            ? 'Confirmation activée : tes participants peuvent confirmer'
-            : 'Confirmation désactivée'),
+            ? context.l10n.pvConfirmOn
+            : context.l10n.pvConfirmOff),
       ));
       _reload();
       return true;
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Échec, réessaie')),
+          SnackBar(content: Text(context.l10n.commonFailedRetry)),
         );
       }
       return false;
@@ -95,23 +97,23 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(
-          'Supprimer ce coffre ?',
+          context.l10n.pvDeleteVault,
           style: GoogleFonts.geist(color: AppColors.text),
         ),
         content: Text(
-          'L\'event "${event.title}" ne sera plus accessible aux invites.',
+          context.l10n.pvDeleteVaultBody(event.title),
           style: GoogleFonts.geist(color: AppColors.textDim, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Supprimer',
-              style: TextStyle(color: Color(0xFFFF6B6B)),
+            child: Text(
+              context.l10n.commonDelete,
+              style: const TextStyle(color: Color(0xFFFF6B6B)),
             ),
           ),
         ],
@@ -128,7 +130,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Echec de la suppression')),
+        SnackBar(content: Text(context.l10n.commonDeleteFailed)),
       );
     }
   }
@@ -141,7 +143,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
         backgroundColor: AppColors.bg,
         elevation: 0,
         title: Text(
-          'Mes events privés',
+          context.l10n.accountPrivateEvents,
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -204,7 +206,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
         foregroundColor: Colors.white,
         icon: const Icon(Icons.lock_outline),
         label: Text(
-          'Nouvel event',
+          context.l10n.pvNewEvent,
           style: GoogleFonts.geist(fontWeight: FontWeight.w600),
         ),
       ),
@@ -233,7 +235,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
             ),
             const SizedBox(height: 18),
             Text(
-              'Aucun event privé',
+              context.l10n.pvNone,
               style: GoogleFonts.geist(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -242,7 +244,7 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Cree un coffre secret et invite tes amis avec un lien+code.',
+              context.l10n.pvNoneHint,
               textAlign: TextAlign.center,
               style: GoogleFonts.geist(
                 fontSize: 13,
@@ -279,10 +281,10 @@ class _EventTile extends StatelessWidget {
     required this.onToggleConfirmation,
   });
 
-  String _friendlyDate(String iso) {
+  String _friendlyDate(BuildContext context, String iso) {
     final d = DateTime.tryParse(iso);
     if (d == null) return iso;
-    return DateFormat('EEE d MMM', 'fr_FR').format(d);
+    return DateFormat('EEE d MMM', context.dateLocale).format(d);
   }
 
   @override
@@ -347,7 +349,7 @@ class _EventTile extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _friendlyDate(event.date) +
+                            _friendlyDate(context, event.date) +
                                 (event.heure.isNotEmpty
                                     ? ' · ${event.heure}'
                                     : ''),
@@ -456,7 +458,7 @@ class _EventTile extends StatelessWidget {
                   child: Builder(
                     builder: (btnCtx) => _TileAction(
                       icon: Icons.share_outlined,
-                      label: 'Partager',
+                      label: context.l10n.commonShare,
                       onTap: () => onShare(btnCtx),
                     ),
                   ),
@@ -464,7 +466,7 @@ class _EventTile extends StatelessWidget {
                 Expanded(
                   child: _TileAction(
                     icon: Icons.forum_outlined,
-                    label: 'Discussion',
+                    label: context.l10n.pvChat,
                     onTap: onChat,
                   ),
                 ),
@@ -472,14 +474,14 @@ class _EventTile extends StatelessWidget {
                 Expanded(
                   child: _TileAction(
                     icon: Icons.edit_outlined,
-                    label: 'Modifier',
+                    label: context.l10n.commonEdit,
                     onTap: onEdit,
                   ),
                 ),
                 Expanded(
                   child: _TileAction(
                     icon: Icons.delete_outline,
-                    label: 'Supprimer',
+                    label: context.l10n.commonDelete,
                     onTap: onDelete,
                     color: const Color(0xFFFF6B6B),
                   ),
@@ -593,13 +595,15 @@ class _GuestsSheetState extends State<_GuestsSheet> {
   /// Retire un participant (meme confirme) apres confirmation. Il ne pourra
   /// plus se reinscrire ni acceder a la discussion de l'event.
   Future<void> _removeGuest(String userId, String? name) async {
-    final label = (name?.trim().isNotEmpty ?? false) ? name!.trim() : 'cette personne';
+    final label = (name?.trim().isNotEmpty ?? false)
+        ? name!.trim()
+        : context.l10n.pvThisPerson;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(
-          'Retirer $label ?',
+          context.l10n.pvRemoveGuest(label),
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -607,20 +611,18 @@ class _GuestsSheetState extends State<_GuestsSheet> {
           ),
         ),
         content: Text(
-          'Elle sera supprimée de la liste des participants (et des '
-          'confirmés), ne pourra plus se réinscrire et n\'aura plus accès '
-          'à la discussion de la soirée.',
+          context.l10n.pvRemoveGuestBody,
           style: GoogleFonts.geist(fontSize: 14, color: AppColors.textDim),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF3B30)),
-            child: const Text('Retirer'),
+            child: Text(context.l10n.commonRemove),
           ),
         ],
       ),
@@ -646,7 +648,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Échec du retrait, réessaie')),
+        SnackBar(content: Text(context.l10n.pvRemoveFailed)),
       );
     }
   }
@@ -664,7 +666,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(
-          'Activer la confirmation ?',
+          context.l10n.pvEnableConfirmTitle,
           style: GoogleFonts.geist(
             fontSize: 17,
             fontWeight: FontWeight.w700,
@@ -672,19 +674,17 @@ class _GuestsSheetState extends State<_GuestsSheet> {
           ),
         ),
         content: Text(
-          'Le PDF liste les participants qui ont confirmé leur venue avec '
-          'leur nom et prénom. Active la confirmation : tes participants '
-          'pourront remplir le formulaire depuis « Mes invitations ».',
+          context.l10n.pvEnableConfirmBody,
           style: GoogleFonts.geist(fontSize: 14, color: AppColors.textDim),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(context.l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Activer'),
+            child: Text(context.l10n.commonActivate),
           ),
         ],
       ),
@@ -702,9 +702,9 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         _confirmationOn = true;
         _loadConfirmations();
       });
-      _snack('Confirmation activée : le PDF sera prêt dès la 1re confirmation');
+      _snack(context.l10n.pvConfirmOnPdf);
     } catch (_) {
-      if (mounted) _snack('Échec, réessaie');
+      if (mounted) _snack(context.l10n.commonFailedRetry);
     }
   }
 
@@ -721,8 +721,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
           Future.value(<PrivateEventConfirmation>[]));
       if (!mounted || !btnCtx.mounted) return;
       if (confirmations.isEmpty) {
-        _snack('Personne n\'a encore confirmé : le PDF liste les confirmés '
-            'avec leur nom et prénom');
+        _snack(context.l10n.pvNoConfirmYet);
         return;
       }
       await GuestListPdf.share(
@@ -805,8 +804,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         }
         final list = (snap.data ?? []).where((o) => !o.going).toList();
         if (list.isEmpty) {
-          return _empty('Personne n\'a ouvert le coffre sans s\'inscrire.\n'
-              'Les ouvertures sont visibles avec la dernière version de l\'app.');
+          return _empty(context.l10n.pvNoOpeners);
         }
         return ListView.separated(
           shrinkWrap: true,
@@ -830,8 +828,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         }
         final list = snap.data ?? [];
         if (list.isEmpty) {
-          return _empty('Aucune confirmation pour l\'instant.\n'
-              'Les participants confirment depuis « Mes invitations ».');
+          return _empty(context.l10n.pvNoConfirmations);
         }
         return ListView.separated(
           shrinkWrap: true,
@@ -902,8 +899,9 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                       children: [
                         Text(
                           widget.event.maxParticipants != null
-                              ? 'Inscrits $_count / ${widget.event.maxParticipants}'
-                              : 'Inscrits ($_count)',
+                              ? context.l10n.pvSignedUpMax(
+                                  _count, widget.event.maxParticipants!)
+                              : context.l10n.pvSignedUp(_count),
                           style: GoogleFonts.geist(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -958,10 +956,10 @@ class _GuestsSheetState extends State<_GuestsSheet> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  _tab('Participants', _tabIndex == 0,
+                  _tab(context.l10n.pvTabGuests, _tabIndex == 0,
                       () => setState(() => _tabIndex = 0)),
                   const SizedBox(width: 8),
-                  _tab('👀 Vus', _tabIndex == 1, () => setState(() {
+                  _tab(context.l10n.pvTabSeen, _tabIndex == 1, () => setState(() {
                         _tabIndex = 1;
                         _openersFuture ??= _service.hostListOpeners(
                           token: widget.event.accessToken,
@@ -970,7 +968,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                       })),
                   if (_confFuture != null) ...[
                     const SizedBox(width: 8),
-                    _tab('✅ Confirmés', _tabIndex == 2,
+                    _tab(context.l10n.pvTabConfirmed, _tabIndex == 2,
                         () => setState(() => _tabIndex = 2)),
                   ],
                 ],
@@ -998,7 +996,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Center(
                           child: Text(
-                            'Personne pour l\'instant',
+                            context.l10n.pvNobodyYet,
                             style: GoogleFonts.geist(
                               fontSize: 13,
                               color: AppColors.textDim,
@@ -1084,7 +1082,7 @@ class _GuestRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              rsvp.prenom ?? 'Anonyme',
+              rsvp.prenom ?? context.l10n.storyAnonymous,
               style: GoogleFonts.geist(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -1135,10 +1133,10 @@ class _OpenerRow extends StatelessWidget {
     final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : '?';
     final when = opener.lastOpenedAt == null
         ? ''
-        : DateFormat("d MMM 'à' HH'h'mm", 'fr_FR').format(opener.lastOpenedAt!.toLocal());
+        : formatDayAtTime(context, opener.lastOpenedAt!.toLocal());
     final detail = [
-      '${opener.opens} ouverture${opener.opens > 1 ? 's' : ''}',
-      if (when.isNotEmpty) 'dernière le $when',
+      context.l10n.pvOpens(opener.opens),
+      if (when.isNotEmpty) context.l10n.pvLastOn(when),
     ].join(' · ');
     Widget fallback() => Container(
           decoration: const BoxDecoration(gradient: AppGradients.primary),
@@ -1193,7 +1191,7 @@ class _OpenerRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    prenom.isNotEmpty ? prenom : 'Sans compte',
+                    prenom.isNotEmpty ? prenom : context.l10n.commonWithoutAccount,
                     style: GoogleFonts.geist(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1237,7 +1235,7 @@ class _ConfirmedRow extends StatelessWidget {
     final pseudo = c.pseudo?.trim() ?? '';
     final when = c.confirmedAt == null
         ? ''
-        : DateFormat("d MMM 'à' HH'h'mm", 'fr_FR').format(c.confirmedAt!.toLocal());
+        : formatDayAtTime(context, c.confirmedAt!.toLocal());
     final small = GoogleFonts.geist(fontSize: 12, color: AppColors.textDim);
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1301,7 +1299,7 @@ class _ConfirmedRow extends StatelessWidget {
                 ],
                 if (when.isNotEmpty) ...[
                   const SizedBox(height: 3),
-                  Text('confirmé le $when', style: small),
+                  Text(context.l10n.pvConfirmedOn(when), style: small),
                 ],
                 const SizedBox(height: 6),
                 if (c.tel.isNotEmpty)
@@ -1422,7 +1420,9 @@ class _ParticipantsBadge extends StatelessWidget {
           Icon(Icons.group, size: 13, color: color),
           const SizedBox(width: 5),
           Text(
-            max != null ? '$count / $max${full ? ' · complet' : ''}' : '$count inscrit${count > 1 ? 's' : ''}',
+            max != null
+                ? '$count / $max${full ? ' · ${context.l10n.pvFull}' : ''}'
+                : context.l10n.pvSignedUpCount(count),
             style: GoogleFonts.geist(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -1520,7 +1520,7 @@ class _ConfirmationToggleState extends State<_ConfirmationToggle> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Confirmation des participants',
+                context.l10n.pvGuestConfirmation,
                 style: GoogleFonts.geist(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -1529,8 +1529,8 @@ class _ConfirmationToggleState extends State<_ConfirmationToggle> {
               ),
               Text(
                 _value
-                    ? 'Activée : nom, âge, téléphone demandés'
-                    : 'Désactivée',
+                    ? context.l10n.pvGuestConfirmationOn
+                    : context.l10n.pvOff,
                 style: GoogleFonts.geist(fontSize: 11, color: AppColors.textDim),
               ),
             ],
@@ -1604,13 +1604,13 @@ class _StatusBadge extends StatelessWidget {
     final String label;
     final Color color;
     if (day == null || day.isAfter(today)) {
-      label = 'À venir';
+      label = context.l10n.cultureCatUpcoming;
       color = const Color(0xFF22C55E);
     } else if (day == today) {
-      label = 'Aujourd\'hui';
+      label = context.l10n.commonToday;
       color = AppColors.magenta;
     } else {
-      label = 'Passé';
+      label = context.l10n.commonPast;
       color = AppColors.textFaint;
     }
     return Container(

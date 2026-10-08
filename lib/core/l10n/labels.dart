@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/features/mode/domain/models/app_mode.dart';
 
@@ -306,4 +307,12 @@ String createEventErrorLabel(BuildContext context, String msg) {
     _ when msg.startsWith('Erreur réseau (') => l10n.errNetworkCode(code),
     _ => msg,
   };
+}
+
+/// "12 oct. à 20h30" / "12 Oct at 20:30" / "12 oct a las 20:30".
+String formatDayAtTime(BuildContext context, DateTime dt) {
+  final loc = context.dateLocale;
+  final date = DateFormat('d MMM', loc).format(dt);
+  final time = DateFormat(loc == 'fr' ? "HH'h'mm" : 'HH:mm', loc).format(dt);
+  return context.l10n.dateAtTime(date, time);
 }

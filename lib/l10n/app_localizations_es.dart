@@ -2258,4 +2258,285 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pubStatusOnline => 'Publicada';
+
+  @override
+  String dateAtTime(String date, String time) {
+    return '$date a las $time';
+  }
+
+  @override
+  String get commonFailedRetry => 'Error, inténtalo de nuevo';
+
+  @override
+  String get commonDeleteFailed => 'No se pudo eliminar';
+
+  @override
+  String get commonActivate => 'Activar';
+
+  @override
+  String get commonRemove => 'Quitar';
+
+  @override
+  String get commonSave => 'Guardar';
+
+  @override
+  String get commonCopy => 'Copiar';
+
+  @override
+  String get commonCopied => 'Copiado al portapapeles';
+
+  @override
+  String get commonWithoutAccount => 'Sin cuenta';
+
+  @override
+  String get commonPast => 'Pasado';
+
+  @override
+  String get pvConfirmOn =>
+      'Confirmación activada: tus invitados ya pueden confirmar';
+
+  @override
+  String get pvConfirmOff => 'Confirmación desactivada';
+
+  @override
+  String get pvDeleteVault => '¿Eliminar este cofre?';
+
+  @override
+  String pvDeleteVaultBody(String title) {
+    return 'Los invitados ya no podrán acceder a «$title».';
+  }
+
+  @override
+  String get pvNewEvent => 'Nuevo evento';
+
+  @override
+  String get pvNone => 'Ningún evento privado';
+
+  @override
+  String get pvNoneHint =>
+      'Crea un cofre secreto e invita a tus amigos con un enlace + código.';
+
+  @override
+  String get pvChat => 'Chat';
+
+  @override
+  String get pvThisPerson => 'esta persona';
+
+  @override
+  String pvRemoveGuest(String name) {
+    return '¿Quitar a $name?';
+  }
+
+  @override
+  String get pvRemoveGuestBody =>
+      'Se eliminará de la lista de participantes (y de confirmados), no podrá volver a apuntarse y perderá el acceso al chat del evento.';
+
+  @override
+  String get pvRemoveFailed => 'No se pudo quitar, inténtalo de nuevo';
+
+  @override
+  String get pvEnableConfirmTitle => '¿Activar la confirmación?';
+
+  @override
+  String get pvEnableConfirmBody =>
+      'El PDF recoge a los invitados que han confirmado su asistencia, con nombre y apellidos. Activa la confirmación para que puedan rellenar el formulario desde «Mis invitaciones».';
+
+  @override
+  String get pvConfirmOnPdf =>
+      'Confirmación activada: el PDF estará listo con la primera confirmación';
+
+  @override
+  String get pvNoConfirmYet =>
+      'Todavía nadie ha confirmado: el PDF recoge a los confirmados con nombre y apellidos';
+
+  @override
+  String get pvNoOpeners =>
+      'Nadie ha abierto el cofre sin apuntarse.\nLas aperturas se ven con la última versión de la app.';
+
+  @override
+  String get pvNoConfirmations =>
+      'Aún no hay confirmaciones.\nLos invitados confirman desde «Mis invitaciones».';
+
+  @override
+  String pvSignedUpMax(int count, int max) {
+    return 'Apuntados $count / $max';
+  }
+
+  @override
+  String pvSignedUp(int count) {
+    return 'Apuntados ($count)';
+  }
+
+  @override
+  String get pvTabGuests => 'Participantes';
+
+  @override
+  String get pvTabSeen => '👀 Vistos';
+
+  @override
+  String get pvTabConfirmed => '✅ Confirmados';
+
+  @override
+  String get pvNobodyYet => 'Nadie por ahora';
+
+  @override
+  String pvOpens(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aperturas',
+      one: '1 apertura',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pvLastOn(String when) {
+    return 'la última el $when';
+  }
+
+  @override
+  String pvConfirmedOn(String when) {
+    return 'confirmado el $when';
+  }
+
+  @override
+  String get pvFull => 'completo';
+
+  @override
+  String pvSignedUpCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count apuntados',
+      one: '1 apuntado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pvGuestConfirmation => 'Confirmación de invitados';
+
+  @override
+  String get pvGuestConfirmationOn =>
+      'Activada: se piden nombre, edad y teléfono';
+
+  @override
+  String get pvOff => 'Desactivada';
+
+  @override
+  String get pvPhotoUploadFailed => 'Error al subir la foto';
+
+  @override
+  String get pvErrTitle => 'Ponle un título a tu evento';
+
+  @override
+  String get pvErrDate => 'Elige una fecha';
+
+  @override
+  String get pvErrCode => 'El código debe tener 4 cifras';
+
+  @override
+  String get pvErrSeats => 'Número de plazas: entre 1 y 1000 (o vacío)';
+
+  @override
+  String get pvErrInvalidField => 'Campo no válido';
+
+  @override
+  String get pvErrEditFailed => 'No se pudo editar, inténtalo de nuevo';
+
+  @override
+  String get pvErrCreateFailed => 'No se pudo crear, inténtalo de nuevo';
+
+  @override
+  String get pvEditTitle => 'Editar evento privado';
+
+  @override
+  String get pvCreateTitle => 'Crear un evento privado';
+
+  @override
+  String get pvEditSubtitle =>
+      'El enlace y el código ya enviados siguen siendo válidos';
+
+  @override
+  String get pvCreateSubtitle => 'Cofre secreto compartido con enlace + código';
+
+  @override
+  String get pvAddPoster => 'Añadir un cartel (opcional)';
+
+  @override
+  String get pvTitle => 'Título';
+
+  @override
+  String get pvTitleHint => 'Cumple de ...';
+
+  @override
+  String get pvPlaceHint => 'En mi casa, club...';
+
+  @override
+  String get pvAddress => 'Dirección';
+
+  @override
+  String get pvAddressHint => 'Calle X 5, Barcelona';
+
+  @override
+  String get pvDescriptionHint => 'Trae bebida, dress code...';
+
+  @override
+  String get pvSecretCode => 'Código secreto para compartir (4 cifras)';
+
+  @override
+  String get pvSeats => 'Número de plazas';
+
+  @override
+  String pvSeatsAlready(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ya apuntados. Vacío = ilimitado.',
+      one: '1 ya apuntado. Vacío = ilimitado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pvSeatsHint => 'Vacío = ilimitado. «Completo» al alcanzarlo.';
+
+  @override
+  String get pvEnableConfirmation => 'Activar la confirmación';
+
+  @override
+  String get pvEnableConfirmationHint =>
+      'Cada invitado confirma con nombre, apellidos, email, edad y teléfono. Solo tú ves estos datos.';
+
+  @override
+  String get pvCreateMine => 'Crear mi evento';
+
+  @override
+  String get pvPickDate => 'Elegir una fecha';
+
+  @override
+  String get pvShareOnList => '🤫 Estás en la lista.';
+
+  @override
+  String get pvShareTeaser =>
+      'Te espera un evento privado… Abre el cofre para descubrir dónde, cuándo y todos los detalles 👀';
+
+  @override
+  String pvShareCode(String code) {
+    return '🔑 Código: $code';
+  }
+
+  @override
+  String get pvSharePreparing => 'Preparando para compartir…';
+
+  @override
+  String get pvShareFailed => 'No se puede compartir, inténtalo de nuevo';
+
+  @override
+  String get pvVaultCreated => '¡Cofre creado!';
+
+  @override
+  String get pvShareSeparately =>
+      'Comparte el enlace y el código por separado, por mensaje o WhatsApp.';
 }

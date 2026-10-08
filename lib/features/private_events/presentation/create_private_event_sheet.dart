@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -130,7 +132,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
       if (!mounted) return;
       setState(() {
         _uploadingPhoto = false;
-        _error = 'Echec upload photo';
+        _error = context.l10n.pvPhotoUploadFailed;
       });
     }
   }
@@ -152,23 +154,23 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
 
   Future<void> _submit() async {
     if (_titleCtrl.text.trim().isEmpty) {
-      setState(() => _error = 'Donne un titre a ton event');
+      setState(() => _error = context.l10n.pvErrTitle);
       return;
     }
     if (_date == null) {
-      setState(() => _error = 'Choisis une date');
+      setState(() => _error = context.l10n.pvErrDate);
       return;
     }
     final code = _passcodeCtrl.text.trim();
     if (!_isEdit && (code.length != 4 || int.tryParse(code) == null)) {
-      setState(() => _error = 'Le code doit faire 4 chiffres');
+      setState(() => _error = context.l10n.pvErrCode);
       return;
     }
     final maxText = _maxCtrl.text.trim();
     final int? maxParticipants = maxText.isEmpty ? null : int.tryParse(maxText);
     if (maxText.isNotEmpty &&
         (maxParticipants == null || maxParticipants < 1 || maxParticipants > 1000)) {
-      setState(() => _error = 'Nombre de places : entre 1 et 1000 (ou vide)');
+      setState(() => _error = context.l10n.pvErrSeats);
       return;
     }
     setState(() {
@@ -253,10 +255,10 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
       setState(() {
         _busy = false;
         _error = e.code == PrivateEventError.invalidInput
-            ? (e.message ?? 'Champ invalide')
+            ? (e.message ?? context.l10n.pvErrInvalidField)
             : _isEdit
-                ? 'Echec de la modification, reessaie'
-                : 'Echec creation, reessaie';
+                ? context.l10n.pvErrEditFailed
+                : context.l10n.pvErrCreateFailed;
       });
     }
   }
@@ -314,7 +316,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
               ),
               const SizedBox(width: 8),
               Text(
-                _isEdit ? 'Modifier l\'event privé' : 'Creer un event privé',
+                _isEdit ? context.l10n.pvEditTitle : context.l10n.pvCreateTitle,
                 style: GoogleFonts.geist(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
@@ -327,8 +329,8 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
           const SizedBox(height: 4),
           Text(
             _isEdit
-                ? 'Le lien et le code deja envoyes restent valables'
-                : 'Coffre secret partage par lien + code',
+                ? context.l10n.pvEditSubtitle
+                : context.l10n.pvCreateSubtitle,
             style: GoogleFonts.geist(fontSize: 12, color: AppColors.textDim),
           ),
           const SizedBox(height: 18),
@@ -380,7 +382,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Ajouter une affiche (optionnel)',
+                            context.l10n.pvAddPoster,
                             style: GoogleFonts.geist(
                               fontSize: 12,
                               color: AppColors.textFaint,
@@ -393,7 +395,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
           ),
           const SizedBox(height: 14),
 
-          _input('Titre', _titleCtrl, hint: 'Anniv de ...'),
+          _input(context.l10n.pvTitle, _titleCtrl, hint: context.l10n.pvTitleHint),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -402,7 +404,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
               SizedBox(
                 width: 110,
                 child: _input(
-                  'Heure',
+                  context.l10n.commonTime,
                   _heureCtrl,
                   hint: '21h00',
                   keyboard: TextInputType.text,
@@ -411,14 +413,15 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
             ],
           ),
           const SizedBox(height: 12),
-          _input('Lieu', _lieuCtrl, hint: 'Chez moi, club...'),
+          _input(context.l10n.storyPlace, _lieuCtrl, hint: context.l10n.pvPlaceHint),
           const SizedBox(height: 12),
-          _input('Adresse', _adresseCtrl, hint: '5 rue X, Toulouse'),
+          _input(context.l10n.pvAddress, _adresseCtrl,
+              hint: context.l10n.pvAddressHint),
           const SizedBox(height: 12),
           _input(
-            'Description',
+            context.l10n.ceDescription,
             _descriptionCtrl,
-            hint: 'BYOB, dress code...',
+            hint: context.l10n.pvDescriptionHint,
             maxLines: 2,
           ),
           const SizedBox(height: 16),
@@ -441,7 +444,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                     const Icon(Icons.key, size: 16, color: AppColors.magenta),
                     const SizedBox(width: 6),
                     Text(
-                      'Code secret a partager (4 chiffres)',
+                      context.l10n.pvSecretCode,
                       style: GoogleFonts.geist(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -503,7 +506,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Nombre de places',
+                        context.l10n.pvSeats,
                         style: GoogleFonts.geist(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -512,8 +515,9 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                       ),
                       Text(
                         _isEdit && (widget.initial!.rsvpCount > 0)
-                            ? '${widget.initial!.rsvpCount} déjà inscrit${widget.initial!.rsvpCount > 1 ? 's' : ''}. Vide = illimité.'
-                            : 'Vide = illimité. « Complet » une fois atteint.',
+                            ? context.l10n
+                                .pvSeatsAlready(widget.initial!.rsvpCount)
+                            : context.l10n.pvSeatsHint,
                         style: GoogleFonts.geist(fontSize: 11, color: AppColors.textDim),
                       ),
                     ],
@@ -563,7 +567,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
               activeColor: AppColors.magenta,
               contentPadding: const EdgeInsets.symmetric(horizontal: 14),
               title: Text(
-                'Activer la confirmation',
+                context.l10n.pvEnableConfirmation,
                 style: GoogleFonts.geist(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -571,8 +575,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                 ),
               ),
               subtitle: Text(
-                'Chaque participant confirme sa venue avec nom, prénom, '
-                'e-mail, âge et téléphone. Toi seul vois ces infos.',
+                context.l10n.pvEnableConfirmationHint,
                 style: GoogleFonts.geist(
                   fontSize: 11,
                   color: AppColors.textDim,
@@ -616,7 +619,7 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
                       ),
                     )
                   : Text(
-                      _isEdit ? 'Enregistrer' : 'Creer mon event',
+                      _isEdit ? context.l10n.commonSave : context.l10n.pvCreateMine,
                       style: GoogleFonts.geist(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -691,13 +694,13 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
 
   Widget _dateField() {
     final label = _date == null
-        ? 'Choisir une date'
-        : DateFormat('EEE d MMM yyyy', 'fr_FR').format(_date!);
+        ? context.l10n.pvPickDate
+        : DateFormat('EEE d MMM yyyy', context.dateLocale).format(_date!);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date',
+          context.l10n.commonDate,
           style: GoogleFonts.geist(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -751,15 +754,17 @@ class _CreatePrivateEventSheetState extends State<CreatePrivateEventSheet> {
 /// ouvrant le coffre. L'invitation embarque surtout la PHOTO de l'event
 /// (cf [sharePrivateEventInvite]). Public pour reutilisation depuis la liste
 /// "Mes soirees privees".
-String buildPrivateEventShareText(PrivateEvent event) {
+String buildPrivateEventShareText(PrivateEvent event, [BuildContext? context]) {
+  final l10n = context?.l10n;
   final buf = StringBuffer();
-  buf.writeln('🤫 Tu es sur la liste.');
+  buf.writeln(l10n?.pvShareOnList ?? '🤫 Tu es sur la liste.');
   buf.writeln(
-    "Un événement privé t'attend… Ouvre le coffre pour découvrir où, quand et tous les détails 👀",
+    l10n?.pvShareTeaser ??
+        "Un événement privé t'attend… Ouvre le coffre pour découvrir où, quand et tous les détails 👀",
   );
   buf.writeln('');
   buf.writeln('👉 https://macity.app/coffre/${event.accessToken}');
-  buf.writeln('🔑 Code : ${event.passcode}');
+  buf.writeln(l10n?.pvShareCode(event.passcode) ?? '🔑 Code : ${event.passcode}');
   return buf.toString();
 }
 
@@ -777,11 +782,11 @@ String buildPrivateEventShareText(PrivateEvent event) {
 Future<void> sharePrivateEventInvite(BuildContext context, PrivateEvent event) async {
   final origin = _shareOrigin(context);
   final messenger = ScaffoldMessenger.maybeOf(context);
-  final text = buildPrivateEventShareText(event);
+  final text = buildPrivateEventShareText(event, context);
 
   // Le telechargement de l'affiche peut prendre quelques secondes.
-  messenger?.showSnackBar(const SnackBar(
-    content: Text('Préparation du partage…'),
+  messenger?.showSnackBar(SnackBar(
+    content: Text(context.l10n.pvSharePreparing),
     duration: Duration(seconds: 10),
   ));
   final photo = await _resolveInvitePhoto(event.photoUrl);
@@ -800,7 +805,7 @@ Future<void> sharePrivateEventInvite(BuildContext context, PrivateEvent event) a
   } catch (e) {
     debugPrint('[private-share] partage texte KO : $e');
     messenger?.showSnackBar(
-      const SnackBar(content: Text('Partage impossible, réessaie')),
+      SnackBar(content: Text(context.l10n.pvShareFailed)),
     );
   }
 }
@@ -869,7 +874,7 @@ class _SuccessView extends StatelessWidget {
           const SizedBox(height: 14),
           Center(
             child: Text(
-              'Coffre cree !',
+              context.l10n.pvVaultCreated,
               style: GoogleFonts.geist(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -896,7 +901,7 @@ class _SuccessView extends StatelessWidget {
           _CredsBox(label: 'Code', value: event.passcode, mono: true, big: true),
           const SizedBox(height: 18),
           Text(
-            'Partage le lien et le code separement, par message ou whatsapp.',
+            context.l10n.pvShareSeparately,
             style: GoogleFonts.geist(
               fontSize: 12,
               color: AppColors.textDim,
@@ -910,7 +915,7 @@ class _SuccessView extends StatelessWidget {
               onPressed: () => sharePrivateEventInvite(btnCtx, event),
               icon: const Icon(Icons.share, size: 18),
               label: Text(
-                'Partager',
+                context.l10n.commonShare,
                 style: GoogleFonts.geist(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -932,7 +937,7 @@ class _SuccessView extends StatelessWidget {
             child: TextButton(
               onPressed: onClose,
               child: Text(
-                'Fermer',
+                context.l10n.commonClose,
                 style: GoogleFonts.geist(
                   fontSize: 13,
                   color: AppColors.textDim,
@@ -1008,8 +1013,8 @@ class _CredsBox extends StatelessWidget {
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Copie dans le presse-papiers'),
+                SnackBar(
+                  content: Text(context.l10n.commonCopied),
                   duration: Duration(seconds: 1),
                 ),
               );
@@ -1019,7 +1024,7 @@ class _CredsBox extends StatelessWidget {
               size: 18,
               color: AppColors.textFaint,
             ),
-            tooltip: 'Copier',
+            tooltip: context.l10n.commonCopy,
           ),
         ],
       ),
