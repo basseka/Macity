@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/l10n/language_sheet.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_page.dart';
@@ -99,8 +101,10 @@ class AccountMenu {
                 const SizedBox(height: 16),
                 Text(
                   isProConnected
-                      ? (proState.profile?.nom ?? 'Espace pro')
-                      : (prenom.isNotEmpty ? 'Bonjour, $prenom' : 'Mon compte'),
+                      ? (proState.profile?.nom ?? ctx.l10n.accountProSpace)
+                      : (prenom.isNotEmpty
+                          ? ctx.l10n.accountHello(prenom)
+                          : ctx.l10n.accountTitle),
                   style: GoogleFonts.geist(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
@@ -133,8 +137,8 @@ class AccountMenu {
                   _menuItem(
                     ctx: ctx,
                     icon: Icons.person_add_alt_1_rounded,
-                    label: 'Créer mon compte',
-                    subtitle: 'Débloque stories, favoris et récompenses',
+                    label: ctx.l10n.accountCreate,
+                    subtitle: ctx.l10n.accountCreateSubtitle,
                     gradientColors: const [
                       Color(0xFFE91E8C),
                       Color(0xFF7B2D8E)
@@ -151,8 +155,8 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.add_circle_outline_rounded,
-                  label: 'Publier un event',
-                  subtitle: 'Privé, public ou pro',
+                  label: ctx.l10n.publishEventTitle,
+                  subtitle: ctx.l10n.accountPublishSubtitle,
                   gradientColors: const [Color(0xFFFF6B00), Color(0xFFE91E63)],
                   onTap: () {
                     Navigator.pop(ctx);
@@ -163,8 +167,8 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.article_rounded,
-                  label: 'Mes publications',
-                  subtitle: 'Mes evenements crees',
+                  label: ctx.l10n.accountMyPosts,
+                  subtitle: ctx.l10n.accountMyPostsSubtitle,
                   gradientColors: const [Color(0xFF00B894), Color(0xFF00CEC9)],
                   onTap: () {
                     // Stack sur l'AccountMenu → le chevron retour ramene ici
@@ -175,8 +179,8 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.favorite_rounded,
-                  label: 'Mes Favoris',
-                  subtitle: 'Lieux et events aimes',
+                  label: ctx.l10n.accountFavorites,
+                  subtitle: ctx.l10n.accountFavoritesSubtitle,
                   gradientColors: const [Color(0xFFFF6B6B), Color(0xFFEE5A24)],
                   onTap: () {
                     showModalBottomSheet(
@@ -193,8 +197,8 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.lock_outline,
-                  label: 'Mes events privés',
-                  subtitle: 'Coffres secrets sur invitation',
+                  label: ctx.l10n.accountPrivateEvents,
+                  subtitle: ctx.l10n.accountPrivateEventsSubtitle,
                   gradientColors: const [Color(0xFFE91E8C), Color(0xFF7B2D8E)],
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -209,8 +213,8 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.key,
-                  label: 'Ouvrir un coffre',
-                  subtitle: 'J\'ai recu un lien + code',
+                  label: ctx.l10n.accountOpenVault,
+                  subtitle: ctx.l10n.accountOpenVaultSubtitle,
                   gradientColors: const [Color(0xFF00B4D8), Color(0xFF0077B6)],
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -225,8 +229,8 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.celebration_outlined,
-                  label: 'Mes invitations',
-                  subtitle: 'Soirees ou j\'ai dit "Je viens"',
+                  label: ctx.l10n.accountInvitations,
+                  subtitle: ctx.l10n.accountInvitationsSubtitle,
                   gradientColors: const [Color(0xFF00B4D8), Color(0xFF48CAE4)],
                   showBadge: hasInvitation,
                   onTap: () {
@@ -242,8 +246,8 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.auto_awesome,
-                  label: 'Mes souvenirs',
-                  subtitle: 'Albums photo de mes soirées passées',
+                  label: ctx.l10n.accountMemories,
+                  subtitle: ctx.l10n.accountMemoriesSubtitle,
                   gradientColors: const [Color(0xFFFF9F43), Color(0xFFE91E8C)],
                   onTap: () {
                     Navigator.of(ctx).pop();
@@ -258,12 +262,21 @@ class AccountMenu {
                 _menuItem(
                   ctx: ctx,
                   icon: Icons.tune_rounded,
-                  label: 'Mon profil',
-                  subtitle: 'Ville, centres d\'interet',
+                  label: ctx.l10n.accountProfile,
+                  subtitle: ctx.l10n.accountProfileSubtitle,
                   gradientColors: const [Color(0xFF4A1259), Color(0xFF6B2D7B)],
                   onTap: () {
                     NotificationPrefsSheet.show(ctx, fromAccountMenu: true);
                   },
+                ),
+                const SizedBox(height: 5),
+                _menuItem(
+                  ctx: ctx,
+                  icon: Icons.translate_rounded,
+                  label: ctx.l10n.accountLanguage,
+                  subtitle: _currentLanguageLabel(ctx, ref),
+                  gradientColors: const [Color(0xFF0077B6), Color(0xFF00B4D8)],
+                  onTap: () => LanguageSheet.show(ctx),
                 ),
                 const SizedBox(height: 8),
                 _buildConnectionButton(ctx, context, ref),
@@ -295,17 +308,17 @@ class AccountMenu {
 
     if (!isConnected) return [];
 
-    final proName = proState.profile?.nom ?? 'Espace pro';
+    final proName = proState.profile?.nom ?? ctx.l10n.accountProSpace;
     final statusLabel = proState.status == ProAuthStatus.approved
-        ? 'Compte valide'
-        : 'En attente de validation';
+        ? ctx.l10n.accountProApproved
+        : ctx.l10n.accountProPending;
     return [
       _menuItem(
         ctx: ctx,
         icon: Icons.store_rounded,
         label: proName,
         subtitle: proState.status == ProAuthStatus.approved
-            ? 'Modifier ma fiche (photos, video)'
+            ? ctx.l10n.accountProEditListing
             : statusLabel,
         gradientColors: const [Color(0xFF7B2D8E), Color(0xFF9B4DCA)],
         onTap: proState.status == ProAuthStatus.approved
@@ -320,8 +333,8 @@ class AccountMenu {
         _menuItem(
           ctx: ctx,
           icon: Icons.event_rounded,
-          label: 'Ajouter un evenement',
-          subtitle: 'Publier un nouvel event',
+          label: ctx.l10n.proAddEvent,
+          subtitle: ctx.l10n.proAddEventSubtitle,
           gradientColors: const [Color(0xFF4A1259), Color(0xFF7B2D8E)],
           onTap: () {
             Navigator.pop(ctx);
@@ -336,8 +349,8 @@ class AccountMenu {
         _menuItem(
           ctx: ctx,
           icon: Icons.local_offer_rounded,
-          label: 'Creer une offre',
-          subtitle: 'Publier une offre promotionnelle',
+          label: ctx.l10n.accountCreateOffer,
+          subtitle: ctx.l10n.accountCreateOfferSubtitle,
           gradientColors: const [Color(0xFFFF6EB4), Color(0xFFFFD54F)],
           onTap: () {
             Navigator.pop(ctx);
@@ -354,8 +367,8 @@ class AccountMenu {
         _menuItem(
           ctx: ctx,
           icon: Icons.list_alt_rounded,
-          label: 'Mes offres',
-          subtitle: 'Voir, modifier ou supprimer',
+          label: ctx.l10n.accountMyOffers,
+          subtitle: ctx.l10n.accountMyOffersSubtitle,
           gradientColors: const [Color(0xFFE91E8C), Color(0xFFFF6EB4)],
           onTap: () {
             Navigator.pop(ctx);
@@ -384,8 +397,8 @@ class AccountMenu {
       return _menuItem(
         ctx: ctx,
         icon: Icons.logout_rounded,
-        label: 'Deconnexion',
-        subtitle: 'Se deconnecter du compte pro',
+        label: ctx.l10n.accountLogout,
+        subtitle: ctx.l10n.accountLogoutSubtitle,
         gradientColors: const [Color(0xFFE91E8C), Color(0xFFFF6EB4)],
         onTap: () {
           Navigator.pop(ctx);
@@ -397,8 +410,8 @@ class AccountMenu {
     return _menuItem(
       ctx: ctx,
       icon: Icons.login_rounded,
-      label: 'Acces Pro',
-      subtitle: 'Espace professionnel',
+      label: ctx.l10n.proAccessTitle,
+      subtitle: ctx.l10n.accountProAccessSubtitle,
       gradientColors: const [Color(0xFFE91E8C), Color(0xFFFF6EB4)],
       onTap: () {
         Navigator.pop(ctx);
@@ -423,8 +436,8 @@ class AccountMenu {
     return _menuItem(
       ctx: ctx,
       icon: Icons.delete_forever_rounded,
-      label: 'Supprimer mon compte',
-      subtitle: 'Action definitive et irreversible',
+      label: ctx.l10n.accountDelete,
+      subtitle: ctx.l10n.accountDeleteSubtitle,
       gradientColors: const [Color(0xFF8B0000), Color(0xFFB91C1C)],
       onTap: () => _confirmDeleteAccount(ctx, rootContext, ref),
     );
@@ -441,27 +454,25 @@ class AccountMenu {
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(
-          'Supprimer votre compte ?',
+          ctx.l10n.accountDeleteDialogTitle,
           style: TextStyle(color: AppColors.text, fontSize: 16),
         ),
         content: Text(
-          'Cette action est definitive. Vos donnees pro seront supprimees '
-          'et vous ne pourrez plus vous connecter avec cet email. '
-          'Vous pourrez creer un nouveau compte plus tard si besoin.',
+          ctx.l10n.accountDeleteProDialogBody,
           style: TextStyle(color: AppColors.textDim, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
             child: Text(
-              'Annuler',
+              dialogCtx.l10n.commonCancel,
               style: TextStyle(color: AppColors.textFaint),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: const Text(
-              'Supprimer',
+            child: Text(
+              dialogCtx.l10n.commonDelete,
               style: TextStyle(
                   color: Color(0xFFE91E8C), fontWeight: FontWeight.w700),
             ),
@@ -472,15 +483,17 @@ class AccountMenu {
     if (confirmed != true) return;
 
     final messenger = ScaffoldMessenger.of(rootContext);
+    final deletedMsg = ctx.l10n.accountDeleted;
+    final failedMsg = ctx.l10n.accountDeleteFailed;
     Navigator.pop(ctx);
     try {
       await ref.read(proAuthProvider.notifier).deleteAccount();
       messenger.showSnackBar(
-        const SnackBar(content: Text('Compte supprime')),
+        SnackBar(content: Text(deletedMsg)),
       );
     } catch (_) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Echec de la suppression — reessayez')),
+        SnackBar(content: Text(failedMsg)),
       );
     }
   }
@@ -495,8 +508,8 @@ class AccountMenu {
     return _menuItem(
       ctx: ctx,
       icon: Icons.delete_forever_rounded,
-      label: 'Supprimer mon compte',
-      subtitle: 'Action definitive et irreversible',
+      label: ctx.l10n.accountDelete,
+      subtitle: ctx.l10n.accountDeleteSubtitle,
       gradientColors: const [Color(0xFF8B0000), Color(0xFFB91C1C)],
       onTap: () => _confirmDeleteNormalAccount(ctx, rootContext),
     );
@@ -512,25 +525,24 @@ class AccountMenu {
       builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(
-          'Supprimer votre compte ?',
+          ctx.l10n.accountDeleteDialogTitle,
           style: TextStyle(color: AppColors.text, fontSize: 16),
         ),
         content: Text(
-          'Cette action est definitive. Ton profil, tes publications, tes '
-          'stories et tes City-Miles seront supprimes. Tu pourras creer un '
-          'nouveau compte plus tard si besoin.',
+          ctx.l10n.accountDeleteUserDialogBody,
           style: TextStyle(color: AppColors.textDim, fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
             child:
-                Text('Annuler', style: TextStyle(color: AppColors.textFaint)),
+                Text(dialogCtx.l10n.commonCancel,
+                    style: TextStyle(color: AppColors.textFaint)),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: const Text(
-              'Supprimer',
+            child: Text(
+              dialogCtx.l10n.commonDelete,
               style: TextStyle(
                   color: Color(0xFFE91E8C), fontWeight: FontWeight.w700),
             ),
@@ -541,6 +553,8 @@ class AccountMenu {
     if (confirmed != true) return;
 
     final messenger = ScaffoldMessenger.of(rootContext);
+    final deletedMsg = ctx.l10n.accountDeleted;
+    final failedMsg = ctx.l10n.accountDeleteFailed;
     Navigator.pop(ctx);
     try {
       await UserProfileService().deleteMyAccount();
@@ -549,13 +563,20 @@ class AccountMenu {
       resetOnboardingCache();
       appRouter.go('/onboarding');
       messenger.showSnackBar(
-        const SnackBar(content: Text('Compte supprime')),
+        SnackBar(content: Text(deletedMsg)),
       );
     } catch (_) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Echec de la suppression — reessayez')),
+        SnackBar(content: Text(failedMsg)),
       );
     }
+  }
+
+  /// Sous-titre de l'entree Langue : la langue choisie, ou "Automatique".
+  static String _currentLanguageLabel(BuildContext ctx, WidgetRef ref) {
+    final locale = ref.read(localeProvider);
+    if (locale == null) return ctx.l10n.languageSystem;
+    return kAppLanguages[locale.languageCode] ?? ctx.l10n.languageSystem;
   }
 
   static Widget _menuItem({

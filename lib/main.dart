@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:pulz_app/app.dart';
 import 'package:pulz_app/core/config/supabase_config.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/core/services/fcm_service.dart';
@@ -46,6 +47,7 @@ void main() {
 
       await initializeDateFormatting('fr_FR');
       await initOnboardingState();
+      await initLocaleState();
 
       // Initialise le client Supabase (uniquement pour Realtime websocket).
       // L'auth REST continue de passer via Dio + SupabaseInterceptor.

@@ -1,0 +1,9 @@
+# Traductions de l'app (flutter gen-l10n). Le français est la langue de
+# référence : toute nouvelle clé s'ajoute d'abord dans app_fr.arb, puis dans
+# app_en.arb et app_es.arb. Une clé absente d'une langue retombe sur le français.
+arb-dir: lib/l10n
+template-arb-file: app_fr.arb
+output-dir: lib/l10n
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

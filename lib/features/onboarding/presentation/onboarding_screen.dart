@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/language_sheet.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -51,6 +53,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     ('tourisme', 'Évasion', Icons.flight_takeoff),
   ];
 
+  /// Pastille "🌐 FR" ouvrant le choix de la langue.
+  Widget _buildLanguageButton() {
+    final code = Localizations.localeOf(context).languageCode.toUpperCase();
+    return GestureDetector(
+      onTap: () => LanguageSheet.show(context),
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.language_rounded, size: 16, color: Colors.white70),
+            const SizedBox(width: 6),
+            Text(
+              code,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Libelle traduit d'une rubrique (r.$2 = libelle francais de reference).
+  static String _rubriqueLabel(BuildContext context, String mode) {
+    final l10n = context.l10n;
+    return switch (mode) {
+      'food' => l10n.rubriqueFood,
+      'culture' => l10n.rubriqueCulture,
+      'family' => l10n.rubriqueFamily,
+      'night' => l10n.rubriqueNight,
+      'sport' => l10n.rubriqueSport,
+      'tourisme' => l10n.rubriqueEvasion,
+      _ => mode,
+    };
+  }
+
   @override
   void dispose() {
     _villeDebounce?.cancel();
@@ -97,7 +145,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur de connexion, reessayez')),
+          SnackBar(content: Text(context.l10n.onboardingLoginError)),
         );
       }
     } finally {
@@ -121,7 +169,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
       if (profile == null) {
         setState(() {
-          _loginError = 'Aucun compte trouve avec ces identifiants';
+          _loginError = context.l10n.onboardingLoginNotFound;
           _submitting = false;
         });
         return;
@@ -139,7 +187,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _loginError = 'Erreur de connexion, reessayez';
+          _loginError = context.l10n.onboardingLoginError;
           _submitting = false;
         });
       }
@@ -173,20 +221,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_camera, color: Colors.white),
-              title: Text('Prendre une photo',
+              title: Text(ctx.l10n.onboardingTakePhoto,
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: Colors.white),
-              title: Text('Choisir dans la galerie',
+              title: Text(ctx.l10n.onboardingChooseFromGallery,
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             if (_avatarPath != null)
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                title: Text('Retirer la photo',
+                title: Text(ctx.l10n.onboardingRemovePhoto,
                     style: GoogleFonts.poppins(
                         color: Colors.redAccent, fontSize: 14)),
                 onTap: () => Navigator.pop(ctx, null),
@@ -214,7 +262,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de selectionner cette image')),
+          SnackBar(content: Text(context.l10n.onboardingImageError)),
         );
       }
     }
@@ -255,7 +303,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
+                  // Choix de la langue, accessible avant toute inscription.
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: _buildLanguageButton(),
+                  ),
                   // Logo
                   Center(
                     child: ClipRRect(
@@ -270,7 +322,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   const SizedBox(height: 12),
                   Center(
                     child: Text(
-                      _isSignUp ? 'Bienvenue sur MaCity' : 'Content de te revoir !',
+                      _isSignUp
+                          ? context.l10n.onboardingWelcome
+                          : context.l10n.onboardingWelcomeBack,
                       style: GoogleFonts.poppins(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -282,8 +336,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   Center(
                     child: Text(
                       _isSignUp
-                          ? 'Cree ton compte en quelques secondes'
-                          : 'Connecte-toi avec tes identifiants',
+                          ? context.l10n.onboardingSignUpSubtitle
+                          : context.l10n.onboardingLoginSubtitle,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: Colors.white70,
@@ -305,7 +359,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                       ),
                       child: Text(
-                        'Explorer sans compte',
+                        context.l10n.onboardingExploreWithoutAccount,
                         style: GoogleFonts.poppins(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
@@ -380,7 +434,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               ),
                             )
                           : Text(
-                              _isSignUp ? 'C\'est parti !' : 'Se connecter',
+                              _isSignUp
+                                  ? context.l10n.onboardingSubmitSignUp
+                                  : context.l10n.onboardingSubmitLogin,
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -400,11 +456,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           children: [
                             TextSpan(
                               text: _isSignUp
-                                  ? 'Deja inscrit ? '
-                                  : 'Pas encore de compte ? ',
+                                  ? context.l10n.onboardingAlreadyRegistered
+                                  : context.l10n.onboardingNoAccountYet,
                             ),
                             TextSpan(
-                              text: _isSignUp ? 'Se connecter' : 'S\'inscrire',
+                              text: _isSignUp
+                                  ? context.l10n.onboardingSubmitLogin
+                                  : context.l10n.onboardingSwitchToSignUp,
                               style: const TextStyle(
                                 color: _accentColor,
                                 fontWeight: FontWeight.w600,
@@ -453,7 +511,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    'Inscription',
+                    context.l10n.onboardingTabSignUp,
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: _isSignUp ? FontWeight.w600 : FontWeight.w400,
@@ -479,7 +537,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    'Connexion',
+                    context.l10n.onboardingTabLogin,
                     style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: !_isSignUp ? FontWeight.w600 : FontWeight.w400,
@@ -505,10 +563,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       // Prenom ou pseudo
       _buildField(
         controller: _prenomController,
-        label: 'Prenom ou pseudo',
+        label: context.l10n.onboardingFieldName,
         icon: Icons.person_outline,
         validator: (v) => v == null || v.trim().isEmpty
-            ? 'Entrez votre prenom ou pseudo'
+            ? context.l10n.onboardingFieldNameError
             : null,
       ),
       const SizedBox(height: 14),
@@ -516,12 +574,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       // Email
       _buildField(
         controller: _emailController,
-        label: 'Email',
+        label: context.l10n.onboardingFieldEmail,
         icon: Icons.email_outlined,
         keyboardType: TextInputType.emailAddress,
         validator: (v) {
-          if (v == null || v.trim().isEmpty) return 'Entrez votre email';
-          if (!v.contains('@') || !v.contains('.')) return 'Email invalide';
+          if (v == null || v.trim().isEmpty) return context.l10n.onboardingFieldEmailEmpty;
+          if (!v.contains('@') || !v.contains('.')) return context.l10n.onboardingFieldEmailInvalid;
           return null;
         },
       ),
@@ -530,12 +588,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       // Telephone
       _buildField(
         controller: _phoneController,
-        label: 'Telephone',
+        label: context.l10n.onboardingFieldPhone,
         icon: Icons.phone_outlined,
         keyboardType: TextInputType.phone,
         validator: (v) {
-          if (v == null || v.trim().isEmpty) return 'Entrez votre numero';
-          if (v.trim().length < 10) return 'Numero trop court';
+          if (v == null || v.trim().isEmpty) return context.l10n.onboardingFieldPhoneEmpty;
+          if (v.trim().length < 10) return context.l10n.onboardingFieldPhoneTooShort;
           return null;
         },
       ),
@@ -547,7 +605,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
       // Rubriques principales (6) — pour des notifications pertinentes.
       Text(
-        'Quelles activites t\'interessent ?',
+        context.l10n.onboardingInterestsTitle,
         style: GoogleFonts.poppins(
           fontSize: 15,
           fontWeight: FontWeight.w600,
@@ -556,7 +614,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
       const SizedBox(height: 4),
       Text(
-        'Selectionne tes rubriques pour des notifications pertinentes.',
+        context.l10n.onboardingInterestsSubtitle,
         style: GoogleFonts.poppins(
           fontSize: 11,
           color: Colors.white54,
@@ -568,7 +626,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         runSpacing: 8,
         children: _rubriques.map((r) {
           final mode = r.$1;
-          final label = r.$2;
+          final label = _rubriqueLabel(context, mode);
           final icon = r.$3;
           final selected = _selectedModes.contains(mode);
           return GestureDetector(
@@ -638,7 +696,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Entre ton email et numero de telephone\npour retrouver ton compte',
+              context.l10n.onboardingLoginHint,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 12,
@@ -653,12 +711,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       // Email
       _buildField(
         controller: _emailController,
-        label: 'Email',
+        label: context.l10n.onboardingFieldEmail,
         icon: Icons.email_outlined,
         keyboardType: TextInputType.emailAddress,
         validator: (v) {
-          if (v == null || v.trim().isEmpty) return 'Entrez votre email';
-          if (!v.contains('@') || !v.contains('.')) return 'Email invalide';
+          if (v == null || v.trim().isEmpty) return context.l10n.onboardingFieldEmailEmpty;
+          if (!v.contains('@') || !v.contains('.')) return context.l10n.onboardingFieldEmailInvalid;
           return null;
         },
       ),
@@ -667,12 +725,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       // Telephone
       _buildField(
         controller: _phoneController,
-        label: 'Telephone',
+        label: context.l10n.onboardingFieldPhone,
         icon: Icons.phone_outlined,
         keyboardType: TextInputType.phone,
         validator: (v) {
-          if (v == null || v.trim().isEmpty) return 'Entrez votre numero';
-          if (v.trim().length < 10) return 'Numero trop court';
+          if (v == null || v.trim().isEmpty) return context.l10n.onboardingFieldPhoneEmpty;
+          if (v.trim().length < 10) return context.l10n.onboardingFieldPhoneTooShort;
           return null;
         },
       ),
@@ -686,7 +744,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         TextFormField(
           controller: _villeController,
           validator: (v) =>
-              _selectedVille.isEmpty ? 'Selectionnez votre ville' : null,
+              _selectedVille.isEmpty ? context.l10n.onboardingFieldCityError : null,
           style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
           onChanged: (query) {
             _villeDebounce?.cancel();
@@ -702,7 +760,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             });
           },
           decoration: InputDecoration(
-            labelText: 'Ville ou village',
+            labelText: context.l10n.onboardingFieldCity,
             labelStyle:
                 GoogleFonts.poppins(fontSize: 13, color: Colors.white54),
             prefixIcon: const Icon(Icons.location_city_outlined,

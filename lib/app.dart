@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/l10n/app_localizations.dart';
 import 'package:pulz_app/core/services/analytics_service.dart';
 import 'package:pulz_app/core/services/app_update_service.dart';
 import 'package:pulz_app/core/services/deep_link_service.dart';
@@ -559,15 +561,16 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       theme: MacityTheme.dark(),
       routerConfig: appRouter,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('fr', 'FR'),
-        Locale('en'),
-      ],
-      locale: const Locale('fr', 'FR'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      // null = automatique : langue du telephone (fr/en/es), sinon anglais.
+      locale: ref.watch(localeProvider),
+      localeListResolutionCallback: (deviceLocales, _) =>
+          resolveAppLocale(deviceLocales),
       builder: (context, child) {
         // Force update : remplace tout le contenu, bloque la nav.
         final status = _updateStatus;

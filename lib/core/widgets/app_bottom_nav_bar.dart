@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/account_gate.dart';
@@ -84,7 +85,7 @@ class AppBottomNavBar extends ConsumerWidget {
               // /home (FeedScreen) ; on pop d'abord les sheets/modales ouvertes.
               _NavBarItem(
                 icon: Icons.home_rounded,
-                label: 'Home',
+                label: context.l10n.navHome,
                 isActive: _selectedIndex == 0,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 0;
@@ -101,7 +102,7 @@ class AppBottomNavBar extends ConsumerWidget {
               // accessibles via la pill "Mes favoris" dans HomeQuickPills).
               _NavBarItem(
                 icon: Icons.dynamic_feed_rounded,
-                label: 'Feed',
+                label: context.l10n.navFeed,
                 isActive: _selectedIndex == 1,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 1;
@@ -152,7 +153,7 @@ class AppBottomNavBar extends ConsumerWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        'Publier',
+                        context.l10n.navPublish,
                         style: GoogleFonts.geist(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w500,
@@ -167,7 +168,7 @@ class AppBottomNavBar extends ConsumerWidget {
               // 3 - Favoris (lieux likes)
               _NavBarItem(
                 icon: Icons.favorite_rounded,
-                label: 'Favoris',
+                label: context.l10n.navFavorites,
                 isActive: _selectedIndex == 3,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 3;
@@ -177,7 +178,7 @@ class AppBottomNavBar extends ConsumerWidget {
               // 4 - Ma Ville (mairie notifications sheet)
               _NavBarItem(
                 icon: Icons.account_balance,
-                label: 'Ma Ville',
+                label: context.l10n.navMyCity,
                 isActive: _selectedIndex == 4,
                 onTap: () {
                   ref.read(navBarIndexProvider.notifier).state = 4;
@@ -236,7 +237,7 @@ class AppBottomNavBar extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                'Que veux-tu publier ?',
+                sheetCtx.l10n.publishWhatTitle,
                 style: GoogleFonts.geist(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -246,8 +247,8 @@ class AppBottomNavBar extends ConsumerWidget {
               const SizedBox(height: 14),
               _PublishOptionTile(
                 icon: Icons.camera_alt_outlined,
-                title: 'Story Map Live',
-                subtitle: 'Photo / vidéo d\'un évent en cours autour de toi',
+                title: sheetCtx.l10n.publishStoryTitle,
+                subtitle: sheetCtx.l10n.publishStorySubtitle,
                 gradient: const LinearGradient(
                   colors: [Color(0xFFF472B6), Color(0xFFFBBF24)],
                 ),
@@ -267,8 +268,8 @@ class AppBottomNavBar extends ConsumerWidget {
               const SizedBox(height: 10),
               _PublishOptionTile(
                 icon: Icons.event_outlined,
-                title: 'Publier un event',
-                subtitle: 'Concert, soirée, expo, atelier…',
+                title: sheetCtx.l10n.publishEventTitle,
+                subtitle: sheetCtx.l10n.publishEventSubtitle,
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFF3D8B), Color(0xFFA855F7)],
                 ),
@@ -397,7 +398,7 @@ class AppBottomNavBar extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                'Quel type d\'event ?',
+                sheetCtx.l10n.eventTypeTitle,
                 style: GoogleFonts.geist(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -407,8 +408,8 @@ class AppBottomNavBar extends ConsumerWidget {
               const SizedBox(height: 14),
               _PublishOptionTile(
                 icon: Icons.lock_outline,
-                title: 'Event privé',
-                subtitle: 'Entre amis, code d\'accès, pas dans le feed public',
+                title: sheetCtx.l10n.eventPrivateTitle,
+                subtitle: sheetCtx.l10n.eventPrivateSubtitle,
                 gradient: const LinearGradient(
                   colors: [Color(0xFFA855F7), Color(0xFFEC4899)],
                 ),
@@ -420,8 +421,8 @@ class AppBottomNavBar extends ConsumerWidget {
               const SizedBox(height: 10),
               _PublishOptionTile(
                 icon: Icons.public,
-                title: 'Event public',
-                subtitle: 'Visible par tous — formules à partir de 1,99 €',
+                title: sheetCtx.l10n.eventPublicTitle,
+                subtitle: sheetCtx.l10n.eventPublicSubtitle,
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFF6B00), Color(0xFFE91E63)],
                 ),
@@ -437,8 +438,8 @@ class AppBottomNavBar extends ConsumerWidget {
               const SizedBox(height: 10),
               _PublishOptionTile(
                 icon: Icons.verified_user_outlined,
-                title: 'Accès pro',
-                subtitle: 'Compte pro : publication gratuite et illimitée',
+                title: sheetCtx.l10n.proAccessTitle,
+                subtitle: sheetCtx.l10n.proAccessSubtitle,
                 gradient: const LinearGradient(
                   colors: [Color(0xFFFF3D8B), Color(0xFFFBBF24)],
                 ),
@@ -491,7 +492,7 @@ class AppBottomNavBar extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Que souhaitez-vous faire ?',
+                ctx.l10n.proMenuTitle,
                 style: GoogleFonts.geist(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -503,7 +504,7 @@ class AppBottomNavBar extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.event, color: AppColors.magenta),
                 title: Text(
-                  'Ajouter un evenement',
+                  ctx.l10n.proAddEvent,
                   style: GoogleFonts.geist(color: AppColors.text),
                 ),
                 onTap: () {
@@ -521,11 +522,11 @@ class AppBottomNavBar extends ConsumerWidget {
                   color: AppColors.violet,
                 ),
                 title: Text(
-                  'Scanner un flyer (IA)',
+                  ctx.l10n.proScanFlyer,
                   style: GoogleFonts.geist(color: AppColors.text),
                 ),
                 subtitle: Text(
-                  'Pre-remplit l\'event a partir d\'une photo',
+                  ctx.l10n.proScanFlyerSubtitle,
                   style: GoogleFonts.geist(fontSize: 11, color: AppColors.textFaint),
                 ),
                 onTap: () {
@@ -539,7 +540,7 @@ class AppBottomNavBar extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.local_offer, color: AppColors.magenta),
                 title: Text(
-                  'Creer une offre promotionnelle',
+                  ctx.l10n.proCreatePromoOffer,
                   style: GoogleFonts.geist(color: AppColors.text),
                 ),
                 onTap: () {
@@ -556,7 +557,7 @@ class AppBottomNavBar extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.tune, color: AppColors.cyan),
                 title: Text(
-                  'Mes preferences',
+                  ctx.l10n.myPreferences,
                   style: GoogleFonts.geist(color: AppColors.text),
                 ),
                 onTap: () {

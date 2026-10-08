@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/features/onboarding/data/email_verification_service.dart';
@@ -51,7 +52,7 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
   Future<void> _verify() async {
     final code = _codeController.text.trim();
     if (code.length < 6) {
-      setState(() => _error = 'Entrez le code à 6 chiffres');
+      setState(() => _error = context.l10n.emailVerifyEnterCode);
       return;
     }
     setState(() {
@@ -65,14 +66,14 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
         Navigator.of(context).pop(true);
       } else {
         setState(() {
-          _error = 'Code incorrect ou expiré';
+          _error = context.l10n.emailVerifyWrongCode;
           _verifying = false;
         });
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Erreur de vérification, réessayez';
+          _error = context.l10n.emailVerifyError;
           _verifying = false;
         });
       }
@@ -88,11 +89,11 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
       await _svc.requestCode(email: widget.email, prenom: widget.prenom);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nouveau code envoyé')),
+          SnackBar(content: Text(context.l10n.emailVerifyCodeResent)),
         );
       }
     } catch (_) {
-      if (mounted) setState(() => _error = 'Impossible de renvoyer le code');
+      if (mounted) setState(() => _error = context.l10n.emailVerifyResendFailed);
     } finally {
       if (mounted) setState(() => _resending = false);
     }
@@ -122,7 +123,7 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Confirmez votre email',
+                context.l10n.emailVerifyTitle,
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -131,7 +132,7 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Un code à 6 chiffres a été envoyé à\n${widget.email}',
+                context.l10n.emailVerifySent(widget.email),
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   color: Colors.white70,
@@ -147,7 +148,7 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Pas reçu ? Pensez à vérifier vos spams / courriers indésirables.',
+                      context.l10n.emailVerifySpamHint,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white54,
@@ -229,7 +230,7 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
                           ),
                         )
                       : Text(
-                          'Confirmer',
+                          context.l10n.emailVerifyConfirm,
                           style: GoogleFonts.poppins(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -247,7 +248,7 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
                         ? null
                         : () => Navigator.of(context).pop(),
                     child: Text(
-                      'Annuler',
+                      context.l10n.commonCancel,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white54,
@@ -257,7 +258,9 @@ class _EmailVerificationSheetState extends State<EmailVerificationSheet> {
                   TextButton(
                     onPressed: _resending ? null : _resend,
                     child: Text(
-                      _resending ? 'Envoi…' : 'Renvoyer le code',
+                      _resending
+                          ? context.l10n.emailVerifySending
+                          : context.l10n.emailVerifyResend,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white70,
