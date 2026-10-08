@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
+import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event.dart';
 import 'package:pulz_app/features/private_events/domain/models/private_event_message.dart';
 
@@ -307,10 +308,26 @@ class PrivateEventService {
     required String passcode,
   }) async {
     try {
-      final response = await _dio.post(
-        'rpc/open_private_event',
-        data: {'p_token': token, 'p_passcode': passcode},
-      );
+      // p_user_id : l'hote voit qui a ouvert (host_list_event_openers).
+      Response response;
+      try {
+        final userId = await UserIdentityService.getUserId();
+        response = await _dio.post(
+          'rpc/open_private_event',
+          data: {'p_token': token, 'p_passcode': passcode, 'p_user_id': userId},
+        );
+      } on DioException catch (e) {
+        // Surcharge a 3 params absente (migration 20261008120000 pas encore
+        // appliquee) : PostgREST repond PGRST202, on retombe sur l'ancienne.
+        if (!e.toString().contains('PGRST202') &&
+            !('${e.response?.data}').contains('PGRST202')) {
+          rethrow;
+        }
+        response = await _dio.post(
+          'rpc/open_private_event',
+          data: {'p_token': token, 'p_passcode': passcode},
+        );
+      }
       final data = response.data as List;
       if (data.isEmpty) {
         throw PrivateEventException(PrivateEventError.notFound);
@@ -424,6 +441,27 @@ class PrivateEventService {
           .toList();
     } on DioException catch (e) {
       debugPrint('[PrivateEvents] hostListEventRsvps failed: $e');
+      return [];
+    }
+  }
+
+  /// Hote : personnes ayant ouvert le coffre (bon code), derniere ouverture
+  /// en haut. Ouvertures tracees depuis la migration 20261008120000.
+  Future<List<PrivateEventOpener>> hostListOpeners({
+    required String token,
+    required String hostDeviceUuid,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'rpc/host_list_event_openers',
+        data: {'p_token': token, 'p_host_device_uuid': hostDeviceUuid},
+      );
+      final data = response.data as List? ?? const [];
+      return data
+          .map((e) => PrivateEventOpener.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      debugPrint('[PrivateEvents] hostListOpeners failed: $e');
       return [];
     }
   }

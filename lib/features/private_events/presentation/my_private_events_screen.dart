@@ -559,7 +559,10 @@ class _GuestsSheetState extends State<_GuestsSheet> {
   Future<List<PrivateEventRsvp>>? _future;
   // Onglet « Confirmés » : seulement si l'hote a active la confirmation.
   Future<List<PrivateEventConfirmation>>? _confFuture;
-  bool _showConfirmed = false;
+  /// Onglet affiche : 0 = participants, 1 = vus (coffre ouvert), 2 = confirmes.
+  int _tabIndex = 0;
+  /// Personnes ayant ouvert le coffre (charge a la 1re ouverture de l'onglet).
+  Future<List<PrivateEventOpener>>? _openersFuture;
   /// Inscrits dont le dernier message prive attend une reponse de l'hote.
   Set<String> _pendingDm = {};
   /// Nombre d'inscrits affiche dans le titre (baisse quand l'hote retire).
@@ -790,6 +793,31 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         ),
       );
 
+  /// Ont ouvert le coffre sans faire « Je viens » (derniere ouverture en haut).
+  Widget _openersList() {
+    return FutureBuilder<List<PrivateEventOpener>>(
+      future: _openersFuture,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.magenta),
+          );
+        }
+        final list = (snap.data ?? []).where((o) => !o.going).toList();
+        if (list.isEmpty) {
+          return _empty('Personne n\'a ouvert le coffre sans s\'inscrire.\n'
+              'Les ouvertures sont visibles avec la dernière version de l\'app.');
+        }
+        return ListView.separated(
+          shrinkWrap: true,
+          itemCount: list.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (_, i) => _OpenerRow(opener: list[i]),
+        );
+      },
+    );
+  }
+
   /// Liste des confirmes, dans l'ordre de confirmation (1er confirme en haut).
   Widget _confirmedList() {
     return FutureBuilder<List<PrivateEventConfirmation>>(
@@ -928,20 +956,30 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                 ],
               ),
               const SizedBox(height: 16),
-              if (_confFuture != null) ...[
-                Row(
-                  children: [
-                    _tab('Participants', !_showConfirmed,
-                        () => setState(() => _showConfirmed = false)),
+              Row(
+                children: [
+                  _tab('Participants', _tabIndex == 0,
+                      () => setState(() => _tabIndex = 0)),
+                  const SizedBox(width: 8),
+                  _tab('👀 Vus', _tabIndex == 1, () => setState(() {
+                        _tabIndex = 1;
+                        _openersFuture ??= _service.hostListOpeners(
+                          token: widget.event.accessToken,
+                          hostDeviceUuid: widget.hostDeviceUuid,
+                        );
+                      })),
+                  if (_confFuture != null) ...[
                     const SizedBox(width: 8),
-                    _tab('✅ Confirmés', _showConfirmed,
-                        () => setState(() => _showConfirmed = true)),
+                    _tab('✅ Confirmés', _tabIndex == 2,
+                        () => setState(() => _tabIndex = 2)),
                   ],
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (_showConfirmed)
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (_tabIndex == 2 && _confFuture != null)
                 Flexible(child: _confirmedList())
+              else if (_tabIndex == 1)
+                Flexible(child: _openersList())
               else
               Flexible(
                 child: FutureBuilder<List<PrivateEventRsvp>>(
@@ -1083,6 +1121,98 @@ class _GuestRow extends StatelessWidget {
           ),
         ),
       );
+}
+
+/// A ouvert le coffre sans s'inscrire : identite, nombre et date d'ouverture.
+class _OpenerRow extends StatelessWidget {
+  final PrivateEventOpener opener;
+  const _OpenerRow({required this.opener});
+
+  @override
+  Widget build(BuildContext context) {
+    final prenom = opener.prenom?.trim() ?? '';
+    final hasPhoto = opener.avatarUrl != null && opener.avatarUrl!.isNotEmpty;
+    final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : '?';
+    final when = opener.lastOpenedAt == null
+        ? ''
+        : DateFormat("d MMM 'à' HH'h'mm", 'fr_FR').format(opener.lastOpenedAt!.toLocal());
+    final detail = [
+      '${opener.opens} ouverture${opener.opens > 1 ? 's' : ''}',
+      if (when.isNotEmpty) 'dernière le $when',
+    ].join(' · ');
+    Widget fallback() => Container(
+          decoration: const BoxDecoration(gradient: AppGradients.primary),
+          alignment: Alignment.center,
+          child: Text(
+            initial,
+            style: GoogleFonts.geist(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        );
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: prenom.isEmpty
+          ? null
+          : () => ContributorProfileSheet.show(
+                context,
+                userId: opener.userId,
+                fallbackPrenom: prenom,
+                fallbackAvatarUrl: opener.avatarUrl,
+              ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceHi,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.surface,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: hasPhoto
+                  ? CachedNetworkImage(
+                      imageUrl: opener.avatarUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => fallback(),
+                      placeholder: (_, __) => fallback(),
+                    )
+                  : fallback(),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    prenom.isNotEmpty ? prenom : 'Sans compte',
+                    style: GoogleFonts.geist(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  Text(
+                    detail,
+                    style: GoogleFonts.geist(fontSize: 12, color: AppColors.textDim),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.visibility_outlined, size: 16, color: AppColors.textDim),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Un participant confirme, vu par l'hote : rang, identite, age, contact.

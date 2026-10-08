@@ -231,3 +231,32 @@ class PrivateEventMemory {
         preview: (json['preview'] as List?)?.whereType<String>().toList() ?? const [],
       );
 }
+
+/// Personne ayant ouvert le coffre (bon code saisi), vue par l'hote.
+/// [going] = a aussi fait « Je viens ». Lue via host_list_event_openers.
+class PrivateEventOpener {
+  final String userId;
+  final String? prenom;
+  final String? avatarUrl;
+  final int opens;
+  final DateTime? lastOpenedAt;
+  final bool going;
+
+  const PrivateEventOpener({
+    required this.userId,
+    this.prenom,
+    this.avatarUrl,
+    this.opens = 1,
+    this.lastOpenedAt,
+    this.going = false,
+  });
+
+  factory PrivateEventOpener.fromJson(Map<String, dynamic> json) => PrivateEventOpener(
+        userId: json['user_id'] as String,
+        prenom: json['prenom'] as String?,
+        avatarUrl: json['avatar_url'] as String?,
+        opens: (json['opens'] as num?)?.toInt() ?? 1,
+        lastOpenedAt: DateTime.tryParse(json['last_opened_at'] as String? ?? ''),
+        going: json['going'] as bool? ?? false,
+      );
+}
