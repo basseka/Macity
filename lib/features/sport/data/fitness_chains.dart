@@ -34,6 +34,14 @@ const List<FitnessChain> kFitnessChains = [
   FitnessChain('keepcool', 'Keep Cool', 'assets/images/logo_salle_keepcool.png'),
   FitnessChain('orangebleu', 'L\'Orange Bleue', 'assets/images/logo_salle_orangebleue.png'),
   FitnessChain('sunform', 'Sun Form', 'assets/images/logo_salle_sunform.png'),
+  // Chaines de Barcelone (pas de logo asset : pochette via fitness_chains).
+  // 'dir' est court : toutes les salles DiR sont nommees "DiR <club>" en base.
+  FitnessChain('synergym', 'Synergym', 'assets/images/logo_salle_synergym.png'),
+  FitnessChain('vivagym', 'VivaGym', 'assets/images/logo_salle_vivagym.png'),
+  FitnessChain('anytimefitness', 'Anytime Fitness', 'assets/images/logo_salle_anytime.png'),
+  FitnessChain('greenfit', 'Green Fit', 'assets/images/logo_salle_greenfit.png'),
+  FitnessChain('metropolitan', 'Metropolitan', 'assets/images/logo_salle_metropolitan.png'),
+  FitnessChain('dir', 'DiR', 'assets/images/logo_salle_dir.png'),
 ];
 
 /// Normalise un nom : minuscules, sans accents, sans caractere non alphanum.
