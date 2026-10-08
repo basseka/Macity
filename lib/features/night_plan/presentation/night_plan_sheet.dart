@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -155,7 +156,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Compose ta soirée',
+                  context.l10n.nightPlanTitle,
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -163,7 +164,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
                   ),
                 ),
                 Text(
-                  'Dîner · concert · bar · boîte',
+                  context.l10n.nightPlanSubtitle,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: AppColors.textFaint,
@@ -182,10 +183,13 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
       children: [
         if (plan.dinner != null)
-          _stopTile(plan.dinner!, '🍽️', 'Dîner', 'Avant le show', first: true),
+          _stopTile(plan.dinner!, '🍽️', context.l10n.nightPlanDinner,
+              context.l10n.nightPlanDinnerHint,
+              first: true),
         _anchorTile(),
         if (plan.bar != null)
-          _stopTile(plan.bar!, '🍸', 'Un verre', 'Pour prolonger la soirée'),
+          _stopTile(plan.bar!, '🍸', context.l10n.nightPlanDrink,
+              context.l10n.nightPlanDrinkHint),
         if (plan.club != null) ...[
           if (!_showClub)
             _goFurther()
@@ -193,8 +197,8 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
             _stopTile(
               plan.club!,
               '🌙',
-              'En boîte',
-              'Pour finir la nuit',
+              context.l10n.nightPlanClub,
+              context.l10n.nightPlanClubHint,
               last: true,
             ),
         ],
@@ -229,7 +233,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'TON ÉVÉNEMENT',
+                      context.l10n.nightPlanYourEvent,
                       style: GoogleFonts.poppins(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -272,7 +276,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
                 onPressed: () => setState(() => _showClub = true),
                 icon: const Icon(Icons.add_rounded, size: 18, color: _purple),
                 label: Text(
-                  'Aller encore plus loin : une boîte de nuit',
+                  context.l10n.nightPlanGoFurther,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -391,7 +395,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
                         onPressed: () => _openMaps(stop.lienMaps),
                         icon: const Icon(Icons.directions_rounded, size: 16),
                         label: Text(
-                          'Y aller',
+                          context.l10n.nightPlanGo,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -438,7 +442,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        '⭐ Partenaire',
+        context.l10n.nightPlanPartner,
         style: GoogleFonts.poppins(
           fontSize: 8,
           fontWeight: FontWeight.w700,
@@ -529,7 +533,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
           ),
           const SizedBox(height: 18),
           Text(
-            'Pas encore de suggestions',
+            context.l10n.nightPlanEmptyTitle,
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -538,7 +542,7 @@ class _NightPlanSheetState extends State<NightPlanSheet> {
           ),
           const SizedBox(height: 6),
           Text(
-            'On n\'a pas trouvé de lieux à ${widget.ville} pour composer ta soirée. Reviens quand la ville sera plus fournie !',
+            context.l10n.nightPlanEmptyBody(widget.ville),
             textAlign: TextAlign.center,
             style:
                 GoogleFonts.poppins(fontSize: 13, color: AppColors.textFaint),

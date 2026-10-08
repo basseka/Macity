@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -41,7 +42,7 @@ class NightSpicyFullscreenMap extends ConsumerWidget {
         children: [
           VenuesMapView(
             venues: venues,
-            title: 'Lieu le plus proche',
+            title: context.l10n.mapNearestPlace,
             accentColor: '#7C3AED',
             categoryColors: _categoryColors,
             showLabels: true,
@@ -63,7 +64,7 @@ class NightSpicyFullscreenMap extends ConsumerWidget {
       ),
       error: (_, __) => Stack(
         children: [
-          const Center(child: Text('Erreur de chargement')),
+          Center(child: Text(context.l10n.commonLoadError)),
           _buildListButton(ref, modeTheme),
         ],
       ),
@@ -71,6 +72,7 @@ class NightSpicyFullscreenMap extends ConsumerWidget {
   }
 
   Widget _buildListButton(WidgetRef ref, ModeTheme modeTheme) {
+    final context = ref.context;
     final source = ref.watch(nightSpicyMapSourceProvider);
     return Positioned(
       top: 8,
@@ -97,13 +99,13 @@ class NightSpicyFullscreenMap extends ConsumerWidget {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.list, size: 14, color: Colors.white),
                 SizedBox(width: 5),
                 Text(
-                  'Liste',
+                  context.l10n.commonList,
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -70,8 +71,8 @@ class SosAperoBanner extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       count > 1
-                          ? '$count enseignes livrent quand tout est fermé'
-                          : 'Une enseigne livre quand tout est fermé',
+                          ? context.l10n.sosAperoMany(count)
+                          : context.l10n.sosAperoOne,
                       style: RubriqueTheme.meta(color: RubriqueTheme.muted),
                     ),
                   ],
@@ -86,7 +87,7 @@ class SosAperoBanner extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(RubriqueTheme.rPill),
                 ),
                 child: Text(
-                  'Voir',
+                  context.l10n.commonView,
                   style: RubriqueTheme.chip(color: Colors.white),
                 ),
               ),

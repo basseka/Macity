@@ -1707,6 +1707,294 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{count, plural, =0{Aucun spectacle à venir} =1{1 spectacle à venir} other{{count} spectacles à venir}}'**
   String theatreUpcomingShows(int count);
+
+  /// No description provided for @commonClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermé'**
+  String get commonClosed;
+
+  /// No description provided for @commonLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de chargement'**
+  String get commonLoadError;
+
+  /// No description provided for @commonMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte'**
+  String get commonMap;
+
+  /// No description provided for @commonList.
+  ///
+  /// In fr, this message translates to:
+  /// **'Liste'**
+  String get commonList;
+
+  /// No description provided for @commonCategories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégories'**
+  String get commonCategories;
+
+  /// No description provided for @commonView.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir'**
+  String get commonView;
+
+  /// No description provided for @commonNoSubcategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune sous-catégorie'**
+  String get commonNoSubcategory;
+
+  /// No description provided for @commonNoPlaceForCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun commerce trouvé pour cette catégorie'**
+  String get commonNoPlaceForCategory;
+
+  /// No description provided for @commonPlacesLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des commerces'**
+  String get commonPlacesLoadError;
+
+  /// No description provided for @commonNoEventYetAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement pour le moment.\nAjoute un événement avec le bouton +'**
+  String get commonNoEventYetAdd;
+
+  /// No description provided for @mapNearestBar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bar le plus proche'**
+  String get mapNearestBar;
+
+  /// No description provided for @mapNearestClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Club le plus proche'**
+  String get mapNearestClub;
+
+  /// No description provided for @mapNearestPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu le plus proche'**
+  String get mapNearestPlace;
+
+  /// No description provided for @nightTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nuit.'**
+  String get nightTitle;
+
+  /// No description provided for @nightSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clubs, bars, soirées : la ville change de visage.'**
+  String get nightSubtitle;
+
+  /// No description provided for @nightSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où sortir'**
+  String get nightSectionTitle;
+
+  /// No description provided for @nightChipClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discothèque'**
+  String get nightChipClub;
+
+  /// No description provided for @nightChipNightBar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bar de nuit'**
+  String get nightChipNightBar;
+
+  /// No description provided for @nightChipCocktails.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cocktails'**
+  String get nightChipCocktails;
+
+  /// No description provided for @nightChipShisha.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chicha'**
+  String get nightChipShisha;
+
+  /// No description provided for @nightBannerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'La nuit t\'appartient.'**
+  String get nightBannerTitle;
+
+  /// No description provided for @nightBannerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les meilleurs spots nocturnes vous attendent.'**
+  String get nightBannerSubtitle;
+
+  /// No description provided for @nightUntil2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu\'à 2h'**
+  String get nightUntil2;
+
+  /// No description provided for @nightAfter2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Après 2h'**
+  String get nightAfter2;
+
+  /// No description provided for @nightAfter6.
+  ///
+  /// In fr, this message translates to:
+  /// **'Après 6h'**
+  String get nightAfter6;
+
+  /// No description provided for @nightAllNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'24h/24'**
+  String get nightAllNight;
+
+  /// No description provided for @nightMapTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sortir ce soir'**
+  String get nightMapTitle;
+
+  /// No description provided for @nightCatClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Club disco'**
+  String get nightCatClub;
+
+  /// No description provided for @nightCatNightBar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bar de nuit'**
+  String get nightCatNightBar;
+
+  /// No description provided for @nightCatCocktails.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cocktails'**
+  String get nightCatCocktails;
+
+  /// No description provided for @nightCatShisha.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chicha'**
+  String get nightCatShisha;
+
+  /// No description provided for @nightCatPub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pub'**
+  String get nightCatPub;
+
+  /// No description provided for @sosAperoOne.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une enseigne livre quand tout est fermé'**
+  String get sosAperoOne;
+
+  /// Bandeau SOS Apero
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} enseignes livrent quand tout est fermé'**
+  String sosAperoMany(int count);
+
+  /// No description provided for @nightPlanTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compose ta soirée'**
+  String get nightPlanTitle;
+
+  /// No description provided for @nightPlanSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dîner · concert · bar · boîte'**
+  String get nightPlanSubtitle;
+
+  /// No description provided for @nightPlanDinner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dîner'**
+  String get nightPlanDinner;
+
+  /// No description provided for @nightPlanDinnerHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avant le show'**
+  String get nightPlanDinnerHint;
+
+  /// No description provided for @nightPlanDrink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un verre'**
+  String get nightPlanDrink;
+
+  /// No description provided for @nightPlanDrinkHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour prolonger la soirée'**
+  String get nightPlanDrinkHint;
+
+  /// No description provided for @nightPlanClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'En boîte'**
+  String get nightPlanClub;
+
+  /// No description provided for @nightPlanClubHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour finir la nuit'**
+  String get nightPlanClubHint;
+
+  /// No description provided for @nightPlanYourEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'TON ÉVÉNEMENT'**
+  String get nightPlanYourEvent;
+
+  /// No description provided for @nightPlanGoFurther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aller encore plus loin : une boîte de nuit'**
+  String get nightPlanGoFurther;
+
+  /// No description provided for @nightPlanGo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Y aller'**
+  String get nightPlanGo;
+
+  /// No description provided for @nightPlanPartner.
+  ///
+  /// In fr, this message translates to:
+  /// **'⭐ Partenaire'**
+  String get nightPlanPartner;
+
+  /// No description provided for @nightPlanEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de suggestions'**
+  String get nightPlanEmptyTitle;
+
+  /// Compose ta soiree vide
+  ///
+  /// In fr, this message translates to:
+  /// **'On n\'a pas trouvé de lieux à {city} pour composer ta soirée. Reviens quand la ville sera plus fournie !'**
+  String nightPlanEmptyBody(String city);
 }
 
 class _AppLocalizationsDelegate

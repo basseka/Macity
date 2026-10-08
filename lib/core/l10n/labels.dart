@@ -102,3 +102,17 @@ String cultureCategoryLabel(BuildContext context, String key) {
     _ => key,
   };
 }
+
+/// Sous-rubriques Night (cles categorie : 'Club Discotheque', 'Bar a chicha'...).
+String nightCategoryLabel(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'Club Discotheque' => l10n.nightCatClub,
+    'Bar de nuit' => l10n.nightCatNightBar,
+    'Bar a cocktails' => l10n.nightCatCocktails,
+    'Bar a chicha' => l10n.nightCatShisha,
+    'Pub' => l10n.nightCatPub,
+    'A venir' => l10n.cultureCatUpcoming,
+    _ => key,
+  };
+}

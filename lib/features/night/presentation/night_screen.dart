@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
@@ -43,18 +45,8 @@ class NightScreen extends ConsumerWidget {
   }
 
   /// Libelle raccourci pour l'en-tete de la liste venues.
-  static String _displayLabel(String category) {
-    switch (category) {
-      case 'Club Discotheque':
-        return 'Club disco';
-      case 'Bar a cocktails':
-        return 'Cocktails';
-      case 'Bar a chicha':
-        return 'Chicha';
-      default:
-        return category;
-    }
-  }
+  static String _displayLabel(BuildContext context, String category) =>
+      nightCategoryLabel(context, category);
 
   static void _openMapFor(WidgetRef ref, String category) {
     if (category == 'Club Discotheque') {
@@ -87,24 +79,27 @@ class NightScreen extends ConsumerWidget {
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {
     return RubriqueConfig(
       theme: _night,
-      eyebrowLeft: 'RUBRIQUE',
+      eyebrowLeft: context.l10n.rubriqueEyebrow,
       eyebrowRight: 'AFTER',
-      title: 'Nuit.',
-      subtitle: 'Clubs, bars, soirées — la ville change de visage.',
-      sectionTitle: 'Où sortir',
-      chips: const [
-        RubriqueChip('Discothèque', Icons.celebration_rounded,
+      title: context.l10n.nightTitle,
+      subtitle: context.l10n.nightSubtitle,
+      sectionTitle: context.l10n.nightSectionTitle,
+      chips: [
+        RubriqueChip(context.l10n.nightChipClub, Icons.celebration_rounded,
             'Club Discotheque'),
-        RubriqueChip('Bar de nuit', Icons.nightlife_rounded, 'Bar de nuit'),
-        RubriqueChip('Cocktails', Icons.local_bar_rounded, 'Bar a cocktails'),
-        RubriqueChip('Chicha', Icons.air_rounded, 'Bar a chicha'),
+        RubriqueChip(context.l10n.nightChipNightBar, Icons.nightlife_rounded,
+            'Bar de nuit'),
+        RubriqueChip(context.l10n.nightChipCocktails, Icons.local_bar_rounded,
+            'Bar a cocktails'),
+        RubriqueChip(context.l10n.nightChipShisha, Icons.air_rounded,
+            'Bar a chicha'),
         RubriqueChip('Pub', Icons.sports_bar_rounded, 'Pub'),
         RubriqueChip('Spicy', Icons.local_fire_department_rounded, 'Spicy'),
       ],
       rubriqueKey: 'night',
-      bannerTitle: 'La nuit t\'appartient.',
-      bannerSubtitle: 'Les meilleurs spots nocturnes vous attendent.',
-      bannerCta: 'Découvrir',
+      bannerTitle: context.l10n.nightBannerTitle,
+      bannerSubtitle: context.l10n.nightBannerSubtitle,
+      bannerCta: context.l10n.commonDiscover,
       onBack: () => context.go('/home'),
       // Section « Affinez votre recherche » : tous les lieux night de la ville
       // (indépendant du chip du haut) + carte, filtrés sur l'heure de
@@ -131,22 +126,22 @@ class NightScreen extends ConsumerWidget {
       // AUCUN chip — il n'y a pas de vue « tout » ici.
       refineChipsBuilder: (_) => [
         RefineChip(
-          'Jusqu\'à 2h',
+          context.l10n.nightUntil2,
           (it) => closesUpTo(it.commerce?.horaires ?? '', 2),
           icon: Icons.local_bar_rounded,
         ),
         RefineChip(
-          'Après 2h',
+          context.l10n.nightAfter2,
           (it) => closesAfter(it.commerce?.horaires ?? '', 3),
           icon: Icons.nightlife_rounded,
         ),
         RefineChip(
-          'Après 6h',
+          context.l10n.nightAfter6,
           (it) => closesAfter(it.commerce?.horaires ?? '', 7),
           icon: Icons.dark_mode_rounded,
         ),
         RefineChip(
-          '24h/24',
+          context.l10n.nightAllNight,
           (it) => closingHour(it.commerce?.horaires ?? '') == 24,
           icon: Icons.all_inclusive_rounded,
         ),
@@ -155,7 +150,7 @@ class NightScreen extends ConsumerWidget {
         all: all,
         visible: visible,
         accentColor: '#060B2D', // accent Night (bleu nuit)
-        title: 'Sortir ce soir',
+        title: context.l10n.nightMapTitle,
       ),
       // Juste sous la carte : raccourci vers les livreurs d'apéro.
       extraSections: (ctx) => const [SosAperoBanner()],
@@ -233,8 +228,8 @@ class NightScreen extends ConsumerWidget {
         headerSliverBuilder: (_, __) => [
           SliverToBoxAdapter(
             child: EditorialMasthead(
-              kicker: 'Night · ${_displayLabel(selectedCategory)}',
-              title: _displayLabel(selectedCategory),
+              kicker: '${context.l10n.rubriqueNight} · ${_displayLabel(context, selectedCategory)}',
+              title: _displayLabel(context, selectedCategory),
               accent: RubricColors.night,
               onBack: () => ref
                   .read(modeSubcategoriesProvider.notifier)
@@ -300,13 +295,13 @@ class NightScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.near_me, size: 14, color: Colors.white),
                         SizedBox(width: 5),
                         Text(
-                          'Carte',
+                          context.l10n.commonMap,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -321,7 +316,7 @@ class NightScreen extends ConsumerWidget {
               ],
               Expanded(
                 child: Text(
-                  _displayLabel(parentTag),
+                  _displayLabel(context, parentTag),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -344,7 +339,7 @@ class NightScreen extends ConsumerWidget {
                       Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
                       const SizedBox(width: 4),
                       Text(
-                        'Categories',
+                        context.l10n.commonCategories,
                         style: TextStyle(
                           color: modeTheme.primaryColor,
                           fontWeight: FontWeight.w600,
@@ -363,8 +358,8 @@ class NightScreen extends ConsumerWidget {
           child: childrenAsync.when(
             data: (children) {
               if (children.isEmpty) {
-                return const EmptyStateWidget(
-                  message: 'Aucune sous-categorie',
+                return EmptyStateWidget(
+                  message: context.l10n.commonNoSubcategory,
                   icon: Icons.nightlife,
                 );
               }
@@ -396,7 +391,8 @@ class NightScreen extends ConsumerWidget {
               );
             },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-            error: (_, __) => const AppErrorWidget(message: 'Erreur de chargement'),
+            error: (_, __) =>
+                AppErrorWidget(message: context.l10n.commonLoadError),
           ),
         ),
       ],
@@ -447,13 +443,13 @@ class NightScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.near_me, size: 14, color: Colors.white),
                           SizedBox(width: 5),
                           Text(
-                            'Carte',
+                            context.l10n.commonMap,
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -468,7 +464,7 @@ class NightScreen extends ConsumerWidget {
                 ],
                 Expanded(
                   child: Text(
-                    _displayLabel(category),
+                    _displayLabel(context, category),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -497,7 +493,7 @@ class NightScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Categories',
+                          context.l10n.commonCategories,
                           style: TextStyle(
                             color: modeTheme.primaryColor,
                             fontWeight: FontWeight.w600,
@@ -526,10 +522,10 @@ class NightScreen extends ConsumerWidget {
                     if (venues.isEmpty) {
                       return ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        children: const [
+                        children: [
                           SizedBox(height: 320),
                           EmptyStateWidget(
-                            message: 'Aucun commerce trouve pour cette categorie',
+                            message: context.l10n.commonNoPlaceForCategory,
                             icon: Icons.nightlife,
                           ),
                         ],
@@ -558,7 +554,7 @@ class NightScreen extends ConsumerWidget {
                   loading: () =>
                       LoadingIndicator(color: modeTheme.primaryColor),
                   error: (error, _) => AppErrorWidget(
-                    message: 'Erreur lors du chargement des commerces',
+                    message: context.l10n.commonPlacesLoadError,
                     onRetry: () => ref.invalidate(nightVenuesProvider),
                   ),
                 ),
@@ -594,12 +590,12 @@ class NightScreen extends ConsumerWidget {
     }
 
     if (allEvents.isEmpty) {
-      return const Column(
+      return Column(
         children: [
           DateRangeChipBar(),
           Expanded(
             child: EmptyStateWidget(
-              message: 'Aucun evenement pour le moment.\nAjoute un evenement avec le bouton +',
+              message: context.l10n.commonNoEventYetAdd,
               icon: Icons.nightlife,
             ),
           ),

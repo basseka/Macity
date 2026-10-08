@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -137,7 +138,7 @@ class NightCommerceCard extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                commerce.ouvert ? 'Ouvert' : 'Ferme',
+                commerce.ouvert ? context.l10n.commonOpen : context.l10n.commonClosed,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,

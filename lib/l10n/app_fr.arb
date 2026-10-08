@@ -377,5 +377,69 @@
         "type": "int"
       }
     }
+  },
+  "commonClosed": "Fermé",
+  "commonLoadError": "Erreur de chargement",
+  "commonMap": "Carte",
+  "commonList": "Liste",
+  "commonCategories": "Catégories",
+  "commonView": "Voir",
+  "commonNoSubcategory": "Aucune sous-catégorie",
+  "commonNoPlaceForCategory": "Aucun commerce trouvé pour cette catégorie",
+  "commonPlacesLoadError": "Erreur lors du chargement des commerces",
+  "commonNoEventYetAdd": "Aucun événement pour le moment.\nAjoute un événement avec le bouton +",
+  "mapNearestBar": "Bar le plus proche",
+  "mapNearestClub": "Club le plus proche",
+  "mapNearestPlace": "Lieu le plus proche",
+  "nightTitle": "Nuit.",
+  "nightSubtitle": "Clubs, bars, soirées : la ville change de visage.",
+  "nightSectionTitle": "Où sortir",
+  "nightChipClub": "Discothèque",
+  "nightChipNightBar": "Bar de nuit",
+  "nightChipCocktails": "Cocktails",
+  "nightChipShisha": "Chicha",
+  "nightBannerTitle": "La nuit t'appartient.",
+  "nightBannerSubtitle": "Les meilleurs spots nocturnes vous attendent.",
+  "nightUntil2": "Jusqu'à 2h",
+  "nightAfter2": "Après 2h",
+  "nightAfter6": "Après 6h",
+  "nightAllNight": "24h/24",
+  "nightMapTitle": "Sortir ce soir",
+  "nightCatClub": "Club disco",
+  "nightCatNightBar": "Bar de nuit",
+  "nightCatCocktails": "Cocktails",
+  "nightCatShisha": "Chicha",
+  "nightCatPub": "Pub",
+  "sosAperoOne": "Une enseigne livre quand tout est fermé",
+  "sosAperoMany": "{count} enseignes livrent quand tout est fermé",
+  "@sosAperoMany": {
+    "description": "Bandeau SOS Apero",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nightPlanTitle": "Compose ta soirée",
+  "nightPlanSubtitle": "Dîner · concert · bar · boîte",
+  "nightPlanDinner": "Dîner",
+  "nightPlanDinnerHint": "Avant le show",
+  "nightPlanDrink": "Un verre",
+  "nightPlanDrinkHint": "Pour prolonger la soirée",
+  "nightPlanClub": "En boîte",
+  "nightPlanClubHint": "Pour finir la nuit",
+  "nightPlanYourEvent": "TON ÉVÉNEMENT",
+  "nightPlanGoFurther": "Aller encore plus loin : une boîte de nuit",
+  "nightPlanGo": "Y aller",
+  "nightPlanPartner": "⭐ Partenaire",
+  "nightPlanEmptyTitle": "Pas encore de suggestions",
+  "nightPlanEmptyBody": "On n'a pas trouvé de lieux à {city} pour composer ta soirée. Reviens quand la ville sera plus fournie !",
+  "@nightPlanEmptyBody": {
+    "description": "Compose ta soiree vide",
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
   }
 }

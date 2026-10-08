@@ -884,4 +884,155 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get commonClosed => 'Cerrado';
+
+  @override
+  String get commonLoadError => 'Error de carga';
+
+  @override
+  String get commonMap => 'Mapa';
+
+  @override
+  String get commonList => 'Lista';
+
+  @override
+  String get commonCategories => 'Categorías';
+
+  @override
+  String get commonView => 'Ver';
+
+  @override
+  String get commonNoSubcategory => 'Sin subcategorías';
+
+  @override
+  String get commonNoPlaceForCategory =>
+      'No se han encontrado lugares en esta categoría';
+
+  @override
+  String get commonPlacesLoadError => 'Error al cargar los lugares';
+
+  @override
+  String get commonNoEventYetAdd =>
+      'Todavía no hay eventos.\nAñade uno con el botón +';
+
+  @override
+  String get mapNearestBar => 'Bar más cercano';
+
+  @override
+  String get mapNearestClub => 'Club más cercano';
+
+  @override
+  String get mapNearestPlace => 'Lugar más cercano';
+
+  @override
+  String get nightTitle => 'Noche.';
+
+  @override
+  String get nightSubtitle =>
+      'Clubs, bares, fiestas: la ciudad cambia de cara.';
+
+  @override
+  String get nightSectionTitle => 'Dónde salir';
+
+  @override
+  String get nightChipClub => 'Discoteca';
+
+  @override
+  String get nightChipNightBar => 'Bar de noche';
+
+  @override
+  String get nightChipCocktails => 'Cócteles';
+
+  @override
+  String get nightChipShisha => 'Cachimba';
+
+  @override
+  String get nightBannerTitle => 'La noche es tuya.';
+
+  @override
+  String get nightBannerSubtitle => 'Los mejores sitios nocturnos te esperan.';
+
+  @override
+  String get nightUntil2 => 'Hasta las 2h';
+
+  @override
+  String get nightAfter2 => 'Después de las 2h';
+
+  @override
+  String get nightAfter6 => 'Después de las 6h';
+
+  @override
+  String get nightAllNight => '24 h';
+
+  @override
+  String get nightMapTitle => 'Salir esta noche';
+
+  @override
+  String get nightCatClub => 'Discotecas';
+
+  @override
+  String get nightCatNightBar => 'Bares de noche';
+
+  @override
+  String get nightCatCocktails => 'Coctelerías';
+
+  @override
+  String get nightCatShisha => 'Cachimbas';
+
+  @override
+  String get nightCatPub => 'Pubs';
+
+  @override
+  String get sosAperoOne => 'Una tienda reparte cuando todo está cerrado';
+
+  @override
+  String sosAperoMany(int count) {
+    return '$count tiendas reparten cuando todo está cerrado';
+  }
+
+  @override
+  String get nightPlanTitle => 'Organiza tu noche';
+
+  @override
+  String get nightPlanSubtitle => 'Cena · concierto · bar · discoteca';
+
+  @override
+  String get nightPlanDinner => 'Cena';
+
+  @override
+  String get nightPlanDinnerHint => 'Antes del espectáculo';
+
+  @override
+  String get nightPlanDrink => 'Una copa';
+
+  @override
+  String get nightPlanDrinkHint => 'Para alargar la noche';
+
+  @override
+  String get nightPlanClub => 'De discoteca';
+
+  @override
+  String get nightPlanClubHint => 'Para terminar la noche';
+
+  @override
+  String get nightPlanYourEvent => 'TU EVENTO';
+
+  @override
+  String get nightPlanGoFurther => 'Ir aún más lejos: una discoteca';
+
+  @override
+  String get nightPlanGo => 'Ir';
+
+  @override
+  String get nightPlanPartner => '⭐ Socio';
+
+  @override
+  String get nightPlanEmptyTitle => 'Aún no hay sugerencias';
+
+  @override
+  String nightPlanEmptyBody(String city) {
+    return 'No hemos encontrado lugares en $city para organizar tu noche. ¡Vuelve cuando la ciudad tenga más sitios!';
+  }
 }
