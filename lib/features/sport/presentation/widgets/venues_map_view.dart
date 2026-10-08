@@ -1,13 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class VenuesMapView extends StatefulWidget {
   final List<CommerceModel> venues;
-  final String title;
+  /// null = "Le plus proche" dans la langue de l'app.
+  final String? title;
   final String accentColor;
   final bool autoLocate;
   /// Optionnel : emoji par categorie pour les marqueurs.
@@ -61,7 +63,7 @@ class VenuesMapView extends StatefulWidget {
   const VenuesMapView({
     super.key,
     required this.venues,
-    this.title = 'Le plus proche',
+    this.title,
     this.accentColor = '#228B22',
     this.autoLocate = true,
     this.categoryIcons,
@@ -120,7 +122,8 @@ class _VenuesMapViewState extends State<VenuesMapView> {
           },
         ),
       );
-    _loadHtml();
+    // _loadHtml() : dans didChangeDependencies (la page HTML est traduite, et
+    // la langue n'est pas lisible depuis initState).
     // Lancer la géolocalisation immédiatement en parallèle
     if (widget.autoLocate) {
       _autoLocate();
@@ -179,11 +182,13 @@ class _VenuesMapViewState extends State<VenuesMapView> {
 
   /// Géolocalisation manuelle (bouton)
   Future<void> _handleLocationRequest() async {
+    // Lu avant les await : le widget peut etre demonte pendant la demande.
+    final l10n = context.l10n;
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _controller.runJavaScript(
-          "onLocationError('Active la localisation dans les parametres'); void 0;",
+          "onLocationError('${_escapeJs(l10n.mapLocationDisabled)}'); void 0;",
         );
         return;
       }
@@ -194,12 +199,13 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       }
       if (permission == LocationPermission.deniedForever) {
         _controller.runJavaScript(
-          "onLocationError('Autorise la localisation dans les parametres de l appli'); void 0;",
+          "onLocationError('${_escapeJs(l10n.mapLocationNotAllowed)}'); void 0;",
         );
         return;
       }
       if (permission == LocationPermission.denied) {
-        _controller.runJavaScript("onLocationError('Permission refusee'); void 0;");
+        _controller.runJavaScript(
+            "onLocationError('${_escapeJs(l10n.mapPermissionDenied)}'); void 0;");
         return;
       }
 
@@ -217,7 +223,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       _injectPosition(position);
     } catch (e) {
       _controller.runJavaScript(
-        "onLocationError('Impossible d obtenir la position: ${e.toString().replaceAll("'", "")}'); void 0;",
+        "onLocationError('${_escapeJs(l10n.mapLocationError(e.toString()))}'); void 0;",
       );
     }
   }
@@ -273,11 +279,17 @@ class _VenuesMapViewState extends State<VenuesMapView> {
         : 'null';
 
     final accent = widget.accentColor;
-    final title = _escapeHtml(widget.title);
+    final l10n = context.l10n;
+    final title = _escapeHtml(widget.title ?? l10n.mapNearest);
+    final tDirections = _escapeHtml(l10n.mapDirections);
+    final tWebsite = _escapeHtml(l10n.websiteLabel);
+    final tMyLocation = _escapeHtml(l10n.mapMyLocation);
+    // Gabarit "à {distance} de vous" : {distance} est remplace cote JS.
+    final tAway = _escapeJs(l10n.mapDistanceAway('{distance}'));
 
     final html = '''
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="${Localizations.localeOf(context).languageCode}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -328,14 +340,14 @@ class _VenuesMapViewState extends State<VenuesMapView> {
     <div class="info-panel-detail" id="closestAddress"></div>
     <div class="info-panel-distance" id="closestDistance"></div>
     <div class="info-panel-actions">
-      <a class="info-panel-btn primary" id="closestItinerary" href="#" target="_blank">Itineraire</a>
-      <a class="info-panel-btn secondary" id="closestWebsite" href="#" target="_blank">Site web</a>
+      <a class="info-panel-btn primary" id="closestItinerary" href="#" target="_blank">$tDirections</a>
+      <a class="info-panel-btn secondary" id="closestWebsite" href="#" target="_blank">$tWebsite</a>
     </div>
   </div>
   ${widget.showLegend ? '''<div class="legend-wrapper">
     <div class="legend">
       $legendHtml
-      <div class="legend-item"><span class="legend-dot" style="background:#4285F4"></span>Ma position</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4285F4"></span>$tMyLocation</div>
     </div>
   </div>''' : ''}
   <script>
@@ -397,7 +409,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
         marker.on('click', () => FlutterVenueTap.postMessage(String(v.idx)));
       } else {
         let popup = '<div class="popup-name">' + v.nom + '</div><div class="popup-cat">' + v.cat + '</div><div class="popup-address">' + v.adresse + '</div>';
-        if (v.site) popup += '<a class="popup-link" href="' + v.site + '" target="_blank">Site web &rarr;</a>';
+        if (v.site) popup += '<a class="popup-link" href="' + v.site + '" target="_blank">$tWebsite &rarr;</a>';
         marker.bindPopup(popup);
       }
       allMarkers.push({ ...v, marker });
@@ -441,7 +453,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
           icon: L.divIcon({ className: '', html: '<div class="user-marker"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }),
           zIndexOffset: 1000,
         }).addTo(map);
-        userMarker.bindPopup('<b>Ma position</b>');
+        userMarker.bindPopup('<b>$tMyLocation</b>');
       }
       if (SHOW_CLOSEST) {
         findClosest();
@@ -479,7 +491,7 @@ class _VenuesMapViewState extends State<VenuesMapView> {
       document.getElementById('closestName').textContent = c.nom;
       document.getElementById('closestAddress').textContent = c.adresse;
       const dt = c.distance < 1 ? Math.round(c.distance*1000) + ' m' : c.distance.toFixed(1) + ' km';
-      document.getElementById('closestDistance').textContent = 'a ' + dt + ' de vous';
+      document.getElementById('closestDistance').textContent = '$tAway'.replace('{distance}', dt);
       document.getElementById('closestItinerary').href = 'https://www.google.com/maps/dir/' + userLat + ',' + userLng + '/' + c.lat + ',' + c.lng;
       const sb = document.getElementById('closestWebsite');
       if (c.site) { sb.href = c.site; sb.style.display = 'block'; } else { sb.style.display = 'none'; }
@@ -507,6 +519,18 @@ class _VenuesMapViewState extends State<VenuesMapView> {
   static String _venuesSignature(List<CommerceModel> venues) => venues
       .map((v) => '${v.nom}|${v.latitude}|${v.longitude}')
       .join(';');
+
+  @override
+  bool _htmlLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_htmlLoaded) {
+      _htmlLoaded = true;
+      _loadHtml();
+    }
+  }
 
   @override
   void didUpdateWidget(VenuesMapView old) {

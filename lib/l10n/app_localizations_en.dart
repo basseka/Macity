@@ -1030,4 +1030,203 @@ class AppLocalizationsEn extends AppLocalizations {
   String nightPlanEmptyBody(String city) {
     return 'We couldn\'t find places in $city to plan your night. Come back once the city has more listings!';
   }
+
+  @override
+  String get ticketsLabel => 'Tickets';
+
+  @override
+  String get ticketsShort => 'Tickets';
+
+  @override
+  String get websiteLabel => 'Website';
+
+  @override
+  String shareDate(String date) {
+    return 'Date: $date';
+  }
+
+  @override
+  String shareVenue(String venue) {
+    return 'Venue: $venue';
+  }
+
+  @override
+  String get countdownToday => 'TODAY';
+
+  @override
+  String get countdownTomorrow => 'TOMORROW';
+
+  @override
+  String countdownDays(int count) {
+    return 'D-$count';
+  }
+
+  @override
+  String get commonNoEventFound => 'No events found';
+
+  @override
+  String get mapNearest => 'Nearest';
+
+  @override
+  String get mapDirections => 'Directions';
+
+  @override
+  String get mapMyLocation => 'My location';
+
+  @override
+  String mapDistanceAway(String distance) {
+    return '$distance away';
+  }
+
+  @override
+  String get mapLocationDisabled => 'Turn on location in your settings';
+
+  @override
+  String get mapLocationNotAllowed =>
+      'Allow location access in the app settings';
+
+  @override
+  String get mapPermissionDenied => 'Permission denied';
+
+  @override
+  String mapLocationError(String error) {
+    return 'Unable to get your location: $error';
+  }
+
+  @override
+  String get sportTitle => 'Sport.';
+
+  @override
+  String get sportSubtitle => 'Gyms, pitches, pools: get moving near you.';
+
+  @override
+  String get sportSectionTitle => 'Where to train';
+
+  @override
+  String get sportChipGroupClasses => 'Group classes';
+
+  @override
+  String get sportChipWeights => 'Weights';
+
+  @override
+  String get sportChipGentle => 'Gentle exercise';
+
+  @override
+  String get sportChipBasket => 'Basketball';
+
+  @override
+  String get sportChipPool => 'Pool';
+
+  @override
+  String get sportBannerTitle => 'Take action.';
+
+  @override
+  String get sportBannerSubtitle => 'The best sports spots await you.';
+
+  @override
+  String get sportMapTitle => 'Sports venues';
+
+  @override
+  String sportGymCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gyms',
+      one: '1 gym',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sportKickerHome => 'Section · Active';
+
+  @override
+  String get sportBlurb =>
+      'Matches, races, training: the city\'s sports calendar.';
+
+  @override
+  String get sportNoMatch => 'No matches found for this category';
+
+  @override
+  String get sportMatchError => 'Error loading matches';
+
+  @override
+  String get sportNews => 'Sports news';
+
+  @override
+  String get sportReadArticle => 'Read the article';
+
+  @override
+  String sportReadOn(String source) {
+    return 'Read on $source';
+  }
+
+  @override
+  String get sportCatMatches => 'Matches';
+
+  @override
+  String get sportCatEvents => 'Events';
+
+  @override
+  String get sportCatComplex => 'Sports centres';
+
+  @override
+  String get sportCatMarathon => 'Marathon';
+
+  @override
+  String get sportCatRacket => 'Racket sports';
+
+  @override
+  String get sportCatBoxing => 'Boxing';
+
+  @override
+  String get sportCatSwimming => 'Swimming';
+
+  @override
+  String get sportCatRunning => 'Running';
+
+  @override
+  String get sportCatCompetition => 'Competitions';
+
+  @override
+  String get sportCatDanceWorkshop => 'Dance workshops';
+
+  @override
+  String get sportCatGym => 'Gyms';
+
+  @override
+  String get sportCatBoxingGym => 'Boxing gyms';
+
+  @override
+  String get sportCatFootballPitch => 'Football pitches';
+
+  @override
+  String get sportCatBasketCourt => 'Basketball courts';
+
+  @override
+  String get sportCatPool => 'Swimming pools';
+
+  @override
+  String get sportCatPadel => 'Padel';
+
+  @override
+  String get sportCatTableTennis => 'Table tennis';
+
+  @override
+  String get sportCatBadminton => 'Badminton';
+
+  @override
+  String get sportCatFootball => 'Football';
+
+  @override
+  String get sportCatBasketball => 'Basketball';
+
+  @override
+  String get sportCatHandball => 'Handball';
+
+  @override
+  String get sportCatGala => 'Gala / Fights';
+
+  @override
+  String get sportCatOlympics => '2028 Olympics';
 }

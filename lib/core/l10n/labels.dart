@@ -116,3 +116,37 @@ String nightCategoryLabel(BuildContext context, String key) {
     _ => key,
   };
 }
+
+/// Sous-rubriques Sport (cles : 'Salle de fitness', 'Courses a pied'...).
+String sportCategoryLabel(BuildContext context, String key) {
+  final l10n = context.l10n;
+  return switch (key) {
+    'Sport' => l10n.rubriqueSport,
+    'Matchs' => l10n.sportCatMatches,
+    'Events' => l10n.sportCatEvents,
+    'Complexe sportif' => l10n.sportCatComplex,
+    'Marathon' => l10n.sportCatMarathon,
+    'Raquette' => l10n.sportCatRacket,
+    'Boxe' => l10n.sportCatBoxing,
+    'Natation' => l10n.sportCatSwimming,
+    'Courses a pied' => l10n.sportCatRunning,
+    'Competition' => l10n.sportCatCompetition,
+    'Stage de danse' => l10n.sportCatDanceWorkshop,
+    'Danse' => l10n.catDance,
+    'Salle de fitness' => l10n.sportCatGym,
+    'Salles de boxe' => l10n.sportCatBoxingGym,
+    'Terrain de football' => l10n.sportCatFootballPitch,
+    'Terrain de basketball' => l10n.sportCatBasketCourt,
+    'Piscine' => l10n.sportCatPool,
+    'Padel' => l10n.sportCatPadel,
+    'Ping-pong' => l10n.sportCatTableTennis,
+    'Badminton' => l10n.sportCatBadminton,
+    'Football' => l10n.sportCatFootball,
+    'Basketball' => l10n.sportCatBasketball,
+    'Handball' => l10n.sportCatHandball,
+    'Gala / Matchs' => l10n.sportCatGala,
+    'JO 2028' => l10n.sportCatOlympics,
+    'A venir' => l10n.cultureCatUpcoming,
+    _ => key,
+  };
+}

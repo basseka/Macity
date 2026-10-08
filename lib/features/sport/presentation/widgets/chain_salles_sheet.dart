@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
@@ -101,9 +102,7 @@ class _ChainSallesSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          salles.length > 1
-                              ? '${salles.length} salles'
-                              : '1 salle',
+                          context.l10n.sportGymCount(salles.length),
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black54,

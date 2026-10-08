@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -29,7 +30,7 @@ class SportBackButton extends ConsumerWidget {
           if (leading != null) leading!,
           Expanded(
             child: Text(
-              title ?? '',
+              sportCategoryLabel(context, title ?? ''),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
@@ -48,7 +49,7 @@ class SportBackButton extends ConsumerWidget {
                   Icon(Icons.arrow_back_ios, size: 14, color: modeTheme.primaryColor),
                   const SizedBox(width: 4),
                   Text(
-                    label,
+                    sportCategoryLabel(context, label),
                     style: TextStyle(
                       color: modeTheme.primaryColor,
                       fontWeight: FontWeight.w600,

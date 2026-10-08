@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/widgets/rubrique/rubrique_landing_view.dart'
@@ -26,7 +27,7 @@ class SportNewsSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
           child: Text(
-            'Actu sport',
+            context.l10n.sportNews,
             style: RubriqueTheme.sectionHeader(fontSize: 14),
           ),
         ),
@@ -230,8 +231,8 @@ class _SportNewsDetail extends StatelessWidget {
                         icon: const Icon(Icons.open_in_new_rounded, size: 17),
                         label: Text(
                           news.sourceName.isEmpty
-                              ? 'Lire l\'article'
-                              : 'Lire sur ${news.sourceName}',
+                              ? context.l10n.sportReadArticle
+                              : context.l10n.sportReadOn(news.sourceName),
                         ),
                       ),
                     ),

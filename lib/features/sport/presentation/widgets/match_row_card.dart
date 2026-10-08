@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -179,7 +180,13 @@ class MatchRowCard extends ConsumerWidget {
     // Countdown
     final matchDate = DateTime.tryParse(match.date);
     final daysLeft = matchDate != null ? matchDate.difference(DateTime.now()).inDays : -1;
-    final countdownLabel = daysLeft == 0 ? "AUJOURD'HUI" : daysLeft == 1 ? 'DEMAIN' : daysLeft > 1 ? 'J-$daysLeft' : '';
+    final countdownLabel = daysLeft == 0
+        ? context.l10n.countdownToday
+        : daysLeft == 1
+            ? context.l10n.countdownTomorrow
+            : daysLeft > 1
+                ? context.l10n.countdownDays(daysLeft)
+                : '';
 
     return GestureDetector(
       onTap: () => _openDetail(context),
@@ -257,7 +264,7 @@ class MatchRowCard extends ConsumerWidget {
                         boxShadow: AppShadows.neon(AppColors.magenta, blur: 6, y: 1),
                       ),
                       child: Text(
-                        'GRATUIT',
+                        context.l10n.commonFree,
                         style: GoogleFonts.geistMono(
                           fontSize: 8,
                           fontWeight: FontWeight.w700,
@@ -413,7 +420,7 @@ class MatchRowCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            'Billets',
+                            context.l10n.ticketsShort,
                             style: GoogleFonts.geist(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w600,
@@ -513,27 +520,27 @@ class MatchRowCard extends ConsumerWidget {
           if (match.description.isNotEmpty)
             DetailInfoItem(Icons.info_outline, match.description),
           if (match.gratuit.toLowerCase() == 'oui')
-            DetailInfoItem(Icons.money_off, 'Gratuit'),
+            DetailInfoItem(Icons.money_off, context.l10n.priceFree),
         ],
         primaryAction: match.billetterie.isNotEmpty
             ? DetailAction(
                 icon: Icons.confirmation_number_outlined,
-                label: 'Billetterie',
+                label: context.l10n.ticketsLabel,
                 url: match.billetterie,
               )
             : null,
-        shareText: _buildShareText(),
+        shareText: _buildShareText(context),
       ),
     );
   }
 
-  String _buildShareText() {
+  String _buildShareText(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln('${match.equipe1} vs ${match.equipe2}');
     if (match.competition.isNotEmpty) buffer.writeln(match.competition);
-    if (match.date.isNotEmpty) buffer.writeln('Date: ${match.date}');
-    if (match.lieu.isNotEmpty) buffer.writeln('Lieu: ${match.lieu}');
-    buffer.writeln('\nDecouvre sur MaCity');
+    if (match.date.isNotEmpty) buffer.writeln(context.l10n.shareDate(match.date));
+    if (match.lieu.isNotEmpty) buffer.writeln(context.l10n.shareVenue(match.lieu));
+    buffer.writeln('\n${context.l10n.shareFooter}');
     return buffer.toString();
   }
 

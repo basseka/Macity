@@ -441,5 +441,120 @@
         "type": "String"
       }
     }
-  }
+  },
+  "ticketsLabel": "Billetterie",
+  "ticketsShort": "Billets",
+  "websiteLabel": "Site web",
+  "shareDate": "Date : {date}",
+  "@shareDate": {
+    "description": "Texte de partage",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "shareVenue": "Lieu : {venue}",
+  "@shareVenue": {
+    "description": "Texte de partage",
+    "placeholders": {
+      "venue": {
+        "type": "String"
+      }
+    }
+  },
+  "countdownToday": "AUJOURD'HUI",
+  "countdownTomorrow": "DEMAIN",
+  "countdownDays": "J-{count}",
+  "@countdownDays": {
+    "description": "Compte a rebours avant un match",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonNoEventFound": "Aucun événement trouvé",
+  "mapNearest": "Le plus proche",
+  "mapDirections": "Itinéraire",
+  "mapMyLocation": "Ma position",
+  "mapDistanceAway": "à {distance} de vous",
+  "@mapDistanceAway": {
+    "description": "Distance au lieu le plus proche",
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "mapLocationDisabled": "Active la localisation dans les paramètres",
+  "mapLocationNotAllowed": "Autorise la localisation dans les paramètres de l'appli",
+  "mapPermissionDenied": "Permission refusée",
+  "mapLocationError": "Impossible d'obtenir la position : {error}",
+  "@mapLocationError": {
+    "description": "Erreur de geolocalisation",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sportTitle": "Sport.",
+  "sportSubtitle": "Salles, terrains, piscines : bouger près de chez toi.",
+  "sportSectionTitle": "Où pratiquer",
+  "sportChipGroupClasses": "Cours Co",
+  "sportChipWeights": "Muscu",
+  "sportChipGentle": "Gym Douce",
+  "sportChipBasket": "Basket",
+  "sportChipPool": "Piscine",
+  "sportBannerTitle": "Passe à l'action.",
+  "sportBannerSubtitle": "Les meilleurs spots sportifs vous attendent.",
+  "sportMapTitle": "Lieux de sport",
+  "sportGymCount": "{count, plural, =1{1 salle} other{{count} salles}}",
+  "@sportGymCount": {
+    "description": "Nombre de salles d'une chaine",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sportKickerHome": "Rubrique · Active",
+  "sportBlurb": "Matchs, courses, entraînement : l'agenda sportif de la ville.",
+  "sportNoMatch": "Aucun match trouvé pour cette catégorie",
+  "sportMatchError": "Erreur lors du chargement des matchs",
+  "sportNews": "Actu sport",
+  "sportReadArticle": "Lire l'article",
+  "sportReadOn": "Lire sur {source}",
+  "@sportReadOn": {
+    "description": "Lien vers un article",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "sportCatMatches": "Matchs",
+  "sportCatEvents": "Events",
+  "sportCatComplex": "Complexe sportif",
+  "sportCatMarathon": "Marathon",
+  "sportCatRacket": "Raquette",
+  "sportCatBoxing": "Boxe",
+  "sportCatSwimming": "Natation",
+  "sportCatRunning": "Courses à pied",
+  "sportCatCompetition": "Compétition",
+  "sportCatDanceWorkshop": "Stage de danse",
+  "sportCatGym": "Salle de fitness",
+  "sportCatBoxingGym": "Salles de boxe",
+  "sportCatFootballPitch": "Terrain de football",
+  "sportCatBasketCourt": "Terrain de basketball",
+  "sportCatPool": "Piscine",
+  "sportCatPadel": "Padel",
+  "sportCatTableTennis": "Ping-pong",
+  "sportCatBadminton": "Badminton",
+  "sportCatFootball": "Football",
+  "sportCatBasketball": "Basketball",
+  "sportCatHandball": "Handball",
+  "sportCatGala": "Gala / Matchs",
+  "sportCatOlympics": "JO 2028"
 }

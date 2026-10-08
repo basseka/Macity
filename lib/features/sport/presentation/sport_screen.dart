@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -69,27 +71,27 @@ class SportScreen extends ConsumerWidget {
   RubriqueConfig _config(BuildContext context, WidgetRef ref) {
     return RubriqueConfig(
       theme: _sport,
-      eyebrowLeft: 'RUBRIQUE',
+      eyebrowLeft: context.l10n.rubriqueEyebrow,
       eyebrowRight: 'ACTIVE',
-      title: 'Sport.',
-      subtitle: 'Salles, terrains, piscines — bouger près de chez toi.',
-      sectionTitle: 'Où pratiquer',
-      chips: const [
-        RubriqueChip('Cours Co', Icons.fitness_center_rounded, 'fitness'),
-        RubriqueChip('Muscu', Icons.sports_gymnastics_rounded, 'muscu'),
-        RubriqueChip('Gym Douce', Icons.self_improvement_rounded, 'gym-douce'),
-        RubriqueChip('Boxe', Icons.sports_mma_rounded, 'boxe'),
-        RubriqueChip('Football', Icons.sports_soccer_rounded,
+      title: context.l10n.sportTitle,
+      subtitle: context.l10n.sportSubtitle,
+      sectionTitle: context.l10n.sportSectionTitle,
+      chips: [
+        RubriqueChip(context.l10n.sportChipGroupClasses, Icons.fitness_center_rounded, 'fitness'),
+        RubriqueChip(context.l10n.sportChipWeights, Icons.sports_gymnastics_rounded, 'muscu'),
+        RubriqueChip(context.l10n.sportChipGentle, Icons.self_improvement_rounded, 'gym-douce'),
+        RubriqueChip(context.l10n.sportCatBoxing, Icons.sports_mma_rounded, 'boxe'),
+        RubriqueChip(context.l10n.sportCatFootball, Icons.sports_soccer_rounded,
             'terrain-football'),
-        RubriqueChip('Basket', Icons.sports_basketball_rounded,
+        RubriqueChip(context.l10n.sportChipBasket, Icons.sports_basketball_rounded,
             'terrain-basketball'),
-        RubriqueChip('Piscine', Icons.pool_rounded, 'piscine'),
+        RubriqueChip(context.l10n.sportChipPool, Icons.pool_rounded, 'piscine'),
         RubriqueChip('Golf', Icons.golf_course_rounded, 'golf'),
       ],
       rubriqueKey: 'sport',
-      bannerTitle: 'Passe à l\'action.',
-      bannerSubtitle: 'Les meilleurs spots sportifs vous attendent.',
-      bannerCta: 'Découvrir',
+      bannerTitle: context.l10n.sportBannerTitle,
+      bannerSubtitle: context.l10n.sportBannerSubtitle,
+      bannerCta: context.l10n.commonDiscover,
       onBack: () => context.go('/home'),
       // Section « Affinez votre recherche » : tous les lieux sport de la ville
       // (indépendant du chip du haut) + carte, filtrés par quartier.
@@ -116,7 +118,7 @@ class SportScreen extends ConsumerWidget {
         all: all,
         visible: visible,
         accentColor: '#A020F0', // accent Sport
-        title: 'Lieux de sport',
+        title: context.l10n.sportMapTitle,
       ),
       extraSections: (ctx) => const [SportHomeMatchesSection()],
       extraSectionsBottom: (ctx) => const [SportNewsSection()],
@@ -148,9 +150,7 @@ class SportScreen extends ConsumerWidget {
               SingleVenueEntry(:final venue) => itemForVenue(venue),
               ChainGroupEntry(:final chain, :final salles) => RubriqueItem(
                   title: chain.name,
-                  subtitle: salles.length > 1
-                      ? '${salles.length} salles'
-                      : '1 salle',
+                  subtitle: context.l10n.sportGymCount(salles.length),
                   photoUrl: chainPhotos[chain.token] ?? '',
                   commerce: null,
                   onTap: (ctx) =>
@@ -184,11 +184,15 @@ class SportScreen extends ConsumerWidget {
         headerSliverBuilder: (_, __) => [
           SliverToBoxAdapter(
             child: EditorialMasthead(
-              kicker: sub == null ? 'Rubrique · Active' : 'Sport · $sub',
-              title: sub ?? 'Sport',
+              kicker: sub == null
+                  ? context.l10n.sportKickerHome
+                  : '${context.l10n.rubriqueSport} · ${sportCategoryLabel(context, sub)}',
+              title: sub == null
+                  ? context.l10n.rubriqueSport
+                  : sportCategoryLabel(context, sub),
               accent: RubricColors.sport,
               blurb: sub == null
-                  ? 'Matchs, courses, entrainement — l\'agenda sportif de la ville.'
+                  ? context.l10n.sportBlurb
                   : null,
               onBack: sub == null
                   ? () => context.go('/home')

@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -103,7 +104,7 @@ class _ChainFitnessCardState extends ConsumerState<ChainFitnessCard> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          count > 1 ? '$count salles' : '1 salle',
+                          context.l10n.sportGymCount(count),
                           style: TextStyle(
                             fontSize: 11,
                             color: modeTheme.primaryColor,

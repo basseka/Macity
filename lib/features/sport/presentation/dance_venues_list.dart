@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/error_widget.dart';
@@ -37,12 +38,12 @@ class DanceVenuesList extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [BoxShadow(color: modeTheme.primaryColor.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 2))],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.near_me, size: 14, color: Colors.white),
+                      const Icon(Icons.near_me, size: 14, color: Colors.white),
                       SizedBox(width: 5),
-                      Text('Carte', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+                      Text(context.l10n.commonMap, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -104,7 +105,8 @@ class DanceVenuesList extends ConsumerWidget {
               return ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.only(bottom: 16), children: items);
             },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
-            error: (error, _) => const AppErrorWidget(message: 'Erreur lors du chargement des salles de danse'),
+            error: (error, _) =>
+                AppErrorWidget(message: context.l10n.cultureDanceError),
           ),
         ),
       ],

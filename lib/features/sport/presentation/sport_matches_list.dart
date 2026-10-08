@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
@@ -71,8 +73,8 @@ class SportMatchesList extends ConsumerWidget {
           child: matchesAsync.when(
             data: (matches) {
               if (matches.isEmpty) {
-                return const EmptyStateWidget(
-                  message: 'Aucun match trouve pour cette categorie',
+                return EmptyStateWidget(
+                  message: context.l10n.sportNoMatch,
                   icon: Icons.sports,
                 );
               }
@@ -90,7 +92,7 @@ class SportMatchesList extends ConsumerWidget {
             },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
             error: (error, _) => AppErrorWidget(
-              message: 'Erreur lors du chargement des matchs',
+              message: context.l10n.sportMatchError,
               onRetry: () => ref.invalidate(sportMatchesProvider),
             ),
           ),
@@ -141,14 +143,14 @@ class SportMatchesList extends ConsumerWidget {
   ) {
     final parsed = DateTime.tryParse(match.date);
     final monthAbbr = parsed != null
-        ? DateFormat('MMM', 'fr_FR')
+        ? DateFormat('MMM', context.dateLocale)
             .format(parsed)
             .replaceAll('.', '')
             .toUpperCase()
         : null;
     final dayNum = parsed?.day.toString();
     final weekDay = parsed != null
-        ? DateFormat('EEE', 'fr_FR').format(parsed).toLowerCase()
+        ? DateFormat('EEE', context.dateLocale).format(parsed).toLowerCase()
         : null;
     final title = match.equipe2.isNotEmpty
         ? '${match.equipe1}  vs  ${match.equipe2}'
@@ -202,7 +204,7 @@ class SportMatchesList extends ConsumerWidget {
         primaryAction: match.billetterie.isNotEmpty
             ? DetailAction(
                 icon: Icons.confirmation_number_outlined,
-                label: 'Billetterie',
+                label: context.l10n.ticketsLabel,
                 url: match.billetterie,
               )
             : null,

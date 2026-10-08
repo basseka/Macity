@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -180,7 +181,7 @@ class FitnessVenueCard extends ConsumerWidget {
                   if (commerce.siteWeb.isNotEmpty)
                     _buildActionButton(
                       icon: Icons.language,
-                      label: 'Site web',
+                      label: context.l10n.websiteLabel,
                       color: modeTheme.primaryColor,
                       onTap: () => _openWebsite(),
                     ),
@@ -196,9 +197,9 @@ class FitnessVenueCard extends ConsumerWidget {
 
                   _buildActionButton(
                     icon: Icons.share_outlined,
-                    label: 'Partager',
+                    label: context.l10n.commonShare,
                     color: AppColors.textDim,
-                    onTap: () => _share(),
+                    onTap: () => _share(context),
                   ),
                 ],
               ),
@@ -277,7 +278,7 @@ class FitnessVenueCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(commerce.nom);
     if (commerce.categorie.isNotEmpty) {
@@ -289,7 +290,7 @@ class FitnessVenueCard extends ConsumerWidget {
     if (commerce.siteWeb.isNotEmpty) {
       buffer.writeln(commerce.siteWeb);
     }
-    buffer.writeln('\nDecouvre sur MaCity');
+    buffer.writeln('\n${context.l10n.shareFooter}');
 
     Share.share(buffer.toString());
   }

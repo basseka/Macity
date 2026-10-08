@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +49,7 @@ class SportEventsGrid extends ConsumerWidget {
             data: (matches) {
               if (matches.isEmpty) {
                 return EmptyStateWidget(
-                  message: 'Aucun evenement trouve',
+                  message: context.l10n.commonNoEventFound,
                   icon: emptyIcon,
                 );
               }
@@ -69,7 +70,7 @@ class SportEventsGrid extends ConsumerWidget {
             },
             loading: () => LoadingIndicator(color: modeTheme.primaryColor),
             error: (error, _) => AppErrorWidget(
-              message: 'Erreur lors du chargement',
+              message: context.l10n.commonLoadError,
               onRetry: () => ref.invalidate(sportMatchesProvider),
             ),
           ),
@@ -215,21 +216,23 @@ class _EventAfficheCard extends StatelessWidget {
         primaryAction: match.billetterie.isNotEmpty
             ? DetailAction(
                 icon: Icons.confirmation_number_outlined,
-                label: 'Billetterie',
+                label: context.l10n.ticketsLabel,
                 url: match.billetterie,
               )
             : null,
-        shareText: _buildShareText(),
+        shareText: _buildShareText(context),
       ),
     );
   }
 
-  String _buildShareText() {
+  String _buildShareText(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(match.competition);
-    if (match.date.isNotEmpty) buffer.writeln('Date: ${_formatDate(match.date)}');
-    if (match.lieu.isNotEmpty) buffer.writeln('Lieu: ${match.lieu}');
-    buffer.writeln('\nDecouvre sur MaCity');
+    if (match.date.isNotEmpty) {
+      buffer.writeln(context.l10n.shareDate(_formatDate(match.date)));
+    }
+    if (match.lieu.isNotEmpty) buffer.writeln(context.l10n.shareVenue(match.lieu));
+    buffer.writeln('\n${context.l10n.shareFooter}');
     return buffer.toString();
   }
 

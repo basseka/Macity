@@ -1995,6 +1995,360 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'On n\'a pas trouvé de lieux à {city} pour composer ta soirée. Reviens quand la ville sera plus fournie !'**
   String nightPlanEmptyBody(String city);
+
+  /// No description provided for @ticketsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Billetterie'**
+  String get ticketsLabel;
+
+  /// No description provided for @ticketsShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Billets'**
+  String get ticketsShort;
+
+  /// No description provided for @websiteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Site web'**
+  String get websiteLabel;
+
+  /// Texte de partage
+  ///
+  /// In fr, this message translates to:
+  /// **'Date : {date}'**
+  String shareDate(String date);
+
+  /// Texte de partage
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu : {venue}'**
+  String shareVenue(String venue);
+
+  /// No description provided for @countdownToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'AUJOURD\'HUI'**
+  String get countdownToday;
+
+  /// No description provided for @countdownTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'DEMAIN'**
+  String get countdownTomorrow;
+
+  /// Compte a rebours avant un match
+  ///
+  /// In fr, this message translates to:
+  /// **'J-{count}'**
+  String countdownDays(int count);
+
+  /// No description provided for @commonNoEventFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement trouvé'**
+  String get commonNoEventFound;
+
+  /// No description provided for @mapNearest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le plus proche'**
+  String get mapNearest;
+
+  /// No description provided for @mapDirections.
+  ///
+  /// In fr, this message translates to:
+  /// **'Itinéraire'**
+  String get mapDirections;
+
+  /// No description provided for @mapMyLocation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ma position'**
+  String get mapMyLocation;
+
+  /// Distance au lieu le plus proche
+  ///
+  /// In fr, this message translates to:
+  /// **'à {distance} de vous'**
+  String mapDistanceAway(String distance);
+
+  /// No description provided for @mapLocationDisabled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Active la localisation dans les paramètres'**
+  String get mapLocationDisabled;
+
+  /// No description provided for @mapLocationNotAllowed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorise la localisation dans les paramètres de l\'appli'**
+  String get mapLocationNotAllowed;
+
+  /// No description provided for @mapPermissionDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Permission refusée'**
+  String get mapPermissionDenied;
+
+  /// Erreur de geolocalisation
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'obtenir la position : {error}'**
+  String mapLocationError(String error);
+
+  /// No description provided for @sportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sport.'**
+  String get sportTitle;
+
+  /// No description provided for @sportSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Salles, terrains, piscines : bouger près de chez toi.'**
+  String get sportSubtitle;
+
+  /// No description provided for @sportSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où pratiquer'**
+  String get sportSectionTitle;
+
+  /// No description provided for @sportChipGroupClasses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cours Co'**
+  String get sportChipGroupClasses;
+
+  /// No description provided for @sportChipWeights.
+  ///
+  /// In fr, this message translates to:
+  /// **'Muscu'**
+  String get sportChipWeights;
+
+  /// No description provided for @sportChipGentle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gym Douce'**
+  String get sportChipGentle;
+
+  /// No description provided for @sportChipBasket.
+  ///
+  /// In fr, this message translates to:
+  /// **'Basket'**
+  String get sportChipBasket;
+
+  /// No description provided for @sportChipPool.
+  ///
+  /// In fr, this message translates to:
+  /// **'Piscine'**
+  String get sportChipPool;
+
+  /// No description provided for @sportBannerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passe à l\'action.'**
+  String get sportBannerTitle;
+
+  /// No description provided for @sportBannerSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les meilleurs spots sportifs vous attendent.'**
+  String get sportBannerSubtitle;
+
+  /// No description provided for @sportMapTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieux de sport'**
+  String get sportMapTitle;
+
+  /// Nombre de salles d'une chaine
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 salle} other{{count} salles}}'**
+  String sportGymCount(int count);
+
+  /// No description provided for @sportKickerHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rubrique · Active'**
+  String get sportKickerHome;
+
+  /// No description provided for @sportBlurb.
+  ///
+  /// In fr, this message translates to:
+  /// **'Matchs, courses, entraînement : l\'agenda sportif de la ville.'**
+  String get sportBlurb;
+
+  /// No description provided for @sportNoMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun match trouvé pour cette catégorie'**
+  String get sportNoMatch;
+
+  /// No description provided for @sportMatchError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur lors du chargement des matchs'**
+  String get sportMatchError;
+
+  /// No description provided for @sportNews.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actu sport'**
+  String get sportNews;
+
+  /// No description provided for @sportReadArticle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lire l\'article'**
+  String get sportReadArticle;
+
+  /// Lien vers un article
+  ///
+  /// In fr, this message translates to:
+  /// **'Lire sur {source}'**
+  String sportReadOn(String source);
+
+  /// No description provided for @sportCatMatches.
+  ///
+  /// In fr, this message translates to:
+  /// **'Matchs'**
+  String get sportCatMatches;
+
+  /// No description provided for @sportCatEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Events'**
+  String get sportCatEvents;
+
+  /// No description provided for @sportCatComplex.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complexe sportif'**
+  String get sportCatComplex;
+
+  /// No description provided for @sportCatMarathon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marathon'**
+  String get sportCatMarathon;
+
+  /// No description provided for @sportCatRacket.
+  ///
+  /// In fr, this message translates to:
+  /// **'Raquette'**
+  String get sportCatRacket;
+
+  /// No description provided for @sportCatBoxing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Boxe'**
+  String get sportCatBoxing;
+
+  /// No description provided for @sportCatSwimming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Natation'**
+  String get sportCatSwimming;
+
+  /// No description provided for @sportCatRunning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses à pied'**
+  String get sportCatRunning;
+
+  /// No description provided for @sportCatCompetition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compétition'**
+  String get sportCatCompetition;
+
+  /// No description provided for @sportCatDanceWorkshop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Stage de danse'**
+  String get sportCatDanceWorkshop;
+
+  /// No description provided for @sportCatGym.
+  ///
+  /// In fr, this message translates to:
+  /// **'Salle de fitness'**
+  String get sportCatGym;
+
+  /// No description provided for @sportCatBoxingGym.
+  ///
+  /// In fr, this message translates to:
+  /// **'Salles de boxe'**
+  String get sportCatBoxingGym;
+
+  /// No description provided for @sportCatFootballPitch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terrain de football'**
+  String get sportCatFootballPitch;
+
+  /// No description provided for @sportCatBasketCourt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terrain de basketball'**
+  String get sportCatBasketCourt;
+
+  /// No description provided for @sportCatPool.
+  ///
+  /// In fr, this message translates to:
+  /// **'Piscine'**
+  String get sportCatPool;
+
+  /// No description provided for @sportCatPadel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Padel'**
+  String get sportCatPadel;
+
+  /// No description provided for @sportCatTableTennis.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ping-pong'**
+  String get sportCatTableTennis;
+
+  /// No description provided for @sportCatBadminton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Badminton'**
+  String get sportCatBadminton;
+
+  /// No description provided for @sportCatFootball.
+  ///
+  /// In fr, this message translates to:
+  /// **'Football'**
+  String get sportCatFootball;
+
+  /// No description provided for @sportCatBasketball.
+  ///
+  /// In fr, this message translates to:
+  /// **'Basketball'**
+  String get sportCatBasketball;
+
+  /// No description provided for @sportCatHandball.
+  ///
+  /// In fr, this message translates to:
+  /// **'Handball'**
+  String get sportCatHandball;
+
+  /// No description provided for @sportCatGala.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gala / Matchs'**
+  String get sportCatGala;
+
+  /// No description provided for @sportCatOlympics.
+  ///
+  /// In fr, this message translates to:
+  /// **'JO 2028'**
+  String get sportCatOlympics;
 }
 
 class _AppLocalizationsDelegate

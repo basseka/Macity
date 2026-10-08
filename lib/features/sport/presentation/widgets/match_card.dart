@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -160,7 +161,7 @@ class MatchCard extends ConsumerWidget {
                   onPressed: () => _openBilletterie(),
                   icon: const Icon(Icons.confirmation_number_outlined,
                       size: 18,),
-                  label: const Text('Billetterie'),
+                  label: Text(context.l10n.ticketsLabel),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: modeTheme.primaryColor,
                     foregroundColor: Colors.white,
