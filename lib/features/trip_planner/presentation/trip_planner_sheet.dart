@@ -133,6 +133,18 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    // Feuille dense : texte un peu plus petit que dans le reste de l'app,
+    // en gardant le reglage de taille de police du telephone.
+    return MediaQuery(
+      data: mq.copyWith(
+        textScaler: TextScaler.linear(mq.textScaler.scale(1) * 0.92),
+      ),
+      child: _sheet(context),
+    );
+  }
+
+  Widget _sheet(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
       decoration: const BoxDecoration(
@@ -186,7 +198,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
           Expanded(
             child: Text(
               'Organiser mon trip',
-              style: FoodTokens.sectionHeader(fontSize: 16),
+              style: FoodTokens.sectionHeader(fontSize: 15),
             ),
           ),
           if (i >= 0)
@@ -288,7 +300,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: FoodTokens.sectionHeader(fontSize: 22)),
+            Text(title, style: FoodTokens.sectionHeader(fontSize: 18)),
             const SizedBox(height: 6),
             Text(subtitle, style: FoodTokens.body()),
           ],
@@ -314,7 +326,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
           ),
           child: Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 26)),
+              Text(emoji, style: const TextStyle(fontSize: 22)),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -322,7 +334,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
                   children: [
                     Text(label,
                         style: FoodTokens.bannerTitle().copyWith(
-                          fontSize: 15,
+                          fontSize: 13.5,
                           color: selected ? Colors.white : FoodTokens.ink,
                         )),
                     if (sub != null) ...[
@@ -355,13 +367,14 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
     Widget btn(IconData icon, VoidCallback? onTap) => GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 52,
-            height: 52,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: onTap == null ? FoodTokens.hairline : FoodTokens.forest,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: onTap == null ? FoodTokens.dim : Colors.white),
+            child: Icon(icon,
+                size: 20, color: onTap == null ? FoodTokens.dim : Colors.white),
           ),
         );
     return Row(
@@ -369,10 +382,10 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
       children: [
         btn(Icons.remove_rounded, onMinus),
         SizedBox(
-          width: 160,
+          width: 130,
           child: Text(label,
               textAlign: TextAlign.center,
-              style: FoodTokens.sectionHeader(fontSize: 22)),
+              style: FoodTokens.sectionHeader(fontSize: 18)),
         ),
         btn(Icons.add_rounded, onPlus),
       ],
@@ -387,7 +400,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
       child: GestureDetector(
         onTap: enabled ? _next : null,
         child: Container(
-          height: 52,
+          height: 46,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: enabled ? FoodTokens.forest : FoodTokens.stroke,
@@ -397,7 +410,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
           child: Text(
             isLast ? 'Voir ma feuille de route' : 'Suivant',
             style: FoodTokens.bannerTitle().copyWith(
-              fontSize: 15,
+              fontSize: 14,
               color: enabled ? Colors.white : FoodTokens.dim,
             ),
           ),
@@ -436,7 +449,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
       children: [
-        Text('Votre trip à ${widget.ville}', style: FoodTokens.sectionHeader(fontSize: 22)),
+        Text('Votre trip à ${widget.ville}', style: FoodTokens.sectionHeader(fontSize: 18)),
         const SizedBox(height: 6),
         Text('$groupLabel · ${a.people} pers. · $duree',
             style: FoodTokens.meta(color: FoodTokens.forest, w: FontWeight.w600)),
@@ -590,7 +603,7 @@ class _StopCard extends StatelessWidget {
     final emoji = Container(
       color: const Color(0x1F2BAB9A),
       alignment: Alignment.center,
-      child: Text(_emoji[stop.kind]!, style: const TextStyle(fontSize: 24)),
+      child: Text(_emoji[stop.kind]!, style: const TextStyle(fontSize: 20)),
     );
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -633,7 +646,7 @@ class _StopCard extends StatelessWidget {
                     Text(c.nom,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: FoodTokens.bannerTitle().copyWith(fontSize: 14.5)),
+                        style: FoodTokens.bannerTitle().copyWith(fontSize: 13.5)),
                     const SizedBox(height: 2),
                     Text(
                       [
