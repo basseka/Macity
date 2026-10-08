@@ -227,6 +227,16 @@
     .login-card .btn { margin-top: 12px; }
     #admin-area { display: none; }
     .hidden { display: none !important; }
+    /* Compte commercial : seul l'onglet CRM est accessible. */
+    body.crm-only .top-toolbar .nav-btn:not(#goto-crm-btn) { display: none !important; }
+    /* Tablette / mobile : la sidebar devient une barre en haut. */
+    @media (max-width: 900px) {
+      .top-toolbar { position: static !important; width: 100% !important; height: auto !important; border-right: 0 !important; border-bottom: 1px solid var(--line); }
+      .top-toolbar > div:last-child { flex-direction: row !important; flex-wrap: wrap; }
+      .top-toolbar .nav-btn { width: auto !important; }
+      #admin-area { margin-left: 0 !important; }
+      .container { padding-left: 10px !important; padding-right: 10px !important; }
+    }
     .helper { color: var(--text-faint); font-size: 11px; margin-top: 4px; }
     .logout {
       display: inline-block;
@@ -1108,6 +1118,10 @@
         <div class="row"><div><label>Email</label><input type="email" id="login-email" placeholder="basseka@yahoo.fr" /></div></div>
         <div class="row"><div><label>Mot de passe</label><input type="password" id="login-password" /></div></div>
         <button class="btn btn-primary" id="login-btn">Se connecter</button>
+        <p class="helper" style="margin-top:14px; text-align:center;">
+          Commercial MaCity, première connexion ?
+          <a href="#" id="crm-signup-link" style="color:var(--magenta);">Créer mon mot de passe</a>
+        </p>
       </div>
     </div>
 
@@ -1155,6 +1169,7 @@
           <span class="nav-btn" id="goto-partners-btn">🤝 Partenaires</span>
           <span class="nav-btn" id="goto-mediakit-btn">📊 Media Kit</span>
           <span class="nav-btn" id="goto-sysmon-btn">🩺 Système</span>
+          <span class="nav-btn" id="goto-crm-btn" style="border:2px solid #E91E63;">💼 CRM commercial <span id="crm-alert-badge" style="display:none; background:#DC2626; color:white; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-prospect-btn">📧 Prospection <span id="prospect-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-gifts-btn">🎁 Cadeaux</span>
           <span class="nav-btn" id="goto-citymedia-btn">📰 Médias ville</span>
@@ -1173,9 +1188,12 @@
           <!-- Meme generateur, ouvert en mode auto : pioche 1 concert, 1 soiree,
                1 event food... dans la base (ville et periode memorisees dans le
                generateur) et produit le carrousel pret a telecharger. -->
-          <a class="nav-btn" href="communication/generateur-post-instagram.html?auto=1"
+          <a class="nav-btn" href="communication/generateur-post-instagram.html?auto=1&theme=sorties"
              target="_blank" rel="noopener"
              style="text-decoration:none;">⚡ Carrousel auto (données app)</a>
+          <a class="nav-btn" href="communication/generateur-post-instagram.html?auto=1&theme=enfants"
+             target="_blank" rel="noopener"
+             style="text-decoration:none;">👶 Carrousel enfants</a>
         </div>
       </div>
 
@@ -2276,6 +2294,7 @@
                 <option value="classique">🔹 Classique — badge Partenaire</option>
                 <option value="gold">🥇 Gold — events au top</option>
                 <option value="premium">💎 Premium — events à la une</option>
+                <option value="exclusivite">👑 Exclusivité — Premium seul sur sa rubrique (6 mois)</option>
               </select>
             </div>
             <div>
@@ -2792,6 +2811,7 @@
             <div id="ai-usage-models"></div>
           </div>
           <div id="ai-usage-error" class="hidden" style="color:var(--text-faint); font-size:12px;"></div>
+
         </div>
       </div>
 
@@ -3133,7 +3153,25 @@
       <!-- ═══ VUE "APPLI VIEW" (galerie statique de captures de l'appli) ═══ -->
       <div id="appliview-view" class="hidden">
         <h1>📱 Appli view</h1>
-        <p class="subtitle">Aperçu des écrans de l'appli, en grille. Galerie de référence uniquement — les images vivent dans <code>assets/images/appli_view/</code>, rien n'est chargé depuis la base.</p>
+        <p class="subtitle">Fréquentation des rubriques de l'appli (Firebase Analytics), puis aperçu des écrans en grille. Les images de la galerie vivent dans <code>assets/images/appli_view/</code>.</p>
+        <h2 style="font-size:15px; margin:18px 0 10px;">📈 Visites par rubrique (Firebase Analytics)</h2>
+        <div style="display:flex; gap:6px; margin-bottom:12px;" id="rubstats-periods">
+          <style>#rubstats-periods .banner-save-btn { margin-left: 0; }</style>
+          <button type="button" class="banner-save-btn" data-days="7" style="background:rgba(255,255,255,0.08); color:var(--text);">7 j</button>
+          <button type="button" class="banner-save-btn" data-days="30">30 j</button>
+          <button type="button" class="banner-save-btn" data-days="90" style="background:rgba(255,255,255,0.08); color:var(--text);">90 j</button>
+        </div>
+        <div id="rubstats-loading" style="color:var(--text-dim); font-size:13px;">Chargement…</div>
+        <div id="rubstats-content" class="hidden">
+          <div id="rubstats-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:14px; margin-bottom:16px;"></div>
+          <div id="rubstats-list"></div>
+          <h3 style="font-size:13px; margin:22px 0 8px; color:var(--text-dim);">🧭 Autres écrans (hors rubriques)</h3>
+          <div id="rubstats-autres"></div>
+          <p style="color:var(--text-faint); font-size:11.5px; margin-top:10px;">Android seulement tant que GoogleService-Info.plist manque côté iOS. Ville = localisation de l'appareil (GA4), pas la ville choisie dans l'app. Clique sur une rubrique pour voir sous-rubriques et villes.</p>
+        </div>
+        <div id="rubstats-error" class="hidden" style="color:var(--text-faint); font-size:12px;"></div>
+
+        <h2 style="font-size:15px; margin:28px 0 10px;">🖼️ Écrans de l'appli</h2>
         <div class="appliview-grid" id="appliview-grid"></div>
       </div>
 
@@ -3175,6 +3213,9 @@
         </div>
         <div class="dsum-grid" id="dailysummary-grid"></div>
       </div>
+
+      <!-- ═══ VUE "CRM COMMERCIAL" : construite par le module CRM en fin de fichier ═══ -->
+      <div id="crm-view" class="hidden"></div>
     </div>
   </div>
 
@@ -3199,6 +3240,8 @@
     const ADMIN_EMAILS = ["basseka@yahoo.fr"];
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Partagé avec le module CRM (second <script type="module"> en fin de fichier).
+    window.__adminCtx = { supabase };
 
     // ─── État UI ───
     const loginArea = document.getElementById("login-area");
@@ -3298,6 +3341,7 @@
       loadFamilyUnified();
     }
     function showLogin() {
+      document.body.classList.remove("crm-only");
       loginArea.style.display = "block";
       adminArea.style.display = "none";
       currentUserEmail = null;
@@ -3320,10 +3364,27 @@
     }
 
     // ─── Auth ───
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && ADMIN_EMAILS.includes(session.user.email)) showAdmin(session);
-      else showLogin();
-    });
+    // Admin (ADMIN_EMAILS) : tout l'admin. Membre de l'équipe commerciale
+    // (table crm_team, RPC crm_me) : onglet CRM uniquement. Sinon : refus.
+    async function _routeSession(session) {
+      if (!session) return showLogin();
+      if (ADMIN_EMAILS.includes(session.user.email)) {
+        document.body.classList.remove("crm-only");
+        return showAdmin(session);
+      }
+      const { data: me, error } = await supabase.rpc("crm_me");
+      if (error || !me) {
+        await supabase.auth.signOut();
+        showLogin();
+        return toast("Accès refusé : ce compte n'est pas rattaché à l'équipe commerciale", false);
+      }
+      document.body.classList.add("crm-only");
+      loginArea.style.display = "none";
+      adminArea.style.display = "block";
+      currentUserEmail = session.user.email;
+      showCrmView();
+    }
+    supabase.auth.getSession().then(({ data: { session } }) => _routeSession(session));
 
     document.getElementById("login-btn").addEventListener("click", async () => {
       const email = document.getElementById("login-email").value.trim();
@@ -3331,11 +3392,23 @@
       if (!email || !password) return toast("Email + mot de passe requis", false);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return toast("Erreur : " + error.message, false);
-      if (!ADMIN_EMAILS.includes(data.user.email)) {
-        await supabase.auth.signOut();
-        return toast("Accès refusé — seul l'admin peut se connecter", false);
+      _routeSession(data.session);
+    });
+
+    // Première connexion d'un commercial : il crée son mot de passe avec l'email
+    // que l'admin a ajouté dans CRM > Équipe. Sans ligne crm_team, le compte
+    // créé n'ouvre rien (crm_me renvoie NULL).
+    document.getElementById("crm-signup-link").addEventListener("click", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      if (!email || password.length < 8) {
+        return toast("Saisis ton email et un mot de passe d'au moins 8 caractères, puis reclique", false);
       }
-      showAdmin(data.session);
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) return toast("Erreur : " + error.message, false);
+      if (data.session) return _routeSession(data.session);
+      toast("Compte créé : confirme ton email (lien reçu), puis connecte-toi");
     });
 
     document.getElementById("logout-btn").addEventListener("click", async () => {
@@ -4291,6 +4364,8 @@
     const gotoAppliviewBtn = document.getElementById("goto-appliview-btn");
     const dailysummaryView = document.getElementById("dailysummary-view");
     const gotoDailysummaryBtn = document.getElementById("goto-dailysummary-btn");
+    const crmView = document.getElementById("crm-view");
+    const gotoCrmBtn = document.getElementById("goto-crm-btn");
 
     function _hideAllViews() {
       formView.classList.add("hidden");
@@ -4325,6 +4400,7 @@
       discoursnightView.classList.add("hidden");
       appliviewView.classList.add("hidden");
       dailysummaryView.classList.add("hidden");
+      crmView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -4552,6 +4628,14 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoClientsBtn.addEventListener("click", showClientsView);
+    function showCrmView() {
+      _hideAllViews();
+      crmView.classList.remove("hidden");
+      gotoCrmBtn.classList.add("active");
+      window.dispatchEvent(new CustomEvent("crm:open"));
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+    gotoCrmBtn.addEventListener("click", showCrmView);
     // keep : retour depuis une fiche client, on garde la liste chargée,
     // les filtres et la position de défilement au lieu de tout recharger.
     let _partnersScrollY = 0;
@@ -4680,6 +4764,7 @@
       appliviewView.classList.remove("hidden");
       gotoAppliviewBtn.classList.add("active");
       renderAppliView();
+      refreshRubriqueStats();
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoAppliviewBtn.addEventListener("click", showAppliViewView);
@@ -5909,6 +5994,8 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       classique: { label: "🔹 Classique", color: "#38BDF8" },
       gold:      { label: "🥇 Gold",      color: "#C79A3E" },
       premium:   { label: "💎 Premium",   color: "#8E24AA" },
+      // Exclusivité : affichée Premium dans l'app (partner_tier), seule sur sa rubrique.
+      exclusivite: { label: "👑 Exclusivité", color: "#E91E63" },
     };
     const SUBS_STATUS_META = {
       active:    { label: "Actif",   color: "#16a34a" },
@@ -6102,7 +6189,8 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         const cle = cle0(brut);
         if (!parVille.has(cle)) continue;   // abonnement hors ville hub
         const e = parVille.get(cle);
-        if (e[s.tier] !== undefined) e[s.tier]++;
+        const tierKey = s.tier === "exclusivite" ? "premium" : s.tier;
+        if (e[tierKey] !== undefined) e[tierKey]++;
         e.ca += subsMonthly(s);
         // On affiche la graphie la plus fréquente, pour garder accents et
         // casse d'origine (« Nîmes » plutôt que « nimes »).
@@ -7141,7 +7229,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         const opt = (v, l) => `<option value="${v}"${(p.tier || "") === v ? " selected" : ""}>${l}</option>`;
         return `<select class="banner-input" data-partner-tier="${escapeHtml(p.key)}"${canChange ? "" : " disabled title=\"Aucun établissement lié : crée l'abonnement dans l'onglet Abonnements\""}
           style="margin:0; padding:3px 6px; font-size:12px; width:auto; font-weight:700; color:${t ? t.color : "var(--text-faint)"};">
-          ${opt("", "Aucune")}${opt("classique", SUBS_TIER_META.classique.label)}${opt("gold", SUBS_TIER_META.gold.label)}${opt("premium", SUBS_TIER_META.premium.label)}
+          ${opt("", "Aucune")}${opt("classique", SUBS_TIER_META.classique.label)}${opt("gold", SUBS_TIER_META.gold.label)}${opt("premium", SUBS_TIER_META.premium.label)}${opt("exclusivite", SUBS_TIER_META.exclusivite.label)}
         </select>`;
       };
       // Une ligne par partenaire : tout est tronqué, le détail complet est
@@ -8870,12 +8958,24 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
             const mergedParJour = regRows.map((r, i) => ({ jour: r.jour, n: (r.n || 0) + ((anonRows[i] && anonRows[i].n) || 0) }));
             return _renderObjectiveCurve(totalUsers, mergedParJour, installs || [], actifs || []);
           })()}
-          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-top:16px;">
-            ${_statCard("Aujourd'hui", (s.aujourdhui || 0), "nouvelles inscriptions")}
-            ${_statCard("10 derniers jours", (s.total_10j || 0), `${((s.total_10j || 0) / 10).toFixed(1)} / jour en moy.`)}
-            ${_statCard("20 derniers jours", (s.total_20j || 0), `${((s.total_20j || 0) / 20).toFixed(1)} / jour en moy.`)}
-            ${_statCard("30 derniers jours", (s.total_30j || 0), `${((s.total_30j || 0) / 30).toFixed(1)} / jour en moy.`)}
-          </div>
+          ${(() => {
+            // Cartes = inscrits + sans compte, comme la courbe verte.
+            // par_jour_anonymes finit aujourd'hui : les N derniers points = N derniers jours.
+            const anonRows = s.par_jour_anonymes || [];
+            const anon = (n) => anonRows.slice(-n).reduce((acc, r) => acc + (r.n || 0), 0);
+            const card = (label, reg, days) => {
+              const a = anon(days);
+              const tot = reg + a;
+              const detail = `${reg} inscrits + ${a} sans compte`;
+              return _statCard(label, tot, days > 1 ? `${(tot / days).toFixed(1)} / jour en moy. · ${detail}` : detail);
+            };
+            return `<div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-top:16px;">
+              ${card("Aujourd'hui", s.aujourdhui || 0, 1)}
+              ${card("10 derniers jours", s.total_10j || 0, 10)}
+              ${card("20 derniers jours", s.total_20j || 0, 20)}
+              ${card("30 derniers jours", s.total_30j || 0, 30)}
+            </div>`;
+          })()}
         </div>`;
     }
 
@@ -9836,6 +9936,138 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       refreshSysmonView();
       refreshAiUsage();
     });
+
+    // ─── Visites par rubrique (GA4 Data API via edge function) ──────────────
+    const RUBRIQUE_LABELS = {
+      day: "☀️ Day", night: "🌙 Night", food: "🍽️ Food", culture: "🎭 Culture",
+      family: "👨‍👩‍👧 Family", sport: "⚽ Sport", gaming: "🎮 Gaming",
+      tourisme: "🗺️ Tourisme", evasion: "🏔️ Évasion",
+    };
+    let _rubstatsDays = 30;
+
+    // Noms envoyés par l'app (AnalyticsService.logScreenView / SuiviEcran).
+    const ECRAN_LABELS = {
+      "/home": "🏠 Accueil", "/explorer": "🔎 Explorer", "/onboarding": "👋 Inscription",
+      "/map-live": "🗺️ Map Live", "/stories": "📸 Stories (défilement)",
+      "/story/camera": "🎥 Caméra story", "/story/apercu": "📤 Aperçu avant publication",
+      "/bons-plans-soir": "🌙 Bons plans du soir", "/fiche-commerce": "🏪 Fiche commerce",
+      "/profil-contributeur": "👤 Profil contributeur", "/favoris": "❤️ Favoris",
+      "/recherche": "🔍 Recherche", "/reservation": "📅 Réservation",
+      "/decouvrir/autour-de-moi": "📍 Autour de moi", "/decouvrir/maintenant": "⚡ Maintenant",
+      "/decouvrir/aujourdhui": "📆 Aujourd'hui", "/decouvrir/ce-week-end": "🎉 Ce week-end",
+      "/decouvrir/top": "🏆 Top", "/decouvrir/plan-soiree": "🍸 Plan soirée",
+      "/decouvrir/chasse-au-tresor": "🗝️ Chasse au trésor",
+      "/publier-event": "➕ Publier un event", "/publier-event/tarifs": "💶 Tarifs de publication",
+      "/event-prive/mes-events": "🔒 Mes events privés", "/event-prive/invitations": "✉️ Mes invitations",
+      "/event-prive/chat": "💬 Chat event privé", "/event-prive/album": "🖼️ Album event privé",
+      "/event-prive/diaporama": "🎞️ Diaporama", "/souvenirs": "💭 Souvenirs",
+      "/offres/mes-offres": "🎁 Mes offres", "/offres/detail": "🎁 Détail d'une offre",
+      "/coffre/ouvrir": "🔐 Ouvrir le coffre", "/abonnement": "💳 Abonnement",
+      "/abonnement/teaser": "🎬 Teaser abonnement",
+      "/event/:id": "🔗 Event (lien partagé)", "/lieu/:table/:id": "🔗 Lieu (lien partagé)",
+      "/coffre/:token": "🔗 Coffre (lien partagé)",
+    };
+
+    document.querySelectorAll("#rubstats-periods button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        _rubstatsDays = Number(btn.dataset.days);
+        document.querySelectorAll("#rubstats-periods button").forEach(b => {
+          const on = b === btn;
+          b.style.background = on ? "" : "rgba(255,255,255,0.08)";
+          b.style.color = on ? "" : "var(--text)";
+        });
+        refreshRubriqueStats();
+      });
+    });
+
+    function _fmtDuree(s) {
+      if (!s) return "0 s";
+      const m = Math.floor(s / 60);
+      return m ? `${m} min ${String(s % 60).padStart(2, "0")}` : `${s} s`;
+    }
+
+    async function refreshRubriqueStats() {
+      const loading = document.getElementById("rubstats-loading");
+      const content = document.getElementById("rubstats-content");
+      const errEl = document.getElementById("rubstats-error");
+      loading.classList.remove("hidden");
+      content.classList.add("hidden");
+      errEl.classList.add("hidden");
+      try {
+        const { data, error } = await supabase.functions.invoke("admin-analytics-rubriques", {
+          body: { days: _rubstatsDays },
+        });
+        if (error) throw error;
+        if (!data || data.error) throw new Error(data?.error || "réponse vide");
+
+        const rubs = data.rubriques || [];
+        const top = rubs[0];
+        const card = (val, lbl) => `<div style="background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:14px; padding:14px 16px;">
+            <div style="font-size:24px; font-weight:800; color:var(--text);">${val}</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">${lbl}</div>
+          </div>`;
+        document.getElementById("rubstats-cards").innerHTML = [
+          card((data.total_vues || 0).toLocaleString("fr-FR"), `Vues de rubriques (${data.days} j)`),
+          card(top ? escapeHtml(RUBRIQUE_LABELS[top.rubrique] || top.rubrique) : "-", "Rubrique la plus vue"),
+          card(rubs.length, "Rubriques visitées"),
+        ].join("");
+
+        const maxVues = Math.max(1, ...rubs.map(r => r.vues || 0));
+        document.getElementById("rubstats-list").innerHTML = rubs.length
+          ? rubs.map(r => {
+              const pct = Math.round(((r.vues || 0) / maxVues) * 100);
+              const part = data.total_vues ? Math.round((r.vues / data.total_vues) * 100) : 0;
+              const sous = (r.sous_rubriques || []).map(s =>
+                `<tr><td style="padding:3px 8px 3px 0;">${escapeHtml(s.nom)}</td><td style="text-align:right; color:var(--text-dim);">${s.vues.toLocaleString("fr-FR")} vues · ${s.utilisateurs.toLocaleString("fr-FR")} util.</td></tr>`).join("");
+              const villes = (r.villes || []).map(v =>
+                `<tr><td style="padding:3px 8px 3px 0;">${escapeHtml(v.ville)}</td><td style="text-align:right; color:var(--text-dim);">${v.vues.toLocaleString("fr-FR")} vues</td></tr>`).join("");
+              return `<details style="margin-bottom:10px;">
+                <summary style="cursor:pointer; list-style:none;">
+                  <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px;">
+                    <span style="color:var(--text); font-weight:700;">${escapeHtml(RUBRIQUE_LABELS[r.rubrique] || r.rubrique)}</span>
+                    <span style="color:var(--text-dim);">${r.vues.toLocaleString("fr-FR")} vues (${part} %) · ${r.utilisateurs.toLocaleString("fr-FR")} util. · ${_fmtDuree(r.engagement_moyen_s)} / util.</span>
+                  </div>
+                  <div style="height:7px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; width:${pct}%; background:linear-gradient(90deg,#FF1E8E,#E91E63);"></div>
+                  </div>
+                </summary>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; font-size:12px; padding:10px 0 4px;">
+                  <div><div style="color:var(--text-dim); margin-bottom:4px;">Sous-rubriques</div>
+                    ${sous ? `<table style="width:100%;">${sous}</table>` : `<span style="color:var(--text-faint);">Aucune</span>`}</div>
+                  <div><div style="color:var(--text-dim); margin-bottom:4px;">Top villes (appareil)</div>
+                    ${villes ? `<table style="width:100%;">${villes}</table>` : `<span style="color:var(--text-faint);">Aucune</span>`}</div>
+                </div>
+              </details>`;
+            }).join("")
+          : `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée sur la période.</div>`;
+
+        const autres = data.autres_ecrans || [];
+        const maxAutres = Math.max(1, ...autres.map(e => e.vues || 0));
+        document.getElementById("rubstats-autres").innerHTML = autres.length
+          ? autres.map(e => {
+              const pct = Math.round(((e.vues || 0) / maxAutres) * 100);
+              return `<div style="margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:3px;">
+                  <span style="color:var(--text);">${escapeHtml(ECRAN_LABELS[e.ecran] || e.ecran)}</span>
+                  <span style="color:var(--text-dim);">${e.vues.toLocaleString("fr-FR")} vues · ${e.utilisateurs.toLocaleString("fr-FR")} util.</span>
+                </div>
+                <div style="height:6px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;">
+                  <div style="height:100%; width:${pct}%; background:linear-gradient(90deg,#0EA5E9,#6366F1);"></div>
+                </div>
+              </div>`;
+            }).join("")
+          : `<div style="color:var(--text-faint); font-size:12px;">Aucune donnée sur la période.</div>`;
+
+        content.classList.remove("hidden");
+      } catch (e) {
+        console.warn("[Stats rubriques]", e);
+        errEl.textContent = "Stats rubriques indisponibles : " + (e.message || e) +
+          " (vérifie les secrets GA4_PROPERTY_ID / GA4_SERVICE_ACCOUNT_JSON et le déploiement de l'edge function admin-analytics-rubriques).";
+        errEl.classList.remove("hidden");
+      } finally {
+        loading.classList.add("hidden");
+      }
+    }
 
     // ─── Conso IA (Admin API Anthropic via edge function) ───────────────────
     function _humanTokens(n) {
@@ -15052,5 +15284,974 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       dessiner();
     })();
   </script>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODULE CRM COMMERCIAL (onglet « 💼 CRM commercial »)
+       Données : RPC crm_* (migration 20261005120000_crm_commercial.sql).
+       Périmètre appliqué côté serveur : admin = tout, manager = son équipe,
+       commercial = ses dossiers + prospects non attribués.
+       ══════════════════════════════════════════════════════════════════════ -->
+  <style>
+    .crm-tabs { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 14px; }
+    .crm-tab { padding:8px 14px; border-radius:999px; border:1px solid var(--line-strong); background:var(--surface); color:var(--text-dim); font-size:13px; font-weight:600; cursor:pointer; user-select:none; }
+    .crm-tab.active { background:linear-gradient(135deg, var(--purple-dark), var(--magenta)); color:#fff; border-color:transparent; }
+    .crm-tab .crm-count { background:#DC2626; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; margin-left:4px; }
+    .crm-filters { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin-bottom:14px; }
+    .crm-filters label { display:block; font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px; }
+    .crm-filters select, .crm-filters input { background:var(--surface-hi); border:1px solid var(--line-strong); color:var(--text); border-radius:8px; padding:6px 8px; font-size:13px; min-width:120px; }
+    .crm-kpis { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:14px; }
+    .crm-kpi { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+    .crm-kpi .v { font-size:24px; font-weight:800; letter-spacing:-.02em; color:var(--text); line-height:1.1; }
+    .crm-kpi .l { font-size:11px; color:var(--text-dim); margin-top:3px; }
+    .crm-kpi.hl { border-color:var(--magenta); background:linear-gradient(160deg, rgba(233,30,99,.16), var(--surface)); }
+    .crm-grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:14px; margin-bottom:14px; }
+    .crm-card { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px 16px; min-width:0; }
+    .crm-card h3 { margin:0 0 10px; font-size:14px; color:var(--text); display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+    .crm-table-wrap { overflow-x:auto; }
+    .crm-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+    .crm-table th { text-align:left; color:var(--text-faint); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--line-strong); white-space:nowrap; cursor:default; }
+    .crm-table th.sortable { cursor:pointer; }
+    .crm-table td { padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    .crm-table tr.clickable { cursor:pointer; }
+    .crm-table tr.clickable:hover td { background:rgba(255,255,255,.03); }
+    .crm-num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .crm-pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+    .crm-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+    .crm-btn { padding:7px 12px; border-radius:9px; border:1px solid var(--line-strong); background:var(--surface-hi); color:var(--text); font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .crm-btn:hover { border-color:var(--magenta); }
+    .crm-btn.primary { background:linear-gradient(135deg, var(--purple-dark), var(--magenta)); border-color:transparent; color:#fff; }
+    .crm-btn.danger { color:#fca5a5; border-color:rgba(239,68,68,.4); }
+    .crm-btn.sm { padding:4px 9px; font-size:11.5px; }
+    .crm-bar { height:8px; background:var(--surface-hi); border-radius:99px; overflow:hidden; }
+    .crm-bar > span { display:block; height:100%; background:linear-gradient(90deg, var(--purple), var(--magenta)); border-radius:99px; }
+    .crm-bar.ok > span { background:linear-gradient(90deg, #059669, #10b981); }
+    .crm-funnel-row { display:grid; grid-template-columns:130px 1fr 70px; gap:8px; align-items:center; margin:4px 0; font-size:12.5px; }
+    .crm-funnel-bar { height:26px; border-radius:7px; background:linear-gradient(90deg, var(--purple-dark), var(--magenta)); display:flex; align-items:center; padding:0 8px; color:#fff; font-weight:700; font-size:12px; min-width:28px; box-sizing:border-box; }
+    .crm-funnel-conv { font-size:10.5px; color:var(--text-faint); margin:-1px 0 1px 138px; }
+    .crm-kanban { display:flex; gap:10px; overflow-x:auto; padding-bottom:10px; align-items:flex-start; }
+    .crm-col { flex:0 0 250px; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px; min-height:120px; }
+    .crm-col.drop { border-color:var(--magenta); background:rgba(233,30,99,.08); }
+    .crm-col-head { display:flex; justify-content:space-between; align-items:baseline; padding:4px 4px 8px; font-weight:700; font-size:13px; }
+    .crm-col-head small { color:var(--text-faint); font-weight:500; font-size:11px; }
+    .crm-opp { background:var(--surface-hi); border:1px solid var(--line-strong); border-radius:11px; padding:9px 10px; margin-bottom:8px; cursor:grab; font-size:12px; }
+    .crm-opp:hover { border-color:var(--magenta); }
+    .crm-opp b { font-size:13px; display:block; margin-bottom:2px; }
+    .crm-opp .meta { color:var(--text-dim); font-size:11px; line-height:1.45; }
+    .crm-opp .next { margin-top:5px; font-size:11px; padding:4px 6px; border-radius:7px; background:rgba(255,255,255,.04); }
+    .crm-opp .next.late { background:rgba(239,68,68,.15); color:#fca5a5; }
+    .crm-timeline { border-left:2px solid var(--line-strong); margin:6px 0 0 6px; padding-left:14px; }
+    .crm-tl-item { position:relative; margin-bottom:12px; font-size:12.5px; }
+    .crm-tl-item::before { content:''; position:absolute; left:-20px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--magenta); }
+    .crm-tl-item.stage::before { background:var(--purple); }
+    .crm-tl-item .d { color:var(--text-faint); font-size:11px; }
+    .crm-next-box { border:1px solid var(--magenta); background:rgba(233,30,99,.1); border-radius:12px; padding:10px 12px; margin:8px 0 12px; font-size:13px; }
+    .crm-next-box.late { border-color:#ef4444; background:rgba(239,68,68,.12); }
+    .crm-modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.72); z-index:9600; overflow:auto; padding:18px 10px; }
+    .crm-modal { max-width:760px; margin:10px auto; background:var(--bg); border:1px solid var(--line-strong); border-radius:18px; padding:16px 18px; }
+    .crm-modal-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+    .crm-modal-head strong { font-size:16px; }
+    .crm-form { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; }
+    .crm-form .full { grid-column:1 / -1; }
+    .crm-form label { display:block; font-size:11px; color:var(--text-faint); margin-bottom:3px; }
+    .crm-form input, .crm-form select, .crm-form textarea { width:100%; box-sizing:border-box; background:var(--surface-hi); border:1px solid var(--line-strong); color:var(--text); border-radius:9px; padding:8px 10px; font-size:13px; font-family:inherit; }
+    .crm-form textarea { min-height:70px; resize:vertical; }
+    .crm-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; margin-top:14px; }
+    .crm-empty { color:var(--text-faint); font-size:13px; padding:18px; text-align:center; }
+    .crm-svg text { fill:var(--text-faint); font-size:10px; }
+    .crm-legend { display:flex; gap:12px; flex-wrap:wrap; font-size:11.5px; color:var(--text-dim); margin-top:6px; }
+    @media (max-width: 700px) {
+      .crm-kpi .v { font-size:20px; }
+      .crm-funnel-row { grid-template-columns:90px 1fr 56px; }
+      .crm-funnel-conv { margin-left:98px; }
+      .crm-col { flex-basis:220px; }
+    }
+  </style>
+
+  <script type="module">
+    const ctx = window.__adminCtx;
+    const sb = ctx.supabase;
+
+    // ─── Référentiels ────────────────────────────────────────────────────
+    const PIPELINES = {
+      abonnement:  { label: "Abonnements",  color: "#E91E63" },
+      publicite:   { label: "Publicité",    color: "#22D3EE" },
+      partenariat: { label: "Partenariats", color: "#F59E0B" },
+    };
+    const ACT_TYPES = {
+      appel: "📞 Appel", email: "✉️ Email", whatsapp: "💬 WhatsApp", linkedin: "💼 LinkedIn",
+      visite: "🚶 Visite", rendez_vous: "🤝 Rendez-vous", relance: "🔁 Relance",
+      proposition: "📄 Proposition envoyée", negociation: "⚖️ Négociation",
+      signature: "✍️ Signature", autre: "• Autre",
+    };
+    const STATUTS = { prospect: "Prospect", actif: "Client actif", suspendu: "Suspendu", perdu: "Perdu" };
+    const SOURCES = ["Prospection terrain", "Appel sortant", "Email / Brevo", "Instagram", "LinkedIn",
+                     "Recommandation", "Salon / événement", "Site macity.app", "Entrant (il nous a contactés)", "Autre"];
+    // Produits préremplis (montants modifiables). Abonnements : grille d'octobre 2026.
+    // Publicité marques : prix PROPOSÉS dans la présentation commerciale, à valider.
+    const PRODUCTS = {
+      abonnement: [
+        { code: "classique",   label: "Classique 11,90 €/mois",   monthly: 1190,  months: 12 },
+        { code: "gold",        label: "Gold 79 €/mois",           monthly: 7900,  months: 12 },
+        { code: "premium",     label: "Premium 179 €/mois",       monthly: 17900, months: 12 },
+        { code: "exclusivite", label: "Exclusivité 349 €/mois (6 mois)", monthly: 34900, months: 6 },
+      ],
+      publicite: [
+        { code: "spot_rubrique",  label: "Spot rubrique 249 €/mois", monthly: 24900, months: 1 },
+        { code: "pack_univers",   label: "Pack univers 449 €/mois",  monthly: 44900, months: 1 },
+        { code: "pack_ville",     label: "Pack ville 990 €/mois",    monthly: 99000, months: 1 },
+        { code: "semaine_rubrique", label: "Campagne 1 semaine, 1 rubrique (90 €)", once: 9000 },
+        { code: "semaine_toutes",   label: "Campagne 1 semaine, toutes rubriques (390 €)", once: 39000 },
+        { code: "a_la_une_jour",  label: "« À la une » 1 jour (150 €)", once: 15000 },
+        { code: "au_top_jour",    label: "« Au top » 1 jour (80 €)",    once: 8000 },
+      ],
+      partenariat: [
+        { code: "partenariat", label: "Partenariat (montant libre)" },
+      ],
+    };
+
+    // ─── État ────────────────────────────────────────────────────────────
+    const st = {
+      me: null, team: [], stages: [], tab: "dashboard", ready: false,
+      filters: { period: "month", from: "", to: "", owner: "", pipeline: "", acttype: "", status: "" },
+      kanbanPipeline: "abonnement", companies: [], companySearch: "", companyStatut: "",
+      boardSort: "ca_signe_cents", funnelPipeline: "abonnement",
+      idleDays: 7, bigEuros: 1000,
+    };
+    try {
+      const saved = JSON.parse(localStorage.getItem("crm_prefs_v1") || "{}");
+      Object.assign(st.filters, saved.filters || {});
+      if (saved.idleDays) st.idleDays = saved.idleDays;
+      if (saved.bigEuros) st.bigEuros = saved.bigEuros;
+      if (saved.tab) st.tab = saved.tab;
+    } catch (_) {}
+    function savePrefs() {
+      try { localStorage.setItem("crm_prefs_v1", JSON.stringify({ filters: st.filters, idleDays: st.idleDays, bigEuros: st.bigEuros, tab: st.tab })); } catch (_) {}
+    }
+
+    // ─── Utilitaires ─────────────────────────────────────────────────────
+    const root = document.getElementById("crm-view");
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const eur = (cents) => (cents == null ? "–" : (Number(cents) / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: Number(cents) % 100 ? 2 : 0 }));
+    const num = (n) => (n == null ? "–" : Number(n).toLocaleString("fr-FR"));
+    const pct = (n) => (n == null ? "–" : `${Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`);
+    const fmtD = (iso) => iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "–";
+    const fmtDT = (iso) => iso ? new Date(iso).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "–";
+    const fmtDLong = (iso) => iso ? new Date(iso).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }) : "–";
+    const isLate = (iso) => iso && new Date(iso) < new Date();
+    const toLocalInput = (iso) => { if (!iso) return ""; const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+    const fromLocalInput = (v) => v ? new Date(v).toISOString() : null;
+    const centsFromEuros = (v) => { const n = parseFloat(String(v ?? "").replace(/\s/g, "").replace(",", ".")); return isNaN(n) ? 0 : Math.round(n * 100); };
+    const eurosFromCents = (c) => c ? (c / 100).toString().replace(".", ",") : "";
+    function toast(msg, ok = true) {
+      const el = document.getElementById("toast");
+      el.textContent = msg; el.className = `toast ${ok ? "ok" : "err"} show`;
+      setTimeout(() => el.classList.remove("show"), 4000);
+    }
+    async function rpc(name, args) {
+      const { data, error } = await sb.rpc(name, args || {});
+      if (error) throw new Error(error.message);
+      return data;
+    }
+    const can = {
+      manageTeam: () => st.me?.role === "admin",
+      setObjectives: () => st.me?.role !== "commercial",
+      deleteOpp: () => st.me?.role !== "commercial",
+      editSale: () => st.me?.role !== "commercial",
+      pickOwner: () => st.me?.role !== "commercial",
+    };
+    const stageOf = (pipeline, code) => st.stages.find(s => s.pipeline === pipeline && s.code === code);
+    const stagesOf = (pipeline) => st.stages.filter(s => s.pipeline === pipeline).sort((a, b) => a.position - b.position);
+    // Le filtre « none » (non attribués) n'a de sens que dans la liste des entreprises.
+    const ownerParam = () => (st.filters.owner && st.filters.owner !== "none") ? st.filters.owner : null;
+    const visibleTeam = () => st.team.filter(t => t.visible && t.active);
+    const memberName = (id) => st.team.find(t => t.id === id)?.nom || "Non attribué";
+
+    // Période → [from, to) en ISO.
+    function periodRange() {
+      const f = st.filters, now = new Date();
+      const sod = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+      let from, to;
+      switch (f.period) {
+        case "today": from = sod(now); to = new Date(from); to.setDate(to.getDate() + 1); break;
+        case "week": { from = sod(now); const wd = (from.getDay() + 6) % 7; from.setDate(from.getDate() - wd); to = new Date(from); to.setDate(to.getDate() + 7); break; }
+        case "quarter": { const q = Math.floor(now.getMonth() / 3) * 3; from = new Date(now.getFullYear(), q, 1); to = new Date(now.getFullYear(), q + 3, 1); break; }
+        case "year": from = new Date(now.getFullYear(), 0, 1); to = new Date(now.getFullYear() + 1, 0, 1); break;
+        case "custom": {
+          from = f.from ? sod(f.from) : sod(now);
+          to = f.to ? sod(f.to) : sod(now); to.setDate(to.getDate() + 1);
+          if (to <= from) { to = new Date(from); to.setDate(to.getDate() + 1); }
+          break;
+        }
+        default: from = new Date(now.getFullYear(), now.getMonth(), 1); to = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      }
+      return { from, to };
+    }
+    const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    // ─── Modale générique ────────────────────────────────────────────────
+    function openModal(title, bodyHtml, onMount) {
+      const bg = document.createElement("div");
+      bg.className = "crm-modal-bg";
+      bg.innerHTML = `<div class="crm-modal"><div class="crm-modal-head"><strong>${title}</strong><button class="crm-btn sm" data-close>✕</button></div><div class="crm-modal-body">${bodyHtml}</div></div>`;
+      const close = () => bg.remove();
+      bg.addEventListener("click", (e) => { if (e.target === bg || e.target.closest("[data-close]")) close(); });
+      document.body.appendChild(bg);
+      onMount?.(bg.querySelector(".crm-modal-body"), close);
+      return close;
+    }
+    const formData = (form) => Object.fromEntries(new FormData(form).entries());
+
+    // ─── Squelette de l'onglet ───────────────────────────────────────────
+    function renderShell() {
+      const tabs = [
+        ["dashboard", "📊 Dashboard"], ["followups", "🔔 À relancer"], ["pipeline", "🗂️ Pipeline"],
+        ["companies", "🏢 Entreprises"], ["activities", "📝 Activités"], ["sales", "💶 Ventes"],
+        ["objectives", "🎯 Objectifs"],
+      ];
+      if (can.manageTeam()) tabs.push(["team", "👥 Équipe"]);
+      root.innerHTML = `
+        <h1>💼 CRM commercial</h1>
+        <p class="subtitle">Connecté : <b>${esc(st.me.nom || st.me.email)}</b> · ${esc({ admin: "Administrateur", manager: "Manager", commercial: "Commercial" }[st.me.role])}
+          ${st.me.role === "commercial" ? " · tu vois tes dossiers et les prospects non attribués" : st.me.role === "manager" ? " · tu vois ton équipe" : " · tu vois toute l'équipe"}</p>
+        <div class="crm-tabs">${tabs.map(([k, l]) => `<span class="crm-tab ${st.tab === k ? "active" : ""}" data-tab="${k}">${l}${k === "followups" ? ` <span class="crm-count" id="crm-fu-count" style="display:none"></span>` : ""}</span>`).join("")}</div>
+        <div id="crm-filterbar"></div>
+        <div id="crm-body"><div class="crm-empty">Chargement…</div></div>`;
+      root.querySelectorAll("[data-tab]").forEach(el => el.addEventListener("click", () => { st.tab = el.dataset.tab; savePrefs(); renderShell(); renderTab(); }));
+    }
+
+    function renderFilterBar(opts = {}) {
+      const f = st.filters, bar = document.getElementById("crm-filterbar");
+      const team = visibleTeam();
+      bar.innerHTML = `<div class="crm-filters">
+        <div><label>Période</label><select data-f="period">
+          ${[["today", "Aujourd'hui"], ["week", "Cette semaine"], ["month", "Ce mois"], ["quarter", "Ce trimestre"], ["year", "Cette année"], ["custom", "Personnalisée"]]
+            .map(([v, l]) => `<option value="${v}" ${f.period === v ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        ${f.period === "custom" ? `<div><label>Du</label><input type="date" data-f="from" value="${esc(f.from)}"></div><div><label>Au</label><input type="date" data-f="to" value="${esc(f.to)}"></div>` : ""}
+        ${team.length > 1 ? `<div><label>Commercial</label><select data-f="owner"><option value="">Toute l'équipe</option>${team.map(t => `<option value="${t.id}" ${ownerParam() === t.id ? "selected" : ""}>${esc(t.nom || t.email)}</option>`).join("")}</select></div>` : ""}
+        ${opts.pipeline !== false ? `<div><label>Type d'opportunité</label><select data-f="pipeline"><option value="">Tous</option>${Object.entries(PIPELINES).map(([k, p]) => `<option value="${k}" ${f.pipeline === k ? "selected" : ""}>${p.label}</option>`).join("")}</select></div>` : ""}
+        ${opts.acttype !== false ? `<div><label>Type d'activité</label><select data-f="acttype"><option value="">Toutes</option>${Object.entries(ACT_TYPES).map(([k, l]) => `<option value="${k}" ${f.acttype === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>` : ""}
+        ${opts.status !== false ? `<div><label>Statut</label><select data-f="status"><option value="">Tous</option><option value="open" ${f.status === "open" ? "selected" : ""}>En cours</option><option value="won" ${f.status === "won" ? "selected" : ""}>Gagnées</option><option value="lost" ${f.status === "lost" ? "selected" : ""}>Perdues</option></select></div>` : ""}
+      </div>`;
+      bar.querySelectorAll("[data-f]").forEach(el => el.addEventListener("change", () => {
+        f[el.dataset.f] = el.value; savePrefs();
+        if (el.dataset.f === "period") renderFilterBar(opts);
+        renderTab();
+      }));
+    }
+
+    // ─── Graphiques SVG (sans dépendance) ────────────────────────────────
+    function barChart(rows, key, { color = "#E91E63", money = false, height = 170 } = {}) {
+      if (!rows.length) return `<div class="crm-empty">Aucune donnée</div>`;
+      const W = Math.max(320, rows.length * 22), H = height, pad = 26;
+      const max = Math.max(1, ...rows.map(r => Number(r[key]) || 0));
+      const bw = (W - pad) / rows.length;
+      const step = Math.ceil(rows.length / 8);
+      const bars = rows.map((r, i) => {
+        const v = Number(r[key]) || 0, h = (H - 34) * v / max;
+        const x = pad + i * bw + bw * 0.15, y = H - 20 - h;
+        const lab = i % step === 0 ? `<text x="${x + bw * 0.35}" y="${H - 6}" text-anchor="middle">${esc(r.d.slice(5).split("-").reverse().join("/"))}</text>` : "";
+        return `<rect x="${x}" y="${y}" width="${bw * 0.7}" height="${Math.max(h, v ? 2 : 0)}" rx="3" fill="${color}"><title>${esc(r.d)} : ${money ? eur(v) : num(v)}</title></rect>${lab}`;
+      }).join("");
+      return `<div class="crm-table-wrap"><svg class="crm-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none">
+        <text x="0" y="12">${money ? eur(max) : num(max)}</text><line x1="${pad}" x2="${W}" y1="${H - 20}" y2="${H - 20}" stroke="rgba(255,255,255,.12)"/>${bars}</svg></div>`;
+    }
+    function lineChart(rows, series, { height = 170 } = {}) {
+      if (!rows.length) return `<div class="crm-empty">Aucune donnée</div>`;
+      const W = Math.max(320, rows.length * 22), H = height, pad = 26;
+      const max = Math.max(1, ...rows.flatMap(r => series.map(s => Number(r[s.key]) || 0)));
+      const x = (i) => pad + (rows.length === 1 ? (W - pad) / 2 : i * (W - pad - 8) / (rows.length - 1));
+      const y = (v) => H - 20 - (H - 34) * v / max;
+      const step = Math.ceil(rows.length / 8);
+      const labels = rows.map((r, i) => i % step === 0 ? `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${esc(r.d.slice(5).split("-").reverse().join("/"))}</text>` : "").join("");
+      const lines = series.map(s => `<polyline fill="none" stroke="${s.color}" stroke-width="2.2" points="${rows.map((r, i) => `${x(i)},${y(Number(r[s.key]) || 0)}`).join(" ")}"/>`).join("");
+      return `<div class="crm-table-wrap"><svg class="crm-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none">
+        <text x="0" y="12">${num(max)}</text><line x1="${pad}" x2="${W}" y1="${H - 20}" y2="${H - 20}" stroke="rgba(255,255,255,.12)"/>${lines}${labels}</svg></div>
+        <div class="crm-legend">${series.map(s => `<span><span class="crm-dot" style="background:${s.color}"></span>${s.label}</span>`).join("")}</div>`;
+    }
+    function shareBar(parts) {
+      const total = parts.reduce((a, p) => a + (p.v || 0), 0);
+      if (!total) return `<div class="crm-empty">Aucune vente sur la période</div>`;
+      return `<div style="display:flex; height:22px; border-radius:8px; overflow:hidden;">${parts.map(p => p.v ? `<div title="${esc(p.label)} : ${eur(p.v)}" style="width:${100 * p.v / total}%; background:${p.color}"></div>` : "").join("")}</div>
+        <div class="crm-legend">${parts.map(p => `<span><span class="crm-dot" style="background:${p.color}"></span>${esc(p.label)} : <b>${eur(p.v)}</b> (${pct(100 * (p.v || 0) / total)})</span>`).join("")}</div>`;
+    }
+    const progress = (done, target, money = false) => {
+      if (!target) return `<span class="muted" style="color:var(--text-faint); font-size:11px;">pas d'objectif</span>`;
+      const p = 100 * done / target;
+      return `<div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:3px;">
+          <span>${money ? eur(done) : num(done)} / ${money ? eur(target) : num(target)}</span>
+          <b style="color:${p >= 100 ? "#10b981" : "var(--text)"}">${pct(p)}${p >= 100 ? " ✅" : ""}</b></div>
+        <div class="crm-bar ${p >= 100 ? "ok" : ""}"><span style="width:${Math.min(100, p)}%"></span></div>
+        <div style="font-size:10.5px; color:var(--text-faint); margin-top:2px;">Reste : ${money ? eur(Math.max(0, target - done)) : num(Math.max(0, target - done))}</div>`;
+    };
+
+    // ─── Onglet Dashboard ────────────────────────────────────────────────
+    async function renderDashboard() {
+      renderFilterBar();
+      const body = document.getElementById("crm-body");
+      const { from, to } = periodRange(), f = st.filters;
+      body.innerHTML = `<div class="crm-empty">Calcul du tableau de bord…</div>`;
+      const [d, fu] = await Promise.all([
+        rpc("crm_dashboard", { p_from: from.toISOString(), p_to: to.toISOString(), p_owner: ownerParam(),
+          p_pipeline: f.pipeline || null, p_activity_type: f.acttype || null, p_status: f.status || null }),
+        rpc("crm_followups", { p_owner: ownerParam(), p_idle_days: st.idleDays, p_big_cents: st.bigEuros * 100 }),
+      ]);
+      updateFollowupBadges(fu);
+      const k = d.kpi;
+      const kpis = [
+        ["Prospects actifs", num(k.prospects_actifs)], ["Prospects ajoutés cette semaine", num(k.prospects_semaine)],
+        ["Contacts réalisés", num(k.contacts)], ["Rendez-vous", num(k.rdv)], ["Propositions envoyées", num(k.propositions)],
+        ["Opportunités en cours", num(k.opportunites_en_cours)], ["Partenariats signés", num(k.partenariats_signes)],
+        ["Abonnements vendus", num(k.abonnements_vendus)], ["Espaces pub vendus", num(k.pub_vendus)],
+        ["CA signé", eur(k.ca_signe_cents), true], ["CA prévisionnel (pondéré)", eur(k.ca_previsionnel_cents), true],
+        ["Taux de conversion", pct(k.taux_conversion)], ["Pipeline total", eur(k.pipeline_total_cents)], ["MRR", eur(k.mrr_cents)],
+      ];
+      const reds = fu.filter(a => a.level === "red");
+      // Funnel
+      const fp = f.pipeline || st.funnelPipeline;
+      const steps = d.funnel.filter(s => s.pipeline === fp);
+      const fmax = Math.max(1, ...steps.map(s => s.count));
+      const funnel = steps.map((s, i) => {
+        const prev = steps[i - 1];
+        const conv = prev && prev.count ? `<div class="crm-funnel-conv">↓ ${pct(100 * s.count / prev.count)} de conversion</div>` : "";
+        return `${conv}<div class="crm-funnel-row"><span>${esc(s.label)}</span>
+          <div><div class="crm-funnel-bar" style="width:${Math.max(4, 100 * s.count / fmax)}%">${num(s.count)}</div></div>
+          <span style="font-size:11px; color:var(--text-faint);">${num(s.current)} ici</span></div>`;
+      }).join("");
+      // Objectifs
+      const o = d.objectives, ot = o.target || {}, od = o.done || {};
+      const objRows = [["CA", "ca_cents", true], ["Ventes", "ventes"], ["Prospects", "prospects"], ["Contacts", "contacts"], ["RDV", "rdv"],
+                       ["Abonnements", "abonnements"], ["Espaces pub", "publicite"], ["Partenariats", "partenariats"]];
+      const monthLabel = new Date(o.month + "T12:00:00").toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+      // Classement
+      const board = [...d.leaderboard].map(r => ({ ...r, obj_pct: r.objectif_ca_cents ? 100 * r.ca_signe_cents / r.objectif_ca_cents : null }));
+      const sk = st.boardSort;
+      board.sort((a, b) => (Number(b[sk]) || -1) - (Number(a[sk]) || -1));
+      const kt = d.kpi;
+
+      body.innerHTML = `
+        ${reds.length ? `<div class="crm-next-box late" style="cursor:pointer" id="crm-red-alert">🔴 <b>${reds.length} alerte${reds.length > 1 ? "s" : ""} urgente${reds.length > 1 ? "s" : ""}</b> (relances en retard, opportunités importantes bloquées). Voir « À relancer » →</div>` : ""}
+        <div class="crm-kpis">${kpis.map(([l, v, hl]) => `<div class="crm-kpi ${hl ? "hl" : ""}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("")}</div>
+
+        <div class="crm-grid2">
+          <div class="crm-card"><h3>🎯 Objectifs de ${esc(monthLabel)} <span style="font-size:11px; color:var(--text-faint); font-weight:500;">${ownerParam() ? esc(memberName(ownerParam())) : "équipe"}</span></h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px;">
+              ${objRows.map(([l, key, money]) => `<div><div style="font-size:12px; font-weight:700; margin-bottom:4px;">${l}</div>${progress(od[key] || 0, ot[key] || 0, money)}</div>`).join("")}
+            </div>
+          </div>
+          <div class="crm-card"><h3>🔻 Funnel commercial
+              ${f.pipeline ? `<span class="crm-pill" style="background:rgba(255,255,255,.06)">${PIPELINES[fp].label}</span>` :
+                `<select id="crm-funnel-pipe" class="crm-btn sm">${Object.entries(PIPELINES).map(([kk, p]) => `<option value="${kk}" ${fp === kk ? "selected" : ""}>${p.label}</option>`).join("")}</select>`}</h3>
+            <p style="font-size:11px; color:var(--text-faint); margin:-4px 0 8px;">Opportunités créées sur la période ayant atteint chaque étape.</p>
+            ${steps.some(s => s.count) ? funnel : `<div class="crm-empty">Aucune opportunité créée sur la période</div>`}
+          </div>
+        </div>
+
+        <div class="crm-grid2">
+          <div class="crm-card"><h3>💶 Évolution du CA signé</h3>${barChart(d.series, "ca_cents", { money: true })}</div>
+          <div class="crm-card"><h3>📈 Activité commerciale</h3>${lineChart(d.series, [
+            { key: "activites", label: "Activités", color: "#A855F7" }, { key: "rdv", label: "RDV", color: "#22D3EE" }, { key: "ventes", label: "Ventes", color: "#10b981" }])}</div>
+        </div>
+
+        <div class="crm-grid2">
+          <div class="crm-card"><h3>🧩 Répartition du CA</h3>${shareBar([
+            { label: "Abonnements", v: kt.ca_abonnements_cents, color: PIPELINES.abonnement.color },
+            { label: "Publicité", v: kt.ca_publicite_cents, color: PIPELINES.publicite.color },
+            { label: "Partenariats", v: kt.ca_partenariats_cents, color: PIPELINES.partenariat.color }])}
+            <p style="font-size:12px; margin:12px 0 0;">CA total : <b>${eur(kt.ca_signe_cents)}</b> · MRR (abonnements actifs + pub récurrente) : <b>${eur(kt.mrr_cents)}</b></p>
+          </div>
+          <div class="crm-card"><h3>🗂️ Pipeline prévisionnel</h3>
+            <p style="font-size:12.5px; margin:0 0 8px;">Total <b>${eur(kt.pipeline_total_cents)}</b> · pondéré <b>${eur(kt.ca_previsionnel_cents)}</b></p>
+            <div class="crm-table-wrap"><table class="crm-table"><tr><th>Type</th><th class="crm-num">Opp.</th><th class="crm-num">Total</th><th class="crm-num">Pondéré</th></tr>
+              ${d.pipeline_by_type.map(r => `<tr><td><span class="crm-dot" style="background:${PIPELINES[r.pipeline].color}"></span>${PIPELINES[r.pipeline].label}</td><td class="crm-num">${num(r.count)}</td><td class="crm-num">${eur(r.total_cents)}</td><td class="crm-num">${eur(r.weighted_cents)}</td></tr>`).join("") || `<tr><td colspan="4" class="crm-empty">Aucune opportunité en cours</td></tr>`}
+            </table></div>
+            ${d.pipeline_by_stage.length ? `<details style="margin-top:8px;"><summary style="cursor:pointer; font-size:12px; color:var(--text-dim);">Par étape</summary>
+              <table class="crm-table">${d.pipeline_by_stage.map(r => `<tr><td>${PIPELINES[r.pipeline].label} · ${esc(r.label)}</td><td class="crm-num">${num(r.count)}</td><td class="crm-num">${eur(r.total_cents)}</td><td class="crm-num">${eur(r.weighted_cents)}</td></tr>`).join("")}</table></details>` : ""}
+          </div>
+        </div>
+
+        <div class="crm-card" style="margin-bottom:14px;"><h3>🏆 Performance des commerciaux
+            <select id="crm-board-sort" class="crm-btn sm">${[["ca_signe_cents", "Trier par CA"], ["ventes", "Nombre de ventes"], ["rdv", "Nombre de RDV"], ["taux_conversion", "Taux de conversion"], ["obj_pct", "% objectif atteint"]]
+              .map(([v, l]) => `<option value="${v}" ${sk === v ? "selected" : ""}>${l}</option>`).join("")}</select></h3>
+          <div class="crm-table-wrap"><table class="crm-table">
+            <tr><th>#</th><th>Commercial</th><th class="crm-num">Prospects</th><th class="crm-num">Contacts</th><th class="crm-num">Appels</th><th class="crm-num">RDV</th><th class="crm-num">Propos.</th><th class="crm-num">Opp.</th><th class="crm-num">Ventes</th><th class="crm-num">Partenariats</th><th class="crm-num">CA signé</th><th class="crm-num">CA prévi.</th><th class="crm-num">Conv.</th><th class="crm-num">Objectif CA</th><th style="min-width:110px">% objectif</th></tr>
+            ${board.map((r, i) => `<tr><td>${i + 1}</td><td><b>${esc(r.nom)}</b></td><td class="crm-num">${num(r.prospects)}</td><td class="crm-num">${num(r.contacts)}</td><td class="crm-num">${num(r.appels)}</td><td class="crm-num">${num(r.rdv)}</td><td class="crm-num">${num(r.propositions)}</td><td class="crm-num">${num(r.opportunites)}</td><td class="crm-num">${num(r.ventes)}</td><td class="crm-num">${num(r.partenariats)}</td><td class="crm-num"><b>${eur(r.ca_signe_cents)}</b></td><td class="crm-num">${eur(r.ca_previsionnel_cents)}</td><td class="crm-num">${pct(r.taux_conversion)}</td><td class="crm-num">${r.objectif_ca_cents ? eur(r.objectif_ca_cents) : "–"}</td>
+              <td>${r.obj_pct == null ? "–" : `<div class="crm-bar ${r.obj_pct >= 100 ? "ok" : ""}"><span style="width:${Math.min(100, r.obj_pct)}%"></span></div><span style="font-size:11px">${pct(r.obj_pct)}${r.obj_pct >= 100 ? " ✅" : ""}</span>`}</td></tr>`).join("") || `<tr><td colspan="15" class="crm-empty">Aucun commercial</td></tr>`}
+          </table></div>
+        </div>`;
+      document.getElementById("crm-red-alert")?.addEventListener("click", () => { st.tab = "followups"; savePrefs(); renderShell(); renderTab(); });
+      document.getElementById("crm-funnel-pipe")?.addEventListener("change", (e) => { st.funnelPipeline = e.target.value; renderDashboard(); });
+      document.getElementById("crm-board-sort").addEventListener("change", (e) => { st.boardSort = e.target.value; renderDashboard(); });
+    }
+
+    // ─── Onglet À relancer ───────────────────────────────────────────────
+    const LEVEL = { red: ["#ef4444", "🔴"], orange: ["#f59e0b", "🟠"], green: ["#10b981", "🟢"], blue: ["#38bdf8", "🔵"] };
+    function updateFollowupBadges(fu) {
+      const urgent = fu.filter(a => a.level === "red").length;
+      const todo = fu.filter(a => a.level === "red" || a.level === "orange").length;
+      const nav = document.getElementById("crm-alert-badge");
+      if (nav) { nav.textContent = urgent || ""; nav.style.display = urgent ? "inline" : "none"; }
+      const c = document.getElementById("crm-fu-count");
+      if (c) { c.textContent = todo; c.style.display = todo ? "inline" : "none"; }
+    }
+    async function renderFollowups() {
+      renderFilterBar({ pipeline: false, acttype: false, status: false });
+      const body = document.getElementById("crm-body");
+      body.innerHTML = `<div class="crm-empty">Recherche des relances…</div>`;
+      const fu = await rpc("crm_followups", { p_owner: ownerParam(), p_idle_days: st.idleDays, p_big_cents: st.bigEuros * 100 });
+      updateFollowupBadges(fu);
+      const counts = Object.fromEntries(Object.keys(LEVEL).map(l => [l, fu.filter(a => a.level === l).length]));
+      body.innerHTML = `
+        <div class="crm-card" style="margin-bottom:12px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:12.5px;">
+          <span>🔴 ${counts.red} urgent${counts.red > 1 ? "s" : ""}</span><span>🟠 ${counts.orange} à traiter</span><span>🔵 ${counts.blue} RDV à venir</span><span>🟢 ${counts.green} proche${counts.green > 1 ? "s" : ""} de signer</span>
+          <span style="margin-left:auto">Sans activité depuis <input id="crm-idle" type="number" min="1" value="${st.idleDays}" style="width:56px" class="crm-btn sm"> j ·
+          « importante » dès <input id="crm-big" type="number" min="0" step="100" value="${st.bigEuros}" style="width:80px" class="crm-btn sm"> €</span>
+        </div>
+        <div class="crm-card"><div class="crm-table-wrap"><table class="crm-table">
+          <tr><th></th><th>Entreprise</th><th>Alerte</th><th>Commercial</th><th>Dernière activité</th><th>Étape</th><th class="crm-num">Montant</th><th>Prochaine action</th><th>Date de relance</th><th></th></tr>
+          ${fu.map((a, i) => `<tr class="clickable" data-i="${i}">
+            <td>${LEVEL[a.level][1]}</td><td><b>${esc(a.company)}</b>${a.pipeline ? `<br><span style="font-size:10.5px; color:${PIPELINES[a.pipeline].color}">${PIPELINES[a.pipeline].label}</span>` : ""}</td>
+            <td style="color:${LEVEL[a.level][0]}; font-weight:600;">${esc(a.label)}</td><td>${esc(a.owner_nom || "–")}</td>
+            <td>${fmtD(a.last_activity_at)}</td><td>${esc(a.stage || "–")}</td><td class="crm-num">${a.amount_cents != null ? eur(a.amount_cents) : "–"}</td>
+            <td>${esc(a.next_action || "–")}</td><td style="${isLate(a.next_action_at) && a.kind !== "rdv_a_venir" ? "color:#fca5a5; font-weight:700;" : ""}">${a.next_action_at ? fmtDT(a.next_action_at) : "–"}</td>
+            <td style="white-space:nowrap"><button class="crm-btn sm primary" data-act="${i}">+ Activité</button></td></tr>`).join("") || `<tr><td colspan="10" class="crm-empty">🎉 Rien à relancer, tout est à jour.</td></tr>`}
+        </table></div></div>`;
+      const reload = () => { savePrefs(); renderFollowups(); };
+      document.getElementById("crm-idle").addEventListener("change", (e) => { st.idleDays = Math.max(1, parseInt(e.target.value) || 7); reload(); });
+      document.getElementById("crm-big").addEventListener("change", (e) => { st.bigEuros = Math.max(0, parseInt(e.target.value) || 0); reload(); });
+      body.querySelectorAll("[data-act]").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation(); const a = fu[+b.dataset.act];
+        activityModal({ client_id: a.client_id, opportunity_id: a.opportunity_id, company: a.company }, renderFollowups);
+      }));
+      body.querySelectorAll("tr[data-i]").forEach(tr => tr.addEventListener("click", () => {
+        const a = fu[+tr.dataset.i];
+        if (a.opportunity_id) opportunityModal(a.opportunity_id, renderFollowups); else companyModal(a.client_id, renderFollowups);
+      }));
+    }
+
+    // ─── Onglet Pipeline (Kanban) ────────────────────────────────────────
+    async function renderPipeline() {
+      renderFilterBar({ pipeline: false, acttype: false, status: false });
+      const body = document.getElementById("crm-body");
+      const pipe = st.kanbanPipeline;
+      body.innerHTML = `<div class="crm-empty">Chargement du pipeline…</div>`;
+      const opps = await rpc("crm_list_opportunities", { p_pipeline: pipe, p_owner: ownerParam(), p_status: null });
+      const stages = stagesOf(pipe);
+      const recentClosed = (o) => o.status === "open" || (Date.now() - new Date(o.stage_entered_at)) < 30 * 864e5;
+      body.innerHTML = `
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;">
+          ${Object.entries(PIPELINES).map(([k, p]) => `<span class="crm-tab ${pipe === k ? "active" : ""}" data-pipe="${k}">${p.label}</span>`).join("")}
+          <button class="crm-btn primary" id="crm-new-opp" style="margin-left:auto">+ Opportunité</button>
+        </div>
+        <p style="font-size:11.5px; color:var(--text-faint); margin:0 0 8px;">Glisse une carte vers une autre colonne (sur mobile : bouton ⇄). L'historique et l'activité correspondante sont enregistrés automatiquement. Les colonnes Gagné / Perdu montrent les 30 derniers jours.</p>
+        <div class="crm-kanban">${stages.map(s => {
+          const cards = opps.filter(o => o.stage === s.code && recentClosed(o));
+          const total = cards.reduce((a, o) => a + (o.amount_cents || 0), 0);
+          return `<div class="crm-col" data-stage="${s.code}">
+            <div class="crm-col-head"><span>${esc(s.label)} <small>(${cards.length})</small></span><small>${eur(total)}</small></div>
+            ${cards.map(o => `<div class="crm-opp" draggable="true" data-id="${o.id}">
+              <b>${esc(o.company)}</b>
+              <div class="meta">${esc(o.title || o.product || "")}${o.contact ? ` · ${esc(o.contact)}` : ""}<br>
+                👤 ${esc(o.owner_nom || "Non attribué")} · <b style="color:var(--text)">${eur(o.amount_cents)}</b> · ${o.probability} %<br>
+                Dernière activité : ${fmtD(o.last_activity_at)}</div>
+              ${o.status === "open" ? `<div class="next ${isLate(o.next_action_at) ? "late" : ""}">➡️ ${esc(o.next_action || "Aucune prochaine action")}${o.next_action_at ? ` · ${fmtDT(o.next_action_at)}` : ""}</div>` : ""}
+              <div style="display:flex; gap:6px; margin-top:6px;"><button class="crm-btn sm" data-move="${o.id}">⇄</button><button class="crm-btn sm" data-log="${o.id}">+ Activité</button></div>
+            </div>`).join("")}
+          </div>`;
+        }).join("")}</div>`;
+      body.querySelectorAll("[data-pipe]").forEach(el => el.addEventListener("click", () => { st.kanbanPipeline = el.dataset.pipe; renderPipeline(); }));
+      document.getElementById("crm-new-opp").addEventListener("click", () => opportunityEditModal({ pipeline: pipe }, renderPipeline));
+      const byId = Object.fromEntries(opps.map(o => [o.id, o]));
+      body.querySelectorAll(".crm-opp").forEach(card => {
+        card.addEventListener("dragstart", (e) => { e.dataTransfer.setData("text/plain", card.dataset.id); card.style.opacity = ".5"; });
+        card.addEventListener("dragend", () => { card.style.opacity = ""; });
+        card.addEventListener("click", (e) => { if (!e.target.closest("button")) opportunityModal(card.dataset.id, renderPipeline); });
+      });
+      body.querySelectorAll("[data-log]").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation(); const o = byId[b.dataset.log];
+        activityModal({ client_id: o.client_id, opportunity_id: o.id, company: o.company }, renderPipeline);
+      }));
+      body.querySelectorAll("[data-move]").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation(); const o = byId[b.dataset.move];
+        openModal(`Déplacer « ${esc(o.company)} »`, `<div style="display:flex; flex-direction:column; gap:6px;">${stagesOf(o.pipeline).map(s =>
+          `<button class="crm-btn ${s.code === o.stage ? "primary" : ""}" data-to="${s.code}">${esc(s.label)}</button>`).join("")}</div>`, (m, close) => {
+          m.querySelectorAll("[data-to]").forEach(x => x.addEventListener("click", () => { close(); moveOpportunity(o, x.dataset.to, renderPipeline); }));
+        });
+      }));
+      body.querySelectorAll(".crm-col").forEach(col => {
+        col.addEventListener("dragover", (e) => { e.preventDefault(); col.classList.add("drop"); });
+        col.addEventListener("dragleave", () => col.classList.remove("drop"));
+        col.addEventListener("drop", (e) => {
+          e.preventDefault(); col.classList.remove("drop");
+          const o = byId[e.dataTransfer.getData("text/plain")];
+          if (o && o.stage !== col.dataset.stage) moveOpportunity(o, col.dataset.stage, renderPipeline);
+        });
+      });
+    }
+
+    // Changement d'étape : précision demandée quand elle a du sens.
+    function moveOpportunity(o, toStage, after) {
+      const s = stageOf(o.pipeline, toStage);
+      const needsDetail = s.activity_type || s.outcome === "lost";
+      const go = async (note = "", at = null, lostReason = null) => {
+        try {
+          await rpc("crm_move_opportunity", { p_id: o.id, p_stage: toStage, p_note: note, p_at: at, p_lost_reason: lostReason });
+          toast(`« ${o.company} » → ${s.label}${s.outcome === "won" ? " 🎉 vente enregistrée" : ""}`);
+          after?.();
+        } catch (e) { toast("Erreur : " + e.message, false); after?.(); }
+      };
+      if (!needsDetail) return go();
+      const isRdv = s.activity_type === "rendez_vous";
+      openModal(`${esc(o.company)} → ${esc(s.label)}`, `<form class="crm-form">
+        ${s.outcome === "lost" ? `<div class="full"><label>Raison de la perte</label><input name="reason" placeholder="Prix, timing, concurrent, pas de besoin…"></div>` : ""}
+        ${s.activity_type ? `<div><label>${isRdv ? "Date du RDV" : "Date"}</label><input type="datetime-local" name="at" value="${toLocalInput(new Date().toISOString())}"></div>
+          <div class="full"><label>Note (facultatif)</label><textarea name="note" placeholder="${isRdv ? "Lieu, objet du RDV…" : "Détail utile pour la suite"}"></textarea></div>` : ""}
+        <div class="crm-actions full"><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Valider</button></div></form>`, (m, close) => {
+        m.querySelector("form").addEventListener("submit", (e) => {
+          e.preventDefault(); const v = formData(e.target); close();
+          go(v.note || "", v.at ? fromLocalInput(v.at) : null, v.reason ?? null);
+        });
+      });
+    }
+
+    // ─── Fiche opportunité (détail + timeline) ───────────────────────────
+    async function opportunityModal(id, after) {
+      let d;
+      try { d = await rpc("crm_get_opportunity", { p_id: id }); } catch (e) { return toast(e.message, false); }
+      const o = d.opportunity, late = isLate(o.next_action_at) && o.status === "open";
+      openModal(`${esc(o.company)} · ${esc(PIPELINES[o.pipeline].label)}`, `
+        <div class="crm-form" style="margin-bottom:6px;">
+          <div><label>Étape</label><b>${esc(o.stage_label)}</b> ${o.status === "won" ? "🎉" : o.status === "lost" ? "✕" : ""}</div>
+          <div><label>Montant · probabilité</label><b>${eur(o.amount_cents)}</b> · ${o.probability} % → pondéré <b>${eur(o.weighted_cents)}</b></div>
+          <div><label>Commercial</label>${esc(o.owner_nom || "Non attribué")}</div>
+          <div><label>Contact</label>${esc(o.contact || "–")}${o.contact_tel ? ` · <a href="tel:${esc(o.contact_tel)}" style="color:var(--magenta)">${esc(o.contact_tel)}</a>` : ""}${o.contact_email ? ` · <a href="mailto:${esc(o.contact_email)}" style="color:var(--magenta)">email</a>` : ""}</div>
+          <div><label>Produit</label>${esc(o.title || o.product || "–")}${o.recurring ? ` · ${eur(o.monthly_cents)}/mois` : ""}${o.duration_months ? ` · ${o.duration_months} mois` : ""}</div>
+          <div><label>Signature prévue</label>${o.expected_close ? fmtDLong(o.expected_close + "T12:00:00") : "–"}</div>
+          ${o.lost_reason ? `<div class="full"><label>Raison de la perte</label>${esc(o.lost_reason)}</div>` : ""}
+          ${o.notes ? `<div class="full"><label>Notes</label>${esc(o.notes).replace(/\n/g, "<br>")}</div>` : ""}
+        </div>
+        ${o.status === "open" ? `<div class="crm-next-box ${late ? "late" : ""}"><b>Prochaine action :</b> ${esc(o.next_action || "aucune, à définir")}<br><b>Date :</b> ${o.next_action_at ? fmtDLong(o.next_action_at) + " à " + new Date(o.next_action_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "–"}${late ? " · <b>en retard</b>" : ""}</div>` : ""}
+        <div class="crm-actions" style="justify-content:flex-start; margin:0 0 12px;">
+          <button class="crm-btn primary" data-a="log">+ Activité</button>
+          <button class="crm-btn" data-a="move">⇄ Changer d'étape</button>
+          <button class="crm-btn" data-a="edit">✏️ Modifier</button>
+          <button class="crm-btn" data-a="company">🏢 Fiche entreprise</button>
+          ${can.deleteOpp() ? `<button class="crm-btn danger" data-a="del">Supprimer</button>` : ""}
+        </div>
+        <h3 style="font-size:14px; margin:6px 0;">Historique</h3>${timelineHtml(d.timeline)}`, (m, close) => {
+        const reopen = () => { after?.(); opportunityModal(id, after); };
+        m.querySelector('[data-a="log"]').addEventListener("click", () => { close(); activityModal({ client_id: o.client_id, opportunity_id: o.id, company: o.company, contact_id: o.contact_id }, reopen); });
+        m.querySelector('[data-a="edit"]').addEventListener("click", () => { close(); opportunityEditModal(o, reopen); });
+        m.querySelector('[data-a="company"]').addEventListener("click", () => { close(); companyModal(o.client_id, after); });
+        m.querySelector('[data-a="move"]').addEventListener("click", () => {
+          close();
+          openModal(`Déplacer « ${esc(o.company)} »`, `<div style="display:flex; flex-direction:column; gap:6px;">${stagesOf(o.pipeline).map(s =>
+            `<button class="crm-btn ${s.code === o.stage ? "primary" : ""}" data-to="${s.code}">${esc(s.label)}</button>`).join("")}</div>`, (m2, close2) => {
+            m2.querySelectorAll("[data-to]").forEach(x => x.addEventListener("click", () => { close2(); if (x.dataset.to !== o.stage) moveOpportunity({ ...o, id: o.id }, x.dataset.to, reopen); }));
+          });
+        });
+        m.querySelector('[data-a="del"]')?.addEventListener("click", async () => {
+          if (!confirm("Supprimer cette opportunité et son historique d'étapes ? Les activités restent sur la fiche entreprise.")) return;
+          try { await rpc("crm_delete_opportunity", { p_id: o.id }); close(); toast("Opportunité supprimée"); after?.(); } catch (e) { toast(e.message, false); }
+        });
+      });
+    }
+
+    function timelineHtml(items) {
+      if (!items?.length) return `<div class="crm-empty">Aucun historique pour l'instant.</div>`;
+      return `<div class="crm-timeline">${items.map(t => t.kind === "stage"
+        ? `<div class="crm-tl-item stage"><div class="d">${fmtDT(t.at)} · ${esc(t.owner_nom || "")}</div>Étape : ${t.from ? `${esc(t.from)} → ` : "création en "}<b>${esc(t.to)}</b></div>`
+        : `<div class="crm-tl-item"><div class="d">${fmtDT(t.at)} · ${esc(t.owner_nom || "")}${new Date(t.at) > new Date() ? " · <b style='color:#38bdf8'>à venir</b>" : ""}</div>
+            <b>${ACT_TYPES[t.type] || esc(t.type)}</b>${t.result ? ` · ${esc(t.result)}` : ""}${t.comment ? `<br><span style="color:var(--text-dim)">${esc(t.comment).replace(/\n/g, "<br>")}</span>` : ""}
+            ${t.next_action ? `<br><span style="font-size:11.5px">➡️ ${esc(t.next_action)}${t.next_action_at ? ` (${fmtDT(t.next_action_at)})` : ""}</span>` : ""}</div>`).join("")}</div>`;
+    }
+
+    // ─── Formulaire opportunité ──────────────────────────────────────────
+    async function opportunityEditModal(o = {}, after) {
+      if (!st.companies.length) { try { st.companies = await rpc("crm_list_companies"); } catch (_) {} }
+      const pipe = o.pipeline || "abonnement";
+      let contacts = [];
+      if (o.client_id) { try { contacts = (await rpc("crm_get_company", { p_id: o.client_id })).contacts; } catch (_) {} }
+      const team = visibleTeam();
+      openModal(o.id ? "Modifier l'opportunité" : "Nouvelle opportunité", `<form class="crm-form">
+        <div class="full"><label>Entreprise *</label>${o.client_id && o.company && !o.id ? `<input type="hidden" name="client_id" value="${o.client_id}"><b>${esc(o.company)}</b>` :
+          `<select name="client_id" required><option value="">Choisir…</option>${st.companies.map(c => `<option value="${c.id}" ${c.id === o.client_id ? "selected" : ""}>${esc(c.raison_sociale)}${c.ville ? ` (${esc(c.ville)})` : ""}</option>`).join("")}</select>`}</div>
+        <div><label>Type</label><select name="pipeline">${Object.entries(PIPELINES).map(([k, p]) => `<option value="${k}" ${pipe === k ? "selected" : ""}>${p.label}</option>`).join("")}</select></div>
+        <div><label>Étape</label><select name="stage"></select></div>
+        <div><label>Produit</label><select name="product"></select></div>
+        <div><label>Intitulé</label><input name="title" value="${esc(o.title || "")}" placeholder="Ex. Premium rubrique Food"></div>
+        <div><label>Mensualité (€) si récurrent</label><input name="monthly" inputmode="decimal" value="${eurosFromCents(o.monthly_cents)}"></div>
+        <div><label>Durée (mois)</label><input name="duration_months" type="number" min="1" value="${o.duration_months ?? ""}"></div>
+        <div><label>Montant potentiel total (€) *</label><input name="amount" inputmode="decimal" value="${eurosFromCents(o.amount_cents)}" required></div>
+        <div><label>Probabilité (%)</label><input name="probability" type="number" min="0" max="100" value="${o.probability ?? ""}" placeholder="selon l'étape"></div>
+        <div><label>Contact</label><select name="contact_id"><option value="">–</option>${contacts.map(c => `<option value="${c.id}" ${c.id === o.contact_id ? "selected" : ""}>${esc(`${c.prenom} ${c.nom}`.trim())}${c.fonction ? ` · ${esc(c.fonction)}` : ""}</option>`).join("")}</select></div>
+        ${can.pickOwner() ? `<div><label>Commercial responsable</label><select name="owner_id">${team.map(t => `<option value="${t.id}" ${(o.owner_id || st.me.id) === t.id ? "selected" : ""}>${esc(t.nom || t.email)}</option>`).join("")}</select></div>` : ""}
+        <div><label>Signature prévue</label><input type="date" name="expected_close" value="${esc(o.expected_close || "")}"></div>
+        <div><label>Prochaine action</label><input name="next_action" value="${esc(o.next_action || "")}" placeholder="Appeler le client"></div>
+        <div><label>Date de la prochaine action</label><input type="datetime-local" name="next_action_at" value="${toLocalInput(o.next_action_at)}"></div>
+        <div class="full"><label>Notes</label><textarea name="notes">${esc(o.notes || "")}</textarea></div>
+        <div class="crm-actions full"><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div>
+      </form>`, (m, close) => {
+        const form = m.querySelector("form");
+        const selPipe = form.elements.pipeline, selStage = form.elements.stage, selProd = form.elements.product;
+        const fillStages = () => {
+          selStage.innerHTML = stagesOf(selPipe.value).map(s => `<option value="${s.code}" ${(o.stage || "prospect") === s.code && selPipe.value === pipe ? "selected" : ""}>${esc(s.label)} (${s.probability} %)</option>`).join("");
+          selProd.innerHTML = `<option value="">–</option>` + PRODUCTS[selPipe.value].map(p => `<option value="${p.code}" ${o.product === p.code ? "selected" : ""}>${esc(p.label)}</option>`).join("");
+        };
+        fillStages();
+        selPipe.addEventListener("change", fillStages);
+        const recompute = () => {
+          const mth = centsFromEuros(form.elements.monthly.value), dur = parseInt(form.elements.duration_months.value) || 0;
+          if (mth && dur) form.elements.amount.value = eurosFromCents(mth * dur);
+        };
+        selProd.addEventListener("change", () => {
+          const p = PRODUCTS[selPipe.value].find(x => x.code === selProd.value); if (!p) return;
+          if (!form.elements.title.value) form.elements.title.value = p.label.replace(/\s*\(.*\)$/, "");
+          if (p.monthly) { form.elements.monthly.value = eurosFromCents(p.monthly); form.elements.duration_months.value = p.months; recompute(); }
+          else if (p.once) { form.elements.monthly.value = ""; form.elements.duration_months.value = ""; form.elements.amount.value = eurosFromCents(p.once); }
+        });
+        form.elements.monthly.addEventListener("input", recompute); form.elements.duration_months.addEventListener("input", recompute);
+        form.elements.client_id?.addEventListener?.("change", async () => {
+          if (form.elements.client_id.tagName !== "SELECT" || !form.elements.client_id.value) return;
+          try {
+            const cs = (await rpc("crm_get_company", { p_id: form.elements.client_id.value })).contacts;
+            form.elements.contact_id.innerHTML = `<option value="">–</option>` + cs.map(c => `<option value="${c.id}" ${c.is_primary ? "selected" : ""}>${esc(`${c.prenom} ${c.nom}`.trim())}</option>`).join("");
+          } catch (_) {}
+        });
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault(); const v = formData(form);
+          const mth = centsFromEuros(v.monthly);
+          const payload = {
+            id: o.id || "", client_id: v.client_id, pipeline: v.pipeline, stage: v.stage, product: v.product,
+            title: v.title, amount_cents: centsFromEuros(v.amount), probability: v.probability,
+            recurring: mth > 0, monthly_cents: mth, duration_months: v.duration_months,
+            contact_id: v.contact_id, owner_id: v.owner_id || "", expected_close: v.expected_close,
+            next_action: v.next_action, next_action_at: fromLocalInput(v.next_action_at) || "", notes: v.notes,
+            subscription_id: o.subscription_id || "",
+          };
+          if (!payload.client_id) return toast("Choisis une entreprise", false);
+          try { await rpc("crm_upsert_opportunity", { p: payload }); close(); toast("Opportunité enregistrée"); after?.(); }
+          catch (err) { toast("Erreur : " + err.message, false); }
+        });
+      });
+    }
+
+    // ─── Formulaire activité ─────────────────────────────────────────────
+    async function activityModal(pre = {}, after) {
+      let opps = [], contacts = [];
+      if (pre.client_id) {
+        try { const c = await rpc("crm_get_company", { p_id: pre.client_id }); opps = c.opportunities.filter(x => x.status === "open"); contacts = c.contacts; pre.company = pre.company || c.company.raison_sociale; } catch (_) {}
+      } else if (!st.companies.length) { try { st.companies = await rpc("crm_list_companies"); } catch (_) {} }
+      openModal(`Nouvelle activité${pre.company ? ` · ${esc(pre.company)}` : ""}`, `<form class="crm-form">
+        ${pre.client_id ? `<input type="hidden" name="client_id" value="${pre.client_id}">` :
+          `<div class="full"><label>Entreprise *</label><select name="client_id" required><option value="">Choisir…</option>${st.companies.map(c => `<option value="${c.id}">${esc(c.raison_sociale)}</option>`).join("")}</select></div>`}
+        <div class="full"><label>Type d'activité</label><div style="display:flex; flex-wrap:wrap; gap:6px;">${Object.entries(ACT_TYPES).map(([k, l], i) =>
+          `<label style="margin:0; cursor:pointer;"><input type="radio" name="type" value="${k}" ${i === 0 ? "checked" : ""} style="width:auto; margin-right:4px;">${l}</label>`).join("")}</div></div>
+        <div><label>Date</label><input type="datetime-local" name="occurred_at" value="${toLocalInput(new Date().toISOString())}"></div>
+        <div><label>Opportunité</label><select name="opportunity_id"><option value="">Aucune</option>${opps.map(x => `<option value="${x.id}" ${x.id === pre.opportunity_id ? "selected" : ""}>${esc(x.title || PIPELINES[x.pipeline].label)} · ${esc(x.stage_label)}</option>`).join("")}</select></div>
+        <div><label>Contact</label><select name="contact_id"><option value="">–</option>${contacts.map(c => `<option value="${c.id}" ${c.id === pre.contact_id ? "selected" : ""}>${esc(`${c.prenom} ${c.nom}`.trim())}</option>`).join("")}</select></div>
+        <div><label>Résultat</label><input name="result" placeholder="Intéressé, à rappeler, pas de réponse…"></div>
+        <div class="full"><label>Commentaire</label><textarea name="comment"></textarea></div>
+        <div><label>Prochaine action</label><input name="next_action" placeholder="Relancer, envoyer l'offre…"></div>
+        <div><label>Date de la prochaine action</label><input type="datetime-local" name="next_action_at"></div>
+        <div class="full" style="font-size:11px; color:var(--text-faint);">Pour un RDV futur, mets sa date : il apparaîtra dans « RDV à venir ». La prochaine action remplace celle de l'opportunité.</div>
+        <div class="crm-actions full"><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div>
+      </form>`, (m, close) => {
+        const form = m.querySelector("form");
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault(); const v = formData(form);
+          if (!v.client_id) return toast("Choisis une entreprise", false);
+          try {
+            await rpc("crm_log_activity", { p: { ...v, occurred_at: fromLocalInput(v.occurred_at) || "", next_action_at: fromLocalInput(v.next_action_at) || "" } });
+            close(); toast("Activité enregistrée"); after?.();
+          } catch (err) { toast("Erreur : " + err.message, false); }
+        });
+      });
+    }
+
+    // ─── Onglet Entreprises + fiche ──────────────────────────────────────
+    async function renderCompanies() {
+      document.getElementById("crm-filterbar").innerHTML = "";
+      const body = document.getElementById("crm-body");
+      body.innerHTML = `<div class="crm-empty">Chargement des entreprises…</div>`;
+      st.companies = await rpc("crm_list_companies");
+      const draw = () => {
+        const q = st.companySearch.toLowerCase(), fs = st.companyStatut, fo = st.filters.owner;
+        const rows = st.companies.filter(c => (!fs || c.statut === fs) && (!fo || c.owner_id === fo || (fo === "none" && !c.owner_id)) &&
+          (!q || [c.raison_sociale, c.enseigne, c.ville, c.secteur, c.contact].some(x => (x || "").toLowerCase().includes(q))));
+        document.getElementById("crm-co-list").innerHTML = `<table class="crm-table">
+          <tr><th>Entreprise</th><th>Secteur</th><th>Ville</th><th>Statut</th><th>Contact</th><th>Commercial</th><th>Source</th><th>Dernière activité</th><th class="crm-num">Opp.</th><th class="crm-num">Pipeline</th><th>Prochaine action</th></tr>
+          ${rows.map(c => `<tr class="clickable" data-id="${c.id}"><td><b>${esc(c.raison_sociale)}</b>${c.enseigne ? `<br><span style="font-size:11px;color:var(--text-faint)">${esc(c.enseigne)}</span>` : ""}</td>
+            <td>${esc(c.secteur || "–")}</td><td>${esc(c.ville || "–")}</td><td>${esc(STATUTS[c.statut] || c.statut)}</td><td>${esc(c.contact || "–")}</td>
+            <td>${esc(c.owner_nom || "Non attribué")}</td><td>${esc(c.source || "–")}</td><td>${fmtD(c.last_activity_at)}</td><td class="crm-num">${num(c.opp_open)}</td>
+            <td class="crm-num">${c.pipeline_cents ? eur(c.pipeline_cents) : "–"}</td><td style="${isLate(c.next_action_at) ? "color:#fca5a5" : ""}">${c.next_action_at ? `${esc(c.next_action || "")} · ${fmtD(c.next_action_at)}` : "–"}</td></tr>`).join("") || `<tr><td colspan="11" class="crm-empty">Aucune entreprise</td></tr>`}
+        </table>`;
+        document.querySelectorAll("#crm-co-list tr[data-id]").forEach(tr => tr.addEventListener("click", () => companyModal(tr.dataset.id, renderCompanies)));
+        document.getElementById("crm-co-count").textContent = `${rows.length} / ${st.companies.length}`;
+      };
+      const team = visibleTeam();
+      body.innerHTML = `<div class="crm-filters">
+          <div style="flex:1; min-width:200px;"><label>Recherche</label><input id="crm-co-q" value="${esc(st.companySearch)}" placeholder="Nom, ville, secteur, contact…" style="width:100%"></div>
+          <div><label>Statut</label><select id="crm-co-st"><option value="">Tous</option>${Object.entries(STATUTS).map(([k, l]) => `<option value="${k}" ${st.companyStatut === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+          ${team.length > 1 ? `<div><label>Commercial</label><select id="crm-co-own"><option value="">Tous</option><option value="none" ${st.filters.owner === "none" ? "selected" : ""}>Non attribués</option>${team.map(t => `<option value="${t.id}" ${st.filters.owner === t.id ? "selected" : ""}>${esc(t.nom || t.email)}</option>`).join("")}</select></div>` : ""}
+          <span id="crm-co-count" style="font-size:12px; color:var(--text-faint); align-self:center;"></span>
+          <button class="crm-btn primary" id="crm-new-co" style="margin-left:auto">+ Entreprise / prospect</button>
+        </div><div class="crm-card"><div class="crm-table-wrap" id="crm-co-list"></div></div>`;
+      let t;
+      document.getElementById("crm-co-q").addEventListener("input", (e) => { clearTimeout(t); t = setTimeout(() => { st.companySearch = e.target.value; draw(); }, 200); });
+      document.getElementById("crm-co-st").addEventListener("change", (e) => { st.companyStatut = e.target.value; draw(); });
+      document.getElementById("crm-co-own")?.addEventListener("change", (e) => { st.filters.owner = e.target.value; savePrefs(); draw(); });
+      document.getElementById("crm-new-co").addEventListener("click", () => companyEditModal({}, renderCompanies));
+      draw();
+    }
+
+    function companyEditModal(c = {}, after) {
+      const team = visibleTeam();
+      openModal(c.id ? "Modifier l'entreprise" : "Nouvelle entreprise / prospect", `<form class="crm-form">
+        <div><label>Nom de l'entreprise *</label><input name="raison_sociale" required value="${esc(c.raison_sociale || "")}"></div>
+        <div><label>Enseigne</label><input name="enseigne" value="${esc(c.enseigne || "")}"></div>
+        <div><label>Secteur</label><input name="secteur" list="crm-secteurs" value="${esc(c.secteur || "")}" placeholder="Restaurant, bar, club, marque de boisson…">
+          <datalist id="crm-secteurs">${["Restaurant", "Bar", "Club / discothèque", "Salle de concert", "Théâtre / culture", "Salle de sport", "Loisirs famille", "Hôtel / domaine", "Marque de boisson", "Marque / enseigne", "Festival / événement", "Agence média", "Collectivité"].map(x => `<option value="${x}">`).join("")}</datalist></div>
+        <div><label>Statut</label><select name="statut">${Object.entries(STATUTS).map(([k, l]) => `<option value="${k}" ${(c.statut || "prospect") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div class="full"><label>Adresse</label><input name="adresse" value="${esc(c.adresse || "")}"></div>
+        <div><label>Code postal</label><input name="code_postal" value="${esc(c.code_postal || "")}"></div>
+        <div><label>Ville</label><input name="ville" value="${esc(c.ville || "")}"></div>
+        <div><label>Site internet</label><input name="site_web" value="${esc(c.site_web || "")}"></div>
+        <div><label>Téléphone</label><input name="telephone" value="${esc(c.telephone || "")}"></div>
+        <div><label>Email</label><input name="email" type="email" value="${esc(c.email || "")}"></div>
+        <div><label>Source du prospect</label><select name="source"><option value="">–</option>${SOURCES.map(s => `<option ${c.source === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
+        ${can.pickOwner() ? `<div><label>Commercial responsable</label><select name="owner_id"><option value="">Non attribué</option>${team.map(t => `<option value="${t.id}" ${(c.id ? c.owner_id : st.me.id) === t.id ? "selected" : ""}>${esc(t.nom || t.email)}</option>`).join("")}</select></div>` : ""}
+        ${c.id ? "" : `<div class="full" style="font-weight:700; margin-top:4px;">Contact principal</div>
+          <div><label>Prénom</label><input name="contact_prenom"></div><div><label>Nom</label><input name="contact_nom"></div>
+          <div><label>Fonction</label><input name="contact_fonction" placeholder="Gérant, responsable marketing…"></div>
+          <div><label>Téléphone</label><input name="contact_tel"></div><div><label>Email</label><input name="contact_email" type="email"></div>`}
+        <div class="full"><label>Notes</label><textarea name="notes">${esc(c.notes || "")}</textarea></div>
+        <div class="crm-actions full"><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div>
+      </form>`, (m, close) => {
+        m.querySelector("form").addEventListener("submit", async (e) => {
+          e.preventDefault(); const v = formData(e.target);
+          if (!can.pickOwner()) delete v.owner_id;
+          try {
+            const id = await rpc("crm_upsert_company", { p: { ...v, id: c.id || "", fiche_table: c.fiche_table || "", fiche_id: c.fiche_id || "" } });
+            close(); toast("Entreprise enregistrée"); st.companies = [];
+            if (!c.id) companyModal(id, after); else after?.();
+          } catch (err) { toast("Erreur : " + err.message, false); }
+        });
+      });
+    }
+
+    async function companyModal(id, after) {
+      let d;
+      try { d = await rpc("crm_get_company", { p_id: id }); } catch (e) { return toast(e.message, false); }
+      const c = d.company;
+      openModal(`🏢 ${esc(c.raison_sociale)}`, `
+        <div class="crm-form" style="margin-bottom:10px;">
+          <div><label>Statut</label>${esc(STATUTS[c.statut] || c.statut)}</div><div><label>Secteur</label>${esc(c.secteur || "–")}</div>
+          <div><label>Commercial</label>${esc(c.owner_nom || "Non attribué")}</div><div><label>Source</label>${esc(c.source || "–")}</div>
+          <div><label>Adresse</label>${esc([c.adresse, c.code_postal, c.ville].filter(Boolean).join(" ") || "–")}</div>
+          <div><label>Contact</label>${c.telephone ? `<a href="tel:${esc(c.telephone)}" style="color:var(--magenta)">${esc(c.telephone)}</a>` : "–"}${c.email ? ` · <a href="mailto:${esc(c.email)}" style="color:var(--magenta)">${esc(c.email)}</a>` : ""}</div>
+          <div><label>Site</label>${c.site_web ? `<a href="${esc(/^https?:/.test(c.site_web) ? c.site_web : "https://" + c.site_web)}" target="_blank" rel="noopener" style="color:var(--magenta)">${esc(c.site_web)}</a>` : "–"}</div>
+          <div><label>Créée le</label>${fmtD(c.created_at)}</div>
+          ${c.notes ? `<div class="full"><label>Notes</label>${esc(c.notes).replace(/\n/g, "<br>")}</div>` : ""}
+        </div>
+        <div class="crm-actions" style="justify-content:flex-start; margin:0 0 12px;">
+          <button class="crm-btn primary" data-a="log">+ Activité</button><button class="crm-btn" data-a="opp">+ Opportunité</button>
+          <button class="crm-btn" data-a="contact">+ Contact</button><button class="crm-btn" data-a="edit">✏️ Modifier</button>
+        </div>
+        <h3 style="font-size:14px; margin:6px 0;">Contacts</h3>
+        ${d.contacts.length ? `<table class="crm-table">${d.contacts.map(x => `<tr><td><b>${esc(`${x.prenom} ${x.nom}`.trim())}</b>${x.is_primary ? " ⭐" : ""}<br><span style="font-size:11px;color:var(--text-faint)">${esc(x.fonction || "")}</span></td>
+          <td>${x.telephone ? `<a href="tel:${esc(x.telephone)}" style="color:var(--magenta)">${esc(x.telephone)}</a>` : ""}</td><td>${x.email ? `<a href="mailto:${esc(x.email)}" style="color:var(--magenta)">${esc(x.email)}</a>` : ""}</td>
+          <td style="text-align:right"><button class="crm-btn sm" data-ct="${x.id}">✏️</button></td></tr>`).join("")}</table>` : `<div class="crm-empty">Aucun contact</div>`}
+        <h3 style="font-size:14px; margin:14px 0 6px;">Opportunités</h3>
+        ${d.opportunities.length ? `<table class="crm-table">${d.opportunities.map(o => `<tr class="clickable" data-opp="${o.id}"><td><span class="crm-dot" style="background:${PIPELINES[o.pipeline].color}"></span>${esc(o.title || PIPELINES[o.pipeline].label)}</td>
+          <td>${esc(o.stage_label)}</td><td class="crm-num">${eur(o.amount_cents)}</td><td class="crm-num">${o.probability} %</td><td style="${isLate(o.next_action_at) && o.status === "open" ? "color:#fca5a5" : ""}">${o.status === "open" ? `${esc(o.next_action || "–")}${o.next_action_at ? ` · ${fmtD(o.next_action_at)}` : ""}` : o.status === "won" ? "🎉 gagnée" : "perdue"}</td></tr>`).join("")}</table>` : `<div class="crm-empty">Aucune opportunité</div>`}
+        ${d.sales.length ? `<h3 style="font-size:14px; margin:14px 0 6px;">Ventes</h3><table class="crm-table">${d.sales.map(s => `<tr><td>${fmtD(s.sold_on + "T12:00:00")}</td><td>${esc(PIPELINES[s.sale_type].label)} · ${esc(s.product || "")}</td><td class="crm-num">${eur(s.amount_cents)}</td><td>${esc(s.status)}</td></tr>`).join("")}</table>` : ""}
+        <h3 style="font-size:14px; margin:14px 0 6px;">Historique complet</h3>${timelineHtml(d.timeline)}`, (m, close) => {
+        const reopen = () => { after?.(); companyModal(id, after); };
+        m.querySelector('[data-a="log"]').addEventListener("click", () => { close(); activityModal({ client_id: id, company: c.raison_sociale }, reopen); });
+        m.querySelector('[data-a="opp"]').addEventListener("click", () => { close(); opportunityEditModal({ client_id: id, company: c.raison_sociale, owner_id: c.owner_id }, reopen); });
+        m.querySelector('[data-a="edit"]').addEventListener("click", () => { close(); companyEditModal(c, reopen); });
+        m.querySelector('[data-a="contact"]').addEventListener("click", () => { close(); contactModal({ client_id: id }, reopen); });
+        m.querySelectorAll("[data-ct]").forEach(b => b.addEventListener("click", () => { close(); contactModal(d.contacts.find(x => x.id === b.dataset.ct), reopen); }));
+        m.querySelectorAll("[data-opp]").forEach(tr => tr.addEventListener("click", () => { close(); opportunityModal(tr.dataset.opp, reopen); }));
+      });
+    }
+
+    function contactModal(x = {}, after) {
+      openModal(x.id ? "Modifier le contact" : "Nouveau contact", `<form class="crm-form">
+        <div><label>Prénom</label><input name="prenom" value="${esc(x.prenom || "")}"></div><div><label>Nom</label><input name="nom" value="${esc(x.nom || "")}"></div>
+        <div><label>Fonction</label><input name="fonction" value="${esc(x.fonction || "")}"></div><div><label>Téléphone</label><input name="telephone" value="${esc(x.telephone || "")}"></div>
+        <div><label>Email</label><input name="email" type="email" value="${esc(x.email || "")}"></div>
+        <div><label style="margin-top:22px; cursor:pointer;"><input type="checkbox" name="is_primary" value="true" ${x.is_primary ? "checked" : ""} style="width:auto"> Contact principal</label></div>
+        <div class="full"><label>Notes</label><textarea name="notes">${esc(x.notes || "")}</textarea></div>
+        <div class="crm-actions full">${x.id ? `<button type="button" class="crm-btn danger" data-del>Supprimer</button>` : ""}<button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div>
+      </form>`, (m, close) => {
+        m.querySelector("[data-del]")?.addEventListener("click", async () => {
+          if (!confirm("Supprimer ce contact ?")) return;
+          try { await rpc("crm_delete_contact", { p_id: x.id }); close(); after?.(); } catch (e) { toast(e.message, false); }
+        });
+        m.querySelector("form").addEventListener("submit", async (e) => {
+          e.preventDefault(); const v = formData(e.target);
+          try { await rpc("crm_upsert_contact", { p: { ...v, id: x.id || "", client_id: x.client_id, is_primary: v.is_primary === "true" } }); close(); toast("Contact enregistré"); after?.(); }
+          catch (err) { toast("Erreur : " + err.message, false); }
+        });
+      });
+    }
+
+    // ─── Onglet Activités ────────────────────────────────────────────────
+    async function renderActivities() {
+      renderFilterBar({ pipeline: false, status: false });
+      const body = document.getElementById("crm-body"), { from, to } = periodRange();
+      body.innerHTML = `<div class="crm-empty">Chargement…</div>`;
+      const acts = await rpc("crm_list_activities", { p_from: from.toISOString(), p_to: to.toISOString(), p_owner: ownerParam(), p_type: st.filters.acttype || null });
+      const byType = {}; acts.forEach(a => { byType[a.type] = (byType[a.type] || 0) + 1; });
+      body.innerHTML = `
+        <div class="crm-kpis">${Object.entries(ACT_TYPES).filter(([k]) => byType[k]).map(([k, l]) => `<div class="crm-kpi"><div class="v">${byType[k]}</div><div class="l">${l}</div></div>`).join("") || ""}</div>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="crm-btn primary" id="crm-new-act">+ Activité</button></div>
+        <div class="crm-card"><div class="crm-table-wrap"><table class="crm-table">
+          <tr><th>Date</th><th>Type</th><th>Entreprise</th><th>Commercial</th><th>Résultat</th><th>Commentaire</th><th>Prochaine action</th><th></th></tr>
+          ${acts.map(a => `<tr><td style="white-space:nowrap">${fmtDT(a.at)}</td><td>${ACT_TYPES[a.type] || esc(a.type)}${a.auto ? ` <span title="Créée par un changement d'étape" style="color:var(--text-faint)">⚙︎</span>` : ""}</td>
+            <td><a href="#" data-co="${a.client_id}" style="color:var(--text); font-weight:600;">${esc(a.company)}</a></td><td>${esc(a.owner_nom || "–")}</td>
+            <td>${esc(a.result || "")}</td><td style="max-width:280px">${esc(a.comment || "")}</td><td>${esc(a.next_action || "")}${a.next_action_at ? ` · ${fmtD(a.next_action_at)}` : ""}</td>
+            <td>${(st.me.role !== "commercial" || a.owner_id === st.me.id) ? `<button class="crm-btn sm danger" data-del="${a.id}">✕</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="8" class="crm-empty">Aucune activité sur la période</td></tr>`}
+        </table></div></div>`;
+      document.getElementById("crm-new-act").addEventListener("click", () => activityModal({}, renderActivities));
+      body.querySelectorAll("[data-co]").forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); companyModal(a.dataset.co, renderActivities); }));
+      body.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+        if (!confirm("Supprimer cette activité de l'historique ?")) return;
+        try { await rpc("crm_delete_activity", { p_id: b.dataset.del }); renderActivities(); } catch (e) { toast(e.message, false); }
+      }));
+    }
+
+    // ─── Onglet Ventes ───────────────────────────────────────────────────
+    async function renderSales() {
+      renderFilterBar({ acttype: false, status: false });
+      const body = document.getElementById("crm-body"), { from, to } = periodRange();
+      body.innerHTML = `<div class="crm-empty">Chargement…</div>`;
+      let sales = await rpc("crm_list_sales", { p_from: ymd(from), p_to: ymd(to), p_owner: ownerParam() });
+      if (st.filters.pipeline) sales = sales.filter(s => s.sale_type === st.filters.pipeline);
+      const live = sales.filter(s => s.status !== "annulee");
+      const sum = (t) => live.filter(s => !t || s.sale_type === t).reduce((a, s) => a + s.amount_cents, 0);
+      const mrr = live.filter(s => s.recurring).reduce((a, s) => a + (s.monthly_cents || 0), 0);
+      body.innerHTML = `
+        <div class="crm-kpis">
+          <div class="crm-kpi hl"><div class="v">${eur(sum())}</div><div class="l">CA total (${live.length} vente${live.length > 1 ? "s" : ""})</div></div>
+          <div class="crm-kpi"><div class="v">${eur(sum("abonnement"))}</div><div class="l">CA abonnements</div></div>
+          <div class="crm-kpi"><div class="v">${eur(sum("publicite"))}</div><div class="l">CA publicité</div></div>
+          <div class="crm-kpi"><div class="v">${eur(sum("partenariat"))}</div><div class="l">CA partenariats</div></div>
+          <div class="crm-kpi"><div class="v">${eur(mrr)}</div><div class="l">Récurrent mensuel signé sur la période</div></div>
+        </div>
+        <div class="crm-card"><div class="crm-table-wrap"><table class="crm-table">
+          <tr><th>Date</th><th>Client</th><th>Commercial</th><th>Type</th><th>Produit</th><th class="crm-num">Montant</th><th>Récurrence</th><th>Statut</th></tr>
+          ${sales.map(s => `<tr style="${s.status === "annulee" ? "opacity:.5" : ""}"><td>${fmtD(s.sold_on + "T12:00:00")}</td><td><a href="#" data-co="${s.client_id}" style="color:var(--text); font-weight:600;">${esc(s.company)}</a></td>
+            <td>${esc(s.owner_nom || "–")}</td><td><span class="crm-dot" style="background:${PIPELINES[s.sale_type].color}"></span>${PIPELINES[s.sale_type].label}</td><td>${esc(s.product || "–")}</td>
+            <td class="crm-num"><b>${eur(s.amount_cents)}</b></td><td>${s.recurring ? `${eur(s.monthly_cents)}/mois${s.duration_months ? ` · ${s.duration_months} mois` : ""}` : "ponctuel"}</td>
+            <td>${can.editSale() ? `<select data-sale="${s.id}" class="crm-btn sm">${[["signee", "Signée"], ["encaissee", "Encaissée"], ["annulee", "Annulée"]].map(([v, l]) => `<option value="${v}" ${s.status === v ? "selected" : ""}>${l}</option>`).join("")}</select>` : esc(s.status)}</td></tr>`).join("") || `<tr><td colspan="8" class="crm-empty">Aucune vente sur la période. Une vente est créée automatiquement quand une opportunité passe en « Gagné / Vendu / Signé ».</td></tr>`}
+        </table></div></div>
+        <p style="font-size:11.5px; color:var(--text-faint); margin-top:8px;">Le MRR global (abonnements actifs) est dans le Dashboard. Pour un abonnement signé, crée aussi la ligne dans l'onglet 💳 Abonnements : c'est elle qui active la formule dans l'app.</p>`;
+      body.querySelectorAll("[data-co]").forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); companyModal(a.dataset.co, renderSales); }));
+      body.querySelectorAll("[data-sale]").forEach(sel => sel.addEventListener("change", async () => {
+        try { await rpc("crm_update_sale", { p: { id: sel.dataset.sale, status: sel.value } }); toast("Vente mise à jour"); renderSales(); } catch (e) { toast(e.message, false); }
+      }));
+    }
+
+    // ─── Onglet Objectifs ────────────────────────────────────────────────
+    async function renderObjectives() {
+      document.getElementById("crm-filterbar").innerHTML = "";
+      const body = document.getElementById("crm-body");
+      st.objMonth = st.objMonth || ymd(new Date(new Date().getFullYear(), new Date().getMonth(), 1)).slice(0, 7);
+      const month = st.objMonth + "-01";
+      const mFrom = new Date(month + "T00:00:00"), mTo = new Date(mFrom.getFullYear(), mFrom.getMonth() + 1, 1);
+      body.innerHTML = `<div class="crm-empty">Chargement…</div>`;
+      const rows = await rpc("crm_list_objectives", { p_month: month });
+      // Réalisé par commercial : un calcul de dashboard par personne (équipes de petite taille).
+      const done = await Promise.all(rows.map(r => rpc("crm_dashboard", { p_from: mFrom.toISOString(), p_to: mTo.toISOString(), p_owner: r.member_id }).then(d => d.objectives.done).catch(() => ({}))));
+      const F = [["target_ca_cents", "ca_cents", "CA (€)", true], ["target_sales", "ventes", "Ventes"], ["target_prospects", "prospects", "Prospects"], ["target_contacts", "contacts", "Contacts"],
+                 ["target_rdv", "rdv", "RDV"], ["target_abonnements", "abonnements", "Abonnements"], ["target_publicite", "publicite", "Espaces pub"], ["target_partenariats", "partenariats", "Partenariats"]];
+      const editable = can.setObjectives();
+      body.innerHTML = `<div class="crm-filters"><div><label>Mois</label><input type="month" id="crm-obj-month" value="${st.objMonth}"></div>
+          <span style="font-size:12px; color:var(--text-faint); align-self:center;">${editable ? "Saisis les objectifs puis « Enregistrer » sur la ligne." : "Objectifs fixés par ton manager."} Réalisé / objectif, avec l'avancement.</span></div>
+        ${rows.map((r, i) => {
+          const o = r.objective || {};
+          return `<div class="crm-card" style="margin-bottom:12px;"><h3>${esc(r.nom)} ${editable ? `<button class="crm-btn sm primary" data-save="${i}">Enregistrer</button>` : ""}</h3>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px;">
+            ${F.map(([tk, dk, l, money]) => `<div><div style="font-size:12px; font-weight:700; margin-bottom:4px;">${l}</div>
+              ${editable ? `<input class="crm-btn sm" style="width:100%; margin-bottom:5px;" data-row="${i}" data-k="${tk}" inputmode="decimal" value="${money ? eurosFromCents(o[tk]) : (o[tk] || "")}" placeholder="objectif">` : ""}
+              ${progress((done[i] || {})[dk] || 0, o[tk] || 0, money)}</div>`).join("")}</div></div>`;
+        }).join("") || `<div class="crm-empty">Aucun commercial dans ton périmètre.</div>`}`;
+      document.getElementById("crm-obj-month").addEventListener("change", (e) => { st.objMonth = e.target.value; renderObjectives(); });
+      body.querySelectorAll("[data-save]").forEach(b => b.addEventListener("click", async () => {
+        const i = +b.dataset.save, p = { member_id: rows[i].member_id, month };
+        body.querySelectorAll(`[data-row="${i}"]`).forEach(inp => { p[inp.dataset.k] = inp.dataset.k === "target_ca_cents" ? centsFromEuros(inp.value) : (parseInt(inp.value) || 0); });
+        try { await rpc("crm_upsert_objective", { p }); toast(`Objectifs de ${rows[i].nom} enregistrés`); renderObjectives(); } catch (e) { toast(e.message, false); }
+      }));
+    }
+
+    // ─── Onglet Équipe (admin) ───────────────────────────────────────────
+    async function renderTeam() {
+      document.getElementById("crm-filterbar").innerHTML = "";
+      st.team = await rpc("crm_list_team");
+      const body = document.getElementById("crm-body");
+      const managers = st.team.filter(t => t.role !== "commercial" && t.active);
+      body.innerHTML = `<div class="crm-card" style="margin-bottom:12px; font-size:12.5px; line-height:1.6;">
+          <b>Donner l'accès à un commercial :</b> ajoute-le ici avec son email. Il ouvre ensuite admin.html, saisit cet email et un mot de passe, puis clique
+          « Créer mon mot de passe » sous le bouton de connexion (et confirme l'email reçu). Il ne verra que l'onglet CRM et ses propres dossiers.
+          Un <b>manager</b> voit les commerciaux qui lui sont rattachés. Désactiver un membre lui coupe l'accès sans effacer son historique.</div>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;"><button class="crm-btn primary" id="crm-new-member">+ Membre</button></div>
+        <div class="crm-card"><div class="crm-table-wrap"><table class="crm-table">
+          <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Manager</th><th>Téléphone</th><th>Statut</th><th></th></tr>
+          ${st.team.map(t => `<tr style="${t.active ? "" : "opacity:.5"}"><td><b>${esc(t.nom)}</b></td><td>${esc(t.email)}</td><td>${esc({ admin: "Admin", manager: "Manager", commercial: "Commercial" }[t.role])}</td>
+            <td>${esc(t.manager_id ? memberName(t.manager_id) : "–")}</td><td>${esc(t.telephone || "")}</td><td>${t.active ? "Actif" : "Désactivé"}</td>
+            <td><button class="crm-btn sm" data-edit="${t.id}">✏️</button></td></tr>`).join("")}
+        </table></div></div>`;
+      const edit = (t = {}) => openModal(t.id ? "Modifier le membre" : "Nouveau membre", `<form class="crm-form">
+        <div><label>Nom *</label><input name="nom" required value="${esc(t.nom || "")}"></div>
+        <div><label>Email du compte *</label><input name="email" type="email" required value="${esc(t.email || "")}"></div>
+        <div><label>Rôle</label><select name="role">${[["commercial", "Commercial"], ["manager", "Manager"], ["admin", "Admin"]].map(([v, l]) => `<option value="${v}" ${(t.role || "commercial") === v ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div><label>Manager</label><select name="manager_id"><option value="">–</option>${managers.filter(x => x.id !== t.id).map(x => `<option value="${x.id}" ${t.manager_id === x.id ? "selected" : ""}>${esc(x.nom)}</option>`).join("")}</select></div>
+        <div><label>Téléphone</label><input name="telephone" value="${esc(t.telephone || "")}"></div>
+        <div><label>Statut</label><select name="active"><option value="true" ${t.active !== false ? "selected" : ""}>Actif</option><option value="false" ${t.active === false ? "selected" : ""}>Désactivé</option></select></div>
+        <div class="crm-actions full"><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div></form>`, (m, close) => {
+        m.querySelector("form").addEventListener("submit", async (e) => {
+          e.preventDefault(); const v = formData(e.target);
+          try { await rpc("crm_upsert_member", { p: { ...v, id: t.id || "", active: v.active === "true" } }); close(); toast("Membre enregistré"); renderTeam(); }
+          catch (err) { toast("Erreur : " + err.message, false); }
+        });
+      });
+      document.getElementById("crm-new-member").addEventListener("click", () => edit());
+      body.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => edit(st.team.find(t => t.id === b.dataset.edit))));
+    }
+
+    // ─── Routage ─────────────────────────────────────────────────────────
+    async function renderTab() {
+      const fn = { dashboard: renderDashboard, followups: renderFollowups, pipeline: renderPipeline, companies: renderCompanies,
+                   activities: renderActivities, sales: renderSales, objectives: renderObjectives, team: renderTeam }[st.tab] || renderDashboard;
+      try { await fn(); }
+      catch (e) {
+        console.error("[CRM]", e);
+        const hint = /function .* does not exist|schema cache/i.test(e.message) ? "<br><br>La migration <b>20261005120000_crm_commercial.sql</b> n'est pas encore appliquée dans Supabase Studio." : "";
+        document.getElementById("crm-body").innerHTML = `<div class="crm-card" style="border-color:#ef4444;">Erreur : ${esc(e.message)}${hint}</div>`;
+      }
+    }
+
+    async function init() {
+      root.innerHTML = `<div class="crm-empty">Chargement du CRM…</div>`;
+      try {
+        st.me = await rpc("crm_me");
+        if (!st.me) { root.innerHTML = `<div class="crm-card">Ce compte n'a pas accès au CRM.</div>`; return; }
+        [st.team, st.stages] = await Promise.all([rpc("crm_list_team"), rpc("crm_list_stages")]);
+        if (st.tab === "team" && !can.manageTeam()) st.tab = "dashboard";
+        if (st.filters.owner && st.filters.owner !== "none" && !st.team.some(t => t.id === st.filters.owner && t.visible)) st.filters.owner = "";
+        st.ready = true;
+      } catch (e) {
+        const hint = /function .* does not exist|schema cache/i.test(e.message) ? "<br><br>Applique d'abord la migration <b>supabase/migrations/20261005120000_crm_commercial.sql</b> dans Supabase Studio (SQL Editor)." : "";
+        root.innerHTML = `<h1>💼 CRM commercial</h1><div class="crm-card" style="border-color:#ef4444;">Erreur : ${esc(e.message)}${hint}</div>`;
+        return;
+      }
+      renderShell(); renderTab();
+    }
+
+    window.addEventListener("crm:open", () => { if (!st.ready) init(); else { renderShell(); renderTab(); } });
+  </script>
+
 </body>
 </html>
