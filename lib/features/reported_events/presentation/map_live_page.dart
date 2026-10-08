@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -246,7 +247,7 @@ class _CitySearchFieldState extends State<_CitySearchField> {
     setState(() => _busy = false);
     if (pos == null) {
       messenger?.showSnackBar(
-        SnackBar(content: Text('Impossible de trouver « $q »')),
+        SnackBar(content: Text(context.l10n.mapCityNotFound(q))),
       );
       return;
     }
@@ -285,7 +286,7 @@ class _CitySearchFieldState extends State<_CitySearchField> {
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
-                  hintText: 'Rechercher une ville',
+                  hintText: context.l10n.cityPickerHint,
                   hintStyle: GoogleFonts.geist(
                     fontSize: 14,
                     color: Colors.white60,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -256,7 +257,7 @@ class _EmptyHint extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Personne n\'a encore signale par ici. Sois le premier !',
+              context.l10n.storyNobodyYet,
               style: GoogleFonts.geist(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

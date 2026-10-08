@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -388,7 +390,7 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
                           Icon(cat.icon, size: 13, color: Colors.white),
                           const SizedBox(width: 4),
                           Text(
-                            cat.label,
+                            storyCategoryLabel(context, cat.id),
                             style: GoogleFonts.poppins(
                               fontSize: 10,
                               fontWeight: isSelected
@@ -436,7 +438,7 @@ class _SnapCameraScreenState extends State<SnapCameraScreen>
                 opacity: _isRecording ? 0 : 1,
                 duration: const Duration(milliseconds: 200),
                 child: Text(
-                  'Appuie = photo  ·  Maintiens = video',
+                  context.l10n.cameraHint,
                   style: GoogleFonts.poppins(
                     fontSize: 10,
                     color: Colors.white.withValues(alpha: 0.5),

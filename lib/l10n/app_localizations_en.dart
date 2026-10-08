@@ -1702,4 +1702,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cityPickerError => 'Search error';
+
+  @override
+  String get storyCatConcert => 'Concert';
+
+  @override
+  String get storyCatParty => 'Party';
+
+  @override
+  String get storyCatCelebration => 'Celebration';
+
+  @override
+  String get storyCatFestival => 'Festival';
+
+  @override
+  String get storyCatMarket => 'Market';
+
+  @override
+  String get storyCatExpo => 'Exhibition';
+
+  @override
+  String get storyCatFair => 'Fair';
+
+  @override
+  String get storyCatOther => 'Other';
+
+  @override
+  String get cameraHint => 'Tap = photo  ·  Hold = video';
+
+  @override
+  String get storyPreparing => 'Posted! Your poster is being prepared...';
+
+  @override
+  String get storyLocating => 'Locating...';
+
+  @override
+  String get storyPlace => 'Place';
+
+  @override
+  String get storyPlaceHint => 'Bar, street, square...';
+
+  @override
+  String get storyTestOnlyMe => 'Test story (only visible to me)';
+
+  @override
+  String get storyTest => 'Test story';
+
+  @override
+  String mapCityNotFound(String query) {
+    return 'Unable to find \"$query\"';
+  }
+
+  @override
+  String get storyCommunity => 'The community';
+
+  @override
+  String get storyChatShort => 'chat';
+
+  @override
+  String get storyVideo => 'video';
+
+  @override
+  String get storyAnonymous => 'Anonymous';
+
+  @override
+  String get storyPostedBy => 'Posted by ';
+
+  @override
+  String get storyDiscuss => 'Chat';
+
+  @override
+  String get storyAiGenerating => 'AI generating...';
+
+  @override
+  String get storyNobodyYet =>
+      'Nobody has posted around here yet. Be the first!';
+
+  @override
+  String get memberNoBio => 'This member hasn\'t written a bio yet.';
+
+  @override
+  String get chatRejected => 'Message rejected: inappropriate language';
+
+  @override
+  String get chatReportInfo =>
+      'If several people report this message, it will be hidden automatically.';
+
+  @override
+  String get chatTitle => 'Discussion';
+
+  @override
+  String get chatLoadError => 'Unable to load the discussion';
+
+  @override
+  String get chatBeFirst => 'Be the first to ask a question!';
+
+  @override
+  String get chatFinishSignup => 'Finish signing up to join the conversation.';
+
+  @override
+  String get chatHint => 'Ask a question...';
+
+  @override
+  String get chatReport => 'Report';
 }

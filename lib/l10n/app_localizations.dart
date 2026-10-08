@@ -3195,6 +3195,204 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Erreur de recherche'**
   String get cityPickerError;
+
+  /// No description provided for @storyCatConcert.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concert'**
+  String get storyCatConcert;
+
+  /// No description provided for @storyCatParty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soirée'**
+  String get storyCatParty;
+
+  /// No description provided for @storyCatCelebration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fête'**
+  String get storyCatCelebration;
+
+  /// No description provided for @storyCatFestival.
+  ///
+  /// In fr, this message translates to:
+  /// **'Festival'**
+  String get storyCatFestival;
+
+  /// No description provided for @storyCatMarket.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marché'**
+  String get storyCatMarket;
+
+  /// No description provided for @storyCatExpo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expo'**
+  String get storyCatExpo;
+
+  /// No description provided for @storyCatFair.
+  ///
+  /// In fr, this message translates to:
+  /// **'Salon'**
+  String get storyCatFair;
+
+  /// No description provided for @storyCatOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get storyCatOther;
+
+  /// No description provided for @cameraHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appuie = photo  ·  Maintiens = vidéo'**
+  String get cameraHint;
+
+  /// No description provided for @storyPreparing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalé ! L\'affiche se prépare...'**
+  String get storyPreparing;
+
+  /// No description provided for @storyLocating.
+  ///
+  /// In fr, this message translates to:
+  /// **'Localisation...'**
+  String get storyLocating;
+
+  /// No description provided for @storyPlace.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu'**
+  String get storyPlace;
+
+  /// No description provided for @storyPlaceHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bar, rue, place...'**
+  String get storyPlaceHint;
+
+  /// No description provided for @storyTestOnlyMe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Story de test (visible que par moi)'**
+  String get storyTestOnlyMe;
+
+  /// No description provided for @storyTest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Story de test'**
+  String get storyTest;
+
+  /// Recherche de ville Map Live
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de trouver « {query} »'**
+  String mapCityNotFound(String query);
+
+  /// No description provided for @storyCommunity.
+  ///
+  /// In fr, this message translates to:
+  /// **'La commu'**
+  String get storyCommunity;
+
+  /// No description provided for @storyChatShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'discu'**
+  String get storyChatShort;
+
+  /// No description provided for @storyVideo.
+  ///
+  /// In fr, this message translates to:
+  /// **'vidéo'**
+  String get storyVideo;
+
+  /// No description provided for @storyAnonymous.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anonyme'**
+  String get storyAnonymous;
+
+  /// No description provided for @storyPostedBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalé par '**
+  String get storyPostedBy;
+
+  /// No description provided for @storyDiscuss.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discuter'**
+  String get storyDiscuss;
+
+  /// No description provided for @storyAiGenerating.
+  ///
+  /// In fr, this message translates to:
+  /// **'Génération IA...'**
+  String get storyAiGenerating;
+
+  /// No description provided for @storyNobodyYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne n\'a encore signalé par ici. Sois le premier !'**
+  String get storyNobodyYet;
+
+  /// No description provided for @memberNoBio.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce membre n\'a pas encore de bio.'**
+  String get memberNoBio;
+
+  /// No description provided for @chatRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message refusé : langage inapproprié'**
+  String get chatRejected;
+
+  /// No description provided for @chatReportInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Si plusieurs personnes signalent ce message, il sera masqué automatiquement.'**
+  String get chatReportInfo;
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussion'**
+  String get chatTitle;
+
+  /// No description provided for @chatLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger la discussion'**
+  String get chatLoadError;
+
+  /// No description provided for @chatBeFirst.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sois le premier à poser une question !'**
+  String get chatBeFirst;
+
+  /// No description provided for @chatFinishSignup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Termine ton inscription pour participer à la discussion.'**
+  String get chatFinishSignup;
+
+  /// No description provided for @chatHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pose une question...'**
+  String get chatHint;
+
+  /// No description provided for @chatReport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signaler'**
+  String get chatReport;
 }
 
 class _AppLocalizationsDelegate

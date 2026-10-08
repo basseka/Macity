@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -88,10 +89,11 @@ class _ReportedEventDetailSheetState
 
   String _relativeAge() {
     final diff = DateTime.now().difference(event.createdAt);
-    if (diff.inMinutes < 1) return "a l'instant";
-    if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'il y a ${diff.inHours}h';
-    return 'il y a ${diff.inDays}j';
+    final l10n = context.l10n;
+    if (diff.inMinutes < 1) return l10n.timeJustNow;
+    if (diff.inMinutes < 60) return l10n.timeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.timeHoursAgo(diff.inHours);
+    return l10n.timeDaysAgo(diff.inDays);
   }
 
   /// Device UUID du reporter principal (1er contributeur, sinon 1er reporter).
@@ -381,7 +383,7 @@ class _StoryHeader extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            prenom.isNotEmpty ? prenom : 'La commu',
+                            prenom.isNotEmpty ? prenom : context.l10n.storyCommunity,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
                               fontSize: 13,
@@ -531,7 +533,7 @@ class _ActionRail extends StatelessWidget {
       children: [
         _RailButton(
           icon: Icons.chat_bubble_outline,
-          label: chatCount > 0 ? '$chatCount' : 'discu',
+          label: chatCount > 0 ? '$chatCount' : context.l10n.storyChatShort,
           onTap: onChatTap,
         ),
         const SizedBox(height: 16),
@@ -544,7 +546,7 @@ class _ActionRail extends StatelessWidget {
           const SizedBox(height: 16),
           _RailButton(
             icon: Icons.play_circle_outline,
-            label: 'video',
+            label: context.l10n.storyVideo,
             onTap: onVideoTap,
             highlight: true,
           ),
@@ -705,7 +707,7 @@ class _StoryBottomBlock extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _PrimaryCta(label: 'Y aller', onTap: onYAller),
+                child: _PrimaryCta(label: context.l10n.nightPlanGo, onTap: onYAller),
               ),
               const SizedBox(width: 10),
               _SecondaryRoundButton(
@@ -1018,7 +1020,7 @@ class _DiscussionSheet extends ConsumerWidget {
                               size: 16, color: Colors.white),
                           const SizedBox(width: 8),
                           Text(
-                            'Y aller',
+                            context.l10n.nightPlanGo,
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -1081,17 +1083,18 @@ class _SignaledByCard extends StatelessWidget {
   final ReportedEvent event;
   const _SignaledByCard({required this.event});
 
-  String _age(DateTime created) {
+  String _age(BuildContext context, DateTime created) {
     final diff = DateTime.now().difference(created);
-    if (diff.inMinutes < 1) return "à l'instant";
-    if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'il y a ${diff.inHours}h';
-    return 'il y a ${diff.inDays}j';
+    final l10n = context.l10n;
+    if (diff.inMinutes < 1) return l10n.timeJustNow;
+    if (diff.inMinutes < 60) return l10n.timeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.timeHoursAgo(diff.inHours);
+    return l10n.timeDaysAgo(diff.inDays);
   }
 
   @override
   Widget build(BuildContext context) {
-    final prenom = event.reporterPrenom ?? 'Anonyme';
+    final prenom = event.reporterPrenom ?? context.l10n.storyAnonymous;
     final initial = prenom.isNotEmpty ? prenom[0].toUpperCase() : '?';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1116,7 +1119,7 @@ class _SignaledByCard extends StatelessWidget {
                       color: Colors.white,
                     ),
                     children: [
-                      const TextSpan(text: 'Signalé par '),
+                      TextSpan(text: context.l10n.storyPostedBy),
                       TextSpan(
                         text: prenom,
                         style: GoogleFonts.inter(
@@ -1130,7 +1133,7 @@ class _SignaledByCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _age(event.createdAt),
+                  _age(context, event.createdAt),
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     color: Colors.white.withValues(alpha: 0.5),

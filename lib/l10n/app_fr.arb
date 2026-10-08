@@ -809,5 +809,46 @@
   "cityPickerTitle": "Choisir une ville",
   "cityPickerHint": "Rechercher une ville...",
   "cityPickerNone": "Aucune ville trouvée",
-  "cityPickerError": "Erreur de recherche"
+  "cityPickerError": "Erreur de recherche",
+  "storyCatConcert": "Concert",
+  "storyCatParty": "Soirée",
+  "storyCatCelebration": "Fête",
+  "storyCatFestival": "Festival",
+  "storyCatMarket": "Marché",
+  "storyCatExpo": "Expo",
+  "storyCatFair": "Salon",
+  "storyCatOther": "Autre",
+  "cameraHint": "Appuie = photo  ·  Maintiens = vidéo",
+  "storyPreparing": "Signalé ! L'affiche se prépare...",
+  "storyLocating": "Localisation...",
+  "storyPlace": "Lieu",
+  "storyPlaceHint": "Bar, rue, place...",
+  "storyTestOnlyMe": "Story de test (visible que par moi)",
+  "storyTest": "Story de test",
+  "mapCityNotFound": "Impossible de trouver « {query} »",
+  "@mapCityNotFound": {
+    "description": "Recherche de ville Map Live",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "storyCommunity": "La commu",
+  "storyChatShort": "discu",
+  "storyVideo": "vidéo",
+  "storyAnonymous": "Anonyme",
+  "storyPostedBy": "Signalé par ",
+  "storyDiscuss": "Discuter",
+  "storyAiGenerating": "Génération IA...",
+  "storyNobodyYet": "Personne n'a encore signalé par ici. Sois le premier !",
+  "memberNoBio": "Ce membre n'a pas encore de bio.",
+  "chatRejected": "Message refusé : langage inapproprié",
+  "chatReportInfo": "Si plusieurs personnes signalent ce message, il sera masqué automatiquement.",
+  "chatTitle": "Discussion",
+  "chatLoadError": "Impossible de charger la discussion",
+  "chatBeFirst": "Sois le premier à poser une question !",
+  "chatFinishSignup": "Termine ton inscription pour participer à la discussion.",
+  "chatHint": "Pose une question...",
+  "chatReport": "Signaler"
 }

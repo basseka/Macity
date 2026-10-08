@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 
@@ -42,7 +43,7 @@ class ReportedEventsLegend extends StatelessWidget {
               _dot(_items[i].color, 11),
               const SizedBox(width: 6),
               Text(
-                _items[i].label,
+                _legendLabel(context, _items[i].label),
                 style: GoogleFonts.geist(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -83,7 +84,7 @@ class ReportedEventsLegend extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                it.label.toUpperCase(),
+                _legendLabel(context, it.label).toUpperCase(),
                 style: GoogleFonts.geistMono(
                   fontSize: 7.5,
                   fontWeight: FontWeight.w500,
@@ -104,3 +105,12 @@ class _LegendItem {
   final String label;
   const _LegendItem(this.color, this.label);
 }
+
+/// Libelle affiche ('Fiesta' reste tel quel dans toutes les langues).
+String _legendLabel(BuildContext context, String label) => switch (label) {
+      'Night' => rubriqueLabel(context, 'night'),
+      'Food' => rubriqueLabel(context, 'food'),
+      'Culture' => rubriqueLabel(context, 'culture'),
+      'Sport' => rubriqueLabel(context, 'sport'),
+      _ => label,
+    };

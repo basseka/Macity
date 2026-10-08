@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -103,7 +104,7 @@ class _ContributorProfileSheetState extends State<ContributorProfileSheet> {
               ? (profile!['prenom'] as String).trim()
               : (widget.fallbackPrenom.isNotEmpty
                   ? widget.fallbackPrenom
-                  : 'Anonyme');
+                  : context.l10n.storyAnonymous);
           final avatar = (profile?['avatar_url'] as String?)?.isNotEmpty == true
               ? profile!['avatar_url'] as String
               : widget.fallbackAvatarUrl;
@@ -159,7 +160,7 @@ class _ContributorProfileSheetState extends State<ContributorProfileSheet> {
                 )
               else
                 Text(
-                  bio.isNotEmpty ? bio : "Ce membre n'a pas encore de bio.",
+                  bio.isNotEmpty ? bio : context.l10n.memberNoBio,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 14,

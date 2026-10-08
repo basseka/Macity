@@ -1708,4 +1708,108 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cityPickerError => 'Error de búsqueda';
+
+  @override
+  String get storyCatConcert => 'Concierto';
+
+  @override
+  String get storyCatParty => 'Fiesta';
+
+  @override
+  String get storyCatCelebration => 'Fiesta popular';
+
+  @override
+  String get storyCatFestival => 'Festival';
+
+  @override
+  String get storyCatMarket => 'Mercado';
+
+  @override
+  String get storyCatExpo => 'Expo';
+
+  @override
+  String get storyCatFair => 'Feria';
+
+  @override
+  String get storyCatOther => 'Otro';
+
+  @override
+  String get cameraHint => 'Toca = foto  ·  Mantén = vídeo';
+
+  @override
+  String get storyPreparing => '¡Publicado! Tu cartel se está preparando...';
+
+  @override
+  String get storyLocating => 'Localizando...';
+
+  @override
+  String get storyPlace => 'Lugar';
+
+  @override
+  String get storyPlaceHint => 'Bar, calle, plaza...';
+
+  @override
+  String get storyTestOnlyMe => 'Story de prueba (solo visible para mí)';
+
+  @override
+  String get storyTest => 'Story de prueba';
+
+  @override
+  String mapCityNotFound(String query) {
+    return 'No se encuentra «$query»';
+  }
+
+  @override
+  String get storyCommunity => 'La comunidad';
+
+  @override
+  String get storyChatShort => 'chat';
+
+  @override
+  String get storyVideo => 'vídeo';
+
+  @override
+  String get storyAnonymous => 'Anónimo';
+
+  @override
+  String get storyPostedBy => 'Publicado por ';
+
+  @override
+  String get storyDiscuss => 'Chatear';
+
+  @override
+  String get storyAiGenerating => 'Generando con IA...';
+
+  @override
+  String get storyNobodyYet =>
+      'Nadie ha publicado por aquí todavía. ¡Sé el primero!';
+
+  @override
+  String get memberNoBio => 'Este miembro aún no tiene biografía.';
+
+  @override
+  String get chatRejected => 'Mensaje rechazado: lenguaje inapropiado';
+
+  @override
+  String get chatReportInfo =>
+      'Si varias personas denuncian este mensaje, se ocultará automáticamente.';
+
+  @override
+  String get chatTitle => 'Conversación';
+
+  @override
+  String get chatLoadError => 'No se puede cargar la conversación';
+
+  @override
+  String get chatBeFirst => '¡Sé el primero en hacer una pregunta!';
+
+  @override
+  String get chatFinishSignup =>
+      'Completa tu registro para participar en la conversación.';
+
+  @override
+  String get chatHint => 'Haz una pregunta...';
+
+  @override
+  String get chatReport => 'Denunciar';
 }

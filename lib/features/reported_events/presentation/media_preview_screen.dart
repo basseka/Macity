@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -157,7 +158,7 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
         SnackBar(
           backgroundColor: const Color(0xFF7B2D8E),
           content: Text(
-            'Signale ! L\'affiche se prepare...',
+            context.l10n.storyPreparing,
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           behavior: SnackBarBehavior.floating,
@@ -280,7 +281,7 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        state.lat != null ? 'GPS OK' : 'Localisation...',
+                        state.lat != null ? 'GPS OK' : context.l10n.storyLocating,
                         style: GoogleFonts.poppins(
                           fontSize: 9,
                           fontWeight: FontWeight.w600,
@@ -339,8 +340,8 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
                       ),
                       child: _InlineField(
                         controller: _locationCtrl,
-                        label: 'Lieu',
-                        hint: 'Bar, rue, place...',
+                        label: context.l10n.storyPlace,
+                        hint: context.l10n.storyPlaceHint,
                         icon: Icons.place,
                         maxLength: 80,
                       ),
@@ -382,8 +383,8 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
                             Expanded(
                               child: Text(
                                 state.isPrivate
-                                    ? 'Story de test (visible que par moi)'
-                                    : 'Story de test',
+                                    ? context.l10n.storyTestOnlyMe
+                                    : context.l10n.storyTest,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -430,7 +431,7 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
                                 ),
                               ),
                               child: Text(
-                                'Annuler',
+                                context.l10n.commonCancel,
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
@@ -473,7 +474,9 @@ class _MediaPreviewScreenState extends ConsumerState<MediaPreviewScreen>
                                     )
                                   : const Icon(Icons.send_rounded, size: 16),
                               label: Text(
-                                state.isSubmitting ? 'Envoi...' : 'Publier',
+                                state.isSubmitting
+                                    ? context.l10n.emailVerifySending
+                                    : context.l10n.commonPublish,
                                 style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,

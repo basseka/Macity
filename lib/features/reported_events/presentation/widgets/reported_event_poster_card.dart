@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/features/reported_events/domain/models/reported_event.dart';
@@ -617,7 +618,7 @@ class _DiscussPill extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                'Discuter',
+                context.l10n.storyDiscuss,
                 style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -746,7 +747,7 @@ class _ShimmerPlaceholderState extends State<_ShimmerPlaceholder>
                       const Icon(Icons.auto_awesome, size: 24, color: Color(0xFF7B2D8E)),
                       const SizedBox(height: 6),
                       Text(
-                        'Generation IA...',
+                        context.l10n.storyAiGenerating,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(

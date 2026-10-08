@@ -228,3 +228,21 @@ String actionLabel(BuildContext context, String key) {
     _ => key,
   };
 }
+
+/// Categories de story Map Live (cles : 'concert', 'soiree', 'fete'...).
+String storyCategoryLabel(BuildContext context, String id) {
+  final l10n = context.l10n;
+  return switch (id) {
+    'concert' => l10n.storyCatConcert,
+    'soiree' => l10n.storyCatParty,
+    'fete' => l10n.storyCatCelebration,
+    'festival' => l10n.storyCatFestival,
+    'marche' => l10n.storyCatMarket,
+    'sport' => l10n.rubriqueSport,
+    'food' => l10n.rubriqueFood,
+    'exposition' => l10n.storyCatExpo,
+    'salon' => l10n.storyCatFair,
+    'autre' => l10n.storyCatOther,
+    _ => id,
+  };
+}

@@ -1723,4 +1723,108 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cityPickerError => 'Erreur de recherche';
+
+  @override
+  String get storyCatConcert => 'Concert';
+
+  @override
+  String get storyCatParty => 'Soirée';
+
+  @override
+  String get storyCatCelebration => 'Fête';
+
+  @override
+  String get storyCatFestival => 'Festival';
+
+  @override
+  String get storyCatMarket => 'Marché';
+
+  @override
+  String get storyCatExpo => 'Expo';
+
+  @override
+  String get storyCatFair => 'Salon';
+
+  @override
+  String get storyCatOther => 'Autre';
+
+  @override
+  String get cameraHint => 'Appuie = photo  ·  Maintiens = vidéo';
+
+  @override
+  String get storyPreparing => 'Signalé ! L\'affiche se prépare...';
+
+  @override
+  String get storyLocating => 'Localisation...';
+
+  @override
+  String get storyPlace => 'Lieu';
+
+  @override
+  String get storyPlaceHint => 'Bar, rue, place...';
+
+  @override
+  String get storyTestOnlyMe => 'Story de test (visible que par moi)';
+
+  @override
+  String get storyTest => 'Story de test';
+
+  @override
+  String mapCityNotFound(String query) {
+    return 'Impossible de trouver « $query »';
+  }
+
+  @override
+  String get storyCommunity => 'La commu';
+
+  @override
+  String get storyChatShort => 'discu';
+
+  @override
+  String get storyVideo => 'vidéo';
+
+  @override
+  String get storyAnonymous => 'Anonyme';
+
+  @override
+  String get storyPostedBy => 'Signalé par ';
+
+  @override
+  String get storyDiscuss => 'Discuter';
+
+  @override
+  String get storyAiGenerating => 'Génération IA...';
+
+  @override
+  String get storyNobodyYet =>
+      'Personne n\'a encore signalé par ici. Sois le premier !';
+
+  @override
+  String get memberNoBio => 'Ce membre n\'a pas encore de bio.';
+
+  @override
+  String get chatRejected => 'Message refusé : langage inapproprié';
+
+  @override
+  String get chatReportInfo =>
+      'Si plusieurs personnes signalent ce message, il sera masqué automatiquement.';
+
+  @override
+  String get chatTitle => 'Discussion';
+
+  @override
+  String get chatLoadError => 'Impossible de charger la discussion';
+
+  @override
+  String get chatBeFirst => 'Sois le premier à poser une question !';
+
+  @override
+  String get chatFinishSignup =>
+      'Termine ton inscription pour participer à la discussion.';
+
+  @override
+  String get chatHint => 'Pose une question...';
+
+  @override
+  String get chatReport => 'Signaler';
 }

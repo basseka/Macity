@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -76,8 +77,8 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
 
     if (BadWordsFilter.contains(raw)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Message refuse : langage inapproprie'),
+        SnackBar(
+          content: Text(context.l10n.chatRejected),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -121,8 +122,8 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Signaler ce message ?'),
-        content: const Text(
-            'Si plusieurs personnes signalent ce message, il sera masque automatiquement.'),
+        content: Text(
+            context.l10n.chatReportInfo),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -174,7 +175,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                 Icon(Icons.forum_rounded, size: 16, color: _dark),
                 const SizedBox(width: 8),
                 Text(
-                  'Discussion',
+                  context.l10n.chatTitle,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -219,7 +220,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Impossible de charger la discussion',
+                  context.l10n.chatLoadError,
                   style: GoogleFonts.poppins(fontSize: 12, color: AppColors.textDim),
                 ),
               ),
@@ -229,7 +230,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                     child: Padding(
                       padding: const EdgeInsets.all(18),
                       child: Text(
-                        'Sois le premier a poser une question !',
+                        context.l10n.chatBeFirst,
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           color: AppColors.textFaint,
@@ -269,7 +270,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
             Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
-                'Termine ton inscription pour participer a la discussion.',
+                context.l10n.chatFinishSignup,
                 style: GoogleFonts.poppins(
                   fontSize: 11,
                   color: AppColors.textDim,
@@ -300,7 +301,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                       ),
                       cursorColor: _accent,
                       decoration: InputDecoration(
-                        hintText: 'Pose une question...',
+                        hintText: context.l10n.chatHint,
                         hintStyle: TextStyle(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.45)),
@@ -454,7 +455,7 @@ class _ReportedEventChatState extends ConsumerState<ReportedEventChat> {
                   size: 14, color: AppColors.textFaint),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-              tooltip: 'Signaler',
+              tooltip: context.l10n.chatReport,
               onPressed: () => _confirmReport(msg),
             ),
         ],
