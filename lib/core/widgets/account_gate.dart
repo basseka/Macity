@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/router/app_router.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -63,7 +64,7 @@ class _AccountNudge extends StatelessWidget {
               const Text('🔒', style: TextStyle(fontSize: 34)),
               const SizedBox(height: 12),
               Text(
-                'Crée ton compte pour $action',
+                context.l10n.gateTitle(_actionLabel(context, action)),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.geist(
                   fontSize: 17,
@@ -73,7 +74,7 @@ class _AccountNudge extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Ça prend 30 secondes. Tu débloques aussi tes favoris et tes récompenses.',
+                context.l10n.gateBody,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.geist(
                   fontSize: 13,
@@ -99,7 +100,7 @@ class _AccountNudge extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Créer mon compte',
+                    context.l10n.accountCreate,
                     style: GoogleFonts.geist(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -111,7 +112,7 @@ class _AccountNudge extends StatelessWidget {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Plus tard',
+                  context.l10n.commonLater,
                   style: GoogleFonts.geist(
                     fontSize: 13,
                     color: AppColors.textFaint,
@@ -125,3 +126,13 @@ class _AccountNudge extends StatelessWidget {
     );
   }
 }
+
+/// Action passee en francais par les appelants ('publier un event'...).
+String _actionLabel(BuildContext context, String action) => switch (action) {
+      'publier un event' => context.l10n.gateActionPublishEvent,
+      'poster une story' => context.l10n.gateActionPostStory,
+      'participer a la discussion' => context.l10n.gateActionChat,
+      'confirmer ta venue' => context.l10n.gateActionConfirm,
+      'ajouter des photos' => context.l10n.gateActionAddPhotos,
+      _ => action,
+    };

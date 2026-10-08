@@ -705,5 +705,68 @@
   "reviewsPostFailed": "Échec : réessaie dans un instant",
   "reviewsDeleteFailed": "Échec de la suppression",
   "reviewsHint": "Ton ressenti, en quelques mots...",
-  "commonPublish": "Publier"
+  "commonPublish": "Publier",
+  "eventMyNight": "Ma soirée",
+  "eventInfo": "Infos",
+  "eventBy": "Par {name}",
+  "@eventBy": {
+    "description": "Organisateur d'un evenement",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSessions": "{count, plural, =1{Séance} other{{count} séances}}",
+  "@eventSessions": {
+    "description": "Nombre de seances",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventPreviousStory": "Story précédente",
+  "eventSwipeNext": "Swipe pour la suivante",
+  "eventMore": "plus",
+  "eventAbout": "À propos",
+  "eventNoDescription": "Aucune description fournie pour cet évènement.",
+  "eventShareCaption": "Découvre cet évènement sur MaCity 👇",
+  "updateRequiredDefault": "Une nouvelle version est requise pour continuer à utiliser l'application.",
+  "updateTitlePrefix": "Mise à ",
+  "updateTitleAccent": "jour",
+  "updateVersionAvailable": "v{version} disponible",
+  "@updateVersionAvailable": {
+    "description": "Version disponible",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNow": "Mettre à jour",
+  "updateOpenAppStore": "Ouvrir l'App Store",
+  "updateLatestFeatures": "Pour profiter des dernières fonctionnalités",
+  "updateAvailable": "Nouvelle version disponible",
+  "commonLater": "Plus tard",
+  "gateTitle": "Crée ton compte pour {action}",
+  "@gateTitle": {
+    "description": "Incitation a creer un compte",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "gateBody": "Ça prend 30 secondes. Tu débloques aussi tes favoris et tes récompenses.",
+  "gateActionPublishEvent": "publier un event",
+  "gateActionPostStory": "poster une story",
+  "gateActionChat": "participer à la discussion",
+  "gateActionConfirm": "confirmer ta venue",
+  "gateActionAddPhotos": "ajouter des photos",
+  "verifiedLabel": "Vérifié",
+  "commonRetry": "Réessayer",
+  "dateFilter7Days": "7 jours",
+  "dateFilter30Days": "30 jours",
+  "dateFilterDate": "Date"
 }

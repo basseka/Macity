@@ -418,7 +418,7 @@ class FamilyScreen extends ConsumerWidget {
         const SizedBox(height: 4),
         for (final day in sortedDays) ...[
           editorialDateHeader(
-            editorialDayLabel(day),
+            editorialDayLabel(context, day),
             RubricColors.family,
             count: grouped[day]!.length,
           ),

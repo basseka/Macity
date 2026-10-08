@@ -1555,4 +1555,115 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get commonPublish => 'Publier';
+
+  @override
+  String get eventMyNight => 'Ma soirée';
+
+  @override
+  String get eventInfo => 'Infos';
+
+  @override
+  String eventBy(String name) {
+    return 'Par $name';
+  }
+
+  @override
+  String eventSessions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count séances',
+      one: 'Séance',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get eventPreviousStory => 'Story précédente';
+
+  @override
+  String get eventSwipeNext => 'Swipe pour la suivante';
+
+  @override
+  String get eventMore => 'plus';
+
+  @override
+  String get eventAbout => 'À propos';
+
+  @override
+  String get eventNoDescription =>
+      'Aucune description fournie pour cet évènement.';
+
+  @override
+  String get eventShareCaption => 'Découvre cet évènement sur MaCity 👇';
+
+  @override
+  String get updateRequiredDefault =>
+      'Une nouvelle version est requise pour continuer à utiliser l\'application.';
+
+  @override
+  String get updateTitlePrefix => 'Mise à ';
+
+  @override
+  String get updateTitleAccent => 'jour';
+
+  @override
+  String updateVersionAvailable(String version) {
+    return 'v$version disponible';
+  }
+
+  @override
+  String get updateNow => 'Mettre à jour';
+
+  @override
+  String get updateOpenAppStore => 'Ouvrir l\'App Store';
+
+  @override
+  String get updateLatestFeatures =>
+      'Pour profiter des dernières fonctionnalités';
+
+  @override
+  String get updateAvailable => 'Nouvelle version disponible';
+
+  @override
+  String get commonLater => 'Plus tard';
+
+  @override
+  String gateTitle(String action) {
+    return 'Crée ton compte pour $action';
+  }
+
+  @override
+  String get gateBody =>
+      'Ça prend 30 secondes. Tu débloques aussi tes favoris et tes récompenses.';
+
+  @override
+  String get gateActionPublishEvent => 'publier un event';
+
+  @override
+  String get gateActionPostStory => 'poster une story';
+
+  @override
+  String get gateActionChat => 'participer à la discussion';
+
+  @override
+  String get gateActionConfirm => 'confirmer ta venue';
+
+  @override
+  String get gateActionAddPhotos => 'ajouter des photos';
+
+  @override
+  String get verifiedLabel => 'Vérifié';
+
+  @override
+  String get commonRetry => 'Réessayer';
+
+  @override
+  String get dateFilter7Days => '7 jours';
+
+  @override
+  String get dateFilter30Days => '30 jours';
+
+  @override
+  String get dateFilterDate => 'Date';
 }

@@ -228,7 +228,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                     blur: 8, y: 2),
                               ),
                               child: Text(
-                                'GRATUIT',
+                                context.l10n.commonFree,
                                 style: GoogleFonts.geistMono(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -282,7 +282,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                           style: TextStyle(fontSize: 14)),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'Ma soirée',
+                                        context.l10n.eventMyNight,
                                         style: GoogleFonts.geist(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w700,
@@ -394,7 +394,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                           ),
                                           const SizedBox(width: 3),
                                           Text(
-                                            'Infos',
+                                            context.l10n.eventInfo,
                                             style: GoogleFonts.geist(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
@@ -412,7 +412,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                           // sinon ligne classique.
                           if (event.horaires.isNotEmpty)
                             event.horaires.contains(',')
-                                ? _horairesChips(event.horaires)
+                                ? _horairesChips(context, event.horaires)
                                 : _infoRow(Icons.access_time, event.horaires),
 
                           // Organisateur (pro)
@@ -430,7 +430,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Par ${event.organisateurNom}',
+                                      context.l10n.eventBy(event.organisateurNom),
                                       style: GoogleFonts.geist(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
@@ -489,7 +489,7 @@ class EventFullscreenPopup extends ConsumerWidget {
                           onPressed: () => _openUrl(event.reservationUrl),
                           icon: const Icon(Icons.confirmation_number_outlined,
                               size: 14),
-                          label: const Text('Billetterie'),
+                          label: Text(context.l10n.ticketsLabel),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.magenta,
                             foregroundColor: Colors.white,
@@ -563,7 +563,7 @@ class EventFullscreenPopup extends ConsumerWidget {
   }
 
   /// Horaires sous forme de chips (pour les séances cinéma / multi-horaires).
-  Widget _horairesChips(String raw) {
+  Widget _horairesChips(BuildContext context, String raw) {
     final times =
         raw.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     return Padding(
@@ -576,7 +576,7 @@ class EventFullscreenPopup extends ConsumerWidget {
               Icon(Icons.access_time, size: 14, color: AppColors.magenta),
               const SizedBox(width: 8),
               Text(
-                times.length > 1 ? '${times.length} séances' : 'Séance',
+                context.l10n.eventSessions(times.length),
                 style: GoogleFonts.geist(
                   fontSize: 13,
                   color: AppColors.text,
@@ -1193,7 +1193,7 @@ class _PagedEventPopupState extends State<_PagedEventPopup>
                       offset: Offset(0, -_bounceAnim.value),
                       child: _SwipeHint(
                         icon: Icons.keyboard_arrow_up_rounded,
-                        label: 'Story précédente',
+                        label: context.l10n.eventPreviousStory,
                       ),
                     ),
                   ),
@@ -1217,7 +1217,7 @@ class _PagedEventPopupState extends State<_PagedEventPopup>
                       offset: Offset(0, _bounceAnim.value),
                       child: _SwipeHint(
                         icon: Icons.keyboard_arrow_down_rounded,
-                        label: 'Swipe pour la suivante',
+                        label: context.l10n.eventSwipeNext,
                       ),
                     ),
                   ),
@@ -1317,7 +1317,7 @@ class _ExpandableDescriptionState extends State<_ExpandableDescription> {
         children: [
           TextSpan(text: '$preview… ', style: baseStyle),
           TextSpan(
-            text: 'plus',
+            text: context.l10n.eventMore,
             style: GoogleFonts.geist(
               fontSize: 13,
               color: AppColors.magenta,
@@ -1503,7 +1503,7 @@ class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
       // installee, sinon la page web propose l'app + le Play Store.
       final deepLink = 'https://macity.app/event/${widget.eventIdentifiant}';
       final caption =
-          '${widget.eventTitle}\n\nDécouvre cet évènement sur MaCity 👇\n$deepLink';
+          '${widget.eventTitle}\n\n${context.l10n.eventShareCaption}\n$deepLink';
 
       // Utilise la photo pre-resolue si dispo (cas usuel). Sinon resout
       // maintenant avec un timeout court pour ne pas bloquer l'utilisateur.
@@ -1690,16 +1690,16 @@ class _EventInfoSheet extends StatelessWidget {
                       if (event.organisateurNom.isNotEmpty)
                         _metaRow(
                           Icons.verified,
-                          'Par ${event.organisateurNom}',
+                          context.l10n.eventBy(event.organisateurNom),
                           color: const Color(0xFFFBBF24),
                         ),
                       if (event.isFree)
-                        _metaRow(Icons.local_offer_outlined, 'Gratuit'),
+                        _metaRow(Icons.local_offer_outlined, context.l10n.priceFree),
                       const SizedBox(height: 18),
                       // Description complete (pas de troncature ici)
                       if (_description.isNotEmpty) ...[
                         Text(
-                          'À propos',
+                          context.l10n.eventAbout,
                           style: GoogleFonts.geist(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -1720,7 +1720,7 @@ class _EventInfoSheet extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(top: 12),
                           child: Text(
-                            'Aucune description fournie pour cet évènement.',
+                            context.l10n.eventNoDescription,
                             style: GoogleFonts.geist(
                               fontSize: 13,
                               color: AppColors.textFaint,

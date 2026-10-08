@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -153,7 +154,7 @@ class _ModeVideoBannerState extends ConsumerState<ModeVideoBanner> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'En savoir plus',
+                            context.l10n.commonLearnMore,
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,

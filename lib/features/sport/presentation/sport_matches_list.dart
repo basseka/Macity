@@ -125,7 +125,7 @@ class SportMatchesList extends ConsumerWidget {
           const SizedBox(height: 4),
           for (final day in sortedDays) ...[
             editorialDateHeader(
-              editorialDayLabel(day),
+              editorialDayLabel(context, day),
               RubricColors.sport,
               count: grouped[day]!.length,
             ),

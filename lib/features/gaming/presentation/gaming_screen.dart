@@ -164,7 +164,7 @@ class GamingScreen extends ConsumerWidget {
       for (final day in sortedDates) {
         final eventsForDate = dateGrouped[day]!;
         items.add(editorialDateHeader(
-          editorialDayLabel(day),
+          editorialDayLabel(context, day),
           RubricColors.gaming,
           count: eventsForDate.length,
         ));

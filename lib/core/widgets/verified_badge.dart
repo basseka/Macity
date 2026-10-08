@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 /// Badge "Verifie" avec icone medaille doree.
 /// Utiliser [VerifiedBadge.small] dans les cards et [VerifiedBadge()] dans les detail sheets.
@@ -27,13 +28,13 @@ class VerifiedBadge extends StatelessWidget {
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.workspace_premium, size: 10, color: Colors.white),
             SizedBox(width: 2),
             Text(
-              'Verifie',
+              context.l10n.verifiedLabel,
               style: TextStyle(
                 fontSize: 8,
                 fontWeight: FontWeight.w700,
@@ -61,13 +62,13 @@ class VerifiedBadge extends StatelessWidget {
           ),
         ],
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.workspace_premium, size: 14, color: Colors.white),
           SizedBox(width: 4),
           Text(
-            'Verifie',
+            context.l10n.verifiedLabel,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,

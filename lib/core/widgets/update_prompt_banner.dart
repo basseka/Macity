@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -61,7 +62,8 @@ class _UpdatePromptBannerState extends State<UpdatePromptBanner> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  msg ?? 'Nouvelle version disponible${latest != null ? " ($latest)" : ""}',
+                  msg ??
+                      '${context.l10n.updateAvailable}${latest != null ? " ($latest)" : ""}',
                   style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
@@ -82,14 +84,14 @@ class _UpdatePromptBannerState extends State<UpdatePromptBanner> {
                         height: 14,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
                       )
-                    : Text(Platform.isAndroid ? 'Mettre a jour' : 'App Store'),
+                    : Text(Platform.isAndroid ? context.l10n.updateNow : 'App Store'),
               ),
               IconButton(
                 onPressed: widget.onDismissed,
                 icon: const Icon(Icons.close, color: Colors.black, size: 18),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                tooltip: 'Plus tard',
+                tooltip: context.l10n.commonLater,
               ),
             ],
           ),

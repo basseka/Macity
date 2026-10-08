@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/domain/models/app_category.dart';
 import 'package:pulz_app/core/state/categories_provider.dart';
@@ -63,7 +64,7 @@ class DynamicHubGrid extends ConsumerWidget {
         );
       },
       loading: () => Center(child: LoadingIndicator(color: accent)),
-      error: (_, __) => const Center(child: Text('Erreur de chargement')),
+      error: (_, __) => Center(child: Text(context.l10n.commonLoadError)),
     );
   }
 

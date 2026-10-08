@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -68,7 +69,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
   Widget build(BuildContext context) {
     final latest = widget.status.latestVersion;
     final msg = widget.status.message ??
-        'Une nouvelle version est requise pour continuer a utiliser l\'application.';
+        context.l10n.updateRequiredDefault;
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -137,7 +138,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      'Mise à ',
+                      context.l10n.updateTitlePrefix,
                       style: GoogleFonts.geist(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -146,7 +147,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                       ),
                     ),
                     Text(
-                      'jour',
+                      context.l10n.updateTitleAccent,
                       style: GoogleFonts.instrumentSerif(
                         fontSize: 32,
                         fontStyle: FontStyle.italic,
@@ -183,7 +184,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                       border: Border.all(color: AppColors.line),
                     ),
                     child: Text(
-                      'v$latest disponible',
+                      context.l10n.updateVersionAvailable(latest),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.geistMono(
                         color: AppColors.textFaint,
@@ -222,8 +223,8 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                           )
                         : Text(
                             Platform.isAndroid
-                                ? 'Mettre à jour'
-                                : 'Ouvrir l\'App Store',
+                                ? context.l10n.updateNow
+                                : context.l10n.updateOpenAppStore,
                             style: GoogleFonts.geist(
                               color: Colors.white,
                               fontSize: 15,
@@ -235,7 +236,7 @@ class _ForceUpdateScreenState extends State<ForceUpdateScreen>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Pour profiter des dernières fonctionnalités',
+                  context.l10n.updateLatestFeatures,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.geist(
                     color: AppColors.textFaint,

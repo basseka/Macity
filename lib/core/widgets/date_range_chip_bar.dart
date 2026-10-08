@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
@@ -13,15 +14,17 @@ class DateRangeChipBar extends ConsumerWidget {
     final modeTheme = ref.watch(modeThemeProvider);
 
     final chips = <_ChipData>[
-      const _ChipData('Tout', DateRangePreset.all),
-      const _ChipData('7 jours', DateRangePreset.days7),
-      const _ChipData('30 jours', DateRangePreset.days30),
+      _ChipData(context.l10n.catAll, DateRangePreset.all),
+      _ChipData(context.l10n.dateFilter7Days, DateRangePreset.days7),
+      _ChipData(context.l10n.dateFilter30Days, DateRangePreset.days30),
       _ChipData(
         filter.preset == DateRangePreset.custom &&
                 filter.customStart != null &&
                 filter.customEnd != null
-            ? 'Du ${DateFormat('dd/MM').format(filter.customStart!)} au ${DateFormat('dd/MM').format(filter.customEnd!)}'
-            : 'Date',
+            ? context.l10n.feedDateRange(
+                DateFormat('dd/MM').format(filter.customStart!),
+                DateFormat('dd/MM').format(filter.customEnd!))
+            : context.l10n.dateFilterDate,
         DateRangePreset.custom,
       ),
     ];
@@ -46,7 +49,6 @@ class DateRangeChipBar extends ConsumerWidget {
                       firstDate: DateTime.now(),
                       lastDate:
                           DateTime.now().add(const Duration(days: 365)),
-                      locale: const Locale('fr', 'FR'),
                       builder: (context, child) {
                         return Theme(
                           data: Theme.of(context).copyWith(

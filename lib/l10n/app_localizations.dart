@@ -2907,6 +2907,192 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Publier'**
   String get commonPublish;
+
+  /// No description provided for @eventMyNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ma soirée'**
+  String get eventMyNight;
+
+  /// No description provided for @eventInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Infos'**
+  String get eventInfo;
+
+  /// Organisateur d'un evenement
+  ///
+  /// In fr, this message translates to:
+  /// **'Par {name}'**
+  String eventBy(String name);
+
+  /// Nombre de seances
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Séance} other{{count} séances}}'**
+  String eventSessions(int count);
+
+  /// No description provided for @eventPreviousStory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Story précédente'**
+  String get eventPreviousStory;
+
+  /// No description provided for @eventSwipeNext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Swipe pour la suivante'**
+  String get eventSwipeNext;
+
+  /// No description provided for @eventMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'plus'**
+  String get eventMore;
+
+  /// No description provided for @eventAbout.
+  ///
+  /// In fr, this message translates to:
+  /// **'À propos'**
+  String get eventAbout;
+
+  /// No description provided for @eventNoDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune description fournie pour cet évènement.'**
+  String get eventNoDescription;
+
+  /// No description provided for @eventShareCaption.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvre cet évènement sur MaCity 👇'**
+  String get eventShareCaption;
+
+  /// No description provided for @updateRequiredDefault.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une nouvelle version est requise pour continuer à utiliser l\'application.'**
+  String get updateRequiredDefault;
+
+  /// No description provided for @updateTitlePrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mise à '**
+  String get updateTitlePrefix;
+
+  /// No description provided for @updateTitleAccent.
+  ///
+  /// In fr, this message translates to:
+  /// **'jour'**
+  String get updateTitleAccent;
+
+  /// Version disponible
+  ///
+  /// In fr, this message translates to:
+  /// **'v{version} disponible'**
+  String updateVersionAvailable(String version);
+
+  /// No description provided for @updateNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre à jour'**
+  String get updateNow;
+
+  /// No description provided for @updateOpenAppStore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir l\'App Store'**
+  String get updateOpenAppStore;
+
+  /// No description provided for @updateLatestFeatures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour profiter des dernières fonctionnalités'**
+  String get updateLatestFeatures;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle version disponible'**
+  String get updateAvailable;
+
+  /// No description provided for @commonLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard'**
+  String get commonLater;
+
+  /// Incitation a creer un compte
+  ///
+  /// In fr, this message translates to:
+  /// **'Crée ton compte pour {action}'**
+  String gateTitle(String action);
+
+  /// No description provided for @gateBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ça prend 30 secondes. Tu débloques aussi tes favoris et tes récompenses.'**
+  String get gateBody;
+
+  /// No description provided for @gateActionPublishEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'publier un event'**
+  String get gateActionPublishEvent;
+
+  /// No description provided for @gateActionPostStory.
+  ///
+  /// In fr, this message translates to:
+  /// **'poster une story'**
+  String get gateActionPostStory;
+
+  /// No description provided for @gateActionChat.
+  ///
+  /// In fr, this message translates to:
+  /// **'participer à la discussion'**
+  String get gateActionChat;
+
+  /// No description provided for @gateActionConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'confirmer ta venue'**
+  String get gateActionConfirm;
+
+  /// No description provided for @gateActionAddPhotos.
+  ///
+  /// In fr, this message translates to:
+  /// **'ajouter des photos'**
+  String get gateActionAddPhotos;
+
+  /// No description provided for @verifiedLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifié'**
+  String get verifiedLabel;
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get commonRetry;
+
+  /// No description provided for @dateFilter7Days.
+  ///
+  /// In fr, this message translates to:
+  /// **'7 jours'**
+  String get dateFilter7Days;
+
+  /// No description provided for @dateFilter30Days.
+  ///
+  /// In fr, this message translates to:
+  /// **'30 jours'**
+  String get dateFilter30Days;
+
+  /// No description provided for @dateFilterDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date'**
+  String get dateFilterDate;
 }
 
 class _AppLocalizationsDelegate

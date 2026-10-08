@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_event_row_card.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_group_header.dart';
@@ -19,17 +21,17 @@ EditorialEventRowCard editorialEventTileFromEvent(
 }) {
   final parsed = DateTime.tryParse(event.dateDebut);
   final monthAbbr = parsed != null
-      ? DateFormat('MMM', 'fr_FR')
+      ? DateFormat('MMM', context.dateLocale)
           .format(parsed)
           .replaceAll('.', '')
           .toUpperCase()
       : null;
   final dayNum = parsed?.day.toString();
   final weekDay = parsed != null
-      ? DateFormat('EEE', 'fr_FR').format(parsed).toLowerCase()
+      ? DateFormat('EEE', context.dateLocale).format(parsed).toLowerCase()
       : null;
   final price = event.isFree
-      ? 'Gratuit'
+      ? context.l10n.priceFree
       : (event.tarifNormal.isNotEmpty ? event.tarifNormal : null);
   final imageUrl = (event.photoPath != null && event.photoPath!.isNotEmpty)
       ? event.photoPath
@@ -68,13 +70,13 @@ EditorialGroupHeader editorialDateHeader(
 
 /// Convertit une DateTime en label affichable selon contexte
 /// (Aujourd'hui / Demain / sinon "lundi 5 mai" capitalise).
-String editorialDayLabel(DateTime day) {
+String editorialDayLabel(BuildContext context, DateTime day) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final tomorrow = today.add(const Duration(days: 1));
-  if (day == today) return "Aujourd'hui";
-  if (day == tomorrow) return 'Demain';
-  final formatted = DateFormat('EEEE d MMMM', 'fr_FR').format(day);
+  if (day == today) return context.l10n.commonToday;
+  if (day == tomorrow) return context.l10n.commonTomorrow;
+  final formatted = DateFormat('EEEE d MMMM', context.dateLocale).format(day);
   return formatted.isEmpty
       ? formatted
       : formatted[0].toUpperCase() + formatted.substring(1);

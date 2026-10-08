@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:pulz_app/core/l10n/labels.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +40,7 @@ class CommunityEventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final parsed = DateTime.tryParse(date);
-    final dateLabel = parsed != null ? DateFormat('EEE d MMM', 'fr_FR').format(parsed) : date;
+    final dateLabel = parsed != null ? DateFormat('EEE d MMM', context.dateLocale).format(parsed) : date;
     final timeLabel = time != null && time!.isNotEmpty ? time! : null;
 
     return GestureDetector(
@@ -183,7 +185,7 @@ class CommunityEventCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Gratuit',
+                          context.l10n.priceFree,
                           style: GoogleFonts.inter(
                             fontSize: 8,
                             fontWeight: FontWeight.w600,

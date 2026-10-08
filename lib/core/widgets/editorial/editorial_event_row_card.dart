@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_kicker.dart';
@@ -211,7 +212,7 @@ class EditorialEventRowCard extends StatelessWidget {
                       children: [
                         if (price != null && price!.isNotEmpty)
                           Text(
-                            isFree ? 'GRATUIT' : price!,
+                            isFree ? context.l10n.commonFree : price!,
                             style: isFree
                                 ? EditorialText.priceFree()
                                 : EditorialText.pricePaid(),

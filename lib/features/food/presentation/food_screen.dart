@@ -423,7 +423,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
       for (final day in sortedDates) {
         final eventsForDate = dateGrouped[day]!;
         items.add(editorialDateHeader(
-          editorialDayLabel(day),
+          editorialDayLabel(context, day),
           RubricColors.food,
           count: eventsForDate.length,
         ));

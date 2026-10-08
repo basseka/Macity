@@ -1058,7 +1058,7 @@ class CultureScreen extends ConsumerWidget {
           const SizedBox(height: 4),
           for (final day in sortedDays) ...[
             editorialDateHeader(
-              editorialDayLabel(day),
+              editorialDayLabel(context, day),
               RubricColors.culture,
               count: grouped[day]!.length,
             ),
