@@ -6975,6 +6975,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Envoyer la demande'**
   String get resSendRequest;
+
+  /// No description provided for @tripPlanTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Organiser mon trip'**
+  String get tripPlanTitle;
+
+  /// No description provided for @tripPlanSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repas et activités, jour par jour, selon votre groupe.'**
+  String get tripPlanSubtitle;
 }
 
 class _AppLocalizationsDelegate

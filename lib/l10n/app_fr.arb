@@ -1841,5 +1841,7 @@
   "resPeople": "Nombre de personnes",
   "resPhoneOptional": "Téléphone (facultatif)",
   "resComment": "Commentaire (allergies, occasion...)",
-  "resSendRequest": "Envoyer la demande"
+  "resSendRequest": "Envoyer la demande",
+  "tripPlanTitle": "Organiser mon trip",
+  "tripPlanSubtitle": "Repas et activités, jour par jour, selon votre groupe."
 }

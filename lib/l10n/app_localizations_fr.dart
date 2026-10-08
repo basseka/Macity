@@ -3851,4 +3851,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get resSendRequest => 'Envoyer la demande';
+
+  @override
+  String get tripPlanTitle => 'Organiser mon trip';
+
+  @override
+  String get tripPlanSubtitle =>
+      'Repas et activités, jour par jour, selon votre groupe.';
 }

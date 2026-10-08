@@ -1145,5 +1145,7 @@
   "resPeople": "Number of people",
   "resPhoneOptional": "Phone (optional)",
   "resComment": "Comment (allergies, occasion...)",
-  "resSendRequest": "Send request"
+  "resSendRequest": "Send request",
+  "tripPlanTitle": "Plan my trip",
+  "tripPlanSubtitle": "Meals and activities, day by day, for your group."
 }

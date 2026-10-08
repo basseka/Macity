@@ -3,6 +3,7 @@ import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:pulz_app/features/trip_planner/presentation/trip_planner_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -67,6 +68,9 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
         // ─── Bulles fixes (style stripe), après « Le moment évasion » :
         //     « Quoi faire ce soir » + les médias locaux de la ville. ───
         _bubblesRow(media),
+        // Juste sous « Quoi faire ce soir » : planificateur de séjour.
+        const TripPlannerButton(),
+        const SizedBox(height: 16),
         _feedHint(),
       ],
     );

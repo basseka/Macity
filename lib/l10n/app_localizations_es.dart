@@ -3834,4 +3834,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get resSendRequest => 'Enviar solicitud';
+
+  @override
+  String get tripPlanTitle => 'Organiza mi viaje';
+
+  @override
+  String get tripPlanSubtitle =>
+      'Comidas y actividades, día a día, según tu grupo.';
 }
