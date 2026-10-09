@@ -372,13 +372,53 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
   /// Mon id device : le bouton « Confirmer » n'apparait qu'a cote de MON pseudo.
   String? _myUserId;
 
+  // La liste des participants est sous l'affiche (souvent en portrait, qui
+  // remplit l'ecran) : les invites ne devinaient pas qu'il fallait faire
+  // defiler. Une pastille « Voir les participants » reste visible tant que
+  // la liste n'est pas a l'ecran, et y fait defiler au toucher.
+  final _scroll = ScrollController();
+  final _scrollKey = GlobalKey();
+  final _guestsKey = GlobalKey();
+  bool _guestsVisible = true;
+
   @override
   void initState() {
     super.initState();
     _rsvps = widget.event.rsvps;
+    _scroll.addListener(_checkGuestsVisible);
     UserIdentityService.getUserId().then((id) {
       if (mounted) setState(() => _myUserId = id);
     });
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// Visible = le haut de la liste est dans la zone defilante (marge 60 px).
+  void _checkGuestsVisible() {
+    if (!mounted) return;
+    final viewport = _scrollKey.currentContext?.findRenderObject();
+    final guests = _guestsKey.currentContext?.findRenderObject();
+    if (viewport is! RenderBox || guests is! RenderBox) return;
+    if (!viewport.hasSize || !guests.hasSize) return;
+    final bottom =
+        viewport.localToGlobal(Offset.zero).dy + viewport.size.height;
+    final top = guests.localToGlobal(Offset.zero).dy;
+    final visible = top < bottom - 60;
+    if (visible != _guestsVisible) setState(() => _guestsVisible = visible);
+  }
+
+  void _scrollToGuests() {
+    final ctx = _guestsKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Future<void> _openConfirmation() async {
@@ -467,6 +507,9 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
   Widget build(BuildContext context) {
     final ev = widget.event;
     final hasPhoto = ev.photoUrl != null && ev.photoUrl!.isNotEmpty;
+    // L'affiche se charge apres coup et change la mise en page : on revérifie
+    // la visibilite de la liste apres chaque rendu.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkGuestsVisible());
     return Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.85,
@@ -518,7 +561,11 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
               ),
               const SizedBox(height: 8),
               Flexible(
-                child: SingleChildScrollView(
+                child: Stack(
+                  children: [
+                SingleChildScrollView(
+                  key: _scrollKey,
+                  controller: _scroll,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -639,6 +686,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                         const SizedBox(height: 12),
                       ],
                       Container(
+                        key: _guestsKey,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: _CoffreColors.surfaceHi,
@@ -657,6 +705,57 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                       ),
                     ],
                   ),
+                ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 10,
+                      child: IgnorePointer(
+                        ignoring: _guestsVisible,
+                        child: AnimatedOpacity(
+                          opacity: _guestsVisible ? 0 : 1,
+                          duration: const Duration(milliseconds: 200),
+                          child: Center(
+                            child: Material(
+                              color: AppColors.magenta,
+                              elevation: 6,
+                              borderRadius: BorderRadius.circular(999),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(999),
+                                onTap: _scrollToGuests,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        context.l10n
+                                            .invSeeGuests(_rsvps.length),
+                                        style: GoogleFonts.geist(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 14),

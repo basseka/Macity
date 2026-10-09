@@ -2677,6 +2677,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get invAlbum => 'Álbum';
 
   @override
+  String invSeeGuests(int count) {
+    return '👥 Ver los participantes ($count)';
+  }
+
+  @override
   String get invWriteHost => 'Escribir al organizador';
 
   @override

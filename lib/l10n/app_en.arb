@@ -803,6 +803,7 @@
   "invKeep": "Keep",
   "invCancelFailed": "Cancellation failed",
   "invAlbum": "Album",
+  "invSeeGuests": "👥 See who's coming ({count})",
   "invWriteHost": "Message the host",
   "invCancelled": "Cancelled",
   "invNobodyElse": "Nobody else has confirmed yet.",

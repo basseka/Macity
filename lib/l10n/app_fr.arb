@@ -1263,6 +1263,14 @@
   "invKeep": "Garder",
   "invCancelFailed": "Échec de l'annulation",
   "invAlbum": "Album",
+  "invSeeGuests": "👥 Voir les participants ({count})",
+  "@invSeeGuests": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "invWriteHost": "Écrire à l'organisateur",
   "invCancelled": "Venue annulée",
   "invNobodyElse": "Personne d'autre n'a encore confirmé.",

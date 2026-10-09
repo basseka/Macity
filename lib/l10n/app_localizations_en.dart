@@ -2663,6 +2663,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invAlbum => 'Album';
 
   @override
+  String invSeeGuests(int count) {
+    return '👥 See who\'s coming ($count)';
+  }
+
+  @override
   String get invWriteHost => 'Message the host';
 
   @override

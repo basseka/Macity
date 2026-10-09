@@ -2690,6 +2690,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get invAlbum => 'Album';
 
   @override
+  String invSeeGuests(int count) {
+    return '👥 Voir les participants ($count)';
+  }
+
+  @override
   String get invWriteHost => 'Écrire à l\'organisateur';
 
   @override

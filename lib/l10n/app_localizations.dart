@@ -4918,6 +4918,12 @@ abstract class AppLocalizations {
   /// **'Album'**
   String get invAlbum;
 
+  /// No description provided for @invSeeGuests.
+  ///
+  /// In fr, this message translates to:
+  /// **'👥 Voir les participants ({count})'**
+  String invSeeGuests(int count);
+
   /// No description provided for @invWriteHost.
   ///
   /// In fr, this message translates to:

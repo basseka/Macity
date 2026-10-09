@@ -803,6 +803,7 @@
   "invKeep": "Mantener",
   "invCancelFailed": "No se pudo cancelar",
   "invAlbum": "Álbum",
+  "invSeeGuests": "👥 Ver los participantes ({count})",
   "invWriteHost": "Escribir al organizador",
   "invCancelled": "Asistencia cancelada",
   "invNobodyElse": "Nadie más ha confirmado todavía.",
