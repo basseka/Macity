@@ -104,6 +104,21 @@ String cultureCategoryLabel(BuildContext context, String key) {
   };
 }
 
+/// Categorie d'un lieu quelle que soit sa rubrique (fiche detail, trip) :
+/// essaie Culture, Night, Famille puis Sport ; cle brute si inconnue.
+String anyCategoryLabel(BuildContext context, String key) {
+  for (final f in [
+    cultureCategoryLabel,
+    nightCategoryLabel,
+    familyCategoryLabel,
+    sportCategoryLabel,
+  ]) {
+    final label = f(context, key);
+    if (label != key) return label;
+  }
+  return key;
+}
+
 /// Sous-rubriques Night (cles categorie : 'Club Discotheque', 'Bar a chicha'...).
 String nightCategoryLabel(BuildContext context, String key) {
   final l10n = context.l10n;

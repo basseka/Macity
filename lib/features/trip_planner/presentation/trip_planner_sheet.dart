@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/food/presentation/food_design_tokens.dart';
@@ -728,7 +729,8 @@ class _StopCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       [
-                        if (c.categorie.isNotEmpty) c.categorie,
+                        if (c.categorie.isNotEmpty)
+                          anyCategoryLabel(context, c.categorie),
                         if (stop.candidate.isPartner) context.l10n.tripPartner,
                       ].join(' · '),
                       maxLines: 1,

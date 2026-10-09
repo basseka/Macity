@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pulz_app/core/l10n/labels.dart';
 import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -420,15 +421,20 @@ class CommerceRowCard extends ConsumerWidget {
         isVerified: commerce.isVerified,
         isPartner: commerce.isPartner,
         partnerLabel: commerce.categorie == 'Évasion'
-            ? 'Domaine partenaire'
-            : 'Partenaire',
+            ? (context?.l10n.detailPartnerEstate ?? 'Domaine partenaire')
+            : (context?.l10n.detailPartner ?? 'Partenaire'),
         claimSourceTable: _claimSourceTableFromSingular(commerce.sourceTable),
         claimSourceId: commerce.sourceId,
         photoGallery: _buildPhotoGalleryFor(commerce),
         description: commerce.description,
         infos: [
           if (commerce.categorie.isNotEmpty)
-            DetailInfoItem(Icons.category_outlined, commerce.categorie),
+            DetailInfoItem(
+              Icons.category_outlined,
+              context != null
+                  ? anyCategoryLabel(context, commerce.categorie)
+                  : commerce.categorie,
+            ),
           if (commerce.horaires.isNotEmpty)
             DetailInfoItem(Icons.access_time, commerce.horaires),
           if (commerce.adresse.isNotEmpty)
@@ -439,7 +445,9 @@ class CommerceRowCard extends ConsumerWidget {
         primaryAction: commerce.siteWeb.isNotEmpty
             ? DetailAction(
                 icon: commerce.siteWeb.contains('instagram') ? Icons.camera_alt : Icons.language,
-                label: commerce.siteWeb.contains('instagram') ? 'Instagram' : 'Site web',
+                label: commerce.siteWeb.contains('instagram')
+                    ? 'Instagram'
+                    : (context?.l10n.websiteLabel ?? 'Site web'),
                 url: commerce.siteWeb,
                 // « Clic sur le lien du partenaire » du relevé mensuel. Seule
                 // cette action est comptée : Maps et Appeler sont des
@@ -460,7 +468,7 @@ class CommerceRowCard extends ConsumerWidget {
           if (commerce.telephone.isNotEmpty)
             DetailAction(
               icon: Icons.phone_outlined,
-              label: 'Appeler',
+              label: context?.l10n.commonCall ?? 'Appeler',
               url: 'tel:${commerce.telephone.replaceAll(' ', '')}',
             ),
         ],

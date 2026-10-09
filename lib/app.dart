@@ -572,6 +572,7 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
       localeListResolutionCallback: (deviceLocales, _) =>
           resolveAppLocale(deviceLocales),
       builder: (context, child) {
+        currentContentLanguage = Localizations.localeOf(context).languageCode;
         // Force update : remplace tout le contenu, bloque la nav.
         final status = _updateStatus;
         if (status != null && status.isForceUpdate) {

@@ -2276,7 +2276,7 @@
           <div id="pubstats-table" style="overflow-x:auto;"></div>
 
           <h3 style="font-size:15px; margin:28px 0 4px;">Détail — qui a publié ?</h3>
-          <p class="subtitle" style="margin-top:0;">Chaque event public payé, avec l'organisateur déclaré.</p>
+          <p class="subtitle" style="margin-top:0;">Chaque event public payé : photo, event, qui a payé (profil de l'appareil), fin de la mise en avant et prix.</p>
           <div id="pubstats-detail" style="overflow-x:auto;"></div>
         </div>
       </div>
@@ -5867,7 +5867,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
 
       const { data, error } = await supabase
         .from("boost_payments")
-        .select("priority, amount, created_at, status")
+        .select("event_id, user_id, priority, amount, created_at, status")
         .eq("status", "paid")
         .order("created_at", { ascending: false });
 
@@ -5947,43 +5947,71 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           ${body}
         </table>`;
 
-      // ─── Détail : joindre les events pour récupérer l'organisateur ───
+      // ─── Détail : event (titre, photo, date, fin de mise en avant) et
+      //     payeur (profil de l'appareil qui a payé : boost_payments.user_id).
+      //     NB : event_id manquait dans le select ci-dessus, d'où
+      //     « (event supprimé) » sur toutes les lignes jusqu'au 2026-10-09.
       const detailEl = document.getElementById("pubstats-detail");
       const eventIds = [...new Set(rows.map(r => r.event_id).filter(Boolean))];
+      const userIds = [...new Set(rows.map(r => r.user_id).filter(Boolean))];
       const eventsById = {};
+      const payersById = {};
       if (eventIds.length > 0) {
         const { data: evs } = await supabase
           .from("user_events")
-          .select("id, titre, organisateur_nom, organisateur_email, organisateur_telephone, ville")
+          .select("id, titre, photo_url, date, date_fin, boost_until, organisateur_nom, organisateur_email, organisateur_telephone, ville")
           .in("id", eventIds);
         (evs || []).forEach(e => { eventsById[e.id] = e; });
+      }
+      if (userIds.length > 0) {
+        const { data: ups } = await supabase
+          .from("user_profiles")
+          .select("user_id, prenom, email, telephone")
+          .in("user_id", userIds);
+        (ups || []).forEach(u => { payersById[u.user_id] = u; });
       }
 
       const fmtDate = (iso) => {
         const d = new Date(iso);
         return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
       };
+      // « Jusqu'au » : fin de la mise en avant payée, sinon fin de l'event.
+      const fmtUntil = (ev) => {
+        const iso = ev.boost_until || ev.date_fin || ev.date;
+        if (!iso) return "";
+        const past = new Date(ev.boost_until || `${ev.date_fin || ev.date}T23:59:59`) < new Date();
+        return `${fmtDate(iso)}${past ? ` <span style="font-size:11px; color:var(--text-faint);">(terminé)</span>` : ""}`;
+      };
       let drows = "";
       for (const r of rows) {
-        const ev = eventsById[r.event_id] || {};
-        const orga = ev.organisateur_nom || "—";
-        const contact = ev.organisateur_email || ev.organisateur_telephone || "";
+        const ev = eventsById[r.event_id];
+        const payer = payersById[r.user_id] || {};
+        const orga = ev?.organisateur_nom || "";
+        const payerName = payer.prenom || "—";
+        const payerContact = [payer.email, payer.telephone].filter(Boolean).join(" · ");
+        const photo = ev?.photo_url
+          ? `<a href="${escapeHtml(ev.photo_url)}" target="_blank" rel="noopener"><img src="${escapeHtml(ev.photo_url)}" alt="" style="width:44px; height:44px; object-fit:cover; border-radius:8px; display:block;"></a>`
+          : `<div style="width:44px; height:44px; border-radius:8px; background:var(--surface-hi); display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--text-faint);">${ev ? "sans photo" : "—"}</div>`;
         drows += `<tr style="border-top:1px solid var(--line);">
           <td style="padding:9px; white-space:nowrap; color:var(--text-dim); font-size:12px;">${fmtDate(r.created_at)}</td>
-          <td style="padding:9px;">${escapeHtml(ev.titre || "(event supprimé)")}</td>
-          <td style="padding:9px;">${escapeHtml(orga)}${contact ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(contact)}</div>` : ""}</td>
-          <td style="padding:9px; white-space:nowrap;">${ev.ville || ""}</td>
+          <td style="padding:9px;">${photo}</td>
+          <td style="padding:9px;">${escapeHtml(ev?.titre || "(event supprimé)")}${ev?.date ? `<div style="font-size:11px; color:var(--text-faint);">le ${fmtDate(ev.date)}</div>` : ""}<div style="font-size:10px; color:var(--text-faint);">id ${escapeHtml(r.event_id || "")}</div></td>
+          <td style="padding:9px;">${escapeHtml(payerName)}${payerContact ? `<div style="font-size:11px; color:var(--text-faint);">${escapeHtml(payerContact)}</div>` : ""}${orga ? `<div style="font-size:11px; color:var(--text-dim);">Orga déclaré : ${escapeHtml(orga)}</div>` : ""}</td>
+          <td style="padding:9px; white-space:nowrap;">${escapeHtml(ev?.ville || "")}</td>
+          <td style="padding:9px; white-space:nowrap;">${ev ? fmtUntil(ev) : ""}</td>
           <td style="padding:9px; text-align:center; white-space:nowrap;">${PUB_PRIORITY_LABELS[r.priority] || r.priority}</td>
           <td style="padding:9px; text-align:right; font-weight:600; color:#5FD08A; white-space:nowrap;">${eur(r.amount || 0)}</td>
         </tr>`;
       }
       detailEl.innerHTML = `
-        <table style="border-collapse:collapse; min-width:640px; width:100%;">
+        <table style="border-collapse:collapse; min-width:820px; width:100%;">
           <tr>
             <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Date</th>
+            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Photo</th>
             <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Event</th>
-            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Organisateur</th>
+            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Payé par</th>
             <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Ville</th>
+            <th style="padding:9px; text-align:left; color:var(--text-dim); font-size:12px;">Jusqu'au</th>
             <th style="padding:9px; text-align:center; color:var(--text-dim); font-size:12px;">Formule</th>
             <th style="padding:9px; text-align:right; color:var(--text-dim); font-size:12px;">Prix</th>
           </tr>

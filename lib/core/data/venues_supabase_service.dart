@@ -9,6 +9,7 @@ import 'package:pulz_app/features/culture/data/library_venues_data.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
 import 'package:pulz_app/features/culture/data/museum_venues_data.dart';
 import 'package:pulz_app/features/culture/data/theatre_venues_data.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
 
 /// Service unifie pour la table `venues` de Supabase.
 /// Remplace les multiples fichiers statiques Dart par une seule source de verite.
@@ -136,7 +137,7 @@ class VenuesSupabaseService {
     return TheatreVenue(
       id: json['slug'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
+      description: localizedDescription(json),
       city: json['ville'] as String? ?? 'Toulouse',
       horaires: json['horaires'] as String? ?? '',
       ticketUrl: (json['ticket_url'] as String?)?.isNotEmpty == true
@@ -172,7 +173,7 @@ class VenuesSupabaseService {
     return MuseumVenue(
       id: json['slug'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
+      description: localizedDescription(json),
       category: json['groupe'] as String? ?? '',
       city: json['ville'] as String? ?? 'Toulouse',
       horaires: json['horaires'] as String? ?? '',
@@ -207,7 +208,7 @@ class VenuesSupabaseService {
     return MonumentVenue(
       id: json['slug'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
+      description: localizedDescription(json),
       type: json['type'] as String? ?? '',
       group: json['groupe'] as String? ?? '',
       adresse: json['adresse'] as String? ?? '',
@@ -241,7 +242,7 @@ class VenuesSupabaseService {
     return LibraryVenue(
       id: json['slug'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      description: json['description'] as String? ?? '',
+      description: localizedDescription(json),
       group: json['groupe'] as String? ?? '',
       adresse: json['adresse'] as String? ?? '',
       horaires: json['horaires'] as String? ?? '',
@@ -346,7 +347,7 @@ class VenuesSupabaseService {
       sourceTable: 'venue',
       // Sans ce champ, la fiche des lieux (culture, « Organiser mon trip »)
       // s'ouvrait sans description ni bloc « À voir sur place ».
-      description: json['description'] as String? ?? '',
+      description: localizedDescription(json),
     );
   }
 

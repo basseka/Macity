@@ -55,6 +55,20 @@ Locale resolveAppLocale(List<Locale>? deviceLocales) {
   return const Locale('en');
 }
 
+/// Langue effective de l'app (fr/en/es), tenue a jour par MaterialApp.builder.
+/// Sert aux services qui choisissent la traduction d'un contenu en base.
+String currentContentLanguage = 'fr';
+
+/// Description d'un lieu dans la langue de l'app : colonne `description_en` /
+/// `description_es` (remplies par l'edge function translate-descriptions),
+/// sinon la description francaise d'origine.
+String localizedDescription(Map<String, dynamic> json) {
+  final fr = json['description'] as String? ?? '';
+  if (currentContentLanguage == 'fr') return fr;
+  final tr = json['description_$currentContentLanguage'] as String?;
+  return (tr != null && tr.trim().isNotEmpty) ? tr : fr;
+}
+
 extension AppLocalizationsX on BuildContext {
   AppLocalizations get l10n => AppLocalizations.of(this);
 }

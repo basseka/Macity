@@ -1,3 +1,5 @@
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+
 /// Modele unifie pour tous les lieux famille (cinema, bowling, escape game, etc.)
 /// Mappe directement sur la table `family_venues` de Supabase.
 class FamilyVenue {
@@ -64,7 +66,7 @@ class FamilyVenue {
       name: json['name'] as String? ?? '',
       category: json['category'] as String? ?? '',
       groupe: json['groupe'] as String? ?? '',
-      description: json['description'] as String? ?? '',
+      description: localizedDescription(json),
       adresse: json['adresse'] as String? ?? '',
       ville: json['ville'] as String? ?? '',
       horaires: json['horaires'] as String? ?? '',
