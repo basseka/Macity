@@ -19,6 +19,15 @@ import 'package:pulz_app/features/trip_planner/domain/trip_plan.dart';
 /// adaptes aux familles, couples, amis), puis display_priority, avec une part
 /// d'aleatoire (graine [TripPools.build]) pour varier les propositions.
 class TripPlannerService {
+  /// Cles des etapes (TripStop.slot), traduites a l'affichage.
+  static const slotBreakfast = 'breakfast';
+  static const slotMorning = 'morning';
+  static const slotLunch = 'lunch';
+  static const slotAfternoon = 'afternoon';
+  static const slotDinner = 'dinner';
+  static const slotDrink = 'drink';
+  static const slotClub = 'club';
+
   final _restaurants = RestaurantSupabaseService();
   final _family = FamilyVenuesSupabaseService();
   final _venues = VenuesSupabaseService();
@@ -301,13 +310,13 @@ class TripPools {
         stops.add(TripStop(kind: kind, slot: slot, candidate: c));
       }
 
-      if (a.meals.contains(TripMeal.matin)) add(TripStopKind.breakfast, 'Petit-déjeuner');
-      if (a.activities) add(TripStopKind.activity, 'Activité du matin');
-      if (a.meals.contains(TripMeal.midi)) add(TripStopKind.lunch, 'Déjeuner');
-      if (a.activities) add(TripStopKind.activity, "Activité de l'après-midi");
-      if (a.meals.contains(TripMeal.soir)) add(TripStopKind.dinner, 'Dîner');
-      if (a.night != TripNight.none) add(TripStopKind.drink, 'Un verre en bar');
-      if (a.night == TripNight.barClub) add(TripStopKind.club, 'Fin de soirée en discothèque');
+      if (a.meals.contains(TripMeal.matin)) add(TripStopKind.breakfast, TripPlannerService.slotBreakfast);
+      if (a.activities) add(TripStopKind.activity, TripPlannerService.slotMorning);
+      if (a.meals.contains(TripMeal.midi)) add(TripStopKind.lunch, TripPlannerService.slotLunch);
+      if (a.activities) add(TripStopKind.activity, TripPlannerService.slotAfternoon);
+      if (a.meals.contains(TripMeal.soir)) add(TripStopKind.dinner, TripPlannerService.slotDinner);
+      if (a.night != TripNight.none) add(TripStopKind.drink, TripPlannerService.slotDrink);
+      if (a.night == TripNight.barClub) add(TripStopKind.club, TripPlannerService.slotClub);
       days.add(TripDay(index: d + 1, stops: stops));
     }
     return TripPlan(answers: a, days: days, seed: seed);

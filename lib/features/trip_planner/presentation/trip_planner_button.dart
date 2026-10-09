@@ -4,6 +4,7 @@ import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/food/presentation/food_design_tokens.dart';
 import 'package:pulz_app/features/trip_planner/presentation/trip_planner_sheet.dart';
+import 'package:pulz_app/core/theme/design_tokens.dart';
 
 /// Bouton « Organiser mon trip » : questionnaire puis feuille de route.
 /// Affiché sur l'accueil, sous la rangée « Quoi faire ce soir ».
@@ -22,10 +23,11 @@ class TripPlannerButton extends ConsumerWidget {
         ),
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 16, 14, 16),
+          // Couleurs de l'app (degrade magenta -> violet), pas celles de Food.
           decoration: BoxDecoration(
-            color: FoodTokens.forest,
-            borderRadius: BorderRadius.circular(FoodTokens.rCard),
-            boxShadow: FoodTokens.ctaPill(),
+            gradient: AppGradients.primary,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            boxShadow: AppShadows.neon(AppColors.magenta, blur: 16, y: 6),
           ),
           child: Row(
             children: [

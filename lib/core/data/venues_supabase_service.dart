@@ -344,6 +344,9 @@ class VenuesSupabaseService {
       isPartner: json['is_partner'] as bool? ?? false,
       sourceId: (json['id'] as num?)?.toInt(),
       sourceTable: 'venue',
+      // Sans ce champ, la fiche des lieux (culture, « Organiser mon trip »)
+      // s'ouvrait sans description ni bloc « À voir sur place ».
+      description: json['description'] as String? ?? '',
     );
   }
 

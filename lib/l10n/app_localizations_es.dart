@@ -3851,4 +3851,262 @@ class AppLocalizationsEs extends AppLocalizations {
   String pvNameAge(String name, int age) {
     return '$name · $age años';
   }
+
+  @override
+  String get tripNoAlternative =>
+      'No hay otro lugar disponible para esta etapa';
+
+  @override
+  String get tripQWho => '¿Con quién viajas?';
+
+  @override
+  String get tripQWhoSub => 'Adaptamos los lugares a tu grupo.';
+
+  @override
+  String get tripCouple => 'En pareja';
+
+  @override
+  String get tripCoupleSub => 'Mesas románticas, planes para dos';
+
+  @override
+  String get tripFamilyKids => 'En familia con niños';
+
+  @override
+  String get tripFamilyKidsSub => 'Lugares y actividades para niños';
+
+  @override
+  String get tripFamily => 'En familia';
+
+  @override
+  String get tripFriends => 'Con amigos';
+
+  @override
+  String get tripFriendsSub =>
+      'Mesas para compartir, actividades divertidas, una copa por la noche';
+
+  @override
+  String get tripQHowMany => '¿Cuántos sois?';
+
+  @override
+  String get tripKidsIncluded => 'Niños incluidos.';
+
+  @override
+  String get tripYouIncluded => 'Tú incluido.';
+
+  @override
+  String tripPeople(int count) {
+    return '$count personas';
+  }
+
+  @override
+  String get tripQDuration => '¿Cuánto tiempo te quedas?';
+
+  @override
+  String get tripQDurationSub => 'Una hoja de ruta por día.';
+
+  @override
+  String get tripOneDay => '1 día';
+
+  @override
+  String get tripOneWeek => '1 semana';
+
+  @override
+  String tripDays(int count) {
+    return '$count días';
+  }
+
+  @override
+  String get tripWeekend => 'El fin de semana';
+
+  @override
+  String get tripQMeals => '¿Cuándo comes fuera?';
+
+  @override
+  String get tripQMealsSub => 'Toca para marcar o desmarcar.';
+
+  @override
+  String get tripMorning => 'Por la mañana';
+
+  @override
+  String get tripMorningSub => 'Brunch, salón de té';
+
+  @override
+  String get tripNoon => 'Al mediodía';
+
+  @override
+  String get tripNoonSub => 'Comida';
+
+  @override
+  String get tripEvening => 'Por la noche';
+
+  @override
+  String get tripEveningSub => 'Cena';
+
+  @override
+  String get tripQActivities => '¿Quieres actividades?';
+
+  @override
+  String get tripQActivitiesSubKids =>
+      'Planes para pequeños y mayores entre comidas.';
+
+  @override
+  String get tripQActivitiesSub => 'Planes y visitas entre comidas.';
+
+  @override
+  String get tripYesActivities => 'Sí, actividades';
+
+  @override
+  String get tripYesActivitiesSub => 'Una por la mañana, otra por la tarde';
+
+  @override
+  String get tripNoActivities => 'No, solo las comidas';
+
+  @override
+  String get tripQNight => '¿Y la noche?';
+
+  @override
+  String get tripQNightSub => 'Después de cenar, en el mismo barrio.';
+
+  @override
+  String get tripNightBar => 'Una copa en un bar';
+
+  @override
+  String get tripNightBarSub => 'Coctelería, pub, bar de copas';
+
+  @override
+  String get tripNightClub => 'Bar y luego discoteca';
+
+  @override
+  String get tripNightClubSub => 'Para acabar la noche en un club';
+
+  @override
+  String get tripNightNone => 'Sin salir';
+
+  @override
+  String get tripQMusic => '¿Qué música en la discoteca?';
+
+  @override
+  String get tripQMusicSub =>
+      'Puedes elegir varias. Elegimos el club según tus gustos.';
+
+  @override
+  String get tripMusicElectro => 'Electrónica / Techno';
+
+  @override
+  String get tripMusicElectroSub => 'House, techno, electrónica';
+
+  @override
+  String get tripMusicHiphop => 'Hip-hop / R&B / Afro';
+
+  @override
+  String get tripMusicHiphopSub => 'Rap, R&B, afrobeats, dancehall';
+
+  @override
+  String get tripMusicLatino => 'Latino / Reguetón';
+
+  @override
+  String get tripMusicLatinoSub => 'Reguetón, salsa, bachata';
+
+  @override
+  String get tripMusicGeneral => 'Comercial / Éxitos';
+
+  @override
+  String get tripMusicGeneralSub => 'Éxitos del momento, de los 80 a los 2000';
+
+  @override
+  String get tripMusicRock => 'Rock / Indie';
+
+  @override
+  String get tripMusicRockSub => 'Rock, indie, pop-rock';
+
+  @override
+  String get tripPickOne =>
+      'Elige al menos una comida, una actividad o una salida.';
+
+  @override
+  String get tripSeePlan => 'Ver mi hoja de ruta';
+
+  @override
+  String tripNotEnough(String ville) {
+    return 'Todavía no hay suficientes lugares en $ville para organizar un viaje. ¡Vuelve pronto!';
+  }
+
+  @override
+  String tripYourTrip(String ville) {
+    return 'Tu viaje a $ville';
+  }
+
+  @override
+  String tripSummary(String group, int people, String duration) {
+    return '$group · $people pers. · $duration';
+  }
+
+  @override
+  String get tripTapHint => 'Toca «Info» para ver qué ver y qué hacer.';
+
+  @override
+  String get tripOtherProposal => 'Otra propuesta';
+
+  @override
+  String get tripYourDay => 'Tu día';
+
+  @override
+  String tripDay(int n) {
+    return 'Día $n';
+  }
+
+  @override
+  String get tripDayRoute => 'Ruta del día';
+
+  @override
+  String get tripNoMoreForDay =>
+      'No hay más lugares disponibles para este día.';
+
+  @override
+  String tripWalkMinutes(int min) {
+    return 'a $min min a pie de la etapa anterior';
+  }
+
+  @override
+  String tripKmFrom(String km) {
+    return 'a $km km de la etapa anterior';
+  }
+
+  @override
+  String get tripPartner => '⭐ Socio';
+
+  @override
+  String tripBookingAdvised(int count) {
+    return 'Se recomienda reservar para $count';
+  }
+
+  @override
+  String get tripInfos => 'Info';
+
+  @override
+  String get tripChange => 'Cambiar';
+
+  @override
+  String get tripSlotBreakfast => 'Desayuno';
+
+  @override
+  String get tripSlotMorning => 'Actividad de la mañana';
+
+  @override
+  String get tripSlotLunch => 'Comida';
+
+  @override
+  String get tripSlotAfternoon => 'Actividad de la tarde';
+
+  @override
+  String get tripSlotDinner => 'Cena';
+
+  @override
+  String get tripSlotDrink => 'Una copa en un bar';
+
+  @override
+  String get tripSlotClub => 'Final de noche en discoteca';
+
+  @override
+  String get tripMusicAny => 'Me da igual';
 }

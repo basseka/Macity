@@ -661,26 +661,41 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Icon(icon, size: 14, color: AppColors.magenta),
         const SizedBox(width: 6),
-        Text(
-          prefix,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
-            color: AppColors.text,
+        // Titre reduit si besoin (« Lo más destacado » + « Ver todo » en
+        // espagnol ne tenaient pas sur la ligne et se collaient).
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  prefix,
+                  maxLines: 1,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  accent,
+                  maxLines: 1,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    color: const Color(0xFFFB923C),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(width: 5),
-        Text(
-          accent,
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
-            color: const Color(0xFFFB923C),
-          ),
-        ),
-        const Spacer(),
+        const SizedBox(width: 12),
         if (onSeeAll != null)
           GestureDetector(
             onTap: onSeeAll,

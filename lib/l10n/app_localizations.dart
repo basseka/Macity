@@ -6999,6 +6999,474 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{name} · {age} ans'**
   String pvNameAge(String name, int age);
+
+  /// No description provided for @tripNoAlternative.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas d\'autre lieu disponible pour cette étape'**
+  String get tripNoAlternative;
+
+  /// No description provided for @tripQWho.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous partez avec qui ?'**
+  String get tripQWho;
+
+  /// No description provided for @tripQWhoSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On adapte les adresses à votre groupe.'**
+  String get tripQWhoSub;
+
+  /// No description provided for @tripCouple.
+  ///
+  /// In fr, this message translates to:
+  /// **'En couple'**
+  String get tripCouple;
+
+  /// No description provided for @tripCoupleSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tables romantiques, sorties à deux'**
+  String get tripCoupleSub;
+
+  /// No description provided for @tripFamilyKids.
+  ///
+  /// In fr, this message translates to:
+  /// **'En famille avec enfants'**
+  String get tripFamilyKids;
+
+  /// No description provided for @tripFamilyKidsSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresses et activités adaptées aux enfants'**
+  String get tripFamilyKidsSub;
+
+  /// No description provided for @tripFamily.
+  ///
+  /// In fr, this message translates to:
+  /// **'En famille'**
+  String get tripFamily;
+
+  /// No description provided for @tripFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entre amis'**
+  String get tripFriends;
+
+  /// No description provided for @tripFriendsSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tables à partager, activités fun, un verre le soir'**
+  String get tripFriendsSub;
+
+  /// No description provided for @tripQHowMany.
+  ///
+  /// In fr, this message translates to:
+  /// **'Combien êtes-vous ?'**
+  String get tripQHowMany;
+
+  /// No description provided for @tripKidsIncluded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enfants compris.'**
+  String get tripKidsIncluded;
+
+  /// No description provided for @tripYouIncluded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous compris.'**
+  String get tripYouIncluded;
+
+  /// No description provided for @tripPeople.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} personnes'**
+  String tripPeople(int count);
+
+  /// No description provided for @tripQDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous restez combien de temps ?'**
+  String get tripQDuration;
+
+  /// No description provided for @tripQDurationSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une feuille de route par jour.'**
+  String get tripQDurationSub;
+
+  /// No description provided for @tripOneDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 journée'**
+  String get tripOneDay;
+
+  /// No description provided for @tripOneWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'1 semaine'**
+  String get tripOneWeek;
+
+  /// No description provided for @tripDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} jours'**
+  String tripDays(int count);
+
+  /// No description provided for @tripWeekend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le week-end'**
+  String get tripWeekend;
+
+  /// No description provided for @tripQMeals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous mangez dehors quand ?'**
+  String get tripQMeals;
+
+  /// No description provided for @tripQMealsSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Touchez pour cocher ou décocher.'**
+  String get tripQMealsSub;
+
+  /// No description provided for @tripMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le matin'**
+  String get tripMorning;
+
+  /// No description provided for @tripMorningSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brunch, salon de thé'**
+  String get tripMorningSub;
+
+  /// No description provided for @tripNoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le midi'**
+  String get tripNoon;
+
+  /// No description provided for @tripNoonSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjeuner'**
+  String get tripNoonSub;
+
+  /// No description provided for @tripEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le soir'**
+  String get tripEvening;
+
+  /// No description provided for @tripEveningSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dîner'**
+  String get tripEveningSub;
+
+  /// No description provided for @tripQActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voulez-vous des activités ?'**
+  String get tripQActivities;
+
+  /// No description provided for @tripQActivitiesSubKids.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sorties pour petits et grands entre les repas.'**
+  String get tripQActivitiesSubKids;
+
+  /// No description provided for @tripQActivitiesSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sorties et visites entre les repas.'**
+  String get tripQActivitiesSub;
+
+  /// No description provided for @tripYesActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oui, des activités'**
+  String get tripYesActivities;
+
+  /// No description provided for @tripYesActivitiesSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une le matin, une l\'après-midi'**
+  String get tripYesActivitiesSub;
+
+  /// No description provided for @tripNoActivities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non, juste les repas'**
+  String get tripNoActivities;
+
+  /// No description provided for @tripQNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Et la soirée ?'**
+  String get tripQNight;
+
+  /// No description provided for @tripQNightSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Après le dîner, dans le même quartier.'**
+  String get tripQNightSub;
+
+  /// No description provided for @tripNightBar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un verre en bar'**
+  String get tripNightBar;
+
+  /// No description provided for @tripNightBarSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bar à cocktails, pub, bar de nuit'**
+  String get tripNightBarSub;
+
+  /// No description provided for @tripNightClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bar puis discothèque'**
+  String get tripNightClub;
+
+  /// No description provided for @tripNightClubSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour finir la nuit en club'**
+  String get tripNightClubSub;
+
+  /// No description provided for @tripNightNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de sortie'**
+  String get tripNightNone;
+
+  /// No description provided for @tripQMusic.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quelle musique en discothèque ?'**
+  String get tripQMusic;
+
+  /// No description provided for @tripQMusicSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plusieurs choix possibles. On choisit le club selon vos goûts.'**
+  String get tripQMusicSub;
+
+  /// No description provided for @tripMusicElectro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Électro / Techno'**
+  String get tripMusicElectro;
+
+  /// No description provided for @tripMusicElectroSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'House, techno, électro'**
+  String get tripMusicElectroSub;
+
+  /// No description provided for @tripMusicHiphop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hip-hop / R&B / Afro'**
+  String get tripMusicHiphop;
+
+  /// No description provided for @tripMusicHiphopSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rap, R&B, afrobeats, dancehall'**
+  String get tripMusicHiphopSub;
+
+  /// No description provided for @tripMusicLatino.
+  ///
+  /// In fr, this message translates to:
+  /// **'Latino / Reggaeton'**
+  String get tripMusicLatino;
+
+  /// No description provided for @tripMusicLatinoSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reggaeton, salsa, bachata'**
+  String get tripMusicLatinoSub;
+
+  /// No description provided for @tripMusicGeneral.
+  ///
+  /// In fr, this message translates to:
+  /// **'Généraliste / Hits'**
+  String get tripMusicGeneral;
+
+  /// No description provided for @tripMusicGeneralSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tubes du moment, années 80 à 2000'**
+  String get tripMusicGeneralSub;
+
+  /// No description provided for @tripMusicRock.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rock / Indie'**
+  String get tripMusicRock;
+
+  /// No description provided for @tripMusicRockSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rock, indie, pop-rock'**
+  String get tripMusicRockSub;
+
+  /// No description provided for @tripPickOne.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez au moins un repas, une activité ou une sortie.'**
+  String get tripPickOne;
+
+  /// No description provided for @tripSeePlan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir ma feuille de route'**
+  String get tripSeePlan;
+
+  /// No description provided for @tripNotEnough.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore assez d\'adresses à {ville} pour composer un trip. Revenez bientôt !'**
+  String tripNotEnough(String ville);
+
+  /// No description provided for @tripYourTrip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre trip à {ville}'**
+  String tripYourTrip(String ville);
+
+  /// No description provided for @tripSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'{group} · {people} pers. · {duration}'**
+  String tripSummary(String group, int people, String duration);
+
+  /// No description provided for @tripTapHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Touchez « Infos » pour voir ce qu\'il y a à voir et à faire.'**
+  String get tripTapHint;
+
+  /// No description provided for @tripOtherProposal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre proposition'**
+  String get tripOtherProposal;
+
+  /// No description provided for @tripYourDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre journée'**
+  String get tripYourDay;
+
+  /// No description provided for @tripDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jour {n}'**
+  String tripDay(int n);
+
+  /// No description provided for @tripDayRoute.
+  ///
+  /// In fr, this message translates to:
+  /// **'Itinéraire du jour'**
+  String get tripDayRoute;
+
+  /// No description provided for @tripNoMoreForDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus d\'adresses disponibles pour ce jour.'**
+  String get tripNoMoreForDay;
+
+  /// No description provided for @tripWalkMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'à {min} min à pied de l\'étape précédente'**
+  String tripWalkMinutes(int min);
+
+  /// No description provided for @tripKmFrom.
+  ///
+  /// In fr, this message translates to:
+  /// **'à {km} km de l\'étape précédente'**
+  String tripKmFrom(String km);
+
+  /// No description provided for @tripPartner.
+  ///
+  /// In fr, this message translates to:
+  /// **'⭐ Partenaire'**
+  String get tripPartner;
+
+  /// No description provided for @tripBookingAdvised.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réservation conseillée pour {count}'**
+  String tripBookingAdvised(int count);
+
+  /// No description provided for @tripInfos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Infos'**
+  String get tripInfos;
+
+  /// No description provided for @tripChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer'**
+  String get tripChange;
+
+  /// No description provided for @tripSlotBreakfast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Petit-déjeuner'**
+  String get tripSlotBreakfast;
+
+  /// No description provided for @tripSlotMorning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité du matin'**
+  String get tripSlotMorning;
+
+  /// No description provided for @tripSlotLunch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjeuner'**
+  String get tripSlotLunch;
+
+  /// No description provided for @tripSlotAfternoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité de l\'après-midi'**
+  String get tripSlotAfternoon;
+
+  /// No description provided for @tripSlotDinner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dîner'**
+  String get tripSlotDinner;
+
+  /// No description provided for @tripSlotDrink.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un verre en bar'**
+  String get tripSlotDrink;
+
+  /// No description provided for @tripSlotClub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin de soirée en discothèque'**
+  String get tripSlotClub;
+
+  /// No description provided for @tripMusicAny.
+  ///
+  /// In fr, this message translates to:
+  /// **'Peu importe'**
+  String get tripMusicAny;
 }
 
 class _AppLocalizationsDelegate

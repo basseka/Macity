@@ -1863,5 +1863,152 @@
         "type": "int"
       }
     }
-  }
+  },
+  "tripNoAlternative": "Pas d'autre lieu disponible pour cette étape",
+  "tripQWho": "Vous partez avec qui ?",
+  "tripQWhoSub": "On adapte les adresses à votre groupe.",
+  "tripCouple": "En couple",
+  "tripCoupleSub": "Tables romantiques, sorties à deux",
+  "tripFamilyKids": "En famille avec enfants",
+  "tripFamilyKidsSub": "Adresses et activités adaptées aux enfants",
+  "tripFamily": "En famille",
+  "tripFriends": "Entre amis",
+  "tripFriendsSub": "Tables à partager, activités fun, un verre le soir",
+  "tripQHowMany": "Combien êtes-vous ?",
+  "tripKidsIncluded": "Enfants compris.",
+  "tripYouIncluded": "Vous compris.",
+  "tripPeople": "{count} personnes",
+  "@tripPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tripQDuration": "Vous restez combien de temps ?",
+  "tripQDurationSub": "Une feuille de route par jour.",
+  "tripOneDay": "1 journée",
+  "tripOneWeek": "1 semaine",
+  "tripDays": "{count} jours",
+  "@tripDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tripWeekend": "Le week-end",
+  "tripQMeals": "Vous mangez dehors quand ?",
+  "tripQMealsSub": "Touchez pour cocher ou décocher.",
+  "tripMorning": "Le matin",
+  "tripMorningSub": "Brunch, salon de thé",
+  "tripNoon": "Le midi",
+  "tripNoonSub": "Déjeuner",
+  "tripEvening": "Le soir",
+  "tripEveningSub": "Dîner",
+  "tripQActivities": "Voulez-vous des activités ?",
+  "tripQActivitiesSubKids": "Sorties pour petits et grands entre les repas.",
+  "tripQActivitiesSub": "Sorties et visites entre les repas.",
+  "tripYesActivities": "Oui, des activités",
+  "tripYesActivitiesSub": "Une le matin, une l'après-midi",
+  "tripNoActivities": "Non, juste les repas",
+  "tripQNight": "Et la soirée ?",
+  "tripQNightSub": "Après le dîner, dans le même quartier.",
+  "tripNightBar": "Un verre en bar",
+  "tripNightBarSub": "Bar à cocktails, pub, bar de nuit",
+  "tripNightClub": "Bar puis discothèque",
+  "tripNightClubSub": "Pour finir la nuit en club",
+  "tripNightNone": "Pas de sortie",
+  "tripQMusic": "Quelle musique en discothèque ?",
+  "tripQMusicSub": "Plusieurs choix possibles. On choisit le club selon vos goûts.",
+  "tripMusicElectro": "Électro / Techno",
+  "tripMusicElectroSub": "House, techno, électro",
+  "tripMusicHiphop": "Hip-hop / R&B / Afro",
+  "tripMusicHiphopSub": "Rap, R&B, afrobeats, dancehall",
+  "tripMusicLatino": "Latino / Reggaeton",
+  "tripMusicLatinoSub": "Reggaeton, salsa, bachata",
+  "tripMusicGeneral": "Généraliste / Hits",
+  "tripMusicGeneralSub": "Tubes du moment, années 80 à 2000",
+  "tripMusicRock": "Rock / Indie",
+  "tripMusicRockSub": "Rock, indie, pop-rock",
+  "tripPickOne": "Choisissez au moins un repas, une activité ou une sortie.",
+  "tripSeePlan": "Voir ma feuille de route",
+  "tripNotEnough": "Pas encore assez d'adresses à {ville} pour composer un trip. Revenez bientôt !",
+  "@tripNotEnough": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "tripYourTrip": "Votre trip à {ville}",
+  "@tripYourTrip": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "tripSummary": "{group} · {people} pers. · {duration}",
+  "@tripSummary": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      },
+      "people": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "tripTapHint": "Touchez « Infos » pour voir ce qu'il y a à voir et à faire.",
+  "tripOtherProposal": "Autre proposition",
+  "tripYourDay": "Votre journée",
+  "tripDay": "Jour {n}",
+  "@tripDay": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tripDayRoute": "Itinéraire du jour",
+  "tripNoMoreForDay": "Plus d'adresses disponibles pour ce jour.",
+  "tripWalkMinutes": "à {min} min à pied de l'étape précédente",
+  "@tripWalkMinutes": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "tripKmFrom": "à {km} km de l'étape précédente",
+  "@tripKmFrom": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "tripPartner": "⭐ Partenaire",
+  "tripBookingAdvised": "Réservation conseillée pour {count}",
+  "@tripBookingAdvised": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tripInfos": "Infos",
+  "tripChange": "Changer",
+  "tripSlotBreakfast": "Petit-déjeuner",
+  "tripSlotMorning": "Activité du matin",
+  "tripSlotLunch": "Déjeuner",
+  "tripSlotAfternoon": "Activité de l'après-midi",
+  "tripSlotDinner": "Dîner",
+  "tripSlotDrink": "Un verre en bar",
+  "tripSlotClub": "Fin de soirée en discothèque",
+  "tripMusicAny": "Peu importe"
 }
