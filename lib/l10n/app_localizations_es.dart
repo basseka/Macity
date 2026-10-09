@@ -2678,7 +2678,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String invSeeGuests(int count) {
-    return '👥 Ver los participantes ($count)';
+    return 'Desliza hacia arriba para ver a los participantes ($count)';
   }
 
   @override

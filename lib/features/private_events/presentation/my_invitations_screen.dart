@@ -510,7 +510,14 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
     // L'affiche se charge apres coup et change la mise en page : on revérifie
     // la visibilite de la liste apres chaque rendu.
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkGuestsVisible());
-    return Container(
+    // Police systeme agrandie : au-dela de 1.15 les boutons du bas se
+    // coupaient (« Discussio / n »). On borne l'agrandissement ici.
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: MediaQuery.textScalerOf(context)
+            .clamp(maxScaleFactor: 1.15),
+      ),
+      child: Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.85,
       ),
@@ -535,6 +542,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
               // Bouton fermer explicite : la simple poignee de drag n'etait
               // pas assez claire comme affordance de fermeture (signale).
               SizedBox(
+                width: double.infinity,
                 height: 32,
                 child: Stack(
                   alignment: Alignment.center,
@@ -561,9 +569,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
               ),
               const SizedBox(height: 8),
               Flexible(
-                child: Stack(
-                  children: [
-                SingleChildScrollView(
+                child: SingleChildScrollView(
                   key: _scrollKey,
                   controller: _scroll,
                   child: Column(
@@ -706,57 +712,17 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                     ],
                   ),
                 ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 10,
-                      child: IgnorePointer(
-                        ignoring: _guestsVisible,
-                        child: AnimatedOpacity(
-                          opacity: _guestsVisible ? 0 : 1,
-                          duration: const Duration(milliseconds: 200),
-                          child: Center(
-                            child: Material(
-                              color: AppColors.magenta,
-                              elevation: 6,
-                              borderRadius: BorderRadius.circular(999),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(999),
-                                onTap: _scrollToGuests,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        context.l10n
-                                            .invSeeGuests(_rsvps.length),
-                                        style: GoogleFonts.geist(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      const Icon(
-                                        Icons.keyboard_arrow_down_rounded,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+              ),
+              // Indication de swipe : SOUS la zone defilante (plus par-dessus
+              // l'affiche), visible tant que la liste n'est pas a l'ecran.
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                child: _guestsVisible
+                    ? const SizedBox(width: double.infinity)
+                    : _SwipeHint(
+                        label: context.l10n.invSeeGuests(_rsvps.length),
+                        onTap: _scrollToGuests,
                       ),
-                    ),
-                  ],
-                ),
               ),
               const SizedBox(height: 14),
               if (widget.event.accessToken != null) ...[
@@ -886,6 +852,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -905,6 +872,73 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// « Glisse vers le haut » avec une fleche qui rebondit (touchable aussi).
+class _SwipeHint extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _SwipeHint({required this.label, required this.onTap});
+
+  @override
+  State<_SwipeHint> createState() => _SwipeHintState();
+}
+
+class _SwipeHintState extends State<_SwipeHint>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _bounce = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _bounce.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: widget.onTap,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10, bottom: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedBuilder(
+              animation: _bounce,
+              builder: (_, child) => Transform.translate(
+                offset: Offset(
+                  0,
+                  -5 * Curves.easeInOut.transform(_bounce.value),
+                ),
+                child: child,
+              ),
+              child: const Icon(
+                Icons.keyboard_double_arrow_up_rounded,
+                color: AppColors.magenta,
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              widget.label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.geist(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _CoffreColors.textDim,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -4921,7 +4921,7 @@ abstract class AppLocalizations {
   /// No description provided for @invSeeGuests.
   ///
   /// In fr, this message translates to:
-  /// **'👥 Voir les participants ({count})'**
+  /// **'Glisse vers le haut pour voir les participants ({count})'**
   String invSeeGuests(int count);
 
   /// No description provided for @invWriteHost.

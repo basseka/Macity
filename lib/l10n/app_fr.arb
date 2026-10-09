@@ -1263,7 +1263,7 @@
   "invKeep": "Garder",
   "invCancelFailed": "Échec de l'annulation",
   "invAlbum": "Album",
-  "invSeeGuests": "👥 Voir les participants ({count})",
+  "invSeeGuests": "Glisse vers le haut pour voir les participants ({count})",
   "@invSeeGuests": {
     "placeholders": {
       "count": {
