@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/services/partner_metrics_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
@@ -27,6 +26,7 @@ import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 import 'package:pulz_app/features/reviews/domain/models/commerce_review.dart';
 import 'package:pulz_app/features/reviews/presentation/reviews_section.dart';
 import 'package:pulz_app/features/reviews/state/commerce_summaries_provider.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 /// Carte commerce en ligne : image a gauche, infos a droite.
 class CommerceRowCard extends ConsumerWidget {
@@ -360,7 +360,7 @@ class CommerceRowCard extends ConsumerWidget {
                         _buildActionIcon(
                           Icons.share_outlined,
                           AppColors.textFaint,
-                          () => Share.share(_buildShareTextFor(commerce, context)),
+                          () => shareText(context, _buildShareTextFor(commerce, context)),
                         ),
                       ],
                     ),

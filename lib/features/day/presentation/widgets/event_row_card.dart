@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
@@ -13,6 +12,7 @@ import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 /// Carte événement : pochette carrée à gauche, infos à droite.
 class EventRowCard extends ConsumerWidget {
@@ -376,6 +376,6 @@ class EventRowCard extends ConsumerWidget {
     }
     buffer.writeln('\n${context.l10n.shareFooter}');
 
-    Share.share(buffer.toString());
+    shareText(context, buffer.toString());
   }
 }

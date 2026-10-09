@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulz_app/core/widgets/editorial/editorial_event_tile.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/state/date_range_filter_provider.dart';
 import 'package:pulz_app/core/theme/editorial_tokens.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
@@ -32,6 +31,7 @@ import 'package:pulz_app/features/culture/state/culture_venues_provider.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/refine_map_section.dart';
 import 'package:pulz_app/features/sport/state/sport_venues_provider.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 
 class CultureScreen extends ConsumerWidget {
@@ -1439,6 +1439,6 @@ class _GalleryCard extends ConsumerWidget {
     if (gallery.horaires.isNotEmpty) buffer.writeln(gallery.horaires);
     if (gallery.siteWeb.isNotEmpty) buffer.writeln(gallery.siteWeb);
     buffer.writeln('\n${context.l10n.shareFooter}');
-    Share.share(buffer.toString());
+    shareText(context, buffer.toString());
   }
 }

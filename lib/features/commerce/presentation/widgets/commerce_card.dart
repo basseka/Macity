@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 class CommerceCard extends ConsumerWidget {
   final CommerceModel commerce;
@@ -178,7 +178,7 @@ class CommerceCard extends ConsumerWidget {
                   icon: Icons.share_outlined,
                   label: 'Partager',
                   color: AppColors.textDim,
-                  onTap: () => _share(),
+                  onTap: () => _share(context),
                 ),
               ],
             ),
@@ -241,7 +241,7 @@ class CommerceCard extends ConsumerWidget {
     }
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(commerce.nom);
     if (commerce.categorie.isNotEmpty) {
@@ -255,6 +255,6 @@ class CommerceCard extends ConsumerWidget {
     }
     buffer.writeln('\nDecouvre sur MaCity');
 
-    Share.share(buffer.toString());
+    shareText(context, buffer.toString());
   }
 }

@@ -4,11 +4,11 @@ import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/playground_venues_data.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 class PlaygroundVenueCard extends ConsumerWidget {
   final PlaygroundVenue venue;
@@ -152,6 +152,6 @@ class PlaygroundVenueCard extends ConsumerWidget {
     if (venue.telephone.isNotEmpty) buffer.writeln(venue.telephone);
     buffer.writeln(venue.websiteUrl);
     buffer.writeln('\n${context.l10n.shareFooter}');
-    Share.share(buffer.toString());
+    shareText(context, buffer.toString());
   }
 }

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/services/activity_service.dart';
 import 'package:pulz_app/features/day/data/shared_events_service.dart';
 import 'package:pulz_app/features/day/state/shared_events_provider.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 /// Bottom sheet pour partager un event avec des contacts.
 /// Utilise le Contact Picker systeme Android (pas de permission READ_CONTACTS).
@@ -482,7 +482,7 @@ class _ShareEventSheetState extends ConsumerState<ShareEventSheet> {
     final shareLink = 'https://macity.app/event/${widget.eventId}';
     final message =
         'Salut ! Rejoins-moi sur Pulz pour decouvrir "${widget.eventTitle}" :\n$shareLink';
-    await Share.share(message, subject: 'Rejoins-moi sur Pulz');
+    await shareText(context, message, subject: 'Rejoins-moi sur Pulz');
     if (!mounted) return;
     setState(() {
       _picked.removeWhere((p) => !p.isOnPulz);

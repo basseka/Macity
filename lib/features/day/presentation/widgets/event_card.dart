@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/event_fullscreen_popup.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 class EventCard extends ConsumerWidget {
   final Event event;
@@ -398,7 +398,7 @@ class EventCard extends ConsumerWidget {
 
                     // Share button
                     IconButton(
-                      onPressed: () => _shareEvent(),
+                      onPressed: () => _shareEvent(context),
                       icon: Icon(
                         Icons.share_outlined,
                         color: AppColors.textFaint,
@@ -457,7 +457,7 @@ class EventCard extends ConsumerWidget {
     }
   }
 
-  void _shareEvent() {
+  void _shareEvent(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln(event.titre);
     if (event.dateDebut.isNotEmpty) {
@@ -471,6 +471,6 @@ class EventCard extends ConsumerWidget {
     }
     buffer.writeln('\nDecouvre sur MaCity');
 
-    Share.share(buffer.toString());
+    shareText(context, buffer.toString());
   }
 }

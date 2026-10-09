@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/widgets/fullscreen_image_viewer.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
@@ -18,6 +17,7 @@ import 'package:pulz_app/features/offers/domain/models/offer.dart';
 import 'package:pulz_app/features/offers/presentation/offer_code_popup.dart';
 import 'package:pulz_app/features/offers/state/offers_provider.dart';
 import 'package:pulz_app/features/reviews/presentation/reviews_section.dart';
+import 'package:pulz_app/core/utils/share_utils.dart' as share_utils;
 
 /// Fiche detail generique ouverte au tap sur une carte (commerce, event, match, venue).
 /// Affichee en popup plein ecran avec pochette en fond et infos overlayees.
@@ -594,7 +594,7 @@ class ItemDetailSheet extends ConsumerWidget {
                                   icon: Icons.share_outlined,
                                   label: context.l10n.commonShare,
                                   color: Colors.white,
-                                  onTap: () => Share.share(shareText),
+                                  onTap: () => share_utils.shareText(context, shareText),
                                 ),
                               ...secondaryActions.map(
                                 (action) => _buildPillButton(

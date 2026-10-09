@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/home/state/today_events_provider.dart';
 import 'package:pulz_app/features/likes/data/liked_item_resolver.dart';
@@ -13,6 +12,7 @@ import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/presentation/liked_item_detail_sheet.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/core/widgets/suivi_ecran.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 class LikedPlacesBottomSheet extends ConsumerWidget {
   const LikedPlacesBottomSheet({super.key, this.fromAccountMenu = false});
@@ -940,7 +940,7 @@ class _MetaDetailPopup extends ConsumerWidget {
                                 color: Colors.white,
                                 onTap: () {
                                   final text = '$title\n$category\n\nDecouvre sur MaCity';
-                                  Share.share(text);
+                                  shareText(context, text);
                                 },
                               ),
                             ],

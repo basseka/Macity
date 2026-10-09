@@ -7,7 +7,7 @@ import 'package:pulz_app/features/engagement/domain/models/event_comment.dart';
 import 'package:pulz_app/features/engagement/presentation/widgets/edit_pseudonym_dialog.dart';
 import 'package:pulz_app/features/engagement/presentation/widgets/engagement_avatar.dart';
 import 'package:pulz_app/features/engagement/state/event_engagement_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 /// Bottom sheet "type Instagram" pour un event boosté :
 ///  - Liste des commentaires (fake + real, plus récents en haut)
@@ -406,7 +406,7 @@ class _EventEngagementSheetState extends ConsumerState<EventEngagementSheet> {
   }
 
   Future<void> _onShare() async {
-    await Share.share(
+    await shareText(context, 
       'Découvre cet event sur MaCity : ${widget.eventTitle}',
       subject: widget.eventTitle,
     );

@@ -110,7 +110,13 @@ class AdminPinService {
     }
   }
 
-  /// Supprime un pin (match par source+identifiant+type).
+  /// Supprime un pin (match par identifiant+type).
+  ///
+  /// Pas de filtre sur `event_source` : des pins historiques ont ete inseres
+  /// avec le mauvais source (cf [_resolveSource]), le filtre les ratait.
+  /// `return=representation` : si la RLS refuse, PostgREST renvoie 204 sans
+  /// rien supprimer ; on verifie donc qu'au moins une ligne est partie au lieu
+  /// d'annoncer « Dépinglé » a tort.
   Future<bool> unpin({
     required AdminPinSource source,
     required String identifiant,
@@ -118,18 +124,28 @@ class AdminPinService {
     required String accessToken,
   }) async {
     try {
-      await _dio.delete(
+      final res = await _dio.delete(
         'admin_pins',
         queryParameters: {
-          'event_source': 'eq.${source.value}',
           'event_identifiant': 'eq.$identifiant',
           'pin_type': 'eq.${pinType.value}',
+          'select': 'id',
         },
         options: Options(
-          headers: {'Authorization': 'Bearer $accessToken'},
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Prefer': 'return=representation',
+          },
         ),
       );
-      return true;
+      final deleted = res.data is List ? (res.data as List).length : 0;
+      if (deleted == 0) {
+        debugPrint('[AdminPinService] unpin: 0 ligne supprimee ($identifiant, ${pinType.value})');
+      }
+      return deleted > 0;
+    } on DioException catch (e) {
+      debugPrint('[AdminPinService] unpin FAILED http=${e.response?.statusCode} body=${e.response?.data}');
+      return false;
     } catch (e) {
       debugPrint('[AdminPinService] unpin error: $e');
       return false;

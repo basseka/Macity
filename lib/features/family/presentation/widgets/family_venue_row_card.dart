@@ -5,12 +5,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/domain/models/family_venue.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 /// Carte venue famille unifiee — remplace toutes les cartes specifiques
 /// (CinemaVenueCard, BowlingVenueCard, etc.)
@@ -253,6 +253,6 @@ class FamilyVenueRowCard extends ConsumerWidget {
     } else {
       buffer.writeln('\n${context.l10n.shareFooter}');
     }
-    Share.share(buffer.toString());
+    shareText(context, buffer.toString());
   }
 }

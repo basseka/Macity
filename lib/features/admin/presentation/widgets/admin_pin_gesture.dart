@@ -96,6 +96,14 @@ class AdminPinGesture extends ConsumerWidget {
   }
 
   Future<void> _showMenu(BuildContext context, WidgetRef ref) async {
+    // Liste des pins rechargee a chaque ouverture : celle en cache date du
+    // demarrage de l'app (ou du dernier pin) et peut ignorer un pin pose
+    // ailleurs (autre appareil, admin.html), d'ou un « Dépingler » absent.
+    try {
+      ref.invalidate(activeAdminPinsProvider);
+      await ref.read(activeAdminPinsProvider.future);
+    } catch (_) {/* on garde le cache */}
+    if (!context.mounted) return;
     final existing = ref.read(pinForEventProvider((source: source, identifiant: identifiant)));
     final pinnedUntil = _computePinnedUntil();
 
@@ -247,6 +255,7 @@ class AdminPinGesture extends ConsumerWidget {
     final token = await _getFreshAdminToken();
     if (token == null) {
       navigator.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('Session expirée')));
       return;
     }
     // On utilise le source REEL de la row en DB (recupere via `existing`)
@@ -262,7 +271,10 @@ class AdminPinGesture extends ConsumerWidget {
     navigator.pop();
     messenger.showSnackBar(
       SnackBar(
-        content: Text(ok ? 'Dépinglé' : 'Échec'),
+        content: Text(ok
+            ? 'Dépinglé'
+            : 'Échec du dépinglage (session admin expirée ? reconnecte-toi)',
+        ),
         duration: const Duration(seconds: 2),
       ),
     );

@@ -4,12 +4,12 @@ import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/widgets/venue_image.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/culture/data/monument_venues_data.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/core/widgets/verified_badge.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 class MonumentVenueCard extends ConsumerWidget {
   final MonumentVenue monument;
@@ -180,6 +180,6 @@ class MonumentVenueCard extends ConsumerWidget {
     buffer.writeln(monument.adresse);
     buffer.writeln(monument.websiteUrl);
     buffer.writeln('\n${context.l10n.shareFooter}');
-    Share.share(buffer.toString());
+    shareText(context, buffer.toString());
   }
 }

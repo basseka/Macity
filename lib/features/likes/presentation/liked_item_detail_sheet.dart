@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
+import 'package:pulz_app/core/utils/share_utils.dart' as share_utils;
 
 /// Fiche detail d'un favori (commerce ou event) — popup plein ecran.
 class LikedItemDetailSheet extends ConsumerWidget {
@@ -407,7 +407,7 @@ class LikedItemDetailSheet extends ConsumerWidget {
                                 icon: Icons.share_outlined,
                                 label: 'Partager',
                                 color: Colors.white,
-                                onTap: () => Share.share(shareText),
+                                onTap: () => share_utils.shareText(context, shareText),
                               ),
                               // Secondary actions
                               ...secondaryActions.map(

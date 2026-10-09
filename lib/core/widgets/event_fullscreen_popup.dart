@@ -23,6 +23,7 @@ import 'package:pulz_app/features/engagement/state/event_engagement_provider.dar
 import 'package:pulz_app/features/likes/data/likes_repository.dart';
 import 'package:pulz_app/features/likes/state/likes_provider.dart';
 import 'package:pulz_app/features/night_plan/presentation/night_plan_sheet.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 /// Popup plein ecran affichant la pochette en fond avec les infos overlayees.
 class EventFullscreenPopup extends ConsumerWidget {
@@ -1502,6 +1503,8 @@ class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
       // macity.app/event/* a assetlinks autoVerify -> tap ouvre l'app si
       // installee, sinon la page web propose l'app + le Play Store.
       final deepLink = 'https://macity.app/event/${widget.eventIdentifiant}';
+      // Ancrage iOS calcule avant toute attente (le context peut changer).
+      final origin = shareOriginFor(context);
       final caption =
           '${widget.eventTitle}\n\n${context.l10n.eventShareCaption}\n$deepLink';
 
@@ -1518,14 +1521,40 @@ class _EngagementActionsBarState extends ConsumerState<_EngagementActionsBar> {
             networkTimeout: const Duration(seconds: 9),
           );
 
+      // iOS : sans sharePositionOrigin, la feuille de partage refuse de
+      // s'ouvrir (exception avalee -> rien ne se passe). On l'ancre sur la
+      // barre d'actions, et on retombe sur le texte seul si la photo echoue
+      // (meme correctif que le partage des events prives).
+      var shared = false;
       if (photo != null) {
-        await Share.shareXFiles(
-          [photo],
-          text: caption,
-          subject: widget.eventTitle,
-        );
-      } else {
-        await Share.share(caption, subject: widget.eventTitle);
+        try {
+          await Share.shareXFiles(
+            [photo],
+            text: caption,
+            subject: widget.eventTitle,
+            sharePositionOrigin: origin,
+          );
+          shared = true;
+        } catch (e) {
+          debugPrint('[share] partage avec photo KO, repli texte : $e');
+        }
+      }
+      if (!shared) {
+        try {
+          await Share.share(
+            caption,
+            subject: widget.eventTitle,
+            sharePositionOrigin: origin,
+          );
+        } catch (e) {
+          debugPrint('[share] partage texte KO : $e');
+          if (mounted) {
+            ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+              SnackBar(content: Text(context.l10n.pvShareFailed)),
+            );
+          }
+          return;
+        }
       }
       if (!mounted) return;
       ref

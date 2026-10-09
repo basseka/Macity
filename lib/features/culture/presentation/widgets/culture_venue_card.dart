@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pulz_app/core/theme/mode_theme_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
+import 'package:pulz_app/core/utils/share_utils.dart';
 
 class CultureVenueCard extends ConsumerWidget {
   final CommerceModel commerce;
@@ -178,7 +178,7 @@ class CultureVenueCard extends ConsumerWidget {
                       buffer.writeln(commerce.adresse);
                     }
                     buffer.writeln('\n${context.l10n.shareFooter}');
-                    Share.share(buffer.toString());
+                    shareText(context, buffer.toString());
                   },
                 ),
               ],
