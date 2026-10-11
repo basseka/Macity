@@ -346,11 +346,21 @@ class ReportedEventsService {
       // photos + videos).
       if (photoUrls.isEmpty) {
         try {
-          final thumbPath = await VideoThumbnail.thumbnailFile(
+          var thumbPath = await VideoThumbnail.thumbnailFile(
             video: localVideoPath,
             imageFormat: ImageFormat.JPEG,
             maxWidth: 1080,
             quality: 85,
+          );
+          // Certains encodages renvoient null sur la toute premiere image :
+          // 2e essai a 1 s (sinon la story part sans pochette et le carrousel
+          // n'affiche que l'emoji, cf. story L'Etoile du 11/10/2026).
+          thumbPath ??= await VideoThumbnail.thumbnailFile(
+            video: localVideoPath,
+            imageFormat: ImageFormat.JPEG,
+            maxWidth: 1080,
+            quality: 85,
+            timeMs: 1000,
           );
           if (thumbPath != null) {
             coverUrl = await _uploadPhotoLight(thumbPath);

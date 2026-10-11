@@ -14,6 +14,7 @@ import 'package:pulz_app/features/reported_events/presentation/map_live_page.dar
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_paged_sheet.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 import 'package:pulz_app/features/reported_events/state/seen_stories_provider.dart';
+import 'package:pulz_app/features/reported_events/presentation/widgets/video_cover_fallback.dart';
 
 /// "En direct autour de vous" : carrousel horizontal des stories Map Live
 /// formattees en cards rectangulaires (photo + nom + temps relatif).
@@ -265,14 +266,7 @@ class _LiveCard extends ConsumerWidget {
                     errorWidget: (_, __, ___) =>
                         Container(color: AppColors.surfaceHi),
                   )
-                : Container(
-                    color: AppColors.surfaceHi,
-                    alignment: Alignment.center,
-                    child: Text(
-                      event.generated?.emoji ?? '📍',
-                      style: const TextStyle(fontSize: 32),
-                    ),
-                  ),
+                : _emojiOrVideoCover(event),
 
             // Dégradé sombre bas pour lisibilité du titre blanc
             const DecoratedBox(
@@ -456,4 +450,21 @@ class _LiveCard extends ConsumerWidget {
     if (diff.inHours < 24) return l10n.timeHoursAgo(diff.inHours);
     return l10n.timeDaysAgo(diff.inDays);
   }
+}
+
+/// Sans pochette : image extraite de la video si la story en a une (story
+/// video dont la miniature n'a pas ete creee a la publication), sinon
+/// l'emoji genere.
+Widget _emojiOrVideoCover(ReportedEvent event) {
+  final emoji = Container(
+    color: AppColors.surfaceHi,
+    alignment: Alignment.center,
+    child: Text(
+      event.generated?.emoji ?? '📍',
+      style: const TextStyle(fontSize: 32),
+    ),
+  );
+  final video = event.videos.where((v) => v.startsWith('http')).firstOrNull;
+  if (video == null) return emoji;
+  return VideoCoverFallback(videoUrl: video, fallback: emoji);
 }
