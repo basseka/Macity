@@ -215,7 +215,8 @@
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
-      z-index: 1000;
+      /* Au-dessus des modales du CRM (z-index 9600), sinon l'erreur reste cachée. */
+      z-index: 10000;
       max-width: 90%;
       display: none;
     }
@@ -16178,7 +16179,10 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           try {
             const id = await rpc("crm_upsert_company", { p: { ...v, id: c.id || "", fiche_table: c.fiche_table || "", fiche_id: c.fiche_id || "" } });
             close(); toast("Entreprise enregistrée"); st.companies = [];
-            if (!c.id) companyModal(id, after); else after?.();
+            // Liste rechargée tout de suite, y compris à la création (la fiche
+            // s'ouvre par-dessus, la nouvelle entreprise est déjà derrière).
+            after?.();
+            if (!c.id) companyModal(id, after);
           } catch (err) { toast("Erreur : " + err.message, false); }
         });
       });
