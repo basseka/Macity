@@ -15461,6 +15461,11 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
     .crm-table tr.clickable { cursor:pointer; }
     .crm-table tr.clickable:hover td { background:rgba(255,255,255,.03); }
     .crm-num { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .crm-next-cell { color:#FACC15; cursor:pointer; font-size:12px; }
+    .crm-next-cell:hover { text-decoration:underline; }
+    .crm-cell-sel { background:var(--surface-hi); border:1px solid var(--line); color:var(--text-dim); border-radius:7px; padding:3px 4px; font-size:11.5px; max-width:150px; cursor:pointer; }
+    .crm-cell-sel.set { color:var(--text); border-color:var(--magenta); }
+    .crm-cell-sel:hover { border-color:var(--magenta); }
     .crm-pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
     .crm-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
     .crm-btn { padding:7px 12px; border-radius:9px; border:1px solid var(--line-strong); background:var(--surface-hi); color:var(--text); font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
@@ -16115,29 +16120,254 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
     }
 
     // ─── Onglet Entreprises + fiche ──────────────────────────────────────
+    // ─── Statuts d'une entreprise : fiche app, rubrique, partenaire, abonnement, pub ───
+    // RPC crm_company_status (migration 20261012130000_crm_company_status.sql).
+    const RUBRIQUES = {
+      food: "🍽️ Food", night: "🌙 Night", culture: "🎭 Culture", sport: "⚽ Sport",
+      family: "👨‍👩‍👧 Famille", evasion: "🧳 Évasion", tourisme: "🗺️ Tourisme",
+      gaming: "🎮 Gaming", marque: "🏷️ Marque (toutes rubriques)",
+    };
+    const TIERS = { classique: "Classique", gold: "Gold", premium: "Premium", exclusivite: "Exclusivité" };
+    const TIER_COLORS = { classique: "#64748B", gold: "#D97706", premium: "#E91E63", exclusivite: "#7C3AED" };
+    async function loadCompanyStatus() {
+      try { return Object.fromEntries((await rpc("crm_company_status")).map(r => [r.id, r])); }
+      catch (e) { console.warn("[crm] statuts indisponibles :", e.message); return {}; }
+    }
+    const coRubrique = (s) => s?.rubrique || s?.fiche?.rubrique || "";
+    const coPill = (txt, bg) => `<span class="crm-pill" style="background:${bg}; color:#fff">${txt}</span>`;
+    const coMuted = (txt) => `<span style="color:var(--text-faint)">${txt}</span>`;
+    // Statuts effectifs : saisie manuelle du CRM (s.crm) si renseignée, sinon
+    // ce que dit l'app (fiche liée, onglet Abonnements, ventes Publicité).
+    const FICHE_OPTS = { ok: "✅ Fiche créée", en_cours: "⏳ En cours", non: "❌ Pas de fiche" };
+    const coFiche = (s) => s?.crm?.fiche || (s?.fiche ? "ok" : "non");
+    const ABO_STATUTS = { aucun: "Aucun", actif: "Actif", impaye: "Impayé", resilie: "Résilié" };
+    const PARTENAIRE_OPTS = { non: "Non partenaire", classique: "Classique", gold: "Gold", premium: "Premium", exclusivite: "Exclusivité" };
+    function coPartner(s) {
+      const m = s?.crm?.partenaire;
+      if (m) return m === "non" ? null : m;
+      return s?.fiche?.tier || (s?.fiche?.is_partner ? "partenaire" : null);
+    }
+    function coAbo(s) {
+      const m = s?.crm;
+      if (m?.abo_statut) return { statut: m.abo_statut, tier: m.abo_tier, cents: m.abo_mensuel_cents, fin: m.abo_fin };
+      const a = s?.abo;
+      if (!a) return { statut: "aucun" };
+      return { statut: { active: "actif", past_due: "impaye", cancelled: "resilie" }[a.status] || a.status, tier: a.tier, cents: a.amount_cents, fin: a.ends_on };
+    }
+    function coPub(s) {
+      const m = s?.crm;
+      if (m?.pub_produit === "Aucune") return null;
+      if (m?.pub_produit || m?.pub_fin) return { product: m.pub_produit, rubrique: m.pub_rubrique, debut: m.pub_debut, until: m.pub_fin, cents: m.pub_montant_cents };
+      const p = s?.pub;
+      return p ? { product: p.product, debut: p.sold_on, until: p.until, cents: p.amount_cents } : null;
+    }
+    const pubActive = (s) => { const p = coPub(s), today = ymd(new Date()); return !!p && (!p.until || p.until >= today) && (!p.debut || p.debut <= today); };
+    function coStatusHtml(s) {
+      const f = s?.fiche, tier = coPartner(s), abo = coAbo(s), pub = coPub(s), today = ymd(new Date());
+      const d = (x) => fmtD(x + "T12:00:00");
+      return {
+        rubrique: coRubrique(s) ? esc(RUBRIQUES[coRubrique(s)] || coRubrique(s)) : coMuted("–"),
+        fiche: f ? coPill(`✅ ${esc(f.nom)}${f.active === false ? " (masquée)" : ""}`, "#059669")
+          : coFiche(s) === "ok" ? coPill("✅ Fiche créée", "#059669")
+          : coFiche(s) === "en_cours" ? coPill("⏳ En cours", "#D97706") : coPill("Pas de fiche", "#475569"),
+        partner: !tier ? coMuted("Non")
+          : coPill(`🤝 ${esc(TIERS[tier] || "Partenaire")}`, TIER_COLORS[tier] || "#E91E63"),
+        abo: abo.statut === "actif" ? coPill(`${esc(TIERS[abo.tier] || abo.tier || "Actif")}${abo.cents ? ` · ${eur(abo.cents)}/mois` : ""}${abo.fin ? ` → ${d(abo.fin)}` : ""}`, "#059669")
+          : abo.statut === "impaye" ? coPill("⚠️ Impayé", "#DC2626")
+          : abo.statut === "resilie" ? coMuted(`Résilié${abo.fin ? ` (${d(abo.fin)})` : ""}`)
+          : coMuted("Aucun"),
+        pub: !pub ? coMuted("Aucune")
+          : pub.debut && pub.debut > today ? coPill(`🗓️ ${esc(pub.product || "Pub")} dès ${d(pub.debut)}`, "#6366F1")
+          : pubActive(s) ? coPill(`📣 ${esc(pub.product || "Pub")}${pub.rubrique ? ` · ${esc(RUBRIQUES[pub.rubrique] || pub.rubrique)}` : ""}${pub.until ? ` → ${d(pub.until)}` : ""}`, "#0891B2")
+          : coMuted(`Terminée${pub.until ? ` (${d(pub.until)})` : ""}`),
+      };
+    }
+
+    function mountFicheSearch(input, res, onPick) {
+      let ft;
+      input.addEventListener("input", () => {
+        clearTimeout(ft);
+        ft = setTimeout(async () => {
+          const q = input.value.trim();
+          if (q.length < 2) { res.innerHTML = ""; return; }
+          let rows = [];
+          try { rows = await rpc("crm_search_fiches", { p_q: q }); } catch (err) { res.innerHTML = coMuted(esc(err.message)); return; }
+          res.innerHTML = rows.length ? rows.map((r, i) => `<div class="crm-opp" data-i="${i}" style="cursor:pointer; margin-bottom:4px;"><b style="display:inline">${esc(r.nom)}</b> · ${esc(r.ville || "")} · ${esc(RUBRIQUES[r.rubrique] || r.rubrique)}${r.tier ? ` · 🤝 ${esc(TIERS[r.tier] || r.tier)}` : ""}</div>`).join("")
+            : coMuted("Aucune fiche trouvée");
+          res.querySelectorAll("[data-i]").forEach(el => el.addEventListener("click", () => {
+            res.innerHTML = ""; input.value = ""; onPick(rows[+el.dataset.i]);
+          }));
+        }, 250);
+      });
+    }
+
+    // ─── Édition directe dans le tableau des entreprises ───
+    // Chaque select enregistre aussitôt sa seule valeur (crm_set_company_status).
+    const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return ymd(d); };
+    const addMonths = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setMonth(d.getMonth() + n); return ymd(d); };
+    function pubDefaults(label) {
+      const pr = PRODUCTS.publicite.find(x => x.label === label);
+      const debut = ymd(new Date());
+      const fin = !pr ? addMonths(debut, 1) : pr.code.endsWith("_jour") ? debut
+        : pr.code.startsWith("semaine") ? addDays(6) : addMonths(debut, pr.months || 1);
+      return { pub_debut: debut, pub_fin: fin, pub_montant_cents: pr ? String(pr.monthly || pr.once || "") : "" };
+    }
+    function autoLabel(txt) { return `Auto${txt ? ` (${txt})` : ""}`; }
+    function cellSelect(key, id, value, options) {
+      return `<select class="crm-cell-sel ${value ? "set" : ""}" data-k="${key}" data-id="${id}">${options.map(([v, l]) => `<option value="${esc(v)}" ${v === value ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    }
+    function companyCells(c, s) {
+      const m = s?.crm || {}, f = s?.fiche, h = coStatusHtml(s), today = ymd(new Date());
+      const appTier = f?.tier ? TIERS[f.tier] : f?.is_partner ? "Partenaire" : "non";
+      const a = s?.abo;
+      const appAbo = !a ? "aucun" : a.status === "active" ? TIERS[a.tier] || a.tier : a.status === "past_due" ? "impayé" : "résilié";
+      const aboVal = m.abo_statut === "actif" ? `actif:${m.abo_tier || ""}` : m.abo_statut || "";
+      const pubVal = m.pub_produit || "";
+      const pubOpts = [["", autoLabel(s?.pub ? s.pub.product : "aucune")], ["Aucune", "Aucune"],
+        ...PRODUCTS.publicite.map(x => [x.label, x.label])];
+      if (pubVal && !pubOpts.some(o => o[0] === pubVal)) pubOpts.push([pubVal, pubVal]);
+      const pub = coPub(s);
+      const team = visibleTeam();
+      return {
+        rubrique: cellSelect("rubrique", c.id, s?.rubrique || "", [["", f?.rubrique ? `Auto (${RUBRIQUES[f.rubrique] || f.rubrique})` : "–"], ...Object.entries(RUBRIQUES)]),
+        fiche: cellSelect("fiche", c.id, m.fiche || "", [["", autoLabel(f ? "créée" : "pas de fiche")], ...Object.entries(FICHE_OPTS), ["__link", f ? "🔗 Changer la fiche liée…" : "🔗 Lier une fiche de l'app…"]])
+          + (f ? `<div data-fiche="${c.id}" style="font-size:10.5px; color:#34D399; cursor:pointer; margin-top:2px" title="Changer / délier">🔗 ${esc(f.nom)}${f.ville ? ` · ${esc(f.ville)}` : ""} ✏️</div>` : ""),
+        partner: cellSelect("partenaire", c.id, m.partenaire || "", [["", autoLabel(appTier)], ...Object.entries(PARTENAIRE_OPTS)]),
+        abo: cellSelect("abo", c.id, aboVal, [["", autoLabel(appAbo)], ["aucun", "Aucun"],
+          ...Object.entries(TIERS).map(([k, l]) => [`actif:${k}`, `${l} actif`]), ["impaye", "⚠️ Impayé"], ["resilie", "Résilié"]]),
+        pub: cellSelect("pub", c.id, pubVal, pubOpts) + (pub && pubVal && pubVal !== "Aucune"
+          ? `<div data-pubdates="${c.id}" style="font-size:10.5px; color:${pub.until && pub.until < today ? "var(--text-faint)" : "#22D3EE"}; cursor:pointer; margin-top:2px">${pub.debut ? fmtD(pub.debut + "T12:00:00") : "?"} → ${pub.until ? fmtD(pub.until + "T12:00:00") : "?"} ✏️</div>` : ""),
+        next: (() => {
+          // Saisie du CRM si renseignée, sinon la prochaine action des opportunités.
+          const txt = m.next_action || (m.next_action_at ? "" : c.next_action) || "";
+          const at = m.next_action || m.next_action_at ? m.next_action_at : c.next_action_at;
+          const late = isLate(at);
+          return `<span data-next="${c.id}" class="crm-next-cell" title="Modifier la prochaine action">${txt || at
+            ? `${late ? "⚠️ " : ""}${esc(txt)}${at ? ` · ${fmtDT(at)}` : ""}` : `<span style="opacity:.6">+ Ajouter</span>`} ✏️</span>`;
+        })(),
+        statut: cellSelect("statut", c.id, c.statut, Object.entries(STATUTS)),
+        owner: can.pickOwner()
+          ? cellSelect("owner_id", c.id, c.owner_id || "", [["", "Non attribué"], ...team.map(t => [t.id, t.nom || t.email])])
+          : esc(c.owner_nom || "Non attribué"),
+      };
+    }
+    async function saveCompanyCell(id, patch, redraw) {
+      try {
+        await rpc("crm_set_company_status", { p_id: id, p: patch });
+        st.coStatus = await loadCompanyStatus();
+        const c = st.companies.find(x => x.id === id);
+        if (c && "statut" in patch) c.statut = patch.statut;
+        if (c && "owner_id" in patch) { c.owner_id = patch.owner_id || null; c.owner_nom = patch.owner_id ? memberName(patch.owner_id) : null; }
+        toast("Enregistré");
+      } catch (e) { toast("Erreur : " + e.message, false); }
+      redraw();
+    }
+    function cellPatch(key, value, s) {
+      const m = s?.crm || {};
+      if (key === "abo") {
+        if (!value.startsWith("actif:")) return { abo_statut: value };
+        const tier = value.slice(6), pr = PRODUCTS.abonnement.find(x => x.code === tier);
+        return { abo_statut: "actif", abo_tier: tier, abo_mensuel_cents: pr ? String(pr.monthly) : "" };
+      }
+      if (key === "pub") {
+        if (!value || value === "Aucune") return { pub_produit: value };
+        return { pub_produit: value, ...pubDefaults(value), pub_rubrique: m.pub_rubrique || s?.rubrique || s?.fiche?.rubrique || "" };
+      }
+      return { [key]: value };
+    }
+    function ficheLinkModal(id, s, after) {
+      openModal("Fiche dans l'app", `<div class="crm-form">
+        <div class="full" id="crm-fl-cur"></div>
+        <div class="full"><input id="crm-fl-q" placeholder="Chercher la fiche par son nom (2 lettres minimum)" autocomplete="off" style="width:100%"><div id="crm-fl-res" style="max-height:260px; overflow:auto; margin-top:4px;"></div></div>
+      </div>`, (m, close) => {
+        const cur = m.querySelector("#crm-fl-cur");
+        cur.innerHTML = s?.fiche ? `${coPill(`✅ ${esc(s.fiche.nom)} · ${esc(s.fiche.ville || "")}`, "#059669")} <button type="button" class="crm-btn sm danger" data-unlink>Délier</button>` : coMuted("Aucune fiche liée.");
+        cur.querySelector("[data-unlink]")?.addEventListener("click", async () => { close(); await saveCompanyCell(id, { fiche_table: "", fiche_id: "" }, after); });
+        m.querySelector("#crm-fl-q").focus();
+        mountFicheSearch(m.querySelector("#crm-fl-q"), m.querySelector("#crm-fl-res"), async (r) => {
+          close();
+          await saveCompanyCell(id, { fiche_table: r.table, fiche_id: String(r.id), ...(s?.rubrique ? {} : { rubrique: r.rubrique || "" }) }, after);
+        });
+      });
+    }
+    function nextActionModal(id, s, c, after) {
+      const m = s?.crm || {};
+      const txt = m.next_action || (m.next_action_at ? "" : c?.next_action) || "";
+      const at = m.next_action || m.next_action_at ? m.next_action_at : c?.next_action_at;
+      openModal("Prochaine action", `<form class="crm-form">
+        <div class="full"><label>Action</label><input name="next_action" value="${esc(txt)}" placeholder="Rappeler, envoyer la proposition, passer sur place…"></div>
+        <div><label>Date et heure</label><input type="datetime-local" name="next_action_at" value="${esc(toLocalInput(at))}"></div>
+        <div class="crm-actions full"><button type="button" class="crm-btn danger" data-clear>Effacer</button><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div>
+      </form>`, (mo, close) => {
+        mo.querySelector('[name="next_action"]').focus();
+        mo.querySelector("[data-clear]").addEventListener("click", async () => { close(); await saveCompanyCell(id, { next_action: "", next_action_at: "" }, after); });
+        mo.querySelector("form").addEventListener("submit", async (e) => {
+          e.preventDefault(); const v = formData(e.target); close();
+          await saveCompanyCell(id, { next_action: (v.next_action || "").trim(), next_action_at: fromLocalInput(v.next_action_at) || "" }, after);
+        });
+      });
+    }
+    function pubDatesModal(id, s, after) {
+      const p = coPub(s) || {};
+      openModal("Placement pub", `<form class="crm-form">
+        <div><label>Rubrique de la pub</label><select name="pub_rubrique"><option value="">–</option>${Object.entries(RUBRIQUES).map(([k, l]) => `<option value="${k}" ${(p.rubrique || "") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div><label>Début</label><input type="date" name="pub_debut" value="${esc(p.debut || "")}"></div>
+        <div><label>Fin</label><input type="date" name="pub_fin" value="${esc(p.until || "")}"></div>
+        <div><label>Montant (€)</label><input name="pub_montant" inputmode="decimal" value="${esc(eurosFromCents(p.cents))}"></div>
+        <div class="crm-actions full"><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div>
+      </form>`, (m, close) => {
+        m.querySelector("form").addEventListener("submit", async (e) => {
+          e.preventDefault(); const v = formData(e.target); close();
+          await saveCompanyCell(id, { pub_rubrique: v.pub_rubrique || "", pub_debut: v.pub_debut || "", pub_fin: v.pub_fin || "",
+            pub_montant_cents: v.pub_montant ? String(centsFromEuros(v.pub_montant)) : "" }, after);
+        });
+      });
+    }
+
     async function renderCompanies() {
       document.getElementById("crm-filterbar").innerHTML = "";
       const body = document.getElementById("crm-body");
       body.innerHTML = `<div class="crm-empty">Chargement des entreprises…</div>`;
-      st.companies = await rpc("crm_list_companies");
+      [st.companies, st.coStatus] = await Promise.all([rpc("crm_list_companies"), loadCompanyStatus()]);
       const draw = () => {
         const q = st.companySearch.toLowerCase(), fs = st.companyStatut, fo = st.filters.owner;
+        const fr = st.companyRubrique || "", fsit = st.companySituation || "";
+        const sit = (s) => ({
+          sans_fiche: coFiche(s) !== "ok", avec_fiche: coFiche(s) === "ok",
+          partenaire: !!coPartner(s), non_partenaire: !coPartner(s),
+          abonne: coAbo(s).statut === "actif", pub: pubActive(s),
+        })[fsit];
         const rows = st.companies.filter(c => (!fs || c.statut === fs) && (!fo || c.owner_id === fo || (fo === "none" && !c.owner_id)) &&
+          (!fr || coRubrique(st.coStatus[c.id]) === fr) && (!fsit || sit(st.coStatus[c.id])) &&
           (!q || [c.raison_sociale, c.enseigne, c.ville, c.secteur, c.contact].some(x => (x || "").toLowerCase().includes(q))));
         document.getElementById("crm-co-list").innerHTML = `<table class="crm-table">
-          <tr><th>Entreprise</th><th>Secteur</th><th>Ville</th><th>Statut</th><th>Contact</th><th>Commercial</th><th>Source</th><th>Dernière activité</th><th class="crm-num">Opp.</th><th class="crm-num">Pipeline</th><th>Prochaine action</th></tr>
-          ${rows.map(c => `<tr class="clickable" data-id="${c.id}"><td><b>${esc(c.raison_sociale)}</b>${c.enseigne ? `<br><span style="font-size:11px;color:var(--text-faint)">${esc(c.enseigne)}</span>` : ""}</td>
-            <td>${esc(c.secteur || "–")}</td><td>${esc(c.ville || "–")}</td><td>${esc(STATUTS[c.statut] || c.statut)}</td><td>${esc(c.contact || "–")}</td>
-            <td>${esc(c.owner_nom || "Non attribué")}</td><td>${esc(c.source || "–")}</td><td>${fmtD(c.last_activity_at)}</td><td class="crm-num">${num(c.opp_open)}</td>
-            <td class="crm-num">${c.pipeline_cents ? eur(c.pipeline_cents) : "–"}</td><td style="${isLate(c.next_action_at) ? "color:#fca5a5" : ""}">${c.next_action_at ? `${esc(c.next_action || "")} · ${fmtD(c.next_action_at)}` : "–"}</td></tr>`).join("") || `<tr><td colspan="11" class="crm-empty">Aucune entreprise</td></tr>`}
+          <tr><th>Entreprise</th><th>Ville</th><th>Rubrique</th><th>Fiche app</th><th>Partenaire</th><th>Abonnement</th><th>Pub</th><th>Statut</th><th>Commercial</th><th class="crm-num">Opp.</th><th class="crm-num">Pipeline</th><th>Prochaine action</th></tr>
+          ${rows.map(c => { const h = companyCells(c, st.coStatus[c.id]); return `<tr class="clickable" data-id="${c.id}"><td><b>${esc(c.raison_sociale)}</b>${c.enseigne || c.contact ? `<br><span style="font-size:11px;color:var(--text-faint)">${esc([c.enseigne, c.contact].filter(Boolean).join(" · "))}</span>` : ""}</td>
+            <td>${esc(c.ville || "–")}</td><td>${h.rubrique}</td><td>${h.fiche}</td><td>${h.partner}</td><td>${h.abo}</td><td>${h.pub}</td>
+            <td>${h.statut}</td><td>${h.owner}</td><td class="crm-num">${num(c.opp_open)}</td>
+            <td class="crm-num">${c.pipeline_cents ? eur(c.pipeline_cents) : "–"}</td><td>${h.next}</td></tr>`; }).join("") || `<tr><td colspan="12" class="crm-empty">Aucune entreprise</td></tr>`}
         </table>`;
-        document.querySelectorAll("#crm-co-list tr[data-id]").forEach(tr => tr.addEventListener("click", () => companyModal(tr.dataset.id, renderCompanies)));
+        const list = document.getElementById("crm-co-list");
+        list.querySelectorAll("tr[data-id]").forEach(tr => tr.addEventListener("click", (e) => {
+          if (e.target.closest("select, [data-fiche], [data-pubdates], [data-next]")) return;
+          companyModal(tr.dataset.id, renderCompanies);
+        }));
+        list.querySelectorAll("select[data-k]").forEach(sel => sel.addEventListener("change", () => {
+          const id = sel.dataset.id;
+          if (sel.value === "__link") { draw(); return ficheLinkModal(id, st.coStatus[id], draw); }
+          saveCompanyCell(id, cellPatch(sel.dataset.k, sel.value, st.coStatus[id]), draw);
+        }));
+        list.querySelectorAll("[data-fiche]").forEach(el => el.addEventListener("click", () => ficheLinkModal(el.dataset.fiche, st.coStatus[el.dataset.fiche], draw)));
+        list.querySelectorAll("[data-next]").forEach(el => el.addEventListener("click", () => nextActionModal(el.dataset.next, st.coStatus[el.dataset.next], st.companies.find(x => x.id === el.dataset.next), draw)));
+        list.querySelectorAll("[data-pubdates]").forEach(el => el.addEventListener("click", () => pubDatesModal(el.dataset.pubdates, st.coStatus[el.dataset.pubdates], draw)));
         document.getElementById("crm-co-count").textContent = `${rows.length} / ${st.companies.length}`;
       };
       const team = visibleTeam();
       body.innerHTML = `<div class="crm-filters">
           <div style="flex:1; min-width:200px;"><label>Recherche</label><input id="crm-co-q" value="${esc(st.companySearch)}" placeholder="Nom, ville, secteur, contact…" style="width:100%"></div>
           <div><label>Statut</label><select id="crm-co-st"><option value="">Tous</option>${Object.entries(STATUTS).map(([k, l]) => `<option value="${k}" ${st.companyStatut === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+          <div><label>Rubrique</label><select id="crm-co-rub"><option value="">Toutes</option>${Object.entries(RUBRIQUES).map(([k, l]) => `<option value="${k}" ${st.companyRubrique === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+          <div><label>Situation</label><select id="crm-co-sit"><option value="">Toutes</option>${[["sans_fiche", "Sans fiche app"], ["avec_fiche", "Avec fiche app"], ["partenaire", "Partenaires"], ["non_partenaire", "Non partenaires"], ["abonne", "Abonnement actif"], ["pub", "Pub en cours"]].map(([k, l]) => `<option value="${k}" ${st.companySituation === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
           ${team.length > 1 ? `<div><label>Commercial</label><select id="crm-co-own"><option value="">Tous</option><option value="none" ${st.filters.owner === "none" ? "selected" : ""}>Non attribués</option>${team.map(t => `<option value="${t.id}" ${st.filters.owner === t.id ? "selected" : ""}>${esc(t.nom || t.email)}</option>`).join("")}</select></div>` : ""}
           <span id="crm-co-count" style="font-size:12px; color:var(--text-faint); align-self:center;"></span>
           <button class="crm-btn primary" id="crm-new-co" style="margin-left:auto">+ Entreprise / prospect</button>
@@ -16145,6 +16375,8 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       let t;
       document.getElementById("crm-co-q").addEventListener("input", (e) => { clearTimeout(t); t = setTimeout(() => { st.companySearch = e.target.value; draw(); }, 200); });
       document.getElementById("crm-co-st").addEventListener("change", (e) => { st.companyStatut = e.target.value; draw(); });
+      document.getElementById("crm-co-rub").addEventListener("change", (e) => { st.companyRubrique = e.target.value; draw(); });
+      document.getElementById("crm-co-sit").addEventListener("change", (e) => { st.companySituation = e.target.value; draw(); });
       document.getElementById("crm-co-own")?.addEventListener("change", (e) => { st.filters.owner = e.target.value; savePrefs(); draw(); });
       document.getElementById("crm-new-co").addEventListener("click", () => companyEditModal({}, renderCompanies));
       draw();
@@ -16158,6 +16390,29 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         <div><label>Secteur</label><input name="secteur" list="crm-secteurs" value="${esc(c.secteur || "")}" placeholder="Restaurant, bar, club, marque de boisson…">
           <datalist id="crm-secteurs">${["Restaurant", "Bar", "Club / discothèque", "Salle de concert", "Théâtre / culture", "Salle de sport", "Loisirs famille", "Hôtel / domaine", "Marque de boisson", "Marque / enseigne", "Festival / événement", "Agence média", "Collectivité"].map(x => `<option value="${x}">`).join("")}</datalist></div>
         <div><label>Statut</label><select name="statut">${Object.entries(STATUTS).map(([k, l]) => `<option value="${k}" ${(c.statut || "prospect") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div><label>Rubrique</label><select name="rubrique"><option value="">–</option>${Object.entries(RUBRIQUES).map(([k, l]) => `<option value="${k}" ${(c.rubrique || "") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div><label>Fiche app</label><select name="fiche_statut"><option value="">Auto</option>${Object.entries(FICHE_OPTS).map(([k, l]) => `<option value="${k}" ${(c._crm?.fiche || "") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div class="full"><label>Fiche liée dans l'app</label>
+          <div id="crm-fiche-cur" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px;"></div>
+          <input id="crm-fiche-q" placeholder="Chercher la fiche par son nom (2 lettres minimum)" autocomplete="off" style="width:100%">
+          <div id="crm-fiche-res" style="max-height:180px; overflow:auto; margin-top:4px;"></div></div>
+        ${(() => {
+          const m = c._crm || {};
+          const opt = (o, v, auto) => `${auto ? `<option value="">${auto}</option>` : ""}${Object.entries(o).map(([k, l]) => `<option value="${k}" ${(v || "") === k ? "selected" : ""}>${l}</option>`).join("")}`;
+          return `<div class="full" style="font-weight:700; margin-top:4px;">Statuts <span style="font-weight:400; font-size:11px; color:var(--text-faint)">« Auto » = ce que dit l'app (fiche, onglet Abonnements, ventes Publicité)</span></div>
+          <div><label>Partenaire</label><select name="partenaire">${opt(PARTENAIRE_OPTS, m.partenaire, "Auto")}</select></div>
+          <div><label>Abonnement</label><select name="abo_statut">${opt(ABO_STATUTS, m.abo_statut, "Auto")}</select></div>
+          <div><label>Formule de l'abonnement</label><select name="abo_tier">${opt(TIERS, m.abo_tier, "–")}</select></div>
+          <div><label>Mensualité (€)</label><input name="abo_mensuel" inputmode="decimal" value="${esc(eurosFromCents(m.abo_mensuel_cents))}"></div>
+          <div><label>Fin de l'abonnement</label><input name="abo_fin" type="date" value="${esc(m.abo_fin || "")}"></div>
+          <div class="full" style="height:0"></div>
+          <div><label>Placement pub</label><input name="pub_produit" list="crm-pub-produits" value="${esc(m.pub_produit || "")}" placeholder="Vide = Auto">
+            <datalist id="crm-pub-produits">${PRODUCTS.publicite.map(x => `<option value="${esc(x.label)}">`).join("")}</datalist></div>
+          <div><label>Rubrique de la pub</label><select name="pub_rubrique">${opt(RUBRIQUES, m.pub_rubrique, "–")}</select></div>
+          <div><label>Début de la pub</label><input name="pub_debut" type="date" value="${esc(m.pub_debut || "")}"></div>
+          <div><label>Fin de la pub</label><input name="pub_fin" type="date" value="${esc(m.pub_fin || "")}"></div>
+          <div><label>Montant de la pub (€)</label><input name="pub_montant" inputmode="decimal" value="${esc(eurosFromCents(m.pub_montant_cents))}"></div>`;
+        })()}
         <div class="full"><label>Adresse</label><input name="adresse" value="${esc(c.adresse || "")}"></div>
         <div><label>Code postal</label><input name="code_postal" value="${esc(c.code_postal || "")}"></div>
         <div><label>Ville</label><input name="ville" value="${esc(c.ville || "")}"></div>
@@ -16173,11 +16428,35 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         <div class="full"><label>Notes</label><textarea name="notes">${esc(c.notes || "")}</textarea></div>
         <div class="crm-actions full"><button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div>
       </form>`, (m, close) => {
+        // Fiche liée : { table, id, nom, ville, rubrique } ou null.
+        let fiche = c.fiche_table && c.fiche_id ? { table: c.fiche_table, id: c.fiche_id, ...(c._fiche || {}) } : null;
+        const cur = m.querySelector("#crm-fiche-cur"), res = m.querySelector("#crm-fiche-res"), rubSel = m.querySelector('[name="rubrique"]');
+        const drawCur = () => {
+          cur.innerHTML = fiche
+            ? `${coPill(`✅ ${esc(fiche.nom || `${fiche.table} #${fiche.id}`)}${fiche.ville ? ` · ${esc(fiche.ville)}` : ""}`, "#059669")} <button type="button" class="crm-btn sm danger" data-unlink>Délier</button>`
+            : coMuted("Aucune fiche liée : le prospect n'est pas encore dans l'app.");
+          cur.querySelector("[data-unlink]")?.addEventListener("click", () => { fiche = null; drawCur(); });
+        };
+        drawCur();
+        mountFicheSearch(m.querySelector("#crm-fiche-q"), res, (r) => {
+          fiche = r;
+          if (r.rubrique && RUBRIQUES[r.rubrique] && !rubSel.value) rubSel.value = r.rubrique;
+          drawCur();
+        });
         m.querySelector("form").addEventListener("submit", async (e) => {
           e.preventDefault(); const v = formData(e.target);
           if (!can.pickOwner()) delete v.owner_id;
+          const status = {
+            rubrique: v.rubrique || "", fiche_table: fiche?.table || "", fiche_id: fiche?.id ? String(fiche.id) : "",
+            fiche: v.fiche_statut || "", partenaire: v.partenaire || "", abo_statut: v.abo_statut || "", abo_tier: v.abo_tier || "",
+            abo_mensuel_cents: v.abo_mensuel ? String(centsFromEuros(v.abo_mensuel)) : "", abo_fin: v.abo_fin || "",
+            pub_produit: (v.pub_produit || "").trim(), pub_rubrique: v.pub_rubrique || "", pub_debut: v.pub_debut || "",
+            pub_fin: v.pub_fin || "", pub_montant_cents: v.pub_montant ? String(centsFromEuros(v.pub_montant)) : "",
+          };
+          for (const k of ["rubrique", "fiche_statut", "partenaire", "abo_statut", "abo_tier", "abo_mensuel", "abo_fin", "pub_produit", "pub_rubrique", "pub_debut", "pub_fin", "pub_montant"]) delete v[k];
           try {
-            const id = await rpc("crm_upsert_company", { p: { ...v, id: c.id || "", fiche_table: c.fiche_table || "", fiche_id: c.fiche_id || "" } });
+            const id = await rpc("crm_upsert_company", { p: { ...v, id: c.id || "", fiche_table: fiche?.table || "", fiche_id: fiche?.id || "" } });
+            await rpc("crm_set_company_status", { p_id: id, p: status });
             close(); toast("Entreprise enregistrée"); st.companies = [];
             // Liste rechargée tout de suite, y compris à la création (la fiche
             // s'ouvre par-dessus, la nouvelle entreprise est déjà derrière).
@@ -16190,8 +16469,11 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
 
     async function companyModal(id, after) {
       let d;
-      try { d = await rpc("crm_get_company", { p_id: id }); } catch (e) { return toast(e.message, false); }
-      const c = d.company;
+      let status;
+      try { [d, status] = await Promise.all([rpc("crm_get_company", { p_id: id }), loadCompanyStatus()]); } catch (e) { return toast(e.message, false); }
+      const c = d.company, s = status[id];
+      c.rubrique = s?.rubrique || ""; c._fiche = s?.fiche || null; c._crm = s?.crm || {};
+      const h = coStatusHtml(s);
       openModal(`🏢 ${esc(c.raison_sociale)}`, `
         <div class="crm-form" style="margin-bottom:10px;">
           <div><label>Statut</label>${esc(STATUTS[c.statut] || c.statut)}</div><div><label>Secteur</label>${esc(c.secteur || "–")}</div>
@@ -16200,11 +16482,15 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           <div><label>Contact</label>${c.telephone ? `<a href="tel:${esc(c.telephone)}" style="color:var(--magenta)">${esc(c.telephone)}</a>` : "–"}${c.email ? ` · <a href="mailto:${esc(c.email)}" style="color:var(--magenta)">${esc(c.email)}</a>` : ""}</div>
           <div><label>Site</label>${c.site_web ? `<a href="${esc(/^https?:/.test(c.site_web) ? c.site_web : "https://" + c.site_web)}" target="_blank" rel="noopener" style="color:var(--magenta)">${esc(c.site_web)}</a>` : "–"}</div>
           <div><label>Créée le</label>${fmtD(c.created_at)}</div>
+          <div><label>Rubrique</label>${h.rubrique}</div><div><label>Fiche app</label>${h.fiche}</div>
+          <div><label>Partenaire</label>${h.partner}</div><div><label>Abonnement</label>${h.abo}</div>
+          <div><label>Placement pub</label>${h.pub}</div>
           ${c.notes ? `<div class="full"><label>Notes</label>${esc(c.notes).replace(/\n/g, "<br>")}</div>` : ""}
         </div>
         <div class="crm-actions" style="justify-content:flex-start; margin:0 0 12px;">
           <button class="crm-btn primary" data-a="log">+ Activité</button><button class="crm-btn" data-a="opp">+ Opportunité</button>
           <button class="crm-btn" data-a="contact">+ Contact</button><button class="crm-btn" data-a="edit">✏️ Modifier</button>
+          ${can.deleteOpp() ? `<button class="crm-btn danger" data-a="del" style="margin-left:auto">🗑️ Supprimer</button>` : ""}
         </div>
         <h3 style="font-size:14px; margin:6px 0;">Contacts</h3>
         ${d.contacts.length ? `<table class="crm-table">${d.contacts.map(x => `<tr><td><b>${esc(`${x.prenom} ${x.nom}`.trim())}</b>${x.is_primary ? " ⭐" : ""}<br><span style="font-size:11px;color:var(--text-faint)">${esc(x.fonction || "")}</span></td>
@@ -16220,6 +16506,11 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         m.querySelector('[data-a="opp"]').addEventListener("click", () => { close(); opportunityEditModal({ client_id: id, company: c.raison_sociale, owner_id: c.owner_id }, reopen); });
         m.querySelector('[data-a="edit"]').addEventListener("click", () => { close(); companyEditModal(c, reopen); });
         m.querySelector('[data-a="contact"]').addEventListener("click", () => { close(); contactModal({ client_id: id }, reopen); });
+        m.querySelector('[data-a="del"]')?.addEventListener("click", async () => {
+          if (!confirm(`Supprimer « ${c.raison_sociale} » avec ses contacts, opportunités et activités ?`)) return;
+          try { await rpc("crm_delete_company", { p_id: id }); close(); toast("Entreprise supprimée"); st.companies = []; after?.(); }
+          catch (e) { toast("Erreur : " + e.message, false); }
+        });
         m.querySelectorAll("[data-ct]").forEach(b => b.addEventListener("click", () => { close(); contactModal(d.contacts.find(x => x.id === b.dataset.ct), reopen); }));
         m.querySelectorAll("[data-opp]").forEach(tr => tr.addEventListener("click", () => { close(); opportunityModal(tr.dataset.opp, reopen); }));
       });
