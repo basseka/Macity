@@ -4327,7 +4327,7 @@ abstract class AppLocalizations {
   /// No description provided for @pvNone.
   ///
   /// In fr, this message translates to:
-  /// **'Aucun event privé'**
+  /// **'Tu n\'as pas encore créé d\'event privé'**
   String get pvNone;
 
   /// No description provided for @pvNoneHint.
@@ -4873,8 +4873,20 @@ abstract class AppLocalizations {
   /// No description provided for @invNone.
   ///
   /// In fr, this message translates to:
-  /// **'Aucune invitation'**
+  /// **'Tu n\'as pas encore d\'invitation'**
   String get invNone;
+
+  /// No description provided for @homePrivateEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Events privés'**
+  String get homePrivateEvents;
+
+  /// No description provided for @homeInvitations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invitations'**
+  String get homeInvitations;
 
   /// No description provided for @invNoneHint.
   ///

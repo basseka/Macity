@@ -2299,7 +2299,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pvNewEvent => 'New event';
 
   @override
-  String get pvNone => 'No private events';
+  String get pvNone => 'You haven\'t created a private event yet';
 
   @override
   String get pvNoneHint =>
@@ -2637,7 +2637,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'The host asks you to confirm (name, age, phone…).';
 
   @override
-  String get invNone => 'No invitations';
+  String get invNone => 'You don\'t have any invitations yet';
+
+  @override
+  String get homePrivateEvents => 'Private events';
+
+  @override
+  String get homeInvitations => 'Invitations';
 
   @override
   String get invNoneHint =>

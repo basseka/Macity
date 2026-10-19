@@ -66,6 +66,7 @@ import 'package:pulz_app/features/home/state/search_intent_provider.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/partners_of_day_section.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_live_stripe.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
+import 'package:pulz_app/features/private_events/presentation/widgets/home_private_buttons.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/tonight_cta_banner.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
@@ -888,9 +889,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         // Visible sans scroller (contrairement a la bulle du meme nom, plus
         // bas dans PartnersOfDaySection) : meme action, juste remontee.
         // Geometrie (hauteur 74, marges 13) : voir BOUTON_CE_SOIR.md.
+        // Raccourcis events privés / invitations sur la même ligne.
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: TonightCtaBanner(),
+          child: Row(
+            children: [
+              Expanded(child: TonightCtaBanner()),
+              SizedBox(width: 8),
+              HomePrivateButtons(),
+            ],
+          ),
         ),
         const SizedBox(height: 13),
         const HomeQuickPills(),
