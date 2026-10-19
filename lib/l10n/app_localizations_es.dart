@@ -2814,6 +2814,9 @@ class AppLocalizationsEs extends AppLocalizations {
       '¡Haz una pregunta al organizador o saluda a los demás invitados!';
 
   @override
+  String get pcNewMessages => 'Mensajes nuevos';
+
+  @override
   String get pcPhoto => 'Foto';
 
   @override

@@ -1352,6 +1352,7 @@
   "pcEmptyDmToGuest": "Écris en privé à ce participant : lui seul verra tes messages.",
   "pcEmptyDmToHost": "Écris en privé à l'organisateur : lui seul verra tes messages.",
   "pcEmptyGroup": "Pose une question à l'organisateur ou dis bonjour aux autres invités !",
+  "pcNewMessages": "Nouveaux messages",
   "pcPhoto": "Photo",
   "pcCaptionHint": "Ajoute une légende...",
   "pcMessageHint": "Écris un message...",

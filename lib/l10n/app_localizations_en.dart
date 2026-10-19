@@ -2800,6 +2800,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Ask the host a question or say hi to the other guests!';
 
   @override
+  String get pcNewMessages => 'New messages';
+
+  @override
   String get pcPhoto => 'Photo';
 
   @override

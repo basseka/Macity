@@ -5152,6 +5152,12 @@ abstract class AppLocalizations {
   /// **'Pose une question à l\'organisateur ou dis bonjour aux autres invités !'**
   String get pcEmptyGroup;
 
+  /// No description provided for @pcNewMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveaux messages'**
+  String get pcNewMessages;
+
   /// No description provided for @pcPhoto.
   ///
   /// In fr, this message translates to:

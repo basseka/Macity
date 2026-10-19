@@ -21,6 +21,7 @@ import 'package:pulz_app/features/private_events/domain/models/private_event_mes
 import 'package:uuid/uuid.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/contributor_profile_sheet.dart';
 import 'package:pulz_app/core/services/analytics_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Palette fixe sombre, alignee sur le coffre et "Mes invitations".
 class _ChatColors {
@@ -133,6 +134,18 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
   bool _uploadingPhoto = false;
   String? _error;
 
+  // Lu / non lu : repère local (date du dernier message vu), par
+  // conversation. À l'ouverture, on tombe sur le premier message non lu
+  // (séparateur « Nouveaux messages »), sinon tout en bas.
+  DateTime? _lastReadAt;
+  /// Id du premier message non lu à l'ouverture (null : tout est lu).
+  String? _firstUnreadId;
+  final _firstUnreadKey = GlobalKey();
+
+  String get _readKey => widget.isDm
+      ? 'pchat_read_${widget.token}_dm_${widget.dmWithUserId ?? 'host'}'
+      : 'pchat_read_${widget.token}_group';
+
   @override
   void initState() {
     super.initState();
@@ -142,6 +155,10 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
 
   Future<void> _init() async {
     _userId = await UserIdentityService.getUserId();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _lastReadAt = DateTime.tryParse(prefs.getString(_readKey) ?? '');
+    } catch (_) {}
     await _refresh(initial: true);
     if (!mounted || _error != null) return;
     _pollTimer = Timer.periodic(_pollInterval, (_) => _refresh());
@@ -177,12 +194,28 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
       if (!mounted) return;
       final known = _messages.map((m) => m.id).toSet();
       final added = fresh.where((m) => !known.contains(m.id)).toList();
+      if (initial && _lastReadAt != null) {
+        // Premier message des autres posté après la dernière lecture.
+        for (final m in added) {
+          if (m.userId != _userId && m.createdAt.isAfter(_lastReadAt!)) {
+            _firstUnreadId = m.id;
+            break;
+          }
+        }
+      }
       setState(() {
         _loading = false;
         _error = null;
         _messages.addAll(added);
       });
-      if (added.isNotEmpty) _scrollToBottom();
+      if (added.isNotEmpty) {
+        if (initial) {
+          _scrollToFirstUnread();
+        } else {
+          _scrollToBottom();
+        }
+        _markRead();
+      }
     } on PrivateEventException catch (e) {
       if (!mounted) return;
       // Erreur reseau pendant le polling : on garde les messages affiches.
@@ -220,6 +253,57 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
       return context.l10n.pcErrNoAccess;
     }
     return context.l10n.pcErrLoad;
+  }
+
+  /// Mémorise le dernier message affiché comme lu.
+  Future<void> _markRead() async {
+    if (_messages.isEmpty) return;
+    final last = _messages.last.createdAt;
+    if (_lastReadAt != null && !last.isAfter(_lastReadAt!)) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_readKey, last.toIso8601String());
+    } catch (_) {}
+  }
+
+  /// Ouverture : saut (sans animation) tout en bas, puis remontée jusqu'au
+  /// premier non lu s'il y en a un. La liste est construite à la demande :
+  /// on remonte page par page jusqu'à ce que ce message soit construit.
+  void _scrollToFirstUnread() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_scrollCtrl.hasClients) return;
+      _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
+      if (_firstUnreadId == null) {
+        // Les photos changent la hauteur en se chargeant : on recale.
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        if (mounted && _scrollCtrl.hasClients) {
+          _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
+        }
+        return;
+      }
+      for (var i = 0; i < 50; i++) {
+        await WidgetsBinding.instance.endOfFrame;
+        if (!mounted || !_scrollCtrl.hasClients) return;
+        final ctx = _firstUnreadKey.currentContext;
+        if (ctx != null) {
+          await Scrollable.ensureVisible(ctx, alignment: 0.05);
+          await Future<void>.delayed(const Duration(milliseconds: 400));
+          final ctx2 = _firstUnreadKey.currentContext;
+          if (mounted && ctx2 != null) {
+            await Scrollable.ensureVisible(ctx2, alignment: 0.05);
+          }
+          return;
+        }
+        final pos = _scrollCtrl.position;
+        if (pos.pixels <= pos.minScrollExtent) return;
+        _scrollCtrl.jumpTo(
+          (pos.pixels - pos.viewportDimension).clamp(
+            pos.minScrollExtent,
+            pos.maxScrollExtent,
+          ),
+        );
+      }
+    });
   }
 
   void _scrollToBottom() {
@@ -541,11 +625,20 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
       itemBuilder: (_, i) {
         final msg = _messages[i];
         final isMine = msg.userId == _userId;
-        return _MessageBubble(
+        final bubble = _MessageBubble(
           msg: msg,
           isMine: isMine,
           onLongPress: isMine || iAmHost ? () => _confirmDelete(msg) : null,
           onPhotoTap: () => _openPhotos(msg),
+        );
+        if (msg.id != _firstUnreadId) return bubble;
+        return Column(
+          key: _firstUnreadKey,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _UnreadDivider(label: context.l10n.pcNewMessages),
+            bubble,
+          ],
         );
       },
     );
@@ -696,6 +789,36 @@ class _PrivateEventChatScreenState extends State<PrivateEventChatScreen> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Séparateur « Nouveaux messages » au-dessus du premier non lu.
+class _UnreadDivider extends StatelessWidget {
+  final String label;
+  const _UnreadDivider({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          const Expanded(child: Divider(color: AppColors.magenta, height: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              label,
+              style: GoogleFonts.geist(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.magenta,
+              ),
+            ),
+          ),
+          const Expanded(child: Divider(color: AppColors.magenta, height: 1)),
         ],
       ),
     );

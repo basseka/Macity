@@ -2827,6 +2827,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pose une question à l\'organisateur ou dis bonjour aux autres invités !';
 
   @override
+  String get pcNewMessages => 'Nouveaux messages';
+
+  @override
   String get pcPhoto => 'Photo';
 
   @override

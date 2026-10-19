@@ -842,6 +842,7 @@
   "pcEmptyDmToGuest": "Message this guest privately: only they will see your messages.",
   "pcEmptyDmToHost": "Message the host privately: only they will see your messages.",
   "pcEmptyGroup": "Ask the host a question or say hi to the other guests!",
+  "pcNewMessages": "New messages",
   "pcPhoto": "Photo",
   "pcCaptionHint": "Add a caption...",
   "pcMessageHint": "Write a message...",
