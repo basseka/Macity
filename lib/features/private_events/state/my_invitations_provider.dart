@@ -10,7 +10,14 @@ final myInvitationsCountProvider = FutureProvider<int>((ref) async {
     final uuid = await UserIdentityService.getUserId();
     final invitations =
         await PrivateEventService().listMyInvitations(userId: uuid);
-    return invitations.length;
+    // Les soirees passees restent dans la liste (album, discussion) : le
+    // point ne compte que celles a venir.
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    return invitations.where((e) {
+      final d = DateTime.tryParse(e.date);
+      return d == null || !d.isBefore(todayDate);
+    }).length;
   } catch (_) {
     return 0;
   }

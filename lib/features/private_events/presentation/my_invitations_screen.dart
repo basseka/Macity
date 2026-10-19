@@ -37,7 +37,8 @@ class _CoffreColors {
   static const lineStrong = Color(0x24FFFFFF);
 }
 
-/// Liste des soirees auxquelles ce device a confirme sa venue ("Je viens").
+/// Liste des soirees auxquelles ce device a confirme sa venue ("Je viens"),
+/// a venir puis passees (tri serveur, cf. 20261019120000).
 /// Distincte de [MyPrivateEventsScreen] qui liste les events crees PAR le user.
 class MyInvitationsScreen extends StatefulWidget {
   const MyInvitationsScreen({super.key});
@@ -381,6 +382,15 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
   final _guestsKey = GlobalKey();
   bool _guestsVisible = true;
 
+  /// Soiree passee : on garde l'album et la discussion, mais plus de
+  /// « Confirmer » ni d'annulation (refusees par le serveur : 'expired').
+  late final bool _isPast = () {
+    final d = DateTime.tryParse(widget.event.date);
+    if (d == null) return false;
+    final now = DateTime.now();
+    return d.isBefore(DateTime(now.year, now.month, now.day));
+  }();
+
   @override
   void initState() {
     super.initState();
@@ -704,7 +714,9 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                           myUserId: _myUserId,
                           // Plus de bouton une fois la venue annulee.
                           confirmationRequise:
-                              widget.event.confirmationRequise && !_cancelled,
+                              widget.event.confirmationRequise &&
+                                  !_cancelled &&
+                                  !_isPast,
                           onConfirm: _openConfirmation,
                           maxParticipants: widget.event.maxParticipants,
                         ),
@@ -809,7 +821,7 @@ class _InvitationDetailSheetState extends State<_InvitationDetailSheet> {
                   const SizedBox(height: 10),
                 ],
               ],
-              SizedBox(
+              if (!_isPast) SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton.icon(
