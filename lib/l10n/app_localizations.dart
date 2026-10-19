@@ -4438,6 +4438,12 @@ abstract class AppLocalizations {
   /// **'Personne pour l\'instant'**
   String get pvNobodyYet;
 
+  /// No description provided for @pvScrollMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fais défiler pour voir la suite'**
+  String get pvScrollMore;
+
   /// Ouvertures du coffre
   ///
   /// In fr, this message translates to:

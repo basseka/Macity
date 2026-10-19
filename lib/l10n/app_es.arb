@@ -723,6 +723,7 @@
   "pvTabSeen": "👀 Vistos",
   "pvTabConfirmed": "✅ Confirmados",
   "pvNobodyYet": "Nadie por ahora",
+  "pvScrollMore": "Desliza para ver más",
   "pvOpens": "{count, plural, =1{1 apertura} other{{count} aperturas}}",
   "pvLastOn": "la última el {when}",
   "pvConfirmedOn": "confirmado el {when}",

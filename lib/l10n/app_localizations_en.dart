@@ -2369,6 +2369,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pvNobodyYet => 'Nobody yet';
 
   @override
+  String get pvScrollMore => 'Scroll to see more';
+
+  @override
   String pvOpens(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

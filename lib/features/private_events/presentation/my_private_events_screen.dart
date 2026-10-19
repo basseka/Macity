@@ -812,11 +812,14 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         if (list.isEmpty) {
           return _empty(context.l10n.pvNoOpeners);
         }
-        return ListView.separated(
-          shrinkWrap: true,
-          itemCount: list.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 8),
-          itemBuilder: (_, i) => _OpenerRow(opener: list[i]),
+        return _ScrollHint(
+          builder: (ctrl) => ListView.separated(
+            controller: ctrl,
+            shrinkWrap: true,
+            itemCount: list.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, i) => _OpenerRow(opener: list[i]),
+          ),
         );
       },
     );
@@ -836,7 +839,9 @@ class _GuestsSheetState extends State<_GuestsSheet> {
         if (list.isEmpty) {
           return _empty(context.l10n.pvNoConfirmations);
         }
-        return ListView.separated(
+        return _ScrollHint(
+          builder: (ctrl) => ListView.separated(
+          controller: ctrl,
           shrinkWrap: true,
           itemCount: list.length,
           separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -853,6 +858,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                       list[i].userId!,
                       list[i].pseudo ?? '${list[i].prenom} ${list[i].nom}',
                     ),
+          ),
           ),
         );
       },
@@ -1012,15 +1018,18 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                         ),
                       );
                     }
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: rsvps.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (_, i) => _GuestRow(
-                        rsvp: rsvps[i],
-                        pendingDm: _pendingDm.contains(rsvps[i].userId),
-                        onMessage: () => _openDm(rsvps[i].userId, rsvps[i].prenom),
-                        onRemove: () => _removeGuest(rsvps[i].userId, rsvps[i].prenom),
+                    return _ScrollHint(
+                      builder: (ctrl) => ListView.separated(
+                        controller: ctrl,
+                        shrinkWrap: true,
+                        itemCount: rsvps.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (_, i) => _GuestRow(
+                          rsvp: rsvps[i],
+                          pendingDm: _pendingDm.contains(rsvps[i].userId),
+                          onMessage: () => _openDm(rsvps[i].userId, rsvps[i].prenom),
+                          onRemove: () => _removeGuest(rsvps[i].userId, rsvps[i].prenom),
+                        ),
                       ),
                     );
                   },
@@ -1029,6 +1038,125 @@ class _GuestsSheetState extends State<_GuestsSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Liste défilante avec indication de swipe : tant qu'il reste des lignes
+/// sous le bas de la feuille, un dégradé + une flèche animée « Fais défiler
+/// pour voir la suite » s'affichent (toucher = descend d'une page). Les
+/// hôtes ne voyaient pas qu'il y avait d'autres inscrits plus bas.
+class _ScrollHint extends StatefulWidget {
+  final Widget Function(ScrollController controller) builder;
+  const _ScrollHint({required this.builder});
+
+  @override
+  State<_ScrollHint> createState() => _ScrollHintState();
+}
+
+class _ScrollHintState extends State<_ScrollHint>
+    with SingleTickerProviderStateMixin {
+  final _ctrl = ScrollController();
+  late final AnimationController _bounce = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+  )..repeat(reverse: true);
+  bool _more = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.addListener(_update);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _update());
+  }
+
+  void _update() {
+    if (!mounted || !_ctrl.hasClients) return;
+    final p = _ctrl.position;
+    final more = p.maxScrollExtent - p.pixels > 12;
+    if (more != _more) setState(() => _more = more);
+  }
+
+  void _pageDown() {
+    if (!_ctrl.hasClients) return;
+    final p = _ctrl.position;
+    _ctrl.animateTo(
+      (p.pixels + p.viewportDimension * 0.8).clamp(0, p.maxScrollExtent),
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _bounce.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollMetricsNotification>(
+      // La liste change de taille (retrait, chargement) : on réévalue.
+      onNotification: (_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _update());
+        return false;
+      },
+      child: Stack(
+        children: [
+          widget.builder(_ctrl),
+          if (_more)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: GestureDetector(
+                onTap: _pageDown,
+                child: Container(
+                  padding: const EdgeInsets.only(top: 28, bottom: 2),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        AppColors.surface.withValues(alpha: 0),
+                        AppColors.surface,
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedBuilder(
+                        animation: _bounce,
+                        builder: (_, child) => Transform.translate(
+                          offset: Offset(
+                            0,
+                            4 * Curves.easeInOut.transform(_bounce.value),
+                          ),
+                          child: child,
+                        ),
+                        child: const Icon(
+                          Icons.keyboard_double_arrow_down_rounded,
+                          color: AppColors.magenta,
+                          size: 22,
+                        ),
+                      ),
+                      Text(
+                        context.l10n.pvScrollMore,
+                        style: GoogleFonts.geist(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textDim,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

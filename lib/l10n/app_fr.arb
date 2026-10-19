@@ -1119,6 +1119,7 @@
   "pvTabSeen": "👀 Vus",
   "pvTabConfirmed": "✅ Confirmés",
   "pvNobodyYet": "Personne pour l'instant",
+  "pvScrollMore": "Fais défiler pour voir la suite",
   "pvOpens": "{count, plural, =1{1 ouverture} other{{count} ouvertures}}",
   "@pvOpens": {
     "description": "Ouvertures du coffre",

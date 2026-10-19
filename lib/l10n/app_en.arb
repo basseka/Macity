@@ -723,6 +723,7 @@
   "pvTabSeen": "👀 Seen",
   "pvTabConfirmed": "✅ Confirmed",
   "pvNobodyYet": "Nobody yet",
+  "pvScrollMore": "Scroll to see more",
   "pvOpens": "{count, plural, =1{1 open} other{{count} opens}}",
   "pvLastOn": "last on {when}",
   "pvConfirmedOn": "confirmed on {when}",
