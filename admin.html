@@ -1404,6 +1404,73 @@
       </div>
 
       <form id="event-form">
+        <!-- Photo via paste -->
+        <div class="card">
+          <h2>Affiche / photo</h2>
+          <div id="paste-zone" class="paste-zone" tabindex="0">
+            <div id="paste-empty">
+              <div class="paste-icon">🖼️</div>
+              <div class="paste-hint">Fais <strong>Ctrl+V</strong> pour coller, glisse une image ici, ou…</div>
+              <button type="button" class="paste-browse" id="browse-btn">📂 Explorer le PC</button>
+            </div>
+            <div id="paste-filled" class="hidden">
+              <img id="paste-preview" class="paste-preview" />
+              <div>
+                <button type="button" class="paste-browse" id="browse-btn-replace">📂 Remplacer</button>
+                <button type="button" class="paste-remove" id="paste-remove">× Retirer l'image</button>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="file-input" accept="image/*" class="hidden" />
+          <div class="helper">Si aucune photo : l'event n'apparaîtra pas dans le feed (le service filtre `photo_url` vide).</div>
+
+          <!-- ═══ Bloc Vidéo optionnelle (teaser / promo) ═══ -->
+          <div style="margin-top: 18px;">
+            <h3 style="font-size: 14px; margin: 0 0 8px; color: var(--text);">Vidéo (optionnel)</h3>
+            <div id="video-paste-zone" class="paste-zone" tabindex="0">
+              <div id="video-paste-empty">
+                <div class="paste-icon">🎬</div>
+                <div class="paste-hint">Glisse une vidéo ici ou…</div>
+                <button type="button" class="paste-browse" id="video-browse-btn">📂 Explorer le PC</button>
+              </div>
+              <div id="video-paste-filled" class="hidden">
+                <video id="video-paste-preview" class="paste-preview" controls muted style="max-height: 220px;"></video>
+                <div>
+                  <button type="button" class="paste-browse" id="video-browse-btn-replace">📂 Remplacer</button>
+                  <button type="button" class="paste-remove" id="video-paste-remove">× Retirer la vidéo</button>
+                </div>
+              </div>
+            </div>
+            <input type="file" id="video-file-input" accept="video/*" class="hidden" />
+            <div class="helper">MP4 / MOV / WebM, max 100 Mo. Affichée en haut de la fiche détail à la place de l'affiche.</div>
+          </div>
+
+          <!-- ═══ Bloc IA : analyse du flyer ═══ -->
+          <div id="ai-scan-block" class="hidden" style="margin-top: 14px;">
+            <button type="button" id="ai-scan-btn" class="paste-browse" style="
+              width: 100%;
+              padding: 12px 18px;
+              font-size: 14px;
+              justify-content: center;
+              background: linear-gradient(135deg, rgba(142, 36, 170, 0.35), rgba(233, 30, 99, 0.28));
+              border-color: var(--magenta);
+              box-shadow: 0 6px 18px rgba(233, 30, 99, 0.20);
+            ">
+              <span id="ai-scan-btn-label">🪄 Analyser le flyer avec l'IA</span>
+            </button>
+            <div id="ai-scan-status" class="hidden" style="
+              margin-top: 10px;
+              padding: 10px 12px;
+              background: var(--surface-hi);
+              border: 1px solid var(--line);
+              border-radius: 10px;
+              font-size: 12px;
+              color: var(--text-dim);
+              line-height: 1.5;
+            "></div>
+          </div>
+        </div>
+
         <!-- Identité -->
         <div class="card">
           <h2>Identité</h2>
@@ -1572,72 +1639,6 @@
           </div></div>
         </div>
 
-        <!-- Photo via paste -->
-        <div class="card">
-          <h2>Affiche / photo</h2>
-          <div id="paste-zone" class="paste-zone" tabindex="0">
-            <div id="paste-empty">
-              <div class="paste-icon">🖼️</div>
-              <div class="paste-hint">Fais <strong>Ctrl+V</strong> pour coller, glisse une image ici, ou…</div>
-              <button type="button" class="paste-browse" id="browse-btn">📂 Explorer le PC</button>
-            </div>
-            <div id="paste-filled" class="hidden">
-              <img id="paste-preview" class="paste-preview" />
-              <div>
-                <button type="button" class="paste-browse" id="browse-btn-replace">📂 Remplacer</button>
-                <button type="button" class="paste-remove" id="paste-remove">× Retirer l'image</button>
-              </div>
-            </div>
-          </div>
-          <input type="file" id="file-input" accept="image/*" class="hidden" />
-          <div class="helper">Si aucune photo : l'event n'apparaîtra pas dans le feed (le service filtre `photo_url` vide).</div>
-
-          <!-- ═══ Bloc Vidéo optionnelle (teaser / promo) ═══ -->
-          <div style="margin-top: 18px;">
-            <h3 style="font-size: 14px; margin: 0 0 8px; color: var(--text);">Vidéo (optionnel)</h3>
-            <div id="video-paste-zone" class="paste-zone" tabindex="0">
-              <div id="video-paste-empty">
-                <div class="paste-icon">🎬</div>
-                <div class="paste-hint">Glisse une vidéo ici ou…</div>
-                <button type="button" class="paste-browse" id="video-browse-btn">📂 Explorer le PC</button>
-              </div>
-              <div id="video-paste-filled" class="hidden">
-                <video id="video-paste-preview" class="paste-preview" controls muted style="max-height: 220px;"></video>
-                <div>
-                  <button type="button" class="paste-browse" id="video-browse-btn-replace">📂 Remplacer</button>
-                  <button type="button" class="paste-remove" id="video-paste-remove">× Retirer la vidéo</button>
-                </div>
-              </div>
-            </div>
-            <input type="file" id="video-file-input" accept="video/*" class="hidden" />
-            <div class="helper">MP4 / MOV / WebM, max 100 Mo. Affichée en haut de la fiche détail à la place de l'affiche.</div>
-          </div>
-
-          <!-- ═══ Bloc IA : analyse du flyer ═══ -->
-          <div id="ai-scan-block" class="hidden" style="margin-top: 14px;">
-            <button type="button" id="ai-scan-btn" class="paste-browse" style="
-              width: 100%;
-              padding: 12px 18px;
-              font-size: 14px;
-              justify-content: center;
-              background: linear-gradient(135deg, rgba(142, 36, 170, 0.35), rgba(233, 30, 99, 0.28));
-              border-color: var(--magenta);
-              box-shadow: 0 6px 18px rgba(233, 30, 99, 0.20);
-            ">
-              <span id="ai-scan-btn-label">🪄 Analyser le flyer avec l'IA</span>
-            </button>
-            <div id="ai-scan-status" class="hidden" style="
-              margin-top: 10px;
-              padding: 10px 12px;
-              background: var(--surface-hi);
-              border: 1px solid var(--line);
-              border-radius: 10px;
-              font-size: 12px;
-              color: var(--text-dim);
-              line-height: 1.5;
-            "></div>
-          </div>
-        </div>
 
         <!-- Booster -->
         <div class="card">
@@ -9234,12 +9235,18 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
     // chaque appel : le conteneur est remplacé (innerHTML), donc les anciens
     // listeners partent avec les anciens noeuds — pas de fuite entre deux
     // "Rafraîchir".
+    // Dates clés tracées en trait vertical sur les deux courbes Tendance.
+    const _TREND_MARKERS = [
+      { jour: "2026-06-25", label: "Sortie officielle sur les réseaux", color: "#facc15" },
+    ];
     function _initTrendChart(containerId, rows, opts) {
       opts = opts || {};
       const color = opts.color || "#22c55e";
       const resetBtnId = opts.resetBtnId || "trend-reset-btn";
       const tipSuffix = opts.tipSuffix || "au total";
       const ariaLabel = opts.ariaLabel || "Tendance des créations cumulées";
+      // Repères verticaux datés : [{jour:"AAAA-MM-JJ", label, color}].
+      const markers = opts.markers || [];
       const holder = document.getElementById(containerId);
       if (!holder) return;
       rows = (rows || []).filter(r => r && r.jour);
@@ -9315,6 +9322,16 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           const xx = padL + f * plotW;
           return `<text x="${xx.toFixed(1)}" y="${H - 8}" fill="#8a8a99" font-size="9" text-anchor="middle">${fmtDate(t, span)}</text>`;
         }).join("");
+        const markerEls = markers.map(m => {
+          const t = new Date(m.jour + "T00:00:00").getTime();
+          if (t < viewMinT || t > viewMaxT) return "";
+          const xx = x(t);
+          const mc = m.color || "#facc15";
+          // Libellé à gauche du trait quand il est trop près du bord droit.
+          const right = xx > W - padR - 140;
+          return `<line x1="${xx.toFixed(1)}" y1="${padT}" x2="${xx.toFixed(1)}" y2="${padT + plotH}" stroke="${mc}" stroke-width="2"/>
+                  <text x="${(right ? xx - 5 : xx + 5).toFixed(1)}" y="${padT + 10}" fill="${mc}" font-size="10" font-weight="700" text-anchor="${right ? "end" : "start"}">${m.label || ""}</text>`;
+        }).join("");
         svgHolder.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;" role="img" aria-label="${ariaLabel}">
           <defs>
             <linearGradient id="${containerId}-grad" x1="0" y1="0" x2="0" y2="1">
@@ -9325,6 +9342,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           ${yTicks}
           <path d="${areaD}" fill="url(#${containerId}-grad)" stroke="none"/>
           <path d="${lineD}" fill="none" stroke="${color}" stroke-width="2"/>
+          ${markerEls}
           ${xTicks}
         </svg>`;
       }
@@ -9436,6 +9454,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         _initTrendChart("trend-chart", cumulRows, {
           color: "#22c55e", resetBtnId: "trend-reset-btn",
           tipSuffix: "au total", ariaLabel: "Tendance cumulée des créations",
+          markers: _TREND_MARKERS,
         });
         // Volume du jour (pas cumulé) : dérivé de cumul_jour par différence
         // consécutive plutôt que d'une nouvelle colonne SQL — mêmes jours,
@@ -9447,6 +9466,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         _initTrendChart("trend-daily-chart", dailyFromCumul, {
           color: "#E91E8C", resetBtnId: "trend-daily-reset-btn",
           tipSuffix: "ce jour-là", ariaLabel: "Tendance du volume quotidien",
+          markers: _TREND_MARKERS,
         });
         // Chargé après l'affichage : une RPC lente ou absente (migration pas
         // encore appliquée) ne doit pas priver l'onglet de ses statistiques.
