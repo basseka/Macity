@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/l10n/labels.dart';
 
@@ -50,7 +49,12 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
     // vide confirmee), seulement quand le fetch a reellement reussi.
     final isConfirmedEmpty = !fetchFailed && count == 0;
 
-    final kicker = _dayLabel();
+    // Le compteur passe dans la ligne du jour (« LUNDI · 23 SORTIES ») : le
+    // bandeau partage sa ligne avec les raccourcis events privés, la place
+    // va au titre, sinon illisible.
+    final kicker = hasPill
+        ? '${_dayLabel()} · ${count > 99 ? context.l10n.tonightOutingsMany : context.l10n.tonightOutingsCount(count)}'
+        : _dayLabel();
     final semanticsLabel = isConfirmedEmpty
         ? context.l10n.tonightA11yEmpty(city)
         : hasPill
@@ -91,7 +95,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                   const Positioned.fill(child: _StarsLayer()),
                   Positioned.fill(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.only(left: 14, right: 8),
                       child: Row(
                         children: [
                           Expanded(
@@ -105,7 +109,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.geistMono(
-                                    fontSize: 8,
+                                    fontSize: 9,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 1.5,
                                     color: Colors.white.withValues(alpha: 0.9),
@@ -116,24 +120,11 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 13),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                if (hasPill) ...[
-                                  _CounterPill(count: count),
-                                  const SizedBox(width: 5),
-                                ],
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 11,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                ),
-                              ],
-                            ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 18,
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ],
                       ),
@@ -160,7 +151,7 @@ class _TitleLine extends StatelessWidget {
   final bool isConfirmedEmpty;
 
   static final _style = GoogleFonts.outfit(
-    fontSize: 12,
+    fontSize: 17,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.2,
     height: 1.1,
@@ -188,45 +179,6 @@ class _TitleLine extends StatelessWidget {
         shaderCallback: (bounds) =>
             AppGradients.tonightAccentText.createShader(bounds),
         child: Text(context.l10n.tonightTitle, maxLines: 1, style: _style),
-      ),
-    );
-  }
-}
-
-/// Pastille compteur en verre depoli ("23 SORTIES"). BackdropFilter degrade
-/// gracieusement : sur un appareil lent, le flou est juste imperceptible, le
-/// fond blanc a 16% suffit deja a lire la pastille (voir §10.3).
-class _CounterPill extends StatelessWidget {
-  const _CounterPill({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = count > 99
-        ? context.l10n.tonightOutingsMany
-        : context.l10n.tonightOutingsCount(count);
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.chip),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(AppRadius.chip),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
-          ),
-          child: Text(
-            label,
-            style: GoogleFonts.geistMono(
-              fontSize: 8,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4,
-              color: Colors.white,
-            ),
-          ),
-        ),
       ),
     );
   }
