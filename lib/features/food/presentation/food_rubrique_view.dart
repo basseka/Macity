@@ -605,7 +605,15 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             !_nonCuisineThemes.contains(t.toLowerCase()) &&
             present.contains(t.toLowerCase()))
         .toList();
-    if (cuisines.isEmpty) return const [];
+    // Villes sans cuisine renseignee (fiches importees hors Toulouse) : pas de
+    // chips, mais on garde la carte des restaurants, sans filtre.
+    if (cuisines.isEmpty) {
+      return [
+        _sectionHeader(context.l10n.commonMap,
+            showAction: false, onSeeAll: () {}),
+        _cuisineMap(all, filterByCuisine: false),
+      ];
+    }
 
     final selected = _activeCuisine;
     // Chip actif = clé de `priorities` cote admin (panneau 🎯 Cat) : 'Tous'
@@ -676,14 +684,15 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   /// masques/reaffiches selon le chip cuisine actif. Cadrage fixe sur le centre
   /// de la ville selectionnee (jamais sur la position user) pour que la vue ne
   /// saute pas d'un filtre a l'autre.
-  Widget _cuisineMap(List<RestaurantVenue> all) {
+  Widget _cuisineMap(List<RestaurantVenue> all,
+      {bool filterByCuisine = true}) {
     final city = ref.watch(selectedCityProvider);
     final center = CityCenters.center(city) ?? (lat: 43.6047, lng: 1.4442);
     // `categorie` porte la cuisine : elle s'affiche dans le popup du point.
     final located =
         all.where((r) => r.latitude != 0 && r.longitude != 0).toList();
     if (located.isEmpty) return const SizedBox.shrink();
-    final cuisine = _activeCuisine;
+    final cuisine = filterByCuisine ? _activeCuisine : null;
     final visible = cuisine == null
         ? null
         : [
