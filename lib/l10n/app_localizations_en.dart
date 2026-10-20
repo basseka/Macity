@@ -3754,6 +3754,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get foodChipBrunch => 'Brunch';
 
   @override
+  String get foodChipGastro => 'Fine dining';
+
+  @override
+  String get foodChipSemiGastro => 'Bistronomy';
+
+  @override
   String get foodChipTapas => 'Tapas';
 
   @override

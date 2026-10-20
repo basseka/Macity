@@ -39,6 +39,12 @@ class FoodRubriqueView extends ConsumerStatefulWidget {
 
 class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   static const _chips = <_Chip>[
+    // En tete de ligne. Filtrent le champ `style` (et non le theme) : un
+    // resto gastro reste aussi classe dans sa cuisine (Francais...).
+    _Chip('Gastronomique', Icons.restaurant_menu_rounded, 'Gastronomique',
+        hideWhenEmpty: true, byStyle: true,),
+    _Chip('Semi-gastro', Icons.wine_bar_rounded, 'Bistronomique',
+        hideWhenEmpty: true, byStyle: true,),
     _Chip('Restaurants', Icons.restaurant_rounded, null),
     _Chip('Guinguette', Icons.deck_rounded, 'Guinguette'),
     _Chip('Buffets', Icons.room_service_rounded, 'Buffet'),
@@ -134,7 +140,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
     final base = chip.theme == null
         ? all
         : sortRestaurantsForCategory(
-            all.where((r) => r.matchesTheme(chip.theme!)).toList(),
+            all.where(chip.matches).toList(),
             chip.theme!,
           );
     // 2) Tri par proximité si le toggle est actif ET la position connue.
@@ -316,7 +322,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
         .where((c) =>
             !c.hideWhenEmpty ||
             c.label == _activeChip ||
-            all.any((r) => r.matchesTheme(c.theme!)),)
+            all.any(c.matches),)
         .toList();
     return SizedBox(
       height: 40,
@@ -844,7 +850,15 @@ class _Chip {
   final IconData icon;
   final String? theme; // null = "Restaurants" (tout)
   final bool hideWhenEmpty;
-  const _Chip(this.label, this.icon, this.theme, {this.hideWhenEmpty = false});
+
+  /// Filtre sur `style` (Gastronomique, Bistronomique) au lieu du theme.
+  final bool byStyle;
+  const _Chip(this.label, this.icon, this.theme,
+      {this.hideWhenEmpty = false, this.byStyle = false,});
+
+  bool matches(RestaurantVenue r) => byStyle
+      ? r.style.toLowerCase() == theme!.toLowerCase()
+      : r.matchesTheme(theme!);
 }
 
 
@@ -1676,6 +1690,8 @@ String _chipLabel(BuildContext context, String label) => switch (label) {
       'Buffets' => context.l10n.foodChipBuffets,
       'Salon de Thé' => context.l10n.foodChipTeaRoom,
       'Brunch' => context.l10n.foodChipBrunch,
+      'Gastronomique' => context.l10n.foodChipGastro,
+      'Semi-gastro' => context.l10n.foodChipSemiGastro,
       'Tapas' => context.l10n.foodChipTapas,
       'Pintxos' => context.l10n.foodChipPintxos,
       'Poisson' => context.l10n.foodChipFish,

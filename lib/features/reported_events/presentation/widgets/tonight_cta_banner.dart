@@ -151,7 +151,7 @@ class _TitleLine extends StatelessWidget {
   final bool isConfirmedEmpty;
 
   static final _style = GoogleFonts.outfit(
-    fontSize: 17,
+    fontSize: 12,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.2,
     height: 1.1,

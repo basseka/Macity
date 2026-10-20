@@ -6850,6 +6850,18 @@ abstract class AppLocalizations {
   /// **'Brunch'**
   String get foodChipBrunch;
 
+  /// No description provided for @foodChipGastro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gastronomique'**
+  String get foodChipGastro;
+
+  /// No description provided for @foodChipSemiGastro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Semi-gastro'**
+  String get foodChipSemiGastro;
+
   /// No description provided for @foodChipTapas.
   ///
   /// In fr, this message translates to:

@@ -3773,6 +3773,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get foodChipBrunch => 'Brunch';
 
   @override
+  String get foodChipGastro => 'Gastronómico';
+
+  @override
+  String get foodChipSemiGastro => 'Bistronómico';
+
+  @override
   String get foodChipTapas => 'Tapas';
 
   @override
