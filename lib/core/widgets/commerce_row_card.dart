@@ -402,10 +402,14 @@ class CommerceRowCard extends ConsumerWidget {
   /// Construit le widget ItemDetailSheet pour ce commerce. Reutilise par
   /// showDetailSheet (popup classique) et par les pagers swipables qui
   /// rendent plusieurs commerces a la suite (ex: CommercePagerView).
+  ///
+  /// [isRestaurant] (rubrique Food uniquement) : le lien du site s'appelle
+  /// « Réserver », c'est là que le client réserve sa table.
   static ItemDetailSheet buildDetailSheet(
     CommerceModel commerce, {
     String? imageAsset,
     BuildContext? context,
+    bool isRestaurant = false,
   }) {
     final image = _resolveImageFor(commerce, imageAsset);
     final isNetwork = image != null && image.startsWith('http');
@@ -447,7 +451,9 @@ class CommerceRowCard extends ConsumerWidget {
                 icon: commerce.siteWeb.contains('instagram') ? Icons.camera_alt : Icons.language,
                 label: commerce.siteWeb.contains('instagram')
                     ? 'Instagram'
-                    : (context?.l10n.websiteLabel ?? 'Site web'),
+                    : isRestaurant
+                        ? (context?.l10n.resBook ?? 'Réserver')
+                        : (context?.l10n.websiteLabel ?? 'Site web'),
                 url: commerce.siteWeb,
                 // « Clic sur le lien du partenaire » du relevé mensuel. Seule
                 // cette action est comptée : Maps et Appeler sont des
@@ -489,6 +495,7 @@ class CommerceRowCard extends ConsumerWidget {
     BuildContext context,
     CommerceModel commerce, {
     String? imageAsset,
+    bool isRestaurant = false,
   }) {
     // KPI partenaire compté ICI et non dans `buildDetailSheet` : ce dernier est
     // appelé depuis un `PageView.builder` (CommercePagerView), donc rejoué à
@@ -497,7 +504,8 @@ class CommerceRowCard extends ConsumerWidget {
     PartnerMetricsService.ficheVue(commerce.sourceTable, commerce.sourceId);
     ItemDetailSheet.show(
       context,
-      buildDetailSheet(commerce, imageAsset: imageAsset, context: context),
+      buildDetailSheet(commerce,
+          imageAsset: imageAsset, context: context, isRestaurant: isRestaurant,),
     );
   }
 
@@ -505,12 +513,14 @@ class CommerceRowCard extends ConsumerWidget {
   static Future<void> openPager(
     BuildContext context,
     List<CommerceModel> commerces,
-    int index,
-  ) {
+    int index, {
+    bool isRestaurant = false,
+  }) {
     return CommercePagerView.open(
       context,
       commerces: commerces,
       initialIndex: index,
+      isRestaurant: isRestaurant,
     );
   }
 
@@ -523,11 +533,13 @@ class CommerceRowCard extends ConsumerWidget {
     String? imageAsset,
     List<CommerceModel>? siblings,
     int? index,
+    bool isRestaurant = false,
   }) {
     if (siblings != null && siblings.length > 1 && index != null) {
-      openPager(context, siblings, index);
+      openPager(context, siblings, index, isRestaurant: isRestaurant);
     } else {
-      showDetailSheet(context, commerce, imageAsset: imageAsset);
+      showDetailSheet(context, commerce,
+          imageAsset: imageAsset, isRestaurant: isRestaurant);
     }
   }
 

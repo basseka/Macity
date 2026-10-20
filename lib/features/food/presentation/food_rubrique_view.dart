@@ -581,7 +581,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
         await fetchCommerceBySource(insp.sourceTable!, insp.sourceId!);
     if (!mounted) return;
     if (commerce != null) {
-      CommerceRowCard.showDetailSheet(context, commerce);
+      CommerceRowCard.showDetailSheet(context, commerce,
+          isRestaurant: true,);
     } else if (insp.siteUrl.trim().isNotEmpty) {
       _openSite(insp.siteUrl);
     }
@@ -1018,7 +1019,8 @@ class _Hero extends StatelessWidget {
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () =>
-                        CommerceRowCard.showDetailSheet(context, slot.commerce),
+                        CommerceRowCard.showDetailSheet(context, slot.commerce,
+                            isRestaurant: true,),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(999),
                       child: BackdropFilter(

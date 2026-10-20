@@ -12,11 +12,14 @@ import 'package:pulz_app/core/services/analytics_service.dart';
 class CommercePagerView extends StatefulWidget {
   final List<CommerceModel> commerces;
   final int initialIndex;
+  // Rubrique Food : le lien du site devient « Réserver ».
+  final bool isRestaurant;
 
   const CommercePagerView({
     super.key,
     required this.commerces,
     required this.initialIndex,
+    this.isRestaurant = false,
   });
 
   /// Pousse le pager en dialog plein écran (fond noir 70%).
@@ -24,6 +27,7 @@ class CommercePagerView extends StatefulWidget {
     BuildContext context, {
     required List<CommerceModel> commerces,
     required int initialIndex,
+    bool isRestaurant = false,
   }) {
     if (commerces.isEmpty) return Future.value();
     return Navigator.of(context, rootNavigator: true).push(
@@ -33,6 +37,7 @@ class CommercePagerView extends StatefulWidget {
         pageBuilder: (_, __, ___) => CommercePagerView(
           commerces: commerces,
           initialIndex: initialIndex.clamp(0, commerces.length - 1),
+          isRestaurant: isRestaurant,
         ),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
@@ -85,7 +90,7 @@ class _CommercePagerViewState extends State<CommercePagerView> {
         // l'ItemDetailSheet) restent gérés par le contenu.
         itemBuilder: (_, i) =>
             CommerceRowCard.buildDetailSheet(widget.commerces[i],
-                context: context),
+                context: context, isRestaurant: widget.isRestaurant,),
       ),
     );
   }

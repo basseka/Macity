@@ -39,6 +39,7 @@ class RestaurantDetailSheet {
       imageAsset: hasLocalAsset ? venue.photo : null,
       siblings: commerceSiblings,
       index: index,
+      isRestaurant: true,
     );
   }
 
