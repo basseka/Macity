@@ -85,6 +85,7 @@ class NightScreen extends ConsumerWidget {
       subtitle: context.l10n.nightSubtitle,
       sectionTitle: context.l10n.nightSectionTitle,
       activeChipAsTitle: true,
+      proximitySort: true,
       chips: [
         RubriqueChip(context.l10n.nightChipClub, Icons.celebration_rounded,
             'Club Discotheque'),

@@ -5,10 +5,12 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/core/utils/image_url.dart';
 import 'package:pulz_app/core/constants/video_constants.dart';
 import 'package:pulz_app/core/data/inspiration_service.dart';
@@ -256,6 +258,12 @@ class RubriqueConfig {
   /// appliqué. Activé pour Night.
   final bool activeChipAsTitle;
 
+  /// Bouton « Plus proche de moi » à droite du titre du carrousel (à la
+  /// place de « Voir tout »), même gestion que Food : tri par distance des
+  /// lieux du chip actif + distance affichée sur chaque carte. Activé pour
+  /// Night.
+  final bool proximitySort;
+
   const RubriqueConfig({
     required this.theme,
     required this.eyebrowLeft,
@@ -280,6 +288,7 @@ class RubriqueConfig {
     this.refineChipsBuilder,
     this.refineMapBuilder,
     this.activeChipAsTitle = false,
+    this.proximitySort = false,
   });
 }
 
@@ -363,6 +372,82 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
 
   /// Ouvre l'item tapé : un pager swipable sur tous les commerces de la liste
   /// si l'item porte un CommerceModel, sinon le handler [onTap] de l'item.
+  // ─── Plus proche de moi (même gestion que Food) ───────────────────────
+  /// Tri par proximité (toggle du bouton). Se combine avec le chip actif.
+  bool _sortByProximity = false;
+  Position? _userPosition;
+
+  /// Distance en km d'un item, null s'il n'a pas de commerce géolocalisé
+  /// ou si la position de l'utilisateur est inconnue.
+  double? _distanceKm(RubriqueItem item) {
+    final pos = _userPosition;
+    final c = item.commerce;
+    if (pos == null || c == null || (c.latitude == 0 && c.longitude == 0)) {
+      return null;
+    }
+    return Haversine.distanceInMeters(
+            pos.latitude, pos.longitude, c.latitude, c.longitude,) /
+        1000;
+  }
+
+  /// Items triés du plus proche au plus loin quand le tri est actif (les
+  /// lieux sans coordonnées passent en fin de liste).
+  List<RubriqueItem> _sorted(List<RubriqueItem> items) {
+    if (!_sortByProximity || _userPosition == null) return items;
+    final withDist = items.map((i) => MapEntry(i, _distanceKm(i))).toList()
+      ..sort((a, b) {
+        if (a.value == null) return b.value == null ? 0 : 1;
+        if (b.value == null) return -1;
+        return a.value!.compareTo(b.value!);
+      });
+    return withDist.map((e) => e.key).toList();
+  }
+
+  /// Position user (rapide via lastKnown, puis fix courant). Pas de prompt
+  /// agressif : permission refusée = tri sans effet.
+  Future<void> _ensureUserPosition() async {
+    if (_userPosition != null) return;
+    try {
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        return;
+      }
+      final last = await Geolocator.getLastKnownPosition();
+      if (last != null && mounted) {
+        setState(() => _userPosition = last);
+      }
+      final current = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+      if (mounted) setState(() => _userPosition = current);
+    } catch (_) {
+      // GPS off / permission refusée : le tri reste sans effet.
+    }
+  }
+
+  /// Toggle « Plus proche de moi ». Sans localisation, on annule le toggle
+  /// et on invite à l'activer.
+  Future<void> _toggleProximitySort() async {
+    final turningOn = !_sortByProximity;
+    setState(() => _sortByProximity = turningOn);
+    if (!turningOn) return;
+    await _ensureUserPosition();
+    if (!mounted) return;
+    if (_userPosition == null) {
+      setState(() => _sortByProximity = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.foodLocateToSort)),
+      );
+    }
+  }
+
   void _openItem(BuildContext ctx, List<RubriqueItem> items, int index) {
     final tapped = items[index];
     if (tapped.commerce == null) {
@@ -402,9 +487,11 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             _sectionHeader(cfg.sectionTitle, t,
                 titleWidget: cfg.activeChipAsTitle
                     ? _activeChipTitle(cfg, itemsAsync.valueOrNull?.length)
-                    : null,),
+                    : null,
+                proximity: cfg.proximitySort,),
             itemsAsync.when(
-              data: (items) {
+              data: (raw) {
+                final items = _sorted(raw);
                 if (items.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -424,6 +511,9 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                       item: items[i],
                       theme: t,
                       coupDeCoeur: i == 0,
+                      // Distance seulement en mode « Plus proche ».
+                      distanceKm:
+                          _sortByProximity ? _distanceKm(items[i]) : null,
                       onOpen: (ctx) => _openItem(ctx, items, i),
                     ),
                   ),
@@ -683,8 +773,38 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     );
   }
 
+  /// Pastille « Plus proche de moi » : pleine = tri actif, contour = inactif.
+  Widget _proximityPill(RubriqueTheme t) {
+    final on = _sortByProximity;
+    final fg = on ? Colors.white : t.accent;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: on ? t.accent : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: t.accent, width: 1.4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.near_me_rounded, size: 15, color: fg),
+          const SizedBox(width: 5),
+          Text(
+            context.l10n.foodNearestToMe,
+            style: RubriqueTheme.chip(color: fg)
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _sectionHeader(String title, RubriqueTheme t,
-      {double? fontSize, bool showAction = true, Widget? titleWidget,}) {
+      {double? fontSize,
+      bool showAction = true,
+      Widget? titleWidget,
+      bool proximity = false,}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
       child: Row(
@@ -709,7 +829,13 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             ),
             const Spacer(),
           ],
-          if (showAction)
+          if (proximity)
+            GestureDetector(
+              onTap: _toggleProximitySort,
+              behavior: HitTestBehavior.opaque,
+              child: _proximityPill(t),
+            )
+          else if (showAction)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1162,12 +1288,21 @@ class _ItemCard extends StatelessWidget {
   final RubriqueTheme theme;
   final bool coupDeCoeur;
   final void Function(BuildContext context) onOpen;
+  /// Distance affichée en mode « Plus proche de moi » (null = masquée).
+  final double? distanceKm;
   const _ItemCard({
     required this.item,
     required this.theme,
     required this.coupDeCoeur,
     required this.onOpen,
+    this.distanceKm,
   });
+
+  static String _formatDistance(double km) {
+    if (km < 1) return '${(km * 1000).round()} m';
+    if (km < 10) return '${km.toStringAsFixed(1)} km';
+    return '${km.round()} km';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1274,6 +1409,35 @@ class _ItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (distanceKm != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3,),
+                      decoration: BoxDecoration(
+                        color: theme.accent,
+                        borderRadius:
+                            BorderRadius.circular(RubriqueTheme.rPill),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.near_me_rounded,
+                              size: 10, color: Colors.white,),
+                          const SizedBox(width: 3),
+                          Text(
+                            _formatDistance(distanceKm!),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   Text(item.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
