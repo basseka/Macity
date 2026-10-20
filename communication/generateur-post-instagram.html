@@ -83,6 +83,7 @@
     <select id="autoTheme">
       <option value="sorties">Sorties (tous publics)</option>
       <option value="enfants">👶 Enfants et famille</option>
+      <option value="halloween">🎃 Halloween (une diapo par soirée)</option>
     </select>
     <label>Période</label>
     <select id="autoPeriode">
@@ -955,10 +956,23 @@ const TYPES_ENFANTS = [
     categories: ["Escape game", "Bowling", "Laser game", "Patinoire", "Piscine"] },
 ];
 
+// Theme « Halloween » : toutes les soirees a theme de la periode, une diapo
+// par event (et non une par type). Lit aussi les events publies par les
+// utilisateurs et les pros (user_events), hors copies « autofeat_ ».
+const MOTS_HALLOWEEN = /(hallowe+n|horror|horreur|zombie|muertos|diabol|sorci[èe]r|citrouille|nightmare|chair de poule|spooky|vampire|[ée]pouvante|walking dead)/i;
+const OR_HALLOWEEN = (champs) => "(" + champs.flatMap((c) =>
+  ["halloween", "horror", "horreur", "zombie", "muertos", "diabol", "sorci", "citrouille",
+    "nightmare", "chair de poule", "spooky", "vampire", "pouvante"].map((m) => `${c}.ilike.*${m}*`)).join(",") + ")";
+const TYPES_HALLOWEEN = [
+  { id: "halloween_soiree",  label: "SOIRÉE HALLOWEEN",     on: true },
+  { id: "halloween_famille", label: "HALLOWEEN EN FAMILLE", on: false },
+];
+const MAX_DIAPOS_HALLOWEEN = 18; // + couverture + cloture = 20, le maximum Instagram
+
 const themeAuto = () => $("autoTheme").value;
-const typesDuTheme = () => (themeAuto() === "enfants" ? TYPES_ENFANTS : TYPES_AUTO);
+const typesDuTheme = () => ({ enfants: TYPES_ENFANTS, halloween: TYPES_HALLOWEEN })[themeAuto()] || TYPES_AUTO;
 // Cle historique conservee pour le theme « sorties ».
-const cleTypes = () => (themeAuto() === "enfants" ? "macity_auto_types_enfants" : "macity_auto_types");
+const cleTypes = () => ({ enfants: "macity_auto_types_enfants", halloween: "macity_auto_types_halloween" })[themeAuto()] || "macity_auto_types";
 
 // Cases a cocher (memorisees par theme).
 function rendreTypesAuto() {
@@ -1048,6 +1062,7 @@ const QUAND_ENFANTS = { soir: "AUJOURD'HUI", weekend: "CE WEEK-END", semaine: "C
 function titreCouverture(periode) {
   const dates = periode === "dates" ? libelleDates(...bornesPeriode(periode), MOIS_COURTS) : "";
   if (themeAuto() === "enfants") return `SORTIES ENFANTS\n${dates || QUAND_ENFANTS[periode]}`;
+  if (themeAuto() === "halloween") return `HALLOWEEN\n${dates || QUAND_ENFANTS[periode]}`;
   return dates ? `QUOI FAIRE\n${dates}` : TITRE_COUV[periode];
 }
 
@@ -1176,10 +1191,108 @@ async function chercherCandidatsEnfants(type, ville, debut, fin) {
 
 /** Candidats d'un type, du plus « prêt a publier » au moins bon. */
 async function chercherCandidats(type, ville, debut, fin) {
+  if (themeAuto() === "halloween") {
+    // Tous les events gardes deviennent des diapos : tous passent au tri visuel.
+    return classerParVisuel(await chercherCandidatsHalloween(type, ville, debut, fin), 40);
+  }
   const bruts = themeAuto() === "enfants"
     ? await chercherCandidatsEnfants(type, ville, debut, fin)
     : await chercherCandidatsSorties(type, ville, debut, fin);
   return classerParVisuel(bruts);
+}
+
+// Une seule lecture par generation, partagee par les deux types Halloween.
+const cacheHalloween = new Map();
+
+/** Events Halloween de la periode : scraped_events + user_events. */
+function lireEventsHalloween(ville, debut, fin) {
+  const cle = `${ville}|${debut}|${fin}`;
+  if (!cacheHalloween.has(cle)) {
+    const p = new URLSearchParams({
+      select: "identifiant,source,nom_de_la_manifestation,descriptif_court,lieu_nom,date_debut,date_fin,horaires,dates_affichage_horaires,photo_url,rubrique,type_de_manifestation,categorie_de_la_manifestation",
+      ville: `ilike.${ville}`,
+      photo_url: "neq.",
+      date_debut: `lte.${fin}`,
+      or: OR_HALLOWEEN(["nom_de_la_manifestation", "descriptif_court"]),
+      order: "date_debut.asc",
+      limit: "300",
+    });
+    p.append("date_fin", `gte.${debut}`);
+    const q = new URLSearchParams({
+      select: "id,titre,description,description_courte,rubrique,categorie,date,date_fin,heure,lieu_nom,photo_url",
+      ville: `ilike.${ville}`,
+      photo_url: "neq.",
+      id: "not.like.autofeat_*",
+      or: OR_HALLOWEEN(["titre", "description"]),
+      limit: "100",
+    });
+    q.append("date", `gte.${debut}`);
+    q.append("date", `lte.${fin}`);
+    const lecture = Promise.all([
+      lireTable("scraped_events", p, "events Halloween"),
+      // Events publies dans l'app : best-effort, ne bloque pas le reste.
+      lireTable("user_events", q, "events publiés").catch(() => []),
+    ]).then(([scrapes, publies]) => [
+      ...publies.map((u) => ({
+        identifiant: `ue_${u.id}`,
+        source: "user_event",
+        nom_de_la_manifestation: u.titre || "",
+        descriptif_court: u.description_courte || u.description || "",
+        lieu_nom: u.lieu_nom || "",
+        date_debut: u.date || "",
+        date_fin: u.date_fin || u.date || "",
+        horaires: u.heure || "",
+        dates_affichage_horaires: "",
+        photo_url: u.photo_url || "",
+        rubrique: u.rubrique || "",
+        type_de_manifestation: u.categorie || "",
+        categorie_de_la_manifestation: u.categorie || "",
+      })),
+      ...scrapes,
+    ]);
+    lecture.catch(() => cacheHalloween.delete(cle));
+    cacheHalloween.set(cle, lecture);
+  }
+  return cacheHalloween.get(cle);
+}
+
+async function chercherCandidatsHalloween(type, ville, debut, fin) {
+  const rows = await lireEventsHalloween(ville, debut, fin);
+  const jours = (e) => (e.date_fin ? (new Date(e.date_fin) - new Date(e.date_debut)) / 864e5 : 0);
+  const famille = (e) => e.rubrique === "family" || /(enfant|famil|kids?\b)/i.test(e.nom_de_la_manifestation || "");
+  const vus = new Set();
+  return rows
+    .filter((e) => {
+      const nom = (e.nom_de_la_manifestation || "").trim();
+      if (!MOTS_HALLOWEEN.test(`${nom} ${e.descriptif_court || ""}`)) return false;
+      // Articles « Où fêter Halloween ? » et events qui durent (vacances, expos).
+      if (/\?\s*$|^o[uù] /i.test(nom) || jours(e) > 3) return false;
+      // Soiree qui finit au petit matin (fin = lendemain) : c'est la soiree
+      // du jour de debut. Celle de la veille n'est pas dans la periode.
+      if (jours(e) === 1) {
+        if (e.date_debut < debut) return false;
+        e.date_fin = e.date_debut;
+      }
+      if (type.id === "halloween_famille" ? !famille(e) : famille(e)) return false;
+      const k = nom.toLowerCase().replace(/\W+/g, "");
+      if (vus.has(k)) return false;
+      vus.add(k);
+      return true;
+    })
+    .map((e) => {
+      // Certaines sources stockent la photo en JSON ({"jpg": "...", "webp": ...}).
+      if (/^\s*\{/.test(e.photo_url || "")) {
+        try { const ph = JSON.parse(e.photo_url); e.photo_url = ph.jpg || ph.webp || Object.values(ph)[0] || ""; } catch (x) {}
+      }
+      e._score =
+        ((e.descriptif_court || "").trim().length > 30 ? 3 : 0) +
+        ((e.horaires || "").trim() ? 1 : 0) +
+        ((e.lieu_nom || "").trim() ? 2 : 0) +
+        (/hallowe+n/i.test(e.nom_de_la_manifestation || "") ? 1 : 0) +
+        (e.source === "manual_admin" || e.source === "user_event" ? 2 : 0);
+      return e;
+    })
+    .sort((a, b) => b._score - a._score || a.date_debut.localeCompare(b.date_debut));
 }
 
 async function chercherCandidatsSorties(type, ville, debut, fin) {
@@ -1264,7 +1377,8 @@ function champsDepuisEvent(e, type, periode) {
   // Heure improbable pour un debut (2h-9h du matin) : souvent une erreur de
   // source ; mieux vaut ne rien afficher qu'une heure fausse.
   const hh = h ? parseInt(h[1], 10) : -1;
-  const heure = h && !(hh >= 2 && hh <= 9) ? `Dès ${hh}h${h[2] && h[2] !== "00" ? h[2] : ""}` : "";
+  const heure = !h || (hh >= 2 && hh <= 9) ? ""
+    : hh === 0 || hh === 24 ? "Dès minuit" : `Dès ${hh}h${h[2] && h[2] !== "00" ? h[2] : ""}`;
   // Texte : premiere phrase de la description, 120 caracteres max.
   let texte = (e.descriptif_court || "").replace(/\s+/g, " ").trim();
   const phrase = texte.match(/^.{20,120}?[.!?](\s|$)/);
@@ -1366,8 +1480,8 @@ function noteVisuelle(url) {
  * de contenu) sont analyses ; pour un lieu, la meilleure de ses photos devient
  * sa photo. Les images cassees sortent de la liste.
  */
-async function classerParVisuel(candidats) {
-  const tete = candidats.slice(0, 8), reste = candidats.slice(8);
+async function classerParVisuel(candidats, combien = 8) {
+  const tete = candidats.slice(0, combien), reste = candidats.slice(combien);
   await Promise.all(tete.map(async (c) => {
     const urls = c.photos && c.photos.length ? c.photos.slice(0, 6) : [c.photo_url];
     const notes = await Promise.all(urls.map(noteVisuelle));
@@ -1434,6 +1548,7 @@ $("autoGen").onclick = async () => {
 
   const [debut, fin] = bornesPeriode(periode);
   cacheEnfants.clear();
+  cacheHalloween.clear();
   etat.style.color = "var(--dim)";
   etat.textContent = `Recherche des events à ${ville} (${debut} → ${fin})…`;
   $("autoGen").disabled = true;
@@ -1464,7 +1579,24 @@ $("autoGen").onclick = async () => {
     // Pas deux fois le meme event (un concert peut aussi etre tague soiree).
     const pris = new Set();
     const plans = [];
-    for (let i = 0; i < utiles.length; i++) {
+    if (themeAuto() === "halloween") {
+      // Une diapo par event (les types se suivent : soirees puis famille).
+      const liste = utiles.flatMap(({ t, c }) => c.map((e, idx) => ({ t, c, idx })))
+        .filter(({ c, idx }) => !pris.has(c[idx].identifiant) && pris.add(c[idx].identifiant))
+        .slice(0, MAX_DIAPOS_HALLOWEEN);
+      for (let i = 0; i < liste.length; i++) {
+        const { t, c, idx } = liste[i];
+        const d = {
+          type: "plan", img: null, imgData: null,
+          v: { ...gabarit, numero: String(i + 1).padStart(2, "0") },
+          auto: { type: t, candidats: c, idx },
+        };
+        etat.textContent = `Photo ${i + 1} / ${liste.length}…`;
+        await appliquerCandidat(d, idx, periode);
+        plans.push(d);
+      }
+    }
+    for (let i = 0; i < utiles.length && themeAuto() !== "halloween"; i++) {
       const { t, c } = utiles[i];
       const idx = Math.max(0, c.findIndex((e) => !pris.has(e.identifiant)));
       pris.add(c[idx].identifiant);
@@ -1540,12 +1672,14 @@ const EMOJI_TYPE = {
   famille: "👨‍👩‍👧", expo: "🖼️", sport: "🏟️",
   spectacle_enf: "🎪", atelier_enf: "🎨", musee_enf: "🦕", nature_enf: "🌳",
   fete_enf: "🎉", parc_enf: "🦁", fun_enf: "🎳",
+  halloween_soiree: "🎃", halloween_famille: "👻",
 };
 const FIN_TYPE = {
   concert: "🎸✨", soiree: "💃🔥", food: "😋", spectacle: "👏✨",
   famille: "🎈", expo: "🎨", sport: "💪",
   spectacle_enf: "👏🎈", atelier_enf: "✂️✨", musee_enf: "🔭", nature_enf: "🍃",
   fete_enf: "🎈", parc_enf: "🐾", fun_enf: "🤩",
+  halloween_soiree: "🦇🔥", halloween_famille: "🍬",
 };
 const CHIFFRES = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 const JOURS_LONGS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
@@ -1617,7 +1751,11 @@ function genererLegende() {
     const [debut, fin] = bornesPeriode(periode);
     accroche = (debut === fin ? "LE " : "") + libelleDates(debut, fin, MOIS_MAJ);
   }
-  if (enfants) {
+  const halloween = themeAuto() === "halloween";
+  if (halloween) {
+    lignes.push(`🎃 OÙ FÊTER HALLOWEEN ${accroche} ? 👻`, "");
+    lignes.push(`MaCity t'a trouvé ${n} soirée${n > 1 ? "s" : ""} spéciale${n > 1 ? "s" : ""} Halloween à ${ville} 🦇`, "");
+  } else if (enfants) {
     lignes.push(`👶 QUOI FAIRE AVEC LES ENFANTS ${accroche} ? 🎈`, "");
     lignes.push(`MaCity t'a sélectionné ${n} sortie${n > 1 ? "s" : ""} en famille à ${ville} ✨`, "");
   } else {
@@ -1636,7 +1774,9 @@ function genererLegende() {
     lignes.push(`${casseTitre(ev.nom)}${quand ? ", " + quand : ""} ${FIN_TYPE[ev.type] || "✨"}`.trim());
     lignes.push("");
   });
-  lignes.push(enfants
+  lignes.push(halloween
+    ? "📲 Retrouve toutes les soirées Halloween, avec horaires et billetterie, directement sur MaCity."
+    : enfants
     ? "📲 Retrouve toutes les sorties en famille, ateliers et spectacles jeune public directement sur MaCity."
     : "📲 Retrouve encore plus de concerts, soirées, événements et bons plans directement sur MaCity.", "");
   lignes.push("👉 Télécharge l'application : lien en bio", "");
@@ -1644,9 +1784,12 @@ function genererLegende() {
   const question = choix.length > 1
     ? `${choix.slice(0, -1).join(", ")} ou ${choix[choix.length - 1]}`
     : choix[0];
-  lignes.push(n > 1 ? `💬 Alors, tu choisis ${question} ? 👇` : "💬 Tu y vas ? Dis-le en commentaire 👇", "");
+  if (halloween) lignes.push("💬 Tu sors déguisé en quoi cette année ? 👇", "");
+  else lignes.push(n > 1 ? `💬 Alors, tu choisis ${question} ? 👇` : "💬 Tu y vas ? Dis-le en commentaire 👇", "");
   const v = motHashtag(ville);
-  lignes.push(enfants
+  lignes.push(halloween
+    ? `#MaCity #${v} #Halloween #Halloween2026 #Halloween${v} #SoireeHalloween #SortirA${v}`
+    : enfants
     ? `#MaCity #${v} #SortieEnfants #EnFamille #${v}AvecEnfants #SortirA${v}`
     : `#MaCity #${v} #Agenda${v} #SortirA${v} #BonPlan${v}`);
   $("legende").value = lignes.join("\n");

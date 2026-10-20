@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Media kit MaCity (carrousel Instagram)</title>
+<style>
+@font-face { font-family: Inter; font-weight: 500; src: url(../../charte-graphique/03-typographies/Inter/Inter-Medium.ttf); }
+@font-face { font-family: Inter; font-weight: 600; src: url(../../charte-graphique/03-typographies/Inter/Inter-SemiBold.ttf); }
+@font-face { font-family: Inter; font-weight: 700; src: url(../../charte-graphique/03-typographies/Inter/Inter-Bold.ttf); }
+@font-face { font-family: Inter; font-weight: 800; src: url(../../charte-graphique/03-typographies/Inter/Inter-ExtraBold.ttf); }
+@font-face { font-family: Inter; font-weight: 900; src: url(../../charte-graphique/03-typographies/Inter/Inter-Black.ttf); }
+:root {
+  --rose: #FF1E8E; --framboise: #FF1E6E; --corail: #FF2E38;
+  --nuit: #1A0F2E; --nuit2: #0A0514; --violet: #1A0A38;
+  --blanc: #FFFFFF; --lavande: #B5A8D0; --cyan: #22D3EE; --vert: #22C55E; --or: #FACC15;
+  --grad: linear-gradient(90deg, #FF1E8E, #FF1E6E 50%, #FF2E38);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #222; font-family: Inter, sans-serif; color: var(--blanc); }
+.slide {
+  width: 1080px; height: 1350px; position: relative; overflow: hidden;
+  background:
+    radial-gradient(900px 700px at 100% 0%, rgba(255,30,142,.28), transparent 60%),
+    radial-gradient(800px 700px at 0% 100%, rgba(106,27,154,.45), transparent 60%),
+    linear-gradient(160deg, var(--violet), var(--nuit2));
+  margin: 0 auto 40px; padding: 84px 80px;
+}
+.logo { position: absolute; top: 70px; left: 80px; height: 54px; }
+.page { position: absolute; top: 80px; right: 80px; font-weight: 700; font-size: 26px; color: var(--lavande); letter-spacing: 2px; }
+.kicker { display: inline-block; font-weight: 800; font-size: 26px; letter-spacing: 4px; text-transform: uppercase;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 { font-weight: 900; font-size: 92px; line-height: 1.02; letter-spacing: -2px; margin-top: 18px; }
+h2 { font-weight: 900; font-size: 74px; line-height: 1.04; letter-spacing: -1.5px; margin-top: 16px; }
+.g { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+p.lead { font-weight: 500; font-size: 34px; line-height: 1.38; color: #E9E3F5; margin-top: 28px; }
+.foot { position: absolute; left: 80px; right: 80px; bottom: 64px; display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; font-size: 24px; color: var(--lavande); letter-spacing: 2px; }
+.swipe { color: var(--blanc); }
+.swipe::after { content: ""; display: block; height: 5px; margin-top: 8px; border-radius: 3px; background: var(--grad); }
+.phone { position: absolute; width: 380px; border-radius: 44px; border: 10px solid #0d0718; box-shadow: 0 40px 80px rgba(0,0,0,.55), 0 0 0 2px rgba(255,255,255,.08); overflow: hidden; }
+.phone img { display: block; width: 100%; }
+.content { position: relative; margin-top: 110px; }
+.list { margin-top: 44px; display: flex; flex-direction: column; gap: 22px; }
+.item { display: flex; gap: 24px; align-items: flex-start; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 26px; padding: 26px 28px; }
+.ico { flex: 0 0 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; font-size: 34px; background: rgba(255,30,142,.16); }
+.item b { display: block; font-weight: 800; font-size: 33px; }
+.item span { display: block; font-weight: 500; font-size: 26px; line-height: 1.35; color: #D8D0EA; margin-top: 6px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 46px; }
+.stat { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 28px; padding: 30px 32px; }
+.stat .n { font-weight: 900; font-size: 76px; letter-spacing: -2px; line-height: 1; }
+.stat .l { font-weight: 600; font-size: 26px; color: #D8D0EA; margin-top: 10px; line-height: 1.3; }
+.price { display: flex; justify-content: space-between; align-items: center; padding: 24px 30px; border-radius: 24px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
+.price .t b { display: block; font-weight: 800; font-size: 34px; }
+.price .t span { display: block; font-weight: 500; font-size: 23px; color: #D8D0EA; margin-top: 4px; }
+.price .v { font-weight: 900; font-size: 46px; white-space: nowrap; text-align: right; }
+.price .v small { display: block; font-weight: 600; font-size: 20px; color: var(--lavande); }
+.price.hot { background: linear-gradient(90deg, rgba(255,30,142,.28), rgba(255,46,56,.18)); border-color: rgba(255,30,142,.6); }
+.price .t span.tag, .tag { display: inline-block; margin-top: 0; color: #fff; font-weight: 800; font-size: 20px; letter-spacing: 2px; padding: 6px 14px; border-radius: 99px; background: var(--grad); color: #fff; margin-left: 12px; vertical-align: middle; }
+.cta { display: inline-block; margin-top: 40px; font-weight: 800; font-size: 34px; padding: 26px 44px; border-radius: 99px; background: var(--grad); box-shadow: 0 18px 40px rgba(255,30,142,.45); }
+.note { font-weight: 500; font-size: 22px; color: var(--lavande); margin-top: 20px; }
+.check { margin-top: 36px; display: flex; flex-direction: column; gap: 18px; }
+.check div { font-weight: 600; font-size: 31px; line-height: 1.3; padding-left: 58px; position: relative; }
+.check div::before { content: "✓"; position: absolute; left: 0; top: -2px; width: 42px; height: 42px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; font-size: 24px; font-weight: 900; }
+.check div.moins::before { content: "→"; background: rgba(255,255,255,.14); }
+#s4 .item { padding: 18px 22px; gap: 18px; }
+#s4 .ico { flex-basis: 54px; height: 54px; font-size: 28px; }
+#s4 .item b { font-size: 29px; }
+#s4 .item span { font-size: 23px; }
+#s2 h2, #s4 h2, #s6 h2 { width: 560px; }
+</style>
+</head>
+<body>
+
+<!-- 1. Couverture -->
+<section class="slide" id="s1">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="page">MEDIA KIT 2026</div>
+  <div class="content" style="margin-top:150px; width:600px;">
+    <div class="kicker">Professionnels</div>
+    <h1>Ton resto, ton bar, ton lieu <span class="g">dans la poche des Toulousains.</span></h1>
+    <p class="lead">Fais-toi connaître sur MaCity, l'app qui dit quoi faire ce soir.</p>
+    <div class="cta">Offre de lancement →</div>
+  </div>
+  <div class="phone" style="right:-30px; top:250px; width:420px; transform: rotate(6deg);"><img src="../visuels/accueil-du-jour.jpg"></div>
+  <div class="foot"><span>MACITY · TOULOUSE</span><span class="swipe">SWIPE</span></div>
+</section>
+
+<!-- 2. Le concept -->
+<section class="slide" id="s2">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="page">01 · LE CONCEPT</div>
+  <div class="content" style="width:530px;">
+    <div class="kicker">L'app</div>
+    <h2>Toute ta ville, <span class="g">en temps réel.</span></h2>
+    <div class="list">
+      <div class="item"><div class="ico">📍</div><div><b>Tout au même endroit</b><span>Restos, soirées, concerts, culture, sport, sorties en famille.</span></div></div>
+      <div class="item"><div class="ico">🔴</div><div><b>Du vrai live</b><span>Stories et carte en direct publiées par la communauté.</span></div></div>
+      <div class="item"><div class="ico">✨</div><div><b>Des idées, pas une liste</b><span>« Quoi faire ce soir », À la une, bons plans, offres exclusives.</span></div></div>
+    </div>
+  </div>
+  <div class="phone" style="right:60px; top:440px; width:360px;"><img src="../visuels/app-ecran-1.jpg"></div>
+  <div class="foot"><span>MACITY · TOULOUSE</span><span class="swipe">SWIPE</span></div>
+</section>
+
+<!-- 3. Audience -->
+<section class="slide" id="s3">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="page">02 · L'AUDIENCE</div>
+  <div class="content">
+    <div class="kicker">Qui nous suit</div>
+    <h2>Des Toulousains qui <span class="g">cherchent où sortir.</span></h2>
+    <div class="stats">
+      <div class="stat"><div class="n g">5 000</div><div class="l">personnes dans la communauté MaCity</div></div>
+      <div class="stat"><div class="n g">7 / 10</div><div class="l">inscrits à Toulouse et dans l'agglo</div></div>
+      <div class="stat"><div class="n">22 000+</div><div class="l">événements à venir dans l'app</div></div>
+      <div class="stat"><div class="n">21 000+</div><div class="l">lieux référencés dans 25 villes</div></div>
+    </div>
+    <p class="lead" style="font-size:30px;">Un public local, au moment exact où il choisit son resto, sa soirée ou sa sortie du week-end.</p>
+  </div>
+  <div class="foot"><span>MACITY · TOULOUSE</span><span class="swipe">SWIPE</span></div>
+</section>
+
+<!-- 4. Formats -->
+<section class="slide" id="s4">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="page">03 · LES FORMATS</div>
+  <div class="content" style="width:560px;">
+    <div class="kicker">Où tu apparais</div>
+    <h2>5 façons <span class="g">d'être vu.</span></h2>
+    <div class="list" style="gap:12px; margin-top:34px;">
+      <div class="item"><div class="ico">🎬</div><div><b>Bannière vidéo</b><span>En tête de rubrique (Food, Night…).</span></div></div>
+      <div class="item"><div class="ico">🏆</div><div><b>« Du jour » sur l'accueil</b><span>Le restaurant du jour, le club du jour…</span></div></div>
+      <div class="item"><div class="ico">📣</div><div><b>Événement sponsorisé</b><span>Ton event « À la une » ou « Au top ».</span></div></div>
+      <div class="item"><div class="ico">⭐</div><div><b>Badge partenaire</b><span>Étoile dorée, point sur la carte, « Nos partenaires ».</span></div></div>
+      <div class="item"><div class="ico">🎁</div><div><b>Offre exclusive</b><span>Ton code promo réservé aux utilisateurs.</span></div></div>
+    </div>
+  </div>
+  <div class="phone" style="right:50px; top:440px; width:360px;"><img src="../visuels/food-banniere-video.jpg"></div>
+  <div class="foot"><span>MACITY · TOULOUSE</span><span class="swipe">SWIPE</span></div>
+</section>
+
+<!-- 5. Tarifs -->
+<section class="slide" id="s5">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="page">04 · LES TARIFS</div>
+  <div class="content">
+    <div class="kicker">Sans engagement</div>
+    <h2>Des formules <span class="g">dès 11,90 €.</span></h2>
+    <div class="list" style="gap:16px; margin-top:38px;">
+      <div class="price"><div class="t"><b>Classique</b><span>Badge, étoile dorée, carte, « Nos partenaires »</span></div><div class="v">11,90 €<small>HT / mois</small></div></div>
+      <div class="price"><div class="t"><b>Gold</b><span>+ « Inspirations du moment » en tête de rubrique</span></div><div class="v">79 €<small>HT / mois</small></div></div>
+      <div class="price hot"><div class="t"><b>Premium <span class="tag">TOP</span></b><span>+ bannière vidéo, « du jour » sur l'accueil, tes events À la une</span></div><div class="v">179 €<small>HT / mois</small></div></div>
+      <div class="price"><div class="t"><b>Exclusivité</b><span>Seul sur la bannière et le « du jour », 100 % du temps</span></div><div class="v">349 €<small>HT / mois · 6 mois</small></div></div>
+      <div class="price"><div class="t"><b>À la carte</b><span>Ton événement « Au top » ou « À la une »</span></div><div class="v">80 / 150 €<small>HT / jour</small></div></div>
+    </div>
+  </div>
+  <div class="foot"><span>MACITY · TOULOUSE</span><span class="swipe">SWIPE</span></div>
+</section>
+
+<!-- 6. Résultats -->
+<section class="slide" id="s6">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="page">05 · LES RÉSULTATS</div>
+  <div class="content" style="width:540px;">
+    <div class="kicker">Mesurable</div>
+    <h2>Tu sais <span class="g">ce que ça rapporte.</span></h2>
+    <p class="lead" style="font-size:30px;">Chaque mois, un relevé de ta visibilité :</p>
+    <div class="check">
+      <div>Consultations de ta fiche</div>
+      <div>Clics vers ton site ou ta réservation</div>
+      <div>Nombre de personnes différentes touchées</div>
+      <div>Évolution d'un mois sur l'autre</div>
+    </div>
+  </div>
+  <div class="phone" style="right:60px; top:420px; width:350px;"><img src="../visuels/food-partenaires-inspirations.jpg"></div>
+  <div class="foot"><span>MACITY · TOULOUSE</span><span class="swipe">SWIPE</span></div>
+</section>
+
+<!-- 7. Offre de lancement -->
+<section class="slide" id="s7">
+  <img class="logo" src="../../charte-graphique/01-logos/png/macity-logo-couleur-fond-sombre.png" alt="MaCity">
+  <div class="page">OFFRE DE LANCEMENT</div>
+  <div class="content">
+    <div class="kicker">Places limitées</div>
+    <h1 style="font-size:84px;">Partenaire découverte : <span class="g">0 €.</span></h1>
+    <div class="check">
+      <div>Fiche complète avec 6 photos</div>
+      <div>Teaser vidéo + vidéo sur nos réseaux</div>
+      <div>Compte pro illimité</div>
+      <div class="moins">En échange : une offre réservée aux utilisateurs MaCity, quelques flyers sur ton comptoir, et ton retour d'expérience</div>
+    </div>
+    <div class="cta">Écris-nous en message privé 💬</div>
+    <p class="note">macity.app · Tarifs HT · BCM SOFT Technologies, Beaupuy (31)</p>
+  </div>
+  <div class="foot"><span>MACITY · TOULOUSE</span><span>MACITY.APP</span></div>
+</section>
+
+</body>
+</html>
