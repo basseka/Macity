@@ -251,6 +251,11 @@ class RubriqueConfig {
   /// Carte de la section « Affinez », sous le carrousel. Null = pas de carte.
   final RefineMapBuilder? refineMapBuilder;
 
+  /// Titre du carrousel remplacé par le chip actif (pastille couleur de la
+  /// rubrique, icône, nom et nombre de lieux) : on voit quel filtre est
+  /// appliqué. Activé pour Night.
+  final bool activeChipAsTitle;
+
   const RubriqueConfig({
     required this.theme,
     required this.eyebrowLeft,
@@ -274,6 +279,7 @@ class RubriqueConfig {
     this.refineTitle,
     this.refineChipsBuilder,
     this.refineMapBuilder,
+    this.activeChipAsTitle = false,
   });
 }
 
@@ -393,7 +399,10 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
             const SizedBox(height: 18),
             _chipsRow(cfg),
             ..._partnerRail(cfg, t),
-            _sectionHeader(cfg.sectionTitle, t),
+            _sectionHeader(cfg.sectionTitle, t,
+                titleWidget: cfg.activeChipAsTitle
+                    ? _activeChipTitle(cfg, itemsAsync.valueOrNull?.length)
+                    : null,),
             itemsAsync.when(
               data: (items) {
                 if (items.isEmpty) {
@@ -642,20 +651,64 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
     );
   }
 
+  /// Pastille du chip actif, en titre du carrousel (voir
+  /// [RubriqueConfig.activeChipAsTitle]).
+  Widget _activeChipTitle(RubriqueConfig cfg, int? count) {
+    final chip = cfg.chips.firstWhere((c) => c.key == _activeChip,
+        orElse: () => cfg.chips.first,);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: cfg.theme.accent,
+        borderRadius: BorderRadius.circular(RubriqueTheme.rPill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(chip.icon, size: 14, color: Colors.white),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              count != null && count > 0
+                  ? '${chip.label} · $count'
+                  : chip.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: RubriqueTheme.chip(color: Colors.white)
+                  .copyWith(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _sectionHeader(String title, RubriqueTheme t,
-      {double? fontSize, bool showAction = true}) {
+      {double? fontSize, bool showAction = true, Widget? titleWidget,}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            title,
-            style: RubriqueTheme.sectionHeader(
-              fontSize: fontSize ?? 14,
+          // La pastille prend toute la largeur libre (sinon, partagée avec
+          // un Spacer, son texte peut disparaître sur petit écran).
+          if (titleWidget != null) ...[
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: titleWidget,
+              ),
             ),
-          ),
-          const Spacer(),
+            const SizedBox(width: 10),
+          ] else ...[
+            Text(
+              title,
+              style: RubriqueTheme.sectionHeader(
+                fontSize: fontSize ?? 14,
+              ),
+            ),
+            const Spacer(),
+          ],
           if (showAction)
             Row(
               mainAxisSize: MainAxisSize.min,
