@@ -479,14 +479,23 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (titleWidget != null)
-            Flexible(child: titleWidget)
-          else
+          // Filtre actif : la pastille prend toute la largeur libre (un
+          // Flexible + Spacer la coupait en deux, le texte disparaissait).
+          if (titleWidget != null) ...[
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: titleWidget,
+              ),
+            ),
+            const SizedBox(width: 10),
+          ] else ...[
             Text(
               title,
               style: FoodTokens.sectionHeader(fontSize: fontSize ?? 14),
             ),
-          const Spacer(),
+            const Spacer(),
+          ],
           if (showAction)
             GestureDetector(
               onTap: onSeeAll,
