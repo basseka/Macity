@@ -253,6 +253,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             _chipsRow(restaurantsAsync.valueOrNull ?? const []),
             ..._partnerSection(restaurantsAsync.valueOrNull ?? const []),
             _sectionHeader(context.l10n.foodChipRestaurants,
+                titleWidget: _activeFilterTitle(
+                    restaurantsAsync.valueOrNull ?? const [],),
                 actionLabel: context.l10n.foodNearestToMe,
                 actionIcon: Icons.near_me_rounded,
                 actionPill: true,
@@ -310,6 +312,45 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             ..._inspirationsSection(),
             ..._cuisineSection(restaurantsAsync.valueOrNull ?? const []),
             _reservationBanner(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Titre du carrousel quand un filtre est actif : pastille teal (comme le
+  /// chip actif) avec icône, nom du filtre, nombre de résultats et croix pour
+  /// revenir à tous les restaurants. Null sans filtre (titre texte normal).
+  Widget? _activeFilterTitle(List<RestaurantVenue> all) {
+    if (_activeChip == 'Restaurants') return null;
+    final chip = _chips.firstWhere((c) => c.label == _activeChip);
+    final count = _filtered(all).length;
+    return GestureDetector(
+      onTap: () => setState(() => _activeChip = 'Restaurants'),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 6, 6, 6),
+        decoration: BoxDecoration(
+          color: FoodTokens.teal,
+          borderRadius: BorderRadius.circular(FoodTokens.rPill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(chip.icon, size: 14, color: Colors.white),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                count > 0
+                    ? '${_chipLabel(context, chip.label)} · $count'
+                    : _chipLabel(context, chip.label),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: FoodTokens.chip(color: Colors.white, w: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.close_rounded, size: 15, color: Colors.white),
           ],
         ),
       ),
@@ -393,7 +434,8 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
       IconData actionIcon = Icons.chevron_right,
       bool actionPill = false,
       bool actionActive = false,
-      bool showAction = true}) {
+      bool showAction = true,
+      Widget? titleWidget}) {
     // actionPill : toggle pastille (plein = actif, contour = inactif).
     // sinon : lien texte discret + chevron.
     final Widget action;
@@ -437,10 +479,13 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            title,
-            style: FoodTokens.sectionHeader(fontSize: fontSize ?? 14),
-          ),
+          if (titleWidget != null)
+            Flexible(child: titleWidget)
+          else
+            Text(
+              title,
+              style: FoodTokens.sectionHeader(fontSize: fontSize ?? 14),
+            ),
           const Spacer(),
           if (showAction)
             GestureDetector(
