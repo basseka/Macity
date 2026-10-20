@@ -39,13 +39,13 @@ class FoodRubriqueView extends ConsumerStatefulWidget {
 
 class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
   static const _chips = <_Chip>[
-    // En tete de ligne. Filtrent le champ `style` (et non le theme) : un
-    // resto gastro reste aussi classe dans sa cuisine (Francais...).
+    _Chip('Restaurants', Icons.restaurant_rounded, null),
+    // Filtrent le champ `style` (et non le theme) : un resto gastro reste
+    // aussi classe dans sa cuisine (Francais...).
     _Chip('Gastronomique', Icons.restaurant_menu_rounded, 'Gastronomique',
         hideWhenEmpty: true, byStyle: true,),
     _Chip('Semi-gastro', Icons.wine_bar_rounded, 'Bistronomique',
         hideWhenEmpty: true, byStyle: true,),
-    _Chip('Restaurants', Icons.restaurant_rounded, null),
     _Chip('Guinguette', Icons.deck_rounded, 'Guinguette'),
     _Chip('Buffets', Icons.room_service_rounded, 'Buffet'),
     _Chip('Salon de Thé', Icons.local_cafe_rounded, 'Salon de the'),
