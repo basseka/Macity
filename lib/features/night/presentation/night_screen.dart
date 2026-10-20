@@ -192,6 +192,10 @@ class NightScreen extends ConsumerWidget {
                         photoUrl: e.value.photo,
                         isVerified: e.value.isVerified,
                         isPartner: e.value.isPartner,
+                        // Coordonnées du lieu : sans elles, « Plus proche de
+                        // moi » n'a aucune distance et ne trie rien. Le tap
+                        // ouvre alors le pager dans l'ordre affiché (trié).
+                        commerce: e.value,
                         // Ouvre le pager swipable avec la fiche detail riche
                         // (teaser, 6 photos, avis, likes, commentaires) —
                         // meme detail que l'ancienne liste Night.
