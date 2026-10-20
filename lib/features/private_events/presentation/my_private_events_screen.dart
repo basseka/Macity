@@ -50,15 +50,15 @@ class _MyPrivateEventsScreenState extends State<MyPrivateEventsScreen> {
     final hostUuid = await UserIdentityService.getUserId();
     if (!mounted) return;
     var changed = false;
-    await showModalBottomSheet<void>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _GuestsSheet(
-        event: event,
-        hostDeviceUuid: hostUuid,
-        onChanged: () => changed = true,
+    // Plein écran (et non plus une feuille à 70 %) : la liste des inscrits
+    // reste lisible même longue, sans rien par-dessus.
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _GuestsSheet(
+          event: event,
+          hostDeviceUuid: hostUuid,
+          onChanged: () => changed = true,
+        ),
       ),
     );
     // Participant retire ou confirmation activee : carte a jour.
@@ -867,42 +867,20 @@ class _GuestsSheetState extends State<_GuestsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border(top: BorderSide(color: AppColors.line)),
-      ),
-      child: SafeArea(
-        top: false,
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          padding: const EdgeInsets.fromLTRB(8, 8, 20, 12),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.lineStrong,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
               Row(
                 children: [
-                  const Icon(
-                    Icons.celebration,
-                    size: 20,
-                    color: AppColors.magenta,
+                  IconButton(
+                    icon: Icon(Icons.arrow_back, color: AppColors.text),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
-                  const SizedBox(width: 8),
                   // Titre court sur la 1re ligne, nom de l'event en petit
                   // dessous : un nom long ne deborde plus de l'ecran.
                   Expanded(
@@ -966,7 +944,9 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Row(
                 children: [
                   _tab(context.l10n.pvTabGuests, _tabIndex == 0,
                       () => setState(() => _tabIndex = 0)),
@@ -985,14 +965,16 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                   ],
                 ],
               ),
+              ),
               const SizedBox(height: 12),
-              if (_tabIndex == 2 && _confFuture != null)
-                Flexible(child: _confirmedList())
-              else if (_tabIndex == 1)
-                Flexible(child: _openersList())
-              else
-              Flexible(
-                child: FutureBuilder<List<PrivateEventRsvp>>(
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: _tabIndex == 2 && _confFuture != null
+                      ? _confirmedList()
+                      : _tabIndex == 1
+                          ? _openersList()
+                          : FutureBuilder<List<PrivateEventRsvp>>(
                   future: _future,
                   builder: (context, snap) {
                     if (snap.connectionState == ConnectionState.waiting) {
@@ -1033,6 +1015,7 @@ class _GuestsSheetState extends State<_GuestsSheet> {
                       ),
                     );
                   },
+                ),
                 ),
               ),
             ],
@@ -1103,28 +1086,17 @@ class _ScrollHintState extends State<_ScrollHint>
         WidgetsBinding.instance.addPostFrameCallback((_) => _update());
         return false;
       },
-      child: Stack(
+      // Indication SOUS la liste (pas par-dessus) : aucune ligne masquée.
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          widget.builder(_ctrl),
+          Flexible(child: widget.builder(_ctrl)),
           if (_more)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: GestureDetector(
+            GestureDetector(
                 onTap: _pageDown,
                 child: Container(
-                  padding: const EdgeInsets.only(top: 28, bottom: 2),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.surface.withValues(alpha: 0),
-                        AppColors.surface,
-                      ],
-                    ),
-                  ),
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(top: 6, bottom: 2),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1155,7 +1127,6 @@ class _ScrollHintState extends State<_ScrollHint>
                   ),
                 ),
               ),
-            ),
         ],
       ),
     );
