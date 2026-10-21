@@ -11,9 +11,9 @@ import 'package:pulz_app/features/private_events/presentation/widgets/home_priva
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/tonight_cta_banner.dart';
 
-/// Haut de la Home regroupé dans une carte sombre (handoff design « piste C ·
-/// Bandeau soirée », 2026-10-21) : profil + ville + Map Live, bouton bon plan
-/// du jour, recherche avec calendrier, raccourcis events privés/invitations.
+/// Haut de la Home (handoff design « piste C · Bandeau soirée », 2026-10-21) :
+/// profil + ville + Map Live et recherche avec calendrier sur le fond clair,
+/// puis une carte sombre avec bon plan du jour + events privés/invitations.
 /// Les onglets À la une / Top / Offres restent dessous, sur le fond clair.
 ///
 /// La recherche et le calendrier restent pilotés par FeedScreen (état de
@@ -32,59 +32,65 @@ class HomeHeaderBand extends ConsumerWidget {
   static const _ink = Color(0xFF2E1A45);
   static const _dim = Color(0xFF6B5A7C);
   static const _pink = Color(0xFFE8177A);
+  static const _text = Color(0xFF1A0B26);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: _ink,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Stack(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Halos : magenta en haut à droite, violet en bas à gauche.
-          const Positioned(
-            top: -200,
-            right: -260,
-            child: _Halo(
-              width: 520,
-              height: 400,
-              color: Color(0xA6E8177A),
-            ),
+          _ProfileRow(),
+          const SizedBox(height: 9),
+          _SearchField(
+            onSearchTap: onSearchTap,
+            onCalendarTap: onCalendarTap,
           ),
-          const Positioned(
-            bottom: -220,
-            left: -260,
-            child: _Halo(
-              width: 520,
-              height: 440,
-              color: Color(0xB37B3FE4),
+          const SizedBox(height: 8),
+          // Depuis le 2026-10-21, la carte sombre n'englobe plus que la
+          // ligne bons plans + events privés + invitations ; profil et
+          // recherche passent sur le fond clair au-dessus.
+          Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: _ink,
+              borderRadius: BorderRadius.circular(20),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: const Stack(
               children: [
-                _ProfileRow(),
-                const SizedBox(height: 9),
-                _SearchField(
-                  onSearchTap: onSearchTap,
-                  onCalendarTap: onCalendarTap,
+                // Halos : magenta en haut à droite, violet en bas à gauche.
+                Positioned(
+                  top: -200,
+                  right: -260,
+                  child: _Halo(
+                    width: 520,
+                    height: 400,
+                    color: Color(0xA6E8177A),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                // Bons plans + events privés + invitations sur une ligne, à
-                // la même hauteur (demande du 2026-10-21).
-                const IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(flex: 2, child: TonightCtaBanner()),
-                      SizedBox(width: 6),
-                      Flexible(flex: 3, child: HomePrivateButtons()),
-                    ],
+                Positioned(
+                  bottom: -220,
+                  left: -260,
+                  child: _Halo(
+                    width: 520,
+                    height: 440,
+                    color: Color(0xB37B3FE4),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8),
+                  // Bons plans + events privés + invitations sur une ligne,
+                  // à la même hauteur.
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(flex: 2, child: TonightCtaBanner()),
+                        SizedBox(width: 6),
+                        Flexible(flex: 3, child: HomePrivateButtons()),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -192,7 +198,7 @@ class _ProfileRow extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.outfit(
                       fontSize: 9,
-                      color: const Color(0xFFCBBDE0),
+                      color: HomeHeaderBand._dim,
                     ),
                   ),
                 Row(
@@ -206,7 +212,7 @@ class _ProfileRow extends ConsumerWidget {
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
                           height: 1.15,
-                          color: Colors.white,
+                          color: HomeHeaderBand._text,
                         ),
                       ),
                     ),
@@ -214,7 +220,7 @@ class _ProfileRow extends ConsumerWidget {
                     const Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 14,
-                      color: Colors.white,
+                      color: HomeHeaderBand._text,
                     ),
                   ],
                 ),
@@ -224,7 +230,6 @@ class _ProfileRow extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
         MapLivePill(
-          onDark: true,
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(builder: (_) => const MapLivePage()),
           ),
@@ -248,6 +253,14 @@ class _SearchField extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: const Color(0x141A0B26)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
