@@ -8,6 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
+import 'package:pulz_app/core/l10n/locale_provider.dart';
+import 'package:pulz_app/core/services/lieu_deeplink_service.dart';
+import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
@@ -303,6 +306,11 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
   }
 
   void _handleMarkerTap(String id) {
+    // Pin partenaire : « partner:<table>:<id> », ouvre la fiche du lieu.
+    if (id.startsWith('partner:')) {
+      _openPartner(id);
+      return;
+    }
     final idx = _lastEvents.indexWhere((e) => e.id == id);
     if (idx < 0) return;
     ReportedEventsPagedSheet.open(
@@ -310,6 +318,22 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
       events: _lastEvents,
       initialIndex: idx,
     );
+  }
+
+  Future<void> _openPartner(String key) async {
+    final parts = key.split(':');
+    final id = parts.length == 3 ? int.tryParse(parts[2]) : null;
+    if (id == null) return;
+    final commerce = await LieuDeeplinkService().fetchById(parts[1], id);
+    if (!mounted) return;
+    if (commerce == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.mapPartnerLoadError)),
+      );
+      return;
+    }
+    CommerceRowCard.openDetail(context, commerce,
+        isRestaurant: parts[1] == 'etablissements',);
   }
 
   Future<void> _injectMarkers(List<ReportedEvent> events) async {
@@ -348,6 +372,7 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
         'lat': p.lat,
         'lng': p.lng,
         'top': p.isTopTier,
+        'key': 'partner:${p.table}:${p.id}',
       });
     }
     await _controller.runJavaScript('setPartners(${jsonEncode(list)}); void 0;');
@@ -649,7 +674,8 @@ class _ReportedEventsMapState extends ConsumerState<ReportedEventsMap> {
             iconAnchor: [13, 13],
           }),
         })
-          .bindPopup('<b>' + name + '</b><br>Partenaire MaCity', { offset: [0, -8] })
+          // Tap : ouvre la fiche du partenaire cote Flutter (2026-10-21).
+          .on('click', () => FlutterReportTap.postMessage(p.key))
           .addTo(partnerLayer);
       });
     }

@@ -1276,5 +1276,6 @@
   "tqSeeAllEvents": "See all of tonight's events",
   "tqStartAt": "Start: {lieu}",
   "tqGoThere": "Go there",
-  "tqMinutes": "{n} min"
+  "tqMinutes": "{n} min",
+  "mapPartnerLoadError": "Couldn't open this partner's page"
 }

@@ -4264,4 +4264,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String tqMinutes(int n) {
     return '$n min';
   }
+
+  @override
+  String get mapPartnerLoadError => 'No se pudo abrir la ficha del socio';
 }

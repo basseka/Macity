@@ -4241,4 +4241,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String tqMinutes(int n) {
     return '$n min';
   }
+
+  @override
+  String get mapPartnerLoadError => 'Couldn\'t open this partner\'s page';
 }

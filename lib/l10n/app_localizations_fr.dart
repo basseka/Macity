@@ -4281,4 +4281,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String tqMinutes(int n) {
     return '$n min';
   }
+
+  @override
+  String get mapPartnerLoadError =>
+      'Impossible d\'ouvrir la fiche du partenaire';
 }

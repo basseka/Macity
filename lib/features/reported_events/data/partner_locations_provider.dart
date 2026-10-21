@@ -17,7 +17,18 @@ class PartnerLocation {
   /// `premium`, `gold`, `classique` ou null (partenaire marqué à la main).
   final String? tier;
 
-  const PartnerLocation(this.name, this.lat, this.lng, {this.tier});
+  /// Table source et id : servent à ouvrir la fiche au tap sur le pin.
+  final String table;
+  final int id;
+
+  const PartnerLocation(
+    this.name,
+    this.lat,
+    this.lng, {
+    this.tier,
+    this.table = '',
+    this.id = 0,
+  });
 
   /// Formule payante haute (Premium / Gold) : pin vert ; sinon orange.
   bool get isTopTier => tier == 'premium' || tier == 'gold';
@@ -32,7 +43,7 @@ final partnerLocationsProvider =
   final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl)
     ..interceptors.add(SupabaseInterceptor());
 
-  List<PartnerLocation> parse(dynamic data, String nameKey) {
+  List<PartnerLocation> parse(dynamic data, String table, String nameKey) {
     if (data is! List) return const [];
     final out = <PartnerLocation>[];
     for (final e in data) {
@@ -46,6 +57,8 @@ final partnerLocationsProvider =
         lat,
         lng,
         tier: (e['partner_tier'] as String?)?.trim().toLowerCase(),
+        table: table,
+        id: (e['id'] as num?)?.toInt() ?? 0,
       ),);
     }
     return out;
@@ -55,11 +68,11 @@ final partnerLocationsProvider =
   Future<List<PartnerLocation>> load(String table, String nameKey) async {
     try {
       final res = await dio.get<dynamic>(table, queryParameters: {
-        'select': '$nameKey,latitude,longitude,partner_tier',
+        'select': 'id,$nameKey,latitude,longitude,partner_tier',
         'is_partner': 'eq.true',
         'is_active': 'eq.true',
       },);
-      return parse(res.data, nameKey);
+      return parse(res.data, table, nameKey);
     } on DioException {
       return const [];
     }

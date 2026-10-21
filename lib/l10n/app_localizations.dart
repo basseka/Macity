@@ -7761,6 +7761,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{n} min'**
   String tqMinutes(int n);
+
+  /// No description provided for @mapPartnerLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir la fiche du partenaire'**
+  String get mapPartnerLoadError;
 }
 
 class _AppLocalizationsDelegate

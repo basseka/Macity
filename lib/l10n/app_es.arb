@@ -1276,5 +1276,6 @@
   "tqSeeAllEvents": "Ver todos los eventos de esta noche",
   "tqStartAt": "Salida: {lieu}",
   "tqGoThere": "Ir",
-  "tqMinutes": "{n} min"
+  "tqMinutes": "{n} min",
+  "mapPartnerLoadError": "No se pudo abrir la ficha del socio"
 }

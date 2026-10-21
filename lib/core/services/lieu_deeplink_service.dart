@@ -32,6 +32,8 @@ class LieuDeeplinkService {
     'sport_venue': 'sport_venues',
     'family_venue': 'family_venues',
     'family_venues': 'family_venues',
+    // Pins partenaires de la Map Live (Évasion).
+    'evasion_venues': 'evasion_venues',
   };
 
   Future<CommerceModel?> fetchById(String sourceTable, int id) async {
@@ -74,7 +76,9 @@ class LieuDeeplinkService {
         : <String>[];
 
     // sourceTable singulier attendu par les reviews/claim cote detail.
-    final singular = sourceTable.endsWith('s') && sourceTable != 'sport_venues'
+    final singular = sourceTable.endsWith('s') &&
+            sourceTable != 'sport_venues' &&
+            sourceTable != 'evasion_venues'
         ? sourceTable.substring(0, sourceTable.length - 1)
         : sourceTable;
 

@@ -2087,5 +2087,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "mapPartnerLoadError": "Impossible d'ouvrir la fiche du partenaire"
 }
