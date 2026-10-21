@@ -32,7 +32,8 @@ class HomeHeaderBand extends ConsumerWidget {
   static const _ink = Color(0xFF2E1A45);
   static const _dim = Color(0xFF6B5A7C);
   static const _pink = Color(0xFFE8177A);
-  static const _text = Color(0xFF1A0B26);
+  // Nom de la ville en noir franc (demande 2026-10-21).
+  static const _text = Color(0xFF000000);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
