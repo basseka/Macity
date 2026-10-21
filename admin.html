@@ -1202,7 +1202,7 @@
           <span class="nav-btn" id="goto-moderation-btn">🛡️ Modération</span>
           <span class="nav-btn" id="goto-interest-btn">📊 Intérêt</span>
           <span class="nav-btn" id="goto-appversions-btn">🚀 MAJ App</span>
-          <span class="nav-btn" id="goto-pubprices-btn">💶 Tarifs publi</span>
+          <span class="nav-btn" id="goto-pubprices-btn" style="border: 2px solid #facc15;">💶 Tarifs publi</span>
           <span class="nav-btn" id="goto-storyttl-btn">⏱️ Durée stories</span>
           <span class="nav-btn" id="goto-parcours-btn">🌙 Parcours soirée</span>
           <span class="nav-btn" id="goto-userstats-btn" style="border: 2px solid #22c55e;">👥 Utilisateurs</span>
@@ -2273,8 +2273,10 @@
         <!-- ─── Statistiques de publication (events publics payés / mois) ─── -->
         <div style="margin-top:36px; border-top:1px solid var(--line-strong); padding-top:24px;">
           <h2 style="font-size:18px; margin:0 0 4px;">📊 Events publics publiés</h2>
-          <p class="subtitle" style="margin-top:0;">Nombre d'events publics payés et chiffre d'affaires, par mois (source : paiements confirmés).</p>
-          <div id="pubstats-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin:16px 0 22px;"></div>
+          <p class="subtitle" style="margin-top:0;">Nombre d'events publics payés et chiffre d'affaires : cette semaine, ce mois-ci, cette année, puis le détail par mois (source : paiements confirmés).</p>
+          <div id="pubstats-cards" style="display:flex; flex-direction:column; gap:10px; margin:16px 0 22px;"></div>
+          <h3 style="font-size:15px; margin:4px 0 4px;">Mois par mois</h3>
+          <p class="subtitle" style="margin-top:0;">Tous les mois de l'année en cours (même à zéro), puis les mois précédents qui ont eu des ventes.</p>
           <div id="pubstats-table" style="overflow-x:auto;"></div>
 
           <h3 style="font-size:15px; margin:28px 0 4px;">Détail — qui a publié ?</h3>
@@ -5899,25 +5901,52 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         totalCents += cents;
       }
 
-      // Mois courant
-      const nowYm = new Date().toISOString().slice(0, 7);
-      const curr = months[nowYm] || { count: 0, cents: 0 };
       const eur = (c) => (c / 100).toFixed(2).replace(".", ",") + " €";
 
-      // Cartes récap
-      const cards = [
-        { label: "Events publiés (total)", value: totalCount, color: "#6366f1" },
-        { label: "CA total", value: eur(totalCents), color: "#16a34a" },
-        { label: "Ce mois-ci", value: curr.count, color: "#3b82f6" },
-        { label: "CA ce mois", value: eur(curr.cents), color: "#16a34a" },
-      ];
-      cardsEl.innerHTML = cards.map(c => `
-        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; text-align:center;">
-          <div style="font-size:24px; font-weight:700; color:${c.color};">${c.value}</div>
-          <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">${c.label}</div>
-        </div>`).join("");
+      // Récap par période, en heure locale : cette semaine (depuis lundi
+      // 0h), ce mois-ci, cette année. Une ligne par période, de la plus
+      // courte à la plus longue.
+      const now = new Date();
+      const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      const periods = [
+        { label: "Cette semaine", sub: `depuis le lundi ${weekStart.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`, from: weekStart, color: "#3b82f6" },
+        { label: "Ce mois-ci", sub: now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }), from: monthStart, color: "#6366f1" },
+        { label: "Cette année", sub: String(now.getFullYear()), from: yearStart, color: "#a855f7" },
+      ].map(p => {
+        const inP = rows.filter(r => r.created_at && new Date(r.created_at) >= p.from);
+        const byTier = { P1: 0, P2: 0, P3: 0 };
+        for (const r of inP) if (byTier[r.priority] != null) byTier[r.priority]++;
+        return { ...p, count: inP.length, cents: inP.reduce((a, r) => a + (r.amount || 0), 0), byTier };
+      });
+      cardsEl.innerHTML = periods.map(p => `
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-left:4px solid ${p.color}; border-radius:12px; padding:14px 18px;">
+          <div style="flex:1; min-width:150px;">
+            <div style="font-size:15px; font-weight:700;">${p.label}</div>
+            <div style="font-size:12px; color:var(--text-dim);">${escapeHtml(p.sub)}</div>
+          </div>
+          <div style="text-align:center; min-width:90px;">
+            <div style="font-size:22px; font-weight:700; color:${p.color};">${p.count}</div>
+            <div style="font-size:11px; color:var(--text-dim);">events publiés</div>
+          </div>
+          <div style="text-align:center; min-width:120px; font-size:12px; color:#A6B4F5;">
+            ${PUB_PRIORITY_LABELS.P1} ${p.byTier.P1} · ${PUB_PRIORITY_LABELS.P2} ${p.byTier.P2} · ${PUB_PRIORITY_LABELS.P3} ${p.byTier.P3}
+          </div>
+          <div style="text-align:right; min-width:110px;">
+            <div style="font-size:22px; font-weight:700; color:#16a34a;">${eur(p.cents)}</div>
+            <div style="font-size:11px; color:var(--text-dim);">CA</div>
+          </div>
+        </div>`).join("") + `
+        <div style="font-size:12px; color:var(--text-faint); text-align:right;">Depuis le début : ${totalCount} events · ${eur(totalCents)}</div>`;
 
-      // Tableau par mois (du plus récent au plus ancien)
+      // Tableau par mois (du plus récent au plus ancien). Les mois de l'année
+      // en cours sans vente apparaissent aussi, à zéro : on voit les creux.
+      for (let mo = 0; mo <= now.getMonth(); mo++) {
+        const ym = `${now.getFullYear()}-${String(mo + 1).padStart(2, "0")}`;
+        months[ym] ??= { count: 0, cents: 0, byTier: { P1: 0, P2: 0, P3: 0 } };
+      }
       const sortedMonths = Object.keys(months).sort().reverse();
       const fmtMonth = (ym) => {
         const [y, m] = ym.split("-");
