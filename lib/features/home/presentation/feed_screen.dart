@@ -4,6 +4,7 @@ import 'package:pulz_app/core/services/deep_link_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/core/widgets/branded/gradient_pill_button.dart';
 import 'package:pulz_app/features/home/presentation/widgets/boosted_events_carousel.dart';
+import 'package:pulz_app/features/home/presentation/widgets/home_header_band.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -66,8 +67,6 @@ import 'package:pulz_app/features/home/state/search_intent_provider.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/partners_of_day_section.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_live_stripe.dart';
 import 'package:pulz_app/features/reported_events/presentation/widgets/reported_events_map.dart';
-import 'package:pulz_app/features/private_events/presentation/widgets/home_private_buttons.dart';
-import 'package:pulz_app/features/reported_events/presentation/widgets/tonight_cta_banner.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
 import 'package:pulz_app/features/reported_events/presentation/snap_camera_screen.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
@@ -876,31 +875,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-          child: _buildBrandRow(),
+        // Haut de la Home dans une carte sombre (piste C « Bandeau soirée »).
+        HomeHeaderBand(
+          onSearchTap: () => setState(() => _isSearching = true),
+          onCalendarTap: _pickDatesAndSearch,
         ),
-        const SizedBox(height: 10),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _buildHomeSearchRow(),
-        ),
-        const SizedBox(height: 13),
-        // Visible sans scroller (contrairement a la bulle du meme nom, plus
-        // bas dans PartnersOfDaySection) : meme action, juste remontee.
-        // Geometrie (hauteur 74, marges 13) : voir BOUTON_CE_SOIR.md.
-        // Raccourcis events privés / invitations sur la même ligne.
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(child: TonightCtaBanner()),
-              SizedBox(width: 8),
-              HomePrivateButtons(),
-            ],
-          ),
-        ),
-        const SizedBox(height: 13),
         const HomeQuickPills(),
         const SizedBox(height: 4),
         boostedCarousel,
@@ -913,74 +892,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         const SizedBox(height: 90),
       ],
       ),
-    );
-  }
-
-  /// Barre de recherche home + bouton filtre séparé (mockup).
-  Widget _buildHomeSearchRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _isSearching = true),
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0x141A0F2E)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 6,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 13),
-                  const Icon(Icons.search,
-                      color: Color(0xFF8A819F), size: 17),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.l10n.feedSearchPlaceholder,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.geist(
-                        fontSize: 12.5,
-                        color: const Color(0xFF8A819F),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: _pickDatesAndSearch,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFFFF),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0x141A0F2E)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x12000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.calendar_month_rounded,
-                color: AppColors.magenta, size: 17),
-          ),
-        ),
-      ],
     );
   }
 

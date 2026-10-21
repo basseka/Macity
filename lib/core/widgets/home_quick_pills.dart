@@ -41,38 +41,33 @@ class HomeQuickPills extends ConsumerWidget {
     ref.watch(boostedEventsProvider);
     ref.watch(boostedP2EventsProvider);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: _Pill(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _Pill(
               icon: Icons.star_rounded,
               label: context.l10n.homeBadgeFeatured,
               isActive: tab == BoostedCarouselTab.featured,
-              onTap: () => ref.read(boostedCarouselTabProvider.notifier).state =
-                  BoostedCarouselTab.featured,
+              onTap: () => ref.read(boostedCarouselTabProvider.notifier)
+                  .state = BoostedCarouselTab.featured,
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _Pill(
-              icon: Icons.trending_up_rounded,
+            const SizedBox(width: 8),
+            _Pill(
               label: context.l10n.homePillTop,
               isActive: tab == BoostedCarouselTab.top,
-              onTap: () => ref.read(boostedCarouselTabProvider.notifier).state =
-                  BoostedCarouselTab.top,
+              onTap: () => ref.read(boostedCarouselTabProvider.notifier)
+                  .state = BoostedCarouselTab.top,
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _Pill(
-              icon: Icons.card_giftcard_rounded,
+            const SizedBox(width: 8),
+            _Pill(
               label: context.l10n.feedMenuOffers,
               isActive: false,
               onTap: () => context.go('/explorer'),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -83,7 +78,11 @@ class HomeQuickPills extends ConsumerWidget {
 /// fait clignoter la pill en jaune quand il y a du contenu.
 class MapLivePill extends ConsumerStatefulWidget {
   final VoidCallback onTap;
-  const MapLivePill({super.key, required this.onTap});
+
+  /// Variante pour le bandeau sombre de la Home (piste C) : pastille
+  /// translucide, texte blanc « Map Live · 14 », point jaune.
+  final bool onDark;
+  const MapLivePill({super.key, required this.onTap, this.onDark = false});
 
   @override
   ConsumerState<MapLivePill> createState() => MapLivePillState();
@@ -140,6 +139,40 @@ class MapLivePillState extends ConsumerState<MapLivePill>
           // Interpole l'opacite du glow jaune pour faire pulser quand il
           // y a du contenu. Sinon : pill statique avec accent violet.
           final t = hasContent ? _blinkAnim.value : 0.0;
+          if (widget.onDark) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: hasContent
+                          ? Color.lerp(const Color(0xFFFFC93C), _yellowHi, t)
+                          : const Color(0xFFD6D2C8),
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    'Map Live · $total',
+                    maxLines: 1,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
           return Container(
             height: 32,
             padding: const EdgeInsets.fromLTRB(10, 0, 7, 0),
@@ -221,90 +254,55 @@ class MapLivePillState extends ConsumerState<MapLivePill>
   }
 }
 
+/// Onglet en pilule (piste C) : blanc bordé au repos, rose plein quand
+/// actif. L'étoile n'accompagne que « À la une ».
 class _Pill extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String label;
   final VoidCallback onTap;
-  final Color? iconColor;
   final bool isActive;
 
   const _Pill({
-    required this.icon,
     required this.label,
     required this.onTap,
+    this.icon,
     this.isActive = false,
-    this.iconColor,
   });
+
+  static const _pink = Color(0xFFE8177A);
+  static const _dim = Color(0xFF6B5A7C);
 
   @override
   Widget build(BuildContext context) {
+    final fg = isActive ? Colors.white : _dim;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
-        height: 34,
-        padding: const EdgeInsets.symmetric(horizontal: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
         decoration: BoxDecoration(
-          color: isActive ? null : const Color(0xFFFFFFFF),
-          gradient: isActive
-              ? const LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [Color(0xFFFF1E6E), Color(0xFFFF5A93)],
-                )
-              : null,
-          borderRadius: BorderRadius.circular(16),
-          border: isActive
-              ? Border.all(color: const Color(0xFF060B2D), width: 1.5)
-              : Border.all(color: const Color(0x141A0F2E), width: 1),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFFFF1E6E).withValues(alpha: 0.45),
-                    blurRadius: 16,
-                    spreadRadius: -2,
-                    offset: const Offset(0, 4),
-                  ),
-                  BoxShadow(
-                    color: const Color(0xFFFF1E6E).withValues(alpha: 0.30),
-                    blurRadius: 14,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : const [
-                  BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+          color: isActive ? _pink : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: isActive ? _pink : const Color(0x141A0B26),
+          ),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 13,
-              color: isActive
-                  ? Colors.white
-                  : (iconColor ?? AppColors.magenta),
-            ),
-            const SizedBox(width: 5),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.inter(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.2,
-                  color: isActive
-                      ? Colors.white
-                      : const Color(0xFF1A0F2E),
-                ),
+            if (icon != null) ...[
+              Icon(icon, size: 11, color: fg),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              maxLines: 1,
+              style: GoogleFonts.outfit(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: fg,
               ),
             ),
           ],
