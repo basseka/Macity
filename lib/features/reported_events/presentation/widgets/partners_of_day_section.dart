@@ -13,7 +13,8 @@ import 'package:pulz_app/core/widgets/tonight_neon_disc.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/reported_events/data/city_media_service.dart';
 import 'package:pulz_app/features/reported_events/data/partners_of_day_service.dart';
-import 'package:pulz_app/features/reported_events/presentation/screens/tonight_bons_plans_page.dart';
+import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/tonight_quiz/presentation/tonight_quiz_sheet.dart';
 import 'package:pulz_app/features/reported_events/state/tonight_events_provider.dart';
 
 /// Sous « En direct autour de vous » : 6 encarts « du jour », un par rubrique,
@@ -115,10 +116,11 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
           TonightNeonDisc(
             label: context.l10n.tonightWhatToDo,
             eventCount: ref.watch(nightEventsCountProvider),
-            onTap: () => TonightBonsPlansPage.show(
+            // Questionnaire (avec qui, envies, quand) puis propositions ;
+            // la liste complete des events reste accessible en bas.
+            onTap: () => TonightQuizSheet.show(
               context,
-              nightOnly: true,
-              title: context.l10n.tonightWhatToDo,
+              ville: ref.read(selectedCityProvider),
             ),
           ),
           for (final m in media) _mediaBubble(m),

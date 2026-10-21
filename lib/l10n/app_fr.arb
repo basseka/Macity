@@ -2017,5 +2017,75 @@
   "tripSlotDinner": "Dîner",
   "tripSlotDrink": "Un verre en bar",
   "tripSlotClub": "Fin de soirée en discothèque",
-  "tripMusicAny": "Peu importe"
+  "tripMusicAny": "Peu importe",
+  "tqQWho": "Tu sors avec qui ?",
+  "tqQWhoSub": "On adapte les idées à ta soirée.",
+  "tqSolo": "Solo",
+  "tqSoloSub": "Juste moi",
+  "tqCouple": "En couple",
+  "tqCoupleSub": "Une soirée à deux",
+  "tqFriends": "Entre amis",
+  "tqFriendsSub": "En bande",
+  "tqFamily": "En famille",
+  "tqFamilySub": "Avec les enfants",
+  "tqQWhat": "Envie de quoi ?",
+  "tqQWhatSub": "Plusieurs choix possibles.",
+  "tqConcert": "Un concert",
+  "tqConcertSub": "Du live ce soir",
+  "tqParty": "Une soirée",
+  "tqPartySub": "Club, DJ, danser",
+  "tqCocktail": "Boire un cocktail",
+  "tqCocktailSub": "Bars à cocktails et bars de nuit",
+  "tqWalk": "Se promener",
+  "tqWalkSub": "Balades du soir dans la ville",
+  "tqActivity": "Une activité nocturne",
+  "tqActivitySub": "Escape game, bowling, cinéma…",
+  "tqShow": "Un spectacle",
+  "tqShowSub": "Théâtre, humour, danse",
+  "tqQWhen": "Quand ?",
+  "tqQWhenSub": "On cherche ce qui colle à ton horaire.",
+  "tqNow": "Maintenant",
+  "tqNowSub": "Dans les 2 prochaines heures",
+  "tqAfterDinner": "Après dîner",
+  "tqAfterDinnerSub": "Entre 20 h et 22 h 30",
+  "tqLate": "Tard dans la nuit",
+  "tqLateSub": "À partir de 22 h",
+  "tqSeeIdeas": "Voir mes idées",
+  "tqYourEvening": "Ta soirée à {ville}",
+  "@tqYourEvening": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "tqEventsTonight": "Ce soir",
+  "tqEventsOtherTime": "Rien à cette heure-là, mais ce soir :",
+  "tqPlaces": "Où aller",
+  "tqNothing": "Rien trouvé pour ça ce soir à {ville}.",
+  "@tqNothing": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "tqSeeAllEvents": "Voir tous les events de ce soir",
+  "tqStartAt": "Départ : {lieu}",
+  "@tqStartAt": {
+    "placeholders": {
+      "lieu": {
+        "type": "String"
+      }
+    }
+  },
+  "tqGoThere": "Y aller",
+  "tqMinutes": "{n} min",
+  "@tqMinutes": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
 }

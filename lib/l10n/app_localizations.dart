@@ -7509,6 +7509,258 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Peu importe'**
   String get tripMusicAny;
+
+  /// No description provided for @tqQWho.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu sors avec qui ?'**
+  String get tqQWho;
+
+  /// No description provided for @tqQWhoSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On adapte les idées à ta soirée.'**
+  String get tqQWhoSub;
+
+  /// No description provided for @tqSolo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solo'**
+  String get tqSolo;
+
+  /// No description provided for @tqSoloSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Juste moi'**
+  String get tqSoloSub;
+
+  /// No description provided for @tqCouple.
+  ///
+  /// In fr, this message translates to:
+  /// **'En couple'**
+  String get tqCouple;
+
+  /// No description provided for @tqCoupleSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une soirée à deux'**
+  String get tqCoupleSub;
+
+  /// No description provided for @tqFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entre amis'**
+  String get tqFriends;
+
+  /// No description provided for @tqFriendsSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'En bande'**
+  String get tqFriendsSub;
+
+  /// No description provided for @tqFamily.
+  ///
+  /// In fr, this message translates to:
+  /// **'En famille'**
+  String get tqFamily;
+
+  /// No description provided for @tqFamilySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec les enfants'**
+  String get tqFamilySub;
+
+  /// No description provided for @tqQWhat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envie de quoi ?'**
+  String get tqQWhat;
+
+  /// No description provided for @tqQWhatSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plusieurs choix possibles.'**
+  String get tqQWhatSub;
+
+  /// No description provided for @tqConcert.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un concert'**
+  String get tqConcert;
+
+  /// No description provided for @tqConcertSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Du live ce soir'**
+  String get tqConcertSub;
+
+  /// No description provided for @tqParty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une soirée'**
+  String get tqParty;
+
+  /// No description provided for @tqPartySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Club, DJ, danser'**
+  String get tqPartySub;
+
+  /// No description provided for @tqCocktail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Boire un cocktail'**
+  String get tqCocktail;
+
+  /// No description provided for @tqCocktailSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bars à cocktails et bars de nuit'**
+  String get tqCocktailSub;
+
+  /// No description provided for @tqWalk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se promener'**
+  String get tqWalk;
+
+  /// No description provided for @tqWalkSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Balades du soir dans la ville'**
+  String get tqWalkSub;
+
+  /// No description provided for @tqActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une activité nocturne'**
+  String get tqActivity;
+
+  /// No description provided for @tqActivitySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escape game, bowling, cinéma…'**
+  String get tqActivitySub;
+
+  /// No description provided for @tqShow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un spectacle'**
+  String get tqShow;
+
+  /// No description provided for @tqShowSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Théâtre, humour, danse'**
+  String get tqShowSub;
+
+  /// No description provided for @tqQWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quand ?'**
+  String get tqQWhen;
+
+  /// No description provided for @tqQWhenSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On cherche ce qui colle à ton horaire.'**
+  String get tqQWhenSub;
+
+  /// No description provided for @tqNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenant'**
+  String get tqNow;
+
+  /// No description provided for @tqNowSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans les 2 prochaines heures'**
+  String get tqNowSub;
+
+  /// No description provided for @tqAfterDinner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Après dîner'**
+  String get tqAfterDinner;
+
+  /// No description provided for @tqAfterDinnerSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entre 20 h et 22 h 30'**
+  String get tqAfterDinnerSub;
+
+  /// No description provided for @tqLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tard dans la nuit'**
+  String get tqLate;
+
+  /// No description provided for @tqLateSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'À partir de 22 h'**
+  String get tqLateSub;
+
+  /// No description provided for @tqSeeIdeas.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir mes idées'**
+  String get tqSeeIdeas;
+
+  /// No description provided for @tqYourEvening.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ta soirée à {ville}'**
+  String tqYourEvening(String ville);
+
+  /// No description provided for @tqEventsTonight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce soir'**
+  String get tqEventsTonight;
+
+  /// No description provided for @tqEventsOtherTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à cette heure-là, mais ce soir :'**
+  String get tqEventsOtherTime;
+
+  /// No description provided for @tqPlaces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où aller'**
+  String get tqPlaces;
+
+  /// No description provided for @tqNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien trouvé pour ça ce soir à {ville}.'**
+  String tqNothing(String ville);
+
+  /// No description provided for @tqSeeAllEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tous les events de ce soir'**
+  String get tqSeeAllEvents;
+
+  /// No description provided for @tqStartAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ : {lieu}'**
+  String tqStartAt(String lieu);
+
+  /// No description provided for @tqGoThere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Y aller'**
+  String get tqGoThere;
+
+  /// No description provided for @tqMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} min'**
+  String tqMinutes(int n);
 }
 
 class _AppLocalizationsDelegate

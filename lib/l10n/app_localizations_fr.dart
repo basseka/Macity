@@ -4147,4 +4147,138 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tripMusicAny => 'Peu importe';
+
+  @override
+  String get tqQWho => 'Tu sors avec qui ?';
+
+  @override
+  String get tqQWhoSub => 'On adapte les idées à ta soirée.';
+
+  @override
+  String get tqSolo => 'Solo';
+
+  @override
+  String get tqSoloSub => 'Juste moi';
+
+  @override
+  String get tqCouple => 'En couple';
+
+  @override
+  String get tqCoupleSub => 'Une soirée à deux';
+
+  @override
+  String get tqFriends => 'Entre amis';
+
+  @override
+  String get tqFriendsSub => 'En bande';
+
+  @override
+  String get tqFamily => 'En famille';
+
+  @override
+  String get tqFamilySub => 'Avec les enfants';
+
+  @override
+  String get tqQWhat => 'Envie de quoi ?';
+
+  @override
+  String get tqQWhatSub => 'Plusieurs choix possibles.';
+
+  @override
+  String get tqConcert => 'Un concert';
+
+  @override
+  String get tqConcertSub => 'Du live ce soir';
+
+  @override
+  String get tqParty => 'Une soirée';
+
+  @override
+  String get tqPartySub => 'Club, DJ, danser';
+
+  @override
+  String get tqCocktail => 'Boire un cocktail';
+
+  @override
+  String get tqCocktailSub => 'Bars à cocktails et bars de nuit';
+
+  @override
+  String get tqWalk => 'Se promener';
+
+  @override
+  String get tqWalkSub => 'Balades du soir dans la ville';
+
+  @override
+  String get tqActivity => 'Une activité nocturne';
+
+  @override
+  String get tqActivitySub => 'Escape game, bowling, cinéma…';
+
+  @override
+  String get tqShow => 'Un spectacle';
+
+  @override
+  String get tqShowSub => 'Théâtre, humour, danse';
+
+  @override
+  String get tqQWhen => 'Quand ?';
+
+  @override
+  String get tqQWhenSub => 'On cherche ce qui colle à ton horaire.';
+
+  @override
+  String get tqNow => 'Maintenant';
+
+  @override
+  String get tqNowSub => 'Dans les 2 prochaines heures';
+
+  @override
+  String get tqAfterDinner => 'Après dîner';
+
+  @override
+  String get tqAfterDinnerSub => 'Entre 20 h et 22 h 30';
+
+  @override
+  String get tqLate => 'Tard dans la nuit';
+
+  @override
+  String get tqLateSub => 'À partir de 22 h';
+
+  @override
+  String get tqSeeIdeas => 'Voir mes idées';
+
+  @override
+  String tqYourEvening(String ville) {
+    return 'Ta soirée à $ville';
+  }
+
+  @override
+  String get tqEventsTonight => 'Ce soir';
+
+  @override
+  String get tqEventsOtherTime => 'Rien à cette heure-là, mais ce soir :';
+
+  @override
+  String get tqPlaces => 'Où aller';
+
+  @override
+  String tqNothing(String ville) {
+    return 'Rien trouvé pour ça ce soir à $ville.';
+  }
+
+  @override
+  String get tqSeeAllEvents => 'Voir tous les events de ce soir';
+
+  @override
+  String tqStartAt(String lieu) {
+    return 'Départ : $lieu';
+  }
+
+  @override
+  String get tqGoThere => 'Y aller';
+
+  @override
+  String tqMinutes(int n) {
+    return '$n min';
+  }
 }

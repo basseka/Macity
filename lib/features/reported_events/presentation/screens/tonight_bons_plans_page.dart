@@ -66,7 +66,7 @@ class TonightBonsPlansPage extends ConsumerWidget {
   /// Classe un event du soir dans une section de [_nightSectionOrder] a
   /// partir de sa categorie/type (le champ rubrique ne suffit pas : les
   /// concerts sont en "day", le theatre en "culture" ou "day").
-  static String _nightSectionFor(Event e) {
+  static String nightSectionFor(Event e) {
     final s = '${e.categorie} ${e.type}'.toLowerCase();
     bool has(List<String> keys) => keys.any(s.contains);
     if (has(['cinéma', 'cinema'])) return 'Cinéma';
@@ -183,7 +183,7 @@ class TonightBonsPlansPage extends ConsumerWidget {
                   if (nightOnly) {
                     for (final e in events) {
                       byRubrique
-                          .putIfAbsent(_nightSectionFor(e), () => [])
+                          .putIfAbsent(nightSectionFor(e), () => [])
                           .add(e);
                     }
                   } else {
