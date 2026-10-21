@@ -211,7 +211,7 @@ class _ProfileRow extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
                           fontSize: 13,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w400,
                           height: 1.15,
                           color: HomeHeaderBand._text,
                         ),
