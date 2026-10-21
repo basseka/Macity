@@ -8,7 +8,7 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/data/permanent_fake_stories.dart';
-import 'package:pulz_app/features/tonight_quiz/presentation/tonight_quiz_sheet.dart';
+import 'package:pulz_app/features/reported_events/presentation/screens/tonight_bons_plans_page.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 
 /// Onglet actif dans la rangee de carrousels boostes affiches dans le
@@ -23,8 +23,9 @@ final boostedCarouselTabProvider =
 /// S'affiche au-dessus de [HomeNavTabs] dans le greeting block du home.
 ///
 /// "A la une" et "Top" sont des toggles du carrousel boost (cf
-/// [boostedCarouselTabProvider]). "Ce soir" ouvre le meme questionnaire que
-/// la bulle "Quoi faire ce soir" de l'accueil ([TonightQuizSheet]). "Offres" navigue vers
+/// [boostedCarouselTabProvider]). "Ce soir" ouvre la liste des events de la
+/// soiree ([TonightBonsPlansPage] nightOnly), sans rapport avec le
+/// questionnaire de la bulle "Quoi faire ce soir". "Offres" navigue vers
 /// la page Explorer (/explorer).
 ///
 /// La pill "Map Live" a ete deplacee dans le BrandRow (a droite). Cf.
@@ -71,9 +72,10 @@ class HomeQuickPills extends ConsumerWidget {
             _Pill(
               icon: Icons.nightlight_round,
               label: context.l10n.homePillTonight,
-              onTap: () => TonightQuizSheet.show(
+              onTap: () => TonightBonsPlansPage.show(
                 context,
-                ville: ref.read(selectedCityProvider),
+                nightOnly: true,
+                title: context.l10n.homePillTonight,
               ),
             ),
             const SizedBox(width: 6),
