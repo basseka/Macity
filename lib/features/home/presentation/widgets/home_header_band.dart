@@ -80,7 +80,8 @@ class HomeHeaderBand extends ConsumerWidget {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.all(8),
+                  // Marges réduites en hauteur (2026-10-21) : bandeau plus fin.
+                  padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
                   // Bons plans + events privés + invitations sur une ligne,
                   // à la même hauteur.
                   child: IntrinsicHeight(

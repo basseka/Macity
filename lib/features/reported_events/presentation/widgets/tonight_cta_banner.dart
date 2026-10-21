@@ -79,7 +79,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+            padding: const EdgeInsets.fromLTRB(12, 2, 3, 2),
             decoration: BoxDecoration(
               // 110deg CSS : #5b2bd6 -> #c21fa0.
               gradient: const LinearGradient(
@@ -145,8 +145,8 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                 ),
                 const SizedBox(width: 6),
                 Container(
-                  width: 20,
-                  height: 20,
+                  width: 18,
+                  height: 18,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white.withValues(alpha: 0.2),
