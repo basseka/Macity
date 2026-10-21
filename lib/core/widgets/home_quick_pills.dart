@@ -43,10 +43,14 @@ class HomeQuickPills extends ConsumerWidget {
     ref.watch(boostedEventsProvider);
     ref.watch(boostedP2EventsProvider);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
+      // Aligné sur les bords du bandeau sombre (marge 12). Les 4 onglets
+      // tiennent toujours dans la largeur : rétrécis plutôt que coupés.
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             _Pill(
               icon: Icons.star_rounded,
@@ -55,15 +59,17 @@ class HomeQuickPills extends ConsumerWidget {
               onTap: () => ref.read(boostedCarouselTabProvider.notifier)
                   .state = BoostedCarouselTab.featured,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             _Pill(
+              icon: Icons.trending_up_rounded,
               label: context.l10n.homePillTop,
               isActive: tab == BoostedCarouselTab.top,
               onTap: () => ref.read(boostedCarouselTabProvider.notifier)
                   .state = BoostedCarouselTab.top,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             _Pill(
+              icon: Icons.nightlight_round,
               label: context.l10n.homePillTonight,
               onTap: () => TonightBonsPlansPage.show(
                 context,
@@ -71,8 +77,9 @@ class HomeQuickPills extends ConsumerWidget {
                 title: context.l10n.tonightWhatToDo,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             _Pill(
+              icon: Icons.card_giftcard_rounded,
               label: context.l10n.feedMenuOffers,
               isActive: false,
               onTap: () => context.go('/explorer'),
@@ -151,23 +158,36 @@ class MapLivePillState extends ConsumerState<MapLivePill>
           // y a du contenu. Sinon : pill statique avec accent violet.
           final t = hasContent ? _blinkAnim.value : 0.0;
           if (widget.onDark) {
+            // Fond et contour plus marqués (2026-10-21) : la pastille se
+            // perdait dans le halo rose du coin haut droit du bandeau.
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
+                color: const Color(0xFF1A0B26).withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.55),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 6,
-                    height: 6,
+                    width: 7,
+                    height: 7,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: hasContent
                           ? Color.lerp(const Color(0xFFFFC93C), _yellowHi, t)
                           : const Color(0xFFD6D2C8),
+                      boxShadow: hasContent
+                          ? [
+                              BoxShadow(
+                                color: _yellow.withValues(alpha: 0.5 + 0.3 * t),
+                                blurRadius: 6,
+                              ),
+                            ]
+                          : null,
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -266,8 +286,13 @@ class MapLivePillState extends ConsumerState<MapLivePill>
 }
 
 /// Onglet en pilule (piste C) : blanc bordé au repos, rose plein quand
-/// actif. L'étoile n'accompagne que « À la une ».
-class _Pill extends StatelessWidget {
+/// actif. Chaque onglet a son icône (étoile, tendance, lune, cadeau),
+/// rose au repos comme avant la piste C, blanche quand actif. Bordure marquée quand
+/// l'onglet est sélectionné, et pendant l'appui pour « Ce soir » / « Offres »
+/// qui ouvrent une autre page au lieu de rester actifs (demande 2026-10-21).
+/// L'épaisseur reste la même dans tous les états pour ne pas faire bouger
+/// la rangée.
+class _Pill extends StatefulWidget {
   final IconData? icon;
   final String label;
   final VoidCallback onTap;
@@ -280,35 +305,59 @@ class _Pill extends StatelessWidget {
     this.isActive = false,
   });
 
+  @override
+  State<_Pill> createState() => _PillState();
+}
+
+class _PillState extends State<_Pill> {
+  bool _pressed = false;
+
   static const _pink = Color(0xFFE8177A);
   static const _dim = Color(0xFF6B5A7C);
+  static const _ink = Color(0xFF2E1A45);
+
+  void _setPressed(bool v) => setState(() => _pressed = v);
 
   @override
   Widget build(BuildContext context) {
+    final isActive = widget.isActive;
     final fg = isActive ? Colors.white : _dim;
+    final Color borderColor;
+    if (isActive) {
+      borderColor = _ink;
+    } else if (_pressed) {
+      borderColor = _pink;
+    } else {
+      borderColor = const Color(0x141A0B26);
+    }
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: isActive ? _pink : Colors.white,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: isActive ? _pink : const Color(0x141A0B26),
-          ),
+          border: Border.all(color: borderColor, width: 2),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
-              Icon(icon, size: 11, color: fg),
-              const SizedBox(width: 4),
+            if (widget.icon != null) ...[
+              Icon(
+                widget.icon,
+                size: 11,
+                color: isActive ? Colors.white : _pink,
+              ),
+              const SizedBox(width: 3),
             ],
             Text(
-              label,
+              widget.label,
               maxLines: 1,
               style: GoogleFonts.outfit(
                 fontSize: 10.5,

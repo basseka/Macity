@@ -79,7 +79,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
           duration: const Duration(milliseconds: 120),
           curve: Curves.easeOut,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(11, 4, 6, 4),
+            padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
             decoration: BoxDecoration(
               // 110deg CSS : #5b2bd6 -> #c21fa0.
               gradient: const LinearGradient(
@@ -87,7 +87,9 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                 end: Alignment(1, 0.36),
                 colors: [Color(0xFF5B2BD6), Color(0xFFC21FA0)],
               ),
-              borderRadius: BorderRadius.circular(13),
+              // Pilule, comme les pastilles Events privés / Invitations
+              // posées à côté (2026-10-21).
+              borderRadius: BorderRadius.circular(999),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFC21FA0).withValues(alpha: 0.7),
@@ -141,7 +143,7 @@ class _TonightCtaBannerState extends ConsumerState<TonightCtaBanner> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 6),
                 Container(
                   width: 20,
                   height: 20,
