@@ -456,141 +456,133 @@ class _OfferPhotoFullScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Image puis panneau empiles, sans superposition : les visuels d'offre
+    // contiennent souvent leur propre texte (affiche -20 %, code...), le nom,
+    // l'adresse et les boutons poses par-dessus le rendaient illisible.
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          InteractiveViewer(
-            minScale: 1,
-            maxScale: 4,
-            child: Center(
-              child: offer.imageUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: offer.imageUrl,
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                      height: double.infinity,
-                      placeholder: (_, __) =>
-                          _EmojiHero(emoji: offer.emoji),
-                      errorWidget: (_, __, ___) =>
-                          _EmojiHero(emoji: offer.emoji),
-                    )
-                  : _EmojiHero(emoji: offer.emoji),
-            ),
-          ),
-          Positioned(
-            left: 8,
-            top: 0,
-            child: SafeArea(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
               child: Padding(
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
                 child: _RoundIconButton(
                   icon: Icons.close_rounded,
                   onTap: () => Navigator.of(context).pop(),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SafeArea(
-              top: false,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.85),
-                    ],
-                  ),
+            Expanded(
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Center(
+                  child: offer.imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: offer.imageUrl,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                          placeholder: (_, __) =>
+                              _EmojiHero(emoji: offer.emoji),
+                          errorWidget: (_, __, ___) =>
+                              _EmojiHero(emoji: offer.emoji),
+                        )
+                      : _EmojiHero(emoji: offer.emoji),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A0A2E),
+                border: Border(
+                  top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    offer.businessName,
+                    style: GoogleFonts.geist(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  if (offer.businessAddress.isNotEmpty) ...[
+                    const SizedBox(height: 4),
                     Text(
-                      offer.businessName,
+                      offer.businessAddress,
                       style: GoogleFonts.geist(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.7),
                       ),
                     ),
-                    if (offer.businessAddress.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        offer.businessAddress,
+                  ],
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: onItinerary,
+                      icon: const Icon(Icons.directions_rounded),
+                      label: Text(
+                        context.l10n.mapDirections,
                         style: GoogleFonts.geist(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 14),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: EditorialColors.gold,
+                        foregroundColor: const Color(0xFF1A0A2E),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                  if (offer.businessPhone.isNotEmpty) ...[
+                    const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: ElevatedButton.icon(
-                        onPressed: onItinerary,
-                        icon: const Icon(Icons.directions_rounded),
+                      child: OutlinedButton.icon(
+                        onPressed: onCall,
+                        icon: const Icon(Icons.call_rounded),
                         label: Text(
-                          context.l10n.mapDirections,
+                          offer.businessPhone,
                           style: GoogleFonts.geist(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.2,
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: EditorialColors.gold,
-                          foregroundColor: const Color(0xFF1A0A2E),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.5),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          elevation: 0,
                         ),
                       ),
                     ),
-                    if (offer.businessPhone.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: OutlinedButton.icon(
-                          onPressed: onCall,
-                          icon: const Icon(Icons.call_rounded),
-                          label: Text(
-                            offer.businessPhone,
-                            style: GoogleFonts.geist(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.2,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
