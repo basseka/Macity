@@ -534,6 +534,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homePillTop => 'Top';
 
   @override
+  String get homePillTonight => 'Tonight';
+
+  @override
   String get offersLoadError => 'Unable to load offers';
 
   @override

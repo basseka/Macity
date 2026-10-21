@@ -8,6 +8,7 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/home/state/boosted_events_provider.dart';
 import 'package:pulz_app/features/reported_events/data/city_centers.dart';
 import 'package:pulz_app/features/reported_events/data/permanent_fake_stories.dart';
+import 'package:pulz_app/features/reported_events/presentation/screens/tonight_bons_plans_page.dart';
 import 'package:pulz_app/features/reported_events/state/reported_events_provider.dart';
 
 /// Onglet actif dans la rangee de carrousels boostes affiches dans le
@@ -18,12 +19,13 @@ enum BoostedCarouselTab { featured, top }
 final boostedCarouselTabProvider =
     StateProvider<BoostedCarouselTab>((_) => BoostedCarouselTab.featured);
 
-/// Rangee de 3 pilules raccourcis : "A la une" / "Top" / "Offres".
+/// Rangee de 4 pilules raccourcis : "A la une" / "Top" / "Ce soir" / "Offres".
 /// S'affiche au-dessus de [HomeNavTabs] dans le greeting block du home.
 ///
 /// "A la une" et "Top" sont des toggles du carrousel boost (cf
-/// [boostedCarouselTabProvider]). "Offres" navigue vers la page
-/// Explorer (/explorer).
+/// [boostedCarouselTabProvider]). "Ce soir" ouvre la meme page que la bulle
+/// "Quoi faire ce soir" de l'accueil (events du soir). "Offres" navigue vers
+/// la page Explorer (/explorer).
 ///
 /// La pill "Map Live" a ete deplacee dans le BrandRow (a droite). Cf.
 /// [MapLivePill] (toujours dans ce fichier, expose publiquement).
@@ -59,6 +61,15 @@ class HomeQuickPills extends ConsumerWidget {
               isActive: tab == BoostedCarouselTab.top,
               onTap: () => ref.read(boostedCarouselTabProvider.notifier)
                   .state = BoostedCarouselTab.top,
+            ),
+            const SizedBox(width: 8),
+            _Pill(
+              label: context.l10n.homePillTonight,
+              onTap: () => TonightBonsPlansPage.show(
+                context,
+                nightOnly: true,
+                title: context.l10n.tonightWhatToDo,
+              ),
             ),
             const SizedBox(width: 8),
             _Pill(

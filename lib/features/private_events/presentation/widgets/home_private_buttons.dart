@@ -10,7 +10,9 @@ import 'package:pulz_app/features/private_events/state/my_invitations_provider.d
 /// Raccourcis Home, en pastilles dans le bandeau sombre du haut (piste C) :
 /// « Events privés » (mes coffres) et « Invitations » avec le nombre
 /// d'invitations en cours. Ouvrent les mêmes écrans que le menu compte ;
-/// chacun affiche son message quand la liste est vide.
+/// chacun affiche son message quand la liste est vide. Sur la même ligne que
+/// le bouton bons plans : les pastilles prennent sa hauteur et rétrécissent
+/// (libellé tronqué) plutôt que de déborder.
 class HomePrivateButtons extends ConsumerWidget {
   const HomePrivateButtons({super.key});
 
@@ -23,24 +25,29 @@ class HomePrivateButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final invitations = ref.watch(myInvitationsCountProvider).valueOrNull ?? 0;
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _HomeShortcut(
-          icon: Icons.lock_outline,
-          label: context.l10n.homePrivateEvents,
-          onTap: () => _push(context, const MyPrivateEventsScreen()),
+        Flexible(
+          child: _HomeShortcut(
+            icon: Icons.lock_outline,
+            label: context.l10n.homePrivateEvents,
+            onTap: () => _push(context, const MyPrivateEventsScreen()),
+          ),
         ),
-        _HomeShortcut(
-          icon: Icons.mail_outline_rounded,
-          label: context.l10n.homeInvitations,
-          count: invitations,
-          onTap: () async {
-            await _push(context, const MyInvitationsScreen());
-            // Le badge se met à jour au retour (venue annulée, etc.).
-            ref.invalidate(myInvitationsCountProvider);
-          },
+        const SizedBox(width: 6),
+        Flexible(
+          child: _HomeShortcut(
+            icon: Icons.mail_outline_rounded,
+            label: context.l10n.homeInvitations,
+            count: invitations,
+            onTap: () async {
+              await _push(context, const MyInvitationsScreen());
+              // Le badge se met à jour au retour (venue annulée, etc.).
+              ref.invalidate(myInvitationsCountProvider);
+            },
+          ),
         ),
       ],
     );
@@ -69,7 +76,7 @@ class _HomeShortcut extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 9),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(999),
@@ -79,13 +86,16 @@ class _HomeShortcut extends StatelessWidget {
             children: [
               Icon(icon, size: 11, color: Colors.white),
               const SizedBox(width: 5),
-              Text(
-                label,
-                maxLines: 1,
-                style: GoogleFonts.outfit(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               if (count > 0) ...[

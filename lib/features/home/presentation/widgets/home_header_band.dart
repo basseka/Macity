@@ -70,16 +70,22 @@ class HomeHeaderBand extends ConsumerWidget {
               children: [
                 _ProfileRow(),
                 const SizedBox(height: 9),
-                const TonightCtaBanner(),
-                const SizedBox(height: 8),
                 _SearchField(
                   onSearchTap: onSearchTap,
                   onCalendarTap: onCalendarTap,
                 ),
                 const SizedBox(height: 8),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: HomePrivateButtons(),
+                // Bons plans + events privés + invitations sur une ligne, à
+                // la même hauteur (demande du 2026-10-21).
+                const IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(flex: 2, child: TonightCtaBanner()),
+                      SizedBox(width: 6),
+                      Flexible(flex: 3, child: HomePrivateButtons()),
+                    ],
+                  ),
                 ),
               ],
             ),

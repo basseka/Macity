@@ -1096,6 +1096,12 @@ abstract class AppLocalizations {
   /// **'Top'**
   String get homePillTop;
 
+  /// No description provided for @homePillTonight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce soir'**
+  String get homePillTonight;
+
   /// No description provided for @offersLoadError.
   ///
   /// In fr, this message translates to:
