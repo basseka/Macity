@@ -9863,7 +9863,9 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       const title = row.titre || row.nom_de_la_manifestation || "(sans titre)";
       const cols = Object.keys(row).filter(k => !_evSkip.has(k));
       const media = cols.filter(k => _evMedia.has(k));
-      const fields = cols.filter(k => !_evMedia.has(k) && typeof row[k] !== "object");
+      // typeof null === "object" : on garde les colonnes vides (sinon impossible
+      // de remplir un champ jamais renseigné, ex. lien billetterie).
+      const fields = cols.filter(k => !_evMedia.has(k) && (row[k] === null || typeof row[k] !== "object"));
       const label = (k) => _evLabels[k] || k;
       const isVideo = (k) => k === "video_url";
 
@@ -9888,13 +9890,14 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
           return `<label class="banner-toggle" style="display:block; margin:8px 0;"><input type="checkbox" data-f="${k}"${v?" checked":""}/> ${label(k)}</label>`;
         }
         const numAttr = (typeof v === "number") ? ' data-num="1"' : "";
+        const nullAttr = v === null ? ' data-null="1"' : "";
         const long = /desc|adresse/i.test(k) || String(v || "").length > 60;
         if (long) {
           return `<div style="margin-bottom:10px;"><label class="banner-field-label">${label(k)}</label>
-            <textarea data-f="${k}" class="banner-input" rows="2" style="width:100%; resize:vertical;">${escapeHtml(String(v ?? ""))}</textarea></div>`;
+            <textarea data-f="${k}"${nullAttr} class="banner-input" rows="2" style="width:100%; resize:vertical;">${escapeHtml(String(v ?? ""))}</textarea></div>`;
         }
         return `<div style="margin-bottom:10px;"><label class="banner-field-label">${label(k)}</label>
-          <input type="text" data-f="${k}"${numAttr} class="banner-input" style="width:100%;" value="${escapeHtml(String(v ?? ""))}"/></div>`;
+          <input type="text" data-f="${k}"${numAttr}${nullAttr} class="banner-input" style="width:100%;" value="${escapeHtml(String(v ?? ""))}"/></div>`;
       }).join("");
 
       eventeditModalBody.innerHTML = `
@@ -9972,6 +9975,8 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         card.querySelectorAll("[data-f]").forEach(el => {
           const k = el.dataset.f;
           if (el.type === "checkbox") patch[k] = el.checked;
+          // Colonne vide laissée vide : on n'y touche pas (évite "" dans une date/un nombre).
+          else if (el.dataset.null === "1" && el.value.trim() === "") return;
           else if (el.dataset.num === "1") patch[k] = el.value === "" ? null : Number(el.value);
           else patch[k] = el.value;
         });
@@ -15708,7 +15713,7 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
     function renderShell() {
       const tabs = [
         ["dashboard", "📊 Dashboard"], ["followups", "🔔 À relancer"], ["pipeline", "🗂️ Pipeline"],
-        ["companies", "🏢 Entreprises"], ["activities", "📝 Activités"], ["sales", "💶 Ventes"],
+        ["prospection", "📞 Prospection"], ["companies", "🏢 Entreprises"], ["activities", "📝 Activités"], ["sales", "💶 Ventes"],
         ["objectives", "🎯 Objectifs"],
       ];
       if (can.manageTeam()) tabs.push(["team", "👥 Équipe"]);
@@ -16713,9 +16718,198 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       body.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => edit(st.team.find(t => t.id === b.dataset.edit))));
     }
 
+    // ─── Prospection : annonceurs potentiels pour les bannières de rubrique ─
+    // Données : RPC crm_*_prospect (migration 20261030120000_crm_prospection.sql).
+    const PROSPECT_RUBRIQUES = {
+      culture: { label: "Culture", emoji: "🎭", color: "#8B5CF6" },
+      evasion: { label: "Évasion", emoji: "🏝️", color: "#0EA5E9" },
+      famille: { label: "Famille", emoji: "👨‍👩‍👧", color: "#F59E0B" },
+      sport:   { label: "Sport",   emoji: "⚽", color: "#10B981" },
+      food:    { label: "Food",    emoji: "🍽️", color: "#F97316" },
+      night:   { label: "Night",   emoji: "🌙", color: "#E91E63" },
+    };
+    const PROSPECT_STATUTS = {
+      a_contacter:    { label: "À contacter",    color: "#64748B" },
+      pas_de_reponse: { label: "Pas de réponse", color: "#A16207" },
+      mail_envoye:    { label: "Mail envoyé",    color: "#2563EB" },
+      a_relancer:     { label: "À relancer",     color: "#DC2626" },
+      rdv:            { label: "RDV pris",       color: "#7C3AED" },
+      interesse:      { label: "Intéressé",      color: "#059669" },
+      refus:          { label: "Pas intéressé",  color: "#475569" },
+      converti:       { label: "Passé au CRM",   color: "#16A34A" },
+    };
+    const PROSPECT_PITCH = `Bonjour, je me permets de vous contacter car nous développons une application dédiée à la ville. Elle permet aux habitants et aux visiteurs de trouver facilement les restaurants, commerces, activités culturelles, événements et lieux touristiques.
+
+Nous proposons actuellement aux professionnels locaux d'être davantage mis en avant grâce à un emplacement bannière. L'objectif est de vous rendre visible au moment où les utilisateurs recherchent justement une activité ou un endroit où aller.
+
+Je souhaitais vous présenter rapidement le fonctionnement et voir si cela pourrait être intéressant pour votre établissement.`;
+    const PROSPECT_QUESTIONS = [
+      "Comment faites-vous actuellement connaître votre établissement ?",
+      "Avez-vous déjà travaillé avec des applications ou des guides locaux ?",
+      "Cherchez-vous plutôt à attirer des habitants, des touristes ou les deux ?",
+      "Avez-vous des périodes creuses dans la semaine ou dans l'année ?",
+      "Organisez-vous des événements ou des offres spéciales ?",
+      "Quel type de clientèle souhaitez-vous développer ?",
+      "Comment mesurez-vous aujourd'hui les résultats de votre communication ?",
+    ];
+    const PROSPECT_OBJECTIONS = [
+      ["« C'est trop cher »", "Je comprends. L'idée est de comparer le coût de la visibilité avec le nombre de personnes que vous pouvez toucher. Nous pouvons aussi regarder ensemble la formule la plus adaptée à votre budget et à vos objectifs."],
+      ["« Nous avons déjà les réseaux sociaux »", "C'est complémentaire. Les réseaux sociaux touchent principalement votre communauté existante. L'application permet plutôt d'être découvert par des personnes qui recherchent activement quoi faire ou où aller dans la ville."],
+      ["« Je dois réfléchir »", "Bien sûr. Pour vous envoyer les informations les plus utiles, quel serait votre principal point de réflexion : le prix, la visibilité, la durée ou le contenu de la bannière ?"],
+      ["« Comment savoir si cela fonctionne ? »", ""],
+    ];
+    const PROSPECT_PLAN = [
+      ["Semaine 1 : préparation", ["comprendre parfaitement l'application", "obtenir les statistiques", "définir les offres et les tarifs", "préparer une présentation courte", "créer ton tableau de prospection", "sélectionner 50 prospects"]],
+      ["Semaine 2 : premiers contacts", ["contacter 10 à 20 entreprises par jour", "noter toutes les objections", "identifier les besoins récurrents", "prendre tes premiers rendez-vous"]],
+      ["Semaine 3 : rendez-vous et propositions", ["présenter l'offre", "envoyer des propositions personnalisées", "relancer rapidement", "ajuster ton discours selon les réactions"]],
+      ["Semaine 4 : signatures et recommandations", ["conclure les premières ventes", "obtenir des témoignages", "demander des recommandations", "cibler les entreprises similaires aux premiers clients satisfaits"]],
+    ];
+    const prPill = (map, k) => { const x = map[k]; return x ? `<span class="crm-pill" style="background:${x.color}26;color:${x.color};border:1px solid ${x.color}55">${x.emoji ? x.emoji + " " : ""}${esc(x.label)}</span>` : "–"; };
+    const prSplit = (s) => String(s || "").split(/\s*,\s*/).filter(Boolean);
+    const prMailto = (email, nom) => `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(`MaCity : plus de visibilité pour ${nom}`)}&body=${encodeURIComponent(PROSPECT_PITCH)}`;
+    const prDue = (p) => p.relance_le && p.statut !== "converti" && p.statut !== "refus" && p.relance_le <= ymd(new Date());
+
+    async function renderProspection() {
+      document.getElementById("crm-filterbar").innerHTML = "";
+      const body = document.getElementById("crm-body");
+      body.innerHTML = `<div class="crm-empty">Chargement des prospects…</div>`;
+      st.prospects = await rpc("crm_list_prospects");
+      st.prRubrique ??= ""; st.prStatut ??= ""; st.prSearch ??= "";
+
+      const all = st.prospects;
+      const count = (f) => all.filter(f).length;
+      body.innerHTML = `
+        <div class="crm-kpis">
+          <div class="crm-kpi"><div class="v">${num(all.length)}</div><div class="l">Prospects</div></div>
+          <div class="crm-kpi"><div class="v">${num(count(p => p.statut === "a_contacter"))}</div><div class="l">À contacter</div></div>
+          <div class="crm-kpi"><div class="v">${num(count(p => ["pas_de_reponse", "mail_envoye", "a_relancer"].includes(p.statut)))}</div><div class="l">Contactés, en attente</div></div>
+          <div class="crm-kpi"><div class="v">${num(count(p => ["rdv", "interesse"].includes(p.statut)))}</div><div class="l">RDV / intéressés</div></div>
+          <div class="crm-kpi hl"><div class="v">${num(count(p => p.statut === "converti"))}</div><div class="l">Passés au CRM</div></div>
+          <div class="crm-kpi"><div class="v" style="color:${count(prDue) ? "#fca5a5" : "inherit"}">${num(count(prDue))}</div><div class="l">Relances dues</div></div>
+        </div>
+        <div class="crm-tabs" id="pr-rub">
+          <span class="crm-tab ${!st.prRubrique ? "active" : ""}" data-rub="">Toutes <small>${all.length}</small></span>
+          ${Object.entries(PROSPECT_RUBRIQUES).map(([k, r]) => `<span class="crm-tab ${st.prRubrique === k ? "active" : ""}" data-rub="${k}">${r.emoji} ${r.label} <small>${count(p => p.rubrique === k)}</small></span>`).join("")}
+        </div>
+        <div class="crm-filters">
+          <div><label>Recherche</label><input id="pr-q" placeholder="Nom, contact, lieu…" value="${esc(st.prSearch)}" style="min-width:200px"></div>
+          <div><label>Statut</label><select id="pr-statut"><option value="">Tous</option><option value="__due" ${st.prStatut === "__due" ? "selected" : ""}>🔔 Relances dues</option>
+            ${Object.entries(PROSPECT_STATUTS).map(([k, x]) => `<option value="${k}" ${st.prStatut === k ? "selected" : ""}>${x.label}</option>`).join("")}</select></div>
+          <div style="margin-left:auto; display:flex; gap:8px;">
+            <button class="crm-btn" id="pr-script">📋 Script d'appel</button>
+            <button class="crm-btn primary" id="pr-new">+ Prospect</button>
+          </div>
+        </div>
+        <div class="crm-card"><h3>Annonceurs potentiels <small id="pr-count" style="color:var(--text-faint);font-weight:500"></small></h3>
+          <div class="crm-table-wrap" id="pr-list"></div></div>`;
+
+      const draw = () => {
+        const q = st.prSearch.toLowerCase();
+        const rows = all.filter(p => (!st.prRubrique || p.rubrique === st.prRubrique) &&
+          (!st.prStatut || (st.prStatut === "__due" ? prDue(p) : p.statut === st.prStatut)) &&
+          (!q || [p.nom, p.contact, p.lieu, p.email, p.telephone, p.notes].some(x => (x || "").toLowerCase().includes(q))));
+        document.getElementById("pr-count").textContent = `${rows.length} / ${all.length}`;
+        document.getElementById("pr-list").innerHTML = `<table class="crm-table">
+          <tr><th>Nom</th><th>Rubrique</th><th>Contact</th><th>Téléphone</th><th>Email</th><th>Lieu</th><th>Statut</th><th>Relance</th><th></th></tr>
+          ${rows.map(p => `<tr>
+            <td><b>${esc(p.nom)}</b>${p.notes ? `<br><span style="font-size:11px;color:var(--text-faint)">${esc(p.notes)}</span>` : ""}</td>
+            <td>${prPill(PROSPECT_RUBRIQUES, p.rubrique)}</td>
+            <td style="font-size:12px">${esc(p.contact) || coMuted("–")}</td>
+            <td style="white-space:nowrap">${prSplit(p.telephone).map(t => `<a href="tel:${esc(t.replace(/[^\d+]/g, ""))}" style="color:var(--text)">${esc(t)}</a>`).join("<br>") || coMuted("–")}</td>
+            <td style="font-size:12px">${prSplit(p.email).map(m => `<a href="${esc(prMailto(m, p.nom))}" title="Ouvrir un mail avec le texte de présentation" style="color:#60a5fa">${esc(m)}</a>`).join("<br>") || coMuted("–")}</td>
+            <td>${esc(p.lieu) || coMuted("–")}</td>
+            <td><select class="crm-cell-sel set" data-statut="${p.id}" style="color:${PROSPECT_STATUTS[p.statut]?.color};border-color:${PROSPECT_STATUTS[p.statut]?.color}">
+              ${Object.entries(PROSPECT_STATUTS).map(([k, x]) => `<option value="${k}" ${p.statut === k ? "selected" : ""}>${x.label}</option>`).join("")}</select></td>
+            <td style="white-space:nowrap;${prDue(p) ? "color:#fca5a5;font-weight:700" : ""}">${p.relance_le ? fmtD(p.relance_le + "T12:00:00") : coMuted("–")}</td>
+            <td style="white-space:nowrap"><button class="crm-btn sm" data-edit="${p.id}" title="Modifier">✏️</button>
+              ${p.client_id ? `<button class="crm-btn sm" data-company="${p.client_id}" title="Ouvrir la fiche entreprise">🏢</button>` : `<button class="crm-btn sm" data-convert="${p.id}" title="Créer l'entreprise dans le CRM">➜ CRM</button>`}</td>
+          </tr>`).join("") || `<tr><td colspan="9" class="crm-empty">Aucun prospect</td></tr>`}
+        </table>`;
+        const list = document.getElementById("pr-list");
+        const byId = (id) => all.find(p => p.id === id);
+        list.querySelectorAll("[data-statut]").forEach(sel => sel.addEventListener("change", async () => {
+          const p = byId(sel.dataset.statut);
+          try { await rpc("crm_upsert_prospect", { p: { id: p.id, nom: p.nom, statut: sel.value } }); p.statut = sel.value; toast(`${p.nom} : ${PROSPECT_STATUTS[sel.value].label}`); renderProspection(); }
+          catch (e) { toast(e.message, false); draw(); }
+        }));
+        list.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => prospectModal(byId(b.dataset.edit))));
+        list.querySelectorAll("[data-convert]").forEach(b => b.addEventListener("click", () => convertProspect(byId(b.dataset.convert))));
+        list.querySelectorAll("[data-company]").forEach(b => b.addEventListener("click", () => companyModal(b.dataset.company, renderProspection)));
+      };
+      draw();
+
+      body.querySelectorAll("#pr-rub [data-rub]").forEach(el => el.addEventListener("click", () => { st.prRubrique = el.dataset.rub; renderProspection(); }));
+      document.getElementById("pr-q").addEventListener("input", (e) => { st.prSearch = e.target.value; draw(); });
+      document.getElementById("pr-statut").addEventListener("change", (e) => { st.prStatut = e.target.value; draw(); });
+      document.getElementById("pr-new").addEventListener("click", () => prospectModal({ rubrique: st.prRubrique || "food", lieu: "Toulouse" }));
+      document.getElementById("pr-script").addEventListener("click", scriptModal);
+    }
+
+    function prospectModal(p = {}) {
+      openModal(p.id ? `Modifier : ${esc(p.nom)}` : "Nouveau prospect", `<form class="crm-form">
+        <div><label>Nom *</label><input name="nom" required value="${esc(p.nom || "")}"></div>
+        <div><label>Rubrique</label><select name="rubrique">${Object.entries(PROSPECT_RUBRIQUES).map(([k, r]) => `<option value="${k}" ${p.rubrique === k ? "selected" : ""}>${r.emoji} ${r.label}</option>`).join("")}</select></div>
+        <div><label>Lieu</label><input name="lieu" value="${esc(p.lieu || "")}"></div>
+        <div class="full"><label>Contact (nom, fonction)</label><input name="contact" value="${esc(p.contact || "")}"></div>
+        <div><label>Téléphone (plusieurs : séparer par une virgule)</label><input name="telephone" value="${esc(p.telephone || "")}"></div>
+        <div><label>Email (plusieurs : séparer par une virgule)</label><input name="email" value="${esc(p.email || "")}"></div>
+        <div><label>Statut</label><select name="statut">${Object.entries(PROSPECT_STATUTS).map(([k, x]) => `<option value="${k}" ${(p.statut || "a_contacter") === k ? "selected" : ""}>${x.label}</option>`).join("")}</select></div>
+        <div><label>Date de relance</label><input name="relance_le" type="date" value="${esc(p.relance_le || "")}"></div>
+        <div class="full"><label>Notes (appels, objections, retours)</label><textarea name="notes">${esc(p.notes || "")}</textarea></div>
+        <div class="crm-actions full">${p.id && can.deleteOpp() ? `<button type="button" class="crm-btn danger" data-del>Supprimer</button>` : ""}
+          <button type="button" class="crm-btn" data-close>Annuler</button><button class="crm-btn primary">Enregistrer</button></div></form>`, (m, close) => {
+        m.querySelector("form").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          try { await rpc("crm_upsert_prospect", { p: { ...formData(e.target), id: p.id || "" } }); close(); toast("Prospect enregistré"); renderProspection(); }
+          catch (err) { toast("Erreur : " + err.message, false); }
+        });
+        m.querySelector("[data-del]")?.addEventListener("click", async () => {
+          if (!confirm(`Supprimer ${p.nom} de la prospection ?`)) return;
+          try { await rpc("crm_delete_prospect", { p_id: p.id }); close(); toast("Prospect supprimé"); renderProspection(); }
+          catch (err) { toast(err.message, false); }
+        });
+      });
+    }
+
+    // Crée l'entreprise dans le CRM (statut prospect) et relie la ligne.
+    async function convertProspect(p) {
+      if (!confirm(`Créer « ${p.nom} » dans les entreprises du CRM ?`)) return;
+      try {
+        const id = await rpc("crm_upsert_company", { p: {
+          raison_sociale: p.nom, secteur: PROSPECT_RUBRIQUES[p.rubrique]?.label || "", ville: p.lieu || "",
+          telephone: prSplit(p.telephone)[0] || "", email: prSplit(p.email)[0] || "", source: "Prospection bannières",
+          notes: [p.contact && `Contact : ${p.contact}`, p.notes].filter(Boolean).join("\n"),
+        } });
+        await rpc("crm_upsert_prospect", { p: { id: p.id, nom: p.nom, statut: "converti", client_id: id } });
+        st.companies = [];
+        toast(`${p.nom} ajouté aux entreprises du CRM`);
+        renderProspection();
+      } catch (e) { toast("Erreur : " + e.message, false); }
+    }
+
+    function scriptModal() {
+      openModal("📋 Script d'appel : bannières de rubrique", `
+        <div style="font-size:13px; line-height:1.6;">
+          <h3 style="margin:0 0 6px">1. Présentation</h3>
+          <div class="crm-card" style="white-space:pre-wrap">${esc(PROSPECT_PITCH)}</div>
+          <div style="margin:6px 0 16px"><button class="crm-btn sm" id="pr-copy">📋 Copier le texte</button></div>
+          <h3 style="margin:0 0 6px">2. Poser des questions</h3>
+          <p style="color:var(--text-dim);margin:0 0 6px">Un commercial ne doit pas juste parler, il doit poser des questions.</p>
+          <ul style="margin:0 0 16px; padding-left:20px">${PROSPECT_QUESTIONS.map(q => `<li>${esc(q)}</li>`).join("")}</ul>
+          <h3 style="margin:0 0 6px">3. Répondre aux objections</h3>
+          ${PROSPECT_OBJECTIONS.map(([o, r]) => `<div class="crm-card" style="margin-bottom:8px"><b>${esc(o)}</b><br>${r ? esc(r) : coMuted("Réponse à rédiger.")}</div>`).join("")}
+          <h3 style="margin:16px 0 6px">4. Plan sur 4 semaines</h3>
+          <div class="crm-grid2">${PROSPECT_PLAN.map(([t, items]) => `<div class="crm-card"><b>${esc(t)}</b><ul style="margin:6px 0 0; padding-left:20px">${items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>`).join("")}</div>
+        </div>`, (m) => {
+        m.querySelector("#pr-copy").addEventListener("click", async () => {
+          try { await navigator.clipboard.writeText(PROSPECT_PITCH); toast("Texte copié"); } catch (_) { toast("Copie impossible", false); }
+        });
+      });
+    }
+
     // ─── Routage ─────────────────────────────────────────────────────────
     async function renderTab() {
-      const fn = { dashboard: renderDashboard, followups: renderFollowups, pipeline: renderPipeline, companies: renderCompanies,
+      const fn = { dashboard: renderDashboard, followups: renderFollowups, pipeline: renderPipeline, prospection: renderProspection, companies: renderCompanies,
                    activities: renderActivities, sales: renderSales, objectives: renderObjectives, team: renderTeam }[st.tab] || renderDashboard;
       try { await fn(); }
       catch (e) {

@@ -96,7 +96,7 @@ class TripPools {
   static const _funKeywords = [
     'escape', 'laser', 'bowling', 'karting', 'paintball', 'accrobranche',
     'mini golf', 'patinoire', 'billard', 'quiz', 'realite virtuelle', 'vr',
-    'trampoline', 'parc de loisirs', "parc d'attractions",
+    'trampoline', 'parc de loisirs', "parc d'attractions", 'atelier creatif',
   ];
 
   /// Lieux sans interet pour un sejour (exclus) ou a garder en dernier
