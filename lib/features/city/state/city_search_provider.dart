@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pulz_app/features/city/data/commune_geo_service.dart';
 import 'package:pulz_app/features/city/domain/models/ville.dart';
 
 final citySearchQueryProvider = StateProvider<String>((ref) => '');
@@ -63,4 +64,15 @@ final citySearchResultsProvider = FutureProvider<List<VilleModel>>((ref) async {
             v.departement.toLowerCase().contains(query);
       })
       .toList();
+});
+
+/// Communes françaises (hors villes hub déjà listées) correspondant à la
+/// recherche, avec leur centre : choisir l'une d'elles centre Food / Night /
+/// Culture sur elle et rattache le reste de l'app à son hub.
+final communeSearchProvider = FutureProvider<List<CommuneGeo>>((ref) async {
+  final query = ref.watch(citySearchQueryProvider).trim();
+  if (query.length < 2) return const [];
+  final hubs = _availableCities.map((v) => v.nom.toLowerCase()).toSet();
+  final communes = await CommuneGeoService().search(query);
+  return communes.where((c) => !hubs.contains(c.nom.toLowerCase())).toList();
 });

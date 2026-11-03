@@ -5,7 +5,7 @@ import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/core/widgets/home_quick_pills.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
-import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/home_private_buttons.dart';
 import 'package:pulz_app/features/reported_events/presentation/map_live_page.dart';
@@ -144,7 +144,14 @@ class _ProfileRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prenom = ref.watch(userPrenomProvider).valueOrNull ?? '';
     final avatarUrl = ref.watch(userAvatarUrlProvider).valueOrNull;
-    final city = ref.watch(selectedCityProvider);
+    // Zone affichée : commune détectée par le GPS ou ville choisie. Le suivi
+    // démarre ici, à l'accueil, jamais pendant l'onboarding.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(searchAreaProvider.notifier).start(),
+    );
+    final city = ref.watch(areaVilleProvider);
+    final area = ref.watch(searchAreaProvider);
+    final fromGps = area != null && area.fromGps && area.nom == city;
     return Row(
       children: [
         GestureDetector(
@@ -205,6 +212,14 @@ class _ProfileRow extends ConsumerWidget {
                   ),
                 Row(
                   children: [
+                    if (fromGps) ...[
+                      const Icon(
+                        Icons.near_me_rounded,
+                        size: 11,
+                        color: HomeHeaderBand._text,
+                      ),
+                      const SizedBox(width: 3),
+                    ],
                     Flexible(
                       child: Text(
                         city,

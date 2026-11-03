@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
@@ -74,7 +75,10 @@ final familyCategoryCountProvider =
     return userCount + scrapedEvents.length;
   }
 
-  var count = await service.countByCategory(searchTag, ville: city);
+  final area = ref.watch(searchZoneProvider).ville;
+  var count = await service.countByCategory(
+    searchTag, ville: area, withNearby: true,
+  );
   // Fallback sur la table venues (donnees OSM)
   if (count == 0) {
     try {
@@ -91,8 +95,11 @@ final familyCategoryCountProvider =
 final familySupabaseVenuesProvider =
     FutureProvider.autoDispose.family<List<FamilyVenue>, String>((ref, category) async {
   final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   final service = ref.read(_familyServiceProvider);
-  final results = await service.fetchVenues(category: category, ville: city);
+  final results = await service.fetchVenues(
+    category: category, ville: area, withNearby: true,
+  );
   if (results.isNotEmpty) return results;
 
   // Fallback OSM → convertir CommerceModel en FamilyVenue
@@ -123,11 +130,11 @@ final familySupabaseVenuesProvider =
 /// pour la ville selectionnee. Sert aux chips de la landing (chip = rubrique).
 final familyGroupVenuesProvider =
     FutureProvider.autoDispose.family<List<FamilyVenue>, String>((ref, groupName) async {
-  final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   final service = ref.read(_familyServiceProvider);
   final tags = FamilyCategoryData.typeTagsForGroup(groupName);
   if (tags.isEmpty) return [];
-  return service.fetchVenuesByCategories(tags, ville: city);
+  return service.fetchVenuesByCategories(tags, ville: area, withNearby: true);
 });
 
 /// TOUS les lieux famille de la ville selectionnee, toutes rubriques
@@ -135,7 +142,7 @@ final familyGroupVenuesProvider =
 /// balaie l'offre entiere independamment du chip actif.
 final familyAllVenuesProvider =
     FutureProvider.autoDispose<List<FamilyVenue>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   final service = ref.read(_familyServiceProvider);
   // Un type peut appartenir a 2 rubriques (ex: Aquarium) : on dedoublonne les
   // tags avant la requete, et les lieux par id apres (une fiche = 1 point).
@@ -144,7 +151,9 @@ final familyAllVenuesProvider =
       ...FamilyCategoryData.typeTagsForGroup(g.name),
   }.toList();
   if (tags.isEmpty) return [];
-  final venues = await service.fetchVenuesByCategories(tags, ville: city);
+  final venues = await service.fetchVenuesByCategories(
+    tags, ville: area, withNearby: true,
+  );
   final seen = <int>{};
   return venues.where((v) => seen.add(v.id)).toList();
 });

@@ -318,6 +318,13 @@
   "landingPartners": "Nos partenaires",
   "landingRefine": "Affinez votre recherche",
   "landingNoPlaceForSelection": "Aucune adresse pour cette sélection.",
+  "landingNearbyExtended": "Peu de lieux à {city} : on ajoute les plus proches, jusqu'à {km} km.",
+  "@landingNearbyExtended": {
+    "placeholders": {
+      "city": {"type": "String"},
+      "km": {"type": "int"}
+    }
+  },
   "landingUnavailable": "Contenu indisponible.",
   "landingNoPlaceForFilter": "Aucun lieu pour ce filtre.",
   "landingInspirations": "Inspirations du moment",
@@ -811,6 +818,16 @@
   "cityPickerHint": "Rechercher une ville...",
   "cityPickerNone": "Aucune ville trouvée",
   "cityPickerError": "Erreur de recherche",
+  "cityPickerUseMyLocation": "Utiliser ma position",
+  "cityPickerUseMyLocationSub": "La ville se met à jour quand tu te déplaces",
+  "cityPickerFollowing": "Suit ta position : {city}",
+  "@cityPickerFollowing": {
+    "placeholders": {
+      "city": {"type": "String"}
+    }
+  },
+  "cityPickerOtherCommunes": "Autres communes",
+  "cityPickerLocationDenied": "Localisation indisponible : active-la dans les réglages du téléphone.",
   "storyCatConcert": "Concert",
   "storyCatParty": "Soirée",
   "storyCatCelebration": "Fête",
@@ -1837,6 +1854,13 @@
   "foodChipMeat": "Viande",
   "foodLocateToSort": "Active la localisation pour trier par proximité.",
   "foodNearestToMe": "Plus proche de moi",
+  "foodNearbyExtended": "Peu d'adresses à {city} : on ajoute les plus proches, jusqu'à {km} km.",
+  "@foodNearbyExtended": {
+    "placeholders": {
+      "city": {"type": "String"},
+      "km": {"type": "int"}
+    }
+  },
   "foodPartners": "Nos restaurants partenaires",
   "foodBannerTitle": "Réservez, découvrez, régalez-vous.",
   "foodBannerSubtitle": "Les meilleures tables vous attendent.",

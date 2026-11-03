@@ -720,6 +720,11 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune adresse pour cette sélection.';
 
   @override
+  String landingNearbyExtended(String city, int km) {
+    return 'Peu de lieux à $city : on ajoute les plus proches, jusqu\'à $km km.';
+  }
+
+  @override
   String get landingUnavailable => 'Contenu indisponible.';
 
   @override
@@ -1726,6 +1731,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cityPickerError => 'Erreur de recherche';
+
+  @override
+  String get cityPickerUseMyLocation => 'Utiliser ma position';
+
+  @override
+  String get cityPickerUseMyLocationSub =>
+      'La ville se met à jour quand tu te déplaces';
+
+  @override
+  String cityPickerFollowing(String city) {
+    return 'Suit ta position : $city';
+  }
+
+  @override
+  String get cityPickerOtherCommunes => 'Autres communes';
+
+  @override
+  String get cityPickerLocationDenied =>
+      'Localisation indisponible : active-la dans les réglages du téléphone.';
 
   @override
   String get storyCatConcert => 'Concert';
@@ -3816,6 +3840,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get foodNearestToMe => 'Plus proche de moi';
+
+  @override
+  String foodNearbyExtended(String city, int km) {
+    return 'Peu d\'adresses à $city : on ajoute les plus proches, jusqu\'à $km km.';
+  }
 
   @override
   String get foodPartners => 'Nos restaurants partenaires';

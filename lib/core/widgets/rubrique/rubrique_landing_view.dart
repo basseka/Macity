@@ -17,6 +17,8 @@ import 'package:pulz_app/core/data/inspiration_service.dart';
 import 'package:pulz_app/core/data/premium_banner_service.dart';
 import 'package:pulz_app/core/widgets/commerce_pager_view.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
+import 'package:pulz_app/features/city/data/city_coordinates.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 
 /// Palette + typo paramétrables d'une rubrique (réutilise le design Food
@@ -390,6 +392,48 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
         1000;
   }
 
+  /// Distance en km au centre de la ville choisie pour un lieu d'une AUTRE
+  /// ville (ajouté par le rayon élargi quand la ville a peu de lieux), null
+  /// pour un lieu de la ville elle-même ou sans coordonnées.
+  double? _outOfCityKm(RubriqueItem item) {
+    final c = item.commerce;
+    if (c == null || c.ville.isEmpty || (c.latitude == 0 && c.longitude == 0)) {
+      return null;
+    }
+    final city = ref.watch(areaVilleProvider);
+    if (c.ville.toLowerCase().startsWith(city.toLowerCase())) return null;
+    final center = CityCoordinates.maybeOf(city);
+    if (center == null) return null;
+    return Haversine.distanceInMeters(
+            center.lat, center.lng, c.latitude, c.longitude,) /
+        1000;
+  }
+
+  /// Ligne sous le titre quand la liste est complétée par des lieux proches.
+  Widget _nearbyNote(List<RubriqueItem> items, RubriqueTheme t) {
+    final far = items
+        .map(_outOfCityKm)
+        .whereType<double>()
+        .fold<double>(0, (a, b) => a > b ? a : b);
+    if (far == 0) return const SizedBox.shrink();
+    final city = ref.watch(areaVilleProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+      child: Row(
+        children: [
+          Icon(Icons.near_me_rounded, size: 13, color: t.accent),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              context.l10n.landingNearbyExtended(city, far.ceil()),
+              style: RubriqueTheme.body(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Items triés du plus proche au plus loin quand le tri est actif (les
   /// lieux sans coordonnées passent en fin de liste).
   List<RubriqueItem> _sorted(List<RubriqueItem> items) {
@@ -489,6 +533,7 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                     ? _activeChipTitle(cfg, itemsAsync.valueOrNull?.length)
                     : null,
                 proximity: cfg.proximitySort,),
+            _nearbyNote(itemsAsync.valueOrNull ?? const [], t),
             itemsAsync.when(
               data: (raw) {
                 final items = _sorted(raw);
@@ -511,9 +556,11 @@ class _RubriqueLandingViewState extends ConsumerState<RubriqueLandingView> {
                       item: items[i],
                       theme: t,
                       coupDeCoeur: i == 0,
-                      // Distance seulement en mode « Plus proche ».
-                      distanceKm:
-                          _sortByProximity ? _distanceKm(items[i]) : null,
+                      // Distance à l'utilisateur en mode « Plus proche »,
+                      // sinon au centre-ville pour un lieu d'une autre ville.
+                      distanceKm: _sortByProximity
+                          ? _distanceKm(items[i])
+                          : _outOfCityKm(items[i]),
                       onOpen: (ctx) => _openItem(ctx, items, i),
                     ),
                   ),

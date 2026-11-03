@@ -14,11 +14,15 @@ class CityNotifier extends StateNotifier<String> {
         AppConstants.defaultCity;
   }
 
-  Future<void> setCity(String city) async {
+  /// [updateProfile] à false pour un changement automatique (GPS) : un
+  /// déplacement ne doit pas réécrire la ville du profil (digests, notifs).
+  Future<void> setCity(String city, {bool updateProfile = true}) async {
     state = city;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(AppConstants.prefSelectedCity, city);
-    UserProfileService().updateVille(city).catchError((_) {});
+    if (updateProfile) {
+      UserProfileService().updateVille(city).catchError((_) {});
+    }
   }
 }
 

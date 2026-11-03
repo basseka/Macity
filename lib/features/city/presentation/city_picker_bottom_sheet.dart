@@ -6,8 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/city/presentation/widgets/city_list_tile.dart';
-import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/city/state/city_search_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
+import 'package:pulz_app/features/city/domain/models/ville.dart';
 
 class CityPickerBottomSheet extends ConsumerStatefulWidget {
   const CityPickerBottomSheet({super.key});
@@ -89,7 +90,7 @@ class _CityPickerBottomSheetState
                       const Icon(Icons.location_on, size: 14, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
-                        ref.watch(selectedCityProvider),
+                        ref.watch(areaVilleProvider),
                         style: GoogleFonts.geist(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -153,54 +154,160 @@ class _CityPickerBottomSheetState
 
           const SizedBox(height: 8),
 
-          // Results list
+          // Results list : position, villes hub, puis autres communes.
           Expanded(
-            child: searchResults.when(
-              data: (cities) {
-                if (cities.isEmpty) {
-                  return Center(
-                    child: Text(
-                      context.l10n.cityPickerNone,
-                      style: GoogleFonts.geist(
-                        color: AppColors.textFaint,
-                        fontSize: 14,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              children: [
+                _useMyLocationTile(),
+                Divider(height: 1, color: AppColors.line),
+                ...searchResults.when(
+                  data: (cities) => [
+                    for (final ville in cities) ...[
+                      CityListTile(
+                        ville: ville,
+                        onTap: () {
+                          ref
+                              .read(searchAreaProvider.notifier)
+                              .forceHub(ville.nom);
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      Divider(height: 1, color: AppColors.line),
+                    ],
+                  ],
+                  loading: () => const [
+                    Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.magenta,),
                       ),
                     ),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  itemCount: cities.length,
-                  separatorBuilder: (_, __) =>
-                      Divider(height: 1, color: AppColors.line),
-                  itemBuilder: (context, index) {
-                    final ville = cities[index];
-                    return CityListTile(
-                      ville: ville,
-                      onTap: () {
-                        ref
-                            .read(selectedCityProvider.notifier)
-                            .setCity(ville.nom);
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.magenta),
-              ),
-              error: (error, _) => Center(
-                child: Text(
-                  context.l10n.cityPickerError,
-                  style: GoogleFonts.geist(color: AppColors.textFaint),
+                  ],
+                  error: (_, __) => [
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: Text(
+                          context.l10n.cityPickerError,
+                          style: GoogleFonts.geist(color: AppColors.textFaint),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+                ..._communeSection(
+                  hubsEmpty: searchResults.valueOrNull?.isEmpty ?? false,
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+
+  /// Repasse en mode automatique : la zone suit la position de l'utilisateur.
+  Widget _useMyLocationTile() {
+    final area = ref.watch(searchAreaProvider);
+    final following = area != null &&
+        area.fromGps &&
+        !ref.read(searchAreaProvider.notifier).isForced;
+    return ListTile(
+      onTap: () async {
+        final ok =
+            await ref.read(searchAreaProvider.notifier).useMyLocation();
+        if (!mounted) return;
+        if (ok) {
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.l10n.cityPickerLocationDenied)),
+          );
+        }
+      },
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          gradient: AppGradients.primary,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.near_me_rounded, color: Colors.white, size: 18),
+      ),
+      title: Text(
+        context.l10n.cityPickerUseMyLocation,
+        style: GoogleFonts.geist(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          letterSpacing: -0.2,
+          color: AppColors.text,
+        ),
+      ),
+      subtitle: Text(
+        following
+            ? context.l10n.cityPickerFollowing(area.nom)
+            : context.l10n.cityPickerUseMyLocationSub,
+        style: GoogleFonts.geist(color: AppColors.textFaint, fontSize: 12),
+      ),
+    );
+  }
+
+  /// Communes hors villes hub (Albi, Montauban…) trouvées par la recherche.
+  List<Widget> _communeSection({required bool hubsEmpty}) {
+    final communes = ref.watch(communeSearchProvider).valueOrNull ?? const [];
+    final query = ref.watch(citySearchQueryProvider).trim();
+    if (communes.isEmpty) {
+      if (hubsEmpty && query.length >= 2 &&
+          !ref.watch(communeSearchProvider).isLoading) {
+        return [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Text(
+                context.l10n.cityPickerNone,
+                style: GoogleFonts.geist(
+                  color: AppColors.textFaint,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ];
+      }
+      return const [];
+    }
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+        child: Text(
+          context.l10n.cityPickerOtherCommunes.toUpperCase(),
+          style: GoogleFonts.geist(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+            color: AppColors.textFaint,
+          ),
+        ),
+      ),
+      for (final c in communes) ...[
+        CityListTile(
+          ville: VilleModel(
+            nom: c.nom,
+            codePostal: c.codePostal,
+            departement: c.hub,
+            population: c.population,
+          ),
+          onTap: () {
+            ref.read(searchAreaProvider.notifier).forceCommune(c);
+            Navigator.of(context).pop();
+          },
+        ),
+        Divider(height: 1, color: AppColors.line),
+      ],
+    ];
+  }
+
 }

@@ -25,6 +25,10 @@ class RestaurantVenue {
   // affichée, on retombe sur [displayPriority]. Cf. migration
   // 20260527100000_etablissements_priorities.sql.
   final Map<String, int> priorities;
+  /// Distance (km) au centre de la ville affichee. Renseignee uniquement pour
+  /// les adresses hors ville ajoutees par l'elargissement du rayon (ville
+  /// pauvre en restos) ; null pour les restos de la ville elle-meme.
+  final double? distanceFromCenterKm;
 
   const RestaurantVenue({
     required this.id,
@@ -48,7 +52,33 @@ class RestaurantVenue {
     this.isPartner = false,
     this.displayPriority = 0,
     this.priorities = const {},
+    this.distanceFromCenterKm,
   });
+
+  RestaurantVenue withDistanceFromCenter(double km) => RestaurantVenue(
+        id: id,
+        name: name,
+        description: description,
+        group: group,
+        theme: theme,
+        quartier: quartier,
+        style: style,
+        adresse: adresse,
+        horaires: horaires,
+        telephone: telephone,
+        latitude: latitude,
+        longitude: longitude,
+        websiteUrl: websiteUrl,
+        lienMaps: lienMaps,
+        photo: photo,
+        photos: photos,
+        videoUrl: videoUrl,
+        isVerified: isVerified,
+        isPartner: isPartner,
+        displayPriority: displayPriority,
+        priorities: priorities,
+        distanceFromCenterKm: km,
+      );
 
   /// Matche un theme sur `theme` OU `group` (= `categorie` cote DB).
   /// Convention attendue : `theme` rempli. Mais des saisies admin mettent
@@ -79,6 +109,14 @@ List<RestaurantVenue> sortRestaurantsForCategory(
 ) {
   final copy = [...list];
   copy.sort((a, b) {
+    // Les adresses hors ville (rayon elargi) passent apres celles de la
+    // ville, de la plus proche a la plus lointaine.
+    final da = a.distanceFromCenterKm, db = b.distanceFromCenterKm;
+    if (da != null || db != null) {
+      if (da == null) return -1;
+      if (db == null) return 1;
+      return da.compareTo(db);
+    }
     final cmp = b.priorityFor(category).compareTo(a.priorityFor(category));
     if (cmp != 0) return cmp;
     return a.name.toLowerCase().compareTo(b.name.toLowerCase());

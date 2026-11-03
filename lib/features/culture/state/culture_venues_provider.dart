@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/culture/data/culture_category_data.dart';
@@ -157,10 +158,12 @@ final cultureTheatreEventsProgressiveProvider =
 /// Gallery venues depuis la table `venues` de Supabase, filtrees par ville.
 final galleryVenuesSupabaseProvider =
     FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
   try {
     final service = VenuesSupabaseService();
-    return await service.fetchVenues(mode: 'culture', ville: city, category: "Galerie d'art");
+    return await service.fetchVenues(
+      mode: 'culture', ville: city, category: "Galerie d'art", withNearby: true,
+    );
   } catch (e) {
     return <CommerceModel>[];
   }
@@ -172,11 +175,12 @@ final galleryVenuesSupabaseProvider =
 /// actif et filtre par quartier.
 final cultureAllVenuesProvider =
     FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
   try {
     return await VenuesSupabaseService().fetchVenues(
       mode: 'culture',
       ville: city,
+      withNearby: true,
     );
   } catch (e) {
     return <CommerceModel>[];
@@ -186,7 +190,7 @@ final cultureAllVenuesProvider =
 /// Library venues depuis la table `venues` de Supabase, filtrees par ville.
 final libraryVenuesSupabaseProvider =
     FutureProvider.autoDispose<List<LibraryVenue>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
   try {
     final service = VenuesSupabaseService();
     return await service.fetchLibraryVenues(ville: city);
@@ -198,7 +202,7 @@ final libraryVenuesSupabaseProvider =
 /// Monument venues depuis la table `venues` de Supabase, filtrees par ville.
 final monumentVenuesSupabaseProvider =
     FutureProvider.autoDispose<List<MonumentVenue>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
   try {
     final service = VenuesSupabaseService();
     return await service.fetchMonumentVenues(ville: city);
@@ -210,7 +214,7 @@ final monumentVenuesSupabaseProvider =
 /// Museum venues depuis la table `venues` de Supabase, filtrees par ville.
 final museumVenuesSupabaseProvider =
     FutureProvider.autoDispose<List<MuseumVenue>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
   try {
     final service = VenuesSupabaseService();
     return await service.fetchMuseumVenues(ville: city);
@@ -222,7 +226,7 @@ final museumVenuesSupabaseProvider =
 /// Theatre venues depuis la table `venues` de Supabase, filtrees par ville.
 final theatreVenuesSupabaseProvider =
     FutureProvider.autoDispose<List<TheatreVenue>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
   try {
     final service = VenuesSupabaseService();
     return await service.fetchTheatreVenues(ville: city);

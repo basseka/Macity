@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
+import 'package:pulz_app/features/city/data/city_coordinates.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
@@ -51,7 +53,10 @@ final foodCategoryCountProvider =
     return total + uc;
   }
   if (searchTag == 'Restaurant') {
-    final restaurants = await RestaurantSupabaseService().fetchRestaurants(ville: city);
+    final restaurants = await RestaurantSupabaseService().fetchRestaurantsWithNearby(
+      ville: ref.watch(searchZoneProvider).ville,
+      center: CityCoordinates.maybeOf(ref.watch(searchZoneProvider).ville),
+    );
     if (restaurants.isNotEmpty) return restaurants.length;
     // Fallback sur la table venues (donnees OSM)
     try {
@@ -64,7 +69,10 @@ final foodCategoryCountProvider =
   }
   if (searchTag == 'Guinguette' || searchTag == 'Buffets' || searchTag == 'Salon de the' || searchTag == 'Brunch') {
     final theme = searchTag == 'Buffets' ? 'Buffet' : searchTag;
-    final restaurants = await RestaurantSupabaseService().fetchRestaurants(ville: city);
+    final restaurants = await RestaurantSupabaseService().fetchRestaurantsWithNearby(
+      ville: ref.watch(searchZoneProvider).ville,
+      center: CityCoordinates.maybeOf(ref.watch(searchZoneProvider).ville),
+    );
     return restaurants.where((r) => r.matchesTheme(theme)).length;
   }
   final venues = await repository.searchByVille(ville: city, query: searchTag);
@@ -105,12 +113,16 @@ final foodVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref)
   return local;
 });
 
-/// Restaurants depuis Supabase (avec theme/quartier/style), filtres par ville.
-/// Fallback sur la table venues (OSM) si etablissements est vide.
+/// Restaurants depuis Supabase (avec theme/quartier/style), filtres par ville,
+/// completes par les adresses les plus proches si la ville en a peu.
+/// Fallback sur la table venues (OSM) si rien n'est trouve.
 final restaurantsSupabaseProvider =
     FutureProvider.autoDispose<List<RestaurantVenue>>((ref) async {
   final city = ref.watch(selectedCityProvider);
-  final results = await RestaurantSupabaseService().fetchRestaurants(ville: city);
+  final area = ref.watch(searchZoneProvider).ville;
+  final results = await RestaurantSupabaseService().fetchRestaurantsWithNearby(
+    ville: area, center: CityCoordinates.maybeOf(area),
+  );
   if (results.isNotEmpty) return results;
 
   // Fallback : convertir les venues OSM en RestaurantVenue

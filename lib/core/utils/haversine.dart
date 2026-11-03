@@ -23,6 +23,19 @@ class Haversine {
     return _earthRadiusMeters * c;
   }
 
+  /// Distance en km entre deux points.
+  static double km(double lat1, double lon1, double lat2, double lon2) =>
+      distanceInMeters(lat1, lon1, lat2, lon2) / 1000;
+
+  /// Filtre PostgREST `and=(...)` du rectangle qui contient le cercle de
+  /// [radiusKm] autour du point (à affiner ensuite avec [km]).
+  static String bboxFilter(double lat, double lon, double radiusKm) {
+    final dLat = radiusKm / 111.32;
+    final dLon = radiusKm / (111.32 * cos(_toRadians(lat)));
+    return '(latitude.gte.${lat - dLat},latitude.lte.${lat + dLat},'
+        'longitude.gte.${lon - dLon},longitude.lte.${lon + dLon})';
+  }
+
   /// Format distance for display
   static String formatDistance(double meters) {
     if (meters < 1000) {

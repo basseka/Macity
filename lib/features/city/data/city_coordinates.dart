@@ -54,6 +54,29 @@ class CityCoordinates {
     'Mamoudzou': (lat: -12.7806, lng: 45.2272),
   };
 
+  /// Noms des villes hub connues.
+  static Iterable<String> get hubNames => _coords.keys;
+
+  /// Zone de recherche courante (commune choisie ou detectee par GPS) :
+  /// nom -> centre + hub. Alimente par la zone de recherche, prioritaire sur
+  /// les centres fixes ci-dessus pour les recherches par rayon.
+  static final Map<String, ({double lat, double lng, String hub})> _areas = {};
+
+  static void registerArea(String nom, double lat, double lng, String hub) {
+    _areas[nom.toLowerCase()] = (lat: lat, lng: lng, hub: hub);
+  }
+
+  /// Hub de rattachement d'une commune enregistree, null sinon.
+  static String? hubOf(String city) => _areas[city.toLowerCase()]?.hub;
+
+  /// Centre des recherches par rayon : zone courante si connue, sinon
+  /// centre-ville fixe, sinon null (pas de repli sur Toulouse).
+  static ({double lat, double lng})? maybeOf(String city) {
+    final area = _areas[city.toLowerCase()];
+    if (area != null) return (lat: area.lat, lng: area.lng);
+    return _coords[city];
+  }
+
   /// Retourne les coordonnees du centre-ville, ou Toulouse en fallback.
   static ({double lat, double lng}) of(String city) =>
       _coords[city] ?? _coords['Toulouse']!;

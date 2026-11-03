@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/commerce/data/commerce_repository.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/night/data/night_bars_data.dart';
@@ -109,6 +110,7 @@ final nightCategoryCountProvider =
   }
   if (_curatedTags.contains(searchTag)) {
     final city = ref.watch(selectedCityProvider);
+    final area = ref.watch(searchZoneProvider).ville;
     // Si c'est un sub_grid parent, additionner les counts des enfants
     final children = _subGridChildren[searchTag];
     if (children != null) {
@@ -116,7 +118,7 @@ final nightCategoryCountProvider =
         var total = 0;
         for (final child in children) {
           total += await VenuesSupabaseService().countVenues(
-            mode: 'night', ville: city, category: child,
+            mode: 'night', ville: area, category: child, withNearby: true,
           );
         }
         return total + uc;
@@ -126,7 +128,7 @@ final nightCategoryCountProvider =
     }
     try {
       final count = await VenuesSupabaseService().countVenues(
-        mode: 'night', ville: city, category: searchTag,
+        mode: 'night', ville: area, category: searchTag, withNearby: true,
       );
       return count + uc;
     } catch (_) {
@@ -151,11 +153,12 @@ const nightSpicyCategories = ['Coquin', 'Strip'];
 /// Tous les etablissements Spicy (Coquin + Strip) de la ville courante.
 final nightSpicyForMapProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   final results = <CommerceModel>[];
   for (final cat in nightSpicyCategories) {
     try {
       final venues = await VenuesSupabaseService().fetchVenues(
-        mode: 'night', ville: city, category: cat,
+        mode: 'night', ville: area, category: cat, withNearby: true,
       );
       if (venues.isNotEmpty) {
         results.addAll(venues);
@@ -173,11 +176,12 @@ final nightSpicyForMapProvider = FutureProvider<List<CommerceModel>>((ref) async
 /// carte des bars avec pins colores par type.
 final nightBarsForMapProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   final results = <CommerceModel>[];
   for (final cat in nightBarCategories) {
     try {
       final venues = await VenuesSupabaseService().fetchVenues(
-        mode: 'night', ville: city, category: cat,
+        mode: 'night', ville: area, category: cat, withNearby: true,
       );
       if (venues.isNotEmpty) {
         results.addAll(venues);
@@ -198,10 +202,11 @@ final nightBarsForMapProvider = FutureProvider<List<CommerceModel>>((ref) async 
 /// identiques quand la DB a plusieurs rows pour le meme etablissement.
 final nightClubsForMapProvider = FutureProvider<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   List<CommerceModel> venues;
   try {
     venues = await VenuesSupabaseService().fetchVenues(
-      mode: 'night', ville: city, category: 'Club Discotheque',
+      mode: 'night', ville: area, category: 'Club Discotheque', withNearby: true,
     );
     if (venues.isEmpty) {
       venues = NightBarsData.toulouseBars
@@ -236,6 +241,7 @@ List<CommerceModel> _dedupeByNameAndPosition(List<CommerceModel> venues) {
 final nightVenuesByTagProvider =
     FutureProvider.autoDispose.family<List<CommerceModel>, String>((ref, category) async {
   final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
 
   // Tag parent (ex: "Spicy") : on agrege ses enfants (Coquin + Strip) sinon
   // le query venues WHERE category ILIKE '%Spicy%' renvoie 0 (aucune row n'a
@@ -246,7 +252,7 @@ final nightVenuesByTagProvider =
     for (final child in children) {
       try {
         final venues = await VenuesSupabaseService().fetchVenues(
-          mode: 'night', ville: city, category: child,
+          mode: 'night', ville: area, category: child, withNearby: true,
         );
         if (venues.isNotEmpty) {
           results.addAll(venues);
@@ -264,7 +270,7 @@ final nightVenuesByTagProvider =
   if (_curatedTags.contains(category)) {
     try {
       venues = await VenuesSupabaseService().fetchVenues(
-        mode: 'night', ville: city, category: category,
+        mode: 'night', ville: area, category: category, withNearby: true,
       );
       if (venues.isEmpty) {
         venues = NightBarsData.toulouseBars
@@ -291,13 +297,14 @@ final nightVenuesByTagProvider =
 
 final nightVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
   final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   final category = ref.watch(nightCategoryProvider);
 
   List<CommerceModel> venues;
   if (_curatedTags.contains(category)) {
     try {
       venues = await VenuesSupabaseService().fetchVenues(
-        mode: 'night', ville: city, category: category,
+        mode: 'night', ville: area, category: category, withNearby: true,
       );
       if (venues.isEmpty) {
         venues = NightBarsData.toulouseBars
@@ -324,11 +331,12 @@ final nightVenuesProvider = FutureProvider.autoDispose<List<CommerceModel>>((ref
 /// fermeture.
 final nightAllVenuesProvider =
     FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final area = ref.watch(searchZoneProvider).ville;
   try {
     return await VenuesSupabaseService().fetchVenues(
       mode: 'night',
-      ville: city,
+      ville: area,
+      withNearby: true,
     );
   } catch (_) {
     return const <CommerceModel>[];

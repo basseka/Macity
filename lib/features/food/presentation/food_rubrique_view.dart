@@ -17,6 +17,7 @@ import 'package:pulz_app/core/data/inspiration_service.dart';
 import 'package:pulz_app/core/data/premium_banner_service.dart';
 import 'package:pulz_app/core/widgets/commerce_row_card.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
 import 'package:pulz_app/features/food/presentation/food_design_tokens.dart';
@@ -260,6 +261,7 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
                 actionPill: true,
                 actionActive: _sortByProximity,
                 onSeeAll: _toggleProximitySort),
+            _nearbyExtendedNote(restaurantsAsync.valueOrNull ?? const []),
             restaurantsAsync.when(
               data: (all) {
                 final list = _filtered(all);
@@ -314,6 +316,32 @@ class _FoodRubriqueViewState extends ConsumerState<FoodRubriqueView> {
             _reservationBanner(),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Ligne sous le titre quand la ville a peu de restos et que la liste est
+  /// completee par les adresses les plus proches (rayon elargi).
+  Widget _nearbyExtendedNote(List<RestaurantVenue> all) {
+    final far = all
+        .map((r) => r.distanceFromCenterKm)
+        .whereType<double>()
+        .fold<double>(0, math.max);
+    if (far == 0) return const SizedBox.shrink();
+    final city = ref.watch(areaVilleProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+      child: Row(
+        children: [
+          const Icon(Icons.near_me_rounded, size: 13, color: FoodTokens.teal),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              context.l10n.foodNearbyExtended(city, far.ceil()),
+              style: FoodTokens.chip(color: FoodTokens.forest),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1339,6 +1367,9 @@ class _RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Distance a l'utilisateur (mode "Plus proche"), sinon distance au
+    // centre-ville pour une adresse ajoutee par le rayon elargi.
+    final dist = distanceKm ?? venue.distanceFromCenterKm;
     final hasPhoto =
         venue.photo.isNotEmpty && venue.photo.startsWith('http');
     final cuisine = [
@@ -1497,8 +1528,8 @@ class _RestaurantCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Pill distance affichee en mode "Plus proche".
-                  if (distanceKm != null) ...[
+                  // Pill distance : mode "Plus proche" ou adresse hors ville.
+                  if (dist != null) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 3),
@@ -1514,7 +1545,7 @@ class _RestaurantCard extends StatelessWidget {
                               size: 10, color: Colors.white),
                           const SizedBox(width: 3),
                           Text(
-                            _formatDistance(distanceKm!),
+                            _formatDistance(dist),
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,

@@ -1396,6 +1396,12 @@ abstract class AppLocalizations {
   /// **'Aucune adresse pour cette sélection.'**
   String get landingNoPlaceForSelection;
 
+  /// No description provided for @landingNearbyExtended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Peu de lieux à {city} : on ajoute les plus proches, jusqu\'à {km} km.'**
+  String landingNearbyExtended(String city, int km);
+
   /// No description provided for @landingUnavailable.
   ///
   /// In fr, this message translates to:
@@ -3201,6 +3207,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Erreur de recherche'**
   String get cityPickerError;
+
+  /// No description provided for @cityPickerUseMyLocation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utiliser ma position'**
+  String get cityPickerUseMyLocation;
+
+  /// No description provided for @cityPickerUseMyLocationSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'La ville se met à jour quand tu te déplaces'**
+  String get cityPickerUseMyLocationSub;
+
+  /// No description provided for @cityPickerFollowing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suit ta position : {city}'**
+  String cityPickerFollowing(String city);
+
+  /// No description provided for @cityPickerOtherCommunes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres communes'**
+  String get cityPickerOtherCommunes;
+
+  /// No description provided for @cityPickerLocationDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Localisation indisponible : active-la dans les réglages du téléphone.'**
+  String get cityPickerLocationDenied;
 
   /// No description provided for @storyCatConcert.
   ///
@@ -6903,6 +6939,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Plus proche de moi'**
   String get foodNearestToMe;
+
+  /// No description provided for @foodNearbyExtended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Peu d\'adresses à {city} : on ajoute les plus proches, jusqu\'à {km} km.'**
+  String foodNearbyExtended(String city, int km);
 
   /// No description provided for @foodPartners.
   ///
