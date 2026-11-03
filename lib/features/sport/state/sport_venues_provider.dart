@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/sport_venues_supabase_service.dart';
 import 'package:pulz_app/core/data/venues_supabase_service.dart';
-import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/culture/data/dance_venues_data.dart';
 
@@ -38,12 +38,14 @@ final fitnessChainPhotosProvider =
 /// Essaie d'abord sport_venues (ancienne table), puis venues (nouvelle table OSM).
 final sportVenuesProvider =
     FutureProvider.autoDispose.family<List<CommerceModel>, String>((ref, sportType) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
 
   List<CommerceModel> venues = <CommerceModel>[];
   try {
     final service = SportVenuesSupabaseService();
-    final results = await service.fetchVenues(sportType: sportType, ville: city);
+    final results = await service.fetchVenues(
+      sportType: sportType, ville: city, withNearby: true,
+    );
     if (results.isNotEmpty) venues = results;
   } catch (e) {
     debugPrint('[sportVenuesProvider] sport_venues error for $sportType: $e');
@@ -55,7 +57,7 @@ final sportVenuesProvider =
     if (category != null) {
       try {
         venues = await VenuesSupabaseService().fetchVenues(
-          mode: 'sport', ville: city, category: category,
+          mode: 'sport', ville: city, category: category, withNearby: true,
         );
       } catch (e) {
         debugPrint('[sportVenuesProvider] venues fallback error: $e');
@@ -71,9 +73,10 @@ final sportVenuesProvider =
 /// entiere independamment du chip actif et filtre par quartier.
 final sportAllVenuesProvider =
     FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
   try {
-    return await SportVenuesSupabaseService().fetchVenues(ville: city);
+    return await SportVenuesSupabaseService()
+        .fetchVenues(ville: city, withNearby: true);
   } catch (e) {
     debugPrint('[sportAllVenuesProvider] $e');
     return const <CommerceModel>[];
@@ -83,7 +86,7 @@ final sportAllVenuesProvider =
 /// Combine toutes les venues raquette (5 sous-types).
 final racketAllVenuesProvider =
     FutureProvider.autoDispose<List<CommerceModel>>((ref) async {
-  ref.watch(selectedCityProvider);
+  ref.watch(searchZoneProvider);
 
   final results = await Future.wait([
     ref.watch(sportVenuesProvider('tennis').future),
@@ -98,11 +101,11 @@ final racketAllVenuesProvider =
 /// Provider pour les salles de danse depuis Supabase.
 final danceVenuesProvider =
     FutureProvider.autoDispose<List<DanceVenue>>((ref) async {
-  final city = ref.watch(selectedCityProvider);
+  final city = ref.watch(searchZoneProvider).ville;
 
   try {
     final service = SportVenuesSupabaseService();
-    return await service.fetchDanceVenues(ville: city);
+    return await service.fetchDanceVenues(ville: city, withNearby: true);
   } catch (e) {
     debugPrint('[danceVenuesProvider] Supabase error: $e');
     return <DanceVenue>[];

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:pulz_app/core/data/nearby_rows.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
@@ -18,7 +19,13 @@ class SportVenuesSupabaseService {
   }
 
   /// Fetch active sport venues, optionally filtered by [sportType] and [ville].
-  Future<List<CommerceModel>> fetchVenues({String? sportType, String? ville}) async {
+  /// [withNearby] : si la ville a peu de lieux sport, complete par les plus
+  /// proches (voir [NearbyRows]).
+  Future<List<CommerceModel>> fetchVenues({
+    String? sportType,
+    String? ville,
+    bool withNearby = false,
+  }) async {
     final params = <String, String>{
       'select': '*',
       'is_active': 'eq.true',
@@ -28,26 +35,44 @@ class SportVenuesSupabaseService {
       params['sport_type'] = 'eq.$sportType';
     }
     if (ville != null) {
-      params['ville'] = 'ilike.$ville';
+      params['ville'] = _villeFilter(ville);
     }
 
-    final response = await _dio.get(
-      'sport_venues',
-      queryParameters: params,
-    );
-    final data = response.data as List;
+    final data = withNearby && ville != null
+        ? await NearbyRows.fetch(_dio,
+            table: 'sport_venues',
+            params: params,
+            ville: ville,
+            villeFilter: _villeFilter,)
+        : (await _dio.get('sport_venues', queryParameters: params)).data
+            as List;
     return data.map((e) => _mapToCommerce(e as Map<String, dynamic>)).toList();
   }
 
+  static String _villeFilter(String ville) => 'ilike.$ville';
+
   /// Fetch dance venues with their groupe field.
-  Future<List<DanceVenue>> fetchDanceVenues({String? ville}) async {
+  Future<List<DanceVenue>> fetchDanceVenues({
+    String? ville,
+    bool withNearby = false,
+  }) async {
     final params = <String, String>{
       'select': '*',
       'is_active': 'eq.true',
       'sport_type': 'eq.danse',
     };
     if (ville != null) {
-      params['ville'] = 'ilike.$ville';
+      params['ville'] = _villeFilter(ville);
+    }
+    if (withNearby && ville != null) {
+      final data = await NearbyRows.fetch(_dio,
+          table: 'sport_venues',
+          params: {...params, 'order': 'nom.asc'},
+          ville: ville,
+          villeFilter: _villeFilter,);
+      return data
+          .map((e) => _mapToDanceVenue(e as Map<String, dynamic>))
+          .toList();
     }
 
     // Essayer avec tri par groupe d'abord, fallback sans si colonne absente
@@ -111,6 +136,9 @@ class SportVenuesSupabaseService {
       description: json['description'] as String? ?? '',
       horaires: json['horaires'] as String? ?? '',
       telephone: json['telephone'] as String? ?? '',
+      // La ville permet de signaler (pastille distance) un lieu d'une autre
+      // ville ajoute par le rayon elargi.
+      ville: json['ville'] as String? ?? '',
       photos: photos,
       // Sans ce champ, un partenaire Sport était invisible partout : ni badge
       // doré, ni rail « Nos partenaires », ni pastille sur la fiche.

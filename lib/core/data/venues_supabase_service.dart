@@ -4,7 +4,7 @@ import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
-import 'package:pulz_app/core/utils/haversine.dart';
+import 'package:pulz_app/core/data/nearby_rows.dart';
 import 'package:pulz_app/features/city/data/city_coordinates.dart';
 import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/culture/data/library_venues_data.dart';
@@ -50,85 +50,28 @@ class VenuesSupabaseService {
     return data.map((e) => _mapToCommerce(e as Map<String, dynamic>)).toList();
   }
 
-  /// En dessous de ce nombre de lieux d'un mode dans la ville, la ville est
-  /// consideree comme pauvre et ses listes sont completees par les lieux les
-  /// plus proches. Les hubs bien fournis ne sont jamais concernes, meme pour
-  /// une petite sous-categorie.
-  static const nearbyMinResults = 20;
+  static String _villeFilter(String ville) => 'ilike.$ville*';
 
-  /// Rayons successifs (km) autour du centre-ville, plafond 50 km.
-  static const nearbyRadiiKm = [10.0, 25.0, 50.0];
-
-  static final Map<String, Future<bool>> _poorCityCache = {};
-
-  Future<bool> _isPoorCity(String mode, String ville) {
-    final key = '$mode|${ville.toLowerCase()}';
-    return _poorCityCache.putIfAbsent(key, () async {
-      try {
-        return await countVenues(mode: mode, ville: ville) < nearbyMinResults;
-      } catch (_) {
-        _poorCityCache.remove(key);
-        return false;
-      }
-    });
-  }
-
-  /// Lignes `venues` de la ville ; si la ville est pauvre pour ce mode et que
-  /// la requete renvoie moins de [nearbyMinResults] lignes, on ajoute les
-  /// lieux les plus proches du centre-ville (meme filtres, sans la ville),
-  /// tries du plus proche au plus lointain, apres ceux de la ville.
+  /// Lignes `venues` de la ville, completees par les lieux proches si la
+  /// ville est pauvre pour ce mode (voir [NearbyRows]).
   Future<List<dynamic>> _rowsWithNearby(
     Map<String, String> params, {
     required String mode,
     required String ville,
-  }) async {
-    final local = (await _dio.get('venues', queryParameters: params)).data
-        as List;
-    final center = CityCoordinates.maybeOf(ville);
-    if (center == null || local.length >= nearbyMinResults) return local;
-    if (!await _isPoorCity(mode, ville)) return local;
+  }) =>
+      NearbyRows.fetch(_dio,
+          table: 'venues',
+          params: params,
+          ville: ville,
+          villeFilter: _villeFilter,
+          scope: {'mode': 'eq.$mode'},);
 
-    final seen = local.map((e) => (e as Map<String, dynamic>)['id']).toSet();
-    var extras = <MapEntry<Map<String, dynamic>, double>>[];
-    for (final radius in nearbyRadiiKm) {
-      final around = Map<String, String>.of(params)
-        ..remove('ville')
-        ..['and'] = Haversine.bboxFilter(center.lat, center.lng, radius);
-      final rows =
-          (await _dio.get('venues', queryParameters: around)).data as List;
-      extras = [];
-      for (final r in rows.cast<Map<String, dynamic>>()) {
-        if (seen.contains(r['id'])) continue;
-        final lat = (r['latitude'] as num?)?.toDouble();
-        final lng = (r['longitude'] as num?)?.toDouble();
-        if (lat == null || lng == null) continue;
-        final km = Haversine.km(center.lat, center.lng, lat, lng);
-        if (km <= radius) extras.add(MapEntry(r, km));
-      }
-      if (local.length + extras.length >= nearbyMinResults) break;
-    }
-    extras.sort((a, b) => a.value.compareTo(b.value));
-    final result = [...local, ...extras.map((e) => e.key)];
-    if (result.isNotEmpty) return result;
-
-    // Commune sans aucun lieu a 50 km : on montre ceux de son hub, du plus
-    // proche au plus lointain.
-    final hub = CityCoordinates.hubOf(ville);
-    if (hub == null || hub.toLowerCase() == ville.toLowerCase()) return result;
-    final hubRows = (await _dio.get('venues',
-            queryParameters: Map<String, String>.of(params)
-              ..['ville'] = 'ilike.$hub*',))
-        .data as List;
-    double dist(dynamic r) {
-      final m = r as Map<String, dynamic>;
-      final lat = (m['latitude'] as num?)?.toDouble();
-      final lng = (m['longitude'] as num?)?.toDouble();
-      if (lat == null || lng == null) return double.infinity;
-      return Haversine.km(center.lat, center.lng, lat, lng);
-    }
-    return [...hubRows]..sort((a, b) => dist(a).compareTo(dist(b)));
-  }
-
+  Future<bool> _isPoorCity(String mode, String ville) =>
+      NearbyRows.isPoorCity(_dio,
+          table: 'venues',
+          ville: ville,
+          villeFilter: _villeFilter,
+          scope: {'mode': 'eq.$mode'},);
 
   /// Styles musicaux des discotheques de [ville] : id venue -> cles
   /// ('electro', 'hiphop', 'latino', 'generaliste', 'rock'). Clubs sans

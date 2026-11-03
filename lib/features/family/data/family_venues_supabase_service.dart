@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
-import 'package:pulz_app/core/utils/haversine.dart';
+import 'package:pulz_app/core/data/nearby_rows.dart';
 import 'package:pulz_app/features/city/data/city_coordinates.dart';
 import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 
@@ -45,94 +45,23 @@ class FamilyVenuesSupabaseService {
         .toList();
   }
 
-  /// En dessous de ce nombre de lieux famille dans la ville, ses listes sont
-  /// completees par les lieux les plus proches (meme regle que Night et
-  /// Culture). Toulouse (85 lieux) n'est pas concernee.
-  static const nearbyMinResults = 20;
+  static String _villeFilter(String ville) => 'ilike.$ville';
 
-  /// Rayons successifs (km) autour du centre de la zone, plafond 50 km.
-  static const nearbyRadiiKm = [10.0, 25.0, 50.0];
-
-  static final Map<String, Future<bool>> _poorCityCache = {};
-
-  Future<bool> _isPoorCity(String ville) {
-    final key = ville.toLowerCase();
-    return _poorCityCache.putIfAbsent(key, () async {
-      try {
-        final response = await _dio.get(
-          'family_venues',
-          queryParameters: {
-            'select': 'id',
-            'is_active': 'eq.true',
-            'ville': 'ilike.$ville',
-          },
-          options: Options(headers: {
-            'Prefer': 'count=exact',
-            'Range-Unit': 'items',
-            'Range': '0-0',
-          },),
-        );
-        final total = (response.headers.value('content-range') ?? '')
-            .split('/')
-            .last;
-        return (int.tryParse(total) ?? 0) < nearbyMinResults;
-      } catch (_) {
-        _poorCityCache.remove(key);
-        return false;
-      }
-    });
-  }
-
-  /// Lignes de la ville ; si la ville est pauvre et la requete renvoie moins
-  /// de [nearbyMinResults] lignes, ajoute les lieux les plus proches du
-  /// centre de la zone (memes filtres, sans la ville), du plus proche au plus
-  /// lointain. Commune sans rien a 50 km : lieux de son hub.
+  /// Lignes de la ville, completees par les lieux proches si la ville a peu
+  /// de lieux famille (voir [NearbyRows]). Toulouse (85 lieux) n'est pas
+  /// concernee.
   Future<List<dynamic>> _rowsWithNearby(
     Map<String, String> params,
     String ville,
-  ) async {
-    final local =
-        (await _dio.get('family_venues', queryParameters: params)).data
-            as List;
-    final center = CityCoordinates.maybeOf(ville);
-    if (center == null || local.length >= nearbyMinResults) return local;
-    if (!await _isPoorCity(ville)) return local;
+  ) =>
+      NearbyRows.fetch(_dio,
+          table: 'family_venues',
+          params: params,
+          ville: ville,
+          villeFilter: _villeFilter,);
 
-    double dist(dynamic r) {
-      final m = r as Map<String, dynamic>;
-      final lat = (m['latitude'] as num?)?.toDouble();
-      final lng = (m['longitude'] as num?)?.toDouble();
-      if (lat == null || lng == null) return double.infinity;
-      return Haversine.km(center.lat, center.lng, lat, lng);
-    }
-
-    final seen = local.map((e) => (e as Map<String, dynamic>)['id']).toSet();
-    var extras = <dynamic>[];
-    for (final radius in nearbyRadiiKm) {
-      final around = Map<String, String>.of(params)
-        ..remove('ville')
-        ..['and'] = Haversine.bboxFilter(center.lat, center.lng, radius);
-      final rows = (await _dio.get('family_venues', queryParameters: around))
-          .data as List;
-      extras = rows
-          .where((r) =>
-              !seen.contains((r as Map<String, dynamic>)['id']) &&
-              dist(r) <= radius,)
-          .toList();
-      if (local.length + extras.length >= nearbyMinResults) break;
-    }
-    extras.sort((a, b) => dist(a).compareTo(dist(b)));
-    final result = [...local, ...extras];
-    if (result.isNotEmpty) return result;
-
-    final hub = CityCoordinates.hubOf(ville);
-    if (hub == null || hub.toLowerCase() == ville.toLowerCase()) return result;
-    final hubRows = (await _dio.get('family_venues',
-            queryParameters: Map<String, String>.of(params)
-              ..['ville'] = 'ilike.$hub',))
-        .data as List;
-    return [...hubRows]..sort((a, b) => dist(a).compareTo(dist(b)));
-  }
+  Future<bool> _isPoorCity(String ville) => NearbyRows.isPoorCity(_dio,
+      table: 'family_venues', ville: ville, villeFilter: _villeFilter,);
 
   /// Fetch les venues de PLUSIEURS categories (types) d'un coup — utilise pour
   /// afficher une rubrique entiere (ex: "Divertissements" = Cinema + Bowling +
