@@ -1,0 +1,43 @@
+:root {
+  /* marque */
+  --macity-rose-macity: #FF1E8E;
+  --macity-rose-framboise: #FF1E6E;
+  --macity-rouge-corail: #FF2E38;
+  --macity-nuit-macity: #1A0F2E;
+  --macity-nuit-profonde: #0A0514;
+  --macity-violet-nuit: #1A0A38;
+  /* interface */
+  --macity-magenta: #E91E63;
+  --macity-violet: #6A1B9A;
+  --macity-violet-profond: #4B1174;
+  --macity-rose-neon: #F4247C;
+  --macity-cyan: #22D3EE;
+  --macity-vert-gratuit: #0E8A4F;
+  /* rubriques */
+  --macity-night: #A855F7;
+  --macity-food: #FB923C;
+  --macity-culture: #22D3EE;
+  --macity-sport: #22C55E;
+  --macity-fiesta: #EF4444;
+  /* etiquettes */
+  --macity-tag-food: #FFD93D;
+  --macity-tag-night: #C4B5FD;
+  --macity-tag-culture: #A5F3E4;
+  --macity-tag-sport: #BFDBFE;
+  --macity-tag-famille: #FED7AA;
+  --macity-tag-evasion: #FBCFE8;
+  /* neutres */
+  --macity-blanc: #FFFFFF;
+  --macity-creme: #FAFAF7;
+  --macity-sable: #F1EEE9;
+  --macity-encre: #15121C;
+  --macity-ardoise: #4A4458;
+  --macity-lavande-clair: #F5F0FF;
+  --macity-lavande: #B5A8D0;
+  /* degrades */
+  --macity-degrade-pin: linear-gradient(180deg, #FF1E8E 0%, #FF1E6E 55%, #FF2E38 100%);
+  --macity-degrade-principal: linear-gradient(135deg, #E91E63 0%, #6A1B9A 60%, #4B1174 100%);
+  --macity-degrade-ciel-de-nuit: linear-gradient(135deg, #362268 0%, #6B2FC5 42%, #C026D3 78%, #F4247C 100%);
+  --macity-degrade-editorial: linear-gradient(135deg, #E91E63 0%, #FBBF24 100%);
+  --macity-degrade-texte-chaud: linear-gradient(90deg, #FFD88A 0%, #FF9EC4 100%);
+}

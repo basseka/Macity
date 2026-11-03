@@ -1,0 +1,618 @@
+{
+  "note": "Valeurs CMJN calculées automatiquement depuis le RVB, à faire valider par l'imprimeur (profil Fogra39 conseillé).",
+  "couleurs": {
+    "marque": [
+      {
+        "id": "rose-macity",
+        "nom": "Rose MaCity",
+        "hex": "#FF1E8E",
+        "rvb": [
+          255,
+          30,
+          142
+        ],
+        "cmjn": [
+          0,
+          88,
+          44,
+          0
+        ],
+        "usage": "Couleur signature : mot City du logo, haut du pin"
+      },
+      {
+        "id": "rose-framboise",
+        "nom": "Rose framboise",
+        "hex": "#FF1E6E",
+        "rvb": [
+          255,
+          30,
+          110
+        ],
+        "cmjn": [
+          0,
+          88,
+          57,
+          0
+        ],
+        "usage": "Milieu du dégradé du pin"
+      },
+      {
+        "id": "rouge-corail",
+        "nom": "Rouge corail",
+        "hex": "#FF2E38",
+        "rvb": [
+          255,
+          46,
+          56
+        ],
+        "cmjn": [
+          0,
+          82,
+          78,
+          0
+        ],
+        "usage": "Pointe du pin, fin du dégradé"
+      },
+      {
+        "id": "nuit-macity",
+        "nom": "Nuit MaCity",
+        "hex": "#1A0F2E",
+        "rvb": [
+          26,
+          15,
+          46
+        ],
+        "cmjn": [
+          43,
+          67,
+          0,
+          82
+        ],
+        "usage": "Mot Ma sur fond clair, texte principal"
+      },
+      {
+        "id": "nuit-profonde",
+        "nom": "Nuit profonde",
+        "hex": "#0A0514",
+        "rvb": [
+          10,
+          5,
+          20
+        ],
+        "cmjn": [
+          50,
+          75,
+          0,
+          92
+        ],
+        "usage": "Fond de l'app en mode sombre"
+      },
+      {
+        "id": "violet-nuit",
+        "nom": "Violet nuit",
+        "hex": "#1A0A38",
+        "rvb": [
+          26,
+          10,
+          56
+        ],
+        "cmjn": [
+          54,
+          82,
+          0,
+          78
+        ],
+        "usage": "Fond de l'icône d'app"
+      }
+    ],
+    "interface": [
+      {
+        "id": "magenta",
+        "nom": "Magenta",
+        "hex": "#E91E63",
+        "rvb": [
+          233,
+          30,
+          99
+        ],
+        "cmjn": [
+          0,
+          87,
+          58,
+          9
+        ],
+        "usage": "Boutons, éléments actifs, liens"
+      },
+      {
+        "id": "violet",
+        "nom": "Violet",
+        "hex": "#6A1B9A",
+        "rvb": [
+          106,
+          27,
+          154
+        ],
+        "cmjn": [
+          31,
+          82,
+          0,
+          40
+        ],
+        "usage": "Dégradé principal, accents"
+      },
+      {
+        "id": "violet-profond",
+        "nom": "Violet profond",
+        "hex": "#4B1174",
+        "rvb": [
+          75,
+          17,
+          116
+        ],
+        "cmjn": [
+          35,
+          85,
+          0,
+          55
+        ],
+        "usage": "Fin du dégradé principal"
+      },
+      {
+        "id": "rose-neon",
+        "nom": "Rose néon",
+        "hex": "#F4247C",
+        "rvb": [
+          244,
+          36,
+          124
+        ],
+        "cmjn": [
+          0,
+          85,
+          49,
+          4
+        ],
+        "usage": "Badge LIVE, pastille néon"
+      },
+      {
+        "id": "cyan",
+        "nom": "Cyan",
+        "hex": "#22D3EE",
+        "rvb": [
+          34,
+          211,
+          238
+        ],
+        "cmjn": [
+          86,
+          11,
+          0,
+          7
+        ],
+        "usage": "Accent froid, contour néon"
+      },
+      {
+        "id": "vert-gratuit",
+        "nom": "Vert gratuit",
+        "hex": "#0E8A4F",
+        "rvb": [
+          14,
+          138,
+          79
+        ],
+        "cmjn": [
+          90,
+          0,
+          43,
+          46
+        ],
+        "usage": "Mention Gratuit"
+      }
+    ],
+    "rubriques": [
+      {
+        "id": "night",
+        "nom": "Night",
+        "hex": "#A855F7",
+        "rvb": [
+          168,
+          85,
+          247
+        ],
+        "cmjn": [
+          32,
+          66,
+          0,
+          3
+        ],
+        "usage": "Nuit & sorties"
+      },
+      {
+        "id": "food",
+        "nom": "Food",
+        "hex": "#FB923C",
+        "rvb": [
+          251,
+          146,
+          60
+        ],
+        "cmjn": [
+          0,
+          42,
+          76,
+          2
+        ],
+        "usage": "Food & lifestyle"
+      },
+      {
+        "id": "culture",
+        "nom": "Culture",
+        "hex": "#22D3EE",
+        "rvb": [
+          34,
+          211,
+          238
+        ],
+        "cmjn": [
+          86,
+          11,
+          0,
+          7
+        ],
+        "usage": "Culture & arts"
+      },
+      {
+        "id": "sport",
+        "nom": "Sport",
+        "hex": "#22C55E",
+        "rvb": [
+          34,
+          197,
+          94
+        ],
+        "cmjn": [
+          83,
+          0,
+          52,
+          23
+        ],
+        "usage": "Sport"
+      },
+      {
+        "id": "fiesta",
+        "nom": "Fiesta",
+        "hex": "#EF4444",
+        "rvb": [
+          239,
+          68,
+          68
+        ],
+        "cmjn": [
+          0,
+          72,
+          72,
+          6
+        ],
+        "usage": "Fêtes, événements forts"
+      }
+    ],
+    "etiquettes": [
+      {
+        "id": "tag-food",
+        "nom": "Étiquette Food",
+        "hex": "#FFD93D",
+        "rvb": [
+          255,
+          217,
+          61
+        ],
+        "cmjn": [
+          0,
+          15,
+          76,
+          0
+        ],
+        "usage": "Pastille catégorie dans les listes"
+      },
+      {
+        "id": "tag-night",
+        "nom": "Étiquette Night",
+        "hex": "#C4B5FD",
+        "rvb": [
+          196,
+          181,
+          253
+        ],
+        "cmjn": [
+          23,
+          28,
+          0,
+          1
+        ],
+        "usage": ""
+      },
+      {
+        "id": "tag-culture",
+        "nom": "Étiquette Culture",
+        "hex": "#A5F3E4",
+        "rvb": [
+          165,
+          243,
+          228
+        ],
+        "cmjn": [
+          32,
+          0,
+          6,
+          5
+        ],
+        "usage": ""
+      },
+      {
+        "id": "tag-sport",
+        "nom": "Étiquette Sport",
+        "hex": "#BFDBFE",
+        "rvb": [
+          191,
+          219,
+          254
+        ],
+        "cmjn": [
+          25,
+          14,
+          0,
+          0
+        ],
+        "usage": ""
+      },
+      {
+        "id": "tag-famille",
+        "nom": "Étiquette Famille",
+        "hex": "#FED7AA",
+        "rvb": [
+          254,
+          215,
+          170
+        ],
+        "cmjn": [
+          0,
+          15,
+          33,
+          0
+        ],
+        "usage": ""
+      },
+      {
+        "id": "tag-evasion",
+        "nom": "Étiquette Évasion",
+        "hex": "#FBCFE8",
+        "rvb": [
+          251,
+          207,
+          232
+        ],
+        "cmjn": [
+          0,
+          18,
+          8,
+          2
+        ],
+        "usage": ""
+      }
+    ],
+    "neutres": [
+      {
+        "id": "blanc",
+        "nom": "Blanc",
+        "hex": "#FFFFFF",
+        "rvb": [
+          255,
+          255,
+          255
+        ],
+        "cmjn": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "usage": "Fond des listes"
+      },
+      {
+        "id": "creme",
+        "nom": "Crème",
+        "hex": "#FAFAF7",
+        "rvb": [
+          250,
+          250,
+          247
+        ],
+        "cmjn": [
+          0,
+          0,
+          1,
+          2
+        ],
+        "usage": "Fond clair de l'app"
+      },
+      {
+        "id": "sable",
+        "nom": "Sable",
+        "hex": "#F1EEE9",
+        "rvb": [
+          241,
+          238,
+          233
+        ],
+        "cmjn": [
+          0,
+          1,
+          3,
+          5
+        ],
+        "usage": "Fond clair secondaire"
+      },
+      {
+        "id": "encre",
+        "nom": "Encre",
+        "hex": "#15121C",
+        "rvb": [
+          21,
+          18,
+          28
+        ],
+        "cmjn": [
+          25,
+          36,
+          0,
+          89
+        ],
+        "usage": "Texte sur fond blanc"
+      },
+      {
+        "id": "ardoise",
+        "nom": "Ardoise",
+        "hex": "#4A4458",
+        "rvb": [
+          74,
+          68,
+          88
+        ],
+        "cmjn": [
+          16,
+          23,
+          0,
+          65
+        ],
+        "usage": "Texte secondaire sur fond blanc"
+      },
+      {
+        "id": "lavande-clair",
+        "nom": "Lavande claire",
+        "hex": "#F5F0FF",
+        "rvb": [
+          245,
+          240,
+          255
+        ],
+        "cmjn": [
+          4,
+          6,
+          0,
+          0
+        ],
+        "usage": "Texte sur fond sombre"
+      },
+      {
+        "id": "lavande",
+        "nom": "Lavande",
+        "hex": "#B5A8D0",
+        "rvb": [
+          181,
+          168,
+          208
+        ],
+        "cmjn": [
+          13,
+          19,
+          0,
+          18
+        ],
+        "usage": "Texte secondaire sur fond sombre"
+      }
+    ]
+  },
+  "degrades": [
+    {
+      "id": "degrade-pin",
+      "nom": "Dégradé du pin",
+      "angle": 180,
+      "arrets": [
+        {
+          "hex": "#FF1E8E",
+          "position": 0
+        },
+        {
+          "hex": "#FF1E6E",
+          "position": 55
+        },
+        {
+          "hex": "#FF2E38",
+          "position": 100
+        }
+      ]
+    },
+    {
+      "id": "degrade-principal",
+      "nom": "Dégradé principal",
+      "angle": 135,
+      "arrets": [
+        {
+          "hex": "#E91E63",
+          "position": 0
+        },
+        {
+          "hex": "#6A1B9A",
+          "position": 60
+        },
+        {
+          "hex": "#4B1174",
+          "position": 100
+        }
+      ]
+    },
+    {
+      "id": "degrade-ciel-de-nuit",
+      "nom": "Ciel de nuit",
+      "angle": 135,
+      "arrets": [
+        {
+          "hex": "#362268",
+          "position": 0
+        },
+        {
+          "hex": "#6B2FC5",
+          "position": 42
+        },
+        {
+          "hex": "#C026D3",
+          "position": 78
+        },
+        {
+          "hex": "#F4247C",
+          "position": 100
+        }
+      ]
+    },
+    {
+      "id": "degrade-editorial",
+      "nom": "Éditorial",
+      "angle": 135,
+      "arrets": [
+        {
+          "hex": "#E91E63",
+          "position": 0
+        },
+        {
+          "hex": "#FBBF24",
+          "position": 100
+        }
+      ]
+    },
+    {
+      "id": "degrade-texte-chaud",
+      "nom": "Texte chaud",
+      "angle": 90,
+      "arrets": [
+        {
+          "hex": "#FFD88A",
+          "position": 0
+        },
+        {
+          "hex": "#FF9EC4",
+          "position": 100
+        }
+      ]
+    }
+  ]
+}

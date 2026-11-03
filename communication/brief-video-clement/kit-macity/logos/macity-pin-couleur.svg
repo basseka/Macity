@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="16 4 168 204" width="840" height="1020"><defs>
+  <linearGradient id="pinBody" x1="50%" y1="0%" x2="50%" y2="100%">
+    <stop offset="0%" stop-color="#FF1E8E"/><stop offset="55%" stop-color="#FF1E6E"/><stop offset="100%" stop-color="#FF2E38"/>
+  </linearGradient>
+  <radialGradient id="pinHighlight" cx="35%" cy="22%" r="42%">
+    <stop offset="0%" stop-color="#FFD2E1" stop-opacity="0.75"/><stop offset="100%" stop-color="#FFD2E1" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="pinHole" cx="40%" cy="40%" r="80%">
+    <stop offset="0%" stop-color="#1A0822"/><stop offset="100%" stop-color="#06061B"/>
+  </radialGradient>
+</defs><g transform=""><path fill="url(#pinBody)" d="M 100 8 C 145 8, 180 42, 180 86 C 180 130, 152 158, 122 184 C 113 192, 107 198, 103 202 C 101 204, 99 204, 97 202 C 93 198, 87 192, 78 184 C 48 158, 20 130, 20 86 C 20 42, 55 8, 100 8 Z"/><circle cx="100" cy="83" r="22" fill="url(#pinHole)"/><path fill="url(#pinHighlight)" opacity="0.7" d="M 100 8 C 145 8, 180 42, 180 86 C 180 130, 152 158, 122 184 C 113 192, 107 198, 103 202 C 101 204, 99 204, 97 202 C 93 198, 87 192, 78 184 C 48 158, 20 130, 20 86 C 20 42, 55 8, 100 8 Z"/></g></svg>

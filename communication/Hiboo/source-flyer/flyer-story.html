@@ -1,0 +1,53 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@300;500;800;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;background:#000;overflow:hidden}
+.f{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:Inter,sans-serif;color:#fff}
+.bg{position:absolute;inset:-40px;background:url(t12.png) center 45%/cover;filter:blur(2.5px) saturate(1.25) brightness(.8)}
+.bg2{position:absolute;inset:0;background:url(t12.png) center/cover;filter:blur(10px) brightness(.5);opacity:.0}
+.shade{position:absolute;inset:0;background:
+ radial-gradient(ellipse 70% 45% at 50% 52%,rgba(255,20,40,.22),transparent 70%),
+ linear-gradient(180deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.45) 30%,rgba(0,0,0,.35) 55%,rgba(10,0,0,.9) 78%,#000 100%)}
+.beam{position:absolute;top:-60px;left:90px;width:260px;height:900px;background:linear-gradient(180deg,rgba(255,60,60,.55),rgba(255,0,30,0));transform:rotate(-18deg);transform-origin:top center;filter:blur(30px);mix-blend-mode:screen}
+.beam.r{left:auto;right:60px;transform:rotate(20deg);opacity:.7}
+.spot{position:absolute;top:30px;left:120px;width:70px;height:70px;border-radius:50%;background:#fff;box-shadow:0 0 60px 30px rgba(255,80,80,.8)}
+.grain{position:absolute;inset:0;opacity:.18;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center}
+.logo{margin-top:230px;width:240px;filter:drop-shadow(0 0 18px rgba(255,30,50,.9)) drop-shadow(0 0 40px rgba(255,0,30,.6))}
+.club{margin-top:14px;font:600 22px Inter;letter-spacing:14px;padding-left:14px;color:#ffd9dc}
+.pre{margin-top:110px;font:300 64px 'Big Shoulders Display';letter-spacing:22px;padding-left:22px}
+.title{font:800 250px/0.86 'Big Shoulders Display';letter-spacing:6px;text-align:center;text-shadow:0 0 30px rgba(255,30,50,.75),0 0 80px rgba(255,0,30,.5);margin-top:6px}
+.title span{display:block;font-weight:900;color:#fff}
+.sub{margin-top:50px;font:500 40px 'Big Shoulders Display';letter-spacing:8px;padding:12px 34px;border-top:2px solid rgba(255,60,70,.8);border-bottom:2px solid rgba(255,60,70,.8)}
+.sub b{color:#ff3344;font-weight:800}
+.mc{margin-top:50px;display:flex;align-items:center;gap:16px;background:#FF1E8E;border-radius:60px;padding:14px 34px 14px 26px;font:800 30px Inter;box-shadow:0 0 40px rgba(255,30,142,.55)}
+.mc img{height:38px}
+.bar{position:absolute;left:60px;right:60px;bottom:265px;display:grid;grid-template-columns:1.15fr 1fr 1.15fr;border:2px solid rgba(255,60,70,.85);background:rgba(0,0,0,.6);box-shadow:0 0 30px rgba(255,0,30,.35)}
+.cell{padding:26px 10px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.cell+.cell{border-left:2px solid rgba(255,60,70,.85)}
+.lab{font:600 22px Inter;letter-spacing:4px;color:#ffd0d4}
+.big{font:900 64px/1 'Big Shoulders Display';color:#ff3344;margin:8px 0 4px;letter-spacing:2px}
+.small{font:600 21px Inter;letter-spacing:1px}
+.small em{font-style:normal;color:#FF5CAB;font-weight:800}
+.tel{font:900 46px/1.05 'Big Shoulders Display';color:#ff3344;letter-spacing:1px;margin-top:8px}
+.foot{position:absolute;z-index:5;bottom:205px;left:0;right:0;text-align:center;font:600 22px Inter;letter-spacing:3px;color:#ffd0d4;display:flex;justify-content:center;align-items:center;gap:14px}
+.foot img{height:30px}
+</style></head><body><div class="f">
+<div class="bg"></div><div class="shade"></div>
+<div class="beam"></div><div class="beam r"></div><div class="grain"></div>
+<div class="c">
+ <img class="logo" src="owl_sq.png">
+ <div class="club">CLUB</div>
+ <div class="pre">SOIRÉE</div>
+ <div class="title">TOUTE<span>LA NUIT</span></div>
+ <div class="sub">DE <b>MINUIT</b> À <b>6H</b> DU MATIN</div>
+ <div class="mc"><img src="macity-logo-blanc.png"> 4 € l'entrée avec l'app</div>
+</div>
+<div class="bar">
+ <div class="cell"><div class="lab">ENTRÉE</div><div class="big">5 €</div><div class="small"><em>4 €</em> avec MaCity</div></div>
+ <div class="cell"><div class="lab">OUVERTURE</div><div class="big">00H</div><div class="small">jusqu'à 06H</div></div>
+ <div class="cell"><div class="lab">RÉSERVATIONS</div><div class="tel">06 31 22<br>83 92</div></div>
+</div>
+<div class="foot">RETROUVE LE HIBOO SUR <img src="macity-logo-blanc.png"></div>
+</div></body></html>
