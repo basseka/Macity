@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
 import 'package:pulz_app/features/day/data/publication_service.dart';
+import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/core/services/analytics_service.dart';
 
@@ -99,7 +100,26 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
     });
     try {
       final userId = await UserIdentityService.getUserId();
-      final payload = widget.event.toSupabaseJson(userId: userId);
+      // La photo choisie n'est qu'un chemin local : l'envoyer au Storage
+      // AVANT de figer le payload, sinon l'event paye est publie sans image
+      // (le webhook ne fait que recopier ce payload dans user_events).
+      var event = widget.event;
+      final localPhoto = event.photoPath;
+      if (localPhoto != null && localPhoto.isNotEmpty &&
+          (event.photoUrl == null || event.photoUrl!.isEmpty)) {
+        try {
+          final url = await UserEventSupabaseService().uploadPhoto(localPhoto);
+          event = event.copyWith(photoUrl: url);
+        } catch (e) {
+          if (!mounted) return;
+          setState(() {
+            _paying = false;
+            _error = "La photo n'a pas pu être envoyée. Vérifie ta connexion et réessaie.";
+          });
+          return;
+        }
+      }
+      final payload = event.toSupabaseJson(userId: userId);
       final opened = await _service.checkout(
         payload: payload,
         tier: _tier,
