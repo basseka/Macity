@@ -1146,6 +1146,31 @@
       #mediakit-sheet { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
       @page { margin: 12mm; }
     }
+    /* ─── Onglet Suivi villes ─── */
+    #citytrack-view .ct-live{color:var(--text-dim);font-size:12px;margin-bottom:12px}
+    #citytrack-view .ct-live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:6px;animation:ctp 1.5s infinite}
+    @keyframes ctp{50%{opacity:.3}}
+    #citytrack-view .ct-kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+    #citytrack-view .ct-kpi{border:1px solid rgba(128,128,128,.25);border-radius:10px;padding:10px 14px;min-width:120px}
+    #citytrack-view .ct-kpi b{display:block;font-size:22px}#citytrack-view .ct-kpi span{color:var(--text-dim);font-size:12px}
+    #citytrack-view .ct-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
+    @media(max-width:900px){#citytrack-view .ct-main{grid-template-columns:1fr}}
+    #citytrack-map{background:#0f1115;height:640px;border-radius:12px;border:1px solid rgba(128,128,128,.25)}
+    @media(max-width:900px){#citytrack-map{height:380px}}
+    #citytrack-view .ct-legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--text-dim);font-size:12px;margin:8px 0}
+    #citytrack-view .ct-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+    #citytrack-view .ct-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    #citytrack-view .ct-tools button{background:transparent;color:inherit;border:1px solid rgba(128,128,128,.35);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+    #citytrack-view .ct-tools button.on{border-color:#E91E63;color:#E91E63}
+    #citytrack-view .ct-wrap{overflow:auto;max-height:640px;border:1px solid rgba(128,128,128,.25);border-radius:12px}
+    #citytrack-view table{width:100%;border-collapse:collapse;font-size:13px}
+    #citytrack-view th,#citytrack-view td{padding:7px 8px;border-bottom:1px solid rgba(128,128,128,.2);text-align:right;white-space:nowrap}
+    #citytrack-view th{position:sticky;top:0;background:var(--surface);color:var(--text-dim);font-weight:600;cursor:pointer}
+    #citytrack-view td:nth-child(-n+2),#citytrack-view th:nth-child(-n+2){text-align:left}
+    #citytrack-view .ct-pill{font-size:11px;padding:2px 8px;border-radius:99px;color:#fff}
+    #citytrack-view .ct-z{opacity:.35}#citytrack-view .ct-low{color:#ef4444}
+    #citytrack-view .ct-bar{height:6px;background:rgba(128,128,128,.25);border-radius:3px;overflow:hidden;width:70px;display:inline-block;vertical-align:middle}
+    #citytrack-view .ct-bar i{display:block;height:100%;background:#22c55e}
   </style>
 </head>
 <body>
@@ -1219,6 +1244,7 @@
           <span class="nav-btn" id="goto-discoursnight-btn">🎤 Discours boîtes de nuit</span>
           <span class="nav-btn" id="goto-appliview-btn">📱 Appli view</span>
           <span class="nav-btn" id="goto-dailysummary-btn">🗓️ Résumé du jour</span>
+          <span class="nav-btn" id="goto-citytrack-btn">🗺️ Suivi villes</span>
           <!-- Ouvre le generateur de visuels Instagram (carrousel a gabarits fixes)
                dans un nouvel onglet. Chemin RELATIF : admin.html s'ouvre en local,
                un lien absolu file:// serait casse des que le dossier change de place. -->
@@ -3257,6 +3283,29 @@
         <div class="dsum-grid" id="dailysummary-grid"></div>
       </div>
 
+      <!-- ═══ VUE "SUIVI VILLES" : hubs, villes ajoutées, en cours et à venir jusqu'à Dunkerque (live) ═══ -->
+      <div id="citytrack-view" class="hidden">
+        <h1>🗺️ Suivi des villes</h1>
+        <p class="subtitle">Nombre de lieux par rubrique et de balades, en direct de la base. Statuts à mettre à jour dans <code>CITYTRACK_CITIES</code> quand une ville est terminée.</p>
+        <div class="ct-live"><i></i><span id="citytrack-st">Chargement…</span></div>
+        <div class="ct-kpis" id="citytrack-kpis"></div>
+        <div class="ct-main">
+          <div>
+            <div id="citytrack-map"></div>
+            <div class="ct-legend">
+              <span><span class="ct-dot" style="background:#3b82f6"></span>Hub existant</span>
+              <span><span class="ct-dot" style="background:#22c55e"></span>Ville ajoutée</span>
+              <span><span class="ct-dot" style="background:#f59e0b"></span>En cours</span>
+              <span><span class="ct-dot" style="background:#6b7280"></span>À venir</span>
+            </div>
+          </div>
+          <div>
+            <div class="ct-tools" id="citytrack-tools"></div>
+            <div class="ct-wrap"><table><thead><tr id="citytrack-thead"></tr></thead><tbody id="citytrack-tb"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
       <!-- ═══ VUE "CRM COMMERCIAL" : construite par le module CRM en fin de fichier ═══ -->
       <div id="crm-view" class="hidden"></div>
     </div>
@@ -4437,6 +4486,8 @@
     const gotoAppliviewBtn = document.getElementById("goto-appliview-btn");
     const dailysummaryView = document.getElementById("dailysummary-view");
     const gotoDailysummaryBtn = document.getElementById("goto-dailysummary-btn");
+    const citytrackView = document.getElementById("citytrack-view");
+    const gotoCitytrackBtn = document.getElementById("goto-citytrack-btn");
     const crmView = document.getElementById("crm-view");
     const gotoCrmBtn = document.getElementById("goto-crm-btn");
 
@@ -4473,6 +4524,7 @@
       discoursnightView.classList.add("hidden");
       appliviewView.classList.add("hidden");
       dailysummaryView.classList.add("hidden");
+      citytrackView.classList.add("hidden");
       crmView.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
@@ -4976,6 +5028,144 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoDailysummaryBtn.addEventListener("click", showDailySummaryView);
+
+    // ─── Onglet Suivi villes ───────────────────────────────────────────────
+    // Statut : hub = hub de l'app, done = ville ajoutée (pipeline office de tourisme),
+    // wip = en cours, todo = à venir (ordre de passage jusqu'à Dunkerque).
+    const CITYTRACK_CITIES = [
+  ...[['Toulouse',43.6047,1.4442],['Paris',48.8566,2.3522],['Lyon',45.7640,4.8357],['Marseille',43.2965,5.3698],['Bordeaux',44.8378,-0.5792],
+  ['Montpellier',43.6109,3.8767],['Nantes',47.2184,-1.5536],['Nice',43.7102,7.2620],['Lille',50.6293,3.0573],['Strasbourg',48.5734,7.7521],
+  ['Rennes',48.1173,-1.6778],['Grenoble',45.1885,5.7245],['Aix-en-Provence',43.5297,5.4474],['Angers',47.4784,-0.5632],['Brest',48.3905,-4.4860],
+  ['Clermont-Ferrand',45.7772,3.0870],['Dijon',47.3220,5.0415],['Le Havre',49.4944,0.1079],['Le Mans',48.0061,0.1996],['Nimes',43.8367,4.3601],
+  ['Reims',49.2583,4.0317],['Saint-Etienne',45.4397,4.3872],['Toulon',43.1242,5.9282],['Amiens',49.8941,2.2958],['Annecy',45.8992,6.1294],
+  ['Avignon',43.9493,4.8055],['Bayonne',43.4929,-1.4748],['Besancon',47.2378,6.0241],['Blois',47.5862,1.3359],['Chartres',48.4467,1.4894],
+  ['Colmar',48.0793,7.3589],['Metz',49.1193,6.1757],['Nancy',48.6921,6.1844],['Rouen',49.4432,1.0993],['Barcelone',41.3874,2.1686],
+  ['Carcassonne',43.2130,2.3491],['Saint-Denis',-20.8789,55.4481],['Fort-de-France',14.6037,-61.0594],['Pointe-a-Pitre',16.2410,-61.5341],
+  ['Cayenne',4.9344,-52.3358],['Mamoudzou',-12.7806,45.2272]].map(c=>[...c,'hub']),
+  ...[['Montauban',44.0176,1.3550],['Albi',43.9289,2.1464],['Castres',43.6060,2.2400],['Perpignan',42.6887,2.8948],['Béziers',43.3442,3.2158],
+  ['Narbonne',43.1839,3.0042],['Sète',43.4028,3.6928],['Pau',43.2951,-0.3708],['Tarbes',43.2328,0.0781],['Agen',44.2033,0.6163],['Rodez',44.3506,2.5750],['Foix',42.9653,1.6070],['Auch',43.6465,0.5855],['Cahors',44.4475,1.4419],['Millau',44.0986,3.0780],['Lourdes',43.0947,-0.0459]].map(c=>[...c,'done']),
+  ['Mont-de-Marsan',43.8902,-0.4994,'done'],
+  ['Dax',43.7102,-1.0536,'done'],
+  ['Biarritz',43.4832,-1.5586,'done'],
+  ...[
+  ['Arcachon',44.6586,-1.1689],
+  ['Bergerac',44.8533,0.4833],['Périgueux',45.1846,0.7218],['Brive-la-Gaillarde',45.1589,1.5331],['Limoges',45.8336,1.2611],['Angoulême',45.6484,0.1562],
+  ['La Rochelle',46.1603,-1.1511],['Niort',46.3237,-0.4588],['Poitiers',46.5802,0.3404],['Châteauroux',46.8103,1.6913],['Bourges',47.0810,2.3988],
+  ['Tours',47.3941,0.6848],['Orléans',47.9030,1.9093],['Vannes',47.6582,-2.7608],['Lorient',47.7483,-3.3700],['Quimper',47.9960,-4.1024],
+  ['Saint-Malo',48.6493,-2.0257],['Laval',48.0707,-0.7734],['Caen',49.1829,-0.3707],['Cherbourg-en-Cotentin',49.6337,-1.6222],['Évreux',49.0241,1.1508],
+  ['Beauvais',49.4295,2.0807],['Compiègne',49.4179,2.8261],['Saint-Quentin',49.8465,3.2876],['Arras',50.2910,2.7775],['Lens',50.4329,2.8279],
+  ['Douai',50.3714,3.0800],['Valenciennes',50.3570,3.5235],['Boulogne-sur-Mer',50.7264,1.6147],['Calais',50.9513,1.8587],['Dunkerque',51.0343,2.3768]].map(c=>[...c,'todo']),
+].map(([nom,lat,lng,st],i)=>({nom,lat,lng,st,ord:i}));
+    const CT_ST = { hub: ["Hub", "#3b82f6"], done: ["Ajoutée", "#22c55e"], wip: ["En cours", "#f59e0b"], todo: ["À venir", "#6b7280"] };
+    const CT_SEUIL = { food: 30, night: 15, culture: 15, famille: 10, sport: 10 };
+    const CT_COLS = [["food", "Food"], ["night", "Night"], ["culture", "Culture"], ["famille", "Famille"], ["sport", "Sport"], ["balades", "Balades"]];
+    const ctNorm = (v) => (v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+    const ct = { counts: {}, filt: "all", sortK: "ord", sortDir: 1, map: null, layer: null, timer: null };
+
+    async function ctFetchAll(table, select) {
+      const out = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase.from(table).select(select).range(from, from + 999);
+        if (error) throw new Error(`${table} : ${error.message}`);
+        out.push(...data);
+        if (data.length < 1000) return out;
+      }
+    }
+    function ctLoadLeaflet() {
+      if (window.L) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const css = document.createElement("link");
+        css.rel = "stylesheet"; css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(css);
+        const js = document.createElement("script");
+        js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+        js.onload = resolve; js.onerror = () => reject(new Error("Leaflet non chargé"));
+        document.head.appendChild(js);
+      });
+    }
+    async function ctLoad() {
+      const st = document.getElementById("citytrack-st");
+      st.textContent = "Mise à jour…";
+      try {
+        const [et, ve, fa, sp, nw] = await Promise.all([
+          ctFetchAll("etablissements", "ville"), ctFetchAll("venues", "ville,mode"), ctFetchAll("family_venues", "ville"),
+          ctFetchAll("sport_venues", "ville"), ctFetchAll("night_walks", "ville")]);
+        const c = {};
+        const inc = (v, k) => { const n = ctNorm(v); if (!n) return; (c[n] ??= {})[k] = (c[n][k] || 0) + 1; };
+        et.forEach((r) => inc(r.ville, "food"));
+        ve.forEach((r) => { if (r.mode === "night" || r.mode === "culture") inc(r.ville, r.mode); else if (r.mode === "family") inc(r.ville, "famille"); });
+        fa.forEach((r) => inc(r.ville, "famille"));
+        sp.forEach((r) => inc(r.ville, "sport"));
+        nw.forEach((r) => inc(r.ville, "balades"));
+        ct.counts = c;
+        ctRender();
+        st.textContent = `En direct de la base · mis à jour à ${new Date().toLocaleTimeString("fr-FR")} · rafraîchi toutes les 60 s`;
+      } catch (e) {
+        console.error("[citytrack]", e);
+        st.textContent = `Erreur de lecture : ${e.message}`;
+      }
+    }
+    const ctC = (x) => ct.counts[ctNorm(x.nom)] || {};
+    const ctScore = (x) => Object.keys(CT_SEUIL).filter((k) => (ctC(x)[k] || 0) >= CT_SEUIL[k]).length;
+    const ctTotal = (x) => ["food", "night", "culture", "famille", "sport"].reduce((a, k) => a + (ctC(x)[k] || 0), 0);
+    function ctRender() {
+      const by = (s) => CITYTRACK_CITIES.filter((x) => x.st === s);
+      const shown = CITYTRACK_CITIES.filter((x) => ct.filt === "all" || x.st === ct.filt);
+      document.getElementById("citytrack-kpis").innerHTML = [
+        [by("hub").length, "hubs existants"], [by("done").length, "villes ajoutées"], [by("wip").length, "en cours"],
+        [by("todo").length, "à venir jusqu'à Dunkerque"], [CITYTRACK_CITIES.filter((x) => ctScore(x) === 5).length, "villes « prêtes » (5/5 seuils)"],
+        [CITYTRACK_CITIES.reduce((a, x) => a + ctTotal(x), 0).toLocaleString("fr-FR"), "lieux suivis"],
+      ].map(([b, l]) => `<div class="ct-kpi"><b>${b}</b><span>${l}</span></div>`).join("");
+      document.getElementById("citytrack-tools").innerHTML = [["all", "Toutes"], ["hub", "Hubs"], ["done", "Ajoutées"], ["wip", "En cours"], ["todo", "À venir"]]
+        .map(([k, l]) => `<button type="button" data-filt="${k}" class="${ct.filt === k ? "on" : ""}">${l} (${k === "all" ? CITYTRACK_CITIES.length : by(k).length})</button>`).join("");
+      document.getElementById("citytrack-thead").innerHTML = [["nom", "Ville"], ["st", "Statut"], ...CT_COLS, ["score", "Seuils"]]
+        .map(([k, l]) => `<th data-sort="${k}">${l}</th>`).join("");
+      const val = (x, k) => k === "nom" ? x.nom : k === "st" ? ["wip", "done", "hub", "todo"].indexOf(x.st) * 1000 + x.ord
+        : k === "score" ? ctScore(x) * 100000 + ctTotal(x) : k === "ord" ? x.ord : (ctC(x)[k] || 0);
+      const rows = [...shown].sort((a, b) => { const p = val(a, ct.sortK), q = val(b, ct.sortK); return (p > q ? 1 : p < q ? -1 : 0) * ct.sortDir; });
+      document.getElementById("citytrack-tb").innerHTML = rows.map((x) => {
+        const c = ctC(x), s = ctScore(x);
+        const cells = CT_COLS.map(([k]) => { const v = c[k] || 0; const cls = !v ? "ct-z" : (CT_SEUIL[k] && v < CT_SEUIL[k] ? "ct-low" : ""); return `<td class="${cls}">${v}</td>`; }).join("");
+        return `<tr><td>${escapeHtml(x.nom)}</td><td><span class="ct-pill" style="background:${CT_ST[x.st][1]}">${CT_ST[x.st][0]}</span></td>${cells}<td><span class="ct-bar"><i style="width:${s * 20}%"></i></span> ${s}/5</td></tr>`;
+      }).join("");
+      if (!window.L) return;
+      if (!ct.map) {
+        ct.map = L.map("citytrack-map").setView([46.6, 2.4], 6);
+        // Esri plutôt qu'OpenStreetMap : les tuiles OSM refusent admin.html ouvert en file:// (pas de Referer)
+        const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+        L.tileLayer(esri + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", { attribution: "Tiles © Esri", maxZoom: 16 }).addTo(ct.map);
+        L.tileLayer(esri + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16 }).addTo(ct.map);
+      }
+      if (ct.layer) ct.layer.remove();
+      ct.layer = L.layerGroup().addTo(ct.map);
+      shown.forEach((x) => {
+        const c = ctC(x), t = ctTotal(x);
+        L.circleMarker([x.lat, x.lng], { radius: Math.max(5, Math.min(16, 4 + Math.sqrt(t) / 2)), color: "#0f1115", fillColor: CT_ST[x.st][1], fillOpacity: 0.85, weight: 1 })
+          .bindTooltip(`<b>${escapeHtml(x.nom)}</b> (${CT_ST[x.st][0]})<br>Food ${c.food || 0} · Night ${c.night || 0} · Culture ${c.culture || 0}<br>Famille ${c.famille || 0} · Sport ${c.sport || 0} · Balades ${c.balades || 0}`)
+          .addTo(ct.layer);
+      });
+    }
+    document.getElementById("citytrack-tools").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-filt]"); if (!b) return;
+      ct.filt = b.dataset.filt; ctRender();
+    });
+    document.getElementById("citytrack-thead").addEventListener("click", (e) => {
+      const th = e.target.closest("[data-sort]"); if (!th) return;
+      const k = th.dataset.sort;
+      if (ct.sortK === k) ct.sortDir *= -1; else { ct.sortK = k; ct.sortDir = (k === "nom" || k === "st") ? 1 : -1; }
+      ctRender();
+    });
+    async function showCitytrackView() {
+      _hideAllViews();
+      citytrackView.classList.remove("hidden");
+      gotoCitytrackBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+      try { await ctLoadLeaflet(); } catch (e) { console.error("[citytrack]", e); }
+      if (ct.map) ct.map.invalidateSize();
+      ctLoad();
+      if (!ct.timer) ct.timer = setInterval(() => { if (!citytrackView.classList.contains("hidden")) ctLoad(); }, 60000);
+    }
+    gotoCitytrackBtn.addEventListener("click", showCitytrackView);
     document.getElementById("discoursnight-copy-btn").addEventListener("click", async () => {
       const texte = `DISCOURS PARTENARIAT — BOÎTES DE NUIT
 
