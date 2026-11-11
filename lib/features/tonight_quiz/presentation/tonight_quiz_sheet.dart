@@ -23,15 +23,22 @@ import 'package:pulz_app/features/tonight_quiz/domain/tonight_quiz.dart';
 class TonightQuizSheet extends ConsumerStatefulWidget {
   final String ville;
 
-  const TonightQuizSheet({super.key, required this.ville});
+  /// Hub du département : repli quand la commune n'a rien pour une source.
+  final String? hub;
 
-  static Future<void> show(BuildContext context, {required String ville}) {
+  const TonightQuizSheet({super.key, required this.ville, this.hub});
+
+  static Future<void> show(
+    BuildContext context, {
+    required String ville,
+    String? hub,
+  }) {
     return showModalBottomSheet(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TonightQuizSheet(ville: ville),
+      builder: (_) => TonightQuizSheet(ville: ville, hub: hub),
     );
   }
 
@@ -43,7 +50,7 @@ enum _Step { group, wishes, when, results }
 
 class _TonightQuizSheetState extends ConsumerState<TonightQuizSheet> {
   late final Future<TonightPools> _poolsFuture =
-      TonightQuizService().loadPools(widget.ville);
+      TonightQuizService().loadPools(widget.ville, hub: widget.hub);
 
   _Step _step = _Step.group;
   TonightGroup? _group;

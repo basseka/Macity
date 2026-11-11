@@ -14,6 +14,7 @@ import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/reported_events/data/city_media_service.dart';
 import 'package:pulz_app/features/reported_events/data/partners_of_day_service.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/tonight_quiz/presentation/tonight_quiz_sheet.dart';
 import 'package:pulz_app/features/reported_events/state/tonight_events_provider.dart';
 
@@ -120,7 +121,9 @@ class _PartnersOfDaySectionState extends ConsumerState<PartnersOfDaySection> {
             // la liste complete des events reste accessible en bas.
             onTap: () => TonightQuizSheet.show(
               context,
-              ville: ref.read(selectedCityProvider),
+              // Commune GPS (Cannes) ; repli sur le hub (Nice) source par source.
+              ville: ref.read(areaVilleProvider),
+              hub: ref.read(selectedCityProvider),
             ),
           ),
           for (final m in media) _mediaBubble(m),

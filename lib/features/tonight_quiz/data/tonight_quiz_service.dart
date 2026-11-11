@@ -21,8 +21,26 @@ class TonightQuizService {
   final _family = FamilyVenuesSupabaseService();
 
   /// Une source en erreur donne une liste vide : les propositions se font
-  /// sans elle.
-  Future<TonightPools> loadPools(String ville) async {
+  /// sans elle. [ville] est la commune où se trouve l'utilisateur (GPS) ;
+  /// une source vide dans cette commune est reprise sur [hub].
+  Future<TonightPools> loadPools(String ville, {String? hub}) async {
+    final local = await _load(ville);
+    if (hub == null || hub.isEmpty || hub == ville) return local;
+    final needHub = local.night.isEmpty ||
+        local.culture.isEmpty ||
+        local.activities.isEmpty ||
+        local.walks.isEmpty;
+    if (!needHub) return local;
+    final h = await _load(hub);
+    return TonightPools(
+      night: local.night.isEmpty ? h.night : local.night,
+      culture: local.culture.isEmpty ? h.culture : local.culture,
+      activities: local.activities.isEmpty ? h.activities : local.activities,
+      walks: local.walks.isEmpty ? h.walks : local.walks,
+    );
+  }
+
+  Future<TonightPools> _load(String ville) async {
     Future<List<T>> safe<T>(Future<List<T>> f) => f.catchError((Object e) {
           debugPrint('[TonightQuiz] source KO: $e');
           return <T>[];
