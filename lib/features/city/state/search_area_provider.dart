@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pulz_app/core/network/dense_city.dart';
 import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/data/city_coordinates.dart';
 import 'package:pulz_app/features/city/data/commune_geo_service.dart';
@@ -69,6 +70,10 @@ class SearchAreaNotifier extends StateNotifier<SearchArea?>
   /// Déplacement au-delà duquel la zone (et donc les listes) se met à jour,
   /// même sans changer de commune.
   static const refreshKm = 3.0;
+
+  /// Ville dense (Paris) : listes limitées à un rayon de 1,5 à 3 km, donc
+  /// rafraîchies dès 1 km de déplacement.
+  static const denseRefreshKm = 1.0;
 
   /// Déplacement minimum entre deux recherches de commune.
   static const _geocodeEveryKm = 1.0;
@@ -196,7 +201,8 @@ class SearchAreaNotifier extends StateNotifier<SearchArea?>
       final unchanged = cur != null &&
           cur.fromGps &&
           cur.nom == next.nom &&
-          _km(cur.lat, cur.lng, next.lat, next.lng) < refreshKm;
+          _km(cur.lat, cur.lng, next.lat, next.lng) <
+              (DenseCity.isDense(next.nom) ? denseRefreshKm : refreshKm);
       if (!force && unchanged) return;
       await _apply(next);
     } finally {
