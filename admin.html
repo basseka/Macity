@@ -1171,6 +1171,15 @@
     #citytrack-view .ct-z{opacity:.35}#citytrack-view .ct-low{color:#ef4444}
     #citytrack-view .ct-bar{height:6px;background:rgba(128,128,128,.25);border-radius:3px;overflow:hidden;width:70px;display:inline-block;vertical-align:middle}
     #citytrack-view .ct-bar i{display:block;height:100%;background:#22c55e}
+    #citytrack-view .ct-inst{margin-top:28px}
+    #citytrack-view .ct-inst h2{font-size:18px;margin:0 0 4px}
+    #citytrack-view .ct-inst-main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+    @media(max-width:900px){#citytrack-view .ct-inst-main{grid-template-columns:1fr}}
+    #citytrack-inst-map{background:#0f1115;height:640px;border-radius:12px;border:1px solid rgba(128,128,128,.25)}
+    @media(max-width:900px){#citytrack-inst-map{height:380px}}
+    #citytrack-view .ct-sizes{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;color:var(--text-dim);font-size:12px;margin:10px 0}
+    #citytrack-view .ct-sizes span{display:flex;flex-direction:column;align-items:center;gap:4px}
+    #citytrack-view .ct-sizes i{display:block;border-radius:50%;background:rgba(233,30,99,.6);border:1px solid #E91E63}
   </style>
 </head>
 <body>
@@ -3304,6 +3313,20 @@
             <div class="ct-wrap"><table><thead><tr id="citytrack-thead"></tr></thead><tbody id="citytrack-tb"></tbody></table></div>
           </div>
         </div>
+        <div class="ct-inst">
+          <h2>📲 Utilisateurs de l'appli par ville</h2>
+          <p class="subtitle">Deux sources : les inscrits de la base MaCity (ville choisie à l'inscription, iOS et Android) ou les installations vues par Firebase (première ouverture, ville de l'appareil). Plus la ville en compte, plus le point est gros.</p>
+          <div class="ct-tools" id="citytrack-inst-tools"></div>
+          <div class="ct-live"><span id="citytrack-inst-st">Chargement…</span></div>
+          <div class="ct-kpis" id="citytrack-inst-kpis"></div>
+          <div class="ct-inst-main">
+            <div>
+              <div id="citytrack-inst-map"></div>
+              <div class="ct-sizes" id="citytrack-inst-legend"></div>
+            </div>
+            <div class="ct-wrap"><table><thead><tr><th>Ville</th><th>Département / région</th><th id="citytrack-inst-th">Nombre</th><th>Part</th></tr></thead><tbody id="citytrack-inst-tb"></tbody></table></div>
+          </div>
+        </div>
       </div>
 
       <!-- ═══ VUE "CRM COMMERCIAL" : construite par le module CRM en fin de fichier ═══ -->
@@ -5047,20 +5070,39 @@
   ['Mont-de-Marsan',43.8902,-0.4994,'done'],
   ['Dax',43.7102,-1.0536,'done'],
   ['Biarritz',43.4832,-1.5586,'done'],
+  ['Arcachon',44.6586,-1.1689,'done'],
+  ['Bergerac',44.8533,0.4833,'done'],
+  ['Périgueux',45.1846,0.7218,'done'],
+  ['Brive-la-Gaillarde',45.1589,1.5331,'done'],
+  ['Limoges',45.8336,1.2611,'done'],
+  ['Angoulême',45.6484,0.1562,'done'],
+  ['La Rochelle',46.1603,-1.1511,'done'],
+  ['Niort',46.3237,-0.4588,'done'],
+  ['Poitiers',46.5802,0.3404,'done'],
+  ['Châteauroux',46.8103,1.6913,'done'],
+  ['Bourges',47.0810,2.3988,'done'],
+  ['Tours',47.3941,0.6848,'done'],
+  ['Orléans',47.9030,1.9093,'done'],
+  ['Vannes',47.6582,-2.7608,'done'],
+  ['Lorient',47.7483,-3.3700,'done'],
+  ['Quimper',47.9960,-4.1024,'done'],
   ...[
-  ['Arcachon',44.6586,-1.1689],
-  ['Bergerac',44.8533,0.4833],['Périgueux',45.1846,0.7218],['Brive-la-Gaillarde',45.1589,1.5331],['Limoges',45.8336,1.2611],['Angoulême',45.6484,0.1562],
-  ['La Rochelle',46.1603,-1.1511],['Niort',46.3237,-0.4588],['Poitiers',46.5802,0.3404],['Châteauroux',46.8103,1.6913],['Bourges',47.0810,2.3988],
-  ['Tours',47.3941,0.6848],['Orléans',47.9030,1.9093],['Vannes',47.6582,-2.7608],['Lorient',47.7483,-3.3700],['Quimper',47.9960,-4.1024],
-  ['Saint-Malo',48.6493,-2.0257],['Laval',48.0707,-0.7734],['Caen',49.1829,-0.3707],['Cherbourg-en-Cotentin',49.6337,-1.6222],['Évreux',49.0241,1.1508],
-  ['Beauvais',49.4295,2.0807],['Compiègne',49.4179,2.8261],['Saint-Quentin',49.8465,3.2876],['Arras',50.2910,2.7775],['Lens',50.4329,2.8279],
-  ['Douai',50.3714,3.0800],['Valenciennes',50.3570,3.5235],['Boulogne-sur-Mer',50.7264,1.6147],['Calais',50.9513,1.8587],['Dunkerque',51.0343,2.3768]].map(c=>[...c,'todo']),
+  
+  
+  
+  ['Saint-Malo',48.6493,-2.0257,'done'],['Laval',48.0707,-0.7734,'done'],['Caen',49.1829,-0.3707,'done'],['Cherbourg-en-Cotentin',49.6337,-1.6222,'done'],['Évreux',49.0241,1.1508,'done'],
+  ['Beauvais',49.4295,2.0807,'done'],['Compiègne',49.4179,2.8261,'done'],['Saint-Quentin',49.8465,3.2876,'done'],['Arras',50.2910,2.7775,'done'],['Lens',50.4329,2.8279,'done'],
+  ['Douai',50.3714,3.0800,'done'],['Valenciennes',50.3570,3.5235,'done'],['Boulogne-sur-Mer',50.7264,1.6147,'done'],['Calais',50.9513,1.8587,'done'],['Dunkerque',51.0343,2.3768,'done'],
+  ['Charleville-Mézières',49.7621,4.7263,'done'],['Troyes',48.2973,4.0744,'done'],['Châlons-en-Champagne',48.9566,4.3631,'done'],['Épinal',48.1724,6.4496,'done'],['Mulhouse',47.7508,7.3359,'done'],
+  ['Belfort',47.6397,6.8638,'done'],['Montbéliard',47.5100,6.7986,'done'],['Chalon-sur-Saône',46.7808,4.8539,'done'],['Mâcon',46.3069,4.8287,'done'],['Bourg-en-Bresse',46.2052,5.2255,'done'],
+  ['Villefranche-sur-Saône',45.9899,4.7186,'done'],['Chambéry',45.5646,5.9178,'done'],['Valence',44.9334,4.8924,'done'],['Montélimar',44.5581,4.7509,'done'],['Orange',44.1381,4.8075,'done'],
+  ['Arles',43.6768,4.6303,'done'],['Fréjus',43.4330,6.7370,'done'],['Cannes',43.5528,7.0174,'done'],['Antibes',43.5808,7.1251,'done'],['Menton',43.7747,7.4975,'done'],['Monaco',43.7384,7.4246,'done']].map(c=>[...c,'todo']),
 ].map(([nom,lat,lng,st],i)=>({nom,lat,lng,st,ord:i}));
     const CT_ST = { hub: ["Hub", "#3b82f6"], done: ["Ajoutée", "#22c55e"], wip: ["En cours", "#f59e0b"], todo: ["À venir", "#6b7280"] };
     const CT_SEUIL = { food: 30, night: 15, culture: 15, famille: 10, sport: 10 };
     const CT_COLS = [["food", "Food"], ["night", "Night"], ["culture", "Culture"], ["famille", "Famille"], ["sport", "Sport"], ["balades", "Balades"]];
     const ctNorm = (v) => (v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
-    const ct = { counts: {}, filt: "all", sortK: "ord", sortDir: 1, map: null, layer: null, timer: null };
+    const ct = { counts: {}, filt: "all", sortK: "ord", sortDir: 1, map: null, layer: null, timer: null, inst: {}, instSrc: "db", instMap: null, instLayer: null };
 
     async function ctFetchAll(table, select) {
       const out = [];
@@ -5155,6 +5197,113 @@
       if (ct.sortK === k) ct.sortDir *= -1; else { ct.sortK = k; ct.sortDir = (k === "nom" || k === "st") ? 1 : -1; }
       ctRender();
     });
+    // Carte des utilisateurs par ville, 2 sources :
+    //  - db : inscrits (user_profiles.ville, iOS compris), géolocalisés via geo.api.gouv.fr (cache navigateur)
+    //  - ga : installations (GA4 first_open via admin-analytics-rubriques, mode installs ; iOS sous-compté)
+    const ctInstR = (n, max) => 4 + 26 * Math.sqrt(n / Math.max(1, max));
+    const CT_GEO_KEY = "ct_geo_v1";
+    let ctGeoCache = {};
+    try { ctGeoCache = JSON.parse(localStorage.getItem(CT_GEO_KEY) || "{}"); } catch (e) { ctGeoCache = {}; }
+    async function ctGeocode(raw) {
+      if (raw in ctGeoCache) return ctGeoCache[raw];
+      const m = raw.match(/^(.*?)\s*\((\d{5})\)\s*$/);
+      const nom = (m ? m[1] : raw).trim(), cp = m ? m[2] : "";
+      const base = "https://geo.api.gouv.fr/communes?fields=centre,departement&boost=population&limit=1&nom=" + encodeURIComponent(nom);
+      let res = null;
+      for (const url of cp ? [base + "&codePostal=" + cp, "https://geo.api.gouv.fr/communes?fields=centre,departement&limit=1&codePostal=" + cp, base] : [base]) {
+        try {
+          const r = await fetch(url); if (!r.ok) continue;
+          const c = (await r.json())[0];
+          if (c && c.centre) { res = { lat: c.centre.coordinates[1], lng: c.centre.coordinates[0], dep: c.departement ? c.departement.nom : "" }; break; }
+        } catch (e) { /* source suivante */ }
+      }
+      ctGeoCache[raw] = res;
+      try { localStorage.setItem(CT_GEO_KEY, JSON.stringify(ctGeoCache)); } catch (e) { /* stockage indisponible */ }
+      return res;
+    }
+    async function ctLoadUsersDb() {
+      const rows = await ctFetchAll("user_profiles", "ville");
+      const c = {};
+      rows.forEach((r) => { const v = (r.ville || "").trim(); if (v) c[v] = (c[v] || 0) + 1; });
+      const sans = rows.length - Object.values(c).reduce((a, n) => a + n, 0);
+      const villes = Object.entries(c).map(([ville, installs]) => ({ ville, installs, region: "", pays: "", lat: null, lng: null }));
+      const todo = [...villes];
+      await Promise.all([...Array(8)].map(async () => {
+        for (let x; (x = todo.shift());) {
+          const g = await ctGeocode(x.ville);
+          if (g) Object.assign(x, { lat: g.lat, lng: g.lng, region: g.dep, pays: "France" });
+        }
+      }));
+      if (sans) villes.push({ ville: "(not set)", installs: sans, region: "", pays: "", lat: null, lng: null });
+      villes.sort((p, q) => q.installs - p.installs);
+      return { total: rows.length, villes };
+    }
+    async function ctLoadInstalls(force) {
+      const st = document.getElementById("citytrack-inst-st");
+      const src = ct.instSrc;
+      document.getElementById("citytrack-inst-tools").innerHTML = [["db", "👤 Inscrits (base MaCity)"], ["ga", "📲 Installations (Firebase)"]]
+        .map(([k, l]) => `<button type="button" data-src="${k}" class="${src === k ? "on" : ""}">${l}</button>`).join("");
+      if (ct.inst[src] && !force) return ctRenderInstalls();
+      st.textContent = src === "db" ? "Lecture des inscrits et localisation des villes…" : "Lecture de Firebase Analytics…";
+      try {
+        if (src === "db") {
+          ct.inst.db = await ctLoadUsersDb();
+          ct.inst.db.note = `Base MaCity : comptes créés dans l'appli (iOS et Android), par ville choisie à l'inscription · lu à ${new Date().toLocaleTimeString("fr-FR")}`;
+        } else {
+          const { data, error } = await supabase.functions.invoke("admin-analytics-rubriques", { body: { mode: "installs" } });
+          if (error) throw error;
+          if (!data || data.error) throw new Error(data?.error || "réponse vide");
+          ct.inst.ga = data;
+          data.note = `Firebase Analytics : premières ouvertures de l'appli (first_open) depuis le ${new Date(data.depuis).toLocaleDateString("fr-FR")}, ville de l'appareil, jusqu'à 24 h de retard · iOS sous-compté tant que GoogleService-Info.plist manque`;
+        }
+        if (ct.instSrc === src) ctRenderInstalls();
+      } catch (e) {
+        console.error("[citytrack installs]", e);
+        if (ct.instSrc === src) st.textContent = `Erreur de lecture : ${e.message}`;
+      }
+    }
+    function ctRenderInstalls() {
+      const d = ct.inst[ct.instSrc]; if (!d) return;
+      const unit = ct.instSrc === "db" ? ["inscrit", "inscrits"] : ["installation", "installations"];
+      const pl = (n) => n > 1 ? unit[1] : unit[0];
+      document.getElementById("citytrack-inst-st").textContent = d.note || "";
+      const v = d.villes || [];
+      const geo = v.filter((x) => x.lat != null);
+      const fr = v.filter((x) => x.pays === "France").reduce((a, x) => a + x.installs, 0);
+      const nonLoc = v.filter((x) => x.lat == null).reduce((a, x) => a + x.installs, 0);
+      const pct = (n) => d.total ? (n / d.total * 100).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " %" : "0 %";
+      document.getElementById("citytrack-inst-kpis").innerHTML = [
+        [d.total.toLocaleString("fr-FR"), `${unit[1]} au total`], [fr.toLocaleString("fr-FR"), "en France"],
+        [geo.length.toLocaleString("fr-FR"), "villes sur la carte"], [nonLoc.toLocaleString("fr-FR"), "non localisés ou hors France"],
+      ].map(([b, l]) => `<div class="ct-kpi"><b>${b}</b><span>${l}</span></div>`).join("");
+      document.getElementById("citytrack-inst-th").textContent = unit[1][0].toUpperCase() + unit[1].slice(1);
+      document.getElementById("citytrack-inst-tb").innerHTML = v.slice(0, 400).map((x) =>
+        `<tr><td>${escapeHtml(x.ville === "(not set)" ? "Ville inconnue" : x.ville)}${x.pays && x.pays !== "France" ? ` <span style="color:var(--text-dim)">(${escapeHtml(x.pays)})</span>` : ""}</td><td>${escapeHtml(x.region === "(not set)" ? "" : x.region)}</td><td>${x.installs.toLocaleString("fr-FR")}</td><td>${pct(x.installs)}</td></tr>`).join("");
+      const max = Math.max(1, ...geo.map((x) => x.installs));
+      const paliers = [...new Set([1, Math.round(max / 20), Math.round(max / 5), Math.round(max / 2), max].filter((n) => n >= 1))].sort((p, q) => p - q);
+      document.getElementById("citytrack-inst-legend").innerHTML = paliers.map((n) => {
+        const r = ctInstR(n, max); return `<span><i style="width:${2 * r}px;height:${2 * r}px"></i>${n.toLocaleString("fr-FR")}</span>`;
+      }).join("") + `<span style="align-self:center">${unit[1]} par ville (surface du point proportionnelle)</span>`;
+      if (!window.L) return;
+      if (!ct.instMap) {
+        ct.instMap = L.map("citytrack-inst-map").setView([46.6, 2.4], 6);
+        const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+        L.tileLayer(esri + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", { attribution: "Tiles © Esri", maxZoom: 16 }).addTo(ct.instMap);
+        L.tileLayer(esri + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16 }).addTo(ct.instMap);
+      }
+      if (ct.instLayer) ct.instLayer.remove();
+      ct.instLayer = L.layerGroup().addTo(ct.instMap);
+      // les plus gros d'abord, pour que les petits points restent survolables au-dessus
+      [...geo].sort((p, q) => q.installs - p.installs).forEach((x) => {
+        L.circleMarker([x.lat, x.lng], { radius: ctInstR(x.installs, max), color: "#E91E63", weight: 1, fillColor: "#E91E63", fillOpacity: 0.45 })
+          .bindTooltip(`<b>${escapeHtml(x.ville)}</b><br>${x.installs.toLocaleString("fr-FR")} ${pl(x.installs)} (${pct(x.installs)})`)
+          .addTo(ct.instLayer);
+      });
+    }
+    document.getElementById("citytrack-inst-tools").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-src]"); if (!b) return;
+      ct.instSrc = b.dataset.src; ctLoadInstalls();
+    });
     async function showCitytrackView() {
       _hideAllViews();
       citytrackView.classList.remove("hidden");
@@ -5162,7 +5311,9 @@
       window.scrollTo({ top: 0, behavior: "instant" });
       try { await ctLoadLeaflet(); } catch (e) { console.error("[citytrack]", e); }
       if (ct.map) ct.map.invalidateSize();
+      if (ct.instMap) ct.instMap.invalidateSize();
       ctLoad();
+      ctLoadInstalls();
       if (!ct.timer) ct.timer = setInterval(() => { if (!citytrackView.classList.contains("hidden")) ctLoad(); }, 60000);
     }
     gotoCitytrackBtn.addEventListener("click", showCitytrackView);
@@ -10613,8 +10764,30 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
                 </div>
               </div>
               <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
-                <button type="button" class="act act-info" data-edit-post="${escapeHtml(p.id)}">✏️ Classer</button>
+                <button type="button" class="act act-info" data-edit-content="${escapeHtml(p.id)}">✏️ Modifier</button>
+                <button type="button" class="act act-info" data-edit-post="${escapeHtml(p.id)}">🏷️ Classer</button>
                 <button type="button" class="act act-danger" data-delete-post="${escapeHtml(p.id)}">🗑️ Supprimer</button>
+              </div>
+            </div>
+            <div id="content-form-${escapeHtml(p.id)}" class="hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Titre</label>
+              <input type="text" id="content-titre-${escapeHtml(p.id)}" value="${escapeHtml(p.titre || "")}" maxlength="120"
+                style="width:100%; box-sizing:border-box; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:rgba(255,255,255,0.07); color:var(--text); font-size:13px; margin-bottom:10px;" />
+              <label style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;">Photo</label>
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+                <img id="content-preview-${escapeHtml(p.id)}" src="${escapeHtml(p.photo_url || "")}" alt=""
+                  style="width:96px; height:96px; object-fit:cover; border-radius:10px; background:rgba(255,255,255,0.06); ${p.photo_url ? "" : "display:none;"}" />
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <input type="file" accept="image/*" id="content-file-${escapeHtml(p.id)}" style="font-size:12px; color:var(--text-dim);" />
+                  <div tabindex="0" data-paste-zone="${escapeHtml(p.id)}"
+                    style="padding:10px 14px; border:1px dashed var(--line); border-radius:8px; font-size:12px; color:var(--text-dim); cursor:text; outline:none;">
+                    📋 Ou colle une image ici (Ctrl+V)
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button type="button" class="act act-success" data-save-content="${escapeHtml(p.id)}">Enregistrer</button>
+                <button type="button" class="act act-neutral" data-cancel-content="${escapeHtml(p.id)}">Annuler</button>
               </div>
             </div>
             <div id="edit-form-${escapeHtml(p.id)}" class="hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line); display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -10668,6 +10841,27 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
       });
       moderationList.querySelectorAll("[data-delete-post]").forEach(btn => {
         btn.addEventListener("click", () => deleteProPost(btn.dataset.deletePost));
+      });
+      moderationList.querySelectorAll("[data-edit-content]").forEach(btn => {
+        btn.addEventListener("click", () => document.getElementById(`content-form-${btn.dataset.editContent}`)?.classList.toggle("hidden"));
+      });
+      moderationList.querySelectorAll("[data-cancel-content]").forEach(btn => {
+        btn.addEventListener("click", () => document.getElementById(`content-form-${btn.dataset.cancelContent}`)?.classList.add("hidden"));
+      });
+      moderationList.querySelectorAll('input[id^="content-file-"]').forEach(inp => {
+        inp.addEventListener("change", () => {
+          const id = inp.id.replace("content-file-", "");
+          const f = inp.files?.[0];
+          if (f) setPendingModPhoto(id, f);
+        });
+      });
+      moderationList.querySelectorAll("[data-paste-zone]").forEach(zone => {
+        zone.addEventListener("click", () => zone.focus());
+        zone.addEventListener("focus", () => { zone.style.borderColor = "#A855F7"; });
+        zone.addEventListener("blur", () => { zone.style.borderColor = ""; });
+      });
+      moderationList.querySelectorAll("[data-save-content]").forEach(btn => {
+        btn.addEventListener("click", () => updateProPostContent(btn.dataset.saveContent, btn));
       });
     }
 
@@ -10754,6 +10948,58 @@ Reel vertical (30-60s) tourné sur place : ambiance, DJ, clientèle, cocktails. 
         renderModerationList();
       } catch (e) {
         toast("Erreur classification : " + (e.message || e), false);
+      }
+    }
+
+    // Photo choisie (fichier ou collée) en attente d'enregistrement, par event.
+    const _pendingModPhotos = {};
+    function setPendingModPhoto(id, file) {
+      _pendingModPhotos[id] = file;
+      const prev = document.getElementById(`content-preview-${id}`);
+      if (prev) { prev.src = URL.createObjectURL(file); prev.style.display = ""; }
+      const zone = document.querySelector(`[data-paste-zone="${CSS.escape(id)}"]`);
+      if (zone) zone.textContent = "✓ Image prête, clique sur Enregistrer";
+    }
+    // Ctrl+V : colle dans le formulaire « Modifier » qui a le focus,
+    // sinon dans le seul formulaire ouvert.
+    document.addEventListener("paste", (e) => {
+      if (moderationView.classList.contains("hidden") || _modTab !== "posts") return;
+      const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+      if (!item) return;
+      let form = document.activeElement?.closest?.('[id^="content-form-"]');
+      if (!form) {
+        const open = [...moderationList.querySelectorAll('[id^="content-form-"]')].filter(f => !f.classList.contains("hidden"));
+        if (open.length !== 1) { toast("Ouvre « Modifier » sur un seul event avant de coller", false); return; }
+        form = open[0];
+      }
+      const file = item.getAsFile();
+      if (!file) return;
+      e.preventDefault();
+      setPendingModPhoto(form.id.replace("content-form-", ""), file);
+    });
+
+    async function updateProPostContent(id, btn) {
+      const post = _allProPosts.find(p => p.id === id);
+      const titre = (document.getElementById(`content-titre-${id}`)?.value || "").trim();
+      const file = _pendingModPhotos[id] || document.getElementById(`content-file-${id}`)?.files?.[0];
+      if (!titre) { toast("Le titre ne peut pas être vide", false); return; }
+      const titreChanged = titre !== (post?.titre || "");
+      if (!titreChanged && !file) { toast("Rien à modifier", false); return; }
+      const label = btn.textContent;
+      btn.disabled = true; btn.textContent = file ? "Envoi photo…" : "Enregistrement…";
+      try {
+        const photoUrl = file ? await uploadImage(file) : null;
+        const { error } = await supabase.rpc("admin_update_pro_post", {
+          p_id: id, p_titre: titreChanged ? titre : null, p_photo_url: photoUrl,
+        });
+        if (error) throw error;
+        if (post) { post.titre = titre; if (photoUrl) post.photo_url = photoUrl; }
+        delete _pendingModPhotos[id];
+        toast("✓ Event mis à jour");
+        renderModerationList();
+      } catch (e) {
+        toast("Erreur mise à jour : " + (e.message || e), false);
+        btn.disabled = false; btn.textContent = label;
       }
     }
 
