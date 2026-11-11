@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Reel Black Friday iPhone</title>
+<style>
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  :root { --rouge: #FF1E8E; --rouge2: #7A1FD1; --rose: #FF1E8E; --noir: #06041A; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--noir); }
+  .abs { position: absolute; }
+  #world { position: absolute; inset: 0; transform-origin: 540px 900px; }
+
+  /* Fond */
+  #bg { position: absolute; inset: -200px; background: radial-gradient(ellipse 60% 45% at 50% 47%, #2c1466 0%, #160b3d 45%, #06041a 82%); }
+  #bgRed { position: absolute; inset: -200px; opacity: 0;
+    background: radial-gradient(ellipse 60% 45% at 50% 47%, #ff3a9e 0%, #b0108a 30%, #3b1478 62%, #06041a 100%); }
+  #floor { position: absolute; left: -900px; top: 1180px; width: 2880px; height: 1400px; opacity: 0;
+    background-image: linear-gradient(rgba(255,30,142,.9) 2px, transparent 2px), linear-gradient(90deg, rgba(170,90,255,.9) 2px, transparent 2px);
+    background-size: 120px 120px; transform-origin: 50% 0; transform: perspective(700px) rotateX(72deg);
+    -webkit-mask-image: radial-gradient(ellipse 45% 70% at 50% 0%, #000 0%, transparent 80%); }
+  .beam { position: absolute; left: 540px; top: 960px; width: 220px; height: 3000px; margin: -1500px 0 0 -110px; opacity: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,30,142,.55) 45%, rgba(255,210,235,.7) 50%, rgba(140,60,255,.55) 55%, transparent);
+    filter: blur(28px); mix-blend-mode: screen; }
+  #aura { position: absolute; left: 540px; top: 1000px; width: 1300px; height: 1500px; margin: -750px 0 0 -650px; border-radius: 50%; opacity: 0;
+    background: radial-gradient(ellipse at center, rgba(255,30,142,.85) 0%, rgba(120,40,220,.45) 32%, transparent 65%); mix-blend-mode: screen; }
+  #slash { position: absolute; left: -400px; top: 0; width: 1900px; height: 1920px; opacity: 0;
+    background: linear-gradient(115deg, transparent 0 30%, rgba(255,30,142,.0) 30%, rgba(90,30,190,.85) 38%, #ff1e8e 47%, rgba(90,30,190,.85) 56%, transparent 64%); }
+
+  /* Chiffres */
+  .num { position: absolute; left: 0; top: 0; width: 1080px; height: 1800px; display: flex; align-items: center; justify-content: center;
+    font: 1080px/1 Anton; opacity: 0; will-change: transform; }
+  .num span { display: block; }
+  .metal { color: transparent; -webkit-background-clip: text; background-clip: text;
+    background-image: linear-gradient(180deg, #ffffff 0%, #f4f0ff 18%, #b9acdf 44%, #4b3a86 49%, #ffd2ea 51%, #ff7ec0 70%, #ff1e8e 88%, #7a0a6a 100%);
+    -webkit-text-stroke: 3px rgba(255,236,248,.55); }
+  .ghost { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #ff1e8e; mix-blend-mode: screen; opacity: 0; }
+
+  /* Téléphone 3D */
+  #stage { position: absolute; inset: 0; perspective: 2200px; perspective-origin: 540px 960px; }
+  #phone { position: absolute; left: 540px; top: 1000px; width: 0; height: 0; transform-style: preserve-3d; opacity: 0; }
+  .slice { position: absolute; left: -250px; top: -515px; width: 500px; height: 1030px; border-radius: 86px;
+    background: linear-gradient(135deg, #7d62b8, #2b1c4e 30%, #b9a5ea 52%, #241645 70%, #8a70c6); }
+  .face { position: absolute; left: -250px; top: -515px; width: 500px; height: 1030px; border-radius: 86px; backface-visibility: hidden; overflow: hidden; }
+  #front { background: #04030a; box-shadow: inset 0 0 0 3px #a48fd8, inset 0 0 0 5px #1c1430; }
+  #scr { position: absolute; left: 13px; top: 13px; width: 474px; height: 1004px; border-radius: 74px; overflow: hidden; background: #0b0620; }
+  #scr svg { position: absolute; left: 0; top: 0; }
+  #island { position: absolute; left: 50%; top: 26px; width: 112px; height: 36px; margin-left: -56px; border-radius: 18px; background: #000;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); }
+  #scrSheen { position: absolute; inset: 0; background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.28) 48%, rgba(255,255,255,.05) 55%, transparent 65%);
+    background-size: 300% 100%; mix-blend-mode: screen; }
+  /* Dos aluminium violet profond + plateau photo pleine largeur (iPhone 18 Pro) */
+  #back { background: radial-gradient(ellipse 120% 90% at 30% 20%, #4d3a7e 0%, #2a1d4d 45%, #150d2b 100%);
+    box-shadow: inset 0 0 0 3px #a48fd8, inset 0 0 40px rgba(0,0,0,.55); }
+  #glassWin { position: absolute; left: 150px; top: 520px; width: 200px; height: 330px; border-radius: 26px;
+    background: linear-gradient(160deg, #33245c, #241843); opacity: .55; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); }
+  #backSheen { position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,120,200,.35) 47%, transparent 62%); background-size: 300% 100%; mix-blend-mode: screen; }
+  #plateau { position: absolute; left: 10px; top: 10px; width: 480px; height: 262px; border-radius: 78px 78px 34px 34px;
+    background: linear-gradient(170deg, #5e4a96 0%, #3a2a68 55%, #2c1f52 100%);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.22), inset 0 -3px 0 rgba(0,0,0,.35), 0 10px 22px rgba(0,0,0,.55); }
+  .lens { position: absolute; width: 96px; height: 96px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 38%, #7a6bb0 0 8%, #120f22 18%, #05040c 46%, #2c2640 50%, #0d0b16 62%, #8a7ab8 66%, #1c1530 74%);
+    box-shadow: 0 4px 10px rgba(0,0,0,.7), inset 0 0 0 3px #4a3d70; }
+  .flashl { position: absolute; width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle, #fff6e0, #c8b98f 60%, #6e6450); }
+
+  /* Textes */
+  .line { position: absolute; left: 0; width: 1080px; text-align: center; white-space: nowrap; opacity: 0; will-change: transform; }
+  .xxl { font-family: Anton; letter-spacing: 2px; }
+  .glitch { position: relative; display: inline-block; }
+  .glitch .band { position: absolute; left: 0; top: 0; white-space: nowrap; }
+  .glitch .base { visibility: hidden; }
+  #bfWrap { top: 250px; }
+  .ribbon { display: inline-block; padding: 18px 46px 22px; background: linear-gradient(90deg, #d1007a, #ff1e8e 50%, #ff4fa8);
+    font: 800 76px/1 Poppins; color: #fff; letter-spacing: 1px; box-shadow: 0 0 60px rgba(255,30,142,.65), inset 0 -6px 0 rgba(0,0,0,.18); }
+  #gagnerWrap { top: 1505px; }
+  #tenteA { top: 360px; } #tenteB { top: 640px; }
+  #partWrap { top: 1020px; }
+  #partWrap .ribbon { background: #fff; color: #e6007e; box-shadow: 0 0 70px rgba(255,255,255,.35); }
+  #legal { top: 1170px; font: 600 34px Poppins; color: rgba(255,255,255,.85); letter-spacing: 3px; }
+  #logo { position: absolute; left: 540px; top: 150px; width: 340px; margin-left: -170px; opacity: 0; }
+  #wipe { position: absolute; left: -600px; top: -600px; width: 2400px; height: 3200px; transform-origin: 50% 50%;
+    background: linear-gradient(90deg, transparent, #ff1e8e 8%, #c21c9e 50%, #ff1e8e 92%, transparent); opacity: 0; }
+
+  .blob { position: absolute; border-radius: 50%; opacity: 0;
+    background: radial-gradient(circle at 40% 40%, #ff3fa0, #ff1e8e 55%, #d1007a); box-shadow: 0 0 90px rgba(255,30,142,.55); }
+  #blobA { left: -230px; top: -230px; width: 470px; height: 470px; }
+  #blobB { right: -260px; bottom: -120px; width: 520px; height: 520px; }
+  #fx { position: absolute; left: 0; top: 0; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; mix-blend-mode: screen; }
+  #vig { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 75% 65% at 50% 48%, transparent 55%, rgba(4,2,20,.8) 100%); }
+  #grain { position: absolute; inset: 0; opacity: .09; mix-blend-mode: overlay; }
+</style>
+</head>
+<body>
+<div id="world">
+  <div id="bg"></div><div id="bgRed"></div><div id="slash"></div>
+  <div id="floor"></div>
+  <div class="beam" id="be1"></div><div class="beam" id="be2"></div><div class="beam" id="be3"></div>
+  <div id="aura"></div>
+
+  <div class="num" id="n3"><span class="metal">3</span><div class="ghost">3</div></div>
+  <div class="num" id="n2"><span class="metal">2</span><div class="ghost">2</div></div>
+  <div class="num" id="n1"><span class="metal">1</span><div class="ghost">1</div></div>
+  <div class="num" id="n0"><span class="metal">0</span><div class="ghost">0</div></div>
+
+  <div id="stage"><div id="phone"></div></div>
+
+  <div class="line xxl" id="bfWrap"><div class="glitch metalTxt" id="bf"></div></div>
+  <div class="line" id="gagnerWrap"><span class="ribbon" id="gagner">UN iPHONE 18 À GAGNER !</span></div>
+  <div class="line xxl" id="tenteA"><span class="metal" id="tA">TENTE TA</span></div>
+  <div class="line xxl" id="tenteB"><span class="metal" id="tB">CHANCE !</span></div>
+  <div class="line" id="partWrap"><span class="ribbon">PARTICIPE AU CONCOURS</span></div>
+  <div class="line" id="legal">INFOS ET RÈGLEMENT EN BIO</div>
+  <img id="logo" src="assets/logo.svg">
+
+  <canvas id="fx" width="1080" height="1920"></canvas>
+</div>
+<div class="blob" id="blobA"></div><div class="blob" id="blobB"></div>
+<div id="wipe"></div>
+<div id="flash"></div>
+<div id="vig"></div>
+<div id="grain"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  lin: x => x, inQ: x => x * x, outQ: x => 1 - (1 - x) * (1 - x), outC: x => 1 - Math.pow(1 - x, 3),
+  outExpo: x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x), inExpo: x => x <= 0 ? 0 : Math.pow(2, 10 * x - 10),
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  back: x => { const c = 2.2; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }
+};
+// Interpolation par clés : [[t, v, easing], ...]
+function K(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, e] = keys[i], [t0, v0] = keys[i - 1];
+    if (t <= t1) return lerp(v0, v1, E[e || 'io']((t - t0) / (t1 - t0)));
+  }
+  return keys[keys.length - 1][1];
+}
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---------- Construction du téléphone ---------- */
+(function buildPhone() {
+  const ph = $('phone'); const D = 46, N = 18;
+  for (let i = 0; i < N; i++) {
+    const s = document.createElement('div'); s.className = 'slice';
+    s.style.transform = `translateZ(${-D / 2 + (D * i) / (N - 1)}px)`; s.dataset.k = i; ph.appendChild(s);
+  }
+  const f = document.createElement('div'); f.className = 'face'; f.id = 'front'; f.style.transform = `translateZ(${D / 2 + .6}px)`;
+  f.innerHTML = `<div id="scr">
+    <svg width="474" height="1004" viewBox="0 0 474 1004">
+      <defs>
+        <radialGradient id="wg1" cx="30%" cy="35%" r="80%"><stop offset="0" stop-color="#ff6ab8"/><stop offset=".35" stop-color="#ff1e8e"/><stop offset=".75" stop-color="#6a1fb8"/><stop offset="1" stop-color="#140a38"/></radialGradient>
+        <linearGradient id="wg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9b5cff"/><stop offset=".5" stop-color="#d4108e"/><stop offset="1" stop-color="#160b3d"/></linearGradient>
+        <linearGradient id="wg3" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd2ea" stop-opacity=".9"/><stop offset=".4" stop-color="#ff4fa8" stop-opacity=".6"/><stop offset="1" stop-color="#2a0f5e" stop-opacity="0"/></linearGradient>
+        <filter id="wb"><feGaussianBlur stdDeviation="6"/></filter>
+      </defs>
+      <rect width="474" height="1004" fill="#0b0620"/>
+      <g id="wave">
+        <path d="M-60 240 C 160 120, 360 360, 550 200 L 550 700 C 340 820, 120 560, -60 760 Z" fill="url(#wg1)"/>
+        <path d="M-60 520 C 140 420, 300 700, 550 560 L 550 1070 L -60 1070 Z" fill="url(#wg2)" opacity=".92"/>
+        <path d="M-60 560 C 140 460, 300 740, 550 600" stroke="url(#wg3)" stroke-width="10" fill="none" filter="url(#wb)"/>
+        <path d="M-60 250 C 160 130, 360 370, 550 210" stroke="#ffd2ea" stroke-opacity=".7" stroke-width="3" fill="none"/>
+      </g>
+      <text x="237" y="200" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="96" fill="#fff" opacity=".92">9:41</text>
+      <text x="237" y="110" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="26" fill="#fff" opacity=".8">vendredi 27 novembre</text>
+    </svg>
+    <div id="island"></div><div id="scrSheen"></div></div>`;
+  ph.appendChild(f);
+  const b = document.createElement('div'); b.className = 'face'; b.id = 'back'; b.style.transform = `rotateY(180deg) translateZ(${D / 2 + .6}px)`;
+  b.innerHTML = `<div id="glassWin"></div><div id="plateau">
+      <div class="lens" style="left:30px;top:24px"></div><div class="lens" style="left:30px;top:142px"></div>
+      <div class="lens" style="left:136px;top:83px"></div>
+      <div class="flashl" style="left:398px;top:58px"></div>
+      <div class="flashl" style="left:402px;top:160px;width:24px;height:24px;background:radial-gradient(circle,#2a2440,#0a0814)"></div>
+      <div class="flashl" style="left:356px;top:112px;width:10px;height:10px;background:#0a0814"></div></div>
+    <div id="backSheen"></div>`;
+  ph.appendChild(b);
+})();
+
+/* ---------- Titre BLACK FRIDAY découpé en bandes (glitch) ---------- */
+const BF_BANDS = 7;
+(function buildBF() {
+  const g = $('bf'); g.style.font = '190px/1.05 Anton'; g.style.letterSpacing = '4px';
+  g.innerHTML = `<span class="base metal">BLACK FRIDAY</span>` +
+    Array.from({ length: BF_BANDS }, (_, i) => `<span class="band metal" style="clip-path: inset(${(100 / BF_BANDS) * i}% 0 ${100 - (100 / BF_BANDS) * (i + 1) - .3}% 0)">BLACK FRIDAY</span>`).join('');
+})();
+function fit(el, w) { let fs = parseFloat(getComputedStyle(el).fontSize); el.style.fontSize = fs * w / el.getBoundingClientRect().width + 'px'; }
+
+/* ---------- Grain ---------- */
+(function grain() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const id = x.createImageData(256, 256); const r = rng(11);
+  for (let i = 0; i < id.data.length; i += 4) { const v = r() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+  x.putImageData(id, 0, 0); $('grain').style.backgroundImage = `url(${c.toDataURL()})`;
+})();
+
+/* ---------- Particules ---------- */
+const RED = ['#ff1e8e', '#ff4fa8', '#b06bff', '#ffc2e2', '#ffffff', '#e6007e'];
+const PINK = ['#ff1e8e', '#ff5aa8', '#ffffff', '#9b5cff'];
+const BURSTS = [], RINGS = [];
+function burst(t, x, y, n, sp, life, opt = {}) {
+  const r = rng(Math.round(t * 1000) + n);
+  const ps = [];
+  for (let i = 0; i < n; i++) {
+    const a = opt.cone ? opt.cone[0] + r() * (opt.cone[1] - opt.cone[0]) : r() * Math.PI * 2;
+    const v = sp[0] + Math.pow(r(), 1.6) * (sp[1] - sp[0]);
+    ps.push({ vx: Math.cos(a) * v * (opt.sx || 1), vy: Math.sin(a) * v, L: life[0] + r() * (life[1] - life[0]), s: (opt.size || 4) * (.4 + r()),
+      c: (opt.pal || RED)[Math.floor(r() * (opt.pal || RED).length)], ox: (r() - .5) * (opt.spread || 0), oy: (r() - .5) * (opt.spreadY || opt.spread || 0) });
+  }
+  BURSTS.push({ t, x, y, ps, drag: opt.drag || 3.2, g: opt.g ?? 900, shard: opt.shard });
+}
+function ring(t, x, y, speed, dur, w, col) { RINGS.push({ t, x, y, speed, dur, w, col }); }
+
+// Impacts des chiffres
+const IMP = [.15, 1.15, 2.15];
+IMP.forEach((ti, k) => {
+  burst(ti, 540, 1290, 140, [500, 2300], [.35, 1.0], { cone: [Math.PI * 1.05, Math.PI * 1.95], spread: 520, size: 5 });
+  burst(ti + .01, 540, 900, 70, [200, 1300], [.4, 1.2], { spread: 300, size: 3.5, g: 300 });
+  ring(ti, 540, 1290, 2600, .45, 18, '255,30,142');
+});
+// Explosion du zéro
+const TZ = 3.15;
+burst(TZ, 540, 900, 420, [700, 4200], [.5, 1.6], { size: 6, drag: 2.4, g: 400 });
+burst(TZ + .02, 540, 900, 160, [300, 1600], [.8, 2.0], { size: 9, drag: 1.8, g: 120, pal: ['#ffffff', '#ffd2ea', '#c69bff'] });
+ring(TZ, 540, 900, 4200, .6, 40, '255,90,175'); ring(TZ + .08, 540, 900, 3000, .7, 16, '255,255,255');
+// Apparition du téléphone
+const TP = 4.75;
+burst(TP, 540, 1000, 260, [500, 3000], [.5, 1.4], { size: 5, drag: 2.6, g: 200 });
+ring(TP, 540, 1000, 3400, .55, 26, '170,100,255');
+// BLACK FRIDAY : éclats
+const TBF = 6.35;
+burst(TBF, 540, 350, 200, [600, 2600], [.4, 1.1], { size: 6, spread: 900, spreadY: 120, shard: true, g: 1400, sx: 1.4 });
+ring(TBF, 540, 350, 2600, .4, 14, '255,255,255');
+const TG = 7.9;
+burst(TG, 540, 1560, 110, [400, 1800], [.4, 1.0], { size: 4, spread: 800, spreadY: 80, g: 900, sx: 1.6 });
+// CTA
+const TA = 10.3, TB = 10.6, TPART = 11.3, THERO = 12.55;
+burst(TA, 540, 470, 120, [400, 1900], [.4, 1.0], { size: 5, spread: 700, spreadY: 140, shard: true, g: 1300, sx: 1.4 });
+burst(TB, 540, 750, 140, [400, 2100], [.4, 1.0], { size: 5, spread: 700, spreadY: 140, shard: true, g: 1300, sx: 1.4 });
+ring(TB, 540, 750, 2800, .45, 16, '255,30,142');
+burst(TPART, 540, 1080, 90, [400, 1700], [.4, .9], { size: 4, spread: 800, spreadY: 60, g: 800, sx: 1.6 });
+burst(THERO, 540, 1300, 300, [500, 3200], [.6, 1.6], { size: 5, drag: 2.4, g: 150, pal: PINK.concat(RED) });
+ring(THERO, 540, 1300, 3000, .6, 30, '255,30,142');
+
+const EMB = (() => { const r = rng(5); return Array.from({ length: 110 }, () => ({ x: r() * 1080, y: r() * 1920, sp: 40 + r() * 140, s: 1.5 + r() * 4, ph: r() * 6.28, c: RED[Math.floor(r() * 4)] })); })();
+const SPD = (() => { const r = rng(9); return Array.from({ length: 200 }, () => ({ a: r() * 6.283, ph: r(), w: 1 + r() * 4 })); })();
+const ctx = $('fx').getContext('2d');
+
+function drawFx(t) {
+  ctx.clearRect(0, 0, 1080, 1920);
+  ctx.globalCompositeOperation = 'lighter';
+  // Braises ambiantes
+  const ea = K(t, [[0, .55], [3.1, .8], [4.6, .3, 'lin'], [6, .9], [15, 1, 'lin']]);
+  EMB.forEach(e => {
+    const y = ((e.y - t * e.sp) % 2000 + 2000) % 2000 - 40, x = e.x + 30 * Math.sin(t * 1.3 + e.ph);
+    ctx.globalAlpha = ea * (.35 + .45 * (.5 + .5 * Math.sin(t * 5 + e.ph * 3)));
+    ctx.fillStyle = e.c; ctx.beginPath(); ctx.arc(x, y, e.s, 0, 6.283); ctx.fill();
+  });
+  // Tunnel : lignes de vitesse
+  const tun = K(t, [[3.25, 0], [3.5, 1, 'outQ'], [4.55, 1, 'lin'], [4.85, 0, 'lin']]);
+  if (tun > 0) {
+    ctx.lineCap = 'round';
+    SPD.forEach(s => {
+      const p = ((t * 1.9 + s.ph) % 1), r0 = 60 + Math.pow(p, 2.2) * 1700, len = 40 + Math.pow(p, 2) * 900;
+      const ca = Math.cos(s.a), sa = Math.sin(s.a);
+      ctx.globalAlpha = tun * Math.min(1, p * 3) * .85; ctx.strokeStyle = p > .6 ? '#ffffff' : (s.ph > .5 ? '#ff4fa8' : '#a26bff'); ctx.lineWidth = s.w * (0.5 + p * 2);
+      ctx.beginPath(); ctx.moveTo(540 + ca * r0, 900 + sa * r0); ctx.lineTo(540 + ca * (r0 + len), 900 + sa * (r0 + len)); ctx.stroke();
+    });
+  }
+  // Anneaux de choc
+  RINGS.forEach(R => {
+    const u = t - R.t; if (u < 0 || u > R.dur) return; const k = u / R.dur;
+    ctx.globalAlpha = Math.pow(1 - k, 1.5); ctx.strokeStyle = `rgb(${R.col})`; ctx.lineWidth = R.w * (1 - k) + 1;
+    ctx.beginPath(); ctx.ellipse(R.x, R.y, R.speed * E.outC(k) * .5, R.speed * E.outC(k) * .5 * (R.y > 1200 ? .22 : 1), 0, 0, 6.283); ctx.stroke();
+  });
+  // Étincelles
+  BURSTS.forEach(B => {
+    const u = t - B.t; if (u < 0 || u > 2.2) return;
+    B.ps.forEach(p => {
+      if (u > p.L) return; const k = u / p.L, kd = B.drag;
+      const pos = uu => { const f = (1 - Math.exp(-kd * uu)) / kd; return [B.x + p.ox + p.vx * f, B.y + p.oy + p.vy * f + .5 * B.g * uu * uu]; };
+      const [x1, y1] = pos(u), [x0, y0] = pos(Math.max(0, u - .035));
+      ctx.globalAlpha = Math.pow(1 - k, 1.4); ctx.strokeStyle = ctx.fillStyle = p.c;
+      if (B.shard) {
+        ctx.save(); ctx.translate(x1, y1); ctx.rotate(u * 12 + p.vx * .01); const s = p.s * 3 * (1 - k * .5);
+        ctx.beginPath(); ctx.moveTo(-s, -s * .6); ctx.lineTo(s, -s * .2); ctx.lineTo(-s * .2, s); ctx.closePath(); ctx.fill(); ctx.restore();
+      } else {
+        ctx.lineWidth = p.s * (1 - k * .7); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 + .1, y1); ctx.stroke();
+      }
+    });
+  });
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+
+/* ---------- Animation des chiffres ---------- */
+function numAnim(el, ti, isZero, t) {
+  const u = t - ti; const m = el.querySelector('.metal'), gh = el.querySelector('.ghost');
+  if (u < -.15 || (!isZero && u > .95)) { el.style.opacity = 0; return; }
+  let y = 0, sx = 1, sy = 1, sc = 1, blur = 0, op = 1, rot = 0;
+  if (u < 0) { // chute
+    const k = (u + .15) / .15; y = lerp(-1500, 0, E.inQ(k)); sy = lerp(1.9, 1.15, k); sx = lerp(.75, .95, k); blur = lerp(18, 4, k); op = clamp(k * 3);
+  } else if (u < .14) { // écrasement à l'impact
+    const k = u / .14; sy = lerp(.82, 1, E.outC(k)); sx = lerp(1.12, 1, E.outC(k)); y = lerp(70, 0, E.outC(k));
+  } else if (!isZero) {
+    sc = 1 + .08 * E.outQ(clamp((u - .14) / .6)); rot = -1.5 * clamp((u - .14) / .6);
+    if (u > .72) { const k = (u - .72) / .23; sc *= lerp(1, 5.5, E.inExpo(k)); op = 1 - E.inQ(k); blur = 14 * k; }
+  } else { // le zéro : plongée dans le trou
+    sc = 1 + .05 * clamp((u - .14) / .2) + Math.pow(clamp((u - .25) / 1.25), 3.2) * 34;
+    blur = 10 * clamp((u - .7) / .7); op = 1 - clamp((u - 1.25) / .3);
+  }
+  el.style.opacity = op;
+  el.style.transform = `translateY(${y}px) rotate(${rot}deg) scale(${sc * sx}, ${sc * sy})`;
+  el.style.filter = `blur(${blur}px) drop-shadow(0 0 ${isZero ? 60 : 40}px rgba(255,30,142,.85))`;
+  const ab = u >= 0 && u < .3 ? (1 - u / .3) : 0; // aberration chromatique
+  gh.style.opacity = ab * .8; gh.style.transform = `translate(${ab * 26}px, ${-ab * 8}px)`;
+  m.style.transform = `translate(${-ab * 10}px, 0)`;
+}
+
+/* ---------- Rendu image ---------- */
+let ready = false;
+function init() {
+  if (ready) return; ready = true;
+  fit($('gagner'), 900); fit($('bf'), 960); fit($('tA'), 960); fit($('tB'), 960);
+}
+window.render = function (t) {
+  init();
+  // Caméra : tremblement aux impacts + poussées
+  let sh = 0; [...IMP, TZ, TP, TBF, TG, TA, TB, TPART, THERO].forEach((ti, i) => {
+    const u = t - ti; if (u >= 0 && u < .45) sh += (ti === TZ ? 46 : ti === TP || ti === THERO ? 24 : 18) * Math.exp(-u * 11); });
+  const r = rng(Math.floor(t * 30) + 3), shx = (r() - .5) * 2 * sh, shy = (r() - .5) * 2 * sh, shr = (r() - .5) * .04 * sh;
+  const zoom = K(t, [[0, 1], [3.1, 1.06, 'lin'], [3.3, 1.0, 'outC'], [4.6, 1.18, 'inQ'], [4.8, 1, 'outExpo'], [9.8, 1.05, 'lin'], [10.1, 1.0, 'outC'], [15, 1.06, 'lin']]);
+  $('world').style.transform = `translate(${shx}px, ${shy}px) rotate(${shr}deg) scale(${zoom})`;
+
+  // Fond
+  const pulse = IMP.concat([TZ]).reduce((a, ti) => a + (t >= ti ? Math.exp(-(t - ti) * 5) : 0), 0);
+  $('bg').style.filter = `brightness(${1 + pulse * 1.4 + .25 * Math.sin(t * 3)})`;
+  $('bgRed').style.opacity = K(t, [[3.1, 0], [3.2, 1, 'lin'], [3.6, .35, 'outQ'], [4.4, .55, 'lin'], [4.75, 1, 'inQ'], [5.4, .25, 'outQ'], [9.8, .3, 'lin'], [10.0, 0, 'lin'], [12.5, 0], [12.7, .55, 'outQ'], [15, .4, 'lin']]);
+  $('slash').style.opacity = K(t, [[10.05, 0], [10.25, 1, 'outC'], [12.5, 1, 'lin'], [12.9, .45, 'io']]);
+  $('slash').style.transform = `translateX(${K(t, [[10.05, -500], [10.4, 0, 'outExpo'], [15, 60, 'lin']])}px)`;
+  $('floor').style.opacity = K(t, [[4.8, 0], [5.8, .22, 'io'], [9.8, .22, 'lin'], [10.0, 0, 'lin'], [12.6, 0], [13.4, .18, 'io']]);
+  $('floor').style.backgroundPosition = `0 ${t * 140}px`;
+  const beamOp = K(t, [[4.7, 0], [5.3, 1, 'outQ'], [9.8, 1, 'lin'], [10.0, 0, 'lin'], [12.55, 0], [12.9, 1, 'outQ']]);
+  [['be1', -28, 1], ['be2', 18, -1], ['be3', 72, .6]].forEach(([id, a0, dir]) => {
+    const el = $(id); el.style.opacity = beamOp * (.55 + .3 * Math.sin(t * 2.1 + a0));
+    el.style.transform = `translateY(${t > 12 ? 300 : 0}px) rotate(${a0 + dir * t * 9}deg)`;
+  });
+  $('aura').style.opacity = K(t, [[4.7, 0], [5.2, 1, 'outQ'], [9.8, .9, 'lin'], [10.0, 0, 'lin'], [12.55, 0], [12.8, 1, 'outQ']]) * (.85 + .15 * Math.sin(t * 4));
+  $('aura').style.top = (t > 12 ? 1360 : 1000) + 'px';
+  $('aura').style.background = t > 12 ? 'radial-gradient(ellipse at center, rgba(255,30,142,.9) 0%, rgba(130,40,230,.5) 32%, transparent 65%)' : '';
+
+  // Chiffres
+  numAnim($('n3'), IMP[0], false, t); numAnim($('n2'), IMP[1], false, t); numAnim($('n1'), IMP[2], false, t); numAnim($('n0'), TZ, true, t);
+
+  // Téléphone
+  const ph = $('phone');
+  let ps, ry, rx, rz, py, pop;
+  if (t < 9.95) {
+    ps = K(t, [[TP - .05, .02], [TP + .9, 1, 'outExpo'], [9.95, 1.02, 'lin']]) * .86;
+    ry = t < 6.0 ? K(t, [[TP - .05, -1260], [6.0, -50, 'outC']]) : -50 + 86 * (t - 6);
+    rx = 8 + 4 * Math.sin(t * 1.4); rz = -5 + 3 * Math.sin(t * .9); py = 1000 + 14 * Math.sin(t * 1.7);
+    pop = clamp((t - TP + .05) / .1);
+    if (t > 9.75) { const k = (t - 9.75) / .2; py += 1400 * E.inQ(clamp(k)); ry += 60 * k; }
+  } else {
+    pop = t < THERO - .1 ? 0 : 1;
+    ps = K(t, [[THERO - .1, .3], [THERO + .45, .74, 'outExpo'], [15, .77, 'lin']]);
+    py = K(t, [[THERO - .1, 1950], [THERO + .45, 1370, 'outExpo'], [15, 1360, 'lin']]);
+    ry = K(t, [[THERO - .1, -200], [THERO + .9, -24, 'outC'], [15, 12, 'lin']]);
+    rx = K(t, [[THERO - .1, 30], [THERO + .9, 7, 'outC']]) + 2 * Math.sin(t * 1.4); rz = -4 + 2 * Math.sin(t * .9);
+  }
+  ph.style.opacity = pop;
+  ph.style.top = py + 'px';
+  ph.style.transform = `scale(${ps}) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
+  const ang = ((ry % 360) + 360) % 360, cosA = Math.cos(ang * Math.PI / 180);
+  ph.querySelectorAll('.slice').forEach(s => { s.style.filter = `brightness(${.75 + .9 * Math.abs(Math.sin(ang * Math.PI / 180))})`; });
+  $('scrSheen').style.backgroundPosition = `${(ang < 180 ? ang : ang - 360) * -1.1 + 50}% 0`;
+  $('backSheen').style.backgroundPosition = `${(ang - 180) * -1.1 + 50}% 0`;
+  const glint = THERO + 1.25; const gu = clamp((t - glint) / .6);
+  if (t > glint && t < glint + .6) $('scrSheen').style.backgroundPosition = `${lerp(110, -10, E.io(gu))}% 0`;
+  document.querySelector('#wave').setAttribute('transform', `translate(0 ${18 * Math.sin(t * 1.1)}) skewY(${2 * Math.sin(t * .8)})`);
+  $('front').style.filter = `brightness(${.8 + .45 * Math.max(0, cosA)})`;
+
+  // BLACK FRIDAY
+  const bw = $('bfWrap'); const ub = t - TBF;
+  if (ub < -.12 || t > 9.95) bw.style.opacity = 0; else {
+    let sc, sk, op = 1, bl = 0;
+    if (ub < 0) { const k = (ub + .12) / .12; sc = lerp(3.2, 1, E.inQ(k)); sk = lerp(-24, -6, k); op = clamp(k * 2); bl = lerp(16, 0, k); }
+    else { sc = lerp(.9, 1, E.back(clamp(ub / .3))) + .03 * clamp((ub - .3) / 3); sk = lerp(-6, 0, E.outC(clamp(ub / .25))); }
+    if (t > 9.75) { const k = (t - 9.75) / .2; sc *= 1 + 2 * E.inQ(k); op = 1 - k; bl = 12 * k; }
+    bw.style.opacity = op; bw.style.transform = `scale(${sc}, ${sc * (ub >= 0 && ub < .12 ? lerp(.8, 1, ub / .12) : 1)}) skewX(${sk}deg)`;
+    bw.style.filter = `blur(${bl}px) drop-shadow(0 0 30px rgba(255,30,142,.9)) drop-shadow(0 8px 0 rgba(60,16,120,.95))`;
+    const gi = ub >= 0 ? Math.exp(-ub * 7) + (ub > 1.6 && ub < 1.72 ? .5 : 0) : 0;
+    const rg = rng(Math.floor(t * 30) * 7 + 1);
+    document.querySelectorAll('#bf .band').forEach(b => { b.style.transform = `translateX(${(rg() - .5) * 160 * gi}px)`; });
+  }
+  // UN iPHONE 18 À GAGNER !
+  const gw = $('gagnerWrap'); const ug = t - TG;
+  if (ug < -.15 || t > 9.95) gw.style.opacity = 0; else {
+    let sc, op = 1, bl = 0;
+    if (ug < 0) { const k = (ug + .15) / .15; sc = lerp(2.4, 1, E.inQ(k)); op = clamp(k * 2); bl = lerp(14, 0, k); }
+    else sc = lerp(.92, 1, E.back(clamp(ug / .3))) * (1 + .04 * Math.sin(Math.max(0, ug - .4) * 6) * Math.exp(-ug));
+    if (t > 9.75) { const k = (t - 9.75) / .2; op = 1 - k; sc *= 1 + E.inQ(k); }
+    gw.style.opacity = op; gw.style.transform = `rotate(-4deg) scale(${sc})`; gw.style.filter = `blur(${bl}px)`;
+  }
+
+  // Transition volet rouge
+  const wk = clamp((t - 9.8) / .45);
+  $('wipe').style.opacity = wk > 0 && wk < 1 ? 1 : 0; $('wipe').style.display = wk > 0 && wk < 1 ? 'block' : 'none';
+  $('wipe').style.transform = `rotate(-28deg) translateX(${lerp(2600, -2600, E.io(wk))}px) scaleX(${.5 + .5 * Math.sin(wk * Math.PI)})`;
+
+  // CTA
+  const heroK = E.io(clamp((t - THERO + .1) / .6));
+  const slam = (el, ti, base, extraT) => {
+    const u = t - ti; if (u < -.12) { el.style.opacity = 0; return; }
+    let sc, op = 1, bl = 0, sk = 0;
+    if (u < 0) { const k = (u + .12) / .12; sc = lerp(2.8, 1, E.inQ(k)); op = clamp(k * 2); bl = lerp(16, 0, k); sk = lerp(-18, -4, k); }
+    else { sc = lerp(.88, 1, E.back(clamp(u / .3))); sk = lerp(-4, 0, E.outC(clamp(u / .25))); }
+    const ty = lerp(0, base.ty, heroK), fsc = lerp(1, base.sc, heroK);
+    el.style.opacity = op;
+    el.style.transform = `translateY(${ty}px) scale(${sc * fsc}) skewX(${sk}deg)`;
+    el.style.filter = `blur(${bl}px)` + (extraT || '');
+  };
+  const glowT = ' drop-shadow(0 0 30px rgba(255,30,142,.95)) drop-shadow(0 8px 0 rgba(60,16,120,.95))';
+  slam($('tenteA'), TA, { ty: -110, sc: .62 }, glowT);
+  slam($('tenteB'), TB, { ty: -215, sc: .62 }, glowT);
+  slam($('partWrap'), TPART, { ty: -330, sc: .86 });
+  $('partWrap').style.transform += ` rotate(-3deg)`;
+  $('legal').style.opacity = K(t, [[THERO + .4, 0], [THERO + .8, 1, 'outQ']]);
+  $('legal').style.transform = `translateY(${-330 + 20 * (1 - clamp((t - THERO - .4) / .4))}px)`;
+  const lg = $('logo'); const lk = clamp((t - THERO - .25) / .5);
+  lg.style.opacity = E.outQ(lk); lg.style.transform = `translateY(${-20 * (1 - E.outC(lk))}px) scale(${lerp(1.15, 1, E.outC(lk))})`;
+  lg.style.filter = `drop-shadow(0 0 ${20 + 10 * Math.sin(t * 3)}px rgba(255,30,142,.6))`;
+  if (t < 10) ['tenteA', 'tenteB', 'partWrap'].forEach(id => $(id).style.opacity = 0);
+
+  // Disques magenta en coin (rappel de l'affiche)
+  const bk = E.outExpo(clamp((t - THERO - .15) / .7));
+  $('blobA').style.opacity = bk; $('blobA').style.transform = `translate(${-180 * (1 - bk)}px, ${-180 * (1 - bk)}px) scale(${1 + .03 * Math.sin(t * 2)})`;
+  $('blobB').style.opacity = bk; $('blobB').style.transform = `translate(${200 * (1 - bk)}px, ${200 * (1 - bk)}px) scale(${1 + .03 * Math.sin(t * 2 + 1)})`;
+
+  // Flash
+  let fl = 0;
+  IMP.forEach(ti => { const u = t - ti; if (u >= 0 && u < .25) fl += .28 * (1 - u / .25); });
+  [[TZ, 1, .5], [TP, .85, .35], [TBF, .35, .2], [TA, .25, .18], [TB, .3, .2], [THERO, .7, .4], [9.98, .5, .2]].forEach(([ti, a, d]) => { const u = t - ti; if (u >= 0 && u < d) fl += a * Math.pow(1 - u / d, 2); });
+  $('flash').style.opacity = clamp(fl); $('flash').style.background = t > TZ && t < TZ + .15 ? '#fff' : '#ff5aa8';
+  if (t >= TZ && t < TZ + .12) $('flash').style.background = '#ffffff';
+
+  $('grain').style.backgroundPosition = `${Math.floor(r() * 256)}px ${Math.floor(r() * 256)}px`;
+  drawFx(t);
+};
+</script>
+</body>
+</html>

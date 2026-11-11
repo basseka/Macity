@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Clip Ta ville dans ta poche</title>
+<style>
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  :root { --rose: #FF1E8E; --violet: #7A1FD1; --nuit: #0B0618; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; font-family: Poppins; color: #fff; }
+  #stage { position: absolute; inset: 0; overflow: hidden; }
+  .shot { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+  .shot img { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; transform-origin: 50% 50%; }
+  #vign { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(5,2,15,.75) 0%, rgba(5,2,15,0) 32%, rgba(5,2,15,0) 78%, rgba(5,2,15,.35) 100%); }
+  #tag { position: absolute; left: 64px; bottom: 150px; opacity: 0; }
+  #tag .n { font: 800 58px/1.05 Poppins; text-shadow: 0 4px 24px rgba(0,0,0,.7); max-width: 900px; }
+  #tag .c { display: inline-block; margin-top: 14px; font: 600 32px/1 Poppins; padding: 10px 20px 12px 54px; border-radius: 30px; background: var(--rose); position: relative; }
+  #tag .c svg { position: absolute; left: 16px; top: 8px; width: 28px; height: 34px; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+  #pink { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #ff7ec0, #FF1E8E 45%, #7A1FD1); opacity: 0; mix-blend-mode: screen; }
+  #bars div { position: absolute; left: 0; width: 1080px; background: #000; }
+  #end { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse 80% 55% at 50% 45%, #3a1470 0%, #1a0b3a 45%, #07030f 100%); }
+  #glow { position: absolute; left: 540px; top: 860px; width: 1400px; height: 1400px; margin: -700px 0 0 -700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,30,142,.55), rgba(122,31,209,.25) 45%, transparent 70%); }
+  #logo { position: absolute; left: 140px; top: 640px; width: 800px; opacity: 0; }
+  .tl { position: absolute; left: 0; width: 1080px; text-align: center; opacity: 0; white-space: nowrap; }
+  #t1 { top: 930px; font: 110px/1 Anton; letter-spacing: 2px; }
+  #t2 { top: 1060px; font: 110px/1 Anton; letter-spacing: 2px; }
+  #t2 span { color: var(--rose); }
+  #phone { position: absolute; left: 540px; top: 1420px; width: 120px; height: 200px; margin-left: -60px; border-radius: 26px; border: 8px solid #fff; opacity: 0; }
+  #phone i { position: absolute; left: 50%; top: 10px; width: 34px; height: 8px; margin-left: -17px; border-radius: 4px; background: #fff; }
+  #phone b { position: absolute; left: 50%; top: 52%; width: 52px; height: 64px; margin: -40px 0 0 -26px; }
+  .spark { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px #ff7ec0; opacity: 0; }
+  #grain { position: absolute; inset: 0; opacity: .05; mix-blend-mode: overlay; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="vign"></div>
+<div id="tag"><div class="n"></div><div class="c"><svg viewBox="0 0 24 30"><path fill="#fff" d="M12 0C5.4 0 0 5.3 0 11.9 0 20.8 12 30 12 30s12-9.2 12-18.1C24 5.3 18.6 0 12 0zm0 16.5a4.6 4.6 0 1 1 0-9.2 4.6 4.6 0 0 1 0 9.2z"/></svg><span></span></div></div>
+<div id="bars"><div style="top:0;height:0" id="bt"></div><div style="bottom:0;height:0" id="bb"></div></div>
+<div id="end">
+  <div id="glow"></div>
+  <img id="logo" src="assets/macity-logo-couleur-fond-sombre.svg">
+  <div class="tl" id="t1">TA VILLE</div>
+  <div class="tl" id="t2">DANS TA <span>POCHE</span></div>
+  <div id="phone"><i></i><b><svg viewBox="0 0 24 30"><path fill="#FF1E8E" d="M12 0C5.4 0 0 5.3 0 11.9 0 20.8 12 30 12 30s12-9.2 12-18.1C24 5.3 18.6 0 12 0zm0 16.5a4.6 4.6 0 1 1 0-9.2 4.6 4.6 0 0 1 0 9.2z"/></svg></b></div>
+</div>
+<div id="pink"></div>
+<div id="flash"></div>
+<canvas id="grain" width="540" height="960"></canvas>
+<script src="montage.js"></script>
+<script>
+window.DUR = 20;
+const $ = s => document.querySelector(s);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const back = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const css = (el, o) => Object.assign(el.style, o);
+const rnd = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const pending = [];
+function setSrc(el, s) { if (el.getAttribute('src') !== s) { el.setAttribute('src', s); pending.push(el.decode().catch(() => {})); } }
+
+// Montage (montage.js) : une photo par clic de la « roulette », puis une coupe par coup de basse
+const CUTS = M.cuts, SHOTS = M.shots, T_END = M.end;
+const NCLIP = { club: 92, concert: 38, festival: 36, soiree: 36, show: 38, crowd: 60 };
+const stage = $('#stage');
+const nodes = SHOTS.map(() => { const d = document.createElement('div'); d.className = 'shot'; const im = document.createElement('img'); d.appendChild(im); stage.appendChild(d); return { d, im }; });
+SHOTS.forEach((s, k) => { if (s[0] === 'p') nodes[k].im.src = s[1]; });
+
+const endEl = $('#end');
+const sparks = [...Array(24)].map(() => { const d = document.createElement('div'); d.className = 'spark'; endEl.appendChild(d); return d; });
+const gctx = $('#grain').getContext('2d'); const gimg = gctx.createImageData(540, 960);
+function grain(t) { let s = Math.floor(t * 30) * 9301 + 49297; const a = gimg.data;
+  for (let i = 0; i < a.length; i += 4) { s = (s * 9301 + 49297) % 233280; const v = s / 233280 * 255; a[i] = a[i + 1] = a[i + 2] = v; a[i + 3] = 255; } gctx.putImageData(gimg, 0, 0); }
+
+window.render = async function (t) {
+  pending.length = 0;
+  const drop = t >= 16.28;
+  let k = -1; for (let i = 0; i < CUTS.length; i++) if (t >= CUTS[i]) k = i;
+  nodes.forEach(n => n.d.style.opacity = 0);
+  const tag = $('#tag');
+  if (t < T_END + .08 && k >= 0) {
+    const a = CUTS[k], b = k + 1 < CUTS.length ? CUTS[k + 1] : T_END, tl = t - a, L = b - a, x = tl / L;
+    const [ty, src, nom, ville] = SHOTS[k]; const { d, im } = nodes[k];
+    d.style.opacity = 1;
+    if (ty === 'c') { const i = clamp(Math.floor(tl * 30), 0, NCLIP[src] - 1) + 1; setSrc(im, `clips/${src}/${String(i).padStart(4, '0')}.jpg`); }
+    // mouvements : punch d'entrée + Ken Burns, sens alterné
+    const dir = k % 4, punch = 1 - eo(seg(tl, 0, Math.min(.22, L * .9)));
+    let s = 1.06 + x * .08 + punch * (drop ? .28 : .16), tx = 0, ty2 = 0, r = (k % 2 ? 1 : -1) * punch * (drop ? 4 : 2.5);
+    if (dir === 0) tx = lerp(-30, 30, x); else if (dir === 1) ty2 = lerp(40, -40, x); else if (dir === 2) tx = lerp(30, -30, x); else s = 1.18 - x * .1 + punch * .16;
+    const whip = (k % 2 ? -1 : 1) * punch * punch * (drop ? 160 : 90);
+    css(im, { transform: `translate(${tx + whip}px, ${ty2}px) scale(${s}) rotate(${r}deg)`, filter: `blur(${punch * punch * 8}px) saturate(1.15) contrast(1.06) brightness(${ty === 'c' ? .9 : 1})` });
+    // étiquette du lieu
+    if (nom && L > .28) {
+      tag.querySelector('.n').textContent = nom; tag.querySelector('span').textContent = ville;
+      const ia = seg(tl, .06, .26), oa = seg(tl, L - .12, L);
+      css(tag, { opacity: ia * (1 - oa), transform: `translateX(${lerp(-60, 0, eo(ia))}px)` });
+    } else tag.style.opacity = 0;
+  } else tag.style.opacity = 0;
+  // bandes cinéma pendant le drop
+  const bh = drop && t < T_END ? 90 * eo(seg(t, 16.28, 16.5)) : 0; $('#bt').style.height = bh + 'px'; $('#bb').style.height = bh + 'px';
+  // flashs sur les coupes
+  const fl = (a, dd) => seg(t, a, a + .02) * (1 - seg(t, a + .02, a + dd));
+  $('#flash').style.opacity = Math.max(fl(16.28, .18), fl(T_END, .25), fl(16.53, .12) * .5, fl(17.03, .12) * .5, fl(17.53, .12) * .5);
+  $('#pink').style.opacity = Math.max(...CUTS.slice(-4).map(c => fl(c, .14) * .5), fl(19.03, .2) * .4);
+  // fin : MaCity, ta ville dans ta poche
+  if (t >= T_END) {
+    endEl.style.opacity = seg(t, T_END, T_END + .12);
+    const l = seg(t, T_END + .02, T_END + .32), bp = Math.max(fl(18.54, .25), fl(19.03, .25), fl(19.53, .25)); css($('#logo'), { opacity: l, transform: `scale(${lerp(1.7, 1, back(l)) * (1 + bp * .06)})` });
+    const a1 = seg(t, 18.54, 18.74); css($('#t1'), { opacity: a1, transform: `scale(${lerp(1.6, 1, back(a1))})` });
+    const a2 = seg(t, 19.03, 19.23); css($('#t2'), { opacity: a2, transform: `scale(${lerp(1.6, 1, back(a2))})` });
+    const p = seg(t, 19.53, 19.75); css($('#phone'), { opacity: p, transform: `translateY(${lerp(80, 0, eo(p))}px) rotate(${lerp(-14, 0, back(p))}deg)` });
+    $('#glow').style.transform = `scale(${1 + Math.sin(t * 4) * .04 + fl(19.03, .3) * .15})`;
+    sparks.forEach((sp, i) => { const life = ((t - T_END + rnd(i) * 2) % 2) / 2, ang = rnd(i + 40) * Math.PI * 2, rr = 120 + life * 560;
+      css(sp, { left: 540 + Math.cos(ang) * rr + 'px', top: 860 + Math.sin(ang) * rr * .8 + 'px', opacity: Math.sin(life * Math.PI) * .9, transform: `scale(${.4 + rnd(i + 7)})` }); });
+  } else endEl.style.opacity = 0;
+  grain(t);
+  await Promise.all(pending);
+};
+window.render(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel soirées étudiantes jeudi</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: Poppins; src: url(fonts/Poppins-Regular.ttf); font-weight: 400; }
+  @font-face { font-family: Poppins; src: url(fonts/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(fonts/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(fonts/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(fonts/Poppins-ExtraBold.ttf); font-weight: 800; }
+  :root { --rose: #FF1E8E; --framboise: #FF1E6E; --corail: #FF2E38; --nuit: #1A0F2E; --profonde: #0A0514; --jaune: #FFD93D; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1350px; overflow: hidden; background: var(--profonde); }
+  body { font-family: Poppins, sans-serif; color: #fff; }
+
+  .slide { position: relative; width: 1080px; height: 1350px; overflow: hidden; display: none;
+    background: radial-gradient(ellipse 620px 900px at 78% -8%, rgba(255,226,170,.30), rgba(255,200,120,.10) 45%, transparent 70%),
+                radial-gradient(ellipse 900px 500px at 50% 112%, rgba(255,30,142,.30), transparent 70%),
+                linear-gradient(180deg, #1d0f2f 0%, #120820 55%, #0A0514 100%); }
+  .slide.on { display: block; }
+  .bricks { position: absolute; inset: 0; opacity: .16; }
+  .beam { position: absolute; top: -40px; right: 40px; width: 560px; height: 1250px;
+    background: linear-gradient(180deg, rgba(255,236,190,.22), rgba(255,236,190,.05) 70%, transparent);
+    clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%); filter: blur(6px); }
+  .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 260px;
+    background: linear-gradient(180deg, transparent, rgba(10,5,20,.85) 60%, #0A0514); }
+  .mic { position: absolute; right: 120px; bottom: 120px; width: 320px; opacity: .9; }
+  .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 220px 60px rgba(0,0,0,.65); pointer-events: none; }
+
+  .content { position: absolute; inset: 0; padding: 80px 80px 70px; display: flex; flex-direction: column; }
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .logo { height: 54px; }
+  .counter { font-weight: 700; font-size: 26px; letter-spacing: .18em; color: rgba(255,255,255,.7); }
+  .pill { align-self: flex-start; display: inline-flex; align-items: center; gap: 12px; margin-top: 56px;
+    padding: 14px 28px; border-radius: 999px; background: linear-gradient(90deg, var(--rose), var(--corail));
+    font-weight: 700; font-size: 26px; letter-spacing: .1em; text-transform: uppercase; box-shadow: 0 10px 40px rgba(255,30,142,.4); }
+  .num { font-family: Anton, sans-serif; font-size: 170px; line-height: .85; margin-top: 30px;
+    background: linear-gradient(180deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1 { font-family: Anton, sans-serif; font-weight: 400; text-transform: uppercase; line-height: .98; letter-spacing: .005em; }
+  .name { font-size: 100px; margin-top: 14px; max-width: 700px; }
+  .addr { margin-top: 26px; font-size: 32px; font-weight: 600; display: flex; gap: 14px; align-items: flex-start; max-width: 720px; }
+  .addr small { display: block; font-weight: 400; font-size: 27px; color: rgba(255,255,255,.72); margin-top: 2px; }
+  .desc { margin-top: 22px; font-size: 30px; line-height: 1.42; color: rgba(255,255,255,.88); max-width: 640px; }
+  .box { margin-top: auto; flex-shrink: 0; max-width: 700px; padding: 26px 32px; border-radius: 26px;
+    background: rgba(26,15,46,.78); border: 2px solid rgba(255,30,142,.55); backdrop-filter: blur(6px); }
+  .box .lbl { font-weight: 800; font-size: 22px; letter-spacing: .16em; text-transform: uppercase; color: var(--jaune); margin-bottom: 10px; }
+  .box p { font-size: 29px; line-height: 1.45; font-weight: 500; }
+  .box p b { font-weight: 700; }
+  .foot { margin-top: 30px; display: flex; justify-content: space-between; align-items: center;
+    font-weight: 700; font-size: 24px; letter-spacing: .2em; color: rgba(255,255,255,.75); text-transform: uppercase; }
+  .foot .swipe { color: #fff; border-bottom: 5px solid var(--rose); padding-bottom: 4px; }
+
+
+  /* Diapos avec visuel : photo en haut, fondu vers le fond sombre */
+  .media { position: absolute; left: 0; right: 0; top: 0; height: 700px; overflow: hidden; }
+  .media .blur { position: absolute; inset: -40px; background-size: cover; background-position: center; filter: blur(30px) brightness(.55) saturate(1.2); }
+  .media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .media img.contain { object-fit: contain; padding: 160px 40px 90px; filter: drop-shadow(0 20px 40px rgba(0,0,0,.6)); }
+  .media::after { content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,5,20,.85) 0%, rgba(10,5,20,.35) 22%, transparent 34%, transparent 58%, rgba(18,8,32,.85) 86%, #120820 100%); }
+  .has-photo .content { padding-top: 640px; }
+  .has-photo .top { position: absolute; top: 80px; left: 80px; right: 80px; }
+  .has-photo .top .counter { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
+  .has-photo .logo { filter: drop-shadow(0 2px 10px rgba(0,0,0,.7)); }
+  .has-photo .pill { margin-top: 0; }
+  .has-photo .name { margin-top: 18px; max-width: 920px; }
+  .has-photo .box { margin-top: auto; }
+  .pill .n { font-family: Anton, sans-serif; font-size: 32px; letter-spacing: .04em; }
+  .credit { position: absolute; right: 80px; top: 128px; font-size: 16px; color: rgba(255,255,255,.7); text-shadow: 0 1px 6px rgba(0,0,0,.9); }
+
+  /* Couverture photo */
+  .cover .photo-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .cover .photo-bg::after { content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,5,20,.55) 0%, rgba(10,5,20,.35) 30%, rgba(10,5,20,.82) 62%, #0A0514 100%); }
+  /* Couverture */
+  .cover .content { justify-content: flex-start; }
+  .cover .kicker { margin-top: 120px; font-weight: 800; font-size: 34px; letter-spacing: .22em; text-transform: uppercase; color: var(--jaune); }
+  .cover h1 { font-size: 150px; margin-top: 22px; }
+  .cover h1 .pink { background: linear-gradient(90deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .cover .sub { margin-top: 34px; font-size: 36px; line-height: 1.4; font-weight: 500; max-width: 600px; color: rgba(255,255,255,.9); }
+  .cover .mic { width: 330px; right: 40px; bottom: 150px; }
+  .cover .chips { margin-top: auto; display: flex; flex-wrap: wrap; gap: 12px; max-width: 620px; }
+  .cover .chips span { padding: 10px 20px; border-radius: 999px; border: 2px solid rgba(255,255,255,.35); font-weight: 600; font-size: 24px; background: rgba(10,5,20,.5); }
+
+  /* Fin */
+  .end .content { align-items: center; justify-content: center; text-align: center; }
+  .end .logo { height: 96px; }
+  .end h1 { font-size: 120px; margin-top: 56px; }
+  .end h1 .pink { color: var(--rose); }
+  .end .sub { margin-top: 30px; font-size: 36px; line-height: 1.45; max-width: 820px; color: rgba(255,255,255,.9); }
+  .end .cta { margin-top: 56px; padding: 26px 50px; border-radius: 999px; background: linear-gradient(90deg, var(--rose), var(--corail));
+    font-weight: 800; font-size: 34px; box-shadow: 0 16px 60px rgba(255,30,142,.45); }
+  .end .tags { margin-top: 46px; display: flex; gap: 40px; font-weight: 700; font-size: 30px; color: rgba(255,255,255,.85); }
+  .end .mic { display: none; }
+  .end .beam { right: 260px; }
+
+  /* Format story / reel 1080x1920 (?f=story) : zones de sécurité haut 200 px, bas 300 px */
+  html.story, html.story body, html.story .slide { height: 1920px; }
+  html.story .bricks { height: 1920px; }
+  html.story .beam { height: 1800px; }
+  html.story .content { padding: 200px 80px 270px; }
+  html.story .has-photo .top { top: 200px; }
+  html.story .credit { top: 250px; }
+  html.story .media { height: 900px; }
+  html.story .media img.contain { padding: 300px 40px 90px; }
+  html.story .has-photo .content { padding-top: 830px; }
+  html.story .has-photo .name { font-size: 108px; }
+  html.story .num { font-size: 230px; margin-top: 50px; }
+  html.story .name { font-size: 112px; }
+  html.story .desc { font-size: 32px; }
+  html.story .cover .kicker { margin-top: 200px; font-size: 38px; }
+  html.story .cover h1 { font-size: 176px; }
+  html.story .cover .sub { font-size: 40px; max-width: 760px; }
+  html.story .cover .chips span { font-size: 28px; }
+  html.story .end h1 { font-size: 132px; }
+  html.story .end .sub { font-size: 40px; }
+
+  /* Variante club : faisceaux néon au lieu des briques */
+  .lasers { position: absolute; inset: 0; overflow: hidden; }
+  .lasers i { position: absolute; top: -80px; width: 180px; height: 1500px; filter: blur(26px); mix-blend-mode: screen; transform-origin: top center; }
+  .lasers i:nth-child(1) { left: 80px; background: linear-gradient(180deg, rgba(255,30,142,.55), transparent 75%); transform: rotate(-16deg); }
+  .lasers i:nth-child(2) { left: 470px; background: linear-gradient(180deg, rgba(120,80,255,.45), transparent 70%); transform: rotate(4deg); }
+  .lasers i:nth-child(3) { right: 60px; background: linear-gradient(180deg, rgba(255,46,56,.5), transparent 75%); transform: rotate(18deg); }
+  .deal { margin-top: 18px; display: inline-flex; align-self: flex-start; align-items: center; gap: 14px; padding: 12px 26px; border-radius: 999px;
+    background: var(--jaune); color: #1A0F2E; font-weight: 800; font-size: 28px; box-shadow: 0 10px 40px rgba(255,217,61,.35); }
+  .box.hot { border-color: var(--jaune); }
+  html.story .lasers i { height: 2100px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ 1. Couverture ═══ -->
+<section class="slide cover" data-s="1">
+  <div class="photo-bg" style="background-image:url(photos/hiboo_1.png)"></div>
+  <div class="vignette"></div>
+  <div class="content">
+    <div class="top"><img class="logo" src="logo.svg" alt="MaCity"></div>
+    <div class="kicker">🎓 Spécial étudiants</div>
+    <h1>Le jeudi,<br>c'est <span class="pink">soirée</span><br>étudiante</h1>
+    <p class="sub">Quiz, soirée latino, clubs jusqu'à 6h&nbsp;: 6 adresses à Toulouse pour ton jeudi soir.</p>
+    <div class="chips"><span>Capitole</span><span>Saint-Pierre</span><span>Arnaud-Bernard</span><span>Carmes</span><span>Canal de Brienne</span></div>
+    <div class="foot"><span>MaCity · Toulouse</span><span class="swipe">Swipe ➜</span></div>
+  </div>
+</section>
+
+<!-- ═══ 2 à 7. Les lieux (remplis par le script plus bas) ═══ -->
+<div id="spots"></div>
+
+<!-- ═══ 8. Fin ═══ -->
+<section class="slide end" data-s="8">
+  <div class="lasers"><i></i><i></i><i></i></div><div class="floor"></div>
+  <div class="vignette"></div>
+  <div class="content">
+    <img class="logo" src="logo.svg" alt="MaCity">
+    <h1>Toutes les soirées<br><span class="pink">étudiantes</span> de Toulouse</h1>
+    <p class="sub">Programme, horaires et bons plans&nbsp;: retrouve chaque soirée de la semaine dans l'app MaCity.</p>
+    <div class="cta">📲 Télécharge MaCity</div>
+    <div class="tags"><span>💾 Enregistre</span><span>📤 Partage à ta promo</span></div>
+  </div>
+</section>
+
+<script>
+const SPOTS = [
+  { nom: "The Classroom", img: "photos/classroom.jpg", fit: "cover", credit: "Photo : Google Maps", tag: "Quiz night", adresse: "42 rue Pargaminières", detail: "Arnaud-Bernard / Saint-Pierre",
+    desc: "Pour commencer la soirée entre potes&nbsp;: on boit un verre, on joue et on rencontre d'autres étudiants.",
+    lbl: "Le jeudi", quand: "<b>Quiz Night</b> à <b>20h30</b>" },
+  { nom: "Seven Sisters", img: "photos/sevensisters.jpg", fit: "cover", credit: "Photo : Google Maps", tag: "Pub quiz", adresse: "26 rue Raymond IV", detail: "Centre-ville",
+    desc: "Une ambiance de pub anglais pour jouer en équipe avant de poursuivre la soirée.",
+    lbl: "Le jeudi", quand: "<b>Pub Quiz</b> à <b>21h</b>" },
+  { nom: "El Dorado", img: "photos/eldorado.jpg", fit: "cover", credit: "Photo : El Dorado", tag: "Soirée latino", adresse: "10 descente de la Halle aux Poissons", detail: "Quartier des Carmes",
+    desc: "Pour danser dans une ambiance latino, avec une Ladies Night en début de soirée.",
+    lbl: "Chaque jeudi", quand: "<b>Ladies Night</b> à <b>19h</b><br><b>Baila Conmigo</b> à <b>21h</b>" },
+  { nom: "Magma", img: "photos/magma.jpg", fit: "cover", credit: "Photo : Magma", tag: "Campus Magma", adresse: "20 rue Denfert-Rochereau", detail: "Centre-ville",
+    desc: "La boîte organise sa soirée étudiante le jeudi, sous le nom «&nbsp;Campus Magma&nbsp;».",
+    lbl: "Spécial étudiants", quand: "<b>Entrée gratuite</b> le jeudi<br>sur présentation de la <b>carte étudiante</b>" },
+  { nom: "Hiboo Club", img: "photos/hiboo_3.jpg", fit: "cover", credit: "Photo : Hiboo Club", tag: "Soirée étudiante", adresse: "23 place Nicolas-Bachelier", detail: "Quartier Matabiau / Bachelier",
+    desc: "La soirée étudiante du Hiboo, chaque jeudi, de minuit à 6h du matin.", deal: "🎟️ 4&nbsp;€ l'entrée avec l'app MaCity", hot: true,
+    lbl: "Tous les jeudis", quand: "<b>00h → 06h</b> · Entrée <b>5&nbsp;€</b>, <b>4&nbsp;€</b> avec MaCity<br>Réservations&nbsp;: <b>06 31 22 83 92</b>" },
+  { nom: "Le Cri de la Mouette", img: "photos/mouette.jpg", fit: "cover", credit: "Photo : Google Maps", tag: "Club & DJ sets", adresse: "78 allées de Barcelone", detail: "Péniche sur le canal de Brienne",
+    desc: "Pour finir la nuit sur une ambiance club, avec une programmation électro.",
+    lbl: "Ce jeudi", quand: "<b>Les Jeudis du Cri</b> dès <b>minuit</b><br>Jeudi 5 novembre" },
+];
+document.getElementById("spots").outerHTML = SPOTS.map((s, i) => `
+<section class="slide has-photo" data-s="${i + 2}">
+  <div class="media"><div class="blur" style="background-image:url(${s.img})"></div><img class="${s.fit}" src="${s.img}" alt=""></div>
+  <div class="credit">${s.credit}</div><div class="vignette"></div>
+  <div class="content">
+    <div class="top"><img class="logo" src="logo.svg" alt="MaCity"><span class="counter">${i + 1} / ${SPOTS.length}</span></div>
+    <div class="pill"><span class="n">0${i + 1}</span> · ${s.tag}</div>
+    <h1 class="name">${s.nom}</h1>
+    <div class="addr"><span>📍</span><span>${s.adresse}<small>${s.detail}</small></span></div>
+    <p class="desc">${s.desc}</p>${s.deal ? `
+    <div class="deal">${s.deal}</div>` : ""}
+    <div class="box${s.hot ? " hot" : ""}"><div class="lbl">${s.lbl}</div><p>${s.quand}</p></div>
+    <div class="foot"><span>MaCity · Toulouse</span><span class="swipe">${i < SPOTS.length - 1 ? "Swipe ➜" : "Dernier ➜"}</span></div>
+  </div>
+</section>`).join("");
+const n = new URLSearchParams(location.search).get("s") || "1";
+if (new URLSearchParams(location.search).get("f") === "story") {
+  document.documentElement.classList.add("story");
+  document.querySelectorAll(".swipe").forEach(el => { el.textContent = el.textContent.replace("Swipe", "Suivant").replace("Dernier", "Suivant"); });
+}
+document.querySelector(`.slide[data-s="${n}"]`).classList.add("on");
+</script>
+</body>
+</html>

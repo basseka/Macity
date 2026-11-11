@@ -1,0 +1,11 @@
+# Seules les sources sont versionnées : vidéos, frames, audio et images restent en local
+*
+!*/
+!.gitignore
+!*.html
+!*.py
+!*.js
+!*.md
+!*.txt
+!*.sh
+node_modules/

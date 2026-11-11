@@ -1,0 +1,32 @@
+VIDÉO « MERCI 2 000 ABONNÉS INSTAGRAM », VERSION LUXE (9:16, 16 s) : MACITY_Merci_2000_Abonnes_Instagram_9x16.mp4
+(La première version, plus « fête » rose vif, est gardée : MACITY_Merci_2000_Abonnes_V1_9x16.mp4)
+
+STYLE
+Fond velours violet nuit, bokeh doré, double cadre fin doré, typographie Playfair Display (empattements, italique),
+textes en or champagne avec reflets de lumière, paillettes et étoiles dorées, téléphone à contour or.
+
+DÉROULÉ
+0 - 2,5 s     « ON Y EST PRESQUE » : le compteur doré roule de 1 989 à 1 999
+2,5 s         Éclat de lumière : « 2 000 », ABONNÉS INSTAGRAM, « Vous êtes incroyables. », pluie de paillettes
+5,5 - 7,5 s   « Merci », à chacun d'entre vous
+7,5 - 12 s    L'appli dans un téléphone doré : Vous sortez plus. / Vous vibrez la nuit. / Vous payez moins.
+12 - 16 s     Logo, « Et ce n'est que le début. », TA VILLE DANS TA POCHE, PROCHAINE ÉTAPE · 5 000
+
+Musique : 100 % synthétisée (libre de droits) : nappes, piano, cloches, scintillements. src/audio_abonnes.py.
+
+
+LÉGENDE INSTAGRAM
+2 000. ✨
+On n'en revient toujours pas. Merci à chacun d'entre vous de sortir, de partager vos soirées et de faire vivre vos villes avec MaCity.
+Et ce n'est que le début : prochaine étape, 5 000.
+
+Pas encore l'appli ? Elle est gratuite sur l'App Store et Google Play.
+#MaCity #Merci #2000abonnés #SorsPlusPaieMoins #TaVilleDansTaPoche
+
+
+REFAIRE LE RENDU
+cd src
+PW=<chemin playwright> node render_node.js abonnes.html frames 30
+python3 audio_abonnes.py
+ffmpeg -framerate 30 -i frames/f%04d.jpg -i abonnes_audio.wav -filter_complex "[1:a]volume=-4dB,alimiter=limit=0.89[a]" -map 0:v -map "[a]" -c:v libx264 -preset slow -crf 17 -pix_fmt yuv420p -c:a aac -b:a 192k -shortest -movflags +faststart ../MACITY_Merci_2000_Abonnes_Instagram_9x16.mp4
+(V1 : abonnes_v1.html + audio_abonnes_v1.py)

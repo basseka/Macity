@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Merci 2000 abonnés</title>
+<style>
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  :root { --rose: #FF1E8E; --violet: #7A1FD1; --nuit: #0B0618; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); font-family: Poppins; color: #fff; }
+  .abs { position: absolute; }
+  #bg { inset: 0; background: radial-gradient(ellipse 85% 60% at 50% 45%, #3a1470 0%, #1a0b3a 48%, #07030f 100%); }
+  #glow { left: 540px; top: 900px; width: 1500px; height: 1500px; margin: -750px 0 0 -750px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,30,142,.5), rgba(122,31,209,.22) 45%, transparent 70%); }
+  #scene { inset: 0; }
+  .ctr { left: 0; width: 1080px; text-align: center; white-space: nowrap; }
+  #pre { top: 560px; font: 600 46px/1 Poppins; letter-spacing: 2px; color: #d9c6ff; }
+  #numbox { left: 0; top: 700px; width: 1080px; height: 420px; overflow: hidden; }
+  .num { left: 0; width: 1080px; text-align: center; font: 360px/420px Anton; letter-spacing: 6px; }
+  #big { top: 700px; font: 400px/420px Anton; letter-spacing: 8px; opacity: 0;
+    background: linear-gradient(180deg, #fff 0%, #fff 45%, #ffb3d9 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 40px rgba(255,30,142,.85)); }
+  #abo { top: 1150px; font: 140px/1 Anton; letter-spacing: 14px; opacity: 0; }
+  #abo span { color: var(--rose); }
+  #sub { top: 1340px; font: 600 50px/1.25 Poppins; opacity: 0; }
+  .ring { left: 540px; top: 910px; border-radius: 50%; border: 10px solid var(--rose); opacity: 0; }
+  .conf { left: 0; top: 0; width: 22px; height: 34px; opacity: 0; border-radius: 4px; }
+  #flash { inset: 0; background: #fff; opacity: 0; }
+  /* MERCI */
+  #wipe { left: 540px; top: 960px; width: 10px; height: 10px; border-radius: 50%; background: var(--rose); transform: scale(0); }
+  #merci { inset: 0; opacity: 0; }
+  #merci .w { top: 690px; font: 330px/1 Anton; letter-spacing: 10px; }
+  #merci .w b { display: inline-block; font-weight: 400; }
+  #merci .t { top: 1090px; font: 800 64px/1.2 Poppins; }
+  #heart { left: 540px; top: 470px; width: 170px; height: 160px; margin-left: -85px; }
+  /* téléphone */
+  #app { inset: 0; opacity: 0; }
+  #wipe2 { left: 540px; top: 960px; width: 10px; height: 10px; border-radius: 50%; background: var(--nuit); transform: scale(0); }
+  #cap { top: 230px; font: 104px/1.05 Anton; letter-spacing: 2px; }
+  #cap span { color: var(--rose); }
+  #phone { left: 540px; top: 520px; width: 600px; height: 1300px; margin-left: -300px; border-radius: 80px; background: #111;
+    border: 16px solid #1d1d22; box-shadow: 0 40px 120px rgba(0,0,0,.6), 0 0 0 4px #3b3b44, 0 0 120px rgba(255,30,142,.35); overflow: hidden; }
+  #phone img { position: absolute; left: 0; top: 0; width: 568px; height: 1230px; object-fit: cover; object-position: top; }
+  #notch { left: 50%; top: 18px; width: 170px; height: 46px; margin-left: -85px; border-radius: 26px; background: #000; }
+  .hrt { left: 0; top: 0; width: 80px; height: 74px; opacity: 0; }
+  /* fin */
+  #end { inset: 0; opacity: 0; }
+  #logo { left: 140px; top: 520px; width: 800px; }
+  #e1 { top: 900px; font: 112px/1.05 Anton; letter-spacing: 3px; }
+  #e1 span { color: var(--rose); }
+  #e2 { top: 1180px; font: 600 50px/1 Poppins; color: #e6dcff; }
+  #e3 { left: 540px; top: 1330px; transform: translateX(-50%); font: 800 44px/1 Poppins; padding: 26px 46px; border-radius: 60px; background: var(--rose);
+    box-shadow: 0 12px 50px rgba(255,30,142,.55); white-space: nowrap; }
+  #grain { inset: 0; opacity: .05; mix-blend-mode: overlay; }
+</style>
+</head>
+<body>
+<div id="bg" class="abs"></div>
+<div id="glow" class="abs"></div>
+<div id="scene" class="abs">
+  <div id="pre" class="abs ctr">ON Y EST PRESQUE…</div>
+  <div id="numbox" class="abs"><div id="n0" class="abs num"></div><div id="n1" class="abs num"></div></div>
+  <div id="big" class="abs ctr">2 000</div>
+  <div id="abo" class="abs ctr">ABONNÉS <span>!</span></div>
+  <div id="sub" class="abs ctr">Vous êtes incroyables.</div>
+</div>
+<div id="wipe" class="abs"></div>
+<div id="merci" class="abs">
+  <svg id="heart" class="abs" viewBox="0 0 24 22"><path fill="#fff" d="M12 21.6 10.3 20C4.2 14.5 0 10.8 0 6.3 0 2.7 2.8 0 6.4 0c2 0 4 .9 5.6 2.5C13.6.9 15.6 0 17.6 0 21.2 0 24 2.7 24 6.3c0 4.5-4.2 8.2-10.3 13.7L12 21.6z"/></svg>
+  <div class="abs ctr w"><b>M</b><b>E</b><b>R</b><b>C</b><b>I</b></div>
+  <div class="abs ctr t">à chacun d'entre vous</div>
+</div>
+<div id="wipe2" class="abs"></div>
+<div id="app" class="abs">
+  <div id="cap" class="abs ctr"></div>
+  <div id="phone" class="abs"><img id="sc0"><img id="sc1"><div id="notch" class="abs"></div></div>
+</div>
+<div id="end" class="abs">
+  <img id="logo" class="abs" src="assets/macity-logo-couleur-fond-sombre.svg">
+  <div id="e1" class="abs ctr">ET ON NE FAIT<br>QUE <span>COMMENCER</span></div>
+  <div id="e2" class="abs ctr">Ta ville dans ta poche</div>
+  <div id="e3" class="abs">Prochaine étape : 5 000</div>
+</div>
+<div id="fx" class="abs" style="inset:0"></div>
+<div id="flash" class="abs"></div>
+<canvas id="grain" class="abs" width="540" height="960"></canvas>
+<script>
+window.DUR = 16;
+const $ = s => document.querySelector(s);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const css = (el, o) => Object.assign(el.style, o);
+const rnd = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const fl = (t, a, d) => seg(t, a, a + .02) * (1 - seg(t, a + .02, a + d));
+const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+const DROP = 2.5;
+// Compteur : 1 989 puis un tic par nombre, de plus en plus vite
+const TICKS = [.35, .7, 1.0, 1.25, 1.46, 1.64, 1.8, 1.94, 2.06, 2.17];
+// Scènes
+const T_MERCI = 5.5, T_APP = 7.5, T_END = 12.0;
+const CAPS = [[7.5, 'ecran-2', 'VOUS SORTEZ<br><span>PLUS</span>'], [9.0, 'ecran-6', 'VOUS FAITES<br><span>VIBRER</span> LA NUIT'], [10.5, 'ecran-1', 'VOUS PAYEZ<br><span>MOINS</span>']];
+
+const fx = $('#fx');
+const COLS = ['#FF1E8E', '#7A1FD1', '#FFD23F', '#ffffff', '#ff7ec0', '#3DDC97'];
+const conf = [...Array(140)].map((_, i) => { const d = document.createElement('div'); d.className = 'abs conf';
+  d.style.background = COLS[i % COLS.length]; if (i % 3 === 0) { d.style.width = d.style.height = '20px'; d.style.borderRadius = '50%'; } fx.appendChild(d); return d; });
+const rings = [...Array(3)].map(() => { const d = document.createElement('div'); d.className = 'abs ring'; fx.appendChild(d); return d; });
+const HEART = '<svg viewBox="0 0 24 22"><path fill="COL" d="M12 21.6 10.3 20C4.2 14.5 0 10.8 0 6.3 0 2.7 2.8 0 6.4 0c2 0 4 .9 5.6 2.5C13.6.9 15.6 0 17.6 0 21.2 0 24 2.7 24 6.3c0 4.5-4.2 8.2-10.3 13.7L12 21.6z"/></svg>';
+const hearts = [...Array(36)].map((_, i) => { const d = document.createElement('div'); d.className = 'abs hrt';
+  d.innerHTML = HEART.replace('COL', ['#FF1E8E', '#ff7ec0', '#ffffff', '#c58bff'][i % 4]); fx.appendChild(d); return d; });
+const gctx = $('#grain').getContext('2d'); const gimg = gctx.createImageData(540, 960);
+function grain(t) { let s = Math.floor(t * 30) * 9301 + 49297; const a = gimg.data;
+  for (let i = 0; i < a.length; i += 4) { s = (s * 9301 + 49297) % 233280; const v = s / 233280 * 255; a[i] = a[i + 1] = a[i + 2] = v; a[i + 3] = 255; } gctx.putImageData(gimg, 0, 0); }
+const pending = [];
+function setSrc(el, s) { if (el.getAttribute('src') !== s) { el.setAttribute('src', s); pending.push(el.decode().catch(() => {})); } }
+
+window.render = async function (t) {
+  pending.length = 0;
+  // fond qui respire, plus fort sur les temps après le drop
+  const beat = t >= DROP ? Math.pow(1 - ((t - DROP) % .5) / .5, 3) : 0;
+  $('#glow').style.transform = `scale(${1 + Math.sin(t * 3) * .04 + beat * .07})`;
+  // secousse au drop
+  const sh = (1 - seg(t, DROP, DROP + .45)) * (t >= DROP ? 1 : 0), shx = Math.sin(t * 95) * 22 * sh, shy = Math.cos(t * 83) * 18 * sh;
+  $('#scene').style.transform = `translate(${shx}px, ${shy}px)`;
+
+  // ---- 1. compteur ----
+  let k = 0; for (let i = 0; i < TICKS.length; i++) if (t >= TICKS[i]) k = i + 1;
+  const n0 = $('#n0'), n1 = $('#n1');
+  if (t < DROP) {
+    const tk = k ? TICKS[k - 1] : -1, p = k ? eo(seg(t, tk, tk + .12)) : 1;
+    n1.textContent = fmt(1989 + k); n0.textContent = fmt(1989 + k - 1);
+    const tension = seg(t, 2.17, DROP), jit = tension * Math.sin(t * 120) * 6;
+    css(n1, { transform: `translate(${jit}px, ${lerp(420, 0, p)}px) scale(${1 + tension * .12})`, opacity: 1, color: k >= 10 ? '#ffb3d9' : '#fff' });
+    css(n0, { transform: `translateY(${lerp(0, -420, p)}px)`, opacity: k ? 1 - p : 0 });
+    const intro = eo(seg(t, 0, .3));
+    $('#numbox').style.opacity = intro; $('#pre').style.opacity = intro * (1 - seg(t, 2.2, DROP));
+  } else { $('#numbox').style.opacity = 0; $('#pre').style.opacity = 0; }
+
+  // ---- 2. drop 2 000 ----
+  const out1 = seg(t, T_MERCI, T_MERCI + .3);
+  const b = seg(t, DROP, DROP + .35);
+  css($('#big'), { opacity: t >= DROP ? 1 : 0, transform: `scale(${lerp(2.2, 1, back(b)) * (1 + beat * .03)})` });
+  const a1 = seg(t, DROP + .45, DROP + .7);
+  css($('#abo'), { opacity: a1, transform: `translateY(${lerp(80, 0, eo(a1))}px) scale(${lerp(1.4, 1, back(a1))})` });
+  const a2 = seg(t, 3.9, 4.3);
+  css($('#sub'), { opacity: a2, transform: `translateY(${lerp(40, 0, eo(a2))}px)` });
+  $('#scene').style.opacity = 1 - out1;
+  rings.forEach((r, i) => { const p = seg(t, DROP + i * .12, DROP + i * .12 + .9), s = 100 + eo(p) * 1300;
+    css(r, { width: s + 'px', height: s + 'px', marginLeft: -s / 2 + 'px', marginTop: -s / 2 + 'px', opacity: p > 0 && p < 1 ? (1 - p) * .9 : 0, borderWidth: lerp(18, 2, p) + 'px' }); });
+  // confettis : éclatement au drop, petite relance au MERCI
+  conf.forEach((c, i) => {
+    const t0 = i < 100 ? DROP : T_MERCI + .3, dt = t - t0;
+    if (dt < 0 || dt > 4) { c.style.opacity = 0; return; }
+    const ang = rnd(i) * Math.PI * 2, v = 900 + rnd(i + 9) * 1500;
+    const x = 540 + Math.cos(ang) * v * (1 - Math.exp(-dt * 2.6)) / 2.6 + Math.sin(dt * 3 + i) * 30;
+    const y = (i < 100 ? 900 : 960) + Math.sin(ang) * v * (1 - Math.exp(-dt * 2.6)) / 2.6 + 260 * dt * dt;
+    css(c, { opacity: 1 - seg(dt, 3, 4), transform: `translate(${x}px, ${y}px) rotate(${dt * (300 + rnd(i + 3) * 600)}deg) scaleX(${Math.cos(dt * (6 + rnd(i) * 8))})` });
+  });
+
+  // ---- 3. MERCI ----
+  const w = seg(t, T_MERCI, T_MERCI + .35);
+  $('#wipe').style.transform = `scale(${eio(w) * 260})`;
+  $('#wipe').style.opacity = t < T_APP + .4 ? 1 : 0;
+  const m = t >= T_MERCI + .2 && t < T_APP + .4;
+  $('#merci').style.opacity = m ? 1 : 0;
+  if (m) {
+    [...document.querySelectorAll('#merci b')].forEach((el, i) => { const p = seg(t, 5.75 + i * .125, 5.75 + i * .125 + .2);
+      css(el, { opacity: p, transform: `translateY(${lerp(-120, 0, eo(p))}px) scale(${lerp(1.8, 1, back(p))}) rotate(${lerp(i % 2 ? 12 : -12, 0, eo(p))}deg)` }); });
+    const hp = seg(t, 5.6, 5.85), hb = Math.max(fl(t, 6.25, .3), fl(t, 6.75, .3), fl(t, 7.25, .3));
+    css($('#heart'), { opacity: hp, transform: `scale(${lerp(0, 1, back(hp)) * (1 + hb * .25)})` });
+    const tp = seg(t, 6.5, 6.8); css($('#merci .t'), { opacity: tp, transform: `translateY(${lerp(40, 0, eo(tp))}px)` });
+  }
+
+  // ---- 4. l'appli ----
+  const w2 = seg(t, T_APP, T_APP + .4);
+  css($('#wipe2'), { transform: `scale(${eio(w2) * 260})`, opacity: t < T_END + .5 ? 1 : 0 });
+  const ap = t >= T_APP + .15 && t < T_END + .5;
+  $('#app').style.opacity = ap ? 1 - seg(t, T_END, T_END + .3) : 0;
+  if (ap) {
+    let c = 0; for (let i = 0; i < CAPS.length; i++) if (t >= CAPS[i][0]) c = i;
+    const tc = CAPS[c][0], pc = seg(t, tc + .05, tc + .35);
+    const cap = $('#cap'); if (cap.dataset.c != c) { cap.innerHTML = CAPS[c][2]; cap.dataset.c = c; }
+    css(cap, { opacity: pc, transform: `scale(${lerp(1.5, 1, back(pc))})` });
+    setSrc($('#sc1'), `assets/${CAPS[c][1]}.png`); setSrc($('#sc0'), `assets/${CAPS[Math.max(0, c - 1)][1]}.png`);
+    const ps = c ? eo(seg(t, tc, tc + .35)) : 1;
+    css($('#sc1'), { transform: `translateX(${lerp(568, 0, ps)}px)` }); css($('#sc0'), { transform: `translateX(${lerp(0, -300, ps)}px)`, opacity: c ? 1 : 0 });
+    const ph = seg(t, T_APP + .2, T_APP + .7);
+    css($('#phone'), { transform: `translateY(${lerp(700, 0, eo(ph)) + Math.sin(t * 2) * 10}px) rotate(${lerp(10, 0, eo(ph)) + Math.sin(t * 1.4) * 1.2}deg) scale(${1 + beat * .012})` });
+  }
+  // cœurs qui montent (façon live) pendant l'appli et la fin
+  hearts.forEach((h, i) => {
+    const t0 = T_APP + .6 + rnd(i + 50) * 3.6, dt = t - t0, life = 2.6;
+    if (dt < 0 || dt > life) { h.style.opacity = 0; return; }
+    const side = i % 2 ? 1 : -1, x = 540 + side * (330 + rnd(i) * 160) + Math.sin(dt * 3 + i) * 40, y = 1850 - dt / life * 1500;
+    css(h, { opacity: Math.min(1, dt * 5) * (1 - seg(dt, life * .7, life)), transform: `translate(${x - 40}px, ${y}px) scale(${.6 + rnd(i + 5) * .8}) rotate(${Math.sin(dt * 2 + i) * 15}deg)` });
+  });
+
+  // ---- 5. fin ----
+  const e = seg(t, T_END, T_END + .3);
+  $('#end').style.opacity = e;
+  if (t >= T_END) {
+    const l = seg(t, T_END + .05, T_END + .4); css($('#logo'), { opacity: l, transform: `scale(${lerp(1.6, 1, back(l)) * (1 + beat * .03)})` });
+    const p1 = seg(t, 12.5, 12.8); css($('#e1'), { opacity: p1, transform: `scale(${lerp(1.5, 1, back(p1))})` });
+    const p2 = seg(t, 13.0, 13.3); css($('#e2'), { opacity: p2, transform: `translateY(${lerp(30, 0, eo(p2))}px)` });
+    const p3 = seg(t, 13.5, 13.8); css($('#e3'), { opacity: p3, transform: `translateX(-50%) scale(${lerp(.4, 1, back(p3)) * (1 + Math.sin(t * 6) * .02 * p3)})` });
+  }
+  // flashs
+  $('#flash').style.opacity = Math.max(fl(t, DROP, .22), fl(t, T_MERCI, .15) * .5, fl(t, T_APP, .15) * .4, fl(t, T_END, .2) * .6);
+  grain(t);
+  await Promise.all(pending);
+};
+window.render(0);
+</script>
+</body>
+</html>

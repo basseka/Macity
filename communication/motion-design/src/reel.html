@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Reel Ce soir</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --corail: #FF2E38; --violet: #7B3FE4; --nuit: #0A0514; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); font-family: Poppins, sans-serif; }
+
+  /* ---------- Fond ---------- */
+  #bg { position: absolute; inset: 0; overflow: hidden;
+    background: radial-gradient(ellipse 120% 70% at 50% 110%, #2a0f3d 0%, #140a24 45%, #0A0514 80%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(120px); opacity: .55; }
+  #b1 { width: 820px; height: 820px; background: #FF1E8E; }
+  #b2 { width: 760px; height: 760px; background: #6d28d9; }
+  #b3 { width: 560px; height: 560px; background: #FF2E38; opacity: .35; }
+  #grid { position: absolute; inset: -200px; opacity: .10;
+    background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+    background-size: 90px 90px; transform-origin: 50% 50%;
+    -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, #000 0%, transparent 75%); }
+  .spark { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px 3px rgba(255,120,200,.8); }
+
+  /* ---------- Caméra + téléphone ---------- */
+  #stage { position: absolute; inset: 0; perspective: 2600px; }
+  #cam { position: absolute; left: 540px; top: 960px; width: 0; height: 0; transform-style: preserve-3d; }
+  #phone { position: absolute; left: -284px; top: -614px; width: 568px; height: 1228px; border-radius: 78px;
+    background: linear-gradient(145deg, #3a3346 0%, #15111c 40%, #2b2533 100%);
+    box-shadow: 0 0 0 2px #4a4356, 0 60px 140px rgba(0,0,0,.65), 0 0 160px rgba(255,30,142,.18);
+    transform-style: preserve-3d; }
+  #phone::before { content: ''; position: absolute; inset: 5px; border-radius: 74px; background: #050308; }
+  .btn { position: absolute; width: 6px; border-radius: 3px; background: linear-gradient(90deg, #2b2533, #5a5266); }
+  #screen { position: absolute; left: 14px; top: 14px; width: 540px; height: 1200px; border-radius: 64px; overflow: hidden; background: #fff; }
+  #inner { position: absolute; left: 0; top: 0; width: 1080px; height: 2400px; transform: scale(.5); transform-origin: 0 0; }
+  #punch { position: absolute; left: 50%; top: 22px; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; background: #050308;
+    box-shadow: inset 0 0 0 4px #15111c; z-index: 50; }
+  #sheen { position: absolute; inset: 0; border-radius: 64px; pointer-events: none; z-index: 40;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.22) 45%, transparent 60%); background-size: 300% 100%; }
+
+  /* Écrans de l'appli (unités = pixels de la capture 1080 x 2400) */
+  .page { position: absolute; left: 0; top: 0; width: 1080px; height: 2400px; background: #fff; overflow: hidden; }
+  #home img { width: 1080px; height: 2400px; display: block; }
+  #pillGlow { position: absolute; left: 515px; top: 545px; width: 242px; height: 92px; border-radius: 46px;
+    box-shadow: 0 0 0 6px var(--rose), 0 0 40px 14px rgba(255,30,142,.55); opacity: 0; }
+  #ripple { position: absolute; left: 636px; top: 591px; width: 0; height: 0; border-radius: 50%; background: rgba(255,30,142,.28); }
+  #cesoir .hdr { position: absolute; left: 0; top: 0; width: 1080px; height: 312px; }
+  #cesoir .nav { position: absolute; left: 0; bottom: 0; width: 1080px; height: 305px; }
+  #cesoir .bodybg { position: absolute; left: 0; top: 312px; width: 1080px; height: 1790px; background: #fff; }
+  .chip { position: absolute; left: 60px; top: 360px; padding: 14px 28px; background: #FBD3E6; font: 800 44px Poppins; letter-spacing: 1px; color: #1A0F2E;
+    clip-path: polygon(0 0, 92% 0, 100% 50%, 92% 100%, 0 100%); }
+  .where { position: absolute; left: 60px; top: 470px; font: 700 50px Poppins; color: #6D1FB8; }
+  .when { position: absolute; left: 60px; top: 548px; font: 500 46px Poppins; color: #4a4356; }
+  #track { position: absolute; left: 0; top: 660px; width: 1080px; height: 1170px; perspective: 1800px; }
+  .card { position: absolute; left: 140px; top: 0; width: 800px; height: 1000px; border-radius: 44px; overflow: hidden;
+    box-shadow: 0 30px 60px rgba(26,15,46,.35); background: #111; transform-origin: 50% 50%; }
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card .heart { position: absolute; right: 30px; top: 30px; width: 96px; height: 96px; border-radius: 50%; background: #fff;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+  .dots { position: absolute; left: 0; right: 0; top: 1040px; display: flex; justify-content: center; gap: 18px; }
+  .dot { width: 18px; height: 18px; border-radius: 9px; background: #e3dbe9; }
+
+  /* Doigt */
+  #finger { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 60; }
+  #finger .tip { position: absolute; left: -46px; top: -46px; width: 92px; height: 92px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,255,255,.75) 45%, rgba(255,255,255,.15) 70%, transparent 72%);
+    box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+  #finger .ring { position: absolute; left: -46px; top: -46px; width: 92px; height: 92px; border-radius: 50%; border: 5px solid #fff; opacity: 0; }
+
+  /* Chips flottantes (scène 4) */
+  .float { position: absolute; padding: 22px 34px; border-radius: 999px; font: 700 34px Poppins; color: #fff; white-space: nowrap;
+    background: rgba(30,16,52,.62); border: 2px solid rgba(255,255,255,.18); backdrop-filter: blur(14px);
+    box-shadow: 0 20px 50px rgba(0,0,0,.45); opacity: 0; }
+  .float b { color: #FFD93D; }
+
+  /* Textes */
+  #logoTop { position: absolute; left: 50%; top: 150px; width: 300px; margin-left: -150px; opacity: 0; }
+  #tag { position: absolute; left: 0; right: 0; top: 190px; text-align: center; font-family: Anton; font-size: 128px; line-height: 1.02;
+    color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+  #tag span { display: inline-block; opacity: 0; }
+  #tag .pink { background: linear-gradient(90deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #cta { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); display: flex; align-items: center; gap: 22px; opacity: 0;
+    padding: 26px 54px; border-radius: 999px; background: linear-gradient(90deg, var(--rose), var(--corail)); color: #fff;
+    font: 800 42px Poppins; box-shadow: 0 20px 70px rgba(255,30,142,.55); white-space: nowrap; }
+  #cta img { height: 58px; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 260px 80px rgba(0,0,0,.6); }
+</style>
+</head>
+<body>
+<div id="bg">
+  <div class="blob" id="b1"></div><div class="blob" id="b2"></div><div class="blob" id="b3"></div>
+  <div id="grid"></div>
+  <div id="sparks"></div>
+</div>
+
+<img id="logoTop" src="assets/logo.svg" alt="MaCity">
+<div id="tag"><span>Ce soir,</span> <span>ça se</span><br><span class="pink">passe</span> <span class="pink">où&nbsp;?</span></div>
+
+<div id="stage">
+  <div id="cam">
+    <div id="phone">
+      <div class="btn" style="left:-5px;top:250px;height:110px"></div>
+      <div class="btn" style="left:-5px;top:390px;height:110px"></div>
+      <div class="btn" style="right:-5px;left:auto;top:320px;height:170px"></div>
+      <div id="screen">
+        <div id="inner">
+          <div class="page" id="home">
+            <img src="../1000062354.jpg" alt="">
+            <div id="pillGlow"></div>
+            <div id="ripple"></div>
+          </div>
+          <div class="page" id="cesoir">
+            <div class="bodybg"></div>
+            <img class="hdr" src="assets/cesoir_header.png" alt="">
+            <div class="chip">SOIRÉES ÉTUDIANTES</div>
+            <div class="where">📍 Toulouse · 6 adresses</div>
+            <div class="when">Aujourd'hui, dès 19h</div>
+            <div id="track"></div>
+            <img class="nav" src="assets/navbar.png" alt="">
+          </div>
+          <div id="finger"><div class="ring"></div><div class="tip"></div></div>
+        </div>
+        <div id="sheen"></div>
+        <div id="punch"></div>
+      </div>
+    </div>
+  </div>
+  <div class="float" id="f1">🎓 <b>6</b> soirées étudiantes ce jeudi</div>
+  <div class="float" id="f2">📍 À deux pas de chez toi</div>
+  <div class="float" id="f3">🎟️ <b>4&nbsp;€</b> l'entrée avec MaCity</div>
+</div>
+
+<div id="cta">📲 Télécharge MaCity</div>
+<div id="vignette"></div>
+<div id="flash"></div>
+
+<script>
+// ---------- Données : les vraies diapos du carrousel ----------
+const CARDS = ['../diapo_01.png', '../diapo_02.png', '../diapo_03.png', '../diapo_04.png', '../diapo_05.png', '../diapo_06.png', '../diapo_07.png'];
+const track = document.getElementById('track');
+CARDS.forEach((src, i) => {
+  const c = document.createElement('div'); c.className = 'card';
+  c.innerHTML = `<img src="${src}" alt=""><div class="heart"><svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#1A0F2E" stroke-width="2"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.3 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4h2c.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.8 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></div>`;
+  track.appendChild(c);
+});
+const dots = document.createElement('div'); dots.className = 'dots';
+CARDS.forEach(() => { const d = document.createElement('div'); d.className = 'dot'; dots.appendChild(d); });
+track.appendChild(dots);
+const sparks = document.getElementById('sparks');
+const SP = Array.from({ length: 26 }, (_, i) => {
+  const s = document.createElement('div'); s.className = 'spark'; sparks.appendChild(s);
+  const r = (k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+  return { el: s, x: r(1) * 1080, y: r(2) * 1920, sp: 20 + r(3) * 50, ph: r(4) * 6.28, sz: .4 + r(5) * 1.1 };
+});
+
+// ---------- Outils d'animation ----------
+const E = {
+  lin: x => x,
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  out: x => 1 - Math.pow(1 - x, 3),
+  outExpo: x => x === 1 ? 1 : 1 - Math.pow(2, -10 * x),
+  back: x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+  inOutQuint: x => x < .5 ? 16 * x ** 5 : 1 - Math.pow(-2 * x + 2, 5) / 2,
+};
+// keys: [[temps, valeur, easing vers cette clé], ...]
+function K(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, e] = keys[i], [t0, v0] = keys[i - 1];
+    if (t <= t1) { const p = (E[e || 'io'])((t - t0) / (t1 - t0)); return v0 + (v1 - v0) * p; }
+  }
+  return keys[keys.length - 1][1];
+}
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const $ = id => document.getElementById(id);
+
+// Repères dans le téléphone (px du téléphone, origine = centre de l'écran)
+const PILL = { x: (636 - 540) * .5, y: (591 - 1200) * .5 };
+const CARD = { x: 0, y: (660 + 500 - 1200) * .5 };
+
+// Index du carrousel : la carte change toutes les ~1,8 s
+const SWITCH = [10.5, 12.3, 14.1, 15.9, 17.7, 19.5];
+function carouselIndex(t) {
+  let p = 0;
+  SWITCH.forEach(s => { p += E.inOutQuint(clamp((t - s) / .62)); });
+  return p;
+}
+
+window.render = function (t) {
+  // ----- Fond -----
+  $('b1').style.transform = `translate(${-200 + 160 * Math.sin(t * .35)}px, ${-120 + 140 * Math.cos(t * .27)}px)`;
+  $('b2').style.transform = `translate(${520 + 140 * Math.cos(t * .3)}px, ${1100 + 160 * Math.sin(t * .22)}px)`;
+  $('b3').style.transform = `translate(${380 + 200 * Math.sin(t * .41 + 1)}px, ${560 + 120 * Math.cos(t * .33)}px)`;
+  $('grid').style.transform = `perspective(900px) rotateX(58deg) translateY(${(t * 60) % 90}px) scale(1.4)`;
+  SP.forEach(s => {
+    const y = ((s.y - t * s.sp) % 1920 + 1920) % 1920;
+    s.el.style.transform = `translate(${s.x + 20 * Math.sin(t + s.ph)}px, ${y}px) scale(${s.sz})`;
+    s.el.style.opacity = (.25 + .5 * (.5 + .5 * Math.sin(t * 2 + s.ph))) * clamp(t / 1.2);
+  });
+
+  // ----- Caméra (échelle + point visé dans le téléphone) -----
+  const S = K(t, [[0, .55], [1.6, 1.0, 'outExpo'], [4.0, 1.04, 'lin'], [6.2, 2.35, 'io'], [7.6, 2.45, 'lin'], [8.6, 1.35, 'io'],
+    [10.3, 1.45, 'io'], [11.4, 1.95, 'io'], [13.9, 2.0, 'lin'], [14.9, 1.02, 'io'], [16.7, 1.05, 'lin'], [17.5, 1.9, 'io'],
+    [19.3, 1.95, 'lin'], [20.2, 1.3, 'io'], [22.6, 1.32, 'lin'], [24.0, .86, 'io'], [26.6, .9, 'lin'], [27.6, .6, 'io'], [30, .62, 'lin']]);
+  const FX = K(t, [[4.0, 0], [6.2, PILL.x, 'io'], [7.6, PILL.x, 'lin'], [8.6, CARD.x, 'io']]);
+  const FY = K(t, [[4.0, 0], [6.2, PILL.y, 'io'], [7.6, PILL.y, 'lin'], [8.6, CARD.y, 'io'], [22.6, CARD.y, 'lin'], [24.0, 0, 'io']]);
+  const camY = K(t, [[0, 700], [1.6, 0, 'outExpo'], [26.6, 0], [27.6, 250, 'io']]);
+  // Rotations 3D du téléphone
+  let RY = K(t, [[0, -38], [1.8, 10, 'out'], [3.6, -6, 'io'], [5.5, 0, 'io'], [13.9, 0], [14.9, -16, 'io'], [16.7, 14, 'io'], [17.5, 0, 'io'],
+    [22.6, 0], [24.0, 18, 'io'], [26.6, -10, 'io'], [27.6, 0, 'io']]);
+  let RX = K(t, [[0, 28], [1.8, -4, 'out'], [3.6, 6, 'io'], [5.5, 0, 'io'], [22.6, 0], [24.0, 6, 'io'], [26.6, 4, 'io'], [27.6, 0, 'io']]);
+  let RZ = K(t, [[0, -14], [1.8, 3, 'out'], [3.6, -2, 'io'], [5.5, 0, 'io']]);
+  RY += 1.6 * Math.sin(t * 1.1); RX += 1.0 * Math.cos(t * .9);
+  $('cam').style.transform = `translateY(${camY}px) scale(${S}) translate(${-FX}px, ${-FY}px)`;
+  $('phone').style.transform = `rotateX(${RX}deg) rotateY(${RY}deg) rotateZ(${RZ}deg)`;
+  $('phone').style.opacity = clamp(t / .35);
+  $('sheen').style.backgroundPosition = `${K(t, [[0.6, 140], [2.2, -40, 'io'], [23.4, -40], [25.2, 140, 'io']]) % 300}% 0`;
+  $('sheen').style.opacity = (t < 2.6 || (t > 23 && t < 25.6)) ? 1 : 0;
+
+  // ----- Doigt + clic sur « Ce soir » (écran en px 1080 x 2400) -----
+  const fx = K(t, [[5.0, 1300], [6.9, 636, 'out'], [7.4, 636], [7.9, 900, 'io']]);
+  const fy = K(t, [[5.0, 1300], [6.9, 591, 'out'], [7.4, 591], [7.9, 900, 'io']]);
+  const press = K(t, [[6.95, 1], [7.1, .8, 'out'], [7.35, 1, 'out']]);
+  $('finger').style.transform = `translate(${fx}px, ${fy}px) scale(${press})`;
+  $('finger').style.opacity = K(t, [[5.0, 0], [5.4, 1], [7.4, 1], [7.75, 0]]);
+  const rp = clamp((t - 7.05) / .55);
+  $('finger').querySelector('.ring').style.transform = `scale(${1 + rp * 1.8})`;
+  $('finger').querySelector('.ring').style.opacity = rp > 0 && rp < 1 ? (1 - rp) : 0;
+  $('pillGlow').style.opacity = K(t, [[6.3, 0], [6.8, .85], [7.05, 1], [7.7, .9], [8.0, 0]]);
+  $('pillGlow').style.transform = `scale(${K(t, [[7.0, 1], [7.12, .94, 'out'], [7.4, 1.04, 'out'], [7.7, 1, 'io']])})`;
+  const rr = clamp((t - 7.05) / .7), rs = 40 + rr * 520;
+  Object.assign($('ripple').style, { width: rs + 'px', height: rs + 'px', margin: `${-rs / 2}px 0 0 ${-rs / 2}px`, opacity: rr > 0 && rr < 1 ? .9 * (1 - rr) : 0 });
+
+  // ----- Transition d'écran Accueil -> Ce soir (glissement Android) -----
+  const sw = K(t, [[7.55, 0], [8.25, 1, 'io']]);
+  $('home').style.transform = `translateX(${-sw * 320}px)`;
+  $('home').style.filter = `brightness(${1 - sw * .35})`;
+  $('cesoir').style.transform = `translateX(${(1 - sw) * 1080}px)`;
+  $('cesoir').style.boxShadow = `-30px 0 60px rgba(0,0,0,${.25 * sw})`;
+
+  // ----- Carrousel des soirées -----
+  const p = t < 9 ? 0 : carouselIndex(t);
+  const intro = K(t, [[8.0, 0], [9.0, 1, 'out']]);
+  track.querySelectorAll('.card').forEach((c, i) => {
+    const d = i - p, ad = Math.abs(d);
+    const x = d * 860 * (1 - .06 * clamp(ad));
+    const sc = 1 - .14 * clamp(ad);
+    const ry = -clamp(d, -1.5, 1.5) * 22;
+    const zoom = ad < .5 ? 1 + .035 * Math.sin(clamp((t - 9) / 1.8) * Math.PI) : 1;
+    c.style.transform = `translateX(${x}px) translateY(${(1 - intro) * 300 * (1 + i * .3)}px) rotateY(${ry}deg) scale(${sc * zoom})`;
+    c.style.opacity = clamp(intro * 2 - i * .2) * (ad > 2.4 ? 0 : 1);
+    c.style.zIndex = 100 - Math.round(ad * 10);
+    c.style.filter = `brightness(${1 - .3 * clamp(ad)})`;
+    c.querySelector('img').style.transform = `translateX(${-d * 60}px) scale(1.08)`; // parallaxe interne
+  });
+  track.querySelectorAll('.dot').forEach((d, i) => {
+    const a = clamp(1 - Math.abs(i - p));
+    d.style.width = `${18 + 30 * a}px`;
+    d.style.background = a > .5 ? '#FF1E8E' : '#e3dbe9';
+  });
+
+  // ----- Scène 4 : chips flottantes -----
+  [['f1', 23.3, 120, 300, -1], ['f2', 23.7, 560, 1480, 1], ['f3', 24.1, 80, 1640, -1]].forEach(([id, t0, x, y, dir]) => {
+    const a = K(t, [[t0, 0], [t0 + .7, 1, 'back'], [26.7, 1], [27.3, 0, 'io']]);
+    const drift = 14 * Math.sin((t - t0) * 1.4);
+    $(id).style.opacity = clamp(a);
+    $(id).style.transform = `translate(${x + dir * (1 - a) * 120}px, ${y + drift}px) scale(${.8 + .2 * a})`;
+  });
+
+  // ----- Scène 1 et 5 : logo, phrase d'accroche, bouton -----
+  $('logoTop').style.opacity = K(t, [[1.2, 0], [2.0, 1], [3.6, 1], [4.3, 0]]);
+  $('logoTop').style.transform = `translateY(${K(t, [[1.2, -30], [2.0, 0, 'out']])}px)`;
+  $('tag').querySelectorAll('span').forEach((s, i) => {
+    const a = K(t, [[27.5 + i * .22, 0], [27.95 + i * .22, 1, 'out']]);
+    s.style.opacity = a;
+    s.style.transform = `translateY(${(1 - a) * 70}px) scale(${.9 + .1 * a})`;
+  });
+  const ca = K(t, [[28.4, 0], [28.9, 1, 'back']]);
+  $('cta').style.opacity = clamp(ca);
+  $('cta').style.transform = `translateX(-50%) scale(${.85 + .15 * ca + .02 * Math.sin(Math.max(0, t - 28.9) * 5)})`;
+  $('flash').style.opacity = K(t, [[7.05, 0], [7.12, .1], [7.4, 0], [27.4, 0], [27.5, .18], [27.9, 0]]);
+};
+window.render(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+SCRIPT VOIX OFF : pub « Ta ville bouge » (ton jeune et énergique)
+
+Le plus simple : enregistre tout d'une traite, en marquant une petite pause
+(1 seconde) entre chaque numéro. Je découpe et je cale chaque phrase sur sa scène.
+Si une phrase déborde, j'allonge la scène plutôt que d'accélérer ta voix.
+
+ 1. (0 s, ton blasé, un peu moqueur)
+    Tu crois qu'il ne se passe RIEN dans ta ville ce week-end ?
+
+ 2. (2 s, suspense, lent)
+    Eh bien…
+
+ 3. (3,4 s, énergie à fond, sourire)
+    tu risques d'être SURPRIS !
+
+ 4. (4,6 s, rapide, une coupe par mot, bien détaché)
+    Concerts. Spectacles. Soirées. Festivals. Expos. Événements gratuits !
+
+ 5. (8,2 s)
+    Il se passe beaucoup plus de choses que tu ne l'imagines !
+
+ 6. (10,6 s, ton « galère », un peu agacé)
+    Mais encore faut-il savoir où les trouver…
+
+ 7. (13 s, ton « bonne nouvelle »)
+    Avec MaCity, découvre les événements autour de toi, grâce à la géolocalisation.
+
+ 8. (17,6 s)
+    Plus besoin de chercher sur dix sites différents !
+
+ 9. (20 s, montée d'énergie)
+    Toute ta ville bouge. Ne passe plus à côté !
+
+10. (22,5 s, clair et posé, appel à l'action)
+    Télécharge MaCity. Tous les événements. Une seule application.
+
+
+CONSEILS D'ENREGISTREMENT (téléphone)
+- Pièce calme et « molle » (chambre, rideaux, voire dans un placard à vêtements) : pas de cuisine ni de salle de bain.
+- Téléphone à environ 20 cm de la bouche, un peu de côté pour éviter les « p » qui claquent.
+- Application Dictaphone / Enregistreur, format le plus haut possible (m4a ou wav).
+- Souris en parlant, ça s'entend. Articule « MaCity ».
+- Fais 2 ou 3 prises complètes, envoie-les toutes : je garde la meilleure de chaque phrase.
+- Dépose les fichiers dans ~/Images ou dans ce dossier et dis-moi où.
+
+DE MON CÔTÉ ENSUITE
+- Nettoyage (bruit de fond, niveau, compression façon radio).
+- Musique baissée automatiquement sous la voix.
+- Calage des scènes et des sous-titres sur ta voix, puis nouveau rendu.

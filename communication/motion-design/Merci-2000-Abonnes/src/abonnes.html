@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Merci 2000 abonnés Instagram</title>
+<style>
+  @font-face { font-family: Playfair; src: url(assets/Playfair.ttf); font-weight: 400 900; }
+  @font-face { font-family: Playfair; src: url(assets/Playfair-Italic.ttf); font-weight: 400 900; font-style: italic; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  :root { --rose: #FF1E8E; --champ: #f3e2bd; --or: #d9b45a;
+    --gold: linear-gradient(180deg, #fff7dc 0%, #f4d98f 28%, #c99a3e 52%, #f6e2a6 70%, #a87a2a 100%); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #06030b; font-family: Poppins; color: #fff; }
+  .abs { position: absolute; }
+  .ctr { left: 0; width: 1080px; text-align: center; white-space: nowrap; }
+  #bg { inset: 0; background: radial-gradient(ellipse 90% 62% at 50% 46%, #2a0f45 0%, #150828 45%, #06030b 100%); }
+  #glow { left: 540px; top: 900px; width: 1600px; height: 1600px; margin: -800px 0 0 -800px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,30,142,.28), rgba(217,180,90,.10) 40%, transparent 68%); }
+  .bk { left: 0; top: 0; border-radius: 50%; }
+  #vig { inset: 0; background: radial-gradient(ellipse 75% 60% at 50% 50%, transparent 55%, rgba(0,0,0,.65) 100%); }
+  /* cadre */
+  #frame { inset: 52px; border: 1.5px solid rgba(232,200,130,.6); border-radius: 6px; }
+  #frame2 { inset: 66px; border: 1px solid rgba(232,200,130,.25); border-radius: 4px; }
+  #pin { left: 510px; top: 112px; width: 60px; }
+  .gold { background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .shine { background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.95) 50%, transparent 58%) no-repeat; background-size: 300% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lbl { font: 600 32px/1 Poppins; letter-spacing: 14px; color: var(--champ); }
+  .ln { height: 1.5px; background: linear-gradient(90deg, transparent, var(--or), transparent); }
+  /* acte 1 */
+  #a1 { inset: 0; }
+  #pre { top: 600px; }
+  #numbox { left: 0; top: 690px; width: 1080px; height: 380px; overflow: hidden; }
+  .num { left: 0; width: 1080px; text-align: center; font: 600 270px/380px Playfair; letter-spacing: 4px; }
+  #big, #bigS { top: 650px; font: 700 290px/1.2 Playfair; letter-spacing: 4px; top: 680px; }
+  #big { filter: drop-shadow(0 0 30px rgba(217,180,90,.55)) drop-shadow(0 6px 0 rgba(90,55,10,.6)); }
+  #l1 { left: 340px; top: 1112px; width: 400px; }
+  #abo { top: 1150px; font: 600 50px/1 Poppins; letter-spacing: 12px; color: #fff; }
+  #abo span { color: var(--champ); }
+  #sub { top: 1255px; font: italic 500 64px/1.2 Playfair; color: var(--champ); }
+  #flare { left: 540px; top: 900px; width: 1400px; height: 1400px; margin: -700px 0 0 -700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,250,235,.95) 0%, rgba(255,220,150,.5) 12%, rgba(255,30,142,.15) 35%, transparent 62%); opacity: 0; }
+  #streak { left: 0; top: 896px; width: 1080px; height: 8px;
+    background: linear-gradient(90deg, transparent, rgba(255,230,180,.9) 30%, #fff 50%, rgba(255,230,180,.9) 70%, transparent); opacity: 0; border-radius: 4px; }
+  .ring { left: 540px; top: 900px; border-radius: 50%; border: 2px solid rgba(240,210,140,.9); opacity: 0; }
+  .cf { left: 0; top: 0; opacity: 0; }
+  /* acte 2 */
+  #a2 { inset: 0; opacity: 0; }
+  #heart { left: 490px; top: 560px; width: 100px; height: 92px; }
+  #merci, #merciS { top: 660px; font: italic 700 320px/1.25 Playfair; }
+  #merci { filter: drop-shadow(0 0 34px rgba(217,180,90,.5)) drop-shadow(0 6px 0 rgba(90,55,10,.55)); }
+  #l2a { left: 140px; top: 1140px; width: 200px; } #l2b { left: 740px; top: 1140px; width: 200px; }
+  #chac { top: 1124px; font-size: 30px; letter-spacing: 10px; }
+  /* acte 3 */
+  #a3 { inset: 0; opacity: 0; }
+  #vous { top: 196px; }
+  #cap, #capS { top: 236px; font: italic 700 116px/1.3 Playfair; }
+  #cap { filter: drop-shadow(0 0 22px rgba(217,180,90,.45)); }
+  #phone { left: 540px; top: 470px; width: 590px; height: 1290px; margin-left: -295px; border-radius: 84px; padding: 12px;
+    background: linear-gradient(135deg, #fff1c9 0%, #b98a36 22%, #f6dfa0 45%, #8a6220 70%, #e9c97e 100%);
+    box-shadow: 0 50px 140px rgba(0,0,0,.75), 0 0 140px rgba(217,180,90,.25); transform-origin: 50% 50%; }
+  #scr { position: relative; width: 100%; height: 100%; border-radius: 72px; overflow: hidden; background: #000; }
+  #scr img { position: absolute; left: 0; top: 0; width: 566px; height: 1266px; object-fit: cover; object-position: top; }
+  #notch { left: 50%; top: 16px; width: 160px; height: 44px; margin-left: -80px; border-radius: 24px; background: #000; }
+  #refl { left: -600px; top: -200px; width: 300px; height: 1800px; transform: rotate(20deg);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent); }
+  .st { left: 0; top: 0; width: 64px; height: 64px; opacity: 0; }
+  /* acte 4 */
+  #a4 { inset: 0; opacity: 0; }
+  #logo { left: 190px; top: 540px; width: 700px; }
+  #l4 { left: 390px; top: 860px; width: 300px; }
+  #e1, #e1S { top: 900px; font: italic 700 112px/1.12 Playfair; }
+  #e1 { filter: drop-shadow(0 0 26px rgba(217,180,90,.45)); }
+  #e2 { top: 1215px; }
+  #e3 { left: 540px; top: 1335px; transform: translateX(-50%); font: 600 36px/1 Poppins; letter-spacing: 6px; color: var(--champ);
+    padding: 26px 52px; border-radius: 60px; border: 2px solid rgba(232,200,130,.85); white-space: nowrap;
+    background: rgba(217,180,90,.08); box-shadow: 0 0 40px rgba(217,180,90,.25), inset 0 0 24px rgba(217,180,90,.12); }
+  #e3 b { color: #fff; font-weight: 600; }
+  #sweep { left: -700px; top: -300px; width: 500px; height: 2600px; transform: rotate(18deg);
+    background: linear-gradient(90deg, transparent, rgba(255,235,190,.0) 20%, rgba(255,240,205,.85) 50%, rgba(255,235,190,0) 80%, transparent); }
+  #fade { inset: 0; background: #06030b; opacity: 0; }
+  #grain { inset: 0; opacity: .035; mix-blend-mode: overlay; }
+</style>
+</head>
+<body>
+<div id="bg" class="abs"></div>
+<div id="glow" class="abs"></div>
+<div id="bokeh" class="abs" style="inset:0"></div>
+
+<div id="a1" class="abs">
+  <div id="pre" class="abs ctr lbl">ON Y EST PRESQUE</div>
+  <div id="numbox" class="abs"><div id="n0" class="abs num gold"></div><div id="n1" class="abs num gold"></div></div>
+  <div id="big" class="abs ctr gold">2 000</div><div id="bigS" class="abs ctr shine">2 000</div>
+  <div id="l1" class="abs ln"></div>
+  <div id="abo" class="abs ctr">ABONNÉS <span>INSTAGRAM</span></div>
+  <div id="sub" class="abs ctr">Vous êtes incroyables.</div>
+</div>
+
+<div id="a2" class="abs">
+  <svg id="heart" class="abs" viewBox="0 0 24 22"><defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3cf"/><stop offset=".5" stop-color="#d4a94c"/><stop offset="1" stop-color="#f3d98f"/></linearGradient></defs>
+    <path fill="none" stroke="url(#hg)" stroke-width="1.1" d="M12 20.6 10.6 19.3C5 14.2 1.2 10.8 1.2 6.6 1.2 3.4 3.7 1 6.8 1c1.8 0 3.6.8 5.2 2.4C13.6 1.8 15.4 1 17.2 1c3.1 0 5.6 2.4 5.6 5.6 0 4.2-3.8 7.6-9.4 12.7L12 20.6z"/></svg>
+  <div id="merci" class="abs ctr gold">Merci</div><div id="merciS" class="abs ctr shine">Merci</div>
+  <div id="l2a" class="abs ln"></div><div id="l2b" class="abs ln"></div>
+  <div id="chac" class="abs ctr lbl">À CHACUN D'ENTRE VOUS</div>
+</div>
+
+<div id="a3" class="abs">
+  <div id="vous" class="abs ctr lbl">VOUS</div>
+  <div id="cap" class="abs ctr gold"></div><div id="capS" class="abs ctr shine"></div>
+  <div id="phone" class="abs"><div id="scr"><img id="sc0"><img id="sc1"><div id="notch" class="abs"></div><div id="refl" class="abs"></div></div></div>
+</div>
+
+<div id="a4" class="abs">
+  <img id="logo" class="abs" src="assets/macity-logo-couleur-fond-sombre.svg">
+  <div id="l4" class="abs ln"></div>
+  <div id="e1" class="abs ctr gold">Et ce n'est que<br>le début.</div><div id="e1S" class="abs ctr shine">Et ce n'est que<br>le début.</div>
+  <div id="e2" class="abs ctr lbl">TA VILLE DANS TA POCHE</div>
+  <div id="e3" class="abs">PROCHAINE ÉTAPE · <b>5 000</b></div>
+</div>
+
+<div id="fx" class="abs" style="inset:0"></div>
+<div id="flare" class="abs"></div>
+<div id="streak" class="abs"></div>
+<div id="sweep" class="abs"></div>
+<div id="vig" class="abs"></div>
+<div id="frame" class="abs"></div><div id="frame2" class="abs"></div>
+<img id="pin" class="abs" src="assets/macity-pin-couleur.svg">
+<div id="fade" class="abs"></div>
+<canvas id="grain" class="abs" width="540" height="960"></canvas>
+<script>
+window.DUR = 16;
+const $ = s => document.querySelector(s);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eo5 = x => 1 - Math.pow(1 - x, 5);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.3; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const css = (el, o) => Object.assign(el.style, o);
+const rnd = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const pulse = (t, a, d) => seg(t, a, a + .03) * (1 - seg(t, a + .03, a + d));
+const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+// reflet qui traverse un texte doré : p de 0 à 1
+const shine = (el, p) => { el.style.backgroundPosition = `${lerp(110, -10, p)}% 0`; el.style.opacity = p > 0 && p < 1 ? 1 : 0; };
+
+const DROP = 2.5, T_MERCI = 5.5, T_APP = 7.5, T_END = 12.0;
+const TICKS = [.35, .7, 1.0, 1.25, 1.46, 1.64, 1.8, 1.94, 2.06, 2.17];
+const CAPS = [[7.5, 'ecran-2', 'sortez plus.'], [9.0, 'ecran-6', 'vibrez la nuit.'], [10.5, 'ecran-1', 'payez moins.']];
+
+// bokeh doré et rose qui dérive
+const bokeh = [...Array(26)].map((_, i) => { const d = document.createElement('div'); d.className = 'abs bk';
+  const s = 60 + rnd(i + 200) * 200, c = i % 4 === 0 ? '255,30,142' : '230,195,120';
+  css(d, { width: s + 'px', height: s + 'px', background: `radial-gradient(circle, rgba(${c},.32), rgba(${c},.12) 45%, transparent 70%)` });
+  $('#bokeh').appendChild(d); return { d, s }; });
+// paillettes : rubans dorés, éclats et étoiles
+const fx = $('#fx');
+const GOLDS = ['#fff3cf', '#f4d98f', '#d4a94c', '#b8862f', '#f7e7c2', '#e9b9a0'];
+const STAR = c => `<svg viewBox="0 0 20 20" width="100%" height="100%"><path fill="${c}" d="M10 0C10.6 6.5 13.5 9.4 20 10 13.5 10.6 10.6 13.5 10 20 9.4 13.5 6.5 10.6 0 10 6.5 9.4 9.4 6.5 10 0z"/></svg>`;
+const conf = [...Array(170)].map((_, i) => { const d = document.createElement('div'); d.className = 'abs cf';
+  const kind = i % 7 === 0 ? 'star' : i % 3 === 0 ? 'dot' : 'rib';
+  if (kind === 'star') { d.innerHTML = STAR('#fff6dc'); css(d, { width: '30px', height: '30px', filter: 'drop-shadow(0 0 8px #ffd98a)' }); }
+  else if (kind === 'dot') css(d, { width: '12px', height: '12px', borderRadius: '50%', background: GOLDS[i % 6], boxShadow: '0 0 10px rgba(255,220,150,.8)' });
+  else css(d, { width: '10px', height: '30px', borderRadius: '2px', background: `linear-gradient(180deg, ${GOLDS[i % 6]}, ${GOLDS[(i + 3) % 6]})` });
+  fx.appendChild(d); return d; });
+const rings = [...Array(3)].map(() => { const d = document.createElement('div'); d.className = 'abs ring'; fx.appendChild(d); return d; });
+const stars = [...Array(22)].map((_, i) => { const d = document.createElement('div'); d.className = 'abs st'; d.innerHTML = STAR(i % 5 ? '#fff4d6' : '#ff8cc6');
+  d.style.filter = 'drop-shadow(0 0 10px rgba(255,215,140,.9))'; fx.appendChild(d); return d; });
+const gctx = $('#grain').getContext('2d'); const gimg = gctx.createImageData(540, 960);
+function grain(t) { let s = Math.floor(t * 30) * 9301 + 49297; const a = gimg.data;
+  for (let i = 0; i < a.length; i += 4) { s = (s * 9301 + 49297) % 233280; const v = s / 233280 * 255; a[i] = a[i + 1] = a[i + 2] = v; a[i + 3] = 255; } gctx.putImageData(gimg, 0, 0); }
+const pending = [];
+function setSrc(el, s) { if (el.getAttribute('src') !== s) { el.setAttribute('src', s); pending.push(el.decode().catch(() => {})); } }
+
+window.render = async function (t) {
+  pending.length = 0;
+  const beat = t >= DROP ? Math.pow(1 - ((t - DROP) % .5) / .5, 4) : 0;
+  $('#glow').style.transform = `scale(${1 + Math.sin(t * 1.5) * .05 + beat * .03})`;
+  bokeh.forEach(({ d, s }, i) => { const x = rnd(i) * 1180 - 50 + Math.sin(t * .3 + i) * 60, y = ((rnd(i + 9) * 2100 - t * (18 + rnd(i + 4) * 30)) % 2100 + 2100) % 2100 - 100;
+    css(d, { transform: `translate(${x - s / 2}px, ${y - s / 2}px)`, opacity: (.45 + .55 * Math.sin(t * .8 + i * 1.7) ** 2) * seg(t, 0, .8) }); });
+  // cadre : se dessine depuis le centre
+  const fr = eio(seg(t, .05, 1.0)); const cp = `inset(0 ${50 - fr * 50}% 0 ${50 - fr * 50}%)`;
+  $('#frame').style.clipPath = cp; $('#frame2').style.clipPath = cp;
+  css($('#pin'), { opacity: seg(t, .5, 1.0) * (1 - seg(t, T_END - .3, T_END)), transform: `translateY(${lerp(-20, 0, eo(seg(t, .5, 1)))}px)` });
+
+  // ---- ACTE 1 : compteur puis 2 000 ----
+  const a1 = $('#a1'), o1 = seg(t, T_MERCI - .1, T_MERCI + .35);
+  css(a1, { opacity: 1 - o1, transform: `scale(${1 + eio(o1) * .08})`, filter: `blur(${o1 * 10}px)` });
+  let k = 0; for (let i = 0; i < TICKS.length; i++) if (t >= TICKS[i]) k = i + 1;
+  if (t < DROP) {
+    const tk = k ? TICKS[k - 1] : -1, p = k ? eo(seg(t, tk, tk + .16)) : 1;
+    $('#n1').textContent = fmt(1989 + k); $('#n0').textContent = fmt(1989 + k - 1);
+    const ten = seg(t, 2.1, DROP);
+    css($('#n1'), { transform: `translateY(${lerp(380, 0, p)}px) scale(${1 + ten * .08})`, opacity: 1 });
+    css($('#n0'), { transform: `translateY(${lerp(0, -380, p)}px)`, opacity: k ? 1 - p : 0 });
+    $('#numbox').style.opacity = eo(seg(t, .15, .7)) * (1 - seg(t, 2.38, DROP));
+    const pp = eo(seg(t, .3, .9)); css($('#pre'), { opacity: pp * (1 - seg(t, 2.2, DROP)), letterSpacing: lerp(30, 14, pp) + 'px' });
+  } else { $('#numbox').style.opacity = 0; $('#pre').style.opacity = 0; }
+  const b = seg(t, DROP, DROP + .6);
+  css($('#big'), { opacity: t >= DROP ? eo(seg(t, DROP, DROP + .12)) : 0, transform: `scale(${lerp(1.35, 1, eo5(b)) * (1 + (t - DROP) * .006)})`, letterSpacing: lerp(18, 4, eo5(b)) + 'px' });
+  $('#bigS').style.transform = $('#big').style.transform; $('#bigS').style.letterSpacing = $('#big').style.letterSpacing;
+  shine($('#bigS'), Math.max(seg(t, DROP + .3, DROP + 1.2), seg(t, 4.4, 5.2)));
+  const lp1 = eio(seg(t, 3.0, 3.6)); css($('#l1'), { transform: `scaleX(${lp1})` });
+  const ab = seg(t, 3.1, 3.7); css($('#abo'), { opacity: ab, letterSpacing: lerp(30, 12, eo(ab)) + 'px' });
+  const sb = seg(t, 3.8, 4.4); css($('#sub'), { opacity: sb, transform: `translateY(${lerp(30, 0, eo(sb))}px)`, filter: `blur(${(1 - sb) * 8}px)` });
+  // éclat au drop
+  css($('#flare'), { opacity: pulse(t, DROP, .9) * .95, transform: `scale(${.4 + eo(seg(t, DROP, DROP + .9)) * .8})` });
+  css($('#streak'), { opacity: pulse(t, DROP, .7), transform: `scaleX(${.2 + eo(seg(t, DROP, DROP + .5)) * 1.3}) scaleY(${1 - seg(t, DROP, DROP + .7) * .6})` });
+  rings.forEach((r, i) => { const p = seg(t, DROP + i * .16, DROP + i * .16 + 1.4), s = 200 + eo(p) * 1500;
+    css(r, { width: s + 'px', height: s + 'px', marginLeft: -s / 2 + 'px', marginTop: -s / 2 + 'px', opacity: p > 0 && p < 1 ? (1 - p) * .8 : 0 }); });
+  conf.forEach((c, i) => {
+    const t0 = i < 120 ? DROP : T_END + .05, dt = t - t0;
+    if (dt < 0 || dt > 4.2) { c.style.opacity = 0; return; }
+    const ang = rnd(i) * Math.PI * 2, v = 700 + rnd(i + 9) * 1300, dr = 2.2;
+    const x = 540 + Math.cos(ang) * v * (1 - Math.exp(-dt * dr)) / dr + Math.sin(dt * 2.2 + i) * 40 * seg(dt, .4, 1.2);
+    const y = (i < 120 ? 880 : 760) + Math.sin(ang) * v * (1 - Math.exp(-dt * dr)) / dr + 120 * dt * dt;
+    const tw = i % 7 === 0 ? .6 + .4 * Math.sin(dt * 14 + i) : 1;
+    css(c, { opacity: (1 - seg(dt, 3.2, 4.2)) * tw, transform: `translate(${x}px, ${y}px) rotate(${dt * (160 + rnd(i + 3) * 360)}deg) scaleX(${i % 7 === 0 ? 1 : Math.cos(dt * (4 + rnd(i) * 6))})` });
+  });
+
+  // ---- ACTE 2 : Merci ----
+  const a2 = $('#a2'), in2 = seg(t, T_MERCI + .1, T_MERCI + .5), o2 = seg(t, T_APP - .1, T_APP + .3);
+  css(a2, { opacity: in2 * (1 - o2), filter: `blur(${o2 * 10}px)` });
+  if (t > T_MERCI && t < T_APP + .4) {
+    const m = seg(t, T_MERCI + .15, T_MERCI + .9);
+    const mt = `scale(${lerp(1.18, 1, eo5(m)) * (1 + (t - T_MERCI) * .01)})`;
+    css($('#merci'), { opacity: eo(m), transform: mt, letterSpacing: lerp(36, 2, eo5(m)) + 'px', filter: `blur(${(1 - eo(m)) * 12}px) drop-shadow(0 0 34px rgba(217,180,90,.5))` });
+    css($('#merciS'), { transform: mt, letterSpacing: $('#merci').style.letterSpacing }); shine($('#merciS'), seg(t, 6.2, 7.1));
+    const hp = seg(t, T_MERCI + .4, T_MERCI + .9), hb = Math.max(pulse(t, 6.5, .35), pulse(t, 7.0, .35));
+    css($('#heart'), { opacity: hp, transform: `scale(${lerp(.5, 1, eo(hp)) * (1 + hb * .12)})` });
+    const cl = eio(seg(t, 6.3, 6.8)); css($('#l2a'), { transform: `scaleX(${cl})`, transformOrigin: '100% 50%' }); css($('#l2b'), { transform: `scaleX(${cl})`, transformOrigin: '0 50%' });
+    css($('#chac'), { opacity: seg(t, 6.4, 6.9), letterSpacing: lerp(18, 10, eo(seg(t, 6.4, 6.9))) + 'px' });
+  }
+
+  // ---- ACTE 3 : l'appli ----
+  const a3 = $('#a3'), in3 = seg(t, T_APP + .1, T_APP + .5), o3 = seg(t, T_END - .15, T_END + .25);
+  css(a3, { opacity: in3 * (1 - o3), filter: `blur(${o3 * 10}px)` });
+  if (t > T_APP && t < T_END + .3) {
+    let c = 0; for (let i = 0; i < CAPS.length; i++) if (t >= CAPS[i][0]) c = i;
+    const tc = CAPS[c][0], pc = seg(t, tc + .1, tc + .6), pout = c < 2 ? seg(t, CAPS[c + 1][0] - .2, CAPS[c + 1][0]) : 0;
+    for (const id of ['#cap', '#capS']) { const el = $(id); if (el.dataset.c != c) { el.textContent = CAPS[c][2]; el.dataset.c = c; } }
+    css($('#cap'), { opacity: eo(pc) * (1 - pout), letterSpacing: lerp(20, 1, eo5(pc)) + 'px', filter: `blur(${(1 - eo(pc)) * 10 + pout * 8}px) drop-shadow(0 0 22px rgba(217,180,90,.45))` });
+    css($('#capS'), { letterSpacing: $('#cap').style.letterSpacing }); shine($('#capS'), seg(t, tc + .5, tc + 1.2));
+    css($('#vous'), { opacity: seg(t, T_APP + .2, T_APP + .7) });
+    setSrc($('#sc1'), `assets/${CAPS[c][1]}.png`); setSrc($('#sc0'), `assets/${CAPS[Math.max(0, c - 1)][1]}.png`);
+    const ps = c ? eio(seg(t, tc, tc + .55)) : 1;
+    css($('#sc1'), { transform: `translateX(${lerp(566, 0, ps)}px)` }); css($('#sc0'), { transform: `translateX(${lerp(0, -200, ps)}px)`, opacity: c ? 1 - ps * .6 : 0 });
+    css($('#refl'), { transform: `translateX(${lerp(0, 1500, eio(seg(t, tc + .3, tc + 1.3)))}px) rotate(20deg)` });
+    const ph = eo5(seg(t, T_APP + .15, T_APP + 1.1));
+    css($('#phone'), { transform: `perspective(2400px) translateY(${lerp(500, 0, ph) + Math.sin(t * 1.2) * 8}px) rotateY(${lerp(-28, 0, ph) + Math.sin(t * .9) * 6}deg) rotateX(${lerp(14, 4, ph) + Math.cos(t * .7) * 2}deg)` });
+  }
+  // étoiles scintillantes autour du téléphone et sur la fin
+  stars.forEach((s, i) => {
+    const per = 1.6 + rnd(i + 70) * 1.4, ph0 = rnd(i + 80) * per, cyc = Math.floor((t + ph0) / per), lt = ((t + ph0) % per) / per;
+    const side = i % 2 ? 1 : -1, x = 540 + side * (320 + rnd(i * 13 + cyc) * 190), y = 300 + rnd(i * 7 + cyc * 3) * 1450;
+    const on = seg(t, T_APP + .6, T_APP + 1) * (1 - seg(t, 15.2, 15.8));
+    css(s, { opacity: Math.sin(lt * Math.PI) ** 3 * on, transform: `translate(${x - 32}px, ${y}px) scale(${.4 + rnd(i + 3) * .8}) rotate(${lt * 90}deg)` });
+  });
+
+  // ---- ACTE 4 : fin ----
+  const in4 = seg(t, T_END + .1, T_END + .5);
+  $('#a4').style.opacity = in4;
+  if (t >= T_END) {
+    const l = seg(t, T_END + .1, T_END + .9); css($('#logo'), { opacity: eo(l), transform: `scale(${lerp(1.12, 1, eo5(l))})`, filter: `blur(${(1 - eo(l)) * 10}px)` });
+    css($('#l4'), { transform: `scaleX(${eio(seg(t, 12.8, 13.3))})` });
+    const p1 = seg(t, 12.9, 13.6); const tr = `translateY(${lerp(30, 0, eo(p1))}px)`;
+    css($('#e1'), { opacity: eo(p1), transform: tr, filter: `blur(${(1 - eo(p1)) * 10}px) drop-shadow(0 0 26px rgba(217,180,90,.45))` });
+    $('#e1S').style.transform = tr; shine($('#e1S'), seg(t, 13.8, 14.7));
+    css($('#e2'), { opacity: seg(t, 13.4, 13.9), letterSpacing: lerp(22, 14, eo(seg(t, 13.4, 13.9))) + 'px' });
+    const p3 = seg(t, 13.9, 14.4); css($('#e3'), { opacity: p3, transform: `translateX(-50%) scale(${lerp(.85, 1, eo5(p3))})` });
+  }
+  // balayage de lumière aux transitions
+  const sw = Math.max(seg(t, T_MERCI - .15, T_MERCI + .45) * (t < T_MERCI + .45 ? 1 : 0), seg(t, T_APP - .15, T_APP + .45) * (t < T_APP + .45 && t > T_APP - .15 ? 1 : 0), seg(t, T_END - .15, T_END + .45) * (t < T_END + .45 && t > T_END - .15 ? 1 : 0));
+  css($('#sweep'), { transform: `translateX(${lerp(0, 2100, eio(sw))}px) rotate(18deg)`, opacity: sw > 0 && sw < 1 ? .5 : 0 });
+  $('#fade').style.opacity = seg(t, 15.4, 16);
+  grain(t);
+  await Promise.all(pending);
+};
+window.render(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Story Live Map Live</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  :root { --rose: #FF1E8E; --nuit: #06041A; --violet: #7C3AED; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); font-family: Poppins; }
+  #world { position: absolute; inset: 0; transform-origin: 540px 960px; }
+  #mapc { position: absolute; left: 0; top: 0; }
+  #night { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(28,12,70,.86), rgba(6,4,26,.97)); }
+  #topband { position: absolute; left: 0; top: 0; width: 1080px; height: 700px; opacity: 0;
+    background: linear-gradient(180deg, rgba(6,4,26,.95) 0%, rgba(6,4,26,.86) 45%, rgba(6,4,26,0) 100%); }
+
+  /* Textes */
+  .cap { position: absolute; left: 0; width: 1080px; text-align: center; opacity: 0; will-change: transform; }
+  .step { display: inline-block; font: 700 26px Poppins; letter-spacing: 7px; color: #fff; padding: 8px 22px 6px; border-radius: 30px;
+    background: rgba(255,30,142,.22); box-shadow: inset 0 0 0 2px rgba(255,30,142,.8); margin-bottom: 22px; }
+  .ln { display: block; white-space: nowrap; font: 800 76px/1.12 Poppins; color: #fff; transform: skewX(-7deg);
+    text-shadow: 0 4px 0 rgba(40,10,90,.65), 0 0 30px rgba(255,30,142,.35); }
+  .ln.s { font-size: 60px; }
+  .hl { display: inline-block; padding: 2px 22px 6px; margin: 4px 0; background: linear-gradient(90deg, #e6007e, #ff1e8e 60%, #ff4fa8);
+    box-shadow: 0 0 40px rgba(255,30,142,.6); text-shadow: none; }
+  .hlg { display: inline-block; padding: 0 16px 4px; background: #16A34A; text-shadow: none; box-shadow: 0 0 36px rgba(22,163,74,.55); }
+
+  /* Téléphone (iPhone violet, face avant) */
+  #phone { position: absolute; left: 290px; top: 560px; width: 500px; height: 1030px; border-radius: 86px; opacity: 0;
+    background: linear-gradient(135deg, #8a70c6, #2b1c4e 30%, #b9a5ea 52%, #241645 70%, #7d62b8); padding: 13px;
+    box-shadow: 0 40px 120px rgba(0,0,0,.6), 0 0 140px rgba(255,30,142,.35); transform-origin: 50% 50%; }
+  #scr { position: relative; width: 474px; height: 1004px; border-radius: 74px; overflow: hidden; background: #000; }
+  #cam { position: absolute; left: 0; top: 0; }
+  #island { position: absolute; left: 50%; top: 22px; width: 112px; height: 34px; margin-left: -56px; border-radius: 18px; background: #000; z-index: 5; }
+  #rec { position: absolute; left: 50%; top: 82px; transform: translateX(-50%); padding: 8px 20px; border-radius: 22px; background: rgba(0,0,0,.45);
+    font: 600 24px Poppins; color: #fff; white-space: nowrap; opacity: 0; }
+  #rec b { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #DC2626; margin-right: 10px; vertical-align: 1px; }
+  #shutter { position: absolute; left: 50%; bottom: 70px; width: 150px; height: 150px; margin-left: -75px; }
+  #panel { position: absolute; left: 0; bottom: 0; width: 474px; height: 470px; border-radius: 44px 44px 0 0; padding: 34px 28px 0;
+    background: rgba(18,8,35,.95); transform: translateY(480px); }
+  .chips { white-space: nowrap; margin-bottom: 26px; }
+  .chip { display: inline-block; font: 600 22px Poppins; color: #d9cff5; padding: 9px 18px; border-radius: 22px; margin-right: 8px; background: rgba(255,255,255,.08); }
+  .chip.on { background: #FF1E8E; color: #fff; }
+  .field { border-radius: 18px; background: rgba(255,255,255,.07); padding: 12px 20px; margin-bottom: 18px; }
+  .field small { display: block; font: 500 18px Poppins; color: #a99bd0; }
+  .field span { font: 600 27px Poppins; color: #fff; }
+  #gps { font: 600 22px Poppins; color: #4ade80; margin: 0 0 22px 4px; }
+  #gps i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; margin-right: 10px; box-shadow: 0 0 10px #22c55e; }
+  #pub { height: 82px; border-radius: 41px; background: linear-gradient(90deg, #7C3AED, #EC4899); font: 700 32px/82px Poppins; color: #fff; text-align: center;
+    box-shadow: 0 10px 30px rgba(236,72,153,.45); }
+  #snack { position: absolute; left: 24px; right: 24px; top: 74px; padding: 18px 22px; border-radius: 20px; background: #7B2D8E; font: 600 23px Poppins; color: #fff;
+    opacity: 0; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  #liveB { position: absolute; left: 34px; top: 176px; padding: 6px 18px 4px; border-radius: 10px; background: #FF2244; font: 800 30px Poppins; color: #fff;
+    letter-spacing: 2px; opacity: 0; box-shadow: 0 0 30px rgba(255,34,68,.7); }
+  .finger { position: absolute; width: 96px; height: 96px; margin: -48px 0 0 -48px; border-radius: 50%; background: rgba(255,255,255,.45);
+    box-shadow: 0 0 0 4px rgba(255,255,255,.75), 0 6px 20px rgba(0,0,0,.35); opacity: 0; pointer-events: none; }
+
+  /* Fiche story (étape 4) */
+  #card { position: absolute; left: 150px; top: 1060px; width: 780px; height: 420px; border-radius: 40px; background: #120823; opacity: 0; padding: 26px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 2px rgba(255,255,255,.08); }
+  #thumb { position: absolute; left: 26px; top: 26px; border-radius: 26px; }
+  #card .lv { position: absolute; left: 44px; top: 44px; padding: 4px 12px 2px; border-radius: 8px; background: #FF2244; font: 800 22px Poppins; color: #fff; letter-spacing: 1px; }
+  #card .info { position: absolute; left: 270px; top: 34px; right: 26px; }
+  #card .t { font: 800 38px Poppins; color: #fff; }
+  #card .by { font: 500 24px Poppins; color: #b9acdf; margin: 6px 0 16px; }
+  #card .vw { display: inline-block; font: 600 22px Poppins; color: #fff; background: rgba(255,255,255,.1); padding: 6px 16px; border-radius: 18px; }
+  #card .btns { position: absolute; left: 270px; right: 26px; bottom: 30px; white-space: nowrap; }
+  #card .b1, #card .b2 { display: inline-block; height: 74px; border-radius: 37px; font: 700 28px/74px Poppins; text-align: center; color: #fff; }
+  #card .b1 { width: 190px; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); margin-right: 14px; }
+  #card .b2 { width: 270px; background: linear-gradient(90deg, #7C3AED, #EC4899); box-shadow: 0 8px 26px rgba(236,72,153,.5); }
+
+  /* Plan final */
+  #logo { position: absolute; left: 540px; top: 230px; width: 380px; margin-left: -190px; opacity: 0; }
+  #cta { position: absolute; left: 0; top: 1080px; width: 1080px; text-align: center; opacity: 0; }
+  #cta .rib { display: inline-block; padding: 18px 44px 22px; background: #fff; color: #e6007e; font: 800 58px/1 Poppins; transform: rotate(-3deg);
+    box-shadow: 0 0 70px rgba(255,255,255,.35); }
+  #cta small { display: block; margin-top: 46px; font: 600 30px Poppins; color: rgba(255,255,255,.88); letter-spacing: 1px; }
+  .blob { position: absolute; border-radius: 50%; opacity: 0; background: radial-gradient(circle at 40% 40%, #ff3fa0, #ff1e8e 55%, #d1007a);
+    box-shadow: 0 0 90px rgba(255,30,142,.55); }
+  #blobA { left: -230px; top: -230px; width: 470px; height: 470px; }
+  #blobB { right: -260px; bottom: -120px; width: 520px; height: 520px; }
+
+  #flash { position: absolute; inset: 0; background: #ff5aa8; opacity: 0; mix-blend-mode: screen; }
+  #vig { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 70% at 50% 48%, transparent 60%, rgba(4,2,20,.55) 100%); }
+  #grain { position: absolute; inset: 0; opacity: .06; mix-blend-mode: overlay; }
+</style>
+</head>
+<body>
+<div id="world">
+  <canvas id="mapc" width="1080" height="1920"></canvas>
+  <div id="night"></div>
+  <canvas id="mosaic" width="1080" height="1920" style="position:absolute;left:0;top:0"></canvas>
+  <div id="topband"></div>
+
+  <div id="phone"><div id="scr">
+    <canvas id="cam" width="474" height="1004"></canvas>
+    <div id="island"></div>
+    <div id="rec"><b></b><span id="recT">0:00</span></div>
+    <svg id="shutter" viewBox="0 0 150 150">
+      <circle cx="75" cy="75" r="66" fill="none" stroke="#fff" stroke-width="8"/>
+      <circle id="arc" cx="75" cy="75" r="66" fill="none" stroke="#DC2626" stroke-width="10" stroke-linecap="round"
+        stroke-dasharray="414.7" stroke-dashoffset="414.7" transform="rotate(-90 75 75)"/>
+      <circle id="dot" cx="75" cy="75" r="50" fill="#fff"/>
+    </svg>
+    <div id="panel">
+      <div class="chips"><span class="chip">Concert</span><span class="chip on">Soirée</span><span class="chip">Fête</span><span class="chip">Festival</span></div>
+      <div class="field"><small>Lieu</small><span id="lieu"></span></div>
+      <div id="gps"><i></i>GPS OK</div>
+      <div id="pub">Publier</div>
+    </div>
+    <div id="snack">Signalé ! L'affiche se prépare...</div>
+    <div id="liveB">LIVE</div>
+    <div class="finger" id="f1"></div>
+  </div></div>
+
+  <div id="card">
+    <canvas id="thumb" width="220" height="368"></canvas><div class="lv">LIVE</div>
+    <div class="info"><div class="t">Soirée</div><div class="by">Signalé par Léa</div><div class="vw" id="cardV">1 284 vues</div></div>
+    <div class="btns"><span class="b1">Discuter</span><span class="b2">Y aller</span></div>
+    <div class="finger" id="f2"></div>
+  </div>
+
+  <div class="cap" id="hook" style="top:640px">
+    <span class="ln" style="font-size:118px">TON LIEU</span>
+    <span class="ln" style="font-size:96px"><span class="hl">EST-IL VISIBLE</span></span>
+    <span class="ln" style="font-size:118px">CE SOIR ?</span>
+  </div>
+  <div class="cap" id="realTag" style="top:1130px"><span style="display:inline-block;font:600 30px Poppins;color:#fff;letter-spacing:2px;padding:10px 26px;border-radius:30px;background:rgba(6,4,26,.6);box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)">Vraies stories publiées sur MaCity</span></div>
+  <div class="cap" id="c1" style="top:200px"><span class="step">ÉTAPE 1</span><span class="ln">Tes clients filment</span><span class="ln"><span class="hl">l'ambiance</span></span></div>
+  <div class="cap" id="c2" style="top:200px"><span class="step">ÉTAPE 1</span><span class="ln">et la publient</span><span class="ln">en <span class="hl">story LIVE</span></span></div>
+  <div class="cap" id="c3" style="top:190px"><span class="step">ÉTAPE 2</span><span class="ln">Elle s'affiche en direct</span><span class="ln">sur la <span class="hl">Map Live</span></span></div>
+  <div class="cap" id="c4" style="top:190px"><span class="step">ÉTAPE 3</span><span class="ln">Les jeunes du coin</span><span class="ln"><span class="hl">la voient</span> tout de suite</span></div>
+  <div class="cap" id="c5" style="top:190px"><span class="step">ÉTAPE 4</span><span class="ln">Ils tapent <span class="hl">« Y aller »</span></span><span class="ln">et débarquent chez toi !</span></div>
+  <div class="cap" id="c6" style="top:190px"><span class="ln s">Partenaire <span class="hlg">Premium ou Gold</span> ?</span><span class="ln s">Ton lieu reste en vert sur la carte,</span><span class="ln s">même sans story</span></div>
+
+  <img id="logo" src="assets/logo.svg">
+  <div class="cap" id="e1" style="top:520px"><span class="ln" style="font-size:84px">Plus de stories</span></div>
+  <div class="cap" id="e2" style="top:640px"><span class="ln" style="font-size:84px">= plus de <span class="hl">visibilité</span></span></div>
+  <div class="cap" id="e3" style="top:780px"><span class="ln" style="font-size:84px">= plus de clients</span></div>
+  <div id="cta"><span class="rib">DEVIENS PARTENAIRE MACITY</span><small>Inscription dans l'Espace professionnel de l'app</small></div>
+</div>
+<div class="blob" id="blobA"></div><div class="blob" id="blobB"></div>
+<div id="flash"></div>
+<div id="vig"></div>
+<div id="grain"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  lin: x => x, inQ: x => x * x, outQ: x => 1 - (1 - x) * (1 - x), outC: x => 1 - Math.pow(1 - x, 3),
+  outExpo: x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x), inExpo: x => x <= 0 ? 0 : Math.pow(2, 10 * x - 10),
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  back: x => { const c = 2.2; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); }
+};
+function K(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, e] = keys[i], [t0, v0] = keys[i - 1];
+    if (t <= t1) return lerp(v0, v1, E[e || 'io']((t - t0) / (t1 - t0)));
+  }
+  return keys[keys.length - 1][1];
+}
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const fmt = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+/* ---------- Temps forts (le son est calé dessus dans audio_live.py) ---------- */
+const T = { REC: 3.4, RECEND: 5.4, PANEL: 5.5, TAP: 6.3, SNACK: 6.45, LIVE: 6.7, FLY: 7.1, PIN: 7.9, SEE: 12.2, CARD: 15.8, GO_TAP: 16.75,
+  GO: 17.4, PREM: 20.3, CTA: 22.6, END: 26 };
+
+/* ---------- Vraies stories (base MaCity, bucket user-events) ---------- */
+const HERO_N = 265, HERO = [], COVERS = [];
+for (let i = 1; i <= HERO_N; i++) { const im = new Image(); im.src = `assets/stories/hero/h${String(i).padStart(3, '0')}.jpg`; HERO.push(im); }
+for (let i = 1; i <= 24; i++) { const im = new Image(); im.src = `assets/stories/covers/c${String(i).padStart(2, '0')}.jpg`; COVERS.push(im); }
+window.ASSETS_READY = Promise.all([...HERO, ...COVERS].map(im => im.decode().catch(() => null)));
+const heroAt = t => HERO[Math.floor(Math.max(0, t - 2.85) * 30) % HERO_N];
+
+/* ---------- Carte (style Map Live, vue « ville ») ---------- */
+const MW = 2600, MH = 3400, G = 130, V = { x: 1300, y: 1700 }, ROT = -0.21;
+const map = document.createElement('canvas'); map.width = MW; map.height = MH;
+(function buildMap() {
+  const c = map.getContext('2d'), r = rng(7);
+  c.fillStyle = '#F1EEE9'; c.fillRect(0, 0, MW, MH);
+  const xs = [], ys = [];
+  for (let x = V.x % G; x <= MW; x += G) xs.push(x);
+  for (let y = V.y % G; y <= MH; y += G) ys.push(y);
+  // Îlots : immeubles, parcs
+  for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < ys.length - 1; j++) {
+    const x0 = xs[i] + 12, y0 = ys[j] + 12, w = G - 24, h = G - 24;
+    if (r() < .06) { c.fillStyle = '#CFE8C1'; c.fillRect(x0 - 4, y0 - 4, w + 8, h + 8);
+      c.fillStyle = '#B9DDA8'; for (let k = 0; k < 7; k++) { c.beginPath(); c.arc(x0 + r() * w, y0 + r() * h, 6 + r() * 8, 0, 6.283); c.fill(); } continue; }
+    c.fillStyle = '#E7E1D7';
+    const split = r() < .5, n = 1 + Math.floor(r() * 3);
+    for (let k = 0; k < n; k++) {
+      if (split) c.fillRect(x0 + (w / n) * k + 2, y0, w / n - 5, h); else c.fillRect(x0, y0 + (h / n) * k + 2, w, h / n - 5);
+    }
+  }
+  // Fleuve
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  const river = () => { c.beginPath(); c.moveTo(-200, 420); c.bezierCurveTo(700, 1150, 1500, 620, 2800, 1180); };
+  c.strokeStyle = '#9CC9DB'; c.lineWidth = 168; river(); c.stroke();
+  c.strokeStyle = '#AAD3E3'; c.lineWidth = 150; river(); c.stroke();
+  // Rues (petites puis grands axes)
+  const main = (v, base) => Math.round((v - base) / G) % 4 === 2 || Math.round((v - base) / G) % 4 === -2;
+  [['#DDD6CB', 22, false], ['#FFFFFF', 15, false], ['#E9C98A', 36, true], ['#FFE7B3', 28, true]].forEach(([col, w, big]) => {
+    c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'butt';
+    xs.forEach(x => { if (main(x, V.x) === big) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, MH); c.stroke(); } });
+    ys.forEach(y => { if (main(y, V.y) === big) { c.beginPath(); c.moveTo(0, y); c.lineTo(MW, y); c.stroke(); } });
+  });
+  // Une grande diagonale (boulevard)
+  c.strokeStyle = '#E9C98A'; c.lineWidth = 38; c.beginPath(); c.moveTo(200, 3300); c.lineTo(2500, 2150); c.stroke();
+  c.strokeStyle = '#FFE7B3'; c.lineWidth = 30; c.beginPath(); c.moveTo(200, 3300); c.lineTo(2500, 2150); c.stroke();
+})();
+const ctx = $('mapc').getContext('2d');
+
+/* Caméra */
+function camAt(t) {
+  const s = K(t, [[0, .5], [7.6, .62, 'lin'], [7.9, 2.1, 'lin'], [9.6, 1.05, 'outExpo'], [11.9, .95, 'lin'], [13.4, .72, 'io'], [17.3, .7, 'lin'],
+    [20.0, .82, 'io'], [21.4, .58, 'io'], [26, .44, 'lin']]);
+  const rot = ROT + K(t, [[0, .25], [7.6, .1, 'lin'], [7.9, -.08, 'lin'], [10, 0, 'outC'], [26, .06, 'lin']]);
+  const cx = V.x + K(t, [[0, -300], [7.6, 100, 'lin'], [7.9, 0, 'lin']]), cy = V.y + K(t, [[0, 250], [7.6, -100, 'lin'], [7.9, 0, 'lin'], [21.4, 0], [22.6, -260, 'io'], [26, -260]]);
+  return { s, rot, cx, cy };
+}
+let CAM, CY = 960;
+function P(x, y) { const dx = (x - CAM.cx) * CAM.s, dy = (y - CAM.cy) * CAM.s, c = Math.cos(CAM.rot), s = Math.sin(CAM.rot);
+  return [540 + dx * c - dy * s, CY + dx * s + dy * c]; }
+
+/* Données de la scène */
+const CATS = ['#F472B6', '#FBBF24', '#C77DFF', '#22D3EE', '#A855F7'];
+const PINS = (() => { const r = rng(21), out = []; const used = new Set(['0,0']);
+  while (out.length < 13) { const i = Math.round((r() - .5) * 14), j = Math.round((r() - .5) * 16);
+    if (Math.abs(i) + Math.abs(j) < 3 || used.has(i + ',' + j)) continue; used.add(i + ',' + j);
+    out.push({ x: V.x + i * G + (r() - .5) * 60, y: V.y + j * G + (r() - .5) * 60, c: CATS[out.length % 5], t: 8.3 + out.length * .2, ph: r() * 6 }); }
+  return out; })();
+const PARTNERS = (() => { const r = rng(33), out = [];
+  while (out.length < 16) { const i = Math.round((r() - .5) * 16), j = Math.round((r() - .5) * 20); if (Math.abs(i) + Math.abs(j) < 3) continue;
+    out.push({ x: V.x + i * G + 30, y: V.y + j * G - 30, prem: out.length < 9, ph: r() * 6 }); }
+  return out; })();
+const AV_COL = ['#FF1E8E', '#7C3AED', '#22D3EE', '#F59E0B', '#EC4899', '#10B981', '#6366F1'];
+const AVS = [[-5, -2], [4, -3], [-3, 4], [5, 3], [-5, 2], [2, 5], [-2, -3], [5, -1], [-4, 1], [3, 1], [-1, 5], [1, -3], [-4, -1], [4, 4]].map(([i, j], k) => {
+  const sx = V.x + i * G, sy = V.y + j * G, xFirst = k % 2 === 0;
+  const pts = xFirst ? [[sx, sy], [V.x, sy], [V.x, V.y]] : [[sx, sy], [sx, V.y], [V.x, V.y]];
+  const nb = Math.abs(i) + Math.abs(j), ts = T.GO + k * .05, ta = ts + 1.0 + nb * .11;
+  const ring = k % 2, ang = Math.PI * (-.17 + 1.34 * ((k * 5) % 14) / 13);
+  return { pts, len: nb * G, ts, ta, col: AV_COL[k % AV_COL.length], tp: 12.0 + k * .1, tsee: T.SEE + k * .22,
+    slot: [Math.cos(ang) * (ring ? 250 : 175), Math.sin(ang) * (ring ? 150 : 100) + 20] };
+});
+function avPos(a, t) {
+  const u = clamp((t - a.ts) / (a.ta - a.ts)), d = E.io(u) * a.len;
+  const [p0, p1, p2] = a.pts, l1 = Math.abs(p1[0] - p0[0]) + Math.abs(p1[1] - p0[1]);
+  if (d <= l1) { const k = l1 ? d / l1 : 1; return [lerp(p0[0], p1[0], k), lerp(p0[1], p1[1], k), u]; }
+  const l2 = a.len - l1, k = l2 ? (d - l1) / l2 : 1; return [lerp(p1[0], p2[0], k), lerp(p1[1], p2[1], k), u];
+}
+
+/* Particules (espace écran) */
+const BURSTS = [];
+function burst(t, n, sp, life, pal, size, g = 300) { const r = rng(Math.round(t * 977) + n);
+  BURSTS.push({ t, ps: Array.from({ length: n }, () => { const a = r() * 6.283, v = sp[0] + Math.pow(r(), 1.5) * (sp[1] - sp[0]);
+    return { vx: Math.cos(a) * v, vy: Math.sin(a) * v, L: life[0] + r() * (life[1] - life[0]), c: pal[Math.floor(r() * pal.length)], s: size * (.5 + r()) }; }), g }); }
+const PAL = ['#FF1E8E', '#ff5aa8', '#ffffff', '#b06bff', '#ffd2ea'];
+burst(T.PIN, 140, [300, 1700], [.4, 1.1], PAL, 5);
+burst(T.CTA + .3, 160, [400, 2200], [.5, 1.4], PAL, 5, 150);
+const RINGS = [[T.PIN, '255,30,142', 1400, .7], [T.PIN + .12, '255,255,255', 900, .6], [T.PREM, '22,163,74', 1600, .9]];
+
+/* Scène de soirée filmée (canvas caméra + vignettes) */
+const cam = $('cam'), cc = cam.getContext('2d'), thumb = $('thumb'), tc = thumb.getContext('2d');
+function drawScene(t) {
+  cc.drawImage(heroAt(t), 0, 0, 474, 1004);
+  tc.save(); tc.beginPath(); tc.roundRect(0, 0, 220, 368, 26); tc.clip(); tc.drawImage(cam, 0, 105, 474, 793, 0, 0, 220, 368); tc.restore();
+}
+
+/* Dessins de la carte */
+function teardrop(x, y, h, col, core) {
+  const r = h * .36, cy = y - h + r;
+  ctx.beginPath(); ctx.moveTo(x, y);
+  ctx.bezierCurveTo(x - r * .55, y - h * .32, x - r, cy + r * .55, x - r, cy);
+  ctx.arc(x, cy, r, Math.PI, 0); ctx.bezierCurveTo(x + r, cy + r * .55, x + r * .55, y - h * .32, x, y); ctx.closePath();
+  ctx.fillStyle = col; ctx.fill(); if (core) { ctx.fillStyle = core; ctx.beginPath(); ctx.arc(x, cy, r * .55, 0, 6.283); ctx.fill(); }
+  return [x, cy, r];
+}
+function preview(img, x, y, w, h, k, live, glow) { // x,y = pointe en bas au centre
+  if (k <= 0) return; ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
+  ctx.shadowColor = glow || 'rgba(0,0,0,.35)'; ctx.shadowBlur = 26; ctx.fillStyle = '#fff';
+  rrect(-w / 2 - 5, -h - 19, w + 10, h + 10, 22); ctx.fill(); ctx.beginPath(); ctx.moveTo(-12, -10); ctx.lineTo(0, 4); ctx.lineTo(12, -10); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.save(); rrect(-w / 2, -h - 14, w, h, 18); ctx.clip(); const ir = img.width / img.height, br = w / h;
+  if (ir > br) { const sw = img.height * br; ctx.drawImage(img, (img.width - sw) / 2, 0, sw, img.height, -w / 2, -h - 14, w, h); }
+  else { const sh = img.width / br; ctx.drawImage(img, 0, (img.height - sh) / 2, img.width, sh, -w / 2, -h - 14, w, h); }
+  ctx.restore();
+  if (live) { ctx.fillStyle = '#FF2244'; rrect(-w / 2 + 10, -h - 4, 64, 28, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = '800 18px Poppins'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('LIVE', -w / 2 + 42, -h + 11); }
+  ctx.restore();
+}
+function star(x, y, r) { ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } ctx.closePath(); ctx.fill(); }
+function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function eye(x, y, s, col) { ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2.6 * s;
+  ctx.beginPath(); ctx.moveTo(x - 13 * s, y); ctx.quadraticCurveTo(x, y - 11 * s, x + 13 * s, y); ctx.quadraticCurveTo(x, y + 11 * s, x - 13 * s, y); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y, 4.2 * s, 0, 6.283); ctx.fill(); }
+function person(x, y, r, col) {
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 6.283); ctx.fill();
+  ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.clip(); ctx.fillStyle = 'rgba(255,255,255,.95)';
+  ctx.beginPath(); ctx.arc(x, y - r * .22, r * .34, 0, 6.283); ctx.fill(); ctx.beginPath(); ctx.ellipse(x, y + r * .78, r * .62, r * .5, 0, 0, 6.283); ctx.fill(); ctx.restore();
+}
+
+function drawMap(t) {
+  CAM = camAt(t); CY = K(t, [[8.0, 960], [9.4, 1120, 'io'], [22.4, 1120], [23.2, 960, 'io']]);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#F1EEE9'; ctx.fillRect(0, 0, 1080, 1920);
+  const c = Math.cos(CAM.rot), s = Math.sin(CAM.rot);
+  ctx.setTransform(CAM.s * c, CAM.s * s, -CAM.s * s, CAM.s * c, 540 - (CAM.cx * c - CAM.cy * s) * CAM.s, CY - (CAM.cx * s + CAM.cy * c) * CAM.s);
+  ctx.drawImage(map, 0, 0); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const z = clamp(.75 + .3 * CAM.s, .85, 1.25);
+
+  // Partenaires sans story (vert = Premium/Gold, orange = Classique)
+  const prem = t > T.PREM && t < T.CTA + .4 ? E.outC(clamp((t - T.PREM) / .5)) : 0;
+  PARTNERS.forEach(p => {
+    const [x, y] = P(p.x, p.y), base = p.prem ? '#16A34A' : '#F97316', r = 15 * z * (1 + (p.prem ? 1.0 * prem : 0));
+    if (p.prem && prem > 0) { const k = ((t - T.PREM) * 1.2 + p.ph) % 1; ctx.strokeStyle = `rgba(22,163,74,${(1 - k) * .8 * prem})`; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(x, y, r + 50 * k, 0, 6.283); ctx.stroke(); }
+    ctx.globalAlpha = p.prem ? 1 : 1 - .55 * prem;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r + 4, 0, 6.283); ctx.fill();
+    ctx.fillStyle = base; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill(); ctx.fillStyle = '#fff'; star(x, y, r * .62); ctx.globalAlpha = 1;
+  });
+  // Autres stories (pins néon par catégorie)
+  PINS.forEach(p => {
+    const u = t - p.t; if (u < 0) return; const k = E.back(clamp(u / .35)), [x, y] = P(p.x, p.y), h = 64 * z * k;
+    ctx.save(); ctx.shadowColor = p.c; ctx.shadowBlur = 24 + 10 * Math.sin(t * 4 + p.ph); teardrop(x, y, h, p.c, '#0A0414'); ctx.restore();
+    ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y - h + h * .36, h * .14, 0, 6.283); ctx.fill();
+  });
+  PINS.forEach((p, i) => { const u = t - p.t - .1; if (u < 0 || u > 1.6) return; const [x, y] = P(p.x, p.y);
+    const k = u < .3 ? E.back(u / .3) : u > 1.25 ? 1 - E.inQ((u - 1.25) / .35) : 1; preview(COVERS[i], x, y - 70 * z, 118, 196, k * z, false, p.c); });
+
+  const [vx, vy] = P(V.x, V.y);
+  // Rayons « vue » de la story vers les jeunes du coin
+  AVS.forEach(a => {
+    const u = t - a.tsee; if (u < 0 || u > .9 || t > T.GO) return; const [ax, ay] = P(...a.pts[0]);
+    ctx.save(); ctx.strokeStyle = `rgba(255,30,142,${.85 * (1 - u / .9)})`; ctx.lineWidth = 5; ctx.setLineDash([4, 16]); ctx.lineDashOffset = -u * 120; ctx.lineCap = 'round';
+    const mx = (vx + ax) / 2, my = (vy + ay) / 2 - 120; ctx.beginPath(); ctx.moveTo(vx, vy - 130); ctx.quadraticCurveTo(mx, my, ax, ay); ctx.stroke(); ctx.restore();
+  });
+  // Traces des trajets
+  AVS.forEach(a => {
+    if (t < a.ts) return; const [cxm, cym, u] = avPos(a, t); if (u >= 1 && t > a.ta + .8) return;
+    const fade = t > a.ta ? 1 - (t - a.ta) / .8 : 1; ctx.save(); ctx.strokeStyle = a.col; ctx.globalAlpha = .75 * fade; ctx.lineWidth = 7; ctx.setLineDash([2, 14]); ctx.lineCap = 'round';
+    ctx.beginPath(); const p0 = P(...a.pts[0]); ctx.moveTo(...p0);
+    const l1 = Math.abs(a.pts[1][0] - a.pts[0][0]) + Math.abs(a.pts[1][1] - a.pts[0][1]), d = E.io(clamp((t - a.ts) / (a.ta - a.ts))) * a.len;
+    if (d > l1) ctx.lineTo(...P(...a.pts[1])); ctx.lineTo(...P(cxm, cym)); ctx.stroke(); ctx.restore();
+  });
+  // Les jeunes (avatars)
+  AVS.forEach(a => {
+    const u0 = t - a.tp; if (u0 < 0) return; const k = E.back(clamp(u0 / .3));
+    let [mx, my, u] = avPos(a, t); let [x, y] = P(mx, my);
+    const sk = E.io(clamp((t - a.ta + .25) / .45)); x += a.slot[0] * sk; y += a.slot[1] * sk;
+    const hop = t > a.ts && t < a.ta ? Math.abs(Math.sin((t - a.ts) * 14)) * 7 : 0;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4; person(x, y - hop, 24 * z * k, a.col); ctx.restore();
+    const us = t - a.tsee;
+    if (us > 0 && us < 1.1 && t < T.GO) {
+      const e = E.back(clamp(us / .25)) * (us > .85 ? 1 - (us - .85) / .25 : 1);
+      ctx.strokeStyle = `rgba(255,30,142,${(1 - us / 1.1)})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, 30 + us * 70, 0, 6.283); ctx.stroke();
+      ctx.save(); ctx.translate(x, y - 66 * z); ctx.scale(e, e); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 10;
+      rrect(-34, -24, 68, 48, 24); ctx.fill(); ctx.beginPath(); ctx.moveTo(-8, 22); ctx.lineTo(0, 34); ctx.lineTo(8, 22); ctx.fill(); ctx.shadowBlur = 0; eye(0, 0, 1.1, '#FF1E8E'); ctx.restore();
+    }
+  });
+
+  // Le lieu : pin rose partenaire avec la story LIVE dedans
+  const pu = t - T.PIN;
+  if (pu > 0) {
+    let bounce = 0; AVS.forEach(a => { const v = t - a.ta; if (v > 0 && v < .35) bounce += Math.sin(v / .35 * Math.PI) * .12; });
+    const k = E.back(clamp(pu / .45)) * (1 + Math.min(bounce, .1) + .03 * Math.sin(t * 4)), h = 190 * z * k;
+    const glow = ctx.createRadialGradient(vx, vy - h * .6, 0, vx, vy - h * .6, 260 * z); glow.addColorStop(0, 'rgba(255,30,142,.35)'); glow.addColorStop(1, 'rgba(255,30,142,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(vx, vy - h * .6, 260 * z, 0, 6.283); ctx.fill();
+    for (let i = 0; i < 2; i++) { const q = ((t * .9 + i * .5) % 1); ctx.strokeStyle = `rgba(194,24,91,${(1 - q) * .55})`; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.ellipse(vx, vy, 30 + q * 150 * z, (30 + q * 150 * z) * .38, 0, 0, 6.283); ctx.stroke(); }
+    ctx.save(); ctx.shadowColor = 'rgba(194,24,91,.9)'; ctx.shadowBlur = 30; const [hx, hy, hr] = teardrop(vx, vy, h, '#C2185B'); ctx.restore();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(hx, hy, hr * .42, 0, 6.283); ctx.fill();
+    // badge LIVE
+    const lk = clamp((pu - .2) / .25), lb = E.back(lk);
+    if (lk > 0 && false) { ctx.save(); ctx.translate(hx + hr * .75, hy - hr * .8); ctx.scale(lb, lb); ctx.fillStyle = '#FF2244'; ctx.shadowColor = 'rgba(255,34,68,.8)'; ctx.shadowBlur = 16;
+      rrect(-38, -18, 76, 36, 9); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = '#fff'; ctx.font = '800 22px Poppins'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('LIVE', 0, 2); ctx.restore(); }
+    // étiquette du lieu
+    const ek = E.outC(clamp((pu - .35) / .35));
+    if (ek > 0) { ctx.save(); ctx.globalAlpha = ek; ctx.font = '700 28px Poppins'; const label = 'TON ÉTABLISSEMENT', w = ctx.measureText(label).width + 40, ly = hy - hr - 64 - 10 * (1 - ek);
+      ctx.fillStyle = '#C2185B'; ctx.shadowColor = 'rgba(0,0,0,.3)'; ctx.shadowBlur = 12; rrect(vx - w / 2, ly, w, 50, 25); ctx.fill(); ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, vx, ly + 27); ctx.restore(); }
+    // aperçu vidéo LIVE de la vraie story
+    const pk = E.back(clamp((pu - .45) / .4)) * (1 - E.inQ(clamp((t - T.CTA + .3) / .3)));
+    if (pk > 0) preview(cam, vx, hy - hr - 74, 176, 300, pk * clamp(z, .9, 1.1), true, 'rgba(194,24,91,.85)');
+    // compteur de vues
+    const views = K(t, [[T.PIN + .4, 0], [T.SEE, 96, 'lin'], [T.SEE + 3.4, 1284, 'io']]);
+    const vk = E.outC(clamp((pu - .6) / .35));
+    if (vk > 0) { ctx.save(); ctx.globalAlpha = vk; ctx.font = '700 26px Poppins'; const txt = fmt(views) + ' vues', w = ctx.measureText(txt).width + 76, y0 = vy + 26;
+      ctx.fillStyle = 'rgba(28,28,34,.86)'; rrect(vx - w / 2, y0, w, 48, 24); ctx.fill(); eye(vx - w / 2 + 30, y0 + 24, .95, '#fff');
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(txt, vx - w / 2 + 54, y0 + 26); ctx.restore(); }
+    // +1 à chaque arrivée
+    AVS.forEach((a, i) => { const v = t - a.ta; if (v < 0 || v > 1) return; ctx.save(); ctx.globalAlpha = 1 - v; ctx.font = '800 40px Poppins'; ctx.fillStyle = '#FF1E8E';
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 8; ctx.textAlign = 'center'; const xx = vx + (i % 2 ? 1 : -1) * (200 + (i % 3) * 45), yy = vy - 40 - (i % 4) * 40 - v * 120;
+      ctx.strokeText('+1', xx, yy); ctx.fillText('+1', xx, yy); ctx.restore(); });
+  }
+  // Anneaux + étincelles
+  RINGS.forEach(([t0, col, sp, d]) => { const u = t - t0; if (u < 0 || u > d) return; const k = u / d;
+    ctx.strokeStyle = `rgba(${col},${Math.pow(1 - k, 1.5)})`; ctx.lineWidth = 20 * (1 - k) + 2; ctx.beginPath(); ctx.arc(vx, vy - 90, sp * E.outC(k) * .5, 0, 6.283); ctx.stroke(); });
+  ctx.globalCompositeOperation = 'lighter';
+  BURSTS.forEach(B => { const u = t - B.t; if (u < 0 || u > 2) return; const ox = B.t > T.CTA ? 540 : vx, oy = B.t > T.CTA ? 1000 : vy - 90;
+    B.ps.forEach(p => { if (u > p.L) return; const k = u / p.L, f = (1 - Math.exp(-2.6 * u)) / 2.6, f0 = (1 - Math.exp(-2.6 * Math.max(0, u - .03))) / 2.6;
+      ctx.globalAlpha = Math.pow(1 - k, 1.3); ctx.strokeStyle = p.c; ctx.lineWidth = p.s * (1 - k * .6); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(ox + p.vx * f0, oy + p.vy * f0 + .5 * B.g * Math.max(0, u - .03) ** 2); ctx.lineTo(ox + p.vx * f + .1, oy + p.vy * f + .5 * B.g * u * u); ctx.stroke(); }); });
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+
+/* ---------- Mosaïque de vraies stories ---------- */
+const mos = $('mosaic'), mc = mos.getContext('2d');
+function drawMosaic(t) {
+  mc.clearRect(0, 0, 1080, 1920); const a = K(t, [[0, 1], [2.9, 1], [3.4, .45, 'io'], [7.2, .45], [7.9, 0, 'io']]); if (a <= 0) { mos.style.opacity = 0; return; }
+  mos.style.opacity = a; mos.style.filter = `blur(${K(t, [[2.8, 0], [3.4, 7, 'io']])}px)`;
+  mc.save(); mc.translate(540, 960); mc.rotate(-.14); mc.scale(1.2 + .02 * t, 1.2 + .02 * t);
+  const W = 250, H = 444, gap = 18;
+  for (let col = -2; col <= 2; col++) { const dir = col % 2 ? 1 : -1, off = ((t * 40 * dir) % (H + gap));
+    for (let row = -3; row <= 3; row++) { const img = COVERS[((col + 2) * 7 + row + 3 + 50) % 24], x = col * (W + gap) - W / 2, y = row * (H + gap) - H / 2 + off;
+      mc.save(); mc.beginPath(); mc.roundRect(x, y, W, H, 22); mc.clip(); mc.drawImage(img, x, y, W, H); mc.restore(); } }
+  mc.restore();
+  const g = mc.createRadialGradient(540, 900, 200, 540, 960, 1100); g.addColorStop(0, 'rgba(6,4,26,.38)'); g.addColorStop(1, 'rgba(6,4,26,.8)');
+  mc.fillStyle = g; mc.fillRect(0, 0, 1080, 1920);
+  mc.fillStyle = 'rgba(120,20,140,.18)'; mc.fillRect(0, 0, 1080, 1920);
+}
+
+/* ---------- Textes ---------- */
+function fitMax(el, w) { el.querySelectorAll('.ln').forEach(l => { const r = l.getBoundingClientRect().width; if (r > w) l.style.fontSize = parseFloat(getComputedStyle(l).fontSize) * w / r + 'px'; }); }
+function showCap(el, t, t0, t1) {
+  const u = t - t0;
+  if (u < -.15 || t > t1 + .3) { el.style.opacity = 0; return; }
+  let sc, op = 1, bl = 0, ty = 0;
+  if (u < 0) { const k = (u + .15) / .15; sc = lerp(1.6, 1, E.inQ(k)); op = clamp(k * 2); bl = lerp(14, 0, k); }
+  else sc = lerp(.92, 1, E.back(clamp(u / .3)));
+  if (t > t1) { const k = (t - t1) / .3; op = 1 - k; ty = -60 * E.inQ(k); bl = 8 * k; }
+  el.style.opacity = op; el.style.transform = `translateY(${ty}px) scale(${sc})`; el.style.filter = `blur(${bl}px)`;
+}
+
+let ready = false;
+function init() { if (ready) return; ready = true; document.querySelectorAll('.cap').forEach(c => fitMax(c, 990)); }
+
+window.render = function (t) {
+  init();
+  // Tremblement de caméra aux temps forts
+  let sh = 0; [[.2, 10], [.55, 12], [.9, 14], [T.PIN, 22], [T.CTA + .3, 18]].forEach(([ti, a]) => { const u = t - ti; if (u >= 0 && u < .4) sh += a * Math.exp(-u * 11); });
+  const r = rng(Math.floor(t * 30) + 3); $('world').style.transform = `translate(${(r() - .5) * 2 * sh}px, ${(r() - .5) * 2 * sh}px)`;
+
+  drawScene(t);
+  drawMap(t);
+  drawMosaic(t);
+  $('mapc').style.filter = `blur(${K(t, [[0, 5], [7.4, 6], [8.2, 0, 'outC'], [22.5, 0], [23.1, 8, 'io']])}px)`;
+  $('night').style.opacity = K(t, [[0, .72], [2.9, .8], [3.3, .94], [7.3, .94], [8.3, 0, 'outQ'], [22.5, 0], [23.1, .97, 'io']]);
+  $('topband').style.opacity = K(t, [[7.9, 0], [8.3, 1, 'outQ'], [22.5, 1], [23.0, 0]]);
+
+  // Accroche : impulsions roses sur la carte sombre
+  if (t < 3.1) { ctx.globalCompositeOperation = 'lighter'; PINS.forEach((p, i) => { const [x, y] = P(p.x, p.y), q = (t * .8 + i * .37) % 1;
+    ctx.strokeStyle = `rgba(255,30,142,${(1 - q) * .9})`; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x, y, 10 + q * 90, 0, 6.283); ctx.stroke();
+    ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(x, y, 9, 0, 6.283); ctx.fill(); }); ctx.globalCompositeOperation = 'source-over'; }
+  // Accroche
+  const hk = $('hook'); const hs = [...hk.querySelectorAll('.ln')];
+  if (t > 3.1) hk.style.opacity = 0; else {
+    hk.style.opacity = 1;
+    hs.forEach((l, i) => { const u = t - (.2 + i * .35); let sc, op = 1, bl = 0;
+      if (u < -.12) { l.style.opacity = 0; return; }
+      if (u < 0) { const k = (u + .12) / .12; sc = lerp(2.6, 1, E.inQ(k)); op = clamp(k * 2); bl = lerp(16, 0, k); } else sc = lerp(.88, 1, E.back(clamp(u / .3)));
+      if (t > 2.65) { const k = clamp((t - 2.65) / .35); sc *= 1 + 2.5 * E.inQ(k); op = 1 - k; bl = 14 * k; }
+      l.style.opacity = op; l.style.transform = `scale(${sc}) skewX(-7deg)`; l.style.filter = `blur(${bl}px)`; });
+  }
+
+  // Téléphone : entrée, enregistrement, publication, envol vers la carte
+  const ph = $('phone');
+  if (t < 2.85 || t > T.PIN + .05) ph.style.opacity = 0; else {
+    const ein = E.outExpo(clamp((t - 2.85) / .55)), fly = E.inQ(clamp((t - T.FLY) / (T.PIN - T.FLY)));
+    const y = lerp(1400, 0, ein) + lerp(0, -165, fly), sc = lerp(1, .085, fly), rz = lerp(-14, 0, ein) + 2 * Math.sin(t * 1.3) * (1 - fly);
+    ph.style.opacity = fly > .92 ? (1 - fly) / .08 : 1;
+    ph.style.transform = `translateY(${y}px) rotate(${rz}deg) scale(${sc})`;
+    ph.style.borderRadius = lerp(86, 250, fly) + 'px'; $('scr').style.borderRadius = lerp(74, 240, fly) + 'px';
+  }
+  const recOn = t > T.REC && t < T.RECEND;
+  $('rec').style.opacity = recOn ? 1 : 0; $('recT').textContent = '0:' + String(Math.floor(clamp((t - T.REC) / (T.RECEND - T.REC)) * 12)).padStart(2, '0');
+  $('arc').setAttribute('stroke-dashoffset', 414.7 * (1 - clamp((t - T.REC) / (T.RECEND - T.REC)) * .4));
+  $('dot').setAttribute('r', recOn ? 34 : 50); $('dot').setAttribute('fill', recOn ? '#DC2626' : '#fff');
+  $('shutter').style.opacity = t < T.PANEL ? 1 : 0;
+  $('panel').style.transform = `translateY(${lerp(480, 0, E.outExpo(clamp((t - T.PANEL) / .4)))}px)`;
+  $('lieu').textContent = 'Ton établissement'.slice(0, Math.floor(clamp((t - T.PANEL - .2) / .45) * 17));
+  const f1 = $('f1'); // doigt : appui long sur le déclencheur puis tap sur Publier
+  if (t > T.REC - .2 && t < T.RECEND + .05) { f1.style.opacity = .9; f1.style.left = '237px'; f1.style.top = (1004 - 145) + 'px'; f1.style.transform = `scale(${1 + .05 * Math.sin(t * 8)})`; }
+  else if (t > T.TAP - .3 && t < T.TAP + .3) { const u = t - T.TAP; f1.style.opacity = 1 - clamp(u / .3); f1.style.left = '237px'; f1.style.top = (1004 - 41 - 2) + 'px';
+    f1.style.transform = `scale(${u < 0 ? lerp(1.4, 1, E.outC(clamp((u + .3) / .3))) : 1 + u * 2})`; }
+  else f1.style.opacity = 0;
+  $('pub').style.transform = `scale(${t > T.TAP && t < T.TAP + .15 ? .94 : 1})`;
+  const sk = clamp((t - T.SNACK) / .25); $('snack').style.opacity = sk; $('snack').style.transform = `translateY(${-20 * (1 - E.outC(sk))}px)`;
+  const lv = clamp((t - T.LIVE) / .3); $('liveB').style.opacity = lv; $('liveB').style.transform = `scale(${E.back(lv)})`;
+
+  // Fiche story + « Y aller »
+  const cd = $('card'); const cu = t - T.CARD;
+  if (cu < 0 || t > T.GO + .35) cd.style.opacity = 0; else {
+    const k = E.outExpo(clamp(cu / .45)), out = E.inQ(clamp((t - T.GO + .05) / .35));
+    cd.style.opacity = 1 - out; cd.style.transform = `translateY(${lerp(500, 0, k) + out * 600}px)`;
+    const f2 = $('f2'), u = t - T.GO_TAP; f2.style.left = '602px'; f2.style.top = '353px';
+    f2.style.opacity = u > -.35 && u < .3 ? 1 - clamp(u / .3) : 0; f2.style.transform = `scale(${u < 0 ? lerp(1.5, 1, E.outC(clamp((u + .35) / .35))) : 1 + u * 2})`;
+    cd.querySelector('.b2').style.transform = `scale(${u > 0 && u < .15 ? .93 : 1})`;
+  }
+
+  // Légendes
+  showCap($('realTag'), t, 1.2, 2.6);
+  showCap($('c1'), t, 3.2, 5.35); showCap($('c2'), t, 5.6, 7.3); showCap($('c3'), t, 8.1, 11.85); showCap($('c4'), t, 12.0, 15.6);
+  showCap($('c5'), t, 15.8, 20.0); showCap($('c6'), t, 20.35, 22.35);
+
+  // Plan final
+  const lk = clamp((t - T.CTA - .2) / .5); $('logo').style.opacity = E.outQ(lk);
+  $('logo').style.transform = `translateY(${-20 * (1 - E.outC(lk))}px) scale(${lerp(1.15, 1, E.outC(lk))})`; $('logo').style.filter = `drop-shadow(0 0 ${22 + 10 * Math.sin(t * 3)}px rgba(255,30,142,.6))`;
+  showCap($('e1'), t, T.CTA + .45, 99); showCap($('e2'), t, T.CTA + .85, 99); showCap($('e3'), t, T.CTA + 1.25, 99);
+  const ck = clamp((t - T.CTA - 1.75) / .35); $('cta').style.opacity = ck; $('cta').style.transform = `scale(${lerp(1.6, 1, E.outC(ck))})`;
+  $('cta').querySelector('.rib').style.transform = `rotate(-3deg) scale(${1 + .03 * Math.sin(Math.max(0, t - T.CTA - 2.2) * 5)})`;
+  const bk = E.outExpo(clamp((t - T.CTA - .1) / .7));
+  $('blobA').style.opacity = bk; $('blobA').style.transform = `translate(${-180 * (1 - bk)}px, ${-180 * (1 - bk)}px)`;
+  $('blobB').style.opacity = bk; $('blobB').style.transform = `translate(${200 * (1 - bk)}px, ${200 * (1 - bk)}px)`;
+
+  // Flash
+  let fl = 0; [[T.PIN, .55, .3], [T.CTA + .3, .5, .35], [.2, .25, .2], [.55, .25, .2], [.9, .3, .2]].forEach(([ti, a, d]) => { const u = t - ti; if (u >= 0 && u < d) fl += a * Math.pow(1 - u / d, 2); });
+  $('flash').style.opacity = clamp(fl);
+  $('grain').style.backgroundPosition = `${Math.floor(r() * 256)}px ${Math.floor(r() * 256)}px`;
+};
+(function grain() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const id = x.createImageData(256, 256); const r = rng(11);
+  for (let i = 0; i < id.data.length; i += 4) { const v = r() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+  x.putImageData(id, 0, 0); $('grain').style.backgroundImage = `url(${c.toDataURL()})`;
+})();
+</script>
+</body>
+</html>

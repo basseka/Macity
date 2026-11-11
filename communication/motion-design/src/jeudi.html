@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Reel Jeudi soir</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --corail: #FF2E38; --jaune: #FFD93D; --nuit: #0A0514; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); font-family: Poppins, sans-serif; }
+  #world { position: absolute; inset: -60px; overflow: hidden; }
+  #inside { position: absolute; left: 60px; top: 60px; width: 1080px; height: 1920px; }
+  .scene { position: absolute; inset: 0; overflow: hidden; display: none; }
+
+  /* Fond lumières (intro, téléphone, outro) */
+  .lights { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 70% at 50% 110%, #2a0f3d 0%, #140a24 45%, #0A0514 80%); overflow: hidden; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(110px); }
+  .beam { position: absolute; top: -200px; width: 220px; height: 2600px; transform-origin: 50% 0; filter: blur(28px); mix-blend-mode: screen; }
+
+  /* Intro */
+  .word { position: absolute; left: 0; right: 0; text-align: center; font-family: Anton; text-transform: uppercase; color: #fff; line-height: .9; }
+  #w1 { top: 430px; font-size: 360px; }
+  #w2 { top: 780px; font-size: 360px; }
+  #w2 span, .pink { background: linear-gradient(90deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #w3 { top: 1170px; font-size: 92px; letter-spacing: 6px; }
+  #w4 { top: 1320px; left: 50%; right: auto; transform: translateX(-50%); font: 800 46px Poppins; text-transform: uppercase; letter-spacing: 3px;
+    padding: 20px 44px; border-radius: 999px; background: var(--jaune); color: #1A0F2E; white-space: nowrap; }
+  #introBg { position: absolute; inset: -80px; background-size: cover; background-position: center; filter: blur(14px) saturate(1.4) brightness(.4); }
+
+  /* Téléphone (repris du reel « Ce soir ») */
+  #stage { position: absolute; inset: 0; perspective: 2600px; }
+  #cam { position: absolute; left: 540px; top: 960px; width: 0; height: 0; transform-style: preserve-3d; }
+  #phone { position: absolute; left: -284px; top: -614px; width: 568px; height: 1228px; border-radius: 78px;
+    background: linear-gradient(145deg, #3a3346 0%, #15111c 40%, #2b2533 100%);
+    box-shadow: 0 0 0 2px #4a4356, 0 60px 140px rgba(0,0,0,.65), 0 0 200px rgba(255,30,142,.35); transform-style: preserve-3d; }
+  #phone::before { content: ''; position: absolute; inset: 5px; border-radius: 74px; background: #050308; }
+  #screen { position: absolute; left: 14px; top: 14px; width: 540px; height: 1200px; border-radius: 64px; overflow: hidden; background: #fff; }
+  #inner { position: absolute; left: 0; top: 0; width: 1080px; height: 2400px; transform: scale(.5); transform-origin: 0 0; }
+  #punchhole { position: absolute; left: 50%; top: 22px; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; background: #050308; z-index: 50; }
+  .page { position: absolute; left: 0; top: 0; width: 1080px; height: 2400px; background: #fff; overflow: hidden; }
+  #home img { width: 1080px; height: 2400px; display: block; }
+  #pillGlow { position: absolute; left: 515px; top: 545px; width: 242px; height: 92px; border-radius: 46px;
+    box-shadow: 0 0 0 7px var(--rose), 0 0 50px 18px rgba(255,30,142,.7); opacity: 0; }
+  #ripple { position: absolute; left: 636px; top: 591px; border-radius: 50%; background: rgba(255,30,142,.32); }
+  #cesoir .hdr { position: absolute; left: 0; top: 0; width: 1080px; height: 312px; }
+  #cesoir .nav { position: absolute; left: 0; bottom: 0; width: 1080px; height: 305px; }
+  .chip { position: absolute; left: 60px; top: 360px; padding: 14px 28px; background: #FBD3E6; font: 800 44px Poppins; color: #1A0F2E;
+    clip-path: polygon(0 0, 92% 0, 100% 50%, 92% 100%, 0 100%); }
+  .where { position: absolute; left: 60px; top: 470px; font: 700 50px Poppins; color: #6D1FB8; }
+  .when { position: absolute; left: 60px; top: 548px; font: 500 46px Poppins; color: #4a4356; }
+  #track { position: absolute; left: 0; top: 660px; width: 1080px; height: 1170px; perspective: 1800px; }
+  .card { position: absolute; left: 140px; top: 0; width: 800px; height: 1000px; border-radius: 44px; overflow: hidden; box-shadow: 0 30px 60px rgba(26,15,46,.35); }
+  .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #finger { position: absolute; left: 0; top: 0; z-index: 60; }
+  #finger .tip { position: absolute; left: -50px; top: -50px; width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,255,255,.75) 45%, rgba(255,255,255,.15) 70%, transparent 72%); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+
+  /* Soirées plein écran */
+  .venue { position: absolute; inset: 0; overflow: hidden; display: none; }
+  .venue .bgv { position: absolute; inset: -120px; background-size: cover; background-position: center; filter: blur(40px) saturate(1.5) brightness(.55); }
+  .venue .poster { position: absolute; left: 0; top: 285px; width: 1080px; height: 1350px; box-shadow: 0 0 80px rgba(0,0,0,.7); }
+  .venue .poster img { width: 100%; height: 100%; display: block; }
+  .ticker { position: absolute; left: 0; top: 70px; white-space: nowrap; font-family: Anton; font-size: 150px; line-height: 1; text-transform: uppercase;
+    color: transparent; -webkit-text-stroke: 3px rgba(255,255,255,.85); }
+  .ticker b { color: #fff; -webkit-text-stroke: 0; font-weight: 400; }
+  .ticker i { font-style: normal; color: var(--rose); -webkit-text-stroke: 0; }
+  .hour { position: absolute; left: 0; right: 0; top: 1650px; text-align: center; font-family: Anton; font-size: 190px; line-height: 1; color: #fff;
+    text-shadow: 0 0 40px rgba(255,30,142,.8); white-space: nowrap; }
+  .stamp { position: absolute; right: 50px; top: 330px; padding: 16px 34px; background: var(--jaune); color: #1A0F2E; font-family: Anton; font-size: 84px;
+    border-radius: 18px; transform-origin: 50% 50%; box-shadow: 0 16px 40px rgba(0,0,0,.5); text-transform: uppercase; }
+  .num { position: absolute; left: 40px; top: 1680px; font-family: Anton; font-size: 120px; color: transparent; -webkit-text-stroke: 3px var(--rose); }
+
+  /* Montage + slogan */
+  #montage .poster { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  #allj { position: absolute; left: 0; right: 0; top: 700px; text-align: center; font-family: Anton; font-size: 230px; line-height: .92; color: #fff; text-transform: uppercase; }
+  #allj small { display: block; font: 800 54px Poppins; letter-spacing: 4px; margin-top: 30px; text-transform: uppercase; }
+  #outBg { position: absolute; inset: 0; display: flex; gap: 30px; }
+  #outBg img { height: 600px; border-radius: 30px; opacity: .35; filter: blur(3px); }
+  .ow { position: absolute; left: 0; right: 0; text-align: center; font-family: Anton; text-transform: uppercase; color: #fff; line-height: .95; }
+  #o1 { top: 380px; font-size: 220px; }
+  #o2 { top: 610px; font-size: 170px; }
+  #o3 { top: 790px; font-size: 330px; }
+  #logo { position: absolute; left: 50%; top: 1250px; width: 520px; margin-left: -260px; }
+  #cta { position: absolute; left: 50%; top: 1500px; transform: translateX(-50%); padding: 30px 60px; border-radius: 999px; white-space: nowrap;
+    background: linear-gradient(90deg, var(--rose), var(--corail)); color: #fff; font: 800 50px Poppins; box-shadow: 0 20px 80px rgba(255,30,142,.7); }
+
+  /* Effets globaux */
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #pinkflash { position: absolute; inset: 0; background: var(--rose); mix-blend-mode: screen; opacity: 0; pointer-events: none; }
+  #grain { position: absolute; inset: -100px; opacity: .13; mix-blend-mode: overlay; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  #vig { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 300px 100px rgba(0,0,0,.65); }
+  #bars { position: absolute; inset: 0; pointer-events: none; }
+  #bars div { position: absolute; left: 0; right: 0; height: 0; background: #000; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="fx" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+    <feGaussianBlur id="mb" in="SourceGraphic" stdDeviation="0 0" result="src"/>
+    <feColorMatrix in="src" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r"/>
+    <feOffset id="ro" in="r" dx="0" dy="0" result="ro"/>
+    <feColorMatrix in="src" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g"/>
+    <feColorMatrix in="src" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b"/>
+    <feOffset id="bo" in="b" dx="0" dy="0" result="bo"/>
+    <feBlend in="ro" in2="g" mode="screen" result="rg"/>
+    <feBlend in="rg" in2="bo" mode="screen"/>
+  </filter>
+</svg>
+
+<div id="world"><div id="inside">
+  <!-- 1. Intro typo -->
+  <section class="scene" id="intro">
+    <div class="lights" id="L1"></div>
+    <div id="introBg"></div>
+    <div class="word" id="w1">Jeudi</div>
+    <div class="word" id="w2"><span>soir</span></div>
+    <div class="word" id="w3">📍 Toulouse</div>
+    <div class="word" id="w4">🎓 6 soirées étudiantes</div>
+  </section>
+
+  <!-- 2. Téléphone -->
+  <section class="scene" id="phoneScene">
+    <div class="lights" id="L2"></div>
+    <div id="stage"><div id="cam"><div id="phone"><div id="screen"><div id="inner">
+      <div class="page" id="home"><img src="../1000062354.jpg" alt=""><div id="pillGlow"></div><div id="ripple"></div></div>
+      <div class="page" id="cesoir">
+        <img class="hdr" src="assets/cesoir_header.png" alt="">
+        <div class="chip">SOIRÉES ÉTUDIANTES</div>
+        <div class="where">📍 Toulouse · 6 adresses</div>
+        <div class="when">Jeudi soir, dès 19h</div>
+        <div id="track"></div>
+        <img class="nav" src="assets/navbar.png" alt="">
+      </div>
+      <div id="finger"><div class="tip"></div></div>
+    </div><div id="punchhole"></div></div></div></div></div>
+  </section>
+
+  <!-- 3. Soirées plein écran (générées) -->
+  <div id="venues"></div>
+
+  <!-- 4. Montage rapide -->
+  <section class="scene" id="montage">
+    <div class="poster" id="mPoster"></div>
+    <div id="allj">Tous les<br><span class="pink">jeudis</span><small>sur l'app MaCity</small></div>
+  </section>
+
+  <!-- 5. Outro -->
+  <section class="scene" id="outro">
+    <div class="lights" id="L3"></div>
+    <div id="outBg"></div>
+    <div class="ow" id="o1">Jeudi soir,</div>
+    <div class="ow" id="o2">ça se passe</div>
+    <div class="ow pink" id="o3">où&nbsp;?</div>
+    <img id="logo" src="assets/logo.svg" alt="MaCity">
+    <div id="cta">📲 Télécharge MaCity</div>
+  </section>
+</div></div>
+
+<div id="bars"><div id="barT" style="top:0"></div><div id="barB" style="bottom:0"></div></div>
+<div id="pinkflash"></div>
+<div id="flash"></div>
+<div id="grain"></div>
+<div id="vig"></div>
+
+<script>
+const BPM = 107, B = 60 / BPM;
+const VENUES = [
+  { img: '../diapo_02.png', hour: 'Jeudi · 20h30', stamp: 'Quiz night' },
+  { img: '../diapo_03.png', hour: 'Jeudi · 21h', stamp: 'Pub quiz' },
+  { img: '../diapo_04.png', hour: 'Jeudi · 21h', stamp: 'Latino' },
+  { img: '../diapo_05.png', hour: 'Entrée gratuite', stamp: 'Carte étudiante' },
+  { img: '../diapo_06.png', hour: '00h → 06h', stamp: '4 € avec MaCity' },
+  { img: '../diapo_07.png', hour: 'Dès minuit', stamp: 'DJ sets' },
+];
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const E = {
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  out: x => 1 - Math.pow(1 - x, 3),
+  outExpo: x => x === 1 ? 1 : 1 - Math.pow(2, -10 * x),
+  back: x => { const c1 = 2.2, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+  inExpo: x => x === 0 ? 0 : Math.pow(2, 10 * x - 10),
+  lin: x => x,
+};
+function K(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, e] = keys[i], [t0, v0] = keys[i - 1];
+    if (t <= t1) return v0 + (v1 - v0) * (E[e || 'io'])((t - t0) / (t1 - t0));
+  }
+  return keys[keys.length - 1][1];
+}
+const decay = (b, hb, k) => b >= hb ? Math.exp(-(b - hb) * k) : 0;
+
+// ---------- Construction ----------
+function lights(el, n) {
+  const cols = ['#FF1E8E', '#6d28d9', '#FF2E38', '#a21caf'];
+  for (let i = 0; i < 3; i++) { const d = document.createElement('div'); d.className = 'blob'; d.style.cssText = `width:${700 + i * 80}px;height:${700 + i * 80}px;background:${cols[(i + n) % 4]}`; el.appendChild(d); }
+  for (let i = 0; i < 3; i++) { const d = document.createElement('div'); d.className = 'beam'; d.style.left = `${120 + i * 380}px`;
+    d.style.background = `linear-gradient(180deg, ${cols[(i + n + 1) % 4]}cc, transparent 75%)`; el.appendChild(d); }
+}
+['L1', 'L2', 'L3'].forEach((id, n) => lights($(id), n));
+$('introBg').style.backgroundImage = 'url(assets/hiboo_4.png)';
+const vwrap = $('venues');
+VENUES.forEach((v, i) => {
+  const s = document.createElement('section'); s.className = 'venue'; s.id = 'v' + i;
+  s.innerHTML = `<div class="bgv" style="background-image:url(${v.img})"></div>
+    <div class="ticker">${'<b>Jeudi</b> soir <i>•</i> '.repeat(6)}</div>
+    <div class="poster"><img src="${v.img}" alt=""></div>
+    <div class="stamp">${v.stamp}</div>
+    <div class="hour">${v.hour}</div>`;
+  vwrap.appendChild(s);
+});
+const track = $('track');
+['../diapo_01.png', ...VENUES.map(v => v.img)].forEach(src => {
+  const c = document.createElement('div'); c.className = 'card'; c.innerHTML = `<img src="${src}" alt="">`; track.appendChild(c);
+});
+VENUES.concat(VENUES).forEach(v => { const im = document.createElement('img'); im.src = v.img; $('outBg').appendChild(im); });
+
+// ---------- Timeline en temps musicaux (107 BPM) ----------
+// Intro 0-4 | Téléphone 4-10 (tap au temps 8) | Soirées 10-34 (4 temps chacune) | Montage 34-42 | Téléphone 42-46 | Outro 46-53.5
+const HITS = [[0, 1], [1, 1], [2, .7], [3, .7], [4, .8], [8, 1.2], [10, 1.3]];
+for (let i = 0; i < 6; i++) { HITS.push([10 + i * 4, 1.2], [11 + i * 4, .8], [12 + i * 4, .4]); }
+for (let k = 34; k < 40; k++) HITS.push([k, .9]);
+HITS.push([40, 1.3], [42, .9], [46, 1.2], [47, .9], [48, 1.4], [50, .8]);
+
+function animLights(el, t, b) {
+  const bl = el.querySelectorAll('.blob'), bm = el.querySelectorAll('.beam');
+  const pulse = 1 + .25 * decay(b % 1, 0, 4);
+  bl[0].style.transform = `translate(${-250 + 200 * Math.sin(t * .7)}px, ${-200 + 150 * Math.cos(t * .5)}px) scale(${pulse})`;
+  bl[1].style.transform = `translate(${500 + 160 * Math.cos(t * .6)}px, ${1200 + 180 * Math.sin(t * .4)}px) scale(${pulse})`;
+  bl[2].style.transform = `translate(${300 + 220 * Math.sin(t * .8 + 1)}px, ${600 + 140 * Math.cos(t * .66)}px)`;
+  bl.forEach(x => x.style.opacity = .55);
+  bm.forEach((x, i) => { x.style.transform = `rotate(${(i - 1) * 22 + 18 * Math.sin(t * 1.6 + i * 2)}deg)`; x.style.opacity = .5 + .4 * decay(b % 1, 0, 3); });
+}
+function slam(el, b, hb, from = 2.4) {
+  const a = clamp((b - hb) / .28);
+  el.style.opacity = b >= hb ? 1 : 0;
+  el.style.transform = (el.id === 'w4' ? 'translateX(-50%) ' : '') + `scale(${from + (1 - from) * E.back(a)}) rotate(${(1 - E.out(a)) * -6}deg)`;
+}
+function show(id, on) { $(id).style.display = on ? 'block' : 'none'; }
+
+window.render = function (t) {
+  const b = t / B;
+  // ----- Effets globaux sur les temps forts -----
+  let shake = 0, punch = 0, rgb = 0, fl = 0;
+  HITS.forEach(([hb, s]) => { const d = decay(b, hb, 7); shake += s * d; punch += s * decay(b, hb, 9); rgb += s * decay(b, hb, 5); if (b >= hb) fl = Math.max(fl, s * Math.exp(-(t - hb * B) / .07)); });
+  const sx = shake * 26 * Math.sin(t * 93), sy = shake * 22 * Math.cos(t * 71);
+  $('world').style.transform = `translate(${sx}px, ${sy}px) scale(${1 + .07 * punch}) rotate(${shake * .8 * Math.sin(t * 40)}deg)`;
+  // flou de mouvement horizontal pendant les transitions (fin de chaque soirée)
+  let mb = 0;
+  for (let i = 0; i <= 6; i++) { const e = 10 + i * 4; mb += 40 * Math.exp(-Math.pow((b - e) / .22, 2)); }
+  [9.85, 34, 42, 46].forEach(e => { mb += 30 * Math.exp(-Math.pow((b - e) / .2, 2)); });
+  const rg = Math.min(26, rgb * 12 + (b > 10 && b < 34 ? 2 : 0));
+  $('ro').setAttribute('dx', rg); $('bo').setAttribute('dx', -rg);
+  $('mb').setAttribute('stdDeviation', `${mb.toFixed(2)} 0`);
+  $('world').style.filter = (rg > .5 || mb > .5) ? 'url(#fx)' : 'none';
+  $('flash').style.opacity = Math.min(.85, fl * .7);
+  $('pinkflash').style.opacity = .35 * decay(b, Math.floor(b), 6) * (b > 10 && b < 34 ? 1 : .4);
+  $('grain').style.transform = `translate(${(Math.floor(t * 24) * 37) % 100}px, ${(Math.floor(t * 24) * 53) % 100}px)`;
+  const bar = 90 * K(b, [[44.5, 0], [46, 1]]) + 60 * Math.exp(-Math.pow((b - 34) / .3, 2));
+  $('barT').style.height = $('barB').style.height = `${bar}px`;
+
+  // ----- Scènes -----
+  show('intro', b < 4); show('phoneScene', (b >= 4 && b < 10) || (b >= 42 && b < 46));
+  VENUES.forEach((v, i) => show('v' + i, b >= 10 + i * 4 && b < 14 + i * 4));
+  show('montage', b >= 34 && b < 42); show('outro', b >= 46);
+
+  if (b < 4) {
+    animLights($('L1'), t, b);
+    $('introBg').style.opacity = .5 + .5 * decay(b % 1, 0, 3);
+    $('introBg').style.transform = `scale(${1.1 + .05 * b})`;
+    slam($('w1'), b, 0); slam($('w2'), b, 1); slam($('w3'), b, 2, 1.8); slam($('w4'), b, 3, 1.8);
+  }
+
+  if ((b >= 4 && b < 10) || (b >= 42 && b < 46)) {
+    animLights($('L2'), t, b);
+    const PILL = { x: 48, y: -304.5 };
+    let S, FX, FY, RY, RX, sw;
+    if (b < 10) {
+      S = K(b, [[4, .3], [4.6, 1.05, 'back'], [6, 1.1], [7.2, 2.5, 'io'], [8.6, 2.6], [9.2, 2.2, 'io'], [10, 9, 'inExpo']]);
+      FX = K(b, [[6, 0], [7.2, PILL.x]]); FY = K(b, [[6, 0], [7.2, PILL.y], [8.6, PILL.y], [9.2, -40]]);
+      RY = K(b, [[4, -60], [4.6, 12, 'out'], [6, -4], [7.2, 0]]); RX = K(b, [[4, 30], [4.6, -6, 'out'], [6, 3], [7.2, 0]]);
+      sw = K(b, [[8.5, 0], [9.2, 1]]);
+    } else {
+      S = K(b, [[42, .2], [42.5, 1.0, 'back'], [45.2, 1.08], [46, 6, 'inExpo']]);
+      FX = 0; FY = K(b, [[42, 0], [45.2, -40]]);
+      RY = K(b, [[42, 70], [42.5, -10, 'out'], [44, 8], [45.2, 0]]); RX = K(b, [[42, -20], [42.5, 5, 'out'], [45.2, 0]]);
+      sw = 1;
+    }
+    $('cam').style.transform = `scale(${S}) translate(${-FX}px, ${-FY}px)`;
+    $('phone').style.transform = `rotateX(${RX}deg) rotateY(${RY}deg)`;
+    const fx = K(b, [[5.6, 1300], [7.8, 636, 'out'], [8.4, 636], [8.9, 1000]]), fy = K(b, [[5.6, 1400], [7.8, 591, 'out'], [8.4, 591], [8.9, 1000]]);
+    const press = K(b, [[7.85, 1], [8.0, .78, 'out'], [8.3, 1, 'out']]);
+    $('finger').style.transform = `translate(${fx}px, ${fy}px) scale(${press})`;
+    $('finger').style.opacity = b < 10 ? K(b, [[5.6, 0], [6, 1], [8.4, 1], [8.8, 0]]) : 0;
+    $('pillGlow').style.opacity = K(b, [[7.3, 0], [7.8, 1], [8.5, 1], [8.8, 0]]);
+    $('pillGlow').style.transform = `scale(${1 + .12 * decay(b, 8, 6)})`;
+    const rr = clamp((b - 8) / 1.2), rs = 40 + rr * 900;
+    Object.assign($('ripple').style, { width: rs + 'px', height: rs + 'px', margin: `${-rs / 2}px 0 0 ${-rs / 2}px`, opacity: rr > 0 && rr < 1 ? 1 - rr : 0 });
+    $('home').style.transform = `translateX(${-sw * 320}px)`;
+    $('cesoir').style.transform = `translateX(${(1 - sw) * 1080}px)`;
+    const p = b < 42 ? 0 : 6 * E.io(clamp((b - 42.5) / 2.6));
+    track.querySelectorAll('.card').forEach((c, i) => {
+      const d = i - p, ad = Math.abs(d);
+      c.style.transform = `translateX(${d * 840}px) rotateY(${-clamp(d, -1.5, 1.5) * 24}deg) scale(${1 - .14 * clamp(ad)})`;
+      c.style.zIndex = 100 - Math.round(ad * 10);
+    });
+  }
+
+  VENUES.forEach((v, i) => {
+    const b0 = 10 + i * 4; if (b < b0 || b >= b0 + 4) return;
+    const s = $('v' + i), lb = b - b0;
+    const dir = i % 2 ? -1 : 1;
+    const inX = K(lb, [[0, 1100 * dir], [.3, 0, 'outExpo']]), outX = K(lb, [[3.7, 0], [4, -1100 * dir, 'inExpo']]);
+    const zoom = 1.0 + .07 * (lb / 4) + .08 * decay(lb, 0, 8) + .03 * decay(lb, 1, 8) + .02 * decay(lb, 2, 8);
+    s.querySelector('.poster').style.transform = `translateX(${inX + outX}px) scale(${zoom}) rotate(${dir * (1 - E.out(clamp(lb / .3))) * 4}deg)`;
+    s.querySelector('.bgv').style.transform = `scale(${1.2 + .1 * (lb / 4)}) translateX(${(inX + outX) * .3}px)`;
+    s.querySelector('.ticker').style.transform = `translateX(${-((t * 260 + i * 300) % 900)}px)`;
+    const st = s.querySelector('.stamp'), a = clamp((lb - 1) / .25);
+    st.style.opacity = lb >= 1 ? 1 : 0;
+    st.style.transform = `translateX(${outX}px) scale(${2.6 - 1.6 * E.back(a)}) rotate(${-8 + (1 - a) * 20}deg)`;
+    const h = s.querySelector('.hour'), ha = clamp((lb - .5) / .3);
+    h.style.opacity = lb >= .5 ? 1 : 0;
+    h.style.transform = `translateX(${outX}px) translateY(${(1 - E.back(ha)) * 120}px) scale(${1 + .06 * decay(lb, 2, 6)})`;
+  });
+
+  if (b >= 34 && b < 42) {
+    const k = Math.floor(b - 34);
+    const img = VENUES[Math.min(k, 5) % 6].img;
+    $('mPoster').style.backgroundImage = `url(${b < 40 ? img : VENUES[Math.floor((b - 40) * 6) % 6].img})`;
+    $('mPoster').style.transform = `scale(${b < 40 ? 1.42 + .1 * (b - 34 - k) : 1.6}) rotate(${b < 40 ? (k % 2 ? 2 : -2) : 0}deg)`;
+    $('mPoster').style.filter = b < 40 ? 'none' : 'blur(10px) brightness(.45) saturate(1.4)';
+    $('allj').style.display = b >= 40 ? 'block' : 'none';
+    const a = clamp((b - 40) / .3);
+    $('allj').style.transform = `scale(${2.2 - 1.2 * E.back(a)})`;
+  }
+
+  if (b >= 46) {
+    animLights($('L3'), t, b);
+    $('outBg').style.transform = `translate(${-((t * 120) % 1260) - 100}px, 1300px) rotate(-8deg)`;
+    slam($('o1'), b, 46, 2.2); slam($('o2'), b, 47, 2.2); slam($('o3'), b, 48, 2.8);
+    const la = clamp((b - 50) / .4);
+    $('logo').style.opacity = la; $('logo').style.transform = `translateY(${(1 - E.out(la)) * 60}px)`;
+    const ca = clamp((b - 50.5) / .4);
+    $('cta').style.opacity = ca; $('cta').style.transform = `translateX(-50%) scale(${(.7 + .3 * E.back(ca)) * (1 + .04 * decay(b % 1, 0, 5) * (b > 51 ? 1 : 0))})`;
+  }
+};
+window.render(0);
+</script>
+</body>
+</html>

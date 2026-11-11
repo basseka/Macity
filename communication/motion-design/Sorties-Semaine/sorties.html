@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Reel sorties semaine</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --corail: #FF2E38; --jaune: #FFD93D; --nuit: #0A0514; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); font-family: Poppins, sans-serif; color: #fff; }
+
+  #bg { position: absolute; inset: 0; overflow: hidden;
+    background: radial-gradient(ellipse 120% 70% at 50% 110%, #2a0f3d 0%, #140a24 45%, #0A0514 80%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(130px); opacity: .5; }
+  #b1 { width: 820px; height: 820px; background: #FF1E8E; }
+  #b2 { width: 760px; height: 760px; background: #6d28d9; }
+  #photoBg { position: absolute; inset: -60px; background: url(assets/sorties/neufneuf2.png) center/cover; filter: blur(4px) brightness(.45); opacity: 0; }
+
+  /* Intro */
+  #intro { position: absolute; left: 80px; right: 80px; top: 560px; }
+  #intro .kick { font: 800 40px Poppins; letter-spacing: .24em; color: var(--jaune); text-transform: uppercase; }
+  #intro h1 { font: 400 190px/0.92 Anton; text-transform: uppercase; margin-top: 30px; }
+  #intro h1 span { display: block; }
+  #intro .pink { background: linear-gradient(90deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #intro .sub { margin-top: 44px; font: 600 44px Poppins; color: rgba(255,255,255,.9); }
+  .bar { height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--rose), var(--corail)); margin-top: 40px; width: 0; }
+
+  /* Haut fixe */
+  #top { position: absolute; left: 70px; right: 70px; top: 120px; display: flex; justify-content: space-between; align-items: center; }
+  #top img { height: 64px; }
+  #top .t { font: 800 30px Poppins; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.85); }
+
+  /* Cartes */
+  #stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; perspective: 2200px; }
+  .card { position: absolute; left: 110px; top: 330px; width: 860px; height: 1075px; border-radius: 42px; overflow: hidden;
+    box-shadow: 0 50px 120px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.08); transform-origin: 50% 50%; opacity: 0; }
+  .card img { width: 100%; height: 100%; display: block; }
+  .card .shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.28) 48%, transparent 60%);
+    background-size: 300% 100%; }
+
+  /* Infos sous la carte */
+  #info { position: absolute; left: 70px; right: 70px; top: 1460px; height: 260px; }
+  .info { position: absolute; inset: 0; opacity: 0; }
+  .info .when { display: inline-block; padding: 16px 32px; border-radius: 999px; background: var(--jaune); color: #1A0F2E; font: 800 40px Poppins; }
+  .info .where { margin-top: 26px; font: 700 40px Poppins; }
+  .info .where small { display: block; font: 500 32px Poppins; color: rgba(255,255,255,.7); margin-top: 6px; }
+
+  /* Progression */
+  #dots { position: absolute; left: 0; right: 0; top: 1790px; display: flex; justify-content: center; gap: 20px; }
+  .dot { width: 22px; height: 22px; border-radius: 11px; background: rgba(255,255,255,.25); }
+  .dot i { display: block; height: 100%; border-radius: 11px; background: linear-gradient(90deg, var(--rose), var(--corail)); width: 0; }
+
+  /* Doigt (swipe) */
+  #finger { position: absolute; width: 110px; height: 110px; border-radius: 50%; left: 0; top: 0; opacity: 0;
+    background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,255,255,.7) 45%, rgba(255,255,255,.12) 70%, transparent 72%);
+    box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+
+  /* Fin */
+  #end { position: absolute; left: 80px; right: 80px; top: 560px; text-align: center; opacity: 0; }
+  #end img { height: 120px; }
+  #end h2 { font: 400 150px/0.95 Anton; text-transform: uppercase; margin-top: 60px; }
+  #end h2 .pink { color: var(--rose); }
+  #end p { margin-top: 40px; font: 600 44px/1.4 Poppins; color: rgba(255,255,255,.9); }
+  #end .cta { display: inline-block; margin-top: 70px; padding: 32px 64px; border-radius: 999px; font: 800 46px Poppins;
+    background: linear-gradient(90deg, var(--rose), var(--corail)); box-shadow: 0 20px 70px rgba(255,30,142,.5); }
+  #end .tags { margin-top: 50px; font: 700 38px Poppins; color: rgba(255,255,255,.85); }
+</style>
+</head>
+<body>
+<div id="bg"><div id="photoBg"></div><div class="blob" id="b1"></div><div class="blob" id="b2"></div></div>
+
+<div id="intro">
+  <div class="kick" id="ik">📅 Toulouse · 9 → 15 novembre</div>
+  <h1><span id="l1">Les sorties</span><span id="l2">à ne pas</span><span id="l3" class="pink">rater</span></h1>
+  <div class="bar" id="ibar"></div>
+  <div class="sub" id="isub">5 rendez-vous cette semaine 👇</div>
+</div>
+
+<div id="top"><img src="assets/logo.svg" alt="MaCity"><span class="t" id="toptxt">Cette semaine</span></div>
+<div id="stage"></div>
+<div id="info"></div>
+<div id="dots"></div>
+<div id="finger"></div>
+
+<div id="end">
+  <img src="assets/logo.svg" alt="MaCity">
+  <h2>Toutes les sorties<br>de la <span class="pink">semaine</span></h2>
+  <p>Concerts, spectacles, expos et soirées&nbsp;:<br>tout l'agenda de Toulouse dans l'app.</p>
+  <div class="cta">📲 Télécharge MaCity</div>
+  <div class="tags">💾 Enregistre · 📤 Partage</div>
+</div>
+
+<script>
+const EV = [
+  { img: 'diapo_02.png', when: 'Lundi 9 · 20h', where: 'GIMS', small: 'Zénith Toulouse Métropole' },
+  { img: 'diapo_03.png', when: 'Du 9 au 14 nov.', where: 'Festival Locombia · 10 ans', small: 'Brique Rouge, Le Taquin, Mazades…' },
+  { img: 'diapo_04.png', when: 'Mer. 11 et jeu. 12', where: 'NEUFNEUF Festival', small: 'Théâtre Garonne, Théâtre de la Cité' },
+  { img: 'diapo_05.png', when: 'Dès le jeu. 12 · 18h30', where: 'Festival FReDD', small: 'Cinémathèque et cinémas toulousains' },
+  { img: 'diapo_06.png', when: 'Sam. 14 et dim. 15', where: 'Bigflo & Oli', small: 'Zénith Toulouse Métropole' },
+];
+const T0 = 3.2, STEP = 3.4;              // début du 1er événement, durée par événement
+const TEND = T0 + STEP * EV.length;      // 20.2 s
+const DUR = TEND + 4.8;                  // 25 s
+const $ = id => document.getElementById(id);
+const E = {
+  lin: x => x,
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  out: x => 1 - Math.pow(1 - x, 3),
+  outExpo: x => x === 1 ? 1 : 1 - Math.pow(2, -10 * x),
+  back: x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+};
+function K(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, e] = keys[i], [t0, v0] = keys[i - 1];
+    if (t <= t1) { const p = (E[e || 'io'])((t - t0) / (t1 - t0)); return v0 + (v1 - v0) * p; }
+  }
+  return keys[keys.length - 1][1];
+}
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+
+$('stage').innerHTML = EV.map((e, i) => `<div class="card" id="c${i}"><img src="assets/sorties/${e.img}"><div class="shine" id="s${i}"></div></div>`).join('');
+$('info').innerHTML = EV.map((e, i) => `<div class="info" id="n${i}"><span class="when">${e.when}</span><div class="where">${e.where}<small>${e.small}</small></div></div>`).join('');
+$('dots').innerHTML = EV.map((e, i) => `<div class="dot" id="d${i}"><i id="di${i}"></i></div>`).join('');
+
+window.render = function (t) {
+  // Fond
+  $('b1').style.transform = `translate(${-200 + 160 * Math.sin(t * .35)}px, ${-120 + 140 * Math.cos(t * .27)}px)`;
+  $('b2').style.transform = `translate(${520 + 140 * Math.cos(t * .3)}px, ${1100 + 160 * Math.sin(t * .22)}px)`;
+  $('photoBg').style.opacity = K(t, [[0, 0], [.6, 1, 'out'], [2.6, 1, 'lin'], [3.3, 0, 'io']]);
+  $('photoBg').style.transform = `scale(${1.08 + .05 * t / 3})`;
+
+  // Intro : mots qui montent un par un
+  [['ik', .15], ['l1', .35], ['l2', .55], ['l3', .75], ['isub', 1.25]].forEach(([id, d]) => {
+    const p = E.back(clamp((t - d) / .6)), o = clamp((t - d) / .35) * clamp((3.0 - t) / .35);
+    $(id).style.opacity = o; $(id).style.transform = `translateY(${(1 - p) * 90}px)`;
+  });
+  $('ibar').style.width = (K(t, [[.9, 0], [1.6, 380, 'outExpo']]) * clamp((3.0 - t) / .35)) + 'px';
+  $('intro').style.transform = `translateY(${K(t, [[2.6, 0], [3.2, -140, 'io']])}px)`;
+
+  // Haut
+  const topO = clamp((t - 2.9) / .4) * clamp((TEND + .3 - t) / .4);
+  $('top').style.opacity = topO;
+
+  // Cartes : entrée 3D, présentation, sortie par swipe vers la gauche
+  EV.forEach((e, i) => {
+    const a = T0 + STEP * i, b = a + STEP;            // fenêtre de l'événement
+    const inP = E.outExpo(clamp((t - a + .15) / .75));
+    const outP = E.io(clamp((t - (b - .45)) / .6));
+    const c = $('c' + i);
+    const visible = t > a - .2 && t < b + .3;
+    c.style.opacity = visible ? Math.min(1, inP * 1.4) * (1 - outP * .9) : 0;
+    const x = (1 - inP) * 900 - outP * 1100;
+    const ry = (1 - inP) * -38 + outP * 30;
+    const sc = .86 + .14 * inP + .03 * clamp((t - a) / STEP) - outP * .08;
+    c.style.transform = `translateX(${x}px) rotateY(${ry}deg) scale(${sc})`;
+    c.style.zIndex = 10 + i;
+    $('s' + i).style.backgroundPosition = `${K(t - a, [[.5, 120], [1.4, -40, 'io']])}% 0`;
+    // infos
+    const io = clamp((t - a - .55) / .4) * clamp((b - .35 - t) / .3);
+    const n = $('n' + i);
+    n.style.opacity = io;
+    n.style.transform = `translateY(${(1 - E.back(clamp((t - a - .55) / .55))) * 60}px)`;
+    // progression
+    $('di' + i).style.width = (clamp((t - a) / STEP) * 100) + '%';
+    $('d' + i).style.width = (t >= a && t < b ? 70 : 22) + 'px';
+  });
+  $('dots').style.opacity = topO;
+  $('info').style.opacity = topO;
+
+  // Doigt : geste de swipe avant chaque changement
+  let fo = 0, fx = 0, fy = 1100;
+  for (let i = 0; i < EV.length - 1; i++) {
+    const s = T0 + STEP * (i + 1) - .75, p = (t - s) / .75;
+    if (p >= 0 && p <= 1) { fo = Math.sin(Math.PI * p) * .95; fx = 820 - 560 * E.io(p); }
+  }
+  $('finger').style.opacity = fo;
+  $('finger').style.transform = `translate(${fx}px, ${fy}px)`;
+
+  // Fin
+  const eo = clamp((t - TEND - .2) / .5);
+  $('end').style.opacity = eo;
+  $('end').style.transform = `translateY(${(1 - E.back(clamp((t - TEND - .2) / .7))) * 80}px) scale(${1 + .02 * clamp((t - TEND) / 4)})`;
+};
+window.DUR = DUR;
+window.render(0);
+</script>
+</body>
+</html>

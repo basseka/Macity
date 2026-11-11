@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Pub Ta ville bouge</title>
+<style>
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  :root { --rose: #FF1E8E; --violet: #7A1FD1; --nuit: #0B0618; --jaune: #FFD23F; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); font-family: Poppins; color: #fff; }
+  .abs { position: absolute; }
+  .full { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  #cam { position: absolute; inset: 0; transform-origin: 540px 960px; }
+  .clip { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; opacity: 0; }
+  #grade { position: absolute; inset: 0; pointer-events: none; }
+  #vign { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 60% at 50% 50%, transparent 40%, rgba(5,2,15,.75) 100%); }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+  #pinkflash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #ff7ec0, #FF1E8E 45%, #7A1FD1); opacity: 0; mix-blend-mode: screen; }
+
+  /* Sous-titres type réseaux */
+  .cap { position: absolute; left: 60px; width: 960px; text-align: center; font-weight: 800; line-height: 1.12; opacity: 0;
+    text-shadow: 0 6px 0 rgba(0,0,0,.35), 0 0 40px rgba(0,0,0,.55); }
+  .w { display: inline-block; opacity: 0; transform-origin: 50% 70%; margin: 0 8px; }
+  .hl { background: var(--rose); padding: 0 18px 6px; border-radius: 14px; text-shadow: none; box-shadow: 0 10px 40px rgba(255,30,142,.6); }
+  .hly { background: var(--jaune); color: #160a2a; padding: 0 18px 6px; border-radius: 14px; text-shadow: none; }
+  .big { white-space: nowrap; font-family: Anton; font-weight: 400; letter-spacing: 2px; }
+
+  /* Mots du montage */
+  #mword { position: absolute; left: 0; top: 760px; width: 1080px; text-align: center; font: 230px/1 Anton; letter-spacing: 4px; opacity: 0;
+    color: #fff; -webkit-text-stroke: 0; text-shadow: 0 0 60px rgba(255,30,142,.9), 0 10px 0 rgba(0,0,0,.4); }
+  #mword2 { position: absolute; left: 0; top: 760px; width: 1080px; text-align: center; font: 230px/1 Anton; letter-spacing: 4px; opacity: 0;
+    color: transparent; -webkit-text-stroke: 4px var(--rose); }
+  #mcount { position: absolute; left: 0; top: 1040px; width: 1080px; text-align: center; font: 700 44px/1 Poppins; letter-spacing: 10px; opacity: 0; color: #fff; }
+  #bars { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; opacity: 0; }
+  #bars div { position: absolute; left: 0; width: 1080px; height: 150px; background: #000; }
+
+  /* Grille de clips */
+  #grid { position: absolute; inset: 0; opacity: 0; }
+  #grid .cell { position: absolute; width: 540px; height: 640px; overflow: hidden; }
+  #grid .cell img { width: 540px; height: 960px; object-fit: cover; margin-top: -160px; }
+  #counter { position: absolute; left: 0; top: 830px; width: 1080px; text-align: center; opacity: 0; }
+  #counter .n { font: 300px/1 Anton; color: #fff; text-shadow: 0 0 80px rgba(255,30,142,.9); }
+  #counter .l { display: inline-block; font: 800 64px/1 Poppins; background: var(--rose); padding: 14px 34px 20px; border-radius: 20px; margin-top: 10px; }
+
+  /* Onglets */
+  #tabs { position: absolute; inset: 0; opacity: 0; }
+  .tab { position: absolute; width: 640px; height: 420px; border-radius: 26px; background: #f6f4fb; color: #2a2140; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55); opacity: 0; }
+  .tab .bar { height: 64px; background: #e3def0; display: flex; align-items: center; padding: 0 24px; gap: 12px; }
+  .tab .dot { width: 18px; height: 18px; border-radius: 50%; }
+  .tab .url { flex: 1; height: 38px; border-radius: 19px; background: #fff; font: 600 24px/38px Poppins; padding-left: 20px; color: #6b6285; }
+  .tab .body { padding: 26px 30px; }
+  .tab .t { font: 800 38px/1.1 Poppins; margin-bottom: 18px; }
+  .tab .ln { height: 18px; border-radius: 9px; background: #dcd6ea; margin-bottom: 14px; }
+  #tabCount { position: absolute; left: 0; top: 1500px; width: 1080px; text-align: center; font: 800 70px/1 Poppins; opacity: 0; }
+  #qmark { position: absolute; left: 0; top: 380px; width: 1080px; text-align: center; font: 300px/1 Anton; color: var(--jaune); opacity: 0; }
+
+  /* Téléphone */
+  #phone { position: absolute; left: 540px; top: 1060px; width: 0; height: 0; opacity: 0; }
+  #pbody { position: absolute; left: -270px; top: -560px; width: 540px; height: 1120px; border-radius: 84px; background: #0d0a14;
+    box-shadow: 0 0 0 4px #3a2d5c, 0 0 0 8px #120c22, 0 50px 120px rgba(0,0,0,.7), 0 0 140px rgba(255,30,142,.35); overflow: hidden; }
+  #pscr { position: absolute; left: 14px; top: 14px; width: 512px; height: 1092px; border-radius: 72px; overflow: hidden; background: #f7f3ee; }
+  #pscr img { position: absolute; left: 0; top: 0; width: 512px; height: 1108px; }
+  #pisl { position: absolute; left: 50%; top: 28px; width: 130px; height: 38px; margin-left: -65px; border-radius: 19px; background: #000; }
+  #radar { position: absolute; left: 0; top: 0; }
+  .ring { position: absolute; left: -200px; top: -200px; width: 400px; height: 400px; border-radius: 50%; border: 6px solid var(--rose); opacity: 0; }
+  #gpin { position: absolute; left: -60px; top: -150px; width: 120px; opacity: 0; filter: drop-shadow(0 12px 18px rgba(0,0,0,.5)); }
+  .mpin { position: absolute; width: 74px; opacity: 0; filter: drop-shadow(0 8px 12px rgba(0,0,0,.6)); }
+  #tap { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; background: rgba(255,255,255,.35); border: 5px solid #fff; opacity: 0; }
+
+  /* Comparatif 10 sites / 1 appli */
+  #vs { position: absolute; inset: 0; opacity: 0; }
+  #vs10 { position: absolute; left: 0; top: 520px; width: 1080px; text-align: center; font: 240px/1 Anton; color: #fff; }
+  #vs10 small { display: block; font: 800 60px/1.1 Poppins; margin-top: 10px; }
+  #strike { position: absolute; left: 160px; top: 690px; width: 760px; height: 22px; border-radius: 11px; background: var(--rose); transform-origin: 0 50%; box-shadow: 0 0 40px rgba(255,30,142,.9); }
+  #vs1 { position: absolute; left: 0; top: 1060px; width: 1080px; text-align: center; opacity: 0; }
+  #vs1 .ic { width: 230px; height: 230px; border-radius: 54px; box-shadow: 0 20px 60px rgba(255,30,142,.55); }
+  #vs1 div { font: 800 76px/1.1 Poppins; margin-top: 26px; }
+
+  /* Fin */
+  #end { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse 80% 55% at 50% 42%, #3a1470 0%, #1a0b3a 45%, #07030f 100%); }
+  #endGlow { position: absolute; left: 540px; top: 700px; width: 1300px; height: 1300px; margin: -650px 0 0 -650px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,30,142,.55), rgba(122,31,209,.25) 45%, transparent 70%); }
+  #endLogo { position: absolute; left: 140px; top: 520px; width: 800px; opacity: 0; }
+  #endTag { position: absolute; left: 0; top: 820px; width: 1080px; text-align: center; font: 800 66px/1.18 Poppins; opacity: 0; }
+  #endTag span { color: var(--rose); }
+  #cta { position: absolute; left: 140px; top: 1180px; width: 800px; height: 150px; border-radius: 75px; background: linear-gradient(90deg, #ff1e8e, #c21a9a 55%, #7a1fd1);
+    font: 800 60px/150px Poppins; text-align: center; opacity: 0; box-shadow: 0 20px 70px rgba(255,30,142,.6); }
+  #stores { position: absolute; left: 0; top: 1390px; width: 1080px; display: flex; justify-content: center; gap: 30px; opacity: 0; }
+  .store { width: 380px; height: 120px; border-radius: 24px; background: #000; border: 3px solid rgba(255,255,255,.75); display: flex; align-items: center; gap: 18px; padding: 0 26px; }
+  .store svg { width: 62px; height: 62px; flex: none; }
+  .store div { text-align: left; line-height: 1.05; }
+  .store small { white-space: nowrap; display: block; font: 500 24px/1.2 Poppins; color: #ddd; }
+  .store b { white-space: nowrap; font: 700 40px/1.1 Poppins; color: #fff; letter-spacing: -.5px; }
+  #ctaSub { position: absolute; left: 0; top: 1560px; width: 1080px; text-align: center; font: 600 40px/1.4 Poppins; color: #d8cdf0; opacity: 0; }
+  .spark { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #fff; opacity: 0; box-shadow: 0 0 20px #ff7ec0; }
+  #stop { position: absolute; left: 0; top: 620px; width: 1080px; text-align: center; opacity: 0; }
+  #stop span { display: inline-block; font: 380px/1 Anton; color: #fff; letter-spacing: 6px; text-shadow: 0 0 80px rgba(255,30,142,.95), 0 14px 0 rgba(0,0,0,.35); }
+  #notif { position: absolute; left: 50px; top: 0; width: 980px; padding: 30px 34px; border-radius: 46px; background: rgba(246,243,252,.94); color: #1d1530;
+    display: flex; gap: 28px; align-items: center; box-shadow: 0 30px 80px rgba(0,0,0,.55); opacity: 0; }
+  #notif img { width: 118px; height: 118px; border-radius: 28px; flex: none; }
+  #notif .nh { display: flex; justify-content: space-between; font: 600 34px/1.2 Poppins; color: #6b6285; }
+  #notif .nh b { color: #1d1530; } #notif .nh i { font-style: normal; }
+  #notif .nb { font: 800 44px/1.2 Poppins; margin-top: 6px; }
+  #notif .ns { font: 500 34px/1.25 Poppins; color: #4b4363; margin-top: 4px; }
+  #grain { position: absolute; inset: 0; opacity: .06; mix-blend-mode: overlay; pointer-events: none; }
+  #safe { display: none; }
+</style>
+</head>
+<body>
+<div id="cam">
+  <img class="clip" data-c="hook" data-n="90">
+  <img class="clip" data-c="crowd" data-n="60">
+  <img class="clip" data-c="concert" data-n="38">
+  <img class="clip" data-c="show" data-n="38">
+  <img class="clip" data-c="soiree" data-n="36">
+  <img class="clip" data-c="festival" data-n="36">
+  <img class="clip" data-c="expo" data-n="36">
+  <img class="clip" data-c="gratuit" data-n="36">
+  <img class="clip" data-c="club" data-n="92">
+  <img class="clip" data-c="city" data-n="120">
+  <div id="grade"></div>
+  <div id="vign"></div>
+
+  <div id="grid"></div>
+  <div id="tabs"></div>
+
+  <div id="phone">
+    <div id="radar"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
+    <div id="pbody"><div id="pscr"><img id="s1" src="assets/ecran-1.png"><img id="s6" src="assets/ecran-6.png" style="opacity:0"><img id="s2" src="assets/ecran-2.png" style="opacity:0"></div><div id="pisl"></div></div>
+    <img id="gpin" src="assets/macity-pin-couleur.svg">
+  </div>
+  <div id="mpins"></div>
+  <div id="tap"></div>
+</div>
+
+<div id="bars"><div style="top:0"></div><div style="bottom:0"></div></div>
+<div id="mword"></div><div id="mword2"></div><div id="mcount"></div>
+<div id="counter"><div class="n">99+</div><div class="l">sorties ce week-end</div></div>
+<div id="qmark">?</div>
+<div id="tabCount"></div>
+
+<div id="vs"><div id="vs10">10 SITES<small>à éplucher</small></div><div id="strike"></div>
+  <div id="vs1"><img class="ic" src="assets/macity-icone-app.svg"><div>1 seule appli</div></div></div>
+
+<div id="end">
+  <div id="endGlow"></div>
+  <img id="endLogo" src="assets/macity-logo-couleur-fond-sombre.svg">
+  <div id="endTag">Tous les événements.<br><span>Une seule application.</span></div>
+  <div id="cta">Télécharge MaCity</div>
+  <div id="stores">
+    <div class="store"><svg viewBox="0 0 24 24" fill="#fff"><path d="M16.37 12.6c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.18-1.73-1.35-.14-2.64.8-3.33.8-.69 0-1.74-.78-2.86-.76-1.47.02-2.83.86-3.59 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.73 2.2 1.1-.04 1.51-.71 2.84-.71 1.32 0 1.7.71 2.86.69 1.18-.02 1.93-1.07 2.65-2.13.84-1.22 1.18-2.41 1.2-2.47-.03-.01-2.3-.88-2.3-3.52zM14.2 6.13c.6-.73 1.01-1.75.9-2.76-.87.04-1.92.58-2.54 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.56-1.23z"/></svg><div><small>Télécharger dans</small><b>l'App Store</b></div></div>
+    <div class="store"><svg viewBox="0 0 24 24"><path fill="#00d7fe" d="M3.6 2.3 13.4 12l-9.8 9.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1z"/><path fill="#ffce00" d="M16.8 8.6 13.4 12l3.4 3.4 3.9-2.2c1.1-.6 1.1-1.8 0-2.4z"/><path fill="#00f076" d="M3.6 2.3c.3-.2.8-.2 1.3.1l11.9 6.2-3.4 3.4z"/><path fill="#ff3a44" d="M13.4 12l3.4 3.4-11.9 6.2c-.5.3-1 .3-1.3.1z"/></svg><div><small>Disponible sur</small><b>Google Play</b></div></div>
+  </div>
+  <div id="ctaSub">Gratuit · autour de toi, dans ta ville</div>
+</div>
+
+<div id="stop"><span>STOP.</span></div>
+<div id="notif"><img src="assets/macity-icone-app.svg"><div class="nt"><div class="nh"><b>MaCity</b><i>maintenant</i></div><div class="nb">🔥 99+ sorties près de toi ce week-end</div><div class="ns">Concerts, soirées, expos… Ne rate rien !</div></div></div>
+<div id="caps"></div>
+<div id="pinkflash"></div>
+<div id="flash"></div>
+<canvas id="grain" width="540" height="960"></canvas>
+
+<script>
+window.DUR = 28;
+const $ = s => document.querySelector(s);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const ei = x => x * x * x;
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const css = (el, o) => Object.assign(el.style, o);
+const rnd = k => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+/* ---------- Clips ---------- */
+const clips = {}; document.querySelectorAll('.clip').forEach(el => clips[el.dataset.c] = el);
+const pending = [];
+function showClip(name, t0, t, op = 1, speed = 1) {
+  const el = clips[name]; const n = +el.dataset.n;
+  const i = clamp(Math.floor((t - t0) * 30 * speed), 0, n - 1) + 1;
+  const src = `clips/${name}/${String(i).padStart(4, '0')}.jpg`;
+  if (el.getAttribute('src') !== src) { el.setAttribute('src', src); pending.push(el.decode().catch(() => {})); }
+  el.style.opacity = op; return el;
+}
+
+/* ---------- Sous-titres ---------- */
+// cues : [début, fin, top, taille, html avec mots séparés par |]
+const CUES = [
+  [1.15, 3.25, 1330, 76, "Ce week-end,|ta ville|<span class='hl'>fait la fête</span>…"],
+  [3.42, 4.45, 760, 150, "<span class='big'>ET TOI,</span>"],
+  [3.70, 4.45, 960, 150, "<span class='big hly'>T'ES OÙ ?</span>"],
+  [8.25, 10.55, 330, 74, "Il se passe|<span class='hl'>beaucoup plus</span>|de choses"],
+  [8.70, 10.55, 1380, 74, "que tu ne|l'imagines !"],
+  [10.65, 12.95, 1440, 76, "Mais encore faut-il|savoir <span class='hly'>où</span>|les trouver !"],
+  [13.15, 17.55, 170, 78, "Avec <span class='hl'>MaCity</span>"],
+  [13.75, 17.55, 290, 58, "découvre les événements|<span class='hly'>autour de toi</span>"],
+  [17.65, 19.85, 220, 72, "Plus besoin de chercher|sur dix sites différents !"],
+  [19.95, 22.45, 560, 130, "<span class='big'>TOUTE TA VILLE</span>"],
+  [20.35, 22.45, 860, 170, "<span class='big hl'>BOUGE.</span>"],
+  [21.10, 22.45, 1180, 76, "Ne passe plus|à côté !"],
+];
+const capsEl = $('#caps'); const capNodes = CUES.map(c => {
+  const d = document.createElement('div'); d.className = 'cap'; d.style.top = c[2] + 'px'; d.style.fontSize = c[3] + 'px';
+  d.innerHTML = c[4].split('|').map(w => `<span class="w">${w}</span>`).join(' '); capsEl.appendChild(d);
+  return { el: d, ws: [...d.querySelectorAll('.w')], c };
+});
+function renderCaps(t) {
+  for (const { el, ws, c } of capNodes) {
+    const [a, b] = c; const on = t >= a && t < b + .2;
+    el.style.opacity = on ? 1 - seg(t, b, b + .18) : 0; if (!on) continue;
+    ws.forEach((w, k) => {
+      const x = seg(t, a + k * .13, a + k * .13 + .22);
+      w.style.opacity = x > 0 ? 1 : 0;
+      const s = lerp(1.6, 1, back(x)); w.style.transform = `scale(${s}) translateY(${lerp(30, 0, eo(x))}px) rotate(${lerp(-6, 0, eo(x))}deg)`;
+    });
+    el.style.transform = `translateY(${-seg(t, b, b + .18) * 40}px)`;
+  }
+}
+
+/* ---------- Montage ---------- */
+const MONT = [['concert', 'CONCERTS'], ['show', 'SPECTACLES'], ['soiree', 'SOIRÉES'], ['festival', 'FESTIVALS'], ['expo', 'EXPOS'], ['gratuit', 'GRATUIT']];
+const M0 = 4.6, MD = 0.6;
+
+/* ---------- Grille ---------- */
+const grid = $('#grid'); const GC = ['concert', 'soiree', 'festival', 'show', 'gratuit', 'club'];
+const gcells = GC.map((c, k) => { const d = document.createElement('div'); d.className = 'cell'; d.style.left = (k % 2) * 540 + 'px'; d.style.top = Math.floor(k / 2) * 640 + 'px';
+  const im = document.createElement('img'); d.appendChild(im); grid.appendChild(d); return { d, im, c }; });
+
+/* ---------- Onglets ---------- */
+const TABS = [['agenda-sorties', 'Agenda du mois'], ['reseau-social', 'Le post d\'hier soir'], ['billetterie', 'Billetterie'], ['mairie', 'Site de la mairie'], ['salle-de-concert', 'Programmation'],
+  ['blog-sorties', 'Top 10 du week-end'], ['groupe-de-potes', '« vous faites quoi ? »'], ['office-tourisme', 'Que faire ?'], ['newsletter', 'Newsletter'], ['festival', 'Festival 2026']];
+const tabsEl = $('#tabs'); const tabNodes = TABS.map(([u, ti], k) => {
+  const d = document.createElement('div'); d.className = 'tab';
+  d.innerHTML = `<div class="bar"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><div class="url">${u}.fr</div></div><div class="body"><div class="t">${ti}</div><div class="ln" style="width:92%"></div><div class="ln" style="width:70%"></div><div class="ln" style="width:84%"></div><div class="ln" style="width:55%"></div></div>`;
+  tabsEl.appendChild(d); return d; });
+
+/* ---------- Pins sur la ville ---------- */
+const mp = $('#mpins'); const PINS = [[210, 520], [820, 610], [470, 760], [160, 1010], [880, 1120], [600, 1290], [300, 1450], [790, 1560], [520, 980], [940, 860], [120, 720], [660, 520]];
+const pinNodes = PINS.map(([x, y]) => { const im = document.createElement('img'); im.className = 'mpin'; im.src = 'assets/macity-pin-couleur.svg'; im.style.left = (x - 37) + 'px'; im.style.top = (y - 90) + 'px'; mp.appendChild(im); return im; });
+
+/* ---------- Étincelles fin ---------- */
+const endEl = $('#end'); const sparks = [...Array(26)].map((_, k) => { const d = document.createElement('div'); d.className = 'spark'; endEl.appendChild(d); return d; });
+
+/* ---------- Grain ---------- */
+const gctx = $('#grain').getContext('2d'); const gimg = gctx.createImageData(540, 960);
+function grain(t) { let s = Math.floor(t * 30) * 9301 + 49297; const a = gimg.data;
+  for (let i = 0; i < a.length; i += 4) { s = (s * 9301 + 49297) % 233280; const v = s / 233280 * 255; a[i] = a[i + 1] = a[i + 2] = v; a[i + 3] = 255; } gctx.putImageData(gimg, 0, 0); }
+
+/* ---------- Rendu ---------- */
+window.render = async function (t) {
+  pending.length = 0;
+  Object.values(clips).forEach(c => c.style.opacity = 0);
+  const cam = $('#cam'); let camS = 1, camX = 0, camY = 0, camR = 0;
+  let gradeBg = 'transparent', gradeBlend = 'normal', filt = 'none';
+
+  // 1. HOOK : foule en furie + STOP
+  const stop = $('#stop'), nf = $('#notif');
+  if (t < 3.38) {
+    showClip('club', 0, t, 1, 1); filt = 'saturate(1.3) contrast(1.1)';
+    camS = 1.12 + Math.sin(t * 31) * .012 * (1 - seg(t, 0, .9)); camX = Math.sin(t * 47) * 14 * (1 - seg(t, 0, .7)); camY = Math.cos(t * 41) * 10 * (1 - seg(t, 0, .7));
+    gradeBg = 'linear-gradient(180deg, rgba(122,31,209,.35), rgba(255,30,142,.2) 50%, rgba(11,6,24,.6))'; gradeBlend = 'normal';
+    const x = seg(t, 0, .12), out = seg(t, .95, 1.15);
+    const jit = t < .5 ? (Math.floor(t * 30) % 2 ? 10 : -10) : 0;
+    css(stop, { opacity: x * (1 - out), transform: `translateX(${jit}px) scale(${lerp(2.4, 1, back(x)) * lerp(1, 1.6, ei(out))})` });
+    const n = seg(t, 1.0, 1.35), no = seg(t, 3.15, 3.38);
+    css(nf, { opacity: n > 0 ? 1 - no : 0, transform: `translateY(${lerp(-320, 140, back(n)) - no * 300}px)` });
+  } else { stop.style.opacity = 0; nf.style.opacity = 0; }
+  // 2. ET TOI, T'ES OÙ ? : fête de rue
+  if (t >= 3.38 && t < 4.6) {
+    showClip('crowd', 3.35, t); const x = seg(t, 3.38, 3.7);
+    camS = lerp(1.35, 1.05, eo(x)) + Math.sin(t * 40) * .006 * (1 - x); camR = lerp(-4, 0, eo(x));
+    gradeBg = 'linear-gradient(180deg, rgba(122,31,209,.35), rgba(255,30,142,.25))'; gradeBlend = 'overlay';
+  }
+  // 4. Montage
+  const mw = $('#mword'), mw2 = $('#mword2'), mc = $('#mcount'), bars = $('#bars');
+  css(mw, { opacity: 0 }); css(mw2, { opacity: 0 }); css(mc, { opacity: 0 }); bars.style.opacity = 0;
+  if (t >= M0 && t < M0 + MD * MONT.length) {
+    const k = Math.floor((t - M0) / MD), tl = t - M0 - k * MD, [c, w] = MONT[k];
+    showClip(c, M0 + k * MD, t); camS = lerp(1.25, 1.06, eo(seg(tl, 0, .35))); camR = (k % 2 ? 1 : -1) * lerp(3, 0, eo(seg(tl, 0, .3)));
+    gradeBg = 'linear-gradient(0deg, rgba(11,6,24,.65), rgba(11,6,24,.1) 45%, rgba(11,6,24,.5))';
+    mw.textContent = w; mw2.textContent = w; const x = seg(tl, 0, .18);
+    css(mw, { opacity: 1, transform: `scale(${lerp(1.7, 1, back(x))})`, letterSpacing: lerp(30, 4, eo(x)) + 'px' });
+    css(mw2, { opacity: .9 * (1 - seg(tl, .05, .5)), transform: `scale(${lerp(1, 1.35, eo(seg(tl, .02, .5)))})` });
+    mc.textContent = `${k + 1} / ${MONT.length}`; css(mc, { opacity: .85 });
+    bars.style.opacity = 1;
+  }
+  // 5. Grille + compteur
+  const cnt = $('#counter');
+  if (t >= 8.2 && t < 10.6) {
+    grid.style.opacity = 1;
+    gcells.forEach(({ d, im, c }, k) => {
+      const n = c === 'club' ? 92 : 36; const i = clamp(Math.floor((t - 8.2) * 30), 0, n - 1) + 1; const src = `clips/${c}/${String(i).padStart(4, '0')}.jpg`;
+      if (im.getAttribute('src') !== src) { im.setAttribute('src', src); pending.push(im.decode().catch(() => {})); }
+      const x = seg(t, 8.2 + k * .07, 8.2 + k * .07 + .3); d.style.opacity = x > 0 ? 1 : 0; d.style.transform = `scale(${lerp(.6, 1, back(x))})`;
+      d.style.filter = 'brightness(.55) saturate(1.2)';
+    });
+    const x = seg(t, 9.0, 9.35), n = Math.round(lerp(12, 99, eo(seg(t, 9.0, 9.9))));
+    cnt.querySelector('.n').textContent = (t > 9.9 ? '99+' : n);
+    css(cnt, { opacity: x, transform: `scale(${lerp(1.5, 1, back(x))})` });
+  } else { grid.style.opacity = 0; cnt.style.opacity = 0; }
+  // 6. Onglets chaos
+  const qm = $('#qmark'), tc = $('#tabCount');
+  if (t >= 10.6 && t < 13.4) {
+    tabsEl.style.opacity = 1; gradeBg = '#1a1030';
+    const suck = eio(seg(t, 12.75, 13.25));
+    tabNodes.forEach((d, k) => {
+      const a = 10.62 + k * .17, x = seg(t, a, a + .22);
+      const bx = 220 + rnd(k) * 160 - 80 + (k % 3 - 1) * 120, by = 90 + k * 92 + rnd(k + 9) * 30;
+      const r = (rnd(k + 3) - .5) * 22;
+      const tx = lerp(bx, 220, suck), ty = lerp(by, 860, suck);
+      css(d, { opacity: x > 0 ? 1 - seg(suck, .8, 1) : 0, left: tx + 'px', top: ty + 'px',
+        transform: `scale(${lerp(1.4, 1, back(x)) * lerp(1, .05, suck)}) rotate(${r * (1 - suck) + suck * 180}deg)` });
+    });
+    const shown = TABS.filter((_, k) => t >= 10.62 + k * .17).length;
+    tc.textContent = `${shown} onglet${shown > 1 ? 's' : ''} ouvert${shown > 1 ? 's' : ''}…`; css(tc, { opacity: seg(t, 10.8, 11) * (1 - suck), top: '1790px' });
+    const qx = seg(t, 11.9, 12.1); css(qm, { opacity: qx * (1 - suck), transform: `rotate(${Math.sin(t * 9) * 8}deg) scale(${lerp(.5, 1, back(qx))})`, top: '20px', fontSize: '220px' });
+    camX = Math.sin(t * 23) * 6 * seg(t, 11.5, 12.7); camY = Math.cos(t * 19) * 6 * seg(t, 11.5, 12.7);
+  } else { tabsEl.style.opacity = 0; qm.style.opacity = 0; tc.style.opacity = 0; }
+  // 7. Téléphone
+  const ph = $('#phone');
+  if (t >= 12.95 && t < 17.7) {
+    gradeBg = 'radial-gradient(ellipse 80% 55% at 50% 55%, #3a1470 0%, #1a0b3a 50%, #07030f 100%)';
+    const x = seg(t, 12.95, 13.45), out = seg(t, 17.35, 17.7);
+    css(ph, { opacity: 1 - out, transform: `translateY(${lerp(900, 0, eo(x)) + 140}px) scale(${lerp(.7, .92, back(x)) * lerp(1, .5, ei(out))}) rotate(${lerp(14, 0, eo(x)) + Math.sin(t * 1.4) * 1.2}deg)` });
+    // écrans
+    const sc = $('#pscr'); const s1 = $('#s1'), s6 = $('#s6'), s2 = $('#s2');
+    const scroll = eio(seg(t, 13.6, 14.6)) * 0;
+    const a6 = seg(t, 15.2, 15.45), a2 = seg(t, 16.3, 16.55);
+    s1.style.transform = `translateX(${-512 * eio(a6)}px)`; s6.style.opacity = 1; s6.style.transform = `translateX(${512 * (1 - eio(a6)) - 512 * eio(a2)}px)`;
+    s2.style.opacity = 1; s2.style.transform = `translateX(${512 * (1 - eio(a2))}px)`;
+    // radar + pin géoloc
+    const gp = $('#gpin'); const gx = seg(t, 14.0, 14.35);
+    css(gp, { opacity: gx > 0 ? 1 : 0, transform: `translate(${-330}px, ${-640 + lerp(-300, 0, eo(gx))}px) scale(${lerp(.4, 1, back(gx))})` });
+    document.querySelectorAll('.ring').forEach((r, k) => {
+      const ph2 = ((t - 14.3 - k * .45) % 1.35 + 1.35) % 1.35 / 1.35; const on = t > 14.3;
+      css(r, { opacity: on ? (1 - ph2) * .9 : 0, transform: `translate(${-330}px, ${-610}px) scale(${lerp(.15, 1.4, ph2)})` });
+    });
+    // tap
+    const tp = $('#tap'); const tx = seg(t, 14.95, 15.25);
+    css(tp, { left: '700px', top: '1000px', opacity: (t > 14.95 && t < 15.4) ? (1 - tx) : 0, transform: `scale(${lerp(.6, 1.4, tx)})` });
+  } else { ph.style.opacity = 0; $('#tap').style.opacity = 0; }
+  // 8. 10 sites -> 1 appli
+  const vs = $('#vs');
+  if (t >= 17.6 && t < 19.95) {
+    gradeBg = '#12081f'; vs.style.opacity = 1 - seg(t, 19.75, 19.95);
+    const x = seg(t, 17.7, 18.0); $('#vs10').style.transform = `scale(${lerp(1.5, 1, back(x))})`; $('#vs10').style.opacity = x;
+    $('#strike').style.transform = `scaleX(${eo(seg(t, 18.45, 18.7))})`;
+    const y = seg(t, 18.85, 19.15); css($('#vs1'), { opacity: y, transform: `scale(${lerp(.4, 1, back(y))}) translateY(${lerp(60, 0, eo(y))}px)` });
+    $('#vs10').style.filter = `blur(${seg(t, 18.7, 18.9) * 4}px)`; $('#vs10').style.opacity = x * (1 - .55 * seg(t, 18.7, 18.9));
+  } else vs.style.opacity = 0;
+  // 9. Toute ta ville bouge
+  if (t >= 19.9 && t < 22.6) {
+    showClip('city', 19.9, t); const x = seg(t, 19.9, 20.3); camS = lerp(1.3, 1.05, eo(x)) + (t - 19.9) * .02;
+    gradeBg = 'linear-gradient(0deg, rgba(11,6,24,.7), rgba(11,6,24,.15) 40%, rgba(11,6,24,.55))';
+    pinNodes.forEach((p, k) => { const a = 20.2 + k * .12, y = seg(t, a, a + .25);
+      css(p, { opacity: y > 0 ? 1 : 0, transform: `translateY(${lerp(-120, 0, eo(y))}px) scale(${lerp(.3, 1, back(y))})` }); });
+  } else pinNodes.forEach(p => p.style.opacity = 0);
+  // 10. Fin
+  if (t >= 22.45) {
+    const x = seg(t, 22.45, 22.8); endEl.style.opacity = x;
+    const l = seg(t, 22.6, 23.0); css($('#endLogo'), { opacity: l, transform: `scale(${lerp(1.6, 1, back(l))})` });
+    const g = seg(t, 23.2, 23.6); css($('#endTag'), { opacity: g, transform: `translateY(${lerp(50, 0, eo(g))}px)` });
+    const c = seg(t, 24.0, 24.35); const pulse = 1 + Math.max(0, Math.sin((t - 24.4) * Math.PI * 2 / 1.0)) * .045 * (t > 24.4);
+    css($('#cta'), { opacity: c, transform: `scale(${lerp(.5, 1, back(c)) * pulse})` });
+    { const st = seg(t, 24.45, 24.8); css($('#stores'), { opacity: st, transform: `translateY(${lerp(40, 0, eo(st))}px)` }); }
+    css($('#ctaSub'), { opacity: seg(t, 24.8, 25.2) });
+    $('#endGlow').style.transform = `scale(${1 + Math.sin(t * 2) * .05})`;
+    sparks.forEach((s, k) => { const life = ((t - 22.6 + rnd(k) * 3) % 3) / 3; const ang = rnd(k + 40) * Math.PI * 2, r = 150 + life * 600;
+      css(s, { left: 540 + Math.cos(ang) * r + 'px', top: 700 + Math.sin(ang) * r * .8 + 'px', opacity: t > 22.6 ? Math.sin(life * Math.PI) * .9 : 0, transform: `scale(${.4 + rnd(k + 7)})` }); });
+    // tap sur le bouton
+    const tp = $('#tap'); const tx = seg(t, 25.6, 25.95);
+    css(tp, { left: '540px', top: '1255px', opacity: (t > 25.6 && t < 26.1) ? 1 - tx : 0, transform: `scale(${lerp(.6, 1.5, tx)})` });
+  } else endEl.style.opacity = 0;
+
+  // flashs
+  const fl = (a, d) => seg(t, a, a + .02) * (1 - seg(t, a + .02, a + d));
+  $('#flash').style.opacity = Math.max(fl(0, .3), fl(3.38, .25), fl(19.9, .2), fl(12.95, .18) * .6);
+  $('#pinkflash').style.opacity = Math.max(...MONT.map((_, k) => fl(M0 + k * MD, .16) * .55), fl(8.2, .2) * .6, fl(22.45, .3) * .8, fl(20.35, .2) * .5);
+
+  css($('#grade'), { background: gradeBg, mixBlendMode: gradeBlend });
+  Object.values(clips).forEach(c => c.style.filter = filt);
+  cam.style.transform = `translate(${camX}px, ${camY}px) scale(${camS}) rotate(${camR}deg)`;
+  renderCaps(t); grain(t);
+  await Promise.all(pending);
+};
+window.render(0);
+</script>
+</body>
+</html>

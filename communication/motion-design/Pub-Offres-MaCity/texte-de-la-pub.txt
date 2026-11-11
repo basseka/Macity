@@ -1,0 +1,47 @@
+PUB « OFFRES MACITY » (9:16, 28 s) : MACITY_Pub_Offres_9x16.mp4
+
+DÉROULÉ
+0 - 2,6 s     Accroche : « Tu paies encore tes sorties PLEIN PRIX ? », barré en rose
+2,6 - 4,1 s   Drop : « Avec MaCity, SORS PLUS. PAIE MOINS. » + étiquettes de réduction
+4,1 - 17,6 s  Les 9 offres actives, 1,5 s chacune (affiche + pastille de réduction) :
+              Hopy Parc -50 % 2e entrée · Hiboo Club entrée 5 € au lieu de 10 € ·
+              Chef Chuan -20 % · La Rivière Club shooters offerts · Prison Island -10 %
+              (PITMACITY10) · Le Citron Givré 3e offert ou -20 % · Le Bouillon Labège
+              shooter offert · Clark Powell -5 € abonnements · Ma voiture propre -10 €
+17,6 - 21,1 s Comment ça marche : 1. Choisis ton offre 2. « J'en profite » 3. Montre ton code
+21,1 - 22,6 s Mosaïque des 9 affiches, « 9 OFFRES rien que pour toi »
+22,6 - 28 s   Logo, « Sors plus. Paie moins. », bouton, App Store + Google Play
+
+À cibler sur Toulouse et alentours : toutes les offres sont toulousaines.
+Si une offre change ou se termine, mettre à jour le tableau OFFERS de src/offres.html et relancer le rendu.
+
+
+TEXTE PRINCIPAL (au-dessus de la vidéo)
+Tu paies encore tes sorties plein prix ? 😏
+Avec MaCity, profite d'offres exclusives chez nos partenaires toulousains :
+-50 % chez Hopy Parc, entrée à 5 € au Hiboo Club, -20 % chez Chef Chuan, shooters offerts…
+
+👉 Choisis ton offre, appuie sur « J'en profite », montre ton code. C'est réglé.
+Télécharge MaCity gratuitement.
+
+TITRE (40 caractères max)
+Sors plus. Paie moins.
+
+DESCRIPTION
+Des offres exclusives, une seule appli.
+
+BOUTON
+Installer
+
+
+VARIANTES DE TITRE À TESTER
+- -50 %, shooters offerts : c'est sur MaCity
+- Tes bons plans sorties à Toulouse
+- 9 offres rien que pour toi
+
+
+REFAIRE LE RENDU
+cd src
+PW=<chemin playwright> node render_node.js offres.html frames 30
+python3 audio_offres.py
+ffmpeg -framerate 30 -i frames/f%04d.jpg -i offres_audio.wav -filter_complex "[1:a]volume=-5dB,alimiter=limit=0.89[a]" -map 0:v -map "[a]" -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -c:a aac -b:a 192k -shortest -movflags +faststart ../MACITY_Pub_Offres_9x16.mp4
