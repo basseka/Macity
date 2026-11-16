@@ -9,7 +9,7 @@ import 'package:pulz_app/features/city/data/city_coordinates.dart';
 class DenseCity {
   DenseCity._();
 
-  static const _cities = {'paris'};
+  static const _cities = {'paris', 'lyon', 'bordeaux', 'marseille', 'nice'};
 
   /// Rayon (km) par table : la Food est la plus dense.
   static const _radiusKm = {

@@ -1,6 +1,6 @@
 /// Resout une commune (ou un couple commune+CP) vers le "hub ville" de
 /// l'app. Les hubs correspondent aux villes principales supportees (Toulouse,
-/// Paris, Lyon, etc.) — les communes de banlieue sont rattachees au hub de
+/// Paris, Lyon, etc.), les communes de banlieue sont rattachees au hub de
 /// leur agglomeration.
 ///
 /// Usage :
@@ -80,7 +80,7 @@ class CityHubResolver {
     'gratentour': 'Toulouse', 'lespinasse': 'Toulouse',
     'mondonville': 'Toulouse', 'saint-jory': 'Toulouse',
 
-    // Paris agglo (75/77/78/91/92/93/94/95) — quelques majeurs
+    // Paris agglo (75/77/78/91/92/93/94/95), quelques majeurs
     'paris': 'Paris',
     'boulogne-billancourt': 'Paris', 'saint-denis': 'Paris',
     'argenteuil': 'Paris', 'montreuil': 'Paris',
@@ -95,13 +95,18 @@ class CityHubResolver {
     'issy-les-moulineaux': 'Paris', 'pantin': 'Paris',
     'ivry-sur-seine': 'Paris',
 
-    // Lyon agglo (69/01) — quelques majeurs
+    // Lyon agglo (69/01), quelques majeurs
     'lyon': 'Lyon', 'villeurbanne': 'Lyon',
     'venissieux': 'Lyon', 'saint-priest': 'Lyon',
     'caluire-et-cuire': 'Lyon', 'bron': 'Lyon',
     'vaulx-en-velin': 'Lyon', 'rillieux-la-pape': 'Lyon',
     'meyzieu': 'Lyon', 'oullins': 'Lyon',
+    // Mâcon (71) : Lyon à 70 km plutôt que Dijon (dépt 71) à 130 km
+    'mâcon': 'Lyon', 'macon': 'Lyon',
     'tassin-la-demi-lune': 'Lyon', 'ecully': 'Lyon',
+
+    // Hubs dont le département est rattaché à un autre hub
+    'aix-en-provence': 'Aix-en-Provence', 'le havre': 'Le Havre',
 
     // Marseille (13)
     'marseille': 'Marseille', 'aubagne': 'Marseille',
@@ -150,6 +155,14 @@ class CityHubResolver {
       return ville ?? '';
     }
     final villeNorm = ville.trim().toLowerCase();
+
+    // 0. Outre-mer d'abord : « Saint-Denis » 974 (Réunion) ne doit pas
+    // tomber sur Saint-Denis 93 (Paris) via la table des communes.
+    final cp0 = codePostal?.trim() ?? '';
+    if (cp0.length >= 3 && cp0.startsWith('97')) {
+      final dom = _deptToHub[cp0.substring(0, 3)];
+      if (dom != null) return dom;
+    }
 
     // 1. Si la ville est elle-meme un hub (lookup direct)
     final asHub = _communeToHub[villeNorm];
