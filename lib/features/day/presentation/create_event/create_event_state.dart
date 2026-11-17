@@ -91,6 +91,7 @@ class CreateEventState {
   final DateTime? dateDebut;
   final TimeOfDay? heureDebut;
   final String lieuAdresse;
+  final String codePostal;
   final String ville;
   final String pays;
   final bool estGratuit;
@@ -145,6 +146,7 @@ class CreateEventState {
     this.dateDebut,
     this.heureDebut,
     this.lieuAdresse = '',
+    this.codePostal = '',
     this.ville = '',
     this.pays = 'France',
     this.estGratuit = false,
@@ -198,6 +200,7 @@ class CreateEventState {
     DateTime? dateDebut,
     TimeOfDay? heureDebut,
     String? lieuAdresse,
+    String? codePostal,
     String? ville,
     String? pays,
     bool? estGratuit,
@@ -254,6 +257,7 @@ class CreateEventState {
       dateDebut: dateDebut ?? this.dateDebut,
       heureDebut: heureDebut ?? this.heureDebut,
       lieuAdresse: lieuAdresse ?? this.lieuAdresse,
+      codePostal: codePostal ?? this.codePostal,
       ville: ville ?? this.ville,
       pays: pays ?? this.pays,
       estGratuit: estGratuit ?? this.estGratuit,
@@ -303,6 +307,11 @@ class CreateEventState {
     if (dateDebut == null) return 'La date de début est requise';
     if (heureDebut == null) return 'L\'heure de début est requise';
     if (lieuAdresse.trim().isEmpty) return 'Adresse du lieu requise';
+    // Code postal : sert à placer l'event pour la recherche par distance
+    // (À la une / Top visibles à 80 km). Obligatoire en France.
+    if (pays == 'France' && !RegExp(r'^\d{5}$').hasMatch(codePostal.trim())) {
+      return 'Code postal du lieu requis (5 chiffres)';
+    }
     final url = lienBilletterie.trim();
     if (url.isNotEmpty && !url.startsWith('http://') && !url.startsWith('https://')) {
       return 'Le lien doit commencer par http:// ou https://';

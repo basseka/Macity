@@ -3,9 +3,13 @@ import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pulz_app/core/constants/api_constants.dart';
 import 'package:pulz_app/core/network/dense_city.dart';
+import 'package:pulz_app/core/network/dio_client.dart';
+import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/core/utils/haversine.dart';
 import 'package:pulz_app/features/city/data/city_coordinates.dart';
 import 'package:pulz_app/features/city/data/commune_geo_service.dart';
@@ -205,6 +209,7 @@ class SearchAreaNotifier extends StateNotifier<SearchArea?>
               (DenseCity.isDense(next.nom) ? denseRefreshKm : refreshKm);
       if (!force && unchanged) return;
       await _apply(next);
+      unawaited(_maybeAnnounceArrival(cur, next));
     } finally {
       _resolving = false;
     }
@@ -251,6 +256,69 @@ class SearchAreaNotifier extends StateNotifier<SearchArea?>
     }
   }
 
+  static const _prefHome = 'arrival_home_commune';
+  static const _prefSeen = 'arrival_seen';
+
+  /// Pas deux fois le bandeau pour la même commune en moins de 7 jours.
+  static const _arrivalCooldown = Duration(days: 7);
+
+  /// En dessous, la commune n'a pas assez de lieux pour mériter le bandeau.
+  static const _arrivalMinPlaces = 10;
+
+  /// Bandeau « Bienvenue à X » quand le GPS détecte une nouvelle commune.
+  /// Jamais pour la commune d'origine (la première détectée), ni au premier
+  /// lancement, ni deux fois la même commune dans la semaine.
+  Future<void> _maybeAnnounceArrival(SearchArea? cur, SearchArea next) async {
+    try {
+      if (!next.fromGps) return;
+      final prefs = await SharedPreferences.getInstance();
+      final home = prefs.getString(_prefHome);
+      if (home == null) {
+        await prefs.setString(_prefHome, next.nom);
+        return;
+      }
+      // Retour de ville choisie à la main → GPS : pas un déplacement.
+      if (cur == null || !cur.fromGps) return;
+      if (_fold(cur.nom) == _fold(next.nom)) return;
+      if (_fold(home) == _fold(next.nom)) return;
+      final key = _fold(next.nom);
+      final seen = <String, dynamic>{};
+      try {
+        seen.addAll(
+            jsonDecode(prefs.getString(_prefSeen) ?? '{}') as Map<String, dynamic>,);
+      } catch (_) {}
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final last = seen[key];
+      if (last is int &&
+          now - last < _arrivalCooldown.inMilliseconds) {
+        return;
+      }
+      if (await _placesCount(next.nom) < _arrivalMinPlaces) return;
+      if (_forced || state?.nom != next.nom) return;
+      seen[key] = now;
+      await prefs.setString(_prefSeen, jsonEncode(seen));
+      _ref.read(cityArrivalProvider.notifier).state = next.nom;
+    } catch (_) {}
+  }
+
+  /// Nombre de restos de la commune (compte seul, aucune ligne lue).
+  static Future<int> _placesCount(String ville) async {
+    final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
+    dio.interceptors.add(SupabaseInterceptor());
+    final r = await dio.get<dynamic>(
+      'etablissements',
+      queryParameters: {
+        'select': 'id',
+        'is_active': 'eq.true',
+        'ville': 'ilike.$ville',
+        'limit': '1',
+      },
+      options: Options(headers: {'Prefer': 'count=exact'}),
+    );
+    final range = r.headers.value('content-range') ?? '';
+    return int.tryParse(range.split('/').last) ?? 0;
+  }
+
   /// « Besançon » détectée par le GPS doit s'appeler comme le hub
   /// (« Besancon ») : c'est ce nom qui est écrit sur les fiches en base.
   static String _canonicalName(String commune, String hub) =>
@@ -293,6 +361,10 @@ final searchAreaProvider =
     StateNotifierProvider<SearchAreaNotifier, SearchArea?>(
   (ref) => SearchAreaNotifier(ref),
 );
+
+/// Commune où l'utilisateur vient d'arriver (GPS) : affiche le bandeau
+/// « Bienvenue à X » à l'accueil tant qu'il n'est pas fermé (remis à null).
+final cityArrivalProvider = StateProvider<String?>((ref) => null);
 
 /// Nom de la commune interrogée par Food / Night / Culture. Retombe sur la
 /// ville choisie si la zone n'est pas encore connue ou si la ville a été

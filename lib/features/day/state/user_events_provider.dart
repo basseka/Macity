@@ -82,6 +82,7 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
   Future<void> addEvent(
     UserEvent event, {
     String? establishmentId,
+    ({double lat, double lng})? authorPosition,
   }) async {
     // 1. Upload de la photo si présente
     String? photoUrl;
@@ -102,6 +103,7 @@ class UserEventsNotifier extends StateNotifier<List<UserEvent>> {
       await _supabase.insertEvent(
         eventWithUrl,
         establishmentId: establishmentId,
+        authorPosition: authorPosition,
       );
       debugPrint('[UserEvents] insert Supabase OK');
     } catch (e) {

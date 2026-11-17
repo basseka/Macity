@@ -7809,6 +7809,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible d\'ouvrir la fiche du partenaire'**
   String get mapPartnerLoadError;
+
+  /// Bandeau d'accueil quand le GPS détecte une nouvelle commune
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue à {city} !'**
+  String cityArrivalTitle(String city);
+
+  /// No description provided for @cityArrivalBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Regarde les bons plans autour de toi'**
+  String get cityArrivalBody;
+
+  /// No description provided for @cePostalCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code postal du lieu'**
+  String get cePostalCode;
 }
 
 class _AppLocalizationsDelegate

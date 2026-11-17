@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/core/theme/design_tokens.dart';
+import 'package:pulz_app/features/day/data/author_position.dart';
 import 'package:pulz_app/features/day/data/publication_service.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
@@ -120,6 +121,15 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
         }
       }
       final payload = event.toSupabaseJson(userId: userId);
+      // Position de l'auteur : le webhook recopie ce payload tel quel.
+      AuthorPosition.addTo(
+        payload,
+        await AuthorPosition.resolve(
+          adresse: event.lieuAdresse,
+          codePostal: event.codePostal,
+          pays: event.pays,
+        ),
+      );
       final opened = await _service.checkout(
         payload: payload,
         tier: _tier,

@@ -4272,4 +4272,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapPartnerLoadError => 'Couldn\'t open this partner\'s page';
+
+  @override
+  String cityArrivalTitle(String city) {
+    return 'Welcome to $city!';
+  }
+
+  @override
+  String get cityArrivalBody => 'Check out the best picks around you';
+
+  @override
+  String get cePostalCode => 'Venue postcode';
 }

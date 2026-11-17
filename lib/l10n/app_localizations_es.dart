@@ -4296,4 +4296,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get mapPartnerLoadError => 'No se pudo abrir la ficha del socio';
+
+  @override
+  String cityArrivalTitle(String city) {
+    return '¡Bienvenido a $city!';
+  }
+
+  @override
+  String get cityArrivalBody => 'Mira los mejores planes a tu alrededor';
+
+  @override
+  String get cePostalCode => 'Código postal del lugar';
 }

@@ -30,6 +30,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
 
   late final TextEditingController _titreController;
   late final TextEditingController _adresseController;
+  late final TextEditingController _cpController;
   late final TextEditingController _prixController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _billetterieController;
@@ -40,6 +41,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
     super.initState();
     _titreController = TextEditingController();
     _adresseController = TextEditingController();
+    _cpController = TextEditingController();
     _prixController = TextEditingController();
     _descriptionController = TextEditingController();
     _billetterieController = TextEditingController();
@@ -49,6 +51,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
   void dispose() {
     _titreController.dispose();
     _adresseController.dispose();
+    _cpController.dispose();
     _prixController.dispose();
     _descriptionController.dispose();
     _billetterieController.dispose();
@@ -67,6 +70,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
       _initialized = true;
       _titreController.text = state.titre;
       _adresseController.text = state.lieuAdresse;
+      _cpController.text = state.codePostal;
       _prixController.text = state.prix;
       _descriptionController.text = state.descriptionCourte;
       _billetterieController.text = state.lienBilletterie;
@@ -79,6 +83,7 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
       if (prev != null && prev.prefillRevision != next.prefillRevision) {
         _titreController.text = next.titre;
         _adresseController.text = next.lieuAdresse;
+        _cpController.text = next.codePostal;
         _prixController.text = next.prix;
         _descriptionController.text = next.descriptionCourte;
         _billetterieController.text = next.lienBilletterie;
@@ -268,6 +273,20 @@ class _StepEssentialsState extends ConsumerState<StepEssentials> {
             decoration: _input(context.l10n.ceAddress),
             style: TextStyle(fontSize: 13, color: AppColors.text),
             onChanged: notifier.updateLieuAdresse,
+          ),
+          const SizedBox(height: 8),
+          // Code postal : place l'event pour les À la une / Top visibles
+          // jusqu'à 80 km (géocodage de l'adresse à la publication).
+          TextFormField(
+            controller: _cpController,
+            decoration: _input(context.l10n.cePostalCode),
+            style: TextStyle(fontSize: 13, color: AppColors.text),
+            keyboardType: TextInputType.number,
+            maxLength: 5,
+            buildCounter: (_, {required currentLength,
+                    required isFocused, maxLength,}) =>
+                null,
+            onChanged: notifier.updateCodePostal,
           ),
           const SizedBox(height: 8),
           Row(

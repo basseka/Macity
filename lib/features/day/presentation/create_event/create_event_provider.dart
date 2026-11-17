@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pulz_app/core/services/activity_service.dart';
 import 'package:pulz_app/core/utils/city_hub_resolver.dart';
+import 'package:pulz_app/features/day/data/author_position.dart';
 import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/create_event/create_event_state.dart';
@@ -133,6 +134,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       lieuType: e.lieuType.isNotEmpty ? e.lieuType : null,
       lieuNom: e.lieuNom.isNotEmpty ? e.lieuNom : null,
       lieuAdresse: e.lieuAdresse,
+      codePostal: e.codePostal,
       ville: e.ville,
       pays: e.pays,
       estGratuit: e.estGratuit,
@@ -229,6 +231,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
       heureFin: parseTime(data['heure_fin']),
       lieuNom: str(data['lieu_nom']),
       lieuAdresse: str(data['lieu_adresse']) ?? '',
+      codePostal: str(data['code_postal']) ?? state.codePostal,
       ville: str(data['ville']) != null
           ? CityHubResolver.resolveHub(
               str(data['ville']),
@@ -309,6 +312,10 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
 
   void updateLieuAdresse(String value) {
     state = state.copyWith(lieuAdresse: value, clearError: true);
+  }
+
+  void updateCodePostal(String value) {
+    state = state.copyWith(codePostal: value.trim(), clearError: true);
   }
 
   void updateVille(String value) {
@@ -533,9 +540,15 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
           establishmentId = proState.profile!.id;
         }
 
-        await _ref
-            .read(userEventsProvider.notifier)
-            .addEvent(event, establishmentId: establishmentId);
+        await _ref.read(userEventsProvider.notifier).addEvent(
+              event,
+              establishmentId: establishmentId,
+              authorPosition: await AuthorPosition.resolve(
+                adresse: event.lieuAdresse,
+                codePostal: event.codePostal,
+                pays: event.pays,
+              ),
+            );
 
         ActivityService.instance.eventCreated(
           eventId: event.id,
@@ -649,6 +662,7 @@ class CreateEventNotifier extends StateNotifier<CreateEventState> {
         heure: timeStr,
         lieuNom: s.lieuNom ?? '',
         lieuAdresse: s.lieuAdresse.trim(),
+        codePostal: s.codePostal.trim(),
         photoPath: s.photoPath,
         photoUrl: photoUrl,
         videoUrl: uploadedVideoUrl ?? s.videoUrl,

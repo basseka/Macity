@@ -5,6 +5,7 @@ import 'package:pulz_app/core/network/dio_client.dart';
 import 'package:pulz_app/core/network/supabase_interceptor.dart';
 import 'package:pulz_app/features/city/domain/city_aliases.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 
 String _today() {
@@ -70,6 +71,78 @@ Future<List<UserEvent>> _fetchByPriority(String city, String priority, int limit
     debugPrint('[BoostedEvents] error fetching $priority: $e');
     return [];
   }
+}
+
+/// Events boostés à moins de [radiusKm] du point (RPC `boosted_events_near`,
+/// positions calculées en base depuis l'adresse ou la ville de l'event).
+/// Liste vide si la RPC n'existe pas encore ou échoue : le filtre par ville
+/// prend alors le relais seul.
+Future<List<UserEvent>> _fetchNear(
+  double lat,
+  double lng,
+  int radiusKm,
+  String priority,
+  int limit,
+) async {
+  try {
+    final dio = DioClient.withBaseUrl(ApiConstants.supabaseRestUrl);
+    dio.interceptors.add(SupabaseInterceptor());
+    final response = await dio.post('rpc/boosted_events_near', data: {
+      'p_lat': lat,
+      'p_lng': lng,
+      'p_radius_km': radiusKm,
+      'p_priority': priority,
+      'p_today': _today(),
+      'p_limit': limit,
+    },);
+    final data = response.data as List;
+    return data
+        .map((e) => UserEvent.fromSupabaseJson(e as Map<String, dynamic>))
+        .toList();
+  } catch (e) {
+    debugPrint('[BoostedEvents] near $priority failed: $e');
+    return [];
+  }
+}
+
+/// Centre des recherches par distance : position GPS ou commune choisie,
+/// arrondie à ~5 km pour ne pas recharger les carrousels à chaque pas.
+final _boostCenterProvider = Provider<({double lat, double lng})?>((ref) {
+  final area = ref.watch(searchAreaProvider);
+  if (area == null) return null;
+  double r(double v) => (v * 20).roundToDouble() / 20;
+  return (lat: r(area.lat), lng: r(area.lng));
+});
+
+/// Rayon (km) des carrousels À la une / Top, `app_config.boosted_radius_km`.
+/// 80 km si la clé manque ; 0 désactive la recherche par distance.
+final _boostRadiusProvider = FutureProvider<int>(
+  (ref) => _getConfigInt('boosted_radius_km', 80),
+);
+
+/// Events d'une priorité : ceux de la ville (et de sa métropole) + ceux à
+/// moins de `app_config.boosted_radius_km` (80 km par défaut) de
+/// l'utilisateur, sans doublon, triés par date.
+Future<List<UserEvent>> _fetchBoosted(
+  Ref ref,
+  String city,
+  String priority,
+  int max,
+) async {
+  final center = ref.watch(_boostCenterProvider);
+  final radius = await ref.watch(_boostRadiusProvider.future);
+  final results = await Future.wait([
+    _fetchByPriority(city, priority, 0),
+    if (center != null && radius > 0)
+      _fetchNear(center.lat, center.lng, radius, priority, 0),
+  ]);
+  final seen = <String>{};
+  final merged = [
+    for (final list in results)
+      for (final e in list)
+        if (seen.add(e.id)) e,
+  ]..sort((a, b) => a.date.compareTo(b.date));
+  return max > 0 && merged.length > max ? merged.sublist(0, max) : merged;
 }
 
 // ── Admin-pinned events merge ─────────────────────────────────────────
@@ -234,7 +307,7 @@ final boostedEventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final max = await ref.watch(boostCapProvider('boosted_p1_max').future);
   final results = await Future.wait([
-    _fetchByPriority(city, 'P1', max),
+    _fetchBoosted(ref, city, 'P1', max),
     _fetchAdminPinnedEvents('featured', city),
   ]);
   final p1 = results[0];
@@ -250,7 +323,7 @@ final boostedP2EventsProvider = FutureProvider<List<UserEvent>>((ref) async {
   final city = ref.watch(selectedCityProvider);
   final max = await ref.watch(boostCapProvider('boosted_p2_max').future);
   final results = await Future.wait([
-    _fetchByPriority(city, 'P2', max),
+    _fetchBoosted(ref, city, 'P2', max),
     _fetchAdminPinnedEvents('top', city),
   ]);
   final p2 = results[0];

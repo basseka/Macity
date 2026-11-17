@@ -1284,5 +1284,8 @@
   "tqStartAt": "Start: {lieu}",
   "tqGoThere": "Go there",
   "tqMinutes": "{n} min",
-  "mapPartnerLoadError": "Couldn't open this partner's page"
+  "mapPartnerLoadError": "Couldn't open this partner's page",
+  "cityArrivalTitle": "Welcome to {city}!",
+  "cityArrivalBody": "Check out the best picks around you",
+  "cePostalCode": "Venue postcode"
 }

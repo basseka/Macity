@@ -2112,5 +2112,14 @@
       }
     }
   },
-  "mapPartnerLoadError": "Impossible d'ouvrir la fiche du partenaire"
+  "mapPartnerLoadError": "Impossible d'ouvrir la fiche du partenaire",
+  "cityArrivalTitle": "Bienvenue à {city} !",
+  "@cityArrivalTitle": {
+    "description": "Bandeau d'accueil quand le GPS détecte une nouvelle commune",
+    "placeholders": {
+      "city": {"type": "String"}
+    }
+  },
+  "cityArrivalBody": "Regarde les bons plans autour de toi",
+  "cePostalCode": "Code postal du lieu"
 }

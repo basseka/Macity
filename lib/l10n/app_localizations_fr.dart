@@ -4314,4 +4314,15 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get mapPartnerLoadError =>
       'Impossible d\'ouvrir la fiche du partenaire';
+
+  @override
+  String cityArrivalTitle(String city) {
+    return 'Bienvenue à $city !';
+  }
+
+  @override
+  String get cityArrivalBody => 'Regarde les bons plans autour de toi';
+
+  @override
+  String get cePostalCode => 'Code postal du lieu';
 }

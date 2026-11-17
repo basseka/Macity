@@ -11,6 +11,8 @@ class UserEvent {
   final String heure;
   final String lieuNom;
   final String lieuAdresse;
+  /// Code postal du lieu (5 chiffres en France), saisi dans le formulaire.
+  final String codePostal;
   final String? photoPath;
   final String? photoUrl;
   final String ville;
@@ -69,6 +71,7 @@ class UserEvent {
     required this.heure,
     this.lieuNom = '',
     this.lieuAdresse = '',
+    this.codePostal = '',
     this.photoPath,
     this.photoUrl,
     required this.ville,
@@ -116,6 +119,7 @@ class UserEvent {
     String? heure,
     String? lieuNom,
     String? lieuAdresse,
+    String? codePostal,
     String? photoPath,
     String? photoUrl,
     String? ville,
@@ -162,6 +166,7 @@ class UserEvent {
       heure: heure ?? this.heure,
       lieuNom: lieuNom ?? this.lieuNom,
       lieuAdresse: lieuAdresse ?? this.lieuAdresse,
+      codePostal: codePostal ?? this.codePostal,
       photoPath: photoPath ?? this.photoPath,
       photoUrl: photoUrl ?? this.photoUrl,
       ville: ville ?? this.ville,
@@ -214,6 +219,7 @@ class UserEvent {
         'heure': heure,
         'lieuNom': lieuNom,
         'lieuAdresse': lieuAdresse,
+        'codePostal': codePostal,
         'photoPath': photoPath,
         'photoUrl': photoUrl,
         'ville': ville,
@@ -261,6 +267,7 @@ class UserEvent {
         heure: json['heure'] as String,
         lieuNom: json['lieuNom'] as String? ?? '',
         lieuAdresse: json['lieuAdresse'] as String? ?? '',
+        codePostal: json['codePostal'] as String? ?? '',
         photoPath: json['photoPath'] as String?,
         photoUrl: json['photoUrl'] as String?,
         ville: json['ville'] as String,
@@ -325,6 +332,7 @@ class UserEvent {
     };
 
     // Nouveaux champs — inclus uniquement si non-default
+    if (codePostal.isNotEmpty) json['code_postal'] = codePostal;
     if (format.isNotEmpty) json['format'] = format;
     if (descriptionCourte.isNotEmpty) json['description_courte'] = descriptionCourte;
     if (dateFin.isNotEmpty) json['date_fin'] = dateFin;
@@ -369,6 +377,7 @@ class UserEvent {
         heure: json['heure'] as String? ?? '',
         lieuNom: json['lieu_nom'] as String? ?? '',
         lieuAdresse: json['lieu_adresse'] as String? ?? '',
+        codePostal: json['code_postal'] as String? ?? '',
         photoUrl: json['photo_url'] as String?,
         ville: json['ville'] as String? ?? '',
         lienBilletterie: json['lien_billetterie'] as String? ?? '',

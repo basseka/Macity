@@ -5,6 +5,7 @@ import 'package:pulz_app/core/l10n/locale_provider.dart';
 import 'package:pulz_app/core/widgets/account_menu.dart';
 import 'package:pulz_app/core/widgets/home_quick_pills.dart';
 import 'package:pulz_app/features/city/presentation/city_picker_bottom_sheet.dart';
+import 'package:pulz_app/features/city/presentation/widgets/city_arrival_banner.dart';
 import 'package:pulz_app/features/city/state/search_area_provider.dart';
 import 'package:pulz_app/features/onboarding/state/onboarding_provider.dart';
 import 'package:pulz_app/features/private_events/presentation/widgets/home_private_buttons.dart';
@@ -43,6 +44,7 @@ class HomeHeaderBand extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _ProfileRow(),
+          const CityArrivalBanner(),
           const SizedBox(height: 9),
           _SearchField(
             onSearchTap: onSearchTap,

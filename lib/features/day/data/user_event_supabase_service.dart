@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:pulz_app/features/day/data/author_position.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:video_compress/video_compress.dart';
@@ -177,14 +178,29 @@ class UserEventSupabaseService {
   Future<void> insertEvent(
     UserEvent event, {
     String? establishmentId,
+    ({double lat, double lng})? authorPosition,
   }) async {
     final pro = await _proAuth();
     final userId = pro.userId ?? await UserIdentityService.getUserId();
-    await _restDio.post(
-      'user_events',
-      data: event.toSupabaseJson(userId: userId),
-      options: Options(headers: _writeHeaders(pro.token, prefer: 'return=minimal')),
-    );
+    final data = event.toSupabaseJson(userId: userId);
+    // Position du lieu (géocodage adresse + code postal, sinon GPS de
+    // l'auteur) : sinon la base placerait l'event au centre de sa ville hub.
+    final withPosition = AuthorPosition.addTo(data, authorPosition);
+    final options =
+        Options(headers: _writeHeaders(pro.token, prefer: 'return=minimal'));
+    try {
+      await _restDio.post('user_events', data: data, options: options);
+    } on DioException catch (e) {
+      // Colonnes absentes (migration pas encore appliquée) : on publie
+      // quand même, sans position ni code postal.
+      final optional = withPosition || data.containsKey('code_postal');
+      if (!optional || e.response?.statusCode != 400) rethrow;
+      data
+        ..remove('latitude')
+        ..remove('longitude')
+        ..remove('code_postal');
+      await _restDio.post('user_events', data: data, options: options);
+    }
 
     if (establishmentId != null) {
       // Skip si pas de date -> establishment_events a un starts_at NOT NULL
@@ -343,12 +359,30 @@ class UserEventSupabaseService {
   Future<void> updateEvent(UserEvent event) async {
     final pro = await _proAuth();
     final userId = pro.userId ?? await UserIdentityService.getUserId();
-    await _restDio.patch(
-      'user_events',
-      queryParameters: {'id': 'eq.${event.id}'},
-      data: event.toSupabaseJson(userId: userId),
-      options: Options(headers: _writeHeaders(pro.token, prefer: 'return=minimal')),
-    );
+    final data = event.toSupabaseJson(userId: userId);
+    final options =
+        Options(headers: _writeHeaders(pro.token, prefer: 'return=minimal'));
+    try {
+      await _restDio.patch(
+        'user_events',
+        queryParameters: {'id': 'eq.${event.id}'},
+        data: data,
+        options: options,
+      );
+    } on DioException catch (e) {
+      // Colonne code_postal absente (migration pas encore appliquée).
+      if (!data.containsKey('code_postal') ||
+          e.response?.statusCode != 400) {
+        rethrow;
+      }
+      data.remove('code_postal');
+      await _restDio.patch(
+        'user_events',
+        queryParameters: {'id': 'eq.${event.id}'},
+        data: data,
+        options: options,
+      );
+    }
   }
 
   /// Supprime un événement par son id.

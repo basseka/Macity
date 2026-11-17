@@ -1284,5 +1284,8 @@
   "tqStartAt": "Salida: {lieu}",
   "tqGoThere": "Ir",
   "tqMinutes": "{n} min",
-  "mapPartnerLoadError": "No se pudo abrir la ficha del socio"
+  "mapPartnerLoadError": "No se pudo abrir la ficha del socio",
+  "cityArrivalTitle": "¡Bienvenido a {city}!",
+  "cityArrivalBody": "Mira los mejores planes a tu alrededor",
+  "cePostalCode": "Código postal del lugar"
 }
