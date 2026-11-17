@@ -1,0 +1,16 @@
+MaCity, Ton événement à la une (80 km), voix off française, 50,7 s
+Voix : edge-tts fr-FR-HenriNeural (+8 %). Calage : timeline.py -> voix/cues.json -> alaune.html. Son : audio.py.
+
+Nouveau sur MaCity : ton événement, à la une.
+Vu par tous ceux qui sont autour, pas seulement dans ta ville.
+Exemple : tu organises une soirée à Arbonne.
+Elle s'affiche en tête de l'appli, pour tous ceux qui sont à moins de quatre-vingts kilomètres.
+Biarritz, Bayonne, Hossegor, Dax : habitants, voisins et gens de passage la voient.
+Avant, seuls les gens réglés sur ta ville voyaient ton événement.
+Maintenant, tout le monde autour le voit, là où il se trouve vraiment.
+Comment ça marche ?
+Un : tu publies ton événement, avec l'adresse et le code postal.
+Deux : MaCity le place sur la carte.
+Trois : il passe en tête, dans À la une ou Top, jusqu'à quatre-vingts kilomètres.
+C'est fait pour tous les organisateurs : les communes et les villages, les bars et les clubs, les zones touristiques, et les associations.
+Mets ton événement à la une. MaCity : gratuit sur iPhone et Android.
