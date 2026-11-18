@@ -27,12 +27,16 @@ class AuthorPosition {
     String codePostal = '',
     String pays = 'France',
   }) async {
+    var cp = codePostal.trim();
+    if (!_cpRe.hasMatch(cp)) cp = _cpInText.firstMatch(adresse)?.group(1) ?? '';
     if (pays == 'France') {
-      var cp = codePostal.trim();
-      if (!_cpRe.hasMatch(cp)) cp = _cpInText.firstMatch(adresse)?.group(1) ?? '';
       final pos = await _geocode(adresse.trim(), cp);
       if (pos != null) return pos;
     }
+    // Code postal saisi mais introuvable en France (Barcelone 08001, Genève
+    // 1204, Monaco 98000) : la base place l'event sur sa ville. Le GPS de
+    // l'auteur, qui peut publier d'ailleurs, ne sert qu'en l'absence de code.
+    if (cp.isNotEmpty || codePostal.trim().isNotEmpty) return null;
     return _gps();
   }
 
@@ -61,7 +65,11 @@ class AuthorPosition {
       }
       if (cp.isNotEmpty) {
         final hit = await _search({'q': cp, 'type': 'municipality'});
-        if (hit != null) return (lat: hit.$1, lng: hit.$2);
+        // Recherche approchée : 08001 (Barcelone) ne doit pas tomber sur
+        // une commune des Ardennes.
+        if (hit != null && hit.$3['postcode'] == cp) {
+          return (lat: hit.$1, lng: hit.$2);
+        }
       }
     } catch (_) {}
     return null;

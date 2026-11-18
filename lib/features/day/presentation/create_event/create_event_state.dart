@@ -308,9 +308,10 @@ class CreateEventState {
     if (heureDebut == null) return 'L\'heure de début est requise';
     if (lieuAdresse.trim().isEmpty) return 'Adresse du lieu requise';
     // Code postal : sert à placer l'event pour la recherche par distance
-    // (À la une / Top visibles à 80 km). Obligatoire en France.
-    if (pays == 'France' && !RegExp(r'^\d{5}$').hasMatch(codePostal.trim())) {
-      return 'Code postal du lieu requis (5 chiffres)';
+    // (À la une / Top visibles à 80 km). 4 chiffres admis : Genève (le
+    // champ pays reste à « France » pour toutes les villes).
+    if (!RegExp(r'^\d{4,5}$').hasMatch(codePostal.trim())) {
+      return 'Code postal du lieu requis';
     }
     final url = lienBilletterie.trim();
     if (url.isNotEmpty && !url.startsWith('http://') && !url.startsWith('https://')) {
