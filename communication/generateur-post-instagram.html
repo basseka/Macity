@@ -28,6 +28,9 @@
     color: var(--text); border-radius: 8px; padding: 8px 10px; font: inherit;
   }
   textarea { resize: vertical; min-height: 52px; }
+  /* Menu déroulant lisible : thème sombre natif + fond plein sur les options. */
+  :root { color-scheme: dark; }
+  select option, select optgroup { background: #100d18; color: var(--text); }
   input[type=range] { width: 100%; }
   .ligne { display: flex; gap: 10px; }
   .ligne > * { flex: 1; }

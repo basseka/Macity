@@ -1,0 +1,75 @@
+Objet : MaCity x [Prestataire] : branchement de l'agent Instagram (interface et format)
+
+Bonjour [Prénom],
+
+Merci pour ta proposition d'agent Instagram. Voici comment on va s'interfacer. Tout est détaillé dans le fichier joint (interface-agent-instagram.html, à ouvrir dans un navigateur).
+
+1. LE PRINCIPE
+Tu n'as pas d'accès direct à notre base. Tu envoies les posts à une adresse unique (une API), qui les contrôle puis les range chez nous en attente de validation. C'est nous qui décidons de ce qui est publié dans l'appli.
+
+2. CE QUE JE TE FOURNIS
+- L'adresse de l'API :
+  https://dpqxefmwjfvoysacwgef.supabase.co/functions/v1/ingest-instagram
+- Une clé personnelle, à mettre dans l'en-tête de chaque requête : x-macity-key
+  Je te l'envoie à part, par SMS. Pour commencer, c'est une clé de test : l'API fait tous les contrôles et te répond normalement, mais n'enregistre rien. Tu reçois la vraie clé une fois tes envois de test validés.
+
+3. CE QUE TU DOIS FAIRE
+a) Récupérer la liste des comptes à suivre :
+   GET .../ingest-instagram/sources
+   Tu ne collectes QUE ces comptes. La liste évolue de notre côté : relis-la au moins une fois par jour.
+b) Pour chaque nouveau post de ces comptes, envoyer un POST, un post par requête, en JSON.
+
+Important : on ne veut que des AFFICHES. Des posts photo ou des carrousels d'images, idéalement les affiches de soirées, concerts et événements. Les vidéos et les reels sont refusés par l'API. Si un carrousel contient une vidéo, n'envoie que ses images.
+
+4. LE FORMAT
+{
+  "account": "lvb_toulouse",
+  "post_id": "C9xQ2bLs7Kp",
+  "permalink": "https://www.instagram.com/p/C9xQ2bLs7Kp/",
+  "posted_at": "2026-11-18T21:30:00+01:00",
+  "media_type": "carousel",
+  "media_urls": ["https://scontent.cdninstagram.com/v/.../1.jpg"],
+  "caption": "Texte complet du post",
+  "event": {
+    "title": "Soirée house avec DJ invité",
+    "description": "Soirée house, entrée libre avant minuit.",
+    "starts_at": "2026-11-21T23:00:00+01:00",
+    "ends_at": "2026-11-22T05:00:00+01:00",
+    "horaires": "23h - 5h",
+    "category": "Club & Disco",
+    "venue_name": "La Voile Blanche",
+    "address": "2 Rue Vélane",
+    "postal_code": "31000",
+    "commune": "Toulouse",
+    "price": "Gratuit avant minuit, 10 € après",
+    "ticket_url": "https://shotgun.live/fr/events/..."
+  }
+}
+
+- Obligatoires : account, post_id, permalink, posted_at, media_type (image ou carousel), media_urls (1 à 10 liens d'images du CDN Instagram).
+- Le bloc "event" est à remplir quand l'affiche annonce un événement : c'est là que tu nous apportes le plus de valeur. Seuls title et starts_at y sont obligatoires. Pour category, utilise exactement une des valeurs de la liste dans la doc.
+- Dates au format ISO 8601 avec fuseau horaire.
+- Limites : 1 requête par seconde, 200 posts par jour, images de 10 Mo au plus, posts de moins de 30 jours.
+
+5. LES RÉPONSES DE L'API
+- 201 : reçu (en attente de validation)
+- 200 : déjà reçu, ne pas renvoyer
+- 400 : champ manquant ou invalide, le détail est dans la réponse
+- 401 : clé refusée
+- 403 : compte non autorisé, relire /sources
+- 413 : image trop lourde
+- 429 : trop de requêtes, attendre le délai indiqué dans Retry-After
+
+6. AVANT DE DÉMARRER, PEUX-TU ME CONFIRMER PAR ÉCRIT :
+- ta méthode de collecte (API officielle Instagram Graph ou autre) ;
+- où tourne l'agent, et si tu conserves une copie des données ;
+- si tu sais ne retenir que les affiches et ignorer les photos ordinaires ;
+- la fréquence de collecte et le tarif.
+
+Pour le premier test, on démarre avec quelques comptes de Toulouse. Envoie-moi un message quand tes premiers envois de test passent en 201.
+
+Merci,
+
+Carlos Basseka
+Fondateur de MaCity
+https://macity.app

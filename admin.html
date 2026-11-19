@@ -94,6 +94,10 @@
       border-color: var(--magenta);
     }
     textarea { resize: vertical; min-height: 60px; }
+    /* Listes déroulantes lisibles partout : le menu natif suit le thème sombre,
+       et les options ont un fond plein (sinon texte clair sur fond blanc). */
+    :root { color-scheme: dark; }
+    select option, select optgroup { background: var(--surface); color: var(--text); }
     .row { display: grid; gap: 12px; margin-bottom: 12px; }
     .row.two { grid-template-columns: 1fr 1fr; }
     .row.three { grid-template-columns: 1fr 1fr 1fr; }
@@ -1251,6 +1255,7 @@
           <span class="nav-btn" id="goto-clients-btn">🧾 Clients</span>
           <span class="nav-btn" id="goto-postfree-btn">🎨 Post libre</span>
           <span class="nav-btn" id="goto-discoursnight-btn">🎤 Discours boîtes de nuit</span>
+          <span class="nav-btn" id="goto-igsources-btn">📸 Comptes Insta (agent) <span id="igs-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-appliview-btn">📱 Appli view</span>
           <span class="nav-btn" id="goto-dailysummary-btn">🗓️ Résumé du jour</span>
           <span class="nav-btn" id="goto-citytrack-btn">🗺️ Suivi villes</span>
@@ -2992,7 +2997,7 @@
 
         <!-- Filtres -->
         <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; align-items:center;">
-          <select id="prospect-filter-status" style="padding:8px 12px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:rgba(255,255,255,0.06); color:var(--text,#fff); font-size:13px; cursor:pointer;">
+          <select id="prospect-filter-status" style="padding:8px 12px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:var(--surface-hi); color:var(--text,#fff); font-size:13px; cursor:pointer;">
             <option value="pending_review">En attente de validation</option>
             <option value="sent">Envoyés</option>
             <option value="opened">Ouverts 👁</option>
@@ -3122,6 +3127,69 @@
             </div>
             <p class="helper" style="max-width:380px; margin-top:10px;">Clique un texte sur l'image pour le sélectionner, glisse-le pour le déplacer. La sauvegarde est automatique dans ce navigateur.</p>
           </div>
+        </div>
+      </div>
+
+      <!-- ═══ VUE "COMPTES INSTA (AGENT)" : liste blanche instagram_sources ═══
+           Comptes que le prestataire externe a le droit de collecter (Edge
+           Function ingest-instagram, migration 20261119120000). Affiches
+           uniquement. Les boîtes de nuit des 42 hubs sont préchargées. -->
+      <div id="igsources-view" class="hidden">
+        <h1>📸 Comptes Insta (agent)</h1>
+        <p class="subtitle">
+          Comptes Instagram que l'agent du prestataire a le droit de collecter. Seules les affiches
+          (posts photo ou carrousel d'images) sont acceptées, et chaque post arrive en attente de validation.
+          Un compte absent de cette liste est refusé par la base.
+        </p>
+
+        <div class="banner-card" style="max-width:980px; margin-bottom:22px; border:1px solid var(--magenta);">
+          <div class="banner-field-label">📥 Posts reçus à valider <span id="igi-count" style="color:var(--text-dim); font-weight:400;"></span></div>
+          <p class="helper" style="margin:6px 0 12px;">
+            Affiches envoyées par l'agent. Vérifie et corrige les infos, puis « Valider et publier » : l'événement est créé
+            dans l'agenda de la ville (comme avec « Créer un événement »). Il faut au moins un titre et une date.
+            Une affiche sans événement peut rester en attente ou être rejetée.
+          </p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+            <select id="igi-status" style="width:auto; padding:8px 10px;">
+              <option value="pending">En attente</option>
+              <option value="published">Publiés</option>
+              <option value="rejected">Rejetés</option>
+            </select>
+            <select id="igi-city" style="width:auto; padding:8px 10px;"><option value="">Toutes les villes</option></select>
+            <button type="button" class="banner-save-btn" id="igi-refresh-btn">🔄 Actualiser</button>
+          </div>
+          <div id="igi-list"></div>
+        </div>
+        <div class="banner-card" style="max-width:980px; margin-bottom:22px;">
+          <div class="banner-field-label">✅ Comptes suivis dans la base <span id="igs-count" style="color:var(--text-dim); font-weight:400;"></span></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0 14px;">
+            <input id="igs-add-account" placeholder="@compte ou lien Instagram" style="flex:1 1 200px; padding:8px 10px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:rgba(255,255,255,0.06); color:var(--text,#fff);">
+            <input id="igs-add-city" list="igs-cities" placeholder="Ville (hub)" style="flex:0 1 170px; padding:8px 10px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:rgba(255,255,255,0.06); color:var(--text,#fff);">
+            <datalist id="igs-cities"></datalist>
+            <select id="igs-add-rubrique" style="padding:8px 10px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:var(--surface-hi); color:var(--text,#fff);">
+              <option value="night">Night</option><option value="food">Food</option><option value="culture">Culture</option>
+              <option value="family">Famille</option><option value="day">Journée</option>
+            </select>
+            <input id="igs-add-notes" placeholder="Nom du lieu (optionnel)" style="flex:0 1 180px; padding:8px 10px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:rgba(255,255,255,0.06); color:var(--text,#fff);">
+            <button type="button" class="banner-save-btn" id="igs-add-btn">➕ Ajouter</button>
+          </div>
+          <div id="igs-list" style="overflow-x:auto;"></div>
+        </div>
+
+        <div class="banner-card" style="max-width:980px;">
+          <div class="banner-field-label">🌙 Boîtes de nuit des 42 hubs</div>
+          <p class="helper" style="margin:6px 0 12px;">
+            Compte proposé = celui trouvé lors de la recherche (« probable » = à vérifier). Colonne de droite :
+            corrige ou complète à la main, ta saisie remplace la proposition. Coche les lignes puis envoie-les dans la base.
+            Les comptes déjà présents sont grisés.
+          </p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+            <select id="igc-city" style="padding:8px 10px; border-radius:8px; border:1px solid var(--stroke,#fff2); background:var(--surface-hi); color:var(--text,#fff);"></select>
+            <label style="font-size:13px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="igc-only-account"> Seulement les lignes avec un compte</label>
+            <span style="flex:1;"></span>
+            <button type="button" class="banner-save-btn" id="igc-send-btn">📤 Envoyer dans la base ingest</button>
+          </div>
+          <div id="igc-list" style="overflow-x:auto;"></div>
         </div>
       </div>
 
@@ -4549,6 +4617,8 @@
       dailysummaryView.classList.add("hidden");
       citytrackView.classList.add("hidden");
       crmView.classList.add("hidden");
+      // Défini plus bas (setupIgSources) : lu par id pour éviter la zone morte du const.
+      document.getElementById("igsources-view")?.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -4815,6 +4885,402 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoDiscoursnightBtn.addEventListener("click", showDiscoursnightView);
+
+    // ─── Onglet Comptes Insta (agent) : table instagram_sources ─────────────
+    // Liste blanche lue par l'Edge Function ingest-instagram. Écriture admin
+    // uniquement (RLS authenticated + is_admin_user()).
+    // IGS_CLUBS : [ville hub, club, commune, confiance h/m/f, compte proposé, sûr 1/0]
+    // généré depuis prospection/boites-de-nuit-42-hubs.html (2026-11-19).
+    const IGS_CLUBS = [["Aix-en-Provence","Le Mistral","Aix-en-Provence","h","",0],["Aix-en-Provence","Le Hot Brass","Aix-en-Provence","f","",0],["Aix-en-Provence","Le Set Club","Aix-en-Provence","f","",0],["Amiens","Le Twenty","Amiens","f","",0],["Amiens","Le Rétro","Amiens","f","",0],["Angers","Le Boléro","Angers","m","",0],["Angers","Le Sabbat","Angers","f","",0],["Angers","Le Carpe Diem","Angers","f","",0],["Angers","Le Black Night","Angers","f","",0],["Annecy","Le Kada'Jo","Annecy","m","",0],["Annecy","Le Garage","Annecy","m","",0],["Annecy","Le Happy Days","Annecy","f","",0],["Avignon","Le Bokao's","Avignon","m","",0],["Avignon","Le Cid Café Club","Avignon","f","",0],["Avignon","L'Esclave","Avignon","f","",0],["Bayonne","Le Carré Coast","Biarritz","f","",0],["Bayonne","Le Copa","Bayonne","f","",0],["Bayonne","Le Caveau","Biarritz","f","lecaveau_biarritz",1],["Besançon","Le Shooters","Besançon","f","",0],["Besançon","Le Dock'h","Besançon","f","",0],["Besançon","La Madeleine","Besançon","f","",0],["Blois","L'Atmosphère","Blois","f","",0],["Bordeaux","L'Empire","Bordeaux","m","",0],["Bordeaux","La Plage","Bordeaux (Paludate)","m","",0],["Bordeaux","Iboat (fermé fév. 2026, relance Ublo)","Bordeaux","f","ublo.bordeaux",0],["Bordeaux","Le Monseigneur","Bordeaux","m","",0],["Bordeaux","Le Cercle","Bordeaux","m","",0],["Bordeaux","Theatro","Bordeaux","m","",0],["Bordeaux","Calle Ocho","Bordeaux","m","",0],["Bordeaux","La Dame","Bordeaux","m","",0],["Bordeaux","L'Entrepôt","Mérignac","f","",0],["Bordeaux","Le 4 Sans","Bordeaux","f","",0],["Brest","La Suite","Brest","h","lasuite.club",1],["Brest","Le Nuit de Noces","Brest","f","",0],["Brest","Le Shaker","Brest","f","",0],["Carcassonne","Le Black Bull","Carcassonne","f","",0],["Carcassonne","Le Conti","Carcassonne","f","",0],["Chartres","Le Privilège","Chartres","f","",0],["Chartres","Le Rétro","Lucé","f","",0],["Clermont-Ferrand","Le Phare","Clermont-Ferrand","m","",0],["Clermont-Ferrand","Le Bellevue","Clermont-Ferrand","f","",0],["Clermont-Ferrand","L'Éclipse","Aubière","f","",0],["Colmar","Le Sax","Colmar","f","",0],["Colmar","L'Odyssée","Colmar","f","",0],["Dijon","Le Kiss Club","Dijon","f","",0],["Dijon","L'An-Fer","Dijon","f","",0],["Grenoble","Le Vertigo","Grenoble","m","",0],["Grenoble","L'Ampérage","Grenoble","m","",0],["Grenoble","Le Mark XIII","Grenoble","f","",0],["Grenoble","Le Drak-Art","Grenoble","f","",0],["Le Havre","Le Maximus","Le Havre","f","",0],["Le Mans","Le Mix Club","Le Mans","f","",0],["Lille","Le Magazine Club","Lille","m","",0],["Lille","Le Network","Lille","f","",0],["Lille","The Bridge","Lille","f","",0],["Lyon","Le Sucre","Lyon","h","",0],["Lyon","Le Petit Salon","Lyon","m","",0],["Marseille","Le Spot","Marseille","m","",0],["Marseille","Le Trolleybus","Marseille 7e","m","",0],["Marseille","Le Bazar / La Palmeraie","Marseille 8e","m","",0],["Marseille","Baby Club","Marseille 6e","m","",0],["Marseille","R2 Rooftop","Marseille 2e","m","",0],["Marseille","New Cancan","Marseille 1er","m","",0],["Marseille","Le Pop Club","Marseille 9e","m","popclub.techno",1],["Marseille","Manray","Marseille 1er","f","",0],["Marseille","Le Club (Radisson Blu)","Marseille 7e","f","",0],["Marseille","Bounce Club","Marseille","f","",0],["Metz","L'Opéra Club","Metz","f","",0],["Metz","Le Must","Metz","f","",0],["Montpellier","La Dune Club","La Grande-Motte","h","laduneclub34",1],["Montpellier","Le Rockstore","Montpellier","m","",0],["Montpellier","Nyx Club Odysseum","Montpellier","m","",0],["Montpellier","Le Cargo","Montpellier","m","",0],["Montpellier","Heat Club","près de Montpellier","m","",0],["Montpellier","L'Entrepôt","Lattes","m","",0],["Montpellier","Pulp","Montpellier","f","",0],["Montpellier","Afrodisiac","Montpellier","f","",0],["Montpellier","Le Fizz","Montpellier","f","",0],["Montpellier","Mélomane Club","Montpellier","f","melomane_club",0],["Nancy","La Griffe","Nancy","f","",0],["Nancy","Les Caves","Pulnoy","f","",0],["Nantes","Warehouse","Nantes","h","",0],["Nantes","Macadam","Nantes","h","",0],["Nantes","L'Elephant Club","Saint-Sébastien-sur-Loire","m","",0],["Nantes","Montecito","Nantes","m","",0],["Nice","High Club","Nice","h","highclubnice",0],["Nice","Le Six","Nice","m","",0],["Nice","Nuits Blanches Club","Nice","m","",0],["Nice","Jimmy'z","Monaco","m","jimmyzmontecarlo",0],["Nimes","Mas des Abeilles","Nîmes","m","",0],["Nimes","La Comédie","Nîmes","m","",0],["Nimes","Jive Club","Nîmes","f","jive_club",1],["Paris","La Machine du Moulin Rouge","Paris 18e","h","lamachinedumoulinrouge",0],["Paris","Rex Club","Paris 2e","h","rexclub",0],["Paris","La Nuit","Paris 9e","h","",0],["Paris","Le Palace","Paris 9e","m","",0],["Paris","Bus Palladium","Paris 9e","m","lebuspalladium",1],["Paris","Badaboum","Paris 11e","m","",0],["Paris","Raspoutine","Paris 8e","m","raspoutineparis",0],["Paris","Silencio","Paris 2e","m","",0],["Paris","La Java","Paris 10e","m","",0],["Paris","Glazart","Paris 19e","m","",0],["Reims","Atrium Club","Reims","h","",0],["Reims","Vogue Urban Clubbing","Reims","m","",0],["Reims","Le Curt'n","Reims","m","",0],["Reims","Le Factory","Reims","f","",0],["Rennes","1988 Live Club","Rennes","h","",0],["Rennes","Le Batchi","Rennes","h","",0],["Rennes","La Place","Rennes","m","bar_la_place_rennes",1],["Rennes","L'Espace","Rennes","f","",0],["Rouen","La Suite Étoile","Rouen","m","",0],["Rouen","Le Moulin Rose","Belbeuf","m","lemoulinroseclub",1],["Rouen","Le Chakra","Rouen","f","",0],["Saint-Etienne","Bul Club","Saint-Étienne","m","bul_pub",1],["Saint-Etienne","La Mine","Saint-Étienne","f","",0],["Saint-Etienne","Le Trianon","Saint-Étienne","f","",0],["Strasbourg","Le Rafiot","Strasbourg","h","lerafiot.strasbourg",1],["Strasbourg","Next Club","Strasbourg","m","",0],["Strasbourg","Le Mudd Club","Strasbourg","m","",0],["Toulon","Season Club","Solliès-Pont","m","",0],["Toulon","La Villa Bivona","La Seyne-sur-Mer","f","",0],["Toulouse","L'Étoile","Toulouse","h","etoile_toulouse",1],["Toulouse","O Club","Toulouse","h","",0],["Toulouse","La Voile Blanche","Toulouse","h","lvb_toulouse",1],["Toulouse","Hiboo","Toulouse","h","hiboo.club",1],["Barcelone","Razzmatazz","Barcelone","h","razzmatazzclubs",1],["Barcelone","Opium","Barcelone","h","opiumbarcelona",1],["Barcelone","Pacha","Barcelone","m","pachabarcelonaofficial",0],["Barcelone","Input","Barcelone","m","inputdanceclub",1],["Genève","Bypass","Carouge","f","",0],["Genève","Java Club","Genève","f","javaclub_officiel",1],["Genève","Le Zoo (L'Usine)","Genève","f","",0],["Fort-de-France","Le Cosmopolite","Rivière-Salée","f","",0],["Pointe-à-Pitre","Le Schiva","Le Moule","f","",0],["Pointe-à-Pitre","Le Concept","Gourbeyre","f","",0],["Pointe-à-Pitre","Le Grillo","Petit-Canal","f","",0],["Cayenne","Golden Discothèque","Matoury","m","",0],["Cayenne","Club 106","Cayenne","f","",0],["Saint-Denis","First Night Club","Saint-Denis","m","",0],["Saint-Denis","Mahé Club","Saint-Denis","m","mahe_reunion",1],["Mamoudzou","Le 5/5","Mamoudzou","f","",0]];
+    const igsourcesView = document.getElementById("igsources-view");
+    const gotoIgsourcesBtn = document.getElementById("goto-igsources-btn");
+    (function setupIgSources() {
+      const LS_KEY = "igs_manual_v1";
+      let manual = {};
+      try { manual = JSON.parse(localStorage.getItem(LS_KEY) || "{}") || {}; } catch (_) { manual = {}; }
+      const saveManual = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(manual)); } catch (_) {} };
+      let sources = [];
+
+      // "@Compte", "instagram.com/compte/?hl=fr" -> "compte" (ou "" si invalide)
+      function normAccount(raw) {
+        let s = String(raw || "").trim();
+        const m = s.match(/instagram\.com\/([A-Za-z0-9._]+)/i);
+        if (m) s = m[1];
+        s = s.replace(/^@/, "").replace(/\/+$/, "").toLowerCase();
+        return /^[a-z0-9._]{1,30}$/.test(s) && !["p", "reel", "explore", "stories"].includes(s) ? s : "";
+      }
+      const key = (c) => c[0] + " | " + c[1];
+      const accountOf = (c) => normAccount(manual[key(c)]) || c[4] || "";
+      const inBase = (acc) => sources.some((s) => s.account === acc);
+      const inputStyle = "width:100%; min-width:150px; padding:6px 8px; border-radius:6px; border:1px solid var(--stroke,#fff2); background:rgba(255,255,255,0.06); color:var(--text,#fff);";
+      const cell = "padding:7px 8px; border-bottom:1px solid var(--stroke,#fff1); vertical-align:middle; font-size:13px;";
+
+      const cities = [...new Set(IGS_CLUBS.map((c) => c[0]))].sort((a, b) => a.localeCompare(b, "fr"));
+      document.getElementById("igs-cities").innerHTML = cities.map((v) => `<option value="${escapeHtml(v)}">`).join("");
+      const citySel = document.getElementById("igc-city");
+      citySel.innerHTML = `<option value="">Toutes les villes (${cities.length})</option>` +
+        cities.map((v) => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+
+      async function loadSources() {
+        const { data, error } = await supabase
+          .from("instagram_sources")
+          .select("id, account, city, rubrique, active, notes, created_at")
+          .order("city").order("account");
+        if (error) {
+          document.getElementById("igs-list").innerHTML =
+            `<p style="color:#f87171;">Lecture impossible : ${escapeHtml(error.message)}. La migration 20261119120000_instagram_ingest.sql est-elle appliquée ?</p>`;
+          sources = [];
+        } else {
+          sources = data || [];
+          renderSources();
+        }
+        renderClubs();
+      }
+
+      function renderSources() {
+        document.getElementById("igs-count").textContent = `(${sources.filter((s) => s.active).length} actifs sur ${sources.length})`;
+        const el = document.getElementById("igs-list");
+        if (!sources.length) {
+          el.innerHTML = `<p class="helper">Aucun compte pour l'instant. Ajoute-en un ci-dessus ou envoie des boîtes de nuit depuis la liste du bas.</p>`;
+          return;
+        }
+        el.innerHTML = `<table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="text-align:left; color:var(--text-dim); font-size:12px;"><th style="${cell}">Compte</th><th style="${cell}">Ville</th><th style="${cell}">Rubrique</th><th style="${cell}">Lieu</th><th style="${cell}">Actif</th><th style="${cell}"></th></tr></thead>
+          <tbody>${sources.map((s) => `<tr style="${s.active ? "" : "opacity:.5;"}">
+            <td style="${cell}"><a href="https://www.instagram.com/${encodeURIComponent(s.account)}/" target="_blank" rel="noopener">@${escapeHtml(s.account)}</a></td>
+            <td style="${cell}">${escapeHtml(s.city)}</td>
+            <td style="${cell}">${escapeHtml(s.rubrique)}</td>
+            <td style="${cell}">${escapeHtml(s.notes || "")}</td>
+            <td style="${cell}"><input type="checkbox" data-igs-toggle="${s.id}" ${s.active ? "checked" : ""}></td>
+            <td style="${cell}"><button type="button" data-igs-del="${s.id}" style="background:none; border:1px solid #f8717166; color:#f87171; border-radius:6px; padding:3px 8px; cursor:pointer;">Supprimer</button></td>
+          </tr>`).join("")}</tbody></table>`;
+        el.querySelectorAll("[data-igs-toggle]").forEach((cb) => cb.addEventListener("change", async () => {
+          const { error } = await supabase.from("instagram_sources").update({ active: cb.checked }).eq("id", cb.dataset.igsToggle);
+          if (error) { toast("Erreur : " + error.message, false); cb.checked = !cb.checked; return; }
+          toast(cb.checked ? "Compte réactivé" : "Compte désactivé : l'agent ne peut plus l'envoyer");
+          loadSources();
+        }));
+        el.querySelectorAll("[data-igs-del]").forEach((b) => b.addEventListener("click", async () => {
+          const s = sources.find((x) => String(x.id) === b.dataset.igsDel);
+          if (!s) return;
+          if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "Confirmer ?"; return; }
+          const { error } = await supabase.from("instagram_sources").delete().eq("id", s.id);
+          if (error) { toast("Erreur : " + error.message, false); return; }
+          toast(`@${s.account} supprimé (ses posts reçus aussi)`);
+          loadSources();
+        }));
+      }
+
+      function renderClubs() {
+        const city = citySel.value;
+        const onlyAcc = document.getElementById("igc-only-account").checked;
+        const rows = IGS_CLUBS.filter((c) => (!city || c[0] === city) && (!onlyAcc || accountOf(c)));
+        const conf = { h: ["haute", "#22c55e"], m: ["moyenne", "#f59e0b"], f: ["faible", "#9ca3af"] };
+        document.getElementById("igc-list").innerHTML = `<table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="text-align:left; color:var(--text-dim); font-size:12px;"><th style="${cell}"><input type="checkbox" id="igc-all" title="Tout cocher"></th><th style="${cell}">Ville</th><th style="${cell}">Discothèque</th><th style="${cell}">Compte proposé</th><th style="${cell}">Ajout manuel</th></tr></thead>
+          <tbody>${rows.map((c) => {
+            const acc = accountOf(c), done = acc && inBase(acc);
+            const [cl, cc] = conf[c[3]] || conf.f;
+            return `<tr style="${done ? "opacity:.45;" : ""}">
+              <td style="${cell}"><input type="checkbox" class="igc-pick" data-k="${escapeHtml(key(c))}" ${!acc || done ? "disabled" : ""}></td>
+              <td style="${cell}">${escapeHtml(c[0])}</td>
+              <td style="${cell}"><b>${escapeHtml(c[1])}</b> <span style="font-size:11px; color:${cc};">${cl}</span><div style="font-size:11px; color:var(--text-dim);">${escapeHtml(c[2])}</div></td>
+              <td style="${cell}">${c[4] ? `<a href="https://www.instagram.com/${encodeURIComponent(c[4])}/" target="_blank" rel="noopener">@${escapeHtml(c[4])}</a>${c[5] ? "" : ` <span style="font-size:11px; color:#f59e0b;">probable</span>`}` : `<a href="https://www.google.com/search?q=${encodeURIComponent(`site:instagram.com "${c[1]}" ${c[2]}`)}" target="_blank" rel="noopener" style="color:var(--text-dim);">non trouvé, rechercher</a>`}${done ? `<div style="font-size:11px; color:#22c55e;">déjà dans la base</div>` : ""}</td>
+              <td style="${cell}"><input class="igc-man" data-k="${escapeHtml(key(c))}" value="${escapeHtml(manual[key(c)] || "")}" placeholder="@compte ou lien" style="${inputStyle}"></td>
+            </tr>`;
+          }).join("")}</tbody></table>`;
+        const list = document.getElementById("igc-list");
+        list.querySelectorAll(".igc-man").forEach((inp) => inp.addEventListener("change", () => {
+          const v = inp.value.trim();
+          if (v && !normAccount(v)) { toast("Compte Instagram invalide : " + v, false); return; }
+          if (v) manual[inp.dataset.k] = v; else delete manual[inp.dataset.k];
+          saveManual();
+          renderClubs();
+        }));
+        document.getElementById("igc-all").addEventListener("change", (e) => {
+          list.querySelectorAll(".igc-pick:not(:disabled)").forEach((cb) => { cb.checked = e.target.checked; });
+        });
+      }
+
+      async function upsertSources(rows) {
+        // ignoreDuplicates : un compte déjà présent n'est ni écrasé ni réactivé.
+        return await supabase.from("instagram_sources").upsert(rows, { onConflict: "account", ignoreDuplicates: true });
+      }
+
+      document.getElementById("igc-send-btn").addEventListener("click", async () => {
+        const picked = [...document.querySelectorAll("#igc-list .igc-pick:checked")].map((cb) => cb.dataset.k);
+        if (!picked.length) { toast("Coche au moins une ligne avec un compte", false); return; }
+        const byAcc = new Map();
+        for (const k of picked) {
+          const c = IGS_CLUBS.find((x) => key(x) === k);
+          const acc = c && accountOf(c);
+          if (acc && !inBase(acc)) byAcc.set(acc, { account: acc, city: c[0], rubrique: "night", notes: c[1] });
+        }
+        if (!byAcc.size) { toast("Ces comptes sont déjà dans la base"); return; }
+        const btn = document.getElementById("igc-send-btn");
+        btn.disabled = true;
+        const { error } = await upsertSources([...byAcc.values()]);
+        btn.disabled = false;
+        if (error) { toast("Erreur : " + error.message, false); return; }
+        toast(`${byAcc.size} compte(s) envoyé(s) dans la base ingest`);
+        loadSources();
+      });
+
+      document.getElementById("igs-add-btn").addEventListener("click", async () => {
+        const acc = normAccount(document.getElementById("igs-add-account").value);
+        const city = document.getElementById("igs-add-city").value.trim();
+        if (!acc) { toast("Compte Instagram invalide", false); return; }
+        if (!city) { toast("Indique la ville (hub)", false); return; }
+        if (inBase(acc)) { toast(`@${acc} est déjà dans la base`, false); return; }
+        const { error } = await upsertSources([{
+          account: acc, city,
+          rubrique: document.getElementById("igs-add-rubrique").value,
+          notes: document.getElementById("igs-add-notes").value.trim() || null,
+        }]);
+        if (error) { toast("Erreur : " + error.message, false); return; }
+        toast(`@${acc} ajouté`);
+        ["igs-add-account", "igs-add-notes"].forEach((id) => { document.getElementById(id).value = ""; });
+        loadSources();
+      });
+
+      citySel.addEventListener("change", renderClubs);
+      document.getElementById("igc-only-account").addEventListener("change", renderClubs);
+
+      window.showIgsourcesView = function () {
+        _hideAllViews();
+        igsourcesView.classList.remove("hidden");
+        gotoIgsourcesBtn.classList.add("active");
+        loadSources();
+        window.igsLoadInbox?.();
+        window.scrollTo({ top: 0, behavior: "instant" });
+      };
+      gotoIgsourcesBtn.addEventListener("click", window.showIgsourcesView);
+    })();
+    // ─── Comptes Insta (agent) : validation des posts reçus ─────────────────
+    // instagram_inbox (status pending) -> scraped_events, même enregistrement
+    // que le formulaire « Créer un événement » (upsert sur identifiant).
+    (function setupIgInbox() {
+      const CATS = ["Concerts", "Spectacle", "Théâtre", "One-man-show", "Danse", "Comédie musicale", "Opéra", "Humour",
+        "Cinéma", "Salon/expo", "Soirée", "Famille", "Food", "Sport", "Bar", "Club & Disco"];
+      const STATUS_LABEL = { pending: "En attente", published: "Publié", rejected: "Rejeté", approved: "Validé" };
+      let posts = [];
+      const fld = "width:100%; padding:7px 9px; font-size:13px;";
+
+      async function refreshBadge() {
+        const { count } = await supabase.from("instagram_inbox").select("id", { count: "exact", head: true }).eq("status", "pending");
+        const b = document.getElementById("igs-pending-badge");
+        if (!b) return;
+        if (count) { b.textContent = count; b.style.display = "inline-block"; } else { b.style.display = "none"; }
+      }
+
+      // "2026-11-21T23:00:00+01:00" -> date et heure telles qu'envoyées (pas de conversion UTC)
+      const datePart = (iso) => (typeof iso === "string" && /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 10) : "");
+      const timePart = (iso) => {
+        const m = typeof iso === "string" && iso.match(/T(\d{2}):(\d{2})/);
+        return m ? `${m[1]}h${m[2] === "00" ? "" : m[2]}` : "";
+      };
+      function defaults(p) {
+        const ev = p.event || {};
+        const start = datePart(ev.starts_at);
+        let end = datePart(ev.ends_at) || start;
+        // Soirée qui finit au petit matin : on garde la date du début (comme le formulaire admin).
+        const endHour = Number((String(ev.ends_at || "").match(/T(\d{2})/) || [])[1] || 99);
+        if (end && start && end > start && endHour < 8) end = start;
+        const price = ev.price || "";
+        return {
+          titre: ev.title || "",
+          descriptif_court: ev.description || "",
+          date_debut: start,
+          date_fin: end,
+          horaires: ev.horaires || timePart(ev.starts_at),
+          categorie: CATS.includes(ev.category) ? ev.category : (p.rubrique === "night" ? "Club & Disco" : ""),
+          type: ev.type || "",
+          theme: ev.theme || "",
+          lieu_nom: ev.venue_name || p.instagram_sources?.notes || "@" + p.account,
+          adresse: ev.address || "",
+          code_postal: ev.postal_code || "",
+          commune: ev.commune || p.city,
+          gratuit: /^gratuit\b/i.test(price) && !/€/.test(price),
+          tarif: price,
+          billetterie: ev.ticket_url || "",
+        };
+      }
+
+      async function loadInbox() {
+        const status = document.getElementById("igi-status").value;
+        const city = document.getElementById("igi-city").value;
+        let q = supabase.from("instagram_inbox")
+          .select("id, account, post_id, permalink, posted_at, media_type, media_urls, caption, event, city, rubrique, status, reject_reason, received_at, reviewed_at, reviewed_by, instagram_sources(notes)")
+          .eq("status", status)
+          .order(status === "pending" ? "received_at" : "reviewed_at", { ascending: status === "pending" })
+          .limit(100);
+        if (city) q = q.eq("city", city);
+        const { data, error } = await q;
+        const list = document.getElementById("igi-list");
+        if (error) {
+          list.innerHTML = `<p style="color:#f87171;">Lecture impossible : ${escapeHtml(error.message)}</p>`;
+          return;
+        }
+        posts = data || [];
+        // Liste des villes (une fois, depuis les comptes suivis)
+        const citySel = document.getElementById("igi-city");
+        if (citySel.options.length <= 1) {
+          const { data: src } = await supabase.from("instagram_sources").select("city");
+          [...new Set((src || []).map((s) => s.city))].sort((a, b) => a.localeCompare(b, "fr"))
+            .forEach((v) => citySel.add(new Option(v, v)));
+          citySel.value = city;
+        }
+        document.getElementById("igi-count").textContent = `(${posts.length}${posts.length === 100 ? "+" : ""} ${STATUS_LABEL[status].toLowerCase()})`;
+        render(status);
+        refreshBadge();
+      }
+
+      function render(status) {
+        const list = document.getElementById("igi-list");
+        if (!posts.length) {
+          list.innerHTML = `<p class="helper">${status === "pending" ? "Aucun post en attente. Les envois du prestataire apparaîtront ici." : "Rien ici pour l'instant."}</p>`;
+          return;
+        }
+        list.innerHTML = posts.map((p) => {
+          const d = defaults(p);
+          const imgs = (p.media_urls || []);
+          const editable = p.status === "pending";
+          const dis = editable ? "" : "disabled";
+          const input = (name, label, val, extra = "") =>
+            `<label style="display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--text-dim);">${label}<input data-f="${name}" value="${escapeHtml(val)}" ${dis} ${extra} style="${fld}"></label>`;
+          return `<div class="igi-post" data-id="${p.id}" style="display:grid; grid-template-columns:minmax(0,220px) minmax(0,1fr); gap:16px; padding:14px 0; border-top:1px solid var(--line);">
+            <div style="display:flex; flex-direction:column; gap:6px; min-width:0;">
+              <img class="igi-main" src="${escapeHtml(imgs[0] || "")}" alt="Affiche" loading="lazy" style="width:100%; border-radius:8px; background:var(--surface-hi); aspect-ratio:4/5; object-fit:cover;">
+              ${imgs.length > 1 ? `<div style="display:flex; gap:4px; flex-wrap:wrap;">${imgs.map((u, i) => `<img class="igi-thumb" data-i="${i}" src="${escapeHtml(u)}" alt="" loading="lazy" style="width:44px; height:55px; object-fit:cover; border-radius:4px; cursor:pointer; border:2px solid ${i === 0 ? "var(--magenta)" : "transparent"};">`).join("")}</div><div style="font-size:11px; color:var(--text-dim);">Clique une image pour choisir l'affiche publiée.</div>` : ""}
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; min-width:0;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:baseline;">
+                <a href="${escapeHtml(p.permalink)}" target="_blank" rel="noopener"><b>@${escapeHtml(p.account)}</b></a>
+                <span style="font-size:12px; color:var(--text-dim);">${escapeHtml(p.city)} · ${escapeHtml(p.rubrique)} · posté le ${new Date(p.posted_at).toLocaleDateString("fr-FR")} · reçu le ${new Date(p.received_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}</span>
+                ${p.event ? `<span style="font-size:11px; background:#16a34a33; color:#4ade80; border-radius:10px; padding:1px 8px;">événement</span>` : `<span style="font-size:11px; background:#f59e0b33; color:#fbbf24; border-radius:10px; padding:1px 8px;">affiche sans événement</span>`}
+              </div>
+              ${p.caption ? `<details><summary style="cursor:pointer; font-size:12px; color:var(--text-dim);">Texte du post</summary><div style="white-space:pre-wrap; font-size:13px; max-height:180px; overflow:auto; padding:8px; background:var(--surface-hi); border-radius:6px; margin-top:6px;">${escapeHtml(p.caption)}</div></details>` : ""}
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:8px;">
+                <div style="grid-column:1/-1;">${input("titre", "Titre *", d.titre)}</div>
+                <div style="grid-column:1/-1;">${input("descriptif_court", "Description courte", d.descriptif_court)}</div>
+                ${input("date_debut", "Date début *", d.date_debut, 'type="date"')}
+                ${input("date_fin", "Date fin", d.date_fin, 'type="date"')}
+                ${input("horaires", "Horaires", d.horaires)}
+                <label style="display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--text-dim);">Catégorie<select data-f="categorie" ${dis} style="${fld}"><option value="">(aucune)</option>${CATS.map((c) => `<option ${c === d.categorie ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}</select></label>
+                ${input("type", "Type", d.type)}
+                ${input("theme", "Thème", d.theme)}
+                ${input("lieu_nom", "Nom du lieu", d.lieu_nom)}
+                ${input("adresse", "Adresse", d.adresse)}
+                ${input("code_postal", "Code postal", d.code_postal)}
+                ${input("commune", "Commune", d.commune)}
+                ${input("tarif", "Tarif", d.tarif)}
+                <label style="display:flex; gap:6px; align-items:center; font-size:12px; color:var(--text-dim); padding-top:18px;"><input type="checkbox" data-f="gratuit" ${d.gratuit ? "checked" : ""} ${dis} style="width:auto;"> Gratuit</label>
+                <div style="grid-column:1/-1;">${input("billetterie", "Lien billetterie", d.billetterie)}</div>
+              </div>
+              ${p.status === "rejected" && p.reject_reason ? `<div style="font-size:12px; color:#f87171;">Motif du rejet : ${escapeHtml(p.reject_reason)}</div>` : ""}
+              ${p.status !== "pending" ? `<div style="font-size:12px; color:var(--text-dim);">${STATUS_LABEL[p.status]}${p.reviewed_by ? " par " + escapeHtml(p.reviewed_by) : ""}${p.reviewed_at ? " le " + new Date(p.reviewed_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : ""}</div>` : ""}
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                ${editable ? `
+                  <button type="button" class="banner-save-btn" data-act="publish">✅ Valider et publier</button>
+                  <button type="button" data-act="reject" style="background:none; border:1px solid #f8717166; color:#f87171; border-radius:8px; padding:8px 12px; cursor:pointer;">❌ Rejeter</button>
+                  <span class="igi-reject-box" style="display:none; gap:6px; flex:1 1 260px;">
+                    <input data-reject-reason placeholder="Motif (optionnel) : pas une affiche, doublon..." style="${fld}">
+                    <button type="button" data-act="reject-confirm" style="background:#dc2626; border:none; color:#fff; border-radius:8px; padding:6px 12px; cursor:pointer; white-space:nowrap;">Confirmer</button>
+                  </span>` : p.status === "rejected" ? `<button type="button" data-act="restore" style="background:none; border:1px solid var(--line-strong); color:var(--text); border-radius:8px; padding:6px 12px; cursor:pointer;">↩️ Remettre en attente</button>` : ""}
+              </div>
+            </div>
+          </div>`;
+        }).join("");
+
+        list.querySelectorAll(".igi-post").forEach((card) => {
+          const p = posts.find((x) => x.id === card.dataset.id);
+          card.dataset.photo = (p.media_urls || [])[0] || "";
+          card.querySelectorAll(".igi-thumb").forEach((t) => t.addEventListener("click", () => {
+            card.dataset.photo = p.media_urls[Number(t.dataset.i)];
+            card.querySelector(".igi-main").src = card.dataset.photo;
+            card.querySelectorAll(".igi-thumb").forEach((x) => { x.style.borderColor = x === t ? "var(--magenta)" : "transparent"; });
+          }));
+          card.querySelector('[data-act="publish"]')?.addEventListener("click", (e) => publish(p, card, e.target));
+          card.querySelector('[data-act="reject"]')?.addEventListener("click", () => { card.querySelector(".igi-reject-box").style.display = "flex"; });
+          card.querySelector('[data-act="reject-confirm"]')?.addEventListener("click", () =>
+            setStatus(p, "rejected", card.querySelector("[data-reject-reason]").value.trim() || null));
+          card.querySelector('[data-act="restore"]')?.addEventListener("click", () => setStatus(p, "pending", null));
+        });
+      }
+
+      async function setStatus(p, status, reason) {
+        const { error } = await supabase.from("instagram_inbox").update({
+          status, reject_reason: reason,
+          reviewed_at: status === "pending" ? null : new Date().toISOString(),
+          reviewed_by: status === "pending" ? null : currentUserEmail,
+        }).eq("id", p.id);
+        if (error) { toast("Erreur : " + error.message, false); return; }
+        toast(status === "rejected" ? `Post de @${p.account} rejeté` : "Post remis en attente");
+        loadInbox();
+      }
+
+      async function publish(p, card, btn) {
+        const v = (name) => card.querySelector(`[data-f="${name}"]`);
+        const val = (name) => (v(name)?.value || "").trim();
+        const titre = val("titre"), dateDebut = val("date_debut");
+        if (!titre || !dateDebut) { toast("Titre et date de début obligatoires", false); return; }
+        const dateFin = val("date_fin") || dateDebut;
+        if (dateFin < dateDebut) { toast("La date de fin est avant la date de début", false); return; }
+        const horaires = val("horaires");
+        const gratuit = v("gratuit").checked;
+        const row = {
+          // Même source que « Créer un événement » : l'event apparaît dans « Mes events »
+          // et reste modifiable/supprimable (RLS DELETE limitée à manual_admin).
+          // L'origine Instagram se lit dans le préfixe de l'identifiant.
+          identifiant: `insta_${p.account}_${p.post_id}`,
+          source: "manual_admin",
+          created_by_email: currentUserEmail,
+          rubrique: p.rubrique,
+          nom_de_la_manifestation: titre,
+          descriptif_court: val("descriptif_court"),
+          descriptif_long: p.caption || "",
+          date_debut: dateDebut,
+          date_fin: dateFin,
+          horaires,
+          dates_affichage_horaires: horaires ? `${dateDebut} ${horaires}` : dateDebut,
+          lieu_nom: val("lieu_nom"),
+          lieu_adresse_2: val("adresse"),
+          code_postal: parseInt(val("code_postal") || "0") || 0,
+          commune: val("commune"),
+          ville: p.city,
+          type_de_manifestation: val("type"),
+          categorie_de_la_manifestation: card.querySelector('[data-f="categorie"]').value,
+          theme_de_la_manifestation: val("theme"),
+          manifestation_gratuite: gratuit ? "oui" : "non",
+          tarif_normal: gratuit ? "" : val("tarif"),
+          reservation_site_internet: val("billetterie"),
+          photo_url: card.dataset.photo || "",
+          video_url: "",
+        };
+        btn.disabled = true;
+        btn.textContent = "Publication…";
+        const { error: evErr } = await supabase.from("scraped_events").upsert(row, { onConflict: "identifiant" });
+        if (evErr) {
+          toast("Erreur création de l'événement : " + evErr.message, false);
+          btn.disabled = false; btn.textContent = "✅ Valider et publier";
+          return;
+        }
+        const { error } = await supabase.from("instagram_inbox").update({
+          status: "published", reject_reason: null,
+          reviewed_at: new Date().toISOString(), reviewed_by: currentUserEmail,
+        }).eq("id", p.id);
+        if (error) toast("Événement créé, mais statut du post non mis à jour : " + error.message, false);
+        else toast(`« ${titre} » publié à ${p.city}`);
+        loadInbox();
+      }
+
+      document.getElementById("igi-status").addEventListener("change", loadInbox);
+      document.getElementById("igi-city").addEventListener("change", loadInbox);
+      document.getElementById("igi-refresh-btn").addEventListener("click", loadInbox);
+      window.igsLoadInbox = loadInbox;
+      // Compteur sur le bouton de l'onglet dès l'ouverture d'admin.html (après connexion).
+      setTimeout(() => { if (currentUserEmail) refreshBadge(); }, 3000);
+    })();
     // ─── Onglet Appli view : galerie statique de 8 captures (assets/images/appli_view/) ───
     const APPLIVIEW_SLOTS = [
       {
