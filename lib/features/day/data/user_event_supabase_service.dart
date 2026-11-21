@@ -274,6 +274,15 @@ class UserEventSupabaseService {
 
   /// Recupere des events user par leurs ids (pour resoudre les notifs
   /// "A la une" qui peuvent pointer des user_events). Omet les introuvables.
+  /// Compte une ouverture de notification push teaser (best-effort).
+  Future<void> trackEventPushOpen(String orderId) async {
+    try {
+      await _restDio.post('rpc/track_event_push_open', data: {'p_order_id': orderId});
+    } catch (e) {
+      debugPrint('[event_push] track open error: $e');
+    }
+  }
+
   Future<List<UserEvent>> fetchEventsByIds(List<String> ids) async {
     final cleaned = ids.where((e) => e.trim().isNotEmpty).toList();
     if (cleaned.isEmpty) return [];

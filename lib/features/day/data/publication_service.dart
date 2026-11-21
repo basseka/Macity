@@ -37,6 +37,50 @@ class PublicationPrice {
       );
 }
 
+/// Disponibilité de l'option « Notification push + teaser » pour un event
+/// (RPC `push_teaser_availability`, migration 20261121120000).
+/// [reason] : null | 'inactive' | 'ville' | 'trop_tard' | 'complet'.
+class PushTeaserAvailability {
+  final bool available;
+  final String? reason;
+  final int priceCents;
+  final int minPhones;
+  final int maxPhones;
+  final String villeLabel;
+  final DateTime? sendAt;
+
+  const PushTeaserAvailability({
+    required this.available,
+    this.reason,
+    this.priceCents = 0,
+    this.minPhones = 0,
+    this.maxPhones = 0,
+    this.villeLabel = '',
+    this.sendAt,
+  });
+
+  /// L'option s'affiche (cochable ou « complet »). Masquée sinon.
+  bool get isShown => available || reason == 'complet';
+
+  String get formattedPrice {
+    final euros = priceCents / 100;
+    return euros == euros.roundToDouble()
+        ? '${euros.toStringAsFixed(0)} €'
+        : '${euros.toStringAsFixed(2).replaceAll('.', ',')} €';
+  }
+
+  factory PushTeaserAvailability.fromJson(Map<String, dynamic> j) =>
+      PushTeaserAvailability(
+        available: (j['available'] as bool?) ?? false,
+        reason: j['reason'] as String?,
+        priceCents: (j['price_cents'] as num?)?.toInt() ?? 0,
+        minPhones: (j['min_phones'] as num?)?.toInt() ?? 0,
+        maxPhones: (j['max_phones'] as num?)?.toInt() ?? 0,
+        villeLabel: j['ville_label'] as String? ?? '',
+        sendAt: DateTime.tryParse(j['send_at'] as String? ?? '')?.toLocal(),
+      );
+}
+
 /// Service de publication payante d'un event public par un particulier.
 /// Lit la grille de prix et lance le Checkout Stripe via l'edge function
 /// `create-publication-checkout` (qui stocke l'event en attente puis crée la
@@ -67,16 +111,42 @@ class PublicationService {
         .toList();
   }
 
+  /// Disponibilité de l'option push teaser pour cette ville et ce créneau.
+  /// Retourne null en cas d'erreur réseau ou si la migration n'est pas
+  /// appliquée : l'option reste alors masquée.
+  Future<PushTeaserAvailability?> fetchPushTeaserAvailability({
+    required String ville,
+    required String date,
+    required String heure,
+  }) async {
+    try {
+      final res = await _restDio.post(
+        'rpc/push_teaser_availability',
+        data: {'p_ville': ville, 'p_date': date, 'p_heure': heure},
+      );
+      final data = res.data;
+      if (data is Map<String, dynamic>) {
+        return PushTeaserAvailability.fromJson(data);
+      }
+    } catch (e) {
+      debugPrint('[Publication] push teaser availability error: $e');
+    }
+    return null;
+  }
+
   /// Crée la session Stripe et ouvre la page de paiement.
   /// [payload] = UserEvent.toSupabaseJson(userId: deviceUuid).
-  /// Retourne true si la page Stripe s'est ouverte.
-  Future<bool> checkout({
+  /// Retourne null si la page Stripe s'est ouverte, sinon le message d'erreur
+  /// à afficher (ex. option push devenue complète entre-temps).
+  Future<String?> checkout({
     required Map<String, dynamic> payload,
     required String tier,
     required String durationKey,
     required String userId,
     String? ville,
     String? eventTitle,
+    bool pushTeaser = false,
+    String? establishmentId,
   }) async {
     try {
       final dio = Dio();
@@ -89,6 +159,8 @@ class PublicationService {
           'user_id': userId,
           'ville': ville,
           'event_title': eventTitle,
+          if (pushTeaser) 'push_teaser': true,
+          if (establishmentId != null) 'establishment_id': establishmentId,
         },
         options: Options(headers: {
           'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
@@ -98,12 +170,24 @@ class PublicationService {
       final url = response.data['url'] as String?;
       if (url == null || url.isEmpty) {
         debugPrint('[Publication] no checkout url');
-        return false;
+        return 'Le paiement n\'a pas pu s\'ouvrir. Réessaie.';
       }
-      return await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      final opened =
+          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      return opened ? null : 'Le paiement n\'a pas pu s\'ouvrir. Réessaie.';
+    } on DioException catch (e) {
+      debugPrint('[Publication] checkout error: $e');
+      final data = e.response?.data;
+      if (data is Map && data['error'] is String && e.response?.statusCode == 409) {
+        return data['error'] as String;
+      }
+      if (data is Map && data['error'] is String && e.response?.statusCode == 400) {
+        return data['error'] as String;
+      }
+      return 'Le paiement n\'a pas pu s\'ouvrir. Réessaie.';
     } catch (e) {
       debugPrint('[Publication] checkout error: $e');
-      return false;
+      return 'Le paiement n\'a pas pu s\'ouvrir. Réessaie.';
     }
   }
 }

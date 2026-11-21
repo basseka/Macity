@@ -244,6 +244,18 @@ class _PulzAppState extends ConsumerState<PulzApp> with WidgetsBindingObserver {
         return;
       }
 
+      // Option payante « Notification push + teaser » (edge fn send-event-push).
+      // Au tap : l'event s'ouvre en plein écran et sa vidéo teaser démarre
+      // seule (EventFullscreenPopup lit videoUrl en priorité et lance play()).
+      if (type == 'event_push') {
+        _openEventPush(
+          eventId: data['event_id'] as String? ?? '',
+          orderId: data['order_id'] as String? ?? '',
+          videoUrl: data['video_url'] as String? ?? '',
+        );
+        return;
+      }
+
       // Notification mairie → fetch link_url depuis Supabase et ouvrir le site
       if (type == 'mairie_notification') {
         final notifId = data['notification_id'] as String? ?? '';
@@ -653,6 +665,43 @@ class _AppShellState extends ConsumerState<_AppShell> {
 /// Résout des ids d'events « À la une » (scraped_events puis user_events pour
 /// les manquants) et ouvre l'affiche — carrousel plein écran si plusieurs,
 /// sinon popup simple — comme le digest du soir.
+/// Tap sur une notification push teaser : compte l'ouverture, charge l'event
+/// (user_events) et l'ouvre en plein écran avec sa vidéo teaser.
+/// La vidéo validée voyage aussi dans la notification : si la fiche n'en a
+/// plus, on l'utilise quand même, pour que le tap lance toujours le teaser.
+Future<void> _openEventPush({
+  required String eventId,
+  required String orderId,
+  required String videoUrl,
+}) async {
+  if (orderId.isNotEmpty) {
+    UserEventSupabaseService().trackEventPushOpen(orderId);
+  }
+  if (eventId.isEmpty) {
+    appRouter.go('/home');
+    return;
+  }
+  Event? event;
+  try {
+    final rows = await UserEventSupabaseService().fetchEventsByIds([eventId]);
+    if (rows.isNotEmpty) event = rows.first.toEvent();
+  } catch (e) {
+    debugPrint('[event_push] fetch error: $e');
+  }
+  if (event == null) {
+    appRouter.go('/home');
+    return;
+  }
+  if ((event.videoUrl ?? '').isEmpty && videoUrl.isNotEmpty) {
+    event = event.copyWith(videoUrl: videoUrl);
+  }
+  deepLinkSetPending(event);
+  appRouter.go('/home');
+  // Appli déjà sur l'accueil : FeedScreen ne rejoue pas son initState, on
+  // déclenche l'affichage ici (le pending est consommé une seule fois).
+  Future.delayed(const Duration(milliseconds: 800), deepLinkShowPending);
+}
+
 Future<void> _resolveFeaturedAndOpen(List<String> ids) async {
   final resolved = <String, Event>{};
   try {

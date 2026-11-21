@@ -118,7 +118,8 @@ class FcmService {
       final type = initialMessage.data['type'] as String?;
       if (type == 'chat_message' ||
           type == 'featured_digest' ||
-          type == 'daily_digest') {
+          type == 'daily_digest' ||
+          type == 'event_push') {
         // Delay un peu plus long que les autres handlers : le cold start
         // a besoin que le splash finisse + que le root navigator soit pret
         // avant de router. chat_message ouvre la discussion ; featured_digest

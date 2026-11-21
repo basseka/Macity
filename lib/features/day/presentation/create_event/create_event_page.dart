@@ -12,6 +12,7 @@ import 'package:pulz_app/core/services/user_identity_service.dart';
 import 'package:pulz_app/features/day/domain/models/user_event.dart';
 import 'package:pulz_app/features/day/presentation/publication_tarifs_screen.dart';
 import 'package:pulz_app/core/services/analytics_service.dart';
+import 'package:pulz_app/features/pro_auth/state/pro_auth_provider.dart';
 
 class CreateEventPage extends ConsumerStatefulWidget {
   final String? initialPhotoPath;
@@ -377,6 +378,43 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
         return;
       }
 
+      // Compte pro : proposer la mise en avant payante (À la une / Au top)
+      // avant de publier. Sans choix, publication gratuite comme avant.
+      final pro = ref.read(proAuthProvider);
+      if (!_isEditing &&
+          pro.status == ProAuthStatus.approved &&
+          pro.profile != null) {
+        final choice = await _askProHighlight();
+        if (!mounted || choice == null) return;
+        if (choice == 'paid') {
+          final event = await notifier.assembleEventForPublication();
+          if (!mounted) return;
+          if (event == null) {
+            final raw = ref.read(createEventProvider).errorMessage;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.red.shade700,
+                content: Text(raw != null
+                    ? createEventErrorLabel(context, raw)
+                    : context.l10n.errCheckFields,),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PublicationTarifsScreen(
+                event: event,
+                proUserId: pro.profile!.userId,
+                establishmentId: pro.profile!.id,
+              ),
+            ),
+          );
+          return;
+        }
+      }
+
       final success = await notifier.submit();
       // Remonte toute erreur de submit via un SnackBar bien visible.
       if (!success && mounted) {
@@ -434,6 +472,92 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
     } else {
       notifier.nextStep();
     }
+  }
+
+  /// Feuille « Mettre ton event en avant ? » (comptes pro).
+  /// Retourne 'paid', 'free', ou null si fermée.
+  Future<String?> _askProHighlight() {
+    Widget tile(String emoji, String title, String sub, String value,
+        BuildContext ctx, {bool primary = false,}) {
+      return Material(
+        color: primary
+            ? AppColors.magenta.withValues(alpha: 0.10)
+            : AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => Navigator.of(ctx).pop(value),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: primary ? AppColors.magenta : AppColors.line,
+                width: primary ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 26)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title,
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.text,),),
+                      const SizedBox(height: 2),
+                      Text(sub,
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.textDim,),),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: AppColors.textDim),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return showModalBottomSheet<String>(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: AppColors.bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Mettre ton event en avant ?',
+                  style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text,),),
+              const SizedBox(height: 4),
+              Text('Plus de visibilité dans le fil de ta ville.',
+                  style: TextStyle(fontSize: 13, color: AppColors.textDim),),
+              const SizedBox(height: 16),
+              tile('⭐', 'À la une ou Au top',
+                  'En tête du fil ou bandeau dédié, au choix (payant)',
+                  'paid', ctx, primary: true,),
+              const SizedBox(height: 10),
+              tile('📋', 'Publier sans mise en avant',
+                  'Gratuit, place normale dans le fil', 'free', ctx,),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showSuccessAndPop({String? subtitle}) {

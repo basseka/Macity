@@ -1256,6 +1256,7 @@
           <span class="nav-btn" id="goto-postfree-btn">🎨 Post libre</span>
           <span class="nav-btn" id="goto-discoursnight-btn">🎤 Discours boîtes de nuit</span>
           <span class="nav-btn" id="goto-igsources-btn">📸 Comptes Insta (agent) <span id="igs-pending-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
+          <span class="nav-btn" id="goto-pushteaser-btn">📲 Push teaser <span id="pt-badge" style="display:none; background:#f59e0b; color:#000; border-radius:10px; padding:2px 7px; font-size:11px; margin-left:4px;"></span></span>
           <span class="nav-btn" id="goto-appliview-btn">📱 Appli view</span>
           <span class="nav-btn" id="goto-dailysummary-btn">🗓️ Résumé du jour</span>
           <span class="nav-btn" id="goto-citytrack-btn">🗺️ Suivi villes</span>
@@ -3193,6 +3194,53 @@
         </div>
       </div>
 
+      <!-- ═══ VUE "PUSH TEASER" : option payante notification push + teaser ═══
+           Commandes event_push_orders (migration 20261121120000). Valider =
+           envoi automatique à l'heure prévue (edge fn send-event-push, cron
+           5 min). Refuser = remboursement de l'option (edge fn review-event-push). -->
+      <div id="pushteaser-view" class="hidden">
+        <h1>📲 Push teaser</h1>
+        <p class="subtitle">
+          Notifications push payées par les créateurs d'events publics (option à la formule À la une ou Au top).
+          Regarde la vidéo : elle se lance chez tous les utilisateurs de la ville qui tapent sur la notification.
+          Sans validation 15 min avant l'heure d'envoi, la commande est remboursée automatiquement.
+        </p>
+        <div class="banner-card" style="max-width:980px; margin-bottom:22px; border:1px solid var(--magenta);">
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+            <select id="pt-status" style="width:auto; padding:8px 10px;">
+              <option value="to_review">À valider</option>
+              <option value="approved">Validées (envoi à venir)</option>
+              <option value="sent">Envoyées</option>
+              <option value="closed">Refusées / remboursées / échouées</option>
+              <option value="pending_payment">Paiement en cours</option>
+            </select>
+            <button type="button" class="banner-save-btn" id="pt-refresh-btn">🔄 Actualiser</button>
+          </div>
+          <div id="pt-list"></div>
+        </div>
+        <div class="banner-card" style="max-width:980px;">
+          <div class="banner-field-label">⚙️ Réglages</div>
+          <p class="helper" style="margin:6px 0 12px;">
+            Prix de l'option et fourchette de téléphones affichée au créateur, par ville. Sans ligne active pour une ville,
+            l'option n'y est pas proposée. Avant d'ajouter une ville, vérifie dans Studio SQL que le bas de la fourchette est vrai :
+            <code>SELECT count(DISTINCT t.token) FROM user_fcm_tokens t WHERE t.user_id IN (SELECT user_id FROM users_for_mairie_ville('ville'));</code>
+          </p>
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+            <span style="font-size:13px;">Prix de l'option (€)</span>
+            <input id="pt-price" type="number" step="0.01" min="0" style="width:110px; padding:8px 10px;">
+            <label style="font-size:13px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="pt-active"> Option active</label>
+            <button type="button" class="banner-save-btn" id="pt-price-save">💾 Enregistrer</button>
+          </div>
+          <div id="pt-ranges" style="overflow-x:auto;"></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:12px;">
+            <input id="pt-add-city" placeholder="Ville (ex. Montauban)" style="flex:1 1 180px; padding:8px 10px;">
+            <input id="pt-add-min" type="number" min="0" placeholder="Min" style="width:100px; padding:8px 10px;">
+            <input id="pt-add-max" type="number" min="0" placeholder="Max" style="width:100px; padding:8px 10px;">
+            <button type="button" class="banner-save-btn" id="pt-add-btn">➕ Ajouter / mettre à jour</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ═══ VUE "DISCOURS BOÎTES DE NUIT" (argumentaire de prospection, contenu statique) ═══ -->
       <div id="discoursnight-view" class="hidden">
         <h1>🎤 Discours boîtes de nuit</h1>
@@ -4619,6 +4667,7 @@
       crmView.classList.add("hidden");
       // Défini plus bas (setupIgSources) : lu par id pour éviter la zone morte du const.
       document.getElementById("igsources-view")?.classList.add("hidden");
+      document.getElementById("pushteaser-view")?.classList.add("hidden");
       gotoFormBtn.style.display = "inline-flex";
       gotoEventsBtn.style.display = "inline-flex";
       gotoVenuesBtn.style.display = "inline-flex";
@@ -4885,6 +4934,153 @@
       window.scrollTo({ top: 0, behavior: "instant" });
     }
     gotoDiscoursnightBtn.addEventListener("click", showDiscoursnightView);
+
+    // ─── Onglet Push teaser : validation des notifications push payées ──────
+    // Lecture directe (policy admin sur event_push_orders), actions via
+    // l'edge fn review-event-push (remboursement Stripe en cas de refus).
+    (function setupPushTeaser() {
+      const view = document.getElementById("pushteaser-view");
+      const btn = document.getElementById("goto-pushteaser-btn");
+      const listEl = document.getElementById("pt-list");
+      const statusSel = document.getElementById("pt-status");
+      const LABEL = { pending_payment: "Paiement en cours", to_review: "À valider", approved: "Validée", sending: "Envoi en cours",
+        sent: "Envoyée", cancelled: "Abandonnée", rejected: "Refusée", refunded: "Remboursée (non validée à temps)", failed: "Échec, remboursée" };
+      const COLOR = { to_review: "#f59e0b", approved: "#22c55e", sending: "#22d3ee", sent: "#22c55e", rejected: "#f87171", refunded: "#f87171", failed: "#f87171" };
+      const fmt = (iso) => iso ? new Date(iso).toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+      const euros = (c) => (Number(c || 0) / 100).toFixed(2).replace(".", ",") + " €";
+
+      async function refreshBadge() {
+        const { count } = await supabase.from("event_push_orders").select("id", { count: "exact", head: true }).eq("status", "to_review");
+        const b = document.getElementById("pt-badge");
+        if (count) { b.textContent = count; b.style.display = "inline-block"; } else b.style.display = "none";
+      }
+
+      async function load() {
+        listEl.innerHTML = '<p style="color:var(--text-dim);">Chargement…</p>';
+        const st = statusSel.value;
+        let q = supabase.from("event_push_orders").select("*");
+        q = st === "closed" ? q.in("status", ["rejected", "refunded", "failed", "cancelled"])
+          : st === "sent" ? q.in("status", ["sent", "sending"]) : q.eq("status", st);
+        const { data, error } = await q.order("send_at", { ascending: st !== "sent" && st !== "closed" }).limit(100);
+        if (error) {
+          listEl.innerHTML = `<p style="color:#f87171;">Lecture impossible : ${escapeHtml(error.message)}. La migration 20261121120000_event_push_teaser.sql est-elle appliquée ?</p>`;
+          return;
+        }
+        refreshBadge();
+        if (!data.length) { listEl.innerHTML = '<p style="color:var(--text-dim);">Aucune commande.</p>'; return; }
+        listEl.innerHTML = data.map((o) => {
+          const stats = o.status === "sent" ? `<div style="font-size:12px; color:var(--text-dim); margin-top:6px;">📤 ${o.sent_count ?? "?"} envoyées sur ${o.tokens_targeted ?? "?"} téléphones · ❌ ${o.failed_count ?? 0} échecs · 👆 ${o.opens} ouvertures${o.sent_count ? ` (${(100 * o.opens / o.sent_count).toFixed(1)} %)` : ""}</div>` : "";
+          const why = o.reject_reason ? `<div style="font-size:12px; color:#f87171; margin-top:6px;">Motif : ${escapeHtml(o.reject_reason)}${o.refund_id ? " · remboursé (" + escapeHtml(o.refund_id) + ")" : (["rejected","refunded","failed"].includes(o.status) ? " · ⚠️ remboursement à vérifier dans Stripe" : "")}</div>` : "";
+          const actions = o.status === "to_review"
+            ? `<button type="button" class="banner-save-btn pt-act" data-id="${o.id}" data-act="approve">✅ Valider</button>
+               <button type="button" class="banner-save-btn pt-act" data-id="${o.id}" data-act="reject" style="background:#7f1d1d;">⛔ Refuser et rembourser</button>`
+            : o.status === "approved"
+              ? `<button type="button" class="banner-save-btn pt-act" data-id="${o.id}" data-act="reject" style="background:#7f1d1d;">⛔ Annuler et rembourser</button>` : "";
+          return `<div style="display:grid; grid-template-columns:180px 1fr; gap:16px; padding:14px 0; border-bottom:1px solid var(--stroke,#fff2);">
+            <video src="${escapeHtml(o.video_url)}" controls playsinline preload="metadata" style="width:180px; max-height:320px; border-radius:10px; background:#000;"></video>
+            <div>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <span style="font-size:11px; font-weight:700; padding:3px 8px; border-radius:8px; background:${COLOR[o.status] || "#555"}; color:#000;">${LABEL[o.status] || o.status}</span>
+                <b>${escapeHtml(o.event_title)}</b>
+              </div>
+              <div style="margin-top:8px; padding:10px 12px; border-radius:10px; background:rgba(255,255,255,0.06); font-size:13px;">
+                <b>${escapeHtml(o.push_title)}</b><br>${escapeHtml(o.push_body)}
+              </div>
+              <div style="font-size:12px; color:var(--text-dim); margin-top:8px; line-height:1.6;">
+                📍 ${escapeHtml(o.ville_label)} · 🕒 envoi ${fmt(o.send_at)} · event ${fmt(o.event_start)}<br>
+                💳 ${euros(o.amount_cents)}${o.buyer_email ? " · ✉️ " + escapeHtml(o.buyer_email) : ""} · event <code>${escapeHtml(o.event_id)}</code>
+              </div>
+              ${stats}${why}
+              <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">${actions}</div>
+            </div>
+          </div>`;
+        }).join("");
+        listEl.querySelectorAll(".pt-act").forEach((b) => b.addEventListener("click", () => act(b.dataset.id, b.dataset.act, b)));
+      }
+
+      async function act(id, action, b) {
+        let reason = "";
+        if (action === "reject") {
+          reason = prompt("Motif du refus (envoyé au créateur avec le remboursement) :", "Ta vidéo ne respecte pas les règles de diffusion MaCity.");
+          if (reason === null) return;
+        } else if (!confirm("Valider : la notification partira automatiquement à l'heure prévue vers tous les utilisateurs de la ville. Continuer ?")) return;
+        b.disabled = true;
+        const { data, error } = await supabase.functions.invoke("review-event-push", { body: { order_id: id, action, reason } });
+        if (error || data?.error) {
+          let msg = data?.error || error?.message || "erreur";
+          try { msg = (await error.context.json()).error || msg; } catch (_) {}
+          toast("Erreur : " + msg, false); b.disabled = false; return;
+        }
+        toast(action === "approve" ? "Validée : envoi automatique à l'heure prévue" : (data.refunded ? "Refusée et remboursée" : "Refusée : remboursement à faire dans Stripe"), action === "approve" || data.refunded);
+        load();
+      }
+
+      // Réglages : prix + fourchettes par ville
+      async function loadSettings() {
+        const { data: opt } = await supabase.from("publication_options").select("*").eq("key", "push_teaser").maybeSingle();
+        if (opt) {
+          document.getElementById("pt-price").value = (opt.amount_cents / 100).toFixed(2);
+          document.getElementById("pt-active").checked = !!opt.is_active;
+        }
+        const { data: ranges, error } = await supabase.from("push_reach_ranges").select("*").order("ville_label");
+        const el = document.getElementById("pt-ranges");
+        if (error) { el.innerHTML = `<p style="color:#f87171;">${escapeHtml(error.message)}</p>`; return; }
+        const cell = "padding:6px 8px; border-bottom:1px solid var(--stroke,#fff2); font-size:13px;";
+        el.innerHTML = `<table style="width:100%; border-collapse:collapse;"><tr>
+            <th style="${cell} text-align:left;">Ville</th><th style="${cell} text-align:left;">Fourchette affichée</th><th style="${cell}">Active</th><th style="${cell}"></th></tr>
+          ${(ranges || []).map((r) => `<tr><td style="${cell}">${escapeHtml(r.ville_label)}</td>
+            <td style="${cell}">entre ${Number(r.min_phones).toLocaleString("fr-FR")} et ${Number(r.max_phones).toLocaleString("fr-FR")} téléphones</td>
+            <td style="${cell} text-align:center;"><input type="checkbox" class="pt-r-on" data-k="${escapeHtml(r.ville_key)}" ${r.is_active ? "checked" : ""}></td>
+            <td style="${cell} text-align:right;"><button type="button" class="banner-save-btn pt-r-del" data-k="${escapeHtml(r.ville_key)}" style="background:#7f1d1d; padding:4px 10px;">Supprimer</button></td></tr>`).join("")}
+        </table>`;
+        el.querySelectorAll(".pt-r-on").forEach((cb) => cb.addEventListener("change", async () => {
+          const { error } = await supabase.from("push_reach_ranges").update({ is_active: cb.checked, updated_at: new Date().toISOString() }).eq("ville_key", cb.dataset.k);
+          if (error) { toast("Erreur : " + error.message, false); cb.checked = !cb.checked; } else toast(cb.checked ? "Option proposée dans cette ville" : "Option masquée dans cette ville");
+        }));
+        el.querySelectorAll(".pt-r-del").forEach((b) => b.addEventListener("click", async () => {
+          if (!confirm("Supprimer cette ville ? L'option n'y sera plus proposée.")) return;
+          const { error } = await supabase.from("push_reach_ranges").delete().eq("ville_key", b.dataset.k);
+          if (error) toast("Erreur : " + error.message, false); else { toast("Ville supprimée"); loadSettings(); }
+        }));
+      }
+
+      document.getElementById("pt-price-save").addEventListener("click", async () => {
+        const cents = Math.round(parseFloat(String(document.getElementById("pt-price").value).replace(",", ".")) * 100);
+        if (!Number.isFinite(cents) || cents < 0) { toast("Prix invalide", false); return; }
+        const { error } = await supabase.from("publication_options")
+          .update({ amount_cents: cents, is_active: document.getElementById("pt-active").checked, updated_at: new Date().toISOString() })
+          .eq("key", "push_teaser");
+        if (error) toast("Erreur : " + error.message, false); else toast("Option enregistrée");
+      });
+
+      document.getElementById("pt-add-btn").addEventListener("click", async () => {
+        const label = document.getElementById("pt-add-city").value.trim();
+        const min = parseInt(document.getElementById("pt-add-min").value, 10);
+        const max = parseInt(document.getElementById("pt-add-max").value, 10);
+        if (!label) { toast("Indique la ville", false); return; }
+        if (!(min >= 0) || !(max >= min)) { toast("Fourchette invalide (min ≤ max)", false); return; }
+        const { error } = await supabase.from("push_reach_ranges").upsert({
+          ville_key: label.toLowerCase(), ville_label: label, min_phones: min, max_phones: max, is_active: true, updated_at: new Date().toISOString(),
+        }, { onConflict: "ville_key" });
+        if (error) { toast("Erreur : " + error.message, false); return; }
+        toast(label + " enregistrée");
+        ["pt-add-city", "pt-add-min", "pt-add-max"].forEach((i) => { document.getElementById(i).value = ""; });
+        loadSettings();
+      });
+
+      statusSel.addEventListener("change", load);
+      document.getElementById("pt-refresh-btn").addEventListener("click", load);
+      btn.addEventListener("click", () => {
+        _hideAllViews();
+        view.classList.remove("hidden");
+        btn.classList.add("active");
+        load();
+        loadSettings();
+        window.scrollTo({ top: 0, behavior: "instant" });
+      });
+      // Pastille du nombre de commandes à valider, dès l'ouverture de l'admin.
+      setTimeout(() => refreshBadge().catch(() => {}), 1500);
+    })();
 
     // ─── Onglet Comptes Insta (agent) : table instagram_sources ─────────────
     // Liste blanche lue par l'Edge Function ingest-instagram. Écriture admin
