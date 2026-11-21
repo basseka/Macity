@@ -35,6 +35,8 @@ class LibraryVenueCard extends ConsumerWidget {
         latitude: library.latitude,
         longitude: library.longitude,
         photo: library.image,
+        photos: library.photos,
+        videoUrl: library.videoUrl,
         description: library.description,
         isVerified: library.isVerified,
       );

@@ -182,11 +182,16 @@ class TheatreVenueCard extends ConsumerWidget {
     final commerce = CommerceModel(
       nom: theatre.name,
       categorie: 'Theatre',
-      adresse: theatre.city,
+      adresse: theatre.adresse.isNotEmpty ? theatre.adresse : theatre.city,
       ville: theatre.city,
       horaires: theatre.horaires,
       siteWeb: theatre.websiteUrl ?? '',
+      lienMaps: theatre.lienMaps,
+      latitude: theatre.latitude,
+      longitude: theatre.longitude,
       photo: image,
+      photos: theatre.photos,
+      videoUrl: theatre.videoUrl,
       description: theatre.description,
       isVerified: theatre.isVerified,
     );

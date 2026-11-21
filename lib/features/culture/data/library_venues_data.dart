@@ -13,6 +13,9 @@ class LibraryVenue {
   final String lienMaps;
   final String image;
   final bool isVerified;
+  /// Galerie et vidéo de la fiche (colonnes `photos` et `video_url`).
+  final List<String> photos;
+  final String videoUrl;
 
   const LibraryVenue({
     required this.id,
@@ -29,5 +32,7 @@ class LibraryVenue {
     required this.lienMaps,
     required this.image,
     this.isVerified = false,
+    this.photos = const [],
+    this.videoUrl = '',
   });
 }

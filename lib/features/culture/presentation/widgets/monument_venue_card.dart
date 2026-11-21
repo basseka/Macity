@@ -33,6 +33,8 @@ class MonumentVenueCard extends ConsumerWidget {
         latitude: monument.latitude,
         longitude: monument.longitude,
         photo: monument.image,
+        photos: monument.photos,
+        videoUrl: monument.videoUrl,
         description: monument.description,
         isVerified: monument.isVerified,
       );

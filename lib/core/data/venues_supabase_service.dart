@@ -169,6 +169,14 @@ class VenuesSupabaseService {
     return data.map((e) => _mapToTheatreVenue(e as Map<String, dynamic>)).toList();
   }
 
+  /// Galerie `photos` (text[]) d'une ligne venues, sans valeurs vides.
+  static List<String> _photosOf(Map<String, dynamic> json) {
+    final raw = json['photos'];
+    return raw is List
+        ? raw.map((e) => e.toString()).where((s) => s.isNotEmpty).toList()
+        : <String>[];
+  }
+
   static TheatreVenue _mapToTheatreVenue(Map<String, dynamic> json) {
     final photo = (json['photo'] as String?) ?? '';
     return TheatreVenue(
@@ -186,6 +194,12 @@ class VenuesSupabaseService {
       hasOnlineTicket: json['has_online_ticket'] as bool? ?? false,
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_theatre.webp',
       isVerified: json['is_verified'] as bool? ?? false,
+      photos: _photosOf(json),
+      videoUrl: json['video_url'] as String? ?? '',
+      adresse: json['adresse'] as String? ?? '',
+      lienMaps: json['lien_maps'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
     );
   }
 
@@ -220,6 +234,12 @@ class VenuesSupabaseService {
       hasOnlineTicket: json['has_online_ticket'] as bool? ?? false,
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_musee.webp',
       isVerified: json['is_verified'] as bool? ?? false,
+      photos: _photosOf(json),
+      videoUrl: json['video_url'] as String? ?? '',
+      adresse: json['adresse'] as String? ?? '',
+      lienMaps: json['lien_maps'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
     );
   }
 
@@ -253,6 +273,8 @@ class VenuesSupabaseService {
       lienMaps: json['lien_maps'] as String? ?? '',
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_visite.webp',
       isVerified: json['is_verified'] as bool? ?? false,
+      photos: _photosOf(json),
+      videoUrl: json['video_url'] as String? ?? '',
     );
   }
 
@@ -288,6 +310,8 @@ class VenuesSupabaseService {
       lienMaps: json['lien_maps'] as String? ?? '',
       image: photo.isNotEmpty ? photo : 'assets/images/pochette_culture_art.webp',
       isVerified: json['is_verified'] as bool? ?? false,
+      photos: _photosOf(json),
+      videoUrl: json['video_url'] as String? ?? '',
     );
   }
 

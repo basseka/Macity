@@ -1300,11 +1300,16 @@ class _MuseumGridCard extends ConsumerWidget {
     final commerce = CommerceModel(
       nom: museum.name,
       categorie: museum.category,
-      adresse: museum.city,
+      adresse: museum.adresse.isNotEmpty ? museum.adresse : museum.city,
       ville: museum.city,
       horaires: museum.horaires,
       siteWeb: museum.websiteUrl,
+      lienMaps: museum.lienMaps,
+      latitude: museum.latitude,
+      longitude: museum.longitude,
       photo: museum.image,
+      photos: museum.photos,
+      videoUrl: museum.videoUrl,
       description: museum.description,
       isVerified: museum.isVerified,
     );
