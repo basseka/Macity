@@ -42,7 +42,7 @@ class _TripPlannerSheetState extends State<TripPlannerSheet> {
   TripGroup? _group;
   int _people = 4;
   int _days = 2;
-  final Set<TripMeal> _meals = {TripMeal.midi, TripMeal.soir};
+  final Set<TripMeal> _meals = {};
   bool? _activities;
   TripNight? _night;
   /// Styles coches ; {TripMusic.any} = « Peu importe ».

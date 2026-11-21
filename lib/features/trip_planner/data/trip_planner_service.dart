@@ -6,6 +6,7 @@ import 'package:pulz_app/features/commerce/domain/models/commerce.dart';
 import 'package:pulz_app/features/family/data/family_venues_supabase_service.dart';
 import 'package:pulz_app/features/family/domain/models/family_venue.dart';
 import 'package:pulz_app/features/family/presentation/widgets/family_venue_row_card.dart';
+import 'package:pulz_app/features/city/data/city_coordinates.dart';
 import 'package:pulz_app/features/food/data/restaurant_supabase_service.dart';
 import 'package:pulz_app/features/food/data/restaurant_venues_data.dart';
 import 'package:pulz_app/features/food/presentation/restaurant_detail_sheet.dart';
@@ -41,7 +42,13 @@ class TripPlannerService {
           return <T>[];
         });
     final results = await Future.wait([
-      safe<RestaurantVenue>(_restaurants.fetchRestaurants(ville: ville)),
+      // Même source que la rubrique Food : restos de la ville, complétés par
+      // ceux autour du centre si la ville en a peu (ou s'ils sont rattachés
+      // à une autre commune de la zone). Sinon les étapes repas restent vides.
+      safe<RestaurantVenue>(_restaurants.fetchRestaurantsWithNearby(
+        ville: ville,
+        center: CityCoordinates.maybeOf(ville),
+      )),
       safe<FamilyVenue>(_family.fetchVenues(ville: ville)),
       safe<CommerceModel>(_venues.fetchVenues(mode: 'culture', ville: ville)),
       safe<CommerceModel>(_venues.fetchVenues(mode: 'night', ville: ville)),
