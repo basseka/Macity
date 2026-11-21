@@ -524,16 +524,20 @@ class _CreateEventPageState extends ConsumerState<CreateEventPage> {
       );
     }
 
+    // Marge basse : barre système + barre de navigation de l'appli (58 px),
+    // qui peut rester affichée sous la page : sinon les choix passent dessous.
+    final bottomGap = 24 + MediaQuery.of(context).viewPadding.bottom + 70;
     return showModalBottomSheet<String>(
       context: context,
       useRootNavigator: true,
+      isScrollControlled: true,
       backgroundColor: AppColors.bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => SafeArea(
+      builder: (ctx) => SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+          padding: EdgeInsets.fromLTRB(20, 18, 20, bottomGap),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
