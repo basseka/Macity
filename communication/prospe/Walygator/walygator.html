@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Walygator x MaCity</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --corail: #FF2E38; --or: #F2A20C; --or2: #F7BE4A; --gold: #C79A3E; --ink: #0B1410; --cream: #F6F1E6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0A0514; font-family: Poppins, sans-serif; color: #fff; }
+  #bg { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 70% at 50% 110%, #2a0f3d 0%, #140a24 45%, #0A0514 80%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(140px); opacity: .45; }
+  #b1 { width: 800px; height: 800px; background: var(--or); }
+  #b2 { width: 760px; height: 760px; background: var(--rose); }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .kick { font: 800 34px Poppins; letter-spacing: .2em; text-transform: uppercase; color: #FFD93D; }
+  .big { font: 400 132px/0.95 Anton; text-transform: uppercase; }
+  .grad { background: linear-gradient(90deg, var(--or2), var(--rose)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { font: 600 44px/1.35 Poppins; color: rgba(255,255,255,.92); }
+  .line { opacity: 0; }
+  .shade { position: absolute; inset: 0; }
+
+  /* S1 : vidéo du parc plein écran */
+  #full { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; }
+  #s1 .shade { background: linear-gradient(180deg, rgba(10,5,20,.55) 0%, rgba(10,5,20,.05) 30%, rgba(10,5,20,.35) 52%, rgba(10,5,20,.92) 78%, rgba(10,5,20,.98) 100%); }
+  #s1 .in { position: absolute; left: 70px; right: 70px; bottom: 210px; }
+  #duo { display: flex; align-items: center; gap: 34px; }
+  #duo .ap { height: 150px; }
+  #duo .x { font: 400 76px Anton; color: rgba(255,255,255,.75); }
+  #duo .mc { height: 84px; }
+  #s1 .badge { display: inline-block; margin-top: 46px; font: 800 32px/1 Poppins; letter-spacing: .14em; text-transform: uppercase; background: #FFD93D; color: #15121C; padding: 18px 30px; border-radius: 999px; }
+  #s1 .sub { margin-top: 36px; }
+
+  /* S2 : le téléphone */
+  #s2 .top { position: absolute; left: 70px; right: 70px; top: 110px; height: 420px; }
+  #s2 .swap { position: absolute; left: 0; right: 0; top: 64px; }
+  #s2 .swap .big { font-size: 112px; }
+  #s2 .swap p { margin-top: 22px; font: 600 38px/1.3 Poppins; color: rgba(255,255,255,.85); }
+  #phone { position: absolute; left: 230px; top: 600px; width: 620px; height: 1250px; border-radius: 84px; background: #111; padding: 16px; box-shadow: 0 50px 140px rgba(0,0,0,.7), 0 0 0 3px #333 inset; }
+  #screen { width: 100%; height: 100%; border-radius: 68px; background: var(--cream); overflow: hidden; position: relative; color: var(--ink); }
+  #hero { position: absolute; left: 0; top: 0; width: 588px; height: 392px; overflow: hidden; background: linear-gradient(135deg, var(--or), var(--or2)); }
+  #hv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  #hero .g1 { position: absolute; left: 0; right: 0; top: 0; height: 180px; background: linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,0)); }
+  #hero .g2 { position: absolute; left: 0; right: 0; bottom: 0; height: 300px; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.45) 55%, rgba(11,20,16,.85) 100%); }
+  #hero .status { position: absolute; left: 44px; right: 44px; top: 22px; display: flex; justify-content: space-between; font: 700 21px Poppins; color: #fff; }
+  #hero .back { position: absolute; left: 27px; top: 74px; width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,.96); display: grid; place-items: center; font: 700 30px/1 Poppins; color: var(--ink); }
+  #pill { position: absolute; right: 27px; top: 78px; display: flex; align-items: center; gap: 8px; padding: 9px 17px; border-radius: 999px; background: rgba(11,20,16,.78); border: 1.5px solid rgba(199,154,62,.6); font: 700 19px Poppins; color: #fff; }
+  #pill b { color: var(--gold); font-size: 21px; }
+  #ripple { position: absolute; width: 120px; height: 120px; border-radius: 50%; border: 5px solid #fff; right: 40px; top: 42px; opacity: 0; }
+  #hero .ht { position: absolute; left: 30px; right: 30px; bottom: 26px; }
+  #hero .ht b { display: block; font: 800 58px/1 Poppins; letter-spacing: -.02em; color: #fff; }
+  #hero .ht span { display: block; margin-top: 10px; font: 500 20px Poppins; color: rgba(255,255,255,.88); }
+  #below { position: absolute; left: 0; right: 0; top: 392px; bottom: 0; padding: 26px 0 0 27px; }
+  .chips { display: flex; gap: 12px; white-space: nowrap; }
+  .chips span { font: 600 18px Poppins; padding: 12px 20px; border-radius: 999px; background: #fff; border: 1.5px solid rgba(11,20,16,.08); color: #333; }
+  .chips span.on { background: linear-gradient(135deg, var(--or), var(--or2)); color: #fff; border-color: transparent; }
+  #below h5 { margin-top: 34px; font: 700 30px Poppins; }
+  .cards { display: flex; gap: 18px; margin-top: 18px; }
+  .cardk { width: 236px; flex: none; }
+  .cardk i { display: block; height: 220px; border-radius: 26px; background: linear-gradient(160deg, #E4DCCB, #D3C9B4); }
+  .cardk u { display: block; height: 20px; width: 75%; margin-top: 16px; border-radius: 8px; background: #DED5C3; text-decoration: none; }
+  .cardk s { display: block; height: 16px; width: 50%; margin-top: 10px; border-radius: 8px; background: #E8E0D0; }
+  #below .bnr { margin: 30px 27px 0 0; height: 90px; border-radius: 26px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+  /* fiche (bottom sheet) */
+  #sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 900px; background: #fff; border-radius: 44px 44px 0 0; box-shadow: 0 -20px 60px rgba(0,0,0,.35); transform: translateY(105%); overflow: hidden; }
+  #sheet .ph { height: 330px; background: url(assets/photos/w003.jpg) center/cover; position: relative; }
+  #sheet .ph::before { content: ''; position: absolute; left: 50%; top: 16px; width: 80px; height: 8px; margin-left: -40px; border-radius: 6px; background: rgba(255,255,255,.85); }
+  #sheet .bd { padding: 28px 34px; }
+  #sheet .tag { display: inline-block; font: 800 16px Poppins; letter-spacing: .1em; background: #FFF3D6; color: #9A6A00; padding: 7px 14px; border-radius: 999px; }
+  #sheet h6 { margin-top: 14px; font: 800 46px/1.05 Poppins; }
+  #sheet .meta { margin-top: 10px; font: 600 22px Poppins; color: #6B6F66; }
+  #sheet .rows { margin-top: 22px; display: grid; gap: 12px; }
+  #sheet .row { font: 600 22px Poppins; color: #222; display: flex; gap: 14px; align-items: center; }
+  #sheet .thumbs { display: flex; gap: 12px; margin-top: 22px; }
+  #sheet .thumbs i { flex: 1; height: 120px; border-radius: 18px; background-size: cover; background-position: center; }
+  #sheet .btns { display: flex; gap: 14px; margin-top: 26px; }
+  #sheet .btn { flex: 1; text-align: center; padding: 20px 0; border-radius: 999px; font: 800 24px Poppins; }
+  #sheet .btn.a { background: linear-gradient(135deg, var(--or), var(--or2)); color: #fff; box-shadow: 0 12px 30px rgba(242,162,12,.45); }
+  #sheet .btn.b { background: #F1ECE2; color: var(--ink); }
+  #sticker { position: absolute; right: 30px; top: 520px; padding: 22px 30px; border-radius: 30px; background: var(--rose); box-shadow: 0 24px 70px rgba(255,30,142,.55); text-align: center; opacity: 0; }
+  #sticker b { display: block; font: 400 52px/1 Anton; text-transform: uppercase; }
+  #sticker span { display: block; margin-top: 6px; font: 700 24px Poppins; }
+  #arrow { position: absolute; left: 40px; top: 760px; width: 200px; opacity: 0; }
+
+  /* S3 avantages */
+  #s3 .head { position: absolute; left: 70px; right: 70px; top: 200px; }
+  #chipsA { position: absolute; left: 70px; right: 70px; top: 560px; display: grid; gap: 34px; }
+  .chip { display: grid; grid-template-columns: 210px 1fr; gap: 34px; align-items: center; padding: 24px 40px 24px 24px; border-radius: 40px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.12); }
+  .chip i { width: 210px; height: 190px; border-radius: 26px; background-size: cover; background-position: center; }
+  .chip b { display: block; font: 800 46px/1.15 Poppins; }
+  .chip span { display: block; margin-top: 10px; font: 500 34px/1.35 Poppins; color: rgba(255,255,255,.82); }
+  .chip .n { display: inline-grid; place-items: center; width: 62px; height: 62px; border-radius: 50%; background: var(--or); font: 800 32px Poppins; margin-bottom: 14px; }
+
+  /* S4 offre */
+  .photo-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .photo-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,5,20,.7) 0%, rgba(10,5,20,.86) 50%, rgba(10,5,20,.97) 100%); }
+  #s4 .in { position: absolute; left: 70px; right: 70px; top: 330px; text-align: center; }
+  #s4 .big { font-size: 150px; }
+  #months { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-top: 90px; }
+  #months span { padding: 26px 0; border-radius: 22px; font: 800 30px Poppins; background: rgba(255,255,255,.08); color: rgba(255,255,255,.5); }
+  #price { margin-top: 110px; font: 400 290px/1 Anton; }
+  #price small { font: 700 54px Poppins; color: #fff; margin-left: 8px; }
+  #s4 .sub { margin-top: 40px; }
+
+  /* S5 fin */
+  #s5 .in { position: absolute; left: 70px; right: 70px; top: 420px; text-align: center; }
+  #duo2 { display: flex; align-items: center; justify-content: center; gap: 34px; }
+  #duo2 .ap { height: 170px; } #duo2 .mc { height: 92px; } #duo2 .x { font: 400 80px Anton; color: rgba(255,255,255,.7); }
+  #s5 .big { margin-top: 100px; font-size: 170px; }
+  #s5 .cta { display: inline-block; margin-top: 90px; padding: 34px 70px; border-radius: 999px; font: 800 52px Poppins; background: linear-gradient(90deg, var(--or), var(--rose)); box-shadow: 0 24px 80px rgba(255,30,142,.5); }
+  #s5 .sub { margin-top: 60px; }
+  #credits { position: absolute; left: 60px; right: 60px; bottom: 60px; text-align: center; font: 500 22px Poppins; color: rgba(255,255,255,.55); opacity: 0; }
+</style>
+</head>
+<body>
+<div id="bg"><div class="blob" id="b1"></div><div class="blob" id="b2"></div></div>
+
+<section class="scene" id="s1">
+  <img id="full" src="clip/full/0001.jpg" alt="">
+  <div class="shade"></div>
+  <div class="in">
+    <div id="duo" class="line"><img class="ap" src="assets/photos/logo_waly.png" alt="Walygator Sud-Ouest"><span class="x">×</span><img class="mc" src="assets/logo.svg" alt="MaCity"></div>
+    <span class="badge line" id="s1b">Avril à septembre 2027</span>
+    <p class="sub line" id="s1s">MaCity, l'appli qui aide les familles de Toulouse, d'Agen et de la région à trouver quoi faire.</p>
+  </div>
+</section>
+
+<section class="scene" id="s2">
+  <div class="top">
+    <p class="kick line" id="s2k">Où vous serez</p>
+    <div class="swap" id="w1"><div class="big">Rubrique <span class="grad">Famille</span></div><p>Là où les parents cherchent leur prochaine sortie.</p></div>
+    <div class="swap" id="w2"><div class="big">Votre vidéo <span class="grad">à la une</span></div><p>En tête de la rubrique, d'avril à septembre 2027.</p></div>
+    <div class="swap" id="w3"><div class="big">Votre fiche <span class="grad">complète</span></div><p>Photos, horaires, billetterie : en un geste.</p></div>
+  </div>
+  <div id="phone"><div id="screen">
+    <div id="hero">
+      <img id="hv" src="clip/hero/0001.jpg" alt="">
+      <div class="g1"></div><div class="g2"></div>
+      <div class="status"><span>10:30</span><span>●●● 5G</span></div>
+      <div class="back">‹</div>
+      <div id="pill"><b>★</b>Walygator</div>
+      <div id="ripple"></div>
+      <div class="ht"><b>Famille.</b><span>Cinéma, parcs, ateliers : sortir avec les enfants.</span></div>
+    </div>
+    <div id="below">
+      <div class="chips"><span class="on">Divertissements</span><span>Jeux d'enfants</span><span>Animaux et Nature</span></div>
+      <h5>À faire en famille</h5>
+      <div class="cards"><div class="cardk"><i></i><u></u><s></s></div><div class="cardk"><i></i><u></u><s></s></div><div class="cardk"><i></i><u></u><s></s></div></div>
+      <div class="bnr"></div>
+    </div>
+    <div id="sheet">
+      <div class="ph"></div>
+      <div class="bd">
+        <span class="tag">★ PARTENAIRE</span>
+        <h6>Walygator Sud-Ouest</h6>
+        <p class="meta">📍 Château de Caudouin, Roquefort (Agen)</p>
+        <div class="thumbs"><i style="background-image:url(assets/photos/w012.jpg)"></i><i style="background-image:url(assets/photos/w016.jpg)"></i><i style="background-image:url(assets/photos/w054.webp)"></i></div>
+        <div class="rows"><div class="row">🕘 Saison 2027 : dès avril</div><div class="row">🎢 Boomerang · 🐉 Dragon · 🌊 Parc aquatique</div></div>
+        <div class="btns"><div class="btn a">🎟 Billetterie</div><div class="btn b">🌐 Site</div></div>
+      </div>
+    </div>
+  </div></div>
+  <div id="sticker"><b>Avr. → Sept.</b><span>2027</span></div>
+  <svg id="arrow" viewBox="0 0 200 200"><path d="M20 20 C 90 30, 150 70, 175 150" fill="none" stroke="#FFD93D" stroke-width="10" stroke-linecap="round"/><path d="M140 140 L178 158 L186 116" fill="none" stroke="#FFD93D" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</section>
+
+<section class="scene" id="s3">
+  <div class="head"><p class="kick line" id="s3k">Ce que vous y gagnez</p><div class="big line" id="s3t">Vos <span class="grad">avantages</span></div></div>
+  <div id="chipsA">
+    <div class="chip line" id="k1"><i style="background-image:url(assets/photos/w003.jpg)"></i><div><span class="n">1</span><b>En tête dès avril</b><span>Dès votre réouverture, pendant 6 mois.</span></div></div>
+    <div class="chip line" id="k2"><i style="background-image:url(assets/photos/w038.webp)"></i><div><span class="n">2</span><b>Toulouse et Agen</b><span>Les familles à une heure du parc.</span></div></div>
+    <div class="chip line" id="k3"><i style="background-image:url(assets/photos/w030.webp)"></i><div><span class="n">3</span><b>Vos temps forts relayés</b><span>Pâques, parc aquatique, été.</span></div></div>
+    <div class="chip line" id="k4"><i style="background-image:url(assets/photos/w082.jpg)"></i><div><span class="n">🎁</span><b>Une offre MaCity</b><span>Si vous le souhaitez.</span></div></div>
+  </div>
+</section>
+
+<section class="scene" id="s4"><div class="photo-bg" id="s4p" style="background-image:url(assets/photos/w012.jpg)"></div><div class="in">
+  <p class="kick line" id="s4k">Votre formule Premium</p>
+  <div class="big line" id="s4t">6 mois <span class="grad">à la une</span></div>
+  <div id="months" class="line"><span>Avr.</span><span>Mai</span><span>Juin</span><span>Juil.</span><span>Août</span><span>Sept.</span></div>
+  <div id="price" class="line"><span class="grad">179 €</span><small>HT / mois</small></div>
+  <p class="sub line" id="s4s">Rubrique Famille · Avril à septembre 2027</p>
+</div></section>
+
+<section class="scene" id="s5"><div class="in">
+  <div id="duo2" class="line"><img class="ap" src="assets/photos/logo_waly.png" alt="Walygator Sud-Ouest"><span class="x">×</span><img class="mc" src="assets/logo.svg" alt="MaCity"></div>
+  <div class="big line" id="s5t">On en <span class="grad">parle ?</span></div>
+  <div class="cta line" id="s5c">📲 macity.app</div>
+  <p class="sub line" id="s5s">Carlos Basseka, fondateur de MaCity</p>
+</div><p id="credits">Images et vidéo : Walygator Sud-Ouest · Maquette non contractuelle</p></section>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const E = {
+  out: x => 1 - Math.pow(1 - x, 3),
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  back: x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+};
+// Repères de la voix off, injectés par timeline.py
+var V = /*CUES*/{"a1": 0.3, "a1_end": 4.146, "a2": 4.409, "a2_end": 8.962, "b1": 9.637, "b1_end": 12.396, "b2": 12.734, "b2_end": 16.664, "b3": 17.114, "b3_end": 20.25, "c0": 21.075, "c0_end": 21.909, "c1": 22.171, "c1_end": 25.377, "c2": 25.677, "c2_end": 28.855, "c3": 29.155, "c3_end": 33.389, "c4": 33.689, "c4_end": 36.806, "d1": 37.556, "d1_end": 40.33, "e1": 41.155, "e1_end": 45.042, "DUR": 47.64}/*END*/;
+const S = { s1: [0, V.a2_end + .4], s2: [V.a2_end + .3, V.b3_end + 1.2], s3: [V.b3_end + 1.1, V.c4_end + .6], s4: [V.c4_end + .5, V.d1_end + 1.0], s5: [V.d1_end + .9, V.DUR + 1] };
+const DUR = V.DUR;
+
+function sceneOp(t, [a, b]) { return clamp((t - a) / .35) * clamp((b - t) / .35); }
+function rise(id, t, d, dist = 80) {
+  const p = E.back(clamp((t - d) / .6)); const el = $(id);
+  el.style.opacity = clamp((t - d) / .3); el.style.transform = `translateY(${(1 - p) * dist}px)`;
+}
+// Images du clip : on ne change la source que si l'image change, puis on attend son décodage
+function setFrame(img, dir, i, max) {
+  const n = String(Math.max(1, Math.min(max, i))).padStart(4, '0');
+  const src = `clip/${dir}/${n}.jpg`;
+  if (img.getAttribute('src') === src) return Promise.resolve();
+  img.setAttribute('src', src); return img.decode().catch(() => {});
+}
+
+window.render = function (t) {
+  $('b1').style.transform = `translate(${-220 + 160 * Math.sin(t * .33)}px, ${-140 + 150 * Math.cos(t * .26)}px)`;
+  $('b2').style.transform = `translate(${520 + 140 * Math.cos(t * .29)}px, ${1150 + 160 * Math.sin(t * .21)}px)`;
+  for (const k in S) $(k).style.opacity = sceneOp(t, S[k]);
+  const waits = [];
+
+  // S1 : clip plein écran
+  if (t < S.s1[1] + .1) waits.push(setFrame($('full'), 'full', Math.floor(t * 30) + 1, 290));
+  $('full').style.transform = `scale(${1.04 + .04 * clamp(t / 9)})`;
+  rise('duo', t, V.a1 - .1, 120); rise('s1b', t, V.a1 + 1.4); rise('s1s', t, V.a2 - .1);
+
+  // S2 : téléphone
+  const a2 = S.s2[0];
+  rise('s2k', t, a2 + .1);
+  const sw = [[a2 + .2, V.b2 - .1], [V.b2 - .1, V.b3 - .1], [V.b3 - .1, 999]];
+  ['w1', 'w2', 'w3'].forEach((id, i) => { const [x, y] = sw[i]; const k = E.out(clamp((t - x) / .45));
+    $(id).style.opacity = clamp((t - x) / .3) * clamp((y - t) / .25);
+    $(id).style.transform = `translateY(${(1 - k) * 60}px)`; });
+  const ph = E.back(clamp((t - a2 - .1) / .9));
+  $('phone').style.transform = `translateY(${(1 - ph) * 900}px) rotate(${(1 - ph) * 5}deg)`;
+  // révélation de la vidéo du partenaire dans la bannière
+  const rv = E.io(clamp((t - V.b2 + .1) / .7));
+  $('hv').style.clipPath = `inset(0 ${(100 - rv * 100).toFixed(2)}% 0 0)`;
+  if (t > S.s2[0] - .2 && t < S.s2[1] + .1) waits.push(setFrame($('hv'), 'hero', 1 + Math.floor(Math.max(0, t - V.b2 + .2) * 30) % 306, 306));
+  const pl = E.back(clamp((t - V.b2 - .5) / .5));
+  $('pill').style.opacity = clamp((t - V.b2 - .5) / .2); $('pill').style.transform = `scale(${.5 + .5 * pl})`;
+  // tap sur le badge puis ouverture de la fiche
+  const tp = clamp((t - V.b3 + .25) / .5);
+  $('ripple').style.opacity = tp > 0 && tp < 1 ? (1 - tp).toFixed(3) : 0; $('ripple').style.transform = `scale(${.3 + tp})`;
+  const sh = E.out(clamp((t - V.b3 - .15) / .7));
+  $('sheet').style.transform = `translateY(${(1 - sh) * 105}%)`;
+  const st = E.back(clamp((t - V.b2 - 1.0) / .6));
+  $('sticker').style.opacity = clamp((t - V.b2 - 1.0) / .25) * (1 - clamp((t - V.b3 + .2) / .3));
+  $('sticker').style.transform = `rotate(${8 - 4 * st}deg) scale(${.4 + .6 * st})`;
+  $('arrow').style.opacity = clamp((t - V.b2 - .4) / .3) * (1 - clamp((t - V.b3 + .2) / .3));
+  $('arrow').style.transform = `translate(${-30 * (1 - clamp((t - V.b2 - .4) / .5))}px, 0)`;
+
+  // S3
+  const a3 = S.s3[0];
+  rise('s3k', t, a3 + .05); rise('s3t', t, V.c0 - .05, 100);
+  ['k1', 'k2', 'k3', 'k4'].forEach((id, i) => rise(id, t, V['c' + (i + 1)] - .15, 90));
+
+  // S4
+  const a4 = S.s4[0];
+  $('s4p').style.transform = `scale(${1.12 - .06 * clamp((t - a4) / 5)})`;
+  rise('s4k', t, a4 + .1); rise('s4t', t, V.d1 - .1, 110); rise('months', t, V.d1 + .2, 60);
+  [...$('months').children].forEach((m, i) => { const on = clamp((t - V.d1 - .5 - i * .2) / .2);
+    m.style.background = on > .5 ? 'linear-gradient(135deg,#F2A20C,#FF1E8E)' : 'rgba(255,255,255,.08)';
+    m.style.color = on > .5 ? '#fff' : 'rgba(255,255,255,.5)'; m.style.transform = `scale(${1 + .12 * Math.sin(Math.PI * on)})`; });
+  rise('price', t, V.d1 + 1.4, 120); rise('s4s', t, V.d1 + 2.0);
+  $('price').style.transform += ` scale(${1 + .025 * Math.sin(Math.max(0, t - V.d1 - 2) * 4)})`;
+
+  // S5
+  const a5 = S.s5[0];
+  rise('duo2', t, a5 + .1, 100); rise('s5t', t, V.e1 - .05, 110); rise('s5c', t, V.e1 + 1.4, 90); rise('s5s', t, V.e1 + 1.9);
+  $('s5c').style.transform += ` scale(${1 + .03 * Math.sin(Math.max(0, t - V.e1 - 2) * 4)})`;
+  $('credits').style.opacity = clamp((t - V.e1 - 2.2) / .5);
+
+  return Promise.all(waits);
+};
+window.DUR = DUR;
+window.render(0);
+</script>
+</body>
+</html>

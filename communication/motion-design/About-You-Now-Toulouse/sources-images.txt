@@ -1,0 +1,25 @@
+intro	Grand Hotel de l'Opera	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/nig/v_776_0.jpg
+p1	Walygator Sud-Ouest	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/family_venues/galerie/walygator_1.jpg
+p2	Zoo African Safari	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/family_venues/galerie/african-safari_2.jpg
+p3	Animaparc	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/family_venues/galerie/animaparc_1.jpg
+p4	Walygator Sud-Ouest	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/family_venues/galerie/walygator_2.jpg
+c1	Theatre du Capitole	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/venues/venues_upload/theatre_capitole.jpg
+c2	Hotel de Bagis (Hotel de Pierre)	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/venues/venues_upload/monument_hotel_bagis.jpg
+c3	Cité de l'espace	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/family_venues/galerie/cite-espace_1.jpg
+c4	Theatre des Mazades	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/cul/v_584_t0.jpg
+s1	O Club By Charleston	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/admin-events/1781037336428-7nume1.jpg
+s2	L'ETOILE Club	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/admin-events/1781012396805-kfjbzd.jpg
+s3	O Club By Charleston	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/admin-events/1781037339580-d3sql1.jpg
+s4	Le Bar Basque	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/nig/v_713_0.jpg
+f1	Chef Chuan	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/etablissements/chef_chuan_0.jpg
+f2	Agapes	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/etablissements/galerie/gastro_agapes_0.jpg
+f3	Chef Chuan	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/etablissements/chef_chuan_2.jpg
+f4	Bapz	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/etablissements/galerie/etab_3104_2.jpg
+l1	Bowling Montaudran	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/fam/v_825_t0.jpg
+l2	Skryptic Escape Game	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/fam/v_840_t0.jpg
+l3	Made by Me	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/fam/made_by_me_toulouse_2.jpg
+l4	Laser Game - Trampoline Park Sept Deniers	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/fam/v_830_t0.jpg
+sp1	Clark Powell Balma	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/admin-events/1789053024128-gk6lpk.jpg
+sp2	Clark Powell Balma	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/admin-events/1789053003704-7kaggw.jpg
+sp3	Clark Powell Montaudran	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/admin-events/1789053148411-7bnerj.jpg
+outro	Hotel Des Beaux Arts	https://dpqxefmwjfvoysacwgef.supabase.co/storage/v1/object/public/photos/venues/galerie/nig/v_781_1.jpg

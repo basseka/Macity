@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MaCity Toulouse : About You Now</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --or: #FFB020; --cyan: #22D3EE; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #08050F; font-family: Poppins, sans-serif; color: #fff; }
+  .shot { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+  .shot i { position: absolute; inset: -40px; background-size: cover; background-position: center; }
+  .shot::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,5,15,.45) 0%, rgba(8,5,15,0) 22%, rgba(8,5,15,0) 55%, rgba(8,5,15,.85) 100%); }
+  .place { position: absolute; left: 64px; bottom: 150px; z-index: 2; font: 700 34px Poppins; text-shadow: 0 4px 20px rgba(0,0,0,.6); display: flex; align-items: center; gap: 12px; }
+  .place::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 6px rgba(255,30,142,.3); }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 20; pointer-events: none; }
+  #logo { position: absolute; left: 60px; top: 70px; height: 70px; z-index: 15; filter: drop-shadow(0 4px 16px rgba(0,0,0,.5)); }
+  #sec { position: absolute; left: 60px; right: 60px; top: 760px; z-index: 12; opacity: 0; }
+  #sec::before { content: ''; position: absolute; left: -60px; right: -60px; top: -150px; bottom: -150px; z-index: -1;
+    background: linear-gradient(180deg, rgba(8,5,15,0) 0%, rgba(8,5,15,.72) 28%, rgba(8,5,15,.72) 72%, rgba(8,5,15,0) 100%); }
+  #sec .k { font: 800 34px Poppins; letter-spacing: .22em; color: #FFE14D; text-shadow: 0 4px 18px rgba(0,0,0,.6); }
+  #sec .t { margin-top: 10px; font: 400 196px/0.92 Anton; text-transform: uppercase; text-shadow: 0 10px 40px rgba(0,0,0,.55); }
+  #sec .t span { background: linear-gradient(90deg, #FFE14D, #FF5AAE); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #bar { position: absolute; left: 60px; right: 60px; bottom: 80px; height: 8px; border-radius: 8px; background: rgba(255,255,255,.18); z-index: 15; overflow: hidden; }
+  #bar b { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #FFE14D, var(--rose)); }
+  /* intro */
+  #intro { position: absolute; left: 60px; right: 60px; top: 640px; z-index: 12; text-align: center; opacity: 0; }
+  #intro .city { font: 400 236px/0.9 Anton; letter-spacing: .02em; display: flex; justify-content: center; }
+  #intro .city span { display: inline-block; opacity: 0; }
+  #intro .q { margin-top: 40px; font: 800 62px/1.15 Poppins; opacity: 0; }
+  #intro .q em { font-style: normal; background: linear-gradient(90deg, #FFE14D, var(--rose)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  /* outro */
+  #outro { position: absolute; inset: 0; z-index: 14; opacity: 0; text-align: center; }
+  #outro .veil { position: absolute; inset: 0; background: radial-gradient(ellipse 90% 60% at 50% 45%, rgba(40,10,60,.72), rgba(8,5,15,.95)); }
+  #outro .in { position: absolute; left: 60px; right: 60px; top: 420px; }
+  #outro .lg { height: 150px; }
+  #outro .t { margin-top: 70px; font: 400 150px/0.95 Anton; text-transform: uppercase; }
+  #outro .t span { background: linear-gradient(90deg, #FFE14D, var(--rose)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #outro .cats { margin-top: 50px; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+  #outro .cats b { font: 700 32px Poppins; padding: 14px 26px; border-radius: 999px; background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.18); opacity: 0; }
+  #outro .free { margin-top: 70px; font: 800 44px Poppins; color: #FFE14D; opacity: 0; }
+  #outro .badges { margin-top: 36px; display: flex; justify-content: center; gap: 26px; opacity: 0; }
+  #outro .badges img { height: 96px; }
+  #outro .cr { position: absolute; left: 0; right: 0; bottom: 50px; font: 500 20px Poppins; color: rgba(255,255,255,.45); }
+</style>
+</head>
+<body>
+<div id="shots"></div>
+<img id="logo" src="assets/logo.svg" alt="MaCity">
+<div id="intro"><div class="city" id="city"></div><p class="q" id="q">Ce week-end, <em>tu fais quoi ?</em></p></div>
+<div id="sec"><p class="k" id="seck"></p><div class="t" id="sect"></div></div>
+<div id="outro"><div class="veil"></div><div class="in">
+  <img class="lg" src="assets/logo.svg" alt="MaCity">
+  <div class="t" id="ot">Toutes tes <span>sorties</span></div>
+  <div class="cats" id="cats"><b>🎢 Parcs</b><b>🏛️ Culture</b><b>🎉 Soirées</b><b>🍜 Restos</b><b>🎳 Loisirs</b><b>🚴 Sport</b></div>
+  <p class="free" id="free">Gratuit · Télécharge MaCity</p>
+  <div class="badges" id="badges"><img src="assets/badge-app-store-fr.svg" alt="App Store"><img src="assets/badge-google-play-fr.png" alt="Google Play"></div>
+</div><p class="cr">Images : lieux et partenaires présents sur MaCity</p></div>
+<div id="flash"></div>
+<div id="bar"><b id="barb"></b></div>
+
+<script>
+// Tempo de « About You Now » : environ 165 BPM. La musique est ajoutée sur Instagram.
+const BPM = 165, B = 60 / BPM;
+// [image, battements, lieu affiché, titre de rubrique]
+const SEQ = [
+  ['intro', 8, '', null],
+  ['p1', 4, 'Walygator Sud-Ouest', ['Sensations', 'Les <span>parcs</span>']],
+  ['p2', 2, 'Zoo African Safari'], ['p3', 2, 'AnimaParc'], ['p4', 2, 'Walygator Sud-Ouest'],
+  ['c1', 4, 'Théâtre du Capitole', ['Sortir', 'La <span>culture</span>']],
+  ['c2', 2, 'Hôtel de Bagis'], ['c3', 2, "Cité de l'espace"], ['c4', 2, 'Théâtre des Mazades'],
+  ['s1', 4, 'O Club by Charleston', ['Le soir', 'Les <span>soirées</span>']],
+  ['s2', 2, "L'Étoile Club"], ['s3', 2, 'O Club by Charleston'], ['s4', 2, 'Le Bar Basque'],
+  ['f1', 4, 'Chef Chuan', ['À table', 'Les <span>restos</span>']],
+  ['f2', 2, 'Agapes'], ['f3', 2, 'Chef Chuan'], ['f4', 2, 'Bapz'],
+  ['l1', 4, 'Bowling Montaudran', ['Entre potes', 'Les <span>loisirs</span>']],
+  ['l2', 2, 'Skryptic Escape Game'], ['l3', 2, 'Made by Me'], ['l4', 2, 'Laser Game Trampolin'],
+  ['sp1', 4, 'Clark Powell Balma', ['Bouger', 'Le <span>sport</span>']],
+  ['sp2', 2, 'Clark Powell Balma'], ['sp3', 2, 'Clark Powell Montaudran'],
+  ['outro', 14, '', null],
+];
+let acc = 0;
+const SH = SEQ.map(([img, beats, place, title], i) => { const s = { img, a: acc * B, b: (acc + beats) * B, beats, place, title, i }; acc += beats; return s; });
+const DUR = acc * B + 0.4;
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const back = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const out = x => 1 - Math.pow(1 - x, 3);
+
+const root = $('shots');
+SH.forEach(s => {
+  const d = document.createElement('div'); d.className = 'shot'; d.id = 'sh' + s.i;
+  d.innerHTML = `<i style="background-image:url(assets/img/${s.img}.jpg)"></i>` + (s.place ? `<div class="place">${s.place}</div>` : '');
+  root.appendChild(d);
+});
+'TOULOUSE'.split('').forEach(ch => { const sp = document.createElement('span'); sp.textContent = ch; $('city').appendChild(sp); });
+
+window.render = function (t) {
+  const beat = t / B, bi = Math.floor(beat), bf = beat - bi;
+  let cur = SH.find(s => t >= s.a && t < s.b) || SH[SH.length - 1];
+  SH.forEach(s => {
+    const el = $('sh' + s.i); const on = s === cur;
+    el.style.opacity = on ? 1 : 0;
+    if (on) {
+      const p = clamp((t - s.a) / (s.b - s.a));
+      const dir = s.i % 2 ? 1 : -1;
+      const punch = .035 * Math.exp(-bf * 7);           // petit « coup » sur chaque temps
+      el.firstChild.style.transform = `scale(${1.16 - .1 * p + punch}) translateX(${dir * 26 * (p - .5)}px)`;
+    }
+  });
+  // flash blanc à chaque coupe
+  const since = t - cur.a;
+  $('flash').style.opacity = cur.i === 0 ? 0 : (.55 * clamp(1 - since / .12)).toFixed(3);
+
+  // intro : TOULOUSE lettre par lettre, une lettre par demi-temps
+  const intro = SH[0];
+  $('intro').style.opacity = t < intro.b ? 1 : 0;
+  [...$('city').children].forEach((sp, k) => { const a = clamp((t - .15 - k * B / 2) / .18);
+    sp.style.opacity = a; sp.style.transform = `translateY(${(1 - back(a)) * 90}px) scale(${.6 + .4 * back(a)})`; });
+  const qa = clamp((t - 4.2 * B) / .3); $('q').style.opacity = qa; $('q').style.transform = `translateY(${(1 - out(qa)) * 50}px)`;
+
+  // titres de rubrique : sur le 1er plan de chaque rubrique
+  if (cur.title) {
+    const a = clamp((t - cur.a) / .28), z = clamp((cur.b - t) / .15);
+    $('sec').style.opacity = Math.min(a, z);
+    $('seck').textContent = cur.title[0].toUpperCase() + ' · TOULOUSE';
+    $('sect').innerHTML = cur.title[1];
+    $('sec').style.transform = `translateX(${(1 - back(a)) * -140}px)`;
+  } else $('sec').style.opacity = 0;
+
+  // outro
+  const o = SH[SH.length - 1], ot = t - o.a;
+  $('outro').style.opacity = clamp(ot / .25);
+  $('logo').style.opacity = 1 - clamp(ot / .25);
+  $('bar').style.opacity = 1 - clamp(ot / .25);
+  const r = (id, d) => { const a = clamp((ot - d) / .3); $(id).style.opacity = a; $(id).style.transform = `translateY(${(1 - back(a)) * 60}px)`; };
+  r('ot', 2 * B);
+  [...$('cats').children].forEach((c, k) => { const a = clamp((ot - (4 + k) * B) / .2); c.style.opacity = a; c.style.transform = `scale(${.5 + .5 * back(a)})`; });
+  r('free', 10 * B); r('badges', 11 * B);
+  $('ot').style.transform += ` scale(${1 + .02 * Math.exp(-bf * 6)})`;
+
+  $('barb').style.width = (100 * clamp(t / o.a)).toFixed(2) + '%';
+  return Promise.resolve();
+};
+window.DUR = DUR;
+window.render(0);
+</script>
+</body>
+</html>
