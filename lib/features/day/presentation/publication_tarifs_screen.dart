@@ -75,6 +75,7 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
 
   // Option « Notification push + teaser » (À la une / Au top uniquement).
   PushTeaserAvailability? _push;
+  bool _pushLoading = true;
   bool _pushOn = false;
   bool _uploadingVideo = false;
   late String _videoUrl = widget.event.videoUrl;
@@ -93,14 +94,21 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
 
   Future<void> _loadPush() async {
     final e = widget.event;
-    if (e.ville.isEmpty || e.date.isEmpty) return;
+    if (e.ville.isEmpty || e.date.isEmpty) {
+      setState(() => _pushLoading = false);
+      return;
+    }
+    setState(() => _pushLoading = true);
     final a = await _service.fetchPushTeaserAvailability(
       ville: e.ville,
       date: e.date,
       heure: e.heure,
     );
     if (!mounted) return;
-    setState(() => _push = a);
+    setState(() {
+      _push = a;
+      _pushLoading = false;
+    });
   }
 
   Future<void> _pickTeaserVideo() async {
@@ -338,10 +346,10 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
                             );
                           }).toList(),
                         ),
-                        if (_tierAllowsPush && (_push?.isShown ?? false)) ...[
-                          const SizedBox(height: 18),
-                          _buildPushCard(_push!),
-                        ],
+                        // Toujours visible : si l'option n'est pas possible pour
+                        // cet event, la case est grisée et dit pourquoi.
+                        const SizedBox(height: 18),
+                        _buildPushCard(_push),
                         if (_error != null) ...[
                           const SizedBox(height: 16),
                           Text(_error!,
@@ -414,14 +422,45 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
       '${_jours[d.weekday - 1]} ${d.day} ${_mois[d.month - 1]} à '
       '${d.hour.toString().padLeft(2, '0')}h${d.minute.toString().padLeft(2, '0')}';
 
-  Widget _buildPushCard(PushTeaserAvailability p) {
-    final full = !p.available;
+  /// Pourquoi l'option n'est pas cochable (null = elle l'est).
+  String? _pushBlockedReason(PushTeaserAvailability? p) {
+    final e = widget.event;
+    if (!_tierAllowsPush) return 'Disponible avec la formule À la une ou Au top.';
+    if (e.ville.isEmpty || e.date.isEmpty) {
+      return "Ajoute la ville et la date de ton event pour en profiter.";
+    }
+    if (_pushLoading) return 'Vérification de la disponibilité…';
+    if (p == null) return "Disponibilité impossible à vérifier pour l'instant. Touche pour réessayer.";
+    if (p.available) return null;
+    switch (p.reason) {
+      case 'complet':
+        return 'Complet : les 2 notifications de cette soirée à ${p.villeLabel} sont déjà réservées.';
+      case 'trop_tard':
+        return "Ton event commence trop tôt : la notification part 2 h avant, "
+            "il faut publier au moins 3 h avant le début.";
+      case 'ville':
+        return 'Pas encore disponible à ${e.ville}.';
+      default:
+        return 'Option momentanément indisponible.';
+    }
+  }
+
+  Widget _buildPushCard(PushTeaserAvailability? p) {
+    final blocked = _pushBlockedReason(p);
+    final full = blocked != null;
     final on = _pushSelected;
+    final retry = !_pushLoading && p == null && _tierAllowsPush &&
+        widget.event.ville.isNotEmpty && widget.event.date.isNotEmpty;
+    final priceLabel = (p != null && p.priceCents > 0) ? p.formattedPrice : '15,90 €';
     final dim = GoogleFonts.geist(color: AppColors.textDim, fontSize: 12, height: 1.4);
     return Opacity(
-      opacity: full ? 0.55 : 1,
+      opacity: full && !retry ? 0.6 : 1,
       child: GestureDetector(
-        onTap: full ? null : () => setState(() => _pushOn = !_pushOn),
+        onTap: retry
+            ? _loadPush
+            : full
+                ? null
+                : () => setState(() => _pushOn = !_pushOn),
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
           decoration: BoxDecoration(
@@ -445,7 +484,7 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
                         style: GoogleFonts.geist(
                             color: AppColors.text, fontSize: 15, fontWeight: FontWeight.w700,),),
                   ),
-                  Text('+ ${p.formattedPrice}',
+                  Text('+ $priceLabel',
                       style: GoogleFonts.geist(
                           color: on ? AppColors.magenta : AppColors.text,
                           fontSize: 15,
@@ -453,14 +492,19 @@ class _PublicationTarifsScreenState extends State<PublicationTarifsScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              if (full)
-                Text('Complet : les 2 notifications de cette soirée à ${p.villeLabel} sont déjà réservées.',
-                    style: dim,)
-              else ...[
+              if (full) ...[
+                Text("Ton event envoyé en notification sur les téléphones de ta ville, "
+                    "2 h avant le début. Au tap, ton teaser vidéo se lance.", style: dim,),
+                const SizedBox(height: 6),
+                Text(blocked,
+                    style: GoogleFonts.geist(
+                        color: AppColors.text, fontSize: 12, height: 1.4, fontWeight: FontWeight.w600,),),
+              ] else if (p != null) ...[
                 Text(
                   'Envoyée ${p.sendAt != null ? '${_quand(p.sendAt!)} ' : ''}à tous les utilisateurs '
-                  'MaCity de ${p.villeLabel} : entre ${_milliers(p.minPhones)} et '
-                  '${_milliers(p.maxPhones)} téléphones touchés.',
+                  'MaCity de ${p.villeLabel} : '
+                  '${p.minPhones == p.maxPhones ? 'environ ${_milliers(p.minPhones)}' : 'entre ${_milliers(p.minPhones)} et ${_milliers(p.maxPhones)}'}'
+                  ' ${p.maxPhones > 1 ? 'téléphones touchés' : 'téléphone touché'}.',
                   style: dim,
                 ),
                 const SizedBox(height: 4),
