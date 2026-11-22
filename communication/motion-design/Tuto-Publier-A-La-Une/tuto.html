@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Tuto À la une</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --pub: #FF1E6E; --mag: #E91E63; --corail: #FF2E38; --nuit: #1A0F2E; --nuit2: #0A0514; --hi: #241640; --dim: #B5A8D0; --faint: #7A6E95; --or: #FFD93D; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit2); font-family: Poppins, sans-serif; color: #fff; }
+  #bg { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 70% at 50% 110%, #2a0f3d 0%, #140a24 45%, #0A0514 80%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(140px); opacity: .45; }
+  #b1 { width: 800px; height: 800px; background: #FF1E8E; }
+  #b2 { width: 760px; height: 760px; background: #6d28d9; }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .line { opacity: 0; }
+  .kick { font: 800 34px Poppins; letter-spacing: .2em; text-transform: uppercase; color: var(--or); }
+  .big { font: 400 150px/0.95 Anton; text-transform: uppercase; }
+  .grad { background: linear-gradient(90deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { font: 600 44px/1.35 Poppins; color: rgba(255,255,255,.92); }
+  .photo-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,5,20,.55) 0%, rgba(10,5,20,.82) 55%, rgba(10,5,20,.97) 100%); }
+
+  /* S1 intro */
+  #s1 .in { position: absolute; left: 80px; right: 80px; top: 500px; }
+  #s1 .logo { height: 96px; display: block; margin-bottom: 70px; }
+  #s1 .badge { display: inline-block; font: 800 30px/1 Poppins; letter-spacing: .14em; text-transform: uppercase; background: #fff; color: var(--nuit); padding: 16px 26px; border-radius: 999px; }
+  #s1 .big { margin-top: 40px; }
+  #s1 .sub { margin-top: 44px; }
+
+  /* S2 : en-têtes d'étape */
+  .head { position: absolute; left: 80px; right: 80px; top: 130px; }
+  .head .big { font-size: 112px; margin-top: 18px; }
+  #dots { position: absolute; left: 80px; top: 470px; display: flex; gap: 14px; }
+  #dots i { width: 54px; height: 10px; border-radius: 6px; background: rgba(255,255,255,.18); }
+  #dots i.on { background: var(--rose); }
+
+  /* Téléphone */
+  #phone { position: absolute; left: 230px; top: 540px; width: 620px; height: 1300px; border-radius: 76px; background: #111; padding: 16px; box-shadow: 0 0 0 3px #2c2438, 0 50px 140px rgba(0,0,0,.7), 0 0 120px rgba(255,30,142,.18); }
+  #screen { width: 588px; height: 1268px; border-radius: 62px; background: var(--nuit2); overflow: hidden; position: relative; }
+  .scr { position: absolute; inset: 0; opacity: 0; z-index: 1; isolation: isolate; }
+  .abs { position: absolute; }
+  .sb { position: absolute; left: 44px; right: 44px; top: 18px; display: flex; justify-content: space-between; font: 700 20px Poppins; color: #fff; }
+  .island { position: absolute; left: 224px; top: 14px; width: 140px; height: 36px; border-radius: 20px; background: #000; z-index: 9; }
+
+  /* Accueil */
+  .hdr { position: absolute; left: 28px; right: 28px; top: 74px; display: flex; justify-content: space-between; align-items: center; }
+  .brand { font: 800 40px Poppins; color: var(--rose); letter-spacing: -.02em; }
+  .citychip { font: 700 21px Poppins; padding: 10px 18px; border-radius: 999px; background: var(--hi); color: #fff; }
+  .pills { position: absolute; left: 28px; top: 150px; display: flex; gap: 10px; }
+  .pill { font: 700 19px Poppins; padding: 9px 18px; border-radius: 999px; background: var(--nuit); color: var(--dim); border: 1px solid rgba(255,255,255,.08); }
+  .pill.on { background: var(--rose); color: #fff; border-color: var(--rose); }
+  .fcard { position: absolute; left: 28px; right: 28px; height: 360px; border-radius: 30px; overflow: hidden; background-size: cover; background-position: center; }
+  .fcard::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.85)); }
+  .fcard .t { position: absolute; left: 24px; right: 24px; bottom: 22px; z-index: 2; }
+  .fcard .t b { display: block; font: 800 32px/1.1 Poppins; }
+  .fcard .t span { display: block; margin-top: 6px; font: 600 20px Poppins; color: rgba(255,255,255,.85); }
+  .fcard .tag { position: absolute; left: 20px; top: 20px; z-index: 2; font: 800 17px Poppins; letter-spacing: .1em; padding: 8px 14px; border-radius: 999px; background: rgba(0,0,0,.55); }
+  .fcard .tag.une { background: var(--or); color: #15121C; }
+  .nav { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: #120823; border-top: 1px solid rgba(255,255,255,.08); display: grid; grid-template-columns: repeat(5, 1fr); padding: 14px 6px 0; }
+  .nav div { text-align: center; font: 600 16px Poppins; color: var(--faint); }
+  .nav svg { display: block; margin: 0 auto 6px; width: 34px; height: 34px; }
+  .nav .plus { width: 56px; height: 56px; margin: -4px auto 4px; border-radius: 50%; background: linear-gradient(135deg, #FF1E6E, #FF5A93); display: grid; place-items: center; box-shadow: 0 8px 26px rgba(255,30,110,.55); }
+  .nav .plus svg { width: 30px; height: 30px; margin: 0; }
+  .nav .pub { color: #fff; }
+
+  /* Feuille "Quel type d'event ?" */
+  .dim { position: absolute; inset: 0; background: rgba(0,0,0,.6); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--nuit); border-radius: 40px 40px 0 0; padding: 22px 28px 40px; }
+  .handle { width: 70px; height: 7px; border-radius: 4px; background: rgba(255,255,255,.25); margin: 0 auto 26px; }
+  .sheet h5 { font: 800 30px Poppins; margin-bottom: 22px; }
+  .opt { display: grid; grid-template-columns: 76px 1fr; gap: 18px; align-items: center; padding: 22px 20px; border-radius: 24px; background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.06); margin-bottom: 14px; }
+  .opt .ic { width: 76px; height: 76px; border-radius: 22px; background: rgba(233,30,99,.16); display: grid; place-items: center; }
+  .opt .ic svg { width: 40px; height: 40px; }
+  .opt b { display: block; font: 700 26px Poppins; }
+  .opt span { display: block; margin-top: 4px; font: 500 18px/1.3 Poppins; color: var(--dim); }
+
+  /* Formulaire */
+  .appbar { position: absolute; left: 0; right: 0; top: 0; height: 132px; padding-top: 62px; display: flex; align-items: center; justify-content: center; font: 700 24px Poppins; background: var(--nuit2); z-index: 3; }
+  .appbar .x { position: absolute; left: 30px; top: 70px; font: 500 34px Poppins; color: #fff; }
+  #formIn { position: absolute; left: 0; right: 0; top: 140px; }
+  #formIn h6 { margin: 0 28px; font: 800 36px Poppins; }
+  #formIn .s { margin: 4px 28px 0; font: 500 19px Poppins; color: var(--dim); }
+  .media { position: absolute; top: 100px; width: 258px; height: 270px; border-radius: 24px; border: 3px dashed rgba(255,255,255,.22); background: rgba(255,255,255,.04); overflow: hidden; display: grid; place-items: center; text-align: center; font: 600 18px/1.35 Poppins; color: var(--dim); }
+  .media .lbl { position: absolute; left: 16px; top: 12px; font: 700 16px Poppins; color: #fff; text-align: left; }
+  .media .fill { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; }
+  .media .play { position: absolute; left: 50%; top: 50%; width: 70px; height: 70px; margin: -35px; border-radius: 50%; background: rgba(0,0,0,.55); display: grid; place-items: center; }
+  .fld { position: absolute; left: 28px; right: 28px; height: 88px; border-radius: 18px; background: #120823; border: 2px solid rgba(255,255,255,.1); padding: 12px 20px; }
+  .fld .l { font: 600 16px Poppins; color: var(--faint); }
+  .fld .v { margin-top: 2px; font: 600 25px Poppins; color: #fff; white-space: nowrap; overflow: hidden; }
+  .fld.half { right: auto; width: 258px; }
+  .fld.focus { border-color: var(--mag); box-shadow: 0 0 0 5px rgba(233,30,99,.22); }
+  .fld .caret { display: inline-block; width: 3px; height: 26px; background: var(--mag); vertical-align: -4px; margin-left: 2px; }
+  .btmbar { position: absolute; left: 0; right: 0; bottom: 0; height: 122px; background: var(--nuit2); border-top: 1px solid rgba(255,255,255,.08); padding: 20px 28px; z-index: 3; }
+  .btn { height: 76px; border-radius: 38px; background: var(--mag); display: grid; place-items: center; font: 800 26px Poppins; color: #fff; }
+
+  /* Tarifs */
+  .evname { position: absolute; left: 28px; right: 28px; top: 146px; font: 500 19px Poppins; color: var(--dim); }
+  .tier { position: absolute; left: 28px; right: 28px; height: 116px; border-radius: 24px; background: var(--nuit); border: 2px solid rgba(255,255,255,.1); display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 14px; padding: 0 22px; }
+  .tier svg { width: 46px; height: 46px; }
+  .tier b { display: block; font: 700 27px Poppins; }
+  .tier span { display: block; font: 500 18px Poppins; color: var(--dim); }
+  .tier.sel { border-color: var(--mag); background: #2a1030; box-shadow: 0 0 0 5px rgba(233,30,99,.2); }
+  .durt { position: absolute; left: 28px; top: 620px; font: 700 24px Poppins; }
+  .dur { position: absolute; top: 668px; width: 168px; height: 90px; border-radius: 20px; background: var(--nuit); border: 2px solid rgba(255,255,255,.1); display: grid; place-items: center; text-align: center; font: 600 19px/1.2 Poppins; padding: 0 8px; }
+  .dur.sel { border-color: var(--mag); background: #2a1030; }
+
+  /* Paiement */
+  .paysheet { position: absolute; left: 0; right: 0; bottom: 0; height: 720px; background: #fff; border-radius: 40px 40px 0 0; color: #15121C; padding: 26px 32px; }
+  .paysheet h5 { display: flex; align-items: center; gap: 12px; font: 800 30px Poppins; margin-bottom: 8px; }
+  .paysheet .s { font: 500 19px Poppins; color: #6b6478; margin-bottom: 26px; }
+  .pf { height: 84px; border-radius: 16px; border: 2px solid #E3DEEA; padding: 10px 18px; margin-bottom: 14px; }
+  .pf .l { font: 600 15px Poppins; color: #8a819f; }
+  .pf .v { font: 600 24px Poppins; letter-spacing: .04em; }
+  .prow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .paybtn { margin-top: 18px; height: 80px; border-radius: 40px; background: var(--mag); color: #fff; display: grid; place-items: center; font: 800 27px Poppins; position: relative; }
+  #spin { position: absolute; width: 40px; height: 40px; border-radius: 50%; border: 5px solid rgba(255,255,255,.35); border-top-color: #fff; opacity: 0; }
+  #ok { position: absolute; inset: 0; background: #fff; display: grid; place-items: center; align-content: center; text-align: center; opacity: 0; border-radius: 40px 40px 0 0; }
+  #ok .ck { width: 150px; height: 150px; border-radius: 50%; background: #22C55E; display: grid; place-items: center; margin: 0 auto 26px; }
+  #ok b { font: 800 34px Poppins; display: block; }
+  #ok span { font: 500 21px Poppins; color: #6b6478; display: block; margin-top: 8px; }
+
+  /* Doigt */
+  #finger { position: absolute; left: 0; top: 0; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: rgba(255,255,255,.55); border: 4px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,.45); opacity: 0; z-index: 20; }
+  #ripple { position: absolute; left: 0; top: 0; border-radius: 50%; border: 5px solid #fff; opacity: 0; z-index: 19; }
+
+  /* Bulles explicatives hors téléphone */
+  .callout { position: absolute; padding: 26px 34px; border-radius: 34px; background: linear-gradient(135deg, var(--rose), var(--corail)); box-shadow: 0 26px 70px rgba(255,30,142,.5); font: 700 34px/1.25 Poppins; opacity: 0; z-index: 30; }
+  .callout small { display: block; font: 600 26px Poppins; opacity: .9; margin-top: 4px; }
+
+  /* S3 fin */
+  #s3 .in { position: absolute; left: 70px; right: 70px; top: 300px; text-align: center; }
+  #s3 .logo { height: 116px; }
+  #s3 .big { margin-top: 56px; font-size: 140px; }
+  #recap { margin: 66px auto 0; display: grid; gap: 18px; text-align: left; width: 820px; }
+  .rc { display: grid; grid-template-columns: 74px 1fr; gap: 24px; align-items: center; padding: 18px 26px; border-radius: 26px; background: rgba(255,255,255,.08); font: 700 36px Poppins; }
+  .rc i { font-style: normal; width: 74px; height: 74px; border-radius: 50%; background: var(--rose); display: grid; place-items: center; font: 800 36px Poppins; }
+  #s3 .sub { margin-top: 64px; }
+  #stores { display: flex; justify-content: center; align-items: center; gap: 34px; margin-top: 44px; }
+  #stores img { height: 112px; display: block; }
+  #credits { position: absolute; left: 60px; right: 60px; bottom: 50px; text-align: center; font: 500 19px/1.4 Poppins; color: rgba(255,255,255,.55); opacity: 0; }
+</style>
+</head>
+<body>
+<div id="bg"></div><div class="blob" id="b1"></div><div class="blob" id="b2"></div>
+
+<!-- S1 intro -->
+<section class="scene" id="s1">
+  <div class="photo-bg" id="s1p" style="background-image:url(assets/photos/s1_foule.jpg)"></div><div class="shade"></div>
+  <div class="in">
+    <img class="logo line" id="s1l" src="assets/logo.svg" alt="MaCity">
+    <span class="badge line" id="s1b">Tuto · 5 étapes</span>
+    <div class="big line" id="s1t1">Ton event</div>
+    <div class="big grad line" id="s1t2">à la une</div>
+    <p class="sub line" id="s1s">Publie-le et passe en tête de l'appli, en moins d'une minute.</p>
+  </div>
+</section>
+
+<!-- S2 tuto téléphone -->
+<section class="scene" id="s2">
+  <div class="head" id="h1"><div class="kick">Étape 1 / 5</div><div class="big">Appuie sur <span class="grad">Publier</span></div></div>
+  <div class="head" id="h2"><div class="kick">Étape 2 / 5</div><div class="big">Choisis <span class="grad">Event public</span></div></div>
+  <div class="head" id="h3"><div class="kick">Étape 3 / 5</div><div class="big">Remplis <span class="grad">l'essentiel</span></div></div>
+  <div class="head" id="h4"><div class="kick">Étape 4 / 5</div><div class="big">Choisis <span class="grad">À la une</span></div></div>
+  <div class="head" id="h5"><div class="kick">Étape 5 / 5</div><div class="big">Paie, <span class="grad">c'est en ligne</span></div></div>
+  <div id="dots"><i></i><i></i><i></i><i></i><i></i></div>
+
+  <div id="phone"><div id="screen">
+    <div class="island"></div>
+
+    <!-- Accueil -->
+    <div class="scr" id="scHome">
+      <div class="sb"><span>21:04</span><span>5G ▮▮▮</span></div>
+      <div class="hdr"><span class="brand">MaCity</span><span class="citychip">Toulouse ▾</span></div>
+      <div class="pills"><span class="pill on">Ce soir</span><span class="pill">Week-end</span><span class="pill">Concerts</span></div>
+      <div class="fcard" style="top:214px;background-image:url(assets/photos/s6_scene.jpg)"><span class="tag">Top</span><div class="t"><b>Soirée électro</b><span>Ven. · 23:00 · Toulouse</span></div></div>
+      <div class="fcard" style="top:596px;background-image:url(assets/photos/s1_foule.jpg)"><div class="t"><b>Festival de rue</b><span>Sam. · 18:00 · Blagnac</span></div></div>
+      <div class="nav" id="nav1"></div>
+    </div>
+
+    <!-- Choix du type -->
+    <div class="scr" id="scSheet">
+      <div class="dim" id="sheetDim"></div>
+      <div class="sheet" id="sheet">
+        <div class="handle"></div>
+        <h5>Quel type d'event ?</h5>
+        <div class="opt"><div class="ic"><svg viewBox="0 0 24 24" fill="#E91E63"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg></div><div><b>Event privé</b><span>Entre amis, code d'accès, pas dans le feed public</span></div></div>
+        <div class="opt" id="optPub"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#E91E63" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></div><div><b>Event public</b><span>Visible par tous, formules au choix</span></div></div>
+        <div class="opt"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#E91E63" stroke-width="2"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><div><b>Accès pro</b><span>Compte pro : publication gratuite et illimitée</span></div></div>
+      </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="scr" id="scForm">
+      <div class="sb" style="z-index:4"><span>21:04</span><span>5G ▮▮▮</span></div>
+      <div class="appbar"><span class="x">✕</span>Créer un évènement</div>
+      <div id="formIn">
+        <h6>L'essentiel</h6><p class="s">Le minimum pour publier ton event.</p>
+        <div class="media" id="mPhoto" style="left:28px"><span class="lbl">Photo *</span>Appuie pour<br>ajouter une photo<div class="fill" id="mPhotoF" style="background-image:url(assets/photos/event.jpg)"></div></div>
+        <div class="media" id="mVid" style="left:302px"><span class="lbl">Vidéo teaser</span>Ajouter<br>(30 sec max)<div class="fill" id="mVidF" style="background-image:url(assets/photos/s6_scene.jpg)"><div class="play"><svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M7 4l14 8-14 8z"/></svg></div></div></div>
+        <div class="fld" id="fT" style="top:396px"><div class="l">Titre de l'évènement *</div><div class="v"></div></div>
+        <div class="fld" id="fC" style="top:498px"><div class="l">Catégorie *</div><div class="v"></div></div>
+        <div class="fld half" id="fD" style="top:600px"><div class="l">Date *</div><div class="v"></div></div>
+        <div class="fld half" id="fH" style="top:600px;left:302px"><div class="l">Heure *</div><div class="v"></div></div>
+        <div class="fld" id="fA" style="top:702px"><div class="l">Adresse *</div><div class="v"></div></div>
+        <div class="fld" id="fP" style="top:804px"><div class="l">Code postal du lieu</div><div class="v"></div></div>
+        <div class="fld" style="top:906px"><div class="l">Description (optionnel)</div><div class="v"></div></div>
+        <div class="fld" style="top:1008px"><div class="l">Lien billetterie ou site web (optionnel)</div><div class="v"></div></div>
+      </div>
+      <div class="btmbar"><div class="btn" id="bPub">Publier</div></div>
+    </div>
+
+    <!-- Tarifs -->
+    <div class="scr" id="scTar">
+      <div class="sb" style="z-index:4"><span>21:05</span><span>5G ▮▮▮</span></div>
+      <div class="appbar"><span class="x" style="font-size:30px">←</span>Diffuser mon event</div>
+      <div class="evname">Ton event « Grand concert de Noël »</div>
+      <div class="tier" id="tU" style="top:196px"><svg viewBox="0 0 24 24" fill="#FFD93D"><path d="M12 2l3 6.6 7.2.7-5.4 4.9 1.6 7.1L12 17.6 5.6 21.3l1.6-7.1L1.8 9.3 9 8.6z"/></svg><div><b>À la une</b><span>En tête du feed</span></div></div>
+      <div class="tier" id="tT" style="top:328px"><svg viewBox="0 0 24 24" fill="none" stroke="#22D3EE" stroke-width="2.4"><path d="M12 20V5M5 11l7-7 7 7M4 21h16"/></svg><div><b>Au top</b><span>Bandeau dédié</span></div></div>
+      <div class="tier" id="tS" style="top:460px"><svg viewBox="0 0 24 24" fill="none" stroke="#B5A8D0" stroke-width="2.4"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><div><b>Standard</b><span>Feed standard</span></div></div>
+      <div class="durt">Durée de diffusion</div>
+      <div class="dur" id="d0" style="left:28px">Jusqu'à la date</div>
+      <div class="dur" id="d1" style="left:210px">1 semaine</div>
+      <div class="dur" id="d2" style="left:392px">1 mois</div>
+      <div class="btmbar"><div class="btn" id="bPay">Payer et publier</div></div>
+    </div>
+
+    <!-- Paiement -->
+    <div class="scr" id="scPay">
+      <div class="dim"></div>
+      <div class="paysheet" id="paysheet">
+        <h5><svg width="30" height="30" viewBox="0 0 24 24" fill="#15121C"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg>Paiement sécurisé</h5>
+        <p class="s">Carte bancaire, Apple Pay ou Google Pay</p>
+        <div class="pf"><div class="l">Numéro de carte</div><div class="v">•••• •••• •••• 4242</div></div>
+        <div class="prow"><div class="pf"><div class="l">Expiration</div><div class="v">12 / 28</div></div><div class="pf"><div class="l">CVC</div><div class="v">•••</div></div></div>
+        <div class="paybtn" id="bPay2"><span id="payTxt">Payer</span><div id="spin"></div></div>
+        <div id="ok"><div class="ck"><svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><b>Paiement confirmé</b><span>Ton event est publié</span></div>
+      </div>
+    </div>
+
+    <!-- Résultat : fil avec l'event à la une -->
+    <div class="scr" id="scFeed">
+      <div class="sb"><span>21:06</span><span>5G ▮▮▮</span></div>
+      <div class="hdr"><span class="brand">MaCity</span><span class="citychip">Toulouse ▾</span></div>
+      <div class="pills"><span class="pill on">Ce soir</span><span class="pill">Week-end</span><span class="pill">Concerts</span></div>
+      <div id="restCards">
+        <div class="fcard" style="top:214px;background-image:url(assets/photos/s6_scene.jpg)"><span class="tag">Top</span><div class="t"><b>Soirée électro</b><span>Ven. · 23:00 · Toulouse</span></div></div>
+        <div class="fcard" style="top:596px;background-image:url(assets/photos/s1_foule.jpg)"><div class="t"><b>Festival de rue</b><span>Sam. · 18:00 · Blagnac</span></div></div>
+      </div>
+      <div class="fcard" id="uneCard" style="top:214px;background-image:url(assets/photos/event.jpg);box-shadow:0 0 0 4px #FFD93D, 0 20px 60px rgba(255,217,61,.35)"><span class="tag une">★ À LA UNE</span><div class="t"><b>Grand concert de Noël</b><span>Sam. 19 déc. · 20:30 · Toulouse</span></div></div>
+      <div class="nav" id="nav2"></div>
+    </div>
+
+    <div id="ripple"></div><div id="finger"></div>
+  </div></div>
+
+  <div class="callout" id="co1" style="left:600px;top:1370px;width:440px">Le code postal<small>place ton event sur la carte</small></div>
+  <div class="callout" id="co2" style="left:560px;top:1100px;width:480px">En tête du fil<small>jusqu'à 80 km autour</small></div>
+</section>
+
+<!-- S3 fin -->
+<section class="scene" id="s3">
+  <div class="photo-bg" style="background-image:url(assets/photos/s6_scene.jpg)"></div><div class="shade"></div>
+  <div class="in">
+    <img class="logo line" id="s3l" src="assets/logo.svg" alt="MaCity">
+    <div class="big line" id="s3t">Fais-le <span class="grad">voir</span></div>
+    <div id="recap">
+      <div class="rc line" id="r1"><i>1</i>Publier</div>
+      <div class="rc line" id="r2"><i>2</i>Event public</div>
+      <div class="rc line" id="r3"><i>3</i>L'essentiel</div>
+      <div class="rc line" id="r4"><i>4</i>À la une</div>
+      <div class="rc line" id="r5"><i>5</i>Paiement</div>
+    </div>
+    <p class="sub line" id="s3s">Gratuit sur iPhone et Android</p>
+    <div id="stores" class="line"><img src="assets/badge-app-store-fr.svg" alt="App Store"><img src="assets/badge-google-play-fr.png" alt="Google Play"></div>
+  </div>
+  <p id="credits">Photos : Wikimedia Commons (PinkBeachPlanet, CC BY-SA 4.0 ; Eddy Berthier, CC0). Écrans de démonstration.</p>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  out: x => 1 - Math.pow(1 - x, 3),
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  back: x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+};
+// Repères de la voix off (s), générés par timeline.py
+var V = /*CUES*/{"a1": 0.3, "a1_end": 3.657, "b1": 4.657, "b1_end": 8.095, "c1": 9.595, "c1_end": 11.131, "d1": 12.631, "d1_end": 13.97, "d2": 14.27, "d2_end": 16.605, "d3": 17.505, "d3_end": 19.663, "d4": 20.663, "d4_end": 24.006, "d5": 24.806, "d5_end": 25.709, "e1": 27.309, "e1_end": 28.882, "e2": 29.382, "e2_end": 32.908, "e3": 33.408, "e3_end": 36.621, "f1": 38.421, "f1_end": 40.555, "f2": 42.155, "f2_end": 44.632, "g1": 46.032, "g1_end": 50.587, "DUR": 52.79}/*END*/;
+const DUR = V.DUR;
+
+// Barre du bas (Home, Feed, Publier, Favoris, Ma Ville)
+const IC = {
+  home: '<svg viewBox="0 0 24 24" fill="#7A6E95"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>',
+  feed: '<svg viewBox="0 0 24 24" fill="#7A6E95"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/></svg>',
+  plus: '<div class="plus"><svg viewBox="0 0 24 24" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>',
+  fav: '<svg viewBox="0 0 24 24" fill="#7A6E95"><path d="M12 21l-1.5-1.3C5 15 2 12.2 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.4.8 4.5 2.1C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.5c0 3.7-3 6.5-8.5 11.2z"/></svg>',
+  city: '<svg viewBox="0 0 24 24" fill="#7A6E95"><path d="M12 2L3 7v2h18V7zM5 11v7h3v-7zm5.5 0v7h3v-7zM16 11v7h3v-7zM3 20v2h18v-2z"/></svg>',
+};
+const navHTML = `<div>${IC.home}Home</div><div>${IC.feed}Feed</div><div class="pub">${IC.plus}Publier</div><div>${IC.fav}Favoris</div><div>${IC.city}Ma Ville</div>`;
+$('nav1').innerHTML = navHTML; $('nav2').innerHTML = navHTML;
+
+// ---- Moments clés (s) ----
+const T1 = V.b1_end + .45;            // tap Publier
+const T2 = V.c1_end + .55;            // tap Event public
+const TP = V.d2 + .35;                 // tap photo
+const TV = V.d2 + 1.25;                // tap vidéo
+const T3 = V.d5_end + .25;            // tap Publier (formulaire)
+const T4 = V.e1 + 1.0;                 // tap À la une
+const TD = [V.e3 + 1.05, V.e3 + 1.75, V.e3 + 2.45]; // durées
+const T5 = V.e3_end + .55;            // tap Payer et publier
+const T6 = V.f1 + 1.4;                 // tap Payer
+const TOK = T6 + 1.1;                  // paiement confirmé
+const TF = V.f2 + .3;                  // fil avec l'event à la une
+const S = { s1: [0, V.a1_end + .55], s2: [V.a1_end + .45, V.f2_end + 1.2], s3: [V.f2_end + 1.1, DUR + 1] };
+
+// Gestes : [instant, x, y] dans l'écran (588 × 1268)
+// centre de chaque cible, mesuré dans la page (aucune transformation au chargement)
+const ctr = el => { const s = $('screen').getBoundingClientRect(), r = (typeof el === 'string' ? $(el) : el).getBoundingClientRect(); return [r.left + r.width / 2 - s.left, r.top + r.height / 2 - s.top]; };
+const taps = [[T1, ...ctr(document.querySelector('#nav1 .plus'))], [T2, ...ctr('optPub')], [TP, ...ctr('mPhoto')], [TV, ...ctr('mVid')], [T3, ...ctr('bPub')],
+  [T4, ...ctr('tU')], [TD[0], ...ctr('d0')], [TD[1], ...ctr('d1')], [TD[2], ...ctr('d2')], [T5, ...ctr('bPay')], [T6, ...ctr('bPay2')]];
+
+function sceneOp(t, [a, b]) { return clamp((t - a) / .35) * clamp((b - t) / .35); }
+function win(t, a, b, f = .25) { return clamp((t - a) / f) * clamp((b - t) / f); }
+function rise(id, t, d, dist = 80) {
+  const p = E.back(clamp((t - d) / .6)); const el = $(id);
+  el.style.opacity = clamp((t - d) / .3); el.style.transform = `translateY(${(1 - p) * dist}px)`;
+}
+function head(id, t, a, b) {
+  const el = $(id), k = E.out(clamp((t - a) / .45));
+  el.style.opacity = clamp((t - a) / .3) * clamp((b - t) / .25);
+  el.style.transform = `translateY(${(1 - k) * 60}px)`;
+}
+function type(id, txt, t, a, b) {
+  const fld = $(id), v = fld.querySelector('.v'), k = clamp((t - a) / (b - a));
+  const n = Math.round(txt.length * k);
+  v.innerHTML = txt.slice(0, n) + (t > a - .15 && t < b + .35 ? '<span class="caret"></span>' : '');
+  fld.classList.toggle('focus', t > a - .15 && t < b + .35);
+}
+function screens(t) {
+  const sw = (a, b) => clamp((t - a) / .3) * (b == null ? 1 : clamp((b - t) / .3));
+  $('scHome').style.opacity = t < T2 + .7 ? 1 : 0;
+  // feuille de choix
+  const sh = clamp((t - T1 - .15) / .4);
+  $('scSheet').style.opacity = t > T1 + .1 && t < T2 + .7 ? 1 : 0;
+  $('sheet').style.transform = `translateY(${(1 - E.out(sh)) * 640}px)`;
+  $('sheetDim').style.opacity = sh;
+  $('optPub').style.borderColor = t > T2 - .05 ? '#E91E63' : 'rgba(255,255,255,.06)';
+  $('optPub').style.background = t > T2 - .05 ? 'rgba(233,30,99,.14)' : 'rgba(255,255,255,.05)';
+  // pages poussées (glissent depuis la droite)
+  const push = (id, a, b) => { const el = $(id), k = E.out(clamp((t - a) / .4)); el.style.opacity = (t > a && (b == null || t < b + .45)) ? 1 : 0; el.style.transform = `translateX(${(1 - k) * 588}px)`; };
+  push('scForm', T2 + .2, T3 + .25);
+  push('scTar', T3 + .2, TF);
+  // paiement
+  $('scPay').style.opacity = t > T5 + .15 && t < TF + .2 ? 1 : 0;
+  $('paysheet').style.transform = `translateY(${(1 - E.out(clamp((t - T5 - .15) / .45))) * 720}px)`;
+  $('spin').style.opacity = t > T6 && t < TOK ? 1 : 0; $('spin').style.transform = `rotate(${t * 720}deg)`;
+  $('payTxt').style.opacity = t > T6 && t < TOK ? 0 : 1;
+  const ok = E.back(clamp((t - TOK) / .5)); $('ok').style.opacity = clamp((t - TOK) / .25);
+  $('ok').querySelector('.ck').style.transform = `scale(${ok})`;
+  // fil final
+  const fe = clamp((t - TF) / .35); $('scFeed').style.opacity = fe;
+  const dr = E.back(clamp((t - TF - .5) / .7));
+  $('restCards').style.transform = `translateY(${dr * 382}px)`;
+  $('uneCard').style.opacity = clamp((t - TF - .5) / .25);
+  $('uneCard').style.transform = `translateY(${(1 - dr) * -260}px) scale(${.9 + .1 * dr + .02 * Math.sin(Math.max(0, t - TF - 1.3) * 3)})`;
+}
+function form(t) {
+  // remplissage médias
+  $('mPhotoF').style.opacity = clamp((t - TP - .25) / .3);
+  $('mVidF').style.opacity = clamp((t - TV - .25) / .3);
+  $('mPhoto').style.borderStyle = t > TP + .25 ? 'solid' : 'dashed';
+  $('mVid').style.borderStyle = t > TV + .25 ? 'solid' : 'dashed';
+  type('fT', 'Grand concert de Noël', t, V.d3 + .1, V.d3 + .9);
+  type('fC', 'Concert', t, V.d3 + 1.0, V.d3 + 1.3);
+  type('fD', 'Sam. 19 déc.', t, V.d3 + 1.4, V.d3 + 1.7);
+  type('fH', '20:30', t, V.d3 + 1.85, V.d3 + 2.1);
+  type('fA', 'Place du Capitole, Toulouse', t, V.d4 + .2, V.d4 + 1.2);
+  type('fP', '31000', t, V.d4 + 1.4, V.d4 + 1.8);
+  const sc = E.io(clamp((t - V.d4 + .4) / .6)) * (1 - E.io(clamp((t - V.d4_end - .3) / .6)));
+  $('formIn').style.transform = `translateY(${-230 * sc}px)`;
+  $('bPub').style.transform = `scale(${1 - .05 * win(t, T3 - .05, T3 + .15, .08)})`;
+}
+function tarifs(t) {
+  const u = t > T4 - .02;
+  $('tU').classList.toggle('sel', u); $('tS').classList.toggle('sel', !u);
+  $('tU').style.transform = `scale(${1 + .04 * win(t, T4 - .05, T4 + .3, .12)})`;
+  let d = 1; if (t > TD[0] - .02) d = 0; if (t > TD[1] - .02) d = 1; if (t > TD[2] - .02) d = 2; if (t > TD[2] + .8) d = 1;
+  ['d0', 'd1', 'd2'].forEach((id, i) => $(id).classList.toggle('sel', i === d));
+}
+function finger(t) {
+  const f = $('finger'), r = $('ripple');
+  let op = 0, x = 0, y = 0, s = 1, rp = -1, rx = 0, ry = 0;
+  for (let i = 0; i < taps.length; i++) {
+    const [tt, tx, ty] = taps[i];
+    if (t >= tt - .75 && t <= tt + .45) {
+      const prev = i > 0 && tt - taps[i - 1][0] < 1.3 ? taps[i - 1] : [0, tx + 120, ty + 200];
+      const k = E.io(clamp((t - (tt - .7)) / .55));
+      x = lerp(prev[1], tx, k); y = lerp(prev[2], ty, k);
+      op = (i > 0 && tt - taps[i - 1][0] < 1.3) ? clamp((tt + .45 - t) / .2) : clamp((t - tt + .75) / .2) * clamp((tt + .45 - t) / .2);
+      s = 1 - .18 * win(t, tt - .06, tt + .12, .06);
+    }
+    if (t >= tt && t <= tt + .55) { rp = (t - tt) / .55; rx = tx; ry = ty; }
+  }
+  f.style.opacity = op; f.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+  if (rp >= 0) { const R = 30 + 70 * E.out(rp); r.style.opacity = 1 - rp; r.style.width = r.style.height = 2 * R + 'px'; r.style.transform = `translate(${rx - R}px, ${ry - R}px)`; }
+  else r.style.opacity = 0;
+}
+function callout(id, t, a, b) {
+  const el = $(id), k = E.back(clamp((t - a) / .5));
+  el.style.opacity = clamp((t - a) / .25) * clamp((b - t) / .3);
+  el.style.transform = `translateX(${(1 - k) * 200}px) rotate(${-3 * k}deg)`;
+}
+
+window.render = function (t) {
+  $('b1').style.transform = `translate(${-220 + 160 * Math.sin(t * .33)}px, ${-140 + 150 * Math.cos(t * .26)}px)`;
+  $('b2').style.transform = `translate(${520 + 140 * Math.cos(t * .29)}px, ${1150 + 160 * Math.sin(t * .21)}px)`;
+  for (const k in S) $(k).style.opacity = sceneOp(t, S[k]);
+
+  // S1
+  rise('s1l', t, .1); rise('s1b', t, .35); $('s1p').style.transform = `scale(${1.12 - .06 * clamp(t / 4)})`;
+  rise('s1t1', t, .8, 120); rise('s1t2', t, 1.25, 120); rise('s1s', t, 2.0);
+
+  // S2
+  const a2 = S.s2[0];
+  const hs = [a2, T1 + .5, T2 + .5, T3 + .5, T5 + .5, S.s2[1] + .5];
+  ['h1', 'h2', 'h3', 'h4', 'h5'].forEach((id, i) => head(id, t, hs[i], hs[i + 1]));
+  const step = hs.filter((h, i) => i < 5 && t >= h).length;
+  [...$('dots').children].forEach((d, i) => d.classList.toggle('on', i < step));
+  const ph = E.back(clamp((t - a2 - .1) / .8));
+  $('phone').style.transform = `translateY(${(1 - ph) * 700}px) rotate(${(1 - ph) * 5}deg)`;
+  screens(t); form(t); tarifs(t); finger(t);
+  callout('co1', t, V.d4 + 1.6, V.d5_end + .2);
+  callout('co2', t, V.e2 + .2, V.e2_end + .5);
+
+  // S3
+  const a3 = S.s3[0];
+  rise('s3l', t, a3 + .1); rise('s3t', t, a3 + .35, 110);
+  ['r1', 'r2', 'r3', 'r4', 'r5'].forEach((id, i) => rise(id, t, a3 + .8 + i * .22, 70));
+  rise('s3s', t, V.g1 + 2.4); rise('stores', t, V.g1 + 2.7, 90);
+  $('credits').style.opacity = clamp((t - V.g1 - 3) / .5);
+};
+window.DUR = DUR;
+</script>
+</body>
+</html>

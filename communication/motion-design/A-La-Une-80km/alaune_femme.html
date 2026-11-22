@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>À la une 80 km</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --corail: #FF2E38; --nuit: #1A0F2E; --nuit2: #0A0514; --lav: #B5A8D0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit2); font-family: Poppins, sans-serif; color: #fff; }
+  #bg { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 70% at 50% 110%, #2a0f3d 0%, #140a24 45%, #0A0514 80%); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(140px); opacity: .45; }
+  #b1 { width: 800px; height: 800px; background: #FF1E8E; }
+  #b2 { width: 760px; height: 760px; background: #6d28d9; }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .kick { font: 800 36px Poppins; letter-spacing: .2em; text-transform: uppercase; color: #FFD93D; }
+  .big { font: 400 150px/0.95 Anton; text-transform: uppercase; }
+  .pink { color: var(--rose); }
+  .grad { background: linear-gradient(90deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { font: 600 44px/1.35 Poppins; color: rgba(255,255,255,.92); }
+  .line { opacity: 0; }
+
+  /* S1 */
+  #s1 .in { position: absolute; left: 80px; right: 80px; top: 470px; }
+  #s1 .logo { height: 96px; display: block; margin-bottom: 70px; }
+  #s1 .badge { display: inline-block; font: 800 30px/1 Poppins; letter-spacing: .14em; text-transform: uppercase; background: #fff; color: var(--nuit); padding: 16px 26px; border-radius: 999px; }
+  #s1 .big { margin-top: 40px; }
+  #s1 .sub { margin-top: 44px; }
+
+  /* S2 carte */
+  #s2 .top { position: absolute; left: 80px; right: 80px; top: 150px; }
+  #s2 .top .big { font-size: 128px; }
+  #map { position: absolute; left: 40px; top: 560px; width: 1000px; height: 1000px; }
+  #s2c { position: absolute; left: 80px; right: 80px; top: 1610px; }
+
+  /* S3 avant / maintenant */
+  #s3 .in { position: absolute; left: 80px; right: 80px; top: 360px; display: grid; gap: 48px; }
+  .card { border-radius: 40px; padding: 56px 60px; }
+  .card h3 { font: 800 34px Poppins; letter-spacing: .14em; text-transform: uppercase; }
+  .card p { margin-top: 22px; font: 600 46px/1.32 Poppins; }
+  .avant { background: rgba(255,255,255,.08); }
+  .avant h3 { color: var(--lav); }
+  .avant p { color: rgba(255,255,255,.75); }
+  .apres { background: linear-gradient(135deg, var(--rose), var(--corail)); box-shadow: 0 30px 90px rgba(255,30,142,.45); }
+
+  /* S4 étapes + téléphone */
+  #s4 .head { position: absolute; left: 80px; right: 80px; top: 140px; }
+  #s4 .head .big { font-size: 110px; }
+  #steps { position: absolute; left: 80px; right: 80px; top: 470px; display: grid; gap: 30px; }
+  .step { display: grid; grid-template-columns: 96px 1fr; gap: 30px; align-items: start; }
+  .step .n { width: 96px; height: 96px; border-radius: 50%; background: var(--rose); display: grid; place-items: center; font: 800 46px Poppins; }
+  .step h4 { font: 700 46px/1.15 Poppins; }
+  .step p { margin-top: 8px; font: 500 34px/1.35 Poppins; color: rgba(255,255,255,.78); }
+  #phone { position: absolute; left: 300px; top: 1120px; width: 480px; height: 760px; border-radius: 64px; background: #fff; padding: 18px; box-shadow: 0 40px 120px rgba(0,0,0,.6); }
+  #screen { width: 100%; height: 100%; border-radius: 48px; background: #F6F3FA; overflow: hidden; position: relative; color: #15121C; }
+  #screen .bar { padding: 46px 28px 0; display: flex; justify-content: space-between; align-items: center; }
+  #screen .city { font: 700 26px Poppins; }
+  #screen .pills { display: flex; gap: 10px; padding: 22px 28px 0; }
+  #screen .pill { font: 700 20px Poppins; padding: 10px 18px; border-radius: 999px; background: #EAE4F2; color: #4A4458; }
+  #screen .pill.on { background: var(--nuit); color: #fff; }
+  #evcard { position: absolute; left: 28px; right: 28px; top: 210px; height: 400px; border-radius: 30px; overflow: hidden; background: linear-gradient(160deg, #6B2FC5, #C026D3 55%, #F4247C); }
+  #evcard .tag { position: absolute; left: 22px; top: 22px; font: 800 18px Poppins; letter-spacing: .1em; background: #FFD93D; color: #15121C; padding: 8px 14px; border-radius: 999px; }
+  #evcard .t { position: absolute; left: 24px; right: 24px; bottom: 26px; color: #fff; }
+  #evcard .t b { display: block; font: 800 38px/1.1 Poppins; }
+  #evcard .t span { display: block; margin-top: 8px; font: 600 22px Poppins; opacity: .92; }
+  #evcard .lights { position: absolute; inset: 0; }
+
+  /* S5 pour qui */
+  #s5 .head { position: absolute; left: 80px; right: 80px; top: 300px; }
+  #chips { position: absolute; left: 80px; right: 80px; top: 740px; display: grid; gap: 34px; }
+  .chip { border-radius: 36px; padding: 40px 48px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.12); }
+  .chip b { display: block; font: 800 48px Poppins; }
+  .chip span { display: block; margin-top: 10px; font: 500 34px/1.35 Poppins; color: rgba(255,255,255,.82); }
+
+  /* S6 fin */
+  #s6 .in { position: absolute; left: 80px; right: 80px; top: 520px; text-align: center; }
+  #s6 .logo { height: 120px; }
+  #s6 .big { margin-top: 70px; font-size: 140px; }
+  #s6 .cta { display: inline-block; margin-top: 80px; padding: 34px 70px; border-radius: 999px; font: 800 52px Poppins; background: linear-gradient(90deg, var(--rose), var(--corail)); box-shadow: 0 24px 80px rgba(255,30,142,.55); }
+  #s6 .sub { margin-top: 56px; }
+
+  /* Photos réelles */
+  .photo-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .photo-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,5,20,.55) 0%, rgba(10,5,20,.82) 55%, rgba(10,5,20,.96) 100%); }
+  #polas { position: absolute; left: 40px; right: 40px; top: 1180px; height: 420px; }
+  .pola { position: absolute; width: 330px; background: #fff; padding: 14px 14px 0; border-radius: 10px; box-shadow: 0 24px 60px rgba(0,0,0,.6); opacity: 0; }
+  .pola i { display: block; height: 240px; background-size: cover; background-position: center; border-radius: 4px; }
+  .pola b { display: block; font: 800 30px/1 Poppins; color: #15121C; padding: 16px 4px 18px; }
+  .pola b small { font: 600 22px Poppins; color: #FF1E8E; margin-left: 8px; }
+  #arbpic { position: absolute; right: 80px; top: 150px; width: 250px; height: 250px; border-radius: 50%; background: url(assets/photos/arbonne.jpg) center/cover; border: 8px solid #FF1E8E; box-shadow: 0 20px 60px rgba(0,0,0,.5); opacity: 0; }
+  .chip { display: grid; grid-template-columns: 170px 1fr; gap: 34px; align-items: center; padding: 26px 40px 26px 26px; }
+  .chip i { width: 170px; height: 150px; border-radius: 24px; background-size: cover; background-position: center; }
+  #evcard .ph { position: absolute; inset: 0; background: url(assets/photos/event.jpg) center/cover; }
+  #evcard .ph::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.75)); }
+  #stores { display: flex; justify-content: center; align-items: center; gap: 34px; margin-top: 60px; }
+  #stores img { height: 112px; display: block; }
+  #credits { position: absolute; left: 60px; right: 60px; bottom: 50px; text-align: center; font: 500 19px/1.4 Poppins; color: rgba(255,255,255,.55); opacity: 0; }
+</style>
+</head>
+<body>
+<div id="bg"><div class="blob" id="b1"></div><div class="blob" id="b2"></div></div>
+
+<section class="scene" id="s1"><div class="photo-bg" id="s1p" style="background-image:url(assets/photos/s1_foule.jpg)"></div><div class="in">
+  <img class="logo line" id="s1l" src="assets/logo.svg" alt="MaCity">
+  <span class="badge line" id="s1b">Nouveau</span>
+  <div class="big"><div class="line" id="s1t1">Ton événement</div><div class="line grad" id="s1t2">à la une</div></div>
+  <p class="sub line" id="s1s">Vu par tous ceux qui sont autour,<br>pas seulement dans ta ville.</p>
+</div></section>
+
+<section class="scene" id="s2">
+  <div class="top"><p class="kick line" id="s2k">📍 Exemple : Arbonne</p><div class="big line" id="s2t"><span class="pink" id="km">0</span> km<br>à la ronde</div></div>
+  <div id="arbpic"></div>
+  <svg id="map" viewBox="0 0 1000 1000"></svg>
+  <div id="polas">
+    <div class="pola" id="p0" style="left:0;top:40px"><i style="background-image:url(assets/photos/biarritz.jpg)"></i><b>Biarritz</b></div>
+    <div class="pola" id="p1" style="left:240px;top:0"><i style="background-image:url(assets/photos/bayonne.jpg)"></i><b>Bayonne</b></div>
+    <div class="pola" id="p2" style="left:430px;top:60px"><i style="background-image:url(assets/photos/hossegor.jpg)"></i><b>Hossegor</b></div>
+    <div class="pola" id="p3" style="left:670px;top:20px"><i style="background-image:url(assets/photos/dax.jpg)"></i><b>Dax</b></div>
+  </div>
+  <p class="sub line" id="s2c">Habitants, voisins et gens de passage<br>le voient en tête de l'app.</p>
+</section>
+
+<section class="scene" id="s3"><div class="photo-bg" style="background-image:url(assets/photos/festayres.jpg)"></div><div class="in">
+  <div class="card avant line" id="s3a"><h3>Avant</h3><p>Ton événement n'était vu que par les gens réglés sur ta ville.</p></div>
+  <div class="card apres line" id="s3b"><h3>Maintenant</h3><p>Il est vu par tous ceux qui sont à moins de 80 km, là où ils se trouvent vraiment.</p></div>
+</div></section>
+
+<section class="scene" id="s4">
+  <div class="head"><p class="kick line" id="s4k">Comment ça marche</p><div class="big line" id="s4t">Simple <span class="pink">comme ça</span></div></div>
+  <div id="steps">
+    <div class="step line" id="st1"><div class="n">1</div><div><h4>Tu publies ton événement</h4><p>Une photo, la date, l'adresse et le code postal.</p></div></div>
+    <div class="step line" id="st2"><div class="n">2</div><div><h4>MaCity le place sur la carte</h4><p>À son adresse, même si tu publies d'ailleurs.</p></div></div>
+    <div class="step line" id="st3"><div class="n">3</div><div><h4>Il passe en tête autour de lui</h4><p>Dans « À la une » ou « Top », jusqu'à 80 km.</p></div></div>
+  </div>
+  <div id="phone" class="line"><div id="screen">
+    <div class="bar"><span class="city">📍 Biarritz</span><span style="font:600 20px Poppins;color:#8a7f9c">6 km</span></div>
+    <div class="pills"><span class="pill on">★ À la une</span><span class="pill">Top</span><span class="pill">Ce soir</span></div>
+    <div id="evcard"><div class="ph"></div><canvas class="lights" id="lights" width="424" height="400" style="display:none"></canvas><span class="tag">À LA UNE</span><div class="t"><b>Ton événement</b><span>Arbonne · samedi 21 h</span></div></div>
+  </div></div>
+</section>
+
+<section class="scene" id="s5">
+  <div class="head"><p class="kick line" id="s5k">Pour qui ?</p><div class="big line" id="s5t">Tous les <span class="pink">organisateurs</span></div></div>
+  <div id="chips">
+    <div class="chip line" id="c1"><i style="background-image:url(assets/photos/arbonne.jpg)"></i><div><b>🏡 Communes et villages</b><span>Ta fête est vue dans toute l'agglo d'à côté.</span></div></div>
+    <div class="chip line" id="c2"><i style="background-image:url(assets/photos/bar.jpg)"></i><div><b>🍸 Bars, salles, clubs</b><span>Ceux qui arrivent en ville ce soir voient ta soirée.</span></div></div>
+    <div class="chip line" id="c3"><i style="background-image:url(assets/photos/biarritz.jpg)"></i><div><b>🌊 Zones touristiques</b><span>Les vacanciers te trouvent là où ils sont.</span></div></div>
+    <div class="chip line" id="c4"><i style="background-image:url(assets/photos/banda.jpg)"></i><div><b>🤝 Associations</b><span>Pas besoin de budget pub ciblée.</span></div></div>
+  </div>
+</section>
+
+<section class="scene" id="s6"><div class="photo-bg" style="background-image:url(assets/photos/s6_scene.jpg)"></div><div class="in">
+  <img class="logo line" id="s6l" src="assets/logo.svg" alt="MaCity">
+  <div class="big line" id="s6t">Mets ton événement<br><span class="grad">à la une</span></div>
+  <div class="cta line" id="s6c">📲 macity.app</div>
+  <p class="sub line" id="s6s">Gratuit sur iPhone et Android</p>
+  <div id="stores" class="line"><img src="assets/badge-app-store-fr.svg" alt="App Store"><img src="assets/badge-google-play-fr.png" alt="Google Play"></div>
+</div>
+<p id="credits">Photos : Wikimedia Commons (PinkBeachPlanet, Romainbehar, D. Villafruela, Cltjames, K. Golik, Harrieta171, E. Berthier, Shixart1985, PA), licences CC0, CC BY, CC BY-SA</p></section>
+
+<script>
+const $ = id => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const E = {
+  out: x => 1 - Math.pow(1 - x, 3),
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  back: x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+};
+// Scènes : [début, fin]
+// Repères de la voix off (début et fin de chaque phrase, en s), générés par timeline.py
+const V = /*CUES*/{"a1": 0.26, "a1_end": 2.672, "a2": 2.867, "a2_end": 5.276, "b1": 5.861, "b1_end": 8.04, "b2": 8.268, "b2_end": 11.579, "b3": 11.904, "b3_end": 16.407, "c1": 16.927, "c1_end": 19.31, "c2": 19.603, "c2_end": 22.433, "d0": 22.953, "d0_end": 23.603, "d1": 23.798, "d1_end": 26.752, "d2": 27.012, "d2_end": 28.937, "d3": 29.197, "d3_end": 32.758, "e0": 34.058, "e0_end": 35.521, "e1": 35.651, "e1_end": 36.632, "e2": 36.762, "e2_end": 37.558, "e3": 37.688, "e3_end": 38.584, "e4": 38.714, "e4_end": 39.492, "f1": 40.142, "f1_end": 44.133, "DUR": 45.73}/*END*/;
+const S = { s1: [0, V.a2_end + .5], s2: [V.a2_end + .4, V.b3_end + .6], s3: [V.b3_end + .5, V.c2_end + .5], s4: [V.c2_end + .4, V.d3_end + 2.0], s5: [V.d3_end + 1.9, V.e4_end + .6], s6: [V.e4_end + .5, V.DUR + 1] };
+const DUR = V.DUR;
+
+// ---- Carte (projection locale, 5 px par km, Arbonne au centre) ----
+const C = [43.432, -1.552], K = 5, CX = 500, CY = 470;
+const P = (la, lo) => [CX + (lo - C[1]) * 111.32 * Math.cos(C[0] * Math.PI / 180) * K, CY - (la - C[0]) * 110.57 * K];
+const km = (a, b) => { const r = Math.PI / 180, h = Math.sin((b[0] - a[0]) * r / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin((b[1] - a[1]) * r / 2) ** 2; return 2 * 6371 * Math.asin(Math.sqrt(h)); };
+const towns = [
+  ['Biarritz', 43.483, -1.559, 'l'], ['Bayonne', 43.493, -1.475, 'r'], ['Saint-Jean-de-Luz', 43.388, -1.663, 'l'],
+  ['Hossegor', 43.664, -1.397, 'r'], ['Dax', 43.710, -1.053, 'r'], ['Saint-Jean-Pied-de-Port', 43.163, -1.236, 'l'],
+  ['Orthez', 43.488, -0.771, 'l'], ['Pau', 43.295, -0.371, 'l'], ['Mont-de-Marsan', 43.890, -0.500, 'l'],
+].map(([n, la, lo, side]) => ({ n, side, p: P(la, lo), d: Math.round(km(C, [la, lo])) }));
+const coast = [[44.6, -1.20], [44.20, -1.25], [43.664, -1.43], [43.50, -1.53], [43.48, -1.565], [43.39, -1.67], [43.37, -1.79], [43.32, -1.99], [43.42, -3.2]].map(q => P(...q));
+const border = [[43.37, -1.79], [43.25, -1.55], [43.10, -1.30], [43.00, -0.80], [42.85, -0.30], [42.80, 0.2]].map(q => P(...q));
+const pts = a => a.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ');
+$('map').innerHTML = `
+  <defs><radialGradient id="zone"><stop offset="0%" stop-color="#FF1E8E" stop-opacity=".38"/><stop offset="100%" stop-color="#FF1E8E" stop-opacity=".07"/></radialGradient>
+  <clipPath id="clip"><rect x="0" y="0" width="1000" height="1000" rx="56"/></clipPath></defs>
+  <g clip-path="url(#clip)">
+    <rect width="1000" height="1000" fill="#241640"/>
+    <polygon points="-400,-400 ${pts(coast)} -400,1400" fill="#120826"/>
+    <text x="70" y="330" fill="#5E4E86" font-family="Poppins" font-weight="600" font-size="26" letter-spacing="6">OCÉAN</text>
+    <text x="70" y="364" fill="#5E4E86" font-family="Poppins" font-weight="600" font-size="26" letter-spacing="6">ATLANTIQUE</text>
+    <text x="250" y="820" fill="#5E4E86" font-family="Poppins" font-weight="600" font-size="26" letter-spacing="6">ESPAGNE</text>
+    <polyline points="${pts(border)}" fill="none" stroke="#4A3A70" stroke-width="3" stroke-dasharray="10 10"/>
+    <circle id="ring" cx="${CX}" cy="${CY}" r="0" fill="url(#zone)" stroke="#FF1E8E" stroke-width="4" stroke-dasharray="14 12"/>
+    ${towns.map((t, i) => `<g id="tw${i}" opacity="0"><circle cx="${t.p[0].toFixed(1)}" cy="${t.p[1].toFixed(1)}" r="9"/>
+      <text x="${(t.p[0] + (t.side === 'l' ? -18 : 18)).toFixed(1)}" y="${(t.p[1] + 9).toFixed(1)}" text-anchor="${t.side === 'l' ? 'end' : 'start'}" font-family="Poppins" font-weight="600" font-size="27">${t.n} · ${t.d} km</text></g>`).join('')}
+    <g id="pin" transform="translate(${CX} ${CY})"><circle id="pulse" r="24" fill="#FF1E8E" opacity=".35"/><circle r="15" fill="#FF1E8E" stroke="#fff" stroke-width="5"/></g>
+    <text id="pinl" x="${CX + 26}" y="${CY + 44}" fill="#fff" font-family="Poppins" font-weight="800" font-size="32">Arbonne</text>
+  </g>`;
+// Bayonne et Biarritz se chevauchent au centre : on décale leurs étiquettes
+[['tw0', -30], ['tw1', -30], ['tw2', 30]].forEach(([id, dy]) => { const tx = $(id).querySelector('text'); tx.setAttribute('y', +tx.getAttribute('y') + dy); });
+
+// ---- Lumières de la carte événement (canvas, déterministe) ----
+const lc = $('lights').getContext('2d');
+const dots = [...Array(26).keys()].map(i => ({ x: (i * 97) % 424, y: (i * 53) % 260, r: 10 + (i * 7) % 26, s: .6 + (i % 5) * .25 }));
+function lights(t) {
+  lc.clearRect(0, 0, 424, 400);
+  dots.forEach((d, i) => { const a = .18 + .18 * Math.sin(t * d.s * 3 + i); lc.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`; lc.beginPath(); lc.arc(d.x, d.y, d.r, 0, 7); lc.fill(); });
+}
+
+function sceneOp(t, [a, b]) { return clamp((t - a) / .35) * clamp((b - t) / .35); }
+function rise(id, t, d, dist = 80) {
+  const p = E.back(clamp((t - d) / .6)); const el = $(id);
+  el.style.opacity = clamp((t - d) / .3); el.style.transform = `translateY(${(1 - p) * dist}px)`;
+}
+
+window.render = function (t) {
+  $('b1').style.transform = `translate(${-220 + 160 * Math.sin(t * .33)}px, ${-140 + 150 * Math.cos(t * .26)}px)`;
+  $('b2').style.transform = `translate(${520 + 140 * Math.cos(t * .29)}px, ${1150 + 160 * Math.sin(t * .21)}px)`;
+  for (const k in S) $(k).style.opacity = sceneOp(t, S[k]);
+
+  // S1
+  rise('s1l', t, .1); rise('s1b', t, .35); $('s1p').style.transform = `scale(${1.12 - .06 * clamp(t / 6)})`; rise('s1t1', t, 1.0, 120); rise('s1t2', t, 1.5, 120); rise('s1s', t, V.a2 - .1);
+
+  // S2 carte
+  const a2 = S.s2[0];
+  rise('s2k', t, a2 + .1); rise('s2t', t, a2 + .3, 100); rise('s2c', t, V.b3 + 2.3);
+  $('arbpic').style.opacity = clamp((t - V.b1 - .6) / .3) * (1 - clamp((t - V.b2) / .4));
+  $('arbpic').style.transform = `scale(${.6 + .4 * E.back(clamp((t - V.b1 - .6) / .5))})`;
+  const pT = [V.b3 - .05, V.b3 + .45, V.b3 + .95, V.b3 + 1.6];
+  ['p0','p1','p2','p3'].forEach((id, i) => { const k = E.back(clamp((t - pT[i]) / .5)); const el = $(id);
+    el.style.opacity = clamp((t - pT[i]) / .25); el.style.transform = `translateY(${(1 - k) * 160}px) rotate(${[-6, 4, -3, 5][i] * k}deg)`; });
+  $('map').style.opacity = clamp((t - a2 - .2) / .4);
+  $('map').style.transform = `scale(${.94 + .06 * E.out(clamp((t - a2 - .2) / .8))})`;
+  const drop = E.back(clamp((t - V.b1_end + .8) / .5));
+  $('pin').setAttribute('transform', `translate(${CX} ${CY - (1 - drop) * 140}) scale(${.4 + .6 * drop})`);
+  $('pinl').setAttribute('opacity', clamp((t - V.b1_end + .4) / .3));
+  $('pulse').setAttribute('r', 24 + 18 * ((t * 1.4) % 1)); $('pulse').setAttribute('opacity', (.45 * (1 - (t * 1.4) % 1)).toFixed(3));
+  const g = E.io(clamp((t - V.b2 - .3) / (V.b2_end - V.b2 - .3))), rKm = 80 * g;
+  $('ring').setAttribute('r', (rKm * K).toFixed(1));
+  $('km').textContent = Math.round(rKm);
+  towns.forEach((tw, i) => {
+    const el = $('tw' + i), inside = tw.d <= 80;
+    const hit = inside ? clamp((rKm - tw.d) / 6) : clamp((t - V.b3 - 2.3) / .5);
+    el.setAttribute('opacity', (inside ? hit : .85 * hit).toFixed(3));
+    el.setAttribute('fill', inside ? '#FFFFFF' : '#8D80AE');
+  });
+
+  // S3
+  const a3 = S.s3[0];
+  rise('s3a', t, V.c1 - .1, 120); rise('s3b', t, V.c2 - .1, 120);
+  $('s3a').style.opacity = clamp((t - V.c1 + .1) / .3) * (1 - .45 * clamp((t - V.c2 + .1) / .5));
+
+  // S4
+  const a4 = S.s4[0];
+  rise('s4k', t, a4 + .1); rise('s4t', t, a4 + .3, 100);
+  const stT = [V.d1 - .1, V.d2 - .1, V.d3 - .1];
+  rise('st1', t, stT[0]); rise('st2', t, stT[1]); rise('st3', t, stT[2]);
+  ['st1', 'st2', 'st3'].forEach((id, i) => { const on = t >= stT[i] && (i === 2 || t < stT[i + 1]); $(id).querySelector('.n').style.boxShadow = on ? '0 0 0 10px rgba(255,30,142,.25)' : 'none'; });
+  const ph = E.back(clamp((t - V.d3 - 1.0) / .8));
+  $('phone').style.opacity = clamp((t - V.d3 - 1.0) / .3);
+  $('phone').style.transform = `translateY(${(1 - ph) * 500}px) rotate(${(1 - ph) * 6}deg)`;
+  const card = E.back(clamp((t - V.d3 - 1.9) / .7));
+  $('evcard').style.transform = `translateX(${(1 - card) * 460}px) scale(${1 + .03 * Math.sin(clamp((t - V.d3 - 2.7) / 3) * Math.PI)})`;
+  lights(t);
+
+  // S5
+  const a5 = S.s5[0];
+  rise('s5k', t, a5 + .1); rise('s5t', t, a5 + .3, 100);
+  ['c1', 'c2', 'c3', 'c4'].forEach((id, i) => rise(id, t, V['e' + (i + 1)] - .1, 90));
+
+  // S6
+  const a6 = S.s6[0];
+  rise('s6l', t, a6 + .1); rise('s6t', t, V.f1 - .1, 110); rise('s6c', t, V.f1 + 2.2, 90); rise('s6s', t, V.f1 + 2.8); rise('stores', t, V.f1 + 3.0, 90); $('credits').style.opacity = clamp((t - V.f1 - 3.2) / .5);
+  $('s6c').style.transform += ` scale(${1 + .03 * Math.sin(Math.max(0, t - V.f1 - 3) * 4)})`;
+};
+window.DUR = DUR;
+window.render(0);
+</script>
+</body>
+</html>

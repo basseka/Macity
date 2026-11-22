@@ -1,0 +1,12 @@
+a1	Cité de l'espace et MaCity : un partenariat pour votre année 2027.
+a2	MaCity, c'est l'application qui aide les familles de Toulouse et de la région à trouver quoi faire.
+b1	Dans la rubrique Famille, les parents cherchent leur prochaine sortie.
+b2	De février à juillet 2027, c'est la Cité de l'espace qu'ils voient en premier, à la une.
+b3	Vos photos, vos horaires, et un lien direct vers votre billetterie.
+c0	Ce que vous y gagnez.
+c1	Un : vous êtes en tête dès votre réouverture en février, et pendant six mois.
+c2	Deux : vous touchez les familles toulousaines, et tous ceux qui visitent la région.
+c3	Trois : vos temps forts sont relayés : vacances d'hiver, Pâques, nouvelles expositions.
+c4	Et si vous le souhaitez, une offre réservée aux utilisateurs de MaCity.
+d1	Six mois à la une, pour cent soixante-dix-neuf euros hors taxes par mois.
+e1	On en parle ? MaCity : les sorties en famille, près de chez vous.

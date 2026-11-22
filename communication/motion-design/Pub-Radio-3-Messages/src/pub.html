@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Pub radio 3 messages</title>
+<style>
+  @font-face { font-family: GeistMono; src: url(assets/GeistMono-Medium.ttf); }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  :root { --rose: #FF1E8E; --magenta: #E91E63; --violet: #6A1B9A; --violetp: #4B1174; --nuit: #1A0F2E; --nuitp: #0A0514; --vnuit: #1A0A38; --neon: #F4247C; --cyan: #22D3EE; --lav: #F5F0FF; --lav2: #B5A8D0; --encre: #15121C; --or: #FFD93D; --dp: linear-gradient(135deg, #E91E63, #6A1B9A 60%, #4B1174); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuitp); font-family: Poppins; color: var(--lav); }
+  .abs { position: absolute; }
+  #world { position: absolute; inset: 0; overflow: hidden; }
+  .scene { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; }
+  .bgclip { position: absolute; inset: -40px; width: 1160px; height: 2000px; object-fit: cover; }
+  .shade { position: absolute; inset: 0; }
+  .aurora { position: absolute; inset: -200px; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+  /* puce de titre */
+  .chip { position: absolute; left: 50%; top: 150px; display: flex; align-items: center; gap: 24px; padding: 16px 44px 16px 16px; border-radius: 90px;
+          background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.05)); border: 1.5px solid rgba(255,255,255,.28);
+          backdrop-filter: blur(18px); box-shadow: 0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.3); white-space: nowrap; transform: translateX(-50%); }
+  .chip .n { width: 84px; height: 84px; border-radius: 50%; background: var(--nuitp); border: 4px solid var(--neon); box-shadow: 0 0 22px rgba(244,36,124,.7), inset 0 0 14px rgba(244,36,124,.45); display: grid; place-items: center; font: 500 40px GeistMono; color: #fff; }
+  .chip .l { font: 800 54px Poppins; letter-spacing: -.5px; color: #fff; }
+  .kicker { position: absolute; left: 0; right: 0; text-align: center; padding-top: 24px; font: 800 92px/1.1 Poppins; letter-spacing: -2px; color: #fff; }
+  .grad-txt { color: var(--rose); }
+  .gold-txt { color: #fff; }
+  /* téléphone */
+  .stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; perspective: 2200px; }
+  .phone { position: absolute; width: 560px; height: 1180px; left: 260px; top: 470px; border-radius: 78px; padding: 16px;
+           background: linear-gradient(145deg, #3a3550, #121019 40%, #2a2638); box-shadow: 0 60px 140px rgba(0,0,0,.65), 0 0 0 2px rgba(255,255,255,.18), inset 0 0 0 3px #000; transform-style: preserve-3d; }
+  .phone .scr { position: relative; width: 100%; height: 100%; border-radius: 62px; overflow: hidden; background: #F6F1EA; }
+  .phone .scr img.sc { width: 100%; display: block; }
+  .phone .island { position: absolute; left: 50%; top: 34px; width: 150px; height: 42px; margin-left: -75px; border-radius: 30px; background: #000; z-index: 5; }
+  .phone .gloss { position: absolute; inset: 16px; border-radius: 62px; background: linear-gradient(115deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 70%, rgba(255,255,255,.08)); pointer-events: none; z-index: 6; }
+  .tag { position: absolute; display: flex; align-items: center; gap: 16px; padding: 16px 30px 16px 16px; border-radius: 60px; font: 600 40px Poppins; color: var(--encre); background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,.4); white-space: nowrap; }
+  .tag .ic { width: 66px; height: 66px; border-radius: 50%; display: grid; place-items: center; }
+  .tag svg { width: 38px; height: 38px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  /* sous-titres */
+  #cap { position: absolute; left: 50%; bottom: 110px; max-width: 940px; transform: translateX(-50%); text-align: center; padding: 22px 40px; border-radius: 34px;
+         background: rgba(26,15,46,.72); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(14px); font: 600 42px/1.3 Poppins; white-space: nowrap; }
+  #cap b { color: var(--rose); font-weight: 800; }
+  /* formulaire */
+  .form { position: absolute; inset: 0; background: #FAFAF7; color: var(--encre); padding: 104px 32px 0; }
+  .form .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+  .form h3 { font: 800 40px Poppins; }
+  .form .x { width: 54px; height: 54px; border-radius: 50%; background: #e9e2d8; display: grid; place-items: center; font: 700 30px Poppins; color: #6d6480; }
+  .poster { width: 100%; height: 380px; border-radius: 30px; overflow: hidden; position: relative; background: #e3dbcf; }
+  .poster img { width: 100%; height: 100%; object-fit: cover; }
+  .poster .ph { position: absolute; inset: 0; display: grid; place-items: center; color: #9b91ab; font: 600 30px Poppins; }
+  .field { margin-top: 22px; padding: 18px 26px; border-radius: 24px; background: #fff; font: 600 32px Poppins; min-height: 96px; box-shadow: 0 2px 10px rgba(30,10,60,.06); border: 2px solid transparent; }
+  .field.on { border-color: var(--magenta); }
+  .field small { display: block; font: 500 20px GeistMono; color: #4A4458; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+  .btn { position: absolute; left: 32px; right: 32px; bottom: 64px; height: 108px; border-radius: 60px; background: var(--magenta); display: grid; place-items: center; font: 700 38px Poppins; color: #fff; box-shadow: 0 16px 40px rgba(233,30,99,.45); }
+  .ok { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(135deg, #E91E63, #6A1B9A 60%, #4B1174); opacity: 0; z-index: 4; }
+  .ok .c { width: 230px; height: 230px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .ok .c svg { width: 130px; height: 130px; fill: none; stroke: #0E8A4F; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+  .ok p { position: absolute; top: 63%; width: 100%; text-align: center; font: 800 58px Poppins; color: #fff; }
+  .ok p small { display: block; font: 500 30px Poppins; opacity: .85; margin-top: 8px; }
+  .finger { position: absolute; width: 130px; height: 130px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.95) 35%, rgba(255,255,255,.35) 36%, rgba(255,255,255,0) 70%); z-index: 20; }
+  .conf { position: absolute; width: 18px; height: 30px; border-radius: 4px; z-index: 19; }
+  /* carte partenaire */
+  .pcard { position: absolute; left: 140px; top: 690px; width: 800px; height: 660px; border-radius: 48px; overflow: hidden; box-shadow: 0 40px 110px rgba(0,0,0,.7); }
+  .pcard img { width: 100%; height: 100%; object-fit: cover; }
+  .pcard .grad { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,.05) 35%, rgba(0,0,0,.88)); }
+  .pcard .badge { position: absolute; left: 34px; top: 34px; padding: 12px 26px; border-radius: 40px; background: var(--or); color: var(--encre); font: 500 28px GeistMono; letter-spacing: 3px; }
+  .pcard .nm { position: absolute; left: 44px; bottom: 104px; font: 800 70px Poppins; }
+  .pcard .sub { position: absolute; left: 44px; bottom: 52px; font: 500 34px Poppins; color: #ddd; }
+  .pcard .shine { position: absolute; top: -20%; width: 220px; height: 140%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); transform: rotate(18deg); }
+  .goldframe { position: absolute; left: 132px; top: 682px; width: 816px; height: 676px; border-radius: 54px; border: 6px solid var(--neon); }
+  .spark { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 14px 4px rgba(244,36,124,.85); }
+  /* fin */
+  #logo { position: absolute; left: 150px; width: 780px; top: 520px; }
+  .store { position: absolute; top: 1340px; width: 400px; height: 130px; border-radius: 28px; background: #000; border: 2px solid rgba(255,255,255,.35); display: flex; align-items: center; gap: 20px; padding-left: 34px; }
+  .store svg { width: 58px; height: 58px; fill: #fff; }
+  .store .t small { display: block; font: 500 20px GeistMono; letter-spacing: 1px; color: #ccc; line-height: 1.3; }
+  .store .t { font: 700 44px/1.1 Poppins; }
+  .recap { position: absolute; left: 0; right: 0; text-align: center; }
+  .pill3 { display: inline-flex; gap: 18px; }
+  .pill3 span { padding: 14px 30px; border-radius: 40px; background: rgba(26,15,46,.8); border: 1.5px solid rgba(181,168,208,.35); font: 600 34px Poppins; color: var(--lav); }
+  /* finitions */
+  #vign { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 65% at 50% 48%, transparent 45%, rgba(10,5,20,.7) 100%); pointer-events: none; }
+  #grain { position: absolute; inset: 0; width: 1080px; height: 1920px; opacity: .045; mix-blend-mode: overlay; pointer-events: none; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  #bar { position: absolute; left: 0; top: 0; height: 8px; background: var(--rose); }
+</style>
+</head>
+<body>
+<div id="world">
+<div class="aurora" id="aur">
+  <div class="orb" style="left:0;top:200px;width:900px;height:900px;background:rgba(106,27,154,.36)" id="o1"></div>
+  <div class="orb" style="left:500px;top:1300px;width:900px;height:900px;background:rgba(233,30,99,.16)" id="o2"></div>
+  <div class="orb" style="left:400px;top:600px;width:600px;height:600px;background:rgba(75,17,116,.45)" id="o3"></div>
+</div>
+
+<!-- 0 : accroche -->
+<div class="scene" id="s0">
+  <img class="bgclip" id="c0">
+  <div class="shade" style="background:linear-gradient(180deg, rgba(11,6,24,.15) 0%, rgba(11,6,24,.35) 40%, rgba(11,6,24,.9) 100%)"></div>
+  <div class="abs" id="loc" style="left:50%;top:170px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:14px 30px;border-radius:50px;background:rgba(11,6,24,.5);backdrop-filter:blur(10px);font:500 32px GeistMono;letter-spacing:5px">
+    <img src="assets/macity-pin-couleur.svg" style="width:40px">TOULOUSE</div>
+  <div class="kicker" id="h0a" style="top:1030px;font-size:132px">Ce week-end,</div>
+  <div class="kicker" id="h0c" style="top:1190px;font-size:150px">tu fais <span class="grad-txt">quoi ?</span></div>
+</div>
+
+<!-- 1 : trouve ton plan -->
+<div class="scene" id="s1">
+  <img class="bgclip" id="c1" style="filter:blur(26px) saturate(1.3);opacity:.45">
+  <div class="chip" id="ch1"><div class="n">1</div><div class="l">Trouve ton plan</div></div>
+  <div class="stage"><div class="phone" id="ph1"><div class="island"></div><div class="scr"><img class="sc" id="sc1" src="assets/ecran-1.png"></div><div class="gloss"></div></div></div>
+  <div class="tag" id="b1"><div class="ic" style="background:#22D3EE"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>Concerts</div>
+  <div class="tag" id="b2"><div class="ic" style="background:#A855F7"><svg viewBox="0 0 24 24"><path d="M8 22h8M12 15v7M5 3h14l-7 12z"/></svg></div>Soirées</div>
+  <div class="tag" id="b3"><div class="ic" style="background:#FB923C"><svg viewBox="0 0 24 24"><path d="M3 2v7a3 3 0 0 0 6 0V2M6 2v20M19 15V2a5 5 0 0 0-4 5v6a2 2 0 0 0 2 2h2v7"/></svg></div>Restos</div>
+  <div class="tag" id="b4"><div class="ic" style="background:#FED7AA"><svg viewBox="0 0 24 24" style="stroke:#15121C"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 21v-2a5 5 0 0 1 10 0v2M14 21v-1a3 3 0 0 1 6 0v1"/></svg></div>En famille</div>
+  <div class="abs" id="radar" style="left:540px;top:1060px"></div>
+</div>
+
+<!-- 2 : publie un event -->
+<div class="scene" id="s2">
+  <img class="bgclip" id="c2" style="filter:blur(26px) saturate(1.3);opacity:.45">
+  <div class="chip" id="ch2"><div class="n">2</div><div class="l">Publie ton event</div></div>
+  <div class="stage"><div class="phone" id="ph2"><div class="island"></div><div class="scr">
+    <div class="form">
+      <div class="top"><h3>Publier un événement</h3><div class="x">✕</div></div>
+      <div class="poster"><div class="ph">+ Ajouter une affiche</div><img id="poster" src="clips/concert/0012.jpg"></div>
+      <div class="field" id="f1"><small>Titre</small><span id="ttl"></span><span id="caret" style="color:var(--rose)">|</span></div>
+      <div class="field" id="fdate"><small>Quand</small><span id="vdate"></span></div>
+      <div class="field" id="flieu"><small>Où</small><span id="vlieu"></span></div>
+      <div class="btn" id="btnp">Publier</div>
+    </div>
+    <div class="ok" id="ok"><div class="c"><svg viewBox="0 0 24 24"><path id="chk" d="M5 12.5l4.5 4.5L19 7" stroke-dasharray="22" stroke-dashoffset="22"/></svg></div><p>Publié !<small>Visible par toute la ville</small></p></div>
+  </div><div class="gloss"></div></div></div>
+  <div class="finger" id="fg" style="opacity:0"></div>
+  <div id="confs"></div>
+</div>
+
+<!-- 3 : mets en avant ton établissement -->
+<div class="scene" id="s3">
+  <img class="bgclip" id="c3">
+  <div class="shade" style="background:linear-gradient(rgba(11,6,24,.72), rgba(11,6,24,.94))"></div>
+  <div class="chip" id="ch3"><div class="n">3</div><div class="l">Mets en avant</div></div>
+  <div class="kicker gold-txt" id="h3" style="top:290px;font-size:84px">ton <span style="color:var(--rose)">établissement</span></div>
+  <div class="goldframe" id="gf"></div>
+  <div class="pcard" id="pc"><img src="clips/club/0040.jpg"><div class="grad"></div><div class="shine" id="shine"></div><div class="badge">★ PARTENAIRE</div><div class="nm">Ton bar</div><div class="sub">Bar · Toulouse centre</div></div>
+  <div id="sparks"></div>
+  <div class="tag" id="st1"><div class="ic" style="background:#E91E63"><svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg></div>À la une</div>
+  <div class="tag" id="st2"><div class="ic" style="background:linear-gradient(180deg,#FF1E8E,#FF1E6E 55%,#FF2E38)"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>Sur la carte</div>
+  <div class="tag" id="st3"><div class="ic" style="background:#22D3EE"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></div>+ de visibilité</div>
+  <div class="recap" id="pros" style="top:1560px"><div class="pill3"><span>Bars</span><span>Restos</span><span>Clubs</span><span>Salles</span></div></div>
+</div>
+
+<!-- 4 : fin -->
+<div class="scene" id="s4">
+  <img id="logo" src="assets/macity-logo-couleur-fond-sombre.svg">
+  <div class="recap" id="r0" style="top:920px;font:800 80px/1.1 Poppins;letter-spacing:-2px;color:#fff">Toute ta ville,</div>
+  <div class="recap grad-txt" id="r1" style="top:1015px;font:800 80px/1.1 Poppins;letter-spacing:-2px">dans une seule appli.</div>
+  <div class="recap" id="r2" style="top:1180px"><div class="pill3"><span>Trouve</span><span>Publie</span><span>Mets en avant</span></div></div>
+  <div class="store" id="as" style="left:120px"><svg viewBox="0 0 24 24"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.8-3.5.8s-1.8-.8-3-.8C7 7.3 5.6 8.2 4.8 9.6c-1.6 2.8-.4 6.9 1.2 9.1.8 1.1 1.7 2.3 2.8 2.3s1.6-.7 3-.7 1.8.7 3 .7 2-1.1 2.7-2.2c.9-1.3 1.2-2.5 1.2-2.6 0 0-2.3-.9-2.3-3.6zM14.2 5.8c.6-.8 1-1.8.9-2.8-.9 0-2 .6-2.6 1.4-.6.7-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3z"/></svg><div class="t"><small>Télécharger sur</small>App Store</div></div>
+  <div class="store" id="gp" style="left:560px"><svg viewBox="0 0 24 24"><path d="M4 3.2v17.6c0 .4.4.6.7.4L20 12.4c.3-.2.3-.6 0-.8L4.7 2.8c-.3-.2-.7 0-.7.4z"/></svg><div class="t"><small>Disponible sur</small>Google Play</div></div>
+  <div class="recap" id="r3" style="top:1530px;font:500 32px GeistMono;letter-spacing:4px;color:var(--lav2)">GRATUIT · MACITY.APP</div>
+</div>
+
+<div id="vign"></div>
+<canvas id="grain" width="270" height="480"></canvas>
+<div id="cap"></div>
+<div id="flash"></div>
+<div id="bar"></div>
+</div>
+
+<script>
+window.DUR = 22.5;
+const $ = id => document.getElementById(id);
+const cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = x => { x = cl(x); return 1 - Math.pow(1 - x, 3); };
+const inout = x => { x = cl(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const back = x => { x = cl(x); const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const SC = [[0, 2.4], [2.4, 9.6], [9.6, 13.8], [13.8, 18.4], [18.4, 22.5]];
+const SEQ = { city: 120, soiree: 36, concert: 38, club: 92 };
+const imgs = {};
+for (const k in SEQ) { imgs[k] = []; for (let i = 1; i <= SEQ[k]; i++) { const im = new Image(); im.src = `clips/${k}/${String(i).padStart(4, '0')}.jpg`; imgs[k].push(im); } }
+const seq = (el, k, t) => { el.src = imgs[k][Math.floor(t * 30) % SEQ[k]].src; };
+const CUES = [
+  [0.4, 2.2, 'Ce week-end à Toulouse, <b>tu fais quoi ?</b>'],
+  [2.6, 4.7, 'Avec MaCity, <b>trouve ton plan</b>'],
+  [4.7, 7.2, 'concerts, soirées, restos, en famille'],
+  [7.2, 9.4, 'Tout est là, <b>autour de toi</b>'],
+  [9.9, 11.4, 'Tu organises un événement ?'],
+  [11.4, 13.5, '<b>Publie ton event</b> en quelques clics'],
+  [14.0, 15.9, 'Tu as un bar, un resto, un club ?'],
+  [15.9, 18.1, '<b>Mets en avant</b> ton établissement'],
+  [18.7, 21.8, 'MaCity. <b>Toute ta ville</b>, dans une seule appli'],
+];
+const TITLE = 'Soirée Salsa Rooftop';
+const confs = [];
+for (let i = 0; i < 56; i++) { const d = document.createElement('div'); d.className = 'conf'; d.style.background = ['#FF1E8E', '#E91E63', '#22D3EE', '#FFD93D', '#fff', '#A855F7'][i % 6]; $('confs').appendChild(d); confs.push({ d, a: -Math.PI / 2 + ((i * 0.618) % 1 - .5) * 2.6, v: 700 + (i * 137 % 500), r: i * 47 % 360 }); }
+const sparks = [];
+for (let i = 0; i < 26; i++) { const d = document.createElement('div'); d.className = 'spark'; $('sparks').appendChild(d); sparks.push({ d, x: 130 + (i * 263 % 820), y: 680 + (i * 157 % 680), p: (i * .37) % 1 }); }
+const g = $('grain').getContext('2d'); const gd = g.createImageData(270, 480);
+function grain(t) { let s = Math.floor(t * 30) * 9301 + 49297; for (let i = 0; i < gd.data.length; i += 4) { s = (s * 1103515245 + 12345) & 0x7fffffff; const v = s % 255; gd.data[i] = gd.data[i + 1] = gd.data[i + 2] = v; gd.data[i + 3] = 255; } g.putImageData(gd, 0, 0); }
+// transition entrée / sortie par scène : glissement + zoom
+function sceneT(i, t) {
+  const [a, b] = SC[i]; const tin = i === 0 ? 1 : inout(seg(t, a - .15, a + .35)); const tout = i === 4 ? 0 : inout(seg(t, b - .2, b + .25));
+  const el = $('s' + i);
+  el.style.opacity = Math.min(tin, 1 - tout);
+  el.style.transform = `translateY(${(1 - tin) * 160 - tout * 160}px) scale(${1.06 - .06 * tin + .06 * tout})`;
+  el.style.filter = (tin < 1 || tout > 0) ? `blur(${(1 - tin + tout) * 14}px)` : '';
+}
+window.render = function (t) {
+  for (let i = 0; i < 5; i++) sceneT(i, t);
+  $('o1').style.transform = `translate(${Math.sin(t * .5) * 120}px, ${Math.cos(t * .4) * 160}px)`;
+  $('o2').style.transform = `translate(${Math.cos(t * .45) * 140}px, ${Math.sin(t * .35) * 120}px)`;
+  $('o3').style.transform = `translate(${Math.sin(t * .7 + 1) * 100}px, ${Math.cos(t * .6) * 100}px)`;
+  // flash aux transitions
+  let fl = 0; for (const x of [2.4, 9.6, 13.8, 18.4]) fl = Math.max(fl, .35 * (1 - Math.abs(t - x) / .12)); $('flash').style.opacity = Math.max(0, fl);
+  $('bar').style.width = (t / window.DUR * 1080) + 'px';
+
+  // 0 accroche
+  if (t < 2.8) {
+    seq($('c0'), 'city', t + .3); $('c0').style.transform = `scale(${1.15 - t * .03}) translateY(${t * 12}px)`;
+    $('loc').style.opacity = seg(t, .1, .35);
+    $('h0a').style.opacity = seg(t, .35, .55); $('h0a').style.transform = `translateY(${(1 - ease(seg(t, .35, .8))) * 90}px)`; $('h0a').style.letterSpacing = (8 - 10 * ease(seg(t, .35, 1))) + 'px';
+    $('h0c').style.opacity = seg(t, .95, 1.1); $('h0c').style.transform = `scale(${.7 + .3 * back(seg(t, .95, 1.4))})`;
+  }
+  // 1 trouve ton plan
+  if (t > 2.1 && t < 10) {
+    const u = t - 2.4; seq($('c1'), 'soiree', t);
+    $('ch1').style.transform = `translateX(-50%) scale(${back(seg(u, .05, .45))})`;
+    const pin = ease(seg(u, 0, .8));
+    $('ph1').style.transform = `translateY(${(1 - pin) * 1000 + Math.sin(t * 1.4) * 10}px) rotateX(${(1 - pin) * 25 + 4}deg) rotateY(${-8 + Math.sin(t * .8) * 4}deg)`;
+    $('sc1').style.transform = `translateY(${-inout(seg(u, 2.6, 5.4)) * 150}px)`;
+    const B = [[2.2, 40, 650], [2.8, 650, 790], [3.4, 50, 1240], [4.0, 600, 1400]];
+    B.forEach(([d, x, y], i) => { const e = $('b' + (i + 1)); const k = back(seg(u, d, d + .4)); e.style.left = x + 'px'; e.style.top = (y + Math.sin(t * 2 + i) * 12) + 'px'; e.style.transform = `scale(${k}) rotate(${(1 - k) * (i % 2 ? 10 : -10)}deg)`; e.style.opacity = seg(u, d, d + .15); });
+    let h = '';
+    if (u > 4.8) for (let k = 0; k < 3; k++) { const p = ((u - 4.8) * .7 + k / 3) % 1; h += `<div style="position:absolute;left:${-p * 400}px;top:${-p * 400}px;width:${p * 800}px;height:${p * 800}px;border-radius:50%;border:5px solid rgba(${k % 2 ? '34,211,238' : '244,36,124'},${.9 * (1 - p)});background:rgba(244,36,124,${.06 * (1 - p)})"></div>`; }
+    if (u > 4.8) { const pk = back(seg(u, 4.8, 5.25)); h += `<img src="assets/macity-pin-couleur.svg" style="position:absolute;left:-65px;top:${-170 - (1 - pk) * 260}px;width:130px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.5))">`; }
+    $('radar').innerHTML = h;
+  }
+  // 2 publie
+  if (t > 9.3 && t < 14.2) {
+    const u = t - 9.6; seq($('c2'), 'concert', t);
+    $('ch2').style.transform = `translateX(-50%) scale(${back(seg(u, .05, .45))})`;
+    const pin = ease(seg(u, 0, .7));
+    $('ph2').style.transform = `translateX(${(1 - pin) * 1100}px) rotateY(${(1 - pin) * -30 + 6 + Math.sin(t * .8) * 3}deg) translateY(${Math.sin(t * 1.4) * 10}px)`;
+    $('poster').style.opacity = seg(u, .55, .85); $('poster').style.transform = `scale(${1.3 - .3 * ease(seg(u, .55, 1.4))})`;
+    const n = Math.floor(seg(u, .95, 2.0) * TITLE.length); $('ttl').textContent = TITLE.slice(0, n);
+    $('caret').style.opacity = (u > .9 && u < 2.1 && Math.floor(t * 5) % 2) ? 1 : 0;
+    $('f1').className = 'field' + (u > .9 && u < 2.1 ? ' on' : '');
+    $('fdate').className = 'field' + (u > 2.0 && u < 2.4 ? ' on' : ''); $('vdate').textContent = u > 2.15 ? 'Sam. 22 nov. · 21h' : '';
+    $('flieu').className = 'field' + (u > 2.35 && u < 2.7 ? ' on' : ''); $('vlieu').textContent = u > 2.5 ? 'Toulouse, Saint-Cyprien' : '';
+    const fg = $('fg'); const fp = inout(seg(u, 2.55, 3.0)); fg.style.opacity = seg(u, 2.55, 2.7) * (1 - seg(u, 3.35, 3.5));
+    fg.style.left = (760 - 290 * fp) + 'px'; fg.style.top = (1780 - 280 * fp) + 'px'; const press = u > 3.0 && u < 3.2; fg.style.transform = `scale(${press ? .78 : 1})`;
+    $('btnp').style.transform = `scale(${press ? .94 : 1})`; $('btnp').style.filter = press ? 'brightness(1.25)' : '';
+    $('ok').style.opacity = seg(u, 3.15, 3.35); $('ok').querySelector('.c').style.transform = `scale(${back(seg(u, 3.15, 3.55))})`;
+    $('chk').style.strokeDashoffset = 22 * (1 - ease(seg(u, 3.35, 3.7)));
+    const cp = seg(u, 3.2, 4.4);
+    confs.forEach(c => { c.d.style.opacity = cp > 0 && cp < 1 ? 1 - cp * .5 : 0; c.d.style.left = (540 + Math.cos(c.a) * c.v * cp) + 'px'; c.d.style.top = (1050 + Math.sin(c.a) * c.v * cp + 1400 * cp * cp) + 'px'; c.d.style.transform = `rotate(${c.r + cp * 900}deg) scaleX(${Math.cos(cp * 20 + c.r)})`; });
+  }
+  // 3 établissement
+  if (t > 13.5 && t < 18.8) {
+    const u = t - 13.8; seq($('c3'), 'club', t); $('c3').style.transform = `scale(${1.1 + u * .02})`;
+    $('ch3').style.transform = `translateX(-50%) scale(${back(seg(u, .05, .45))})`;
+    $('h3').style.opacity = seg(u, .3, .55); $('h3').style.transform = `translateY(${(1 - ease(seg(u, .3, .75))) * 50}px)`;
+    const k = back(seg(u, .35, 1.0));
+    $('pc').style.transform = `perspective(1800px) rotateX(${(1 - ease(seg(u, .35, 1))) * 30}deg) scale(${.5 + .5 * k})`; $('pc').style.opacity = seg(u, .35, .55);
+    $('shine').style.left = (-300 + inout(seg(u, 1.1, 1.9)) * 1400) + 'px';
+    const gf = $('gf'); const gp = seg(u, 1.0, 1.4); const pul = .5 + .5 * Math.sin(t * 5);
+    gf.style.opacity = gp; gf.style.boxShadow = `0 0 ${24 + pul * 46}px rgba(244,36,124,${.55 + pul * .4}), inset 0 0 ${16 + pul * 20}px rgba(244,36,124,.4)`;
+    sparks.forEach((s, i) => { const p = ((u - 1.2) * .6 + s.p) % 1; const on = u > 1.2; s.d.style.left = s.x + 'px'; s.d.style.top = (s.y - p * 160) + 'px'; s.d.style.opacity = on ? Math.sin(p * Math.PI) : 0; s.d.style.transform = `scale(${.5 + Math.sin(p * Math.PI)})`; });
+    [[2.0, 70, 560], [2.45, 590, 560], [2.9, 300, 1420]].forEach(([d, x, y], i) => { const e = $('st' + (i + 1)); const kk = back(seg(u, d, d + .4)); e.style.left = x + 'px'; e.style.top = (y + Math.sin(t * 2 + i) * 10) + 'px'; e.style.transform = `scale(${kk})`; e.style.opacity = seg(u, d, d + .15); });
+    $('pros').style.opacity = seg(u, 3.3, 3.7); $('pros').style.transform = `translateY(${(1 - ease(seg(u, 3.3, 3.8))) * 40}px)`;
+  }
+  // 4 fin
+  if (t > 18.1) {
+    const u = t - 18.4;
+    $('logo').style.transform = `scale(${.55 + .45 * back(seg(u, 0, .55))})`; $('logo').style.opacity = seg(u, 0, .2);
+    $('r0').style.opacity = seg(u, .5, .75); $('r0').style.transform = `translateY(${(1 - ease(seg(u, .5, .9))) * 50}px)`;
+    $('r1').style.opacity = seg(u, .75, 1.0); $('r1').style.transform = `translateY(${(1 - ease(seg(u, .75, 1.15))) * 50}px)`;
+    $('r2').style.opacity = seg(u, 1.2, 1.5);
+    $('as').style.transform = `scale(${back(seg(u, 1.6, 2.0))})`; $('gp').style.transform = `scale(${back(seg(u, 1.75, 2.15))})`;
+    const pulse = 1 + .03 * Math.max(0, Math.sin((u - 2.2) * 6)) * (u > 2.2);
+    $('as').style.transform += ` scale(${pulse})`; $('gp').style.transform += ` scale(${pulse})`;
+    $('r3').style.opacity = seg(u, 2.2, 2.5);
+    $('world').style.filter = `brightness(${1 - seg(t, 21.9, 22.5)})`;
+  } else $('world').style.filter = '';
+  // sous-titres
+  const c = CUES.find(([a, b]) => t >= a && t < b);
+  const cap = $('cap'); cap.innerHTML = c ? c[2] : '';
+  const co = c ? Math.min(seg(t, c[0], c[0] + .15), 1 - seg(t, c[1] - .12, c[1])) : 0;
+  cap.style.opacity = co; cap.style.transform = `translateX(-50%) translateY(${(1 - co) * 14}px)`;
+  grain(t);
+};
+window.render(0);
+</script>
+</body>
+</html>

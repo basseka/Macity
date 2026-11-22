@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Story week-end Toulouse</title>
+<style>
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Medium.ttf); font-weight: 500; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-Bold.ttf); font-weight: 700; }
+  @font-face { font-family: Poppins; src: url(assets/Poppins-ExtraBold.ttf); font-weight: 800; }
+  @font-face { font-family: Anton; src: url(assets/Anton-Regular.ttf); }
+  :root { --rose: #FF1E8E; --corail: #FF2E38; --jaune: #FFD93D; --nuit: #0A0514; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--nuit); font-family: Poppins, sans-serif; color: #fff; }
+
+  #bg { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(ellipse 120% 70% at 50% 110%, #2a0f3d 0%, #140a24 45%, #0A0514 80%); }
+  #photoBg { position: absolute; inset: -80px; background: url(assets/e3.jpg) center/cover; filter: blur(3px) brightness(.5) saturate(1.2); }
+  #photoBg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,5,20,.3), rgba(10,5,20,.2) 40%, rgba(10,5,20,.9)); }
+  .blob { position: absolute; border-radius: 50%; filter: blur(130px); opacity: .5; }
+  #b1 { width: 820px; height: 820px; background: #FF1E8E; }
+  #b2 { width: 760px; height: 760px; background: #6d28d9; }
+
+  /* Intro */
+  #intro { position: absolute; left: 80px; right: 80px; top: 520px; }
+  #intro .kick { font: 800 40px Poppins; letter-spacing: .2em; color: var(--jaune); text-transform: uppercase; }
+  #intro h1 { font: 400 172px/0.94 Anton; text-transform: uppercase; margin-top: 30px; }
+  #intro h1 span { display: block; }
+  #intro .pink { background: linear-gradient(90deg, var(--rose), var(--corail)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #intro .sub { margin-top: 44px; font: 600 46px Poppins; color: rgba(255,255,255,.92); }
+  .bar { height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--rose), var(--corail)); margin-top: 40px; width: 0; }
+  #ilogo { position: absolute; left: 80px; top: 230px; height: 70px; }
+
+  /* Affiches plein écran */
+  #stage { position: absolute; inset: 0; perspective: 2400px; }
+  .slide { position: absolute; inset: 0; overflow: hidden; opacity: 0; transform-origin: 50% 50%; }
+  .slide img { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 40%; }
+  .slide .shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.22) 48%, transparent 58%); background-size: 300% 100%; }
+  #flash { position: absolute; inset: 0; background: linear-gradient(180deg, var(--rose), var(--corail)); opacity: 0; mix-blend-mode: screen; }
+
+  /* Barres façon story */
+  #bars { position: absolute; left: 30px; right: 30px; top: 40px; display: flex; gap: 10px; }
+  #bars div { flex: 1; height: 7px; border-radius: 4px; background: rgba(255,255,255,.3); overflow: hidden; }
+  #bars i { display: block; height: 100%; width: 0; background: #fff; }
+
+  /* Doigt */
+  #finger { position: absolute; width: 110px; height: 110px; border-radius: 50%; left: 0; top: 0; opacity: 0;
+    background: radial-gradient(circle, rgba(255,255,255,.95) 0%, rgba(255,255,255,.7) 45%, rgba(255,255,255,.12) 70%, transparent 72%);
+    box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+
+  /* Fin */
+  #end { position: absolute; left: 80px; right: 80px; top: 540px; text-align: center; opacity: 0; }
+  #end img { height: 120px; }
+  #end h2 { font: 400 170px/0.95 Anton; text-transform: uppercase; margin-top: 60px; }
+  #end h2 .pink { color: var(--rose); }
+  #end p { margin-top: 40px; font: 600 44px/1.4 Poppins; color: rgba(255,255,255,.9); }
+  #end .cta { display: inline-block; margin-top: 70px; padding: 32px 64px; border-radius: 999px; font: 800 46px Poppins;
+    background: linear-gradient(90deg, var(--rose), var(--corail)); box-shadow: 0 20px 70px rgba(255,30,142,.5); }
+  #end .tags { margin-top: 50px; font: 700 38px Poppins; color: rgba(255,255,255,.85); }
+</style>
+</head>
+<body>
+<div id="bg"><div id="photoBg"></div><div class="blob" id="b1"></div><div class="blob" id="b2"></div></div>
+
+<img id="ilogo" src="assets/logo.svg" alt="MaCity">
+<div id="intro">
+  <div class="kick" id="ik">📅 Sam. 14 &amp; dim. 15 nov.</div>
+  <h1><span id="l1">6 idées</span><span id="l2">de sortie</span><span id="l3">ce <span class="pink">week-end</span></span></h1>
+  <div class="bar" id="ibar"></div>
+  <div class="sub" id="isub">À Toulouse et autour 👇</div>
+</div>
+
+<div id="stage"></div>
+<div id="flash"></div>
+<div id="bars"></div>
+<div id="finger"></div>
+
+<div id="end">
+  <img src="assets/logo.svg" alt="MaCity">
+  <h2>Ton week-end<br>est <span class="pink">plié</span></h2>
+  <p>Activités, sorties et bons plans&nbsp;:<br>toutes les idées de Toulouse dans l'app.</p>
+  <div class="cta">📲 Télécharge MaCity</div>
+  <div class="tags">💾 Enregistre · 📤 Tague ton crew</div>
+</div>
+
+<script>
+const N = 6;
+const T0 = 3.2, STEP = 3.6;            // début de la 1re affiche, durée par affiche
+const TEND = T0 + STEP * N;            // 24.8 s
+const DUR = TEND + 4.4;                // 29.2 s
+// Entrées variées : glissé 3D, zoom, rideau, glissé 3D, zoom, rideau
+const MODES = ['slide', 'zoom', 'wipe', 'slide', 'zoom', 'wipe'];
+const $ = id => document.getElementById(id);
+const E = {
+  lin: x => x,
+  io: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  out: x => 1 - Math.pow(1 - x, 3),
+  outExpo: x => x === 1 ? 1 : 1 - Math.pow(2, -10 * x),
+  back: x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); },
+};
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+
+$('stage').innerHTML = [...Array(N).keys()].map(i => `<div class="slide" id="c${i}"><img src="assets/story_0${i + 2}.png"><div class="shine" id="s${i}"></div></div>`).join('');
+$('bars').innerHTML = [...Array(N).keys()].map(i => `<div><i id="p${i}"></i></div>`).join('');
+
+window.render = function (t) {
+  $('b1').style.transform = `translate(${-200 + 160 * Math.sin(t * .35)}px, ${-120 + 140 * Math.cos(t * .27)}px)`;
+  $('b2').style.transform = `translate(${520 + 140 * Math.cos(t * .3)}px, ${1100 + 160 * Math.sin(t * .22)}px)`;
+  $('photoBg').style.transform = `scale(${1.05 + .06 * Math.min(t, 4) / 4})`;
+  $('photoBg').style.opacity = clamp((3.4 - t) / .5) + clamp((t - TEND) / .6) * 0;
+
+  // Intro
+  const outI = clamp((3.05 - t) / .3);
+  [['ilogo', .05], ['ik', .15], ['l1', .35], ['l2', .55], ['l3', .75], ['isub', 1.25]].forEach(([id, d]) => {
+    const p = E.back(clamp((t - d) / .6));
+    $(id).style.opacity = clamp((t - d) / .35) * outI;
+    $(id).style.transform = `translateY(${(1 - p) * 90}px)`;
+  });
+  $('ibar').style.width = (clamp((t - .9) / .7) ** .3 * 420 * outI) + 'px';
+
+  // Affiches plein écran
+  for (let i = 0; i < N; i++) {
+    const a = T0 + STEP * i, b = a + STEP, c = $('c' + i), img = c.querySelector('img');
+    const vis = t >= a - .05 && t < b + .5;
+    if (!vis) { c.style.opacity = 0; continue; }
+    const pin = E.outExpo(clamp((t - a) / .7));
+    const mode = MODES[i];
+    let tr = '', op = 1, clip = 'none';
+    if (mode === 'slide') { tr = `translateX(${(1 - pin) * 1080}px) rotateY(${(1 - pin) * -30}deg) scale(${.9 + .1 * pin})`; }
+    if (mode === 'zoom') { tr = `scale(${1.35 - .35 * pin})`; op = clamp((t - a) / .25); }
+    if (mode === 'wipe') { const w = E.io(clamp((t - a) / .6)) * 100; clip = `circle(${w * 1.2}% at 50% 50%)`; }
+    // la suivante passe par-dessus : l'affiche courante recule un peu
+    const back = E.io(clamp((t - b) / .5));
+    tr += ` scale(${1 - back * .08})`;
+    c.style.transform = tr; c.style.opacity = op * (1 - back * .5); c.style.clipPath = clip; c.style.zIndex = 10 + i;
+    // Ken Burns lent
+    const k = clamp((t - a) / STEP);
+    img.style.transform = `scale(${1 + .06 * k}) translateY(${-14 * k}px)`;
+    $('s' + i).style.backgroundPosition = `${120 - 160 * E.io(clamp((t - a - .6) / 1.0))}% 0`;
+  }
+  // Flash rose léger à chaque changement
+  let fl = 0;
+  for (let i = 0; i <= N; i++) { const d = t - (T0 + STEP * i); if (d >= 0 && d < .35) fl = Math.max(fl, .35 * (1 - d / .35)); }
+  $('flash').style.opacity = fl;
+
+  // Barres de progression
+  $('bars').style.opacity = clamp((t - T0) / .3) * clamp((TEND + .2 - t) / .3);
+  for (let i = 0; i < N; i++) $('p' + i).style.width = (clamp((t - T0 - STEP * i) / STEP) * 100) + '%';
+
+  // Doigt : swipe avant chaque changement
+  let fo = 0, fx = 0;
+  for (let i = 0; i < N - 1; i++) {
+    const s = T0 + STEP * (i + 1) - .7, p = (t - s) / .7;
+    if (p >= 0 && p <= 1) { fo = Math.sin(Math.PI * p) * .9; fx = 820 - 580 * E.io(p); }
+  }
+  $('finger').style.opacity = fo;
+  $('finger').style.transform = `translate(${fx}px, 1000px)`;
+  $('finger').style.zIndex = 50;
+
+  // Fin
+  const eo = clamp((t - TEND - .1) / .5);
+  $('end').style.opacity = eo; $('end').style.zIndex = 60;
+  $('end').style.transform = `translateY(${(1 - E.back(clamp((t - TEND - .1) / .7))) * 80}px) scale(${1 + .02 * clamp((t - TEND) / 4)})`;
+  $('stage').style.opacity = 1 - clamp((t - TEND) / .5);
+};
+window.DUR = DUR;
+window.render(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+a1	Ton événement à la une sur MaCity : voici comment faire, en cinq étapes.
+b1	Un : ouvre MaCity, et appuie sur le bouton Publier, en bas de l'écran.
+c1	Deux : choisis Event public.
+d1	Trois : remplis l'essentiel.
+d2	Une photo, ou mieux, une courte vidéo teaser.
+d3	Le titre, la catégorie, la date et l'heure.
+d4	Puis l'adresse et le code postal : c'est ce qui place ton événement sur la carte.
+d5	Et appuie sur Publier.
+e1	Quatre : choisis la formule À la une.
+e2	Ton événement passe en tête du fil, pour tous ceux qui sont à moins de quatre-vingts kilomètres.
+e3	Choisis ensuite la durée : jusqu'à la date, une semaine, ou un mois.
+f1	Cinq : paie en ligne, en toute sécurité.
+f2	Dès que le paiement est confirmé, ton événement est à la une.
+g1	MaCity : publie ton événement, et fais-le voir. Gratuit sur iPhone et Android.
