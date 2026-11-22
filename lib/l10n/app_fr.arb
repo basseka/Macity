@@ -1,7 +1,7 @@
 {
   "@@locale": "fr",
   "navHome": "Home",
-  "navFeed": "Feed",
+  "navFeed": "Events",
   "navPublish": "Publier",
   "navFavorites": "Favoris",
   "navMyCity": "Ma Ville",
@@ -294,7 +294,7 @@
       }
     }
   },
-  "feedMoreSearch": "Plus de recherche ? Regarde le feed",
+  "feedMoreSearch": "Plus de recherche ? Regarde les events",
   "commonPartner": "PARTENAIRE",
   "favoritesRemove": "Retirer des favoris",
   "favoritesAdd": "Ajouter aux favoris",
@@ -2121,5 +2121,76 @@
     }
   },
   "cityArrivalBody": "Regarde les bons plans autour de toi",
-  "cePostalCode": "Code postal du lieu"
+  "cePostalCode": "Code postal du lieu",
+  "familyQuizButton": "Trouver mon activité",
+  "familyQuizButtonSub": "4 questions et on vous propose des sorties en famille",
+  "fqQAge": "Quel âge ont les enfants ?",
+  "fqQAgeSub": "Plusieurs choix possibles.",
+  "fqAgeBaby": "0 à 3 ans",
+  "fqAgeBabySub": "Les tout-petits",
+  "fqAgeSmall": "3 à 6 ans",
+  "fqAgeSmallSub": "L'âge de la maternelle",
+  "fqAgeKids": "6 à 10 ans",
+  "fqAgeKidsSub": "L'âge du primaire",
+  "fqAgeTeens": "10 ans et plus",
+  "fqAgeTeensSub": "Préados et ados",
+  "fqQWhat": "Vous avez envie de quoi ?",
+  "fqMove": "Se défouler",
+  "fqMoveSub": "Jeux, laser game, accrobranche, bowling",
+  "fqAnimals": "Animaux et nature",
+  "fqAnimalsSub": "Zoo, ferme, parcs, balades",
+  "fqDiscover": "Découvrir",
+  "fqDiscoverSub": "Musées, planétarium, expos",
+  "fqShow": "Spectacle et ciné",
+  "fqShowSub": "Théâtre, contes, cirque, cinéma",
+  "fqWater": "Activité aquatique",
+  "fqWaterSub": "Piscine, centre aquatique, aquarium",
+  "fqCreative": "Atelier créatif",
+  "fqCreativeSub": "Bricolage, cuisine, arts plastiques",
+  "fqQWhere": "Dedans ou dehors ?",
+  "fqQWhereSub": "Selon la météo et l'énergie du jour.",
+  "fqIndoor": "À l'intérieur",
+  "fqIndoorSub": "Au chaud ou à l'abri",
+  "fqOutdoor": "En plein air",
+  "fqOutdoorSub": "Prendre l'air",
+  "fqAnywhere": "Peu importe",
+  "fqAnywhereSub": "On vous propose tout",
+  "fqQWhen": "C'est pour quand ?",
+  "fqQWhenSub": "On cherche aussi les events du moment.",
+  "fqToday": "Aujourd'hui",
+  "fqTodaySub": "Pour une sortie tout de suite",
+  "fqWeekend": "Ce week-end",
+  "fqWeekendSub": "Samedi et dimanche",
+  "fqWeek": "Cette semaine",
+  "fqWeekSub": "Les 7 prochains jours",
+  "fqEvents": "Events du moment",
+  "fqPlaces": "Lieux à essayer",
+  "fqSeeCalendar": "Voir tout l'agenda famille",
+  "fqResultsTitle": "Vos idées en famille à {ville}",
+  "@fqResultsTitle": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "fqNothing": "Rien pour cette envie à {ville} pour l'instant.",
+  "@fqNothing": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "nightFindParty": "Trouver ma soirée",
+  "nightPartySoirees": "Soirées",
+  "nightPartyConcerts": "Concerts",
+  "nightPartyEmpty": "Aucune soirée ni aucun concert à venir à {ville} pour l'instant.",
+  "@nightPartyEmpty": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -12,7 +12,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navHome => 'Home';
 
   @override
-  String get navFeed => 'Feed';
+  String get navFeed => 'Events';
 
   @override
   String get navPublish => 'Post';
@@ -642,7 +642,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get feedMoreSearch => 'Want more? Check the feed';
+  String get feedMoreSearch => 'Want more? Check the events';
 
   @override
   String get commonPartner => 'PARTNER';
@@ -4283,4 +4283,160 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cePostalCode => 'Venue postcode';
+
+  @override
+  String get familyQuizButton => 'Find my activity';
+
+  @override
+  String get familyQuizButtonSub => '4 quick questions, family outing ideas';
+
+  @override
+  String get fqQAge => 'How old are the kids?';
+
+  @override
+  String get fqQAgeSub => 'You can pick several.';
+
+  @override
+  String get fqAgeBaby => '0 to 3';
+
+  @override
+  String get fqAgeBabySub => 'Toddlers';
+
+  @override
+  String get fqAgeSmall => '3 to 6';
+
+  @override
+  String get fqAgeSmallSub => 'Preschool age';
+
+  @override
+  String get fqAgeKids => '6 to 10';
+
+  @override
+  String get fqAgeKidsSub => 'Primary school age';
+
+  @override
+  String get fqAgeTeens => '10 and over';
+
+  @override
+  String get fqAgeTeensSub => 'Tweens and teens';
+
+  @override
+  String get fqQWhat => 'What are you in the mood for?';
+
+  @override
+  String get fqMove => 'Let off steam';
+
+  @override
+  String get fqMoveSub => 'Play areas, laser tag, tree climbing, bowling';
+
+  @override
+  String get fqAnimals => 'Animals and nature';
+
+  @override
+  String get fqAnimalsSub => 'Zoo, farm, parks, walks';
+
+  @override
+  String get fqDiscover => 'Discover';
+
+  @override
+  String get fqDiscoverSub => 'Museums, planetarium, exhibitions';
+
+  @override
+  String get fqShow => 'Shows and movies';
+
+  @override
+  String get fqShowSub => 'Theatre, storytelling, circus, cinema';
+
+  @override
+  String get fqWater => 'Water fun';
+
+  @override
+  String get fqWaterSub => 'Pool, water park, aquarium';
+
+  @override
+  String get fqCreative => 'Creative workshop';
+
+  @override
+  String get fqCreativeSub => 'Crafts, cooking, art';
+
+  @override
+  String get fqQWhere => 'Indoors or outdoors?';
+
+  @override
+  String get fqQWhereSub => 'Depending on the weather and everyone\'s energy.';
+
+  @override
+  String get fqIndoor => 'Indoors';
+
+  @override
+  String get fqIndoorSub => 'Warm and sheltered';
+
+  @override
+  String get fqOutdoor => 'Outdoors';
+
+  @override
+  String get fqOutdoorSub => 'Get some fresh air';
+
+  @override
+  String get fqAnywhere => 'Either';
+
+  @override
+  String get fqAnywhereSub => 'Show me everything';
+
+  @override
+  String get fqQWhen => 'When is it for?';
+
+  @override
+  String get fqQWhenSub => 'We also look for current events.';
+
+  @override
+  String get fqToday => 'Today';
+
+  @override
+  String get fqTodaySub => 'For an outing right now';
+
+  @override
+  String get fqWeekend => 'This weekend';
+
+  @override
+  String get fqWeekendSub => 'Saturday and Sunday';
+
+  @override
+  String get fqWeek => 'This week';
+
+  @override
+  String get fqWeekSub => 'The next 7 days';
+
+  @override
+  String get fqEvents => 'Current events';
+
+  @override
+  String get fqPlaces => 'Places to try';
+
+  @override
+  String get fqSeeCalendar => 'See the full family calendar';
+
+  @override
+  String fqResultsTitle(String ville) {
+    return 'Family ideas in $ville';
+  }
+
+  @override
+  String fqNothing(String ville) {
+    return 'Nothing for this in $ville yet.';
+  }
+
+  @override
+  String get nightFindParty => 'Find my night out';
+
+  @override
+  String get nightPartySoirees => 'Parties';
+
+  @override
+  String get nightPartyConcerts => 'Concerts';
+
+  @override
+  String nightPartyEmpty(String ville) {
+    return 'No parties or concerts coming up in $ville yet.';
+  }
 }

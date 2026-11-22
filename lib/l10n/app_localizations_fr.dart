@@ -12,7 +12,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navHome => 'Home';
 
   @override
-  String get navFeed => 'Feed';
+  String get navFeed => 'Events';
 
   @override
   String get navPublish => 'Publier';
@@ -647,7 +647,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get feedMoreSearch => 'Plus de recherche ? Regarde le feed';
+  String get feedMoreSearch => 'Plus de recherche ? Regarde les events';
 
   @override
   String get commonPartner => 'PARTENAIRE';
@@ -4325,4 +4325,161 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cePostalCode => 'Code postal du lieu';
+
+  @override
+  String get familyQuizButton => 'Trouver mon activité';
+
+  @override
+  String get familyQuizButtonSub =>
+      '4 questions et on vous propose des sorties en famille';
+
+  @override
+  String get fqQAge => 'Quel âge ont les enfants ?';
+
+  @override
+  String get fqQAgeSub => 'Plusieurs choix possibles.';
+
+  @override
+  String get fqAgeBaby => '0 à 3 ans';
+
+  @override
+  String get fqAgeBabySub => 'Les tout-petits';
+
+  @override
+  String get fqAgeSmall => '3 à 6 ans';
+
+  @override
+  String get fqAgeSmallSub => 'L\'âge de la maternelle';
+
+  @override
+  String get fqAgeKids => '6 à 10 ans';
+
+  @override
+  String get fqAgeKidsSub => 'L\'âge du primaire';
+
+  @override
+  String get fqAgeTeens => '10 ans et plus';
+
+  @override
+  String get fqAgeTeensSub => 'Préados et ados';
+
+  @override
+  String get fqQWhat => 'Vous avez envie de quoi ?';
+
+  @override
+  String get fqMove => 'Se défouler';
+
+  @override
+  String get fqMoveSub => 'Jeux, laser game, accrobranche, bowling';
+
+  @override
+  String get fqAnimals => 'Animaux et nature';
+
+  @override
+  String get fqAnimalsSub => 'Zoo, ferme, parcs, balades';
+
+  @override
+  String get fqDiscover => 'Découvrir';
+
+  @override
+  String get fqDiscoverSub => 'Musées, planétarium, expos';
+
+  @override
+  String get fqShow => 'Spectacle et ciné';
+
+  @override
+  String get fqShowSub => 'Théâtre, contes, cirque, cinéma';
+
+  @override
+  String get fqWater => 'Activité aquatique';
+
+  @override
+  String get fqWaterSub => 'Piscine, centre aquatique, aquarium';
+
+  @override
+  String get fqCreative => 'Atelier créatif';
+
+  @override
+  String get fqCreativeSub => 'Bricolage, cuisine, arts plastiques';
+
+  @override
+  String get fqQWhere => 'Dedans ou dehors ?';
+
+  @override
+  String get fqQWhereSub => 'Selon la météo et l\'énergie du jour.';
+
+  @override
+  String get fqIndoor => 'À l\'intérieur';
+
+  @override
+  String get fqIndoorSub => 'Au chaud ou à l\'abri';
+
+  @override
+  String get fqOutdoor => 'En plein air';
+
+  @override
+  String get fqOutdoorSub => 'Prendre l\'air';
+
+  @override
+  String get fqAnywhere => 'Peu importe';
+
+  @override
+  String get fqAnywhereSub => 'On vous propose tout';
+
+  @override
+  String get fqQWhen => 'C\'est pour quand ?';
+
+  @override
+  String get fqQWhenSub => 'On cherche aussi les events du moment.';
+
+  @override
+  String get fqToday => 'Aujourd\'hui';
+
+  @override
+  String get fqTodaySub => 'Pour une sortie tout de suite';
+
+  @override
+  String get fqWeekend => 'Ce week-end';
+
+  @override
+  String get fqWeekendSub => 'Samedi et dimanche';
+
+  @override
+  String get fqWeek => 'Cette semaine';
+
+  @override
+  String get fqWeekSub => 'Les 7 prochains jours';
+
+  @override
+  String get fqEvents => 'Events du moment';
+
+  @override
+  String get fqPlaces => 'Lieux à essayer';
+
+  @override
+  String get fqSeeCalendar => 'Voir tout l\'agenda famille';
+
+  @override
+  String fqResultsTitle(String ville) {
+    return 'Vos idées en famille à $ville';
+  }
+
+  @override
+  String fqNothing(String ville) {
+    return 'Rien pour cette envie à $ville pour l\'instant.';
+  }
+
+  @override
+  String get nightFindParty => 'Trouver ma soirée';
+
+  @override
+  String get nightPartySoirees => 'Soirées';
+
+  @override
+  String get nightPartyConcerts => 'Concerts';
+
+  @override
+  String nightPartyEmpty(String ville) {
+    return 'Aucune soirée ni aucun concert à venir à $ville pour l\'instant.';
+  }
 }

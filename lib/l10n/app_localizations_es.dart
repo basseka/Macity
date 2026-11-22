@@ -12,7 +12,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navHome => 'Inicio';
 
   @override
-  String get navFeed => 'Feed';
+  String get navFeed => 'Eventos';
 
   @override
   String get navPublish => 'Publicar';
@@ -644,7 +644,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get feedMoreSearch => '¿Quieres más? Mira el feed';
+  String get feedMoreSearch => '¿Quieres más? Mira los eventos';
 
   @override
   String get commonPartner => 'SOCIO';
@@ -4307,4 +4307,161 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cePostalCode => 'Código postal del lugar';
+
+  @override
+  String get familyQuizButton => 'Encontrar mi actividad';
+
+  @override
+  String get familyQuizButtonSub =>
+      '4 preguntas y te proponemos planes en familia';
+
+  @override
+  String get fqQAge => '¿Qué edad tienen los niños?';
+
+  @override
+  String get fqQAgeSub => 'Puedes elegir varias.';
+
+  @override
+  String get fqAgeBaby => '0 a 3 años';
+
+  @override
+  String get fqAgeBabySub => 'Los más pequeños';
+
+  @override
+  String get fqAgeSmall => '3 a 6 años';
+
+  @override
+  String get fqAgeSmallSub => 'Edad de infantil';
+
+  @override
+  String get fqAgeKids => '6 a 10 años';
+
+  @override
+  String get fqAgeKidsSub => 'Edad de primaria';
+
+  @override
+  String get fqAgeTeens => '10 años o más';
+
+  @override
+  String get fqAgeTeensSub => 'Preadolescentes y adolescentes';
+
+  @override
+  String get fqQWhat => '¿Qué os apetece?';
+
+  @override
+  String get fqMove => 'Desfogarse';
+
+  @override
+  String get fqMoveSub => 'Juegos, láser, tirolinas, bolos';
+
+  @override
+  String get fqAnimals => 'Animales y naturaleza';
+
+  @override
+  String get fqAnimalsSub => 'Zoo, granja, parques, paseos';
+
+  @override
+  String get fqDiscover => 'Descubrir';
+
+  @override
+  String get fqDiscoverSub => 'Museos, planetario, exposiciones';
+
+  @override
+  String get fqShow => 'Espectáculos y cine';
+
+  @override
+  String get fqShowSub => 'Teatro, cuentos, circo, cine';
+
+  @override
+  String get fqWater => 'Actividad acuática';
+
+  @override
+  String get fqWaterSub => 'Piscina, centro acuático, acuario';
+
+  @override
+  String get fqCreative => 'Taller creativo';
+
+  @override
+  String get fqCreativeSub => 'Manualidades, cocina, arte';
+
+  @override
+  String get fqQWhere => '¿Dentro o fuera?';
+
+  @override
+  String get fqQWhereSub => 'Según el tiempo y la energía del día.';
+
+  @override
+  String get fqIndoor => 'En interior';
+
+  @override
+  String get fqIndoorSub => 'A cubierto';
+
+  @override
+  String get fqOutdoor => 'Al aire libre';
+
+  @override
+  String get fqOutdoorSub => 'Tomar el aire';
+
+  @override
+  String get fqAnywhere => 'Me da igual';
+
+  @override
+  String get fqAnywhereSub => 'Te proponemos de todo';
+
+  @override
+  String get fqQWhen => '¿Para cuándo?';
+
+  @override
+  String get fqQWhenSub => 'También buscamos los eventos del momento.';
+
+  @override
+  String get fqToday => 'Hoy';
+
+  @override
+  String get fqTodaySub => 'Para salir ahora mismo';
+
+  @override
+  String get fqWeekend => 'Este fin de semana';
+
+  @override
+  String get fqWeekendSub => 'Sábado y domingo';
+
+  @override
+  String get fqWeek => 'Esta semana';
+
+  @override
+  String get fqWeekSub => 'Los próximos 7 días';
+
+  @override
+  String get fqEvents => 'Eventos del momento';
+
+  @override
+  String get fqPlaces => 'Lugares para probar';
+
+  @override
+  String get fqSeeCalendar => 'Ver toda la agenda familiar';
+
+  @override
+  String fqResultsTitle(String ville) {
+    return 'Planes en familia en $ville';
+  }
+
+  @override
+  String fqNothing(String ville) {
+    return 'Nada para esto en $ville por ahora.';
+  }
+
+  @override
+  String get nightFindParty => 'Encontrar mi fiesta';
+
+  @override
+  String get nightPartySoirees => 'Fiestas';
+
+  @override
+  String get nightPartyConcerts => 'Conciertos';
+
+  @override
+  String nightPartyEmpty(String ville) {
+    return 'Todavía no hay fiestas ni conciertos en $ville.';
+  }
 }

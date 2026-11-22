@@ -109,7 +109,7 @@ abstract class AppLocalizations {
   /// No description provided for @navFeed.
   ///
   /// In fr, this message translates to:
-  /// **'Feed'**
+  /// **'Events'**
   String get navFeed;
 
   /// No description provided for @navPublish.
@@ -1255,7 +1255,7 @@ abstract class AppLocalizations {
   /// No description provided for @feedMoreSearch.
   ///
   /// In fr, this message translates to:
-  /// **'Plus de recherche ? Regarde le feed'**
+  /// **'Plus de recherche ? Regarde les events'**
   String get feedMoreSearch;
 
   /// No description provided for @commonPartner.
@@ -7827,6 +7827,306 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Code postal du lieu'**
   String get cePostalCode;
+
+  /// No description provided for @familyQuizButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouver mon activité'**
+  String get familyQuizButton;
+
+  /// No description provided for @familyQuizButtonSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'4 questions et on vous propose des sorties en famille'**
+  String get familyQuizButtonSub;
+
+  /// No description provided for @fqQAge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quel âge ont les enfants ?'**
+  String get fqQAge;
+
+  /// No description provided for @fqQAgeSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plusieurs choix possibles.'**
+  String get fqQAgeSub;
+
+  /// No description provided for @fqAgeBaby.
+  ///
+  /// In fr, this message translates to:
+  /// **'0 à 3 ans'**
+  String get fqAgeBaby;
+
+  /// No description provided for @fqAgeBabySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les tout-petits'**
+  String get fqAgeBabySub;
+
+  /// No description provided for @fqAgeSmall.
+  ///
+  /// In fr, this message translates to:
+  /// **'3 à 6 ans'**
+  String get fqAgeSmall;
+
+  /// No description provided for @fqAgeSmallSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'âge de la maternelle'**
+  String get fqAgeSmallSub;
+
+  /// No description provided for @fqAgeKids.
+  ///
+  /// In fr, this message translates to:
+  /// **'6 à 10 ans'**
+  String get fqAgeKids;
+
+  /// No description provided for @fqAgeKidsSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'âge du primaire'**
+  String get fqAgeKidsSub;
+
+  /// No description provided for @fqAgeTeens.
+  ///
+  /// In fr, this message translates to:
+  /// **'10 ans et plus'**
+  String get fqAgeTeens;
+
+  /// No description provided for @fqAgeTeensSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préados et ados'**
+  String get fqAgeTeensSub;
+
+  /// No description provided for @fqQWhat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez envie de quoi ?'**
+  String get fqQWhat;
+
+  /// No description provided for @fqMove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se défouler'**
+  String get fqMove;
+
+  /// No description provided for @fqMoveSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jeux, laser game, accrobranche, bowling'**
+  String get fqMoveSub;
+
+  /// No description provided for @fqAnimals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Animaux et nature'**
+  String get fqAnimals;
+
+  /// No description provided for @fqAnimalsSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Zoo, ferme, parcs, balades'**
+  String get fqAnimalsSub;
+
+  /// No description provided for @fqDiscover.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrir'**
+  String get fqDiscover;
+
+  /// No description provided for @fqDiscoverSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Musées, planétarium, expos'**
+  String get fqDiscoverSub;
+
+  /// No description provided for @fqShow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Spectacle et ciné'**
+  String get fqShow;
+
+  /// No description provided for @fqShowSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Théâtre, contes, cirque, cinéma'**
+  String get fqShowSub;
+
+  /// No description provided for @fqWater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activité aquatique'**
+  String get fqWater;
+
+  /// No description provided for @fqWaterSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Piscine, centre aquatique, aquarium'**
+  String get fqWaterSub;
+
+  /// No description provided for @fqCreative.
+  ///
+  /// In fr, this message translates to:
+  /// **'Atelier créatif'**
+  String get fqCreative;
+
+  /// No description provided for @fqCreativeSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bricolage, cuisine, arts plastiques'**
+  String get fqCreativeSub;
+
+  /// No description provided for @fqQWhere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dedans ou dehors ?'**
+  String get fqQWhere;
+
+  /// No description provided for @fqQWhereSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selon la météo et l\'énergie du jour.'**
+  String get fqQWhereSub;
+
+  /// No description provided for @fqIndoor.
+  ///
+  /// In fr, this message translates to:
+  /// **'À l\'intérieur'**
+  String get fqIndoor;
+
+  /// No description provided for @fqIndoorSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au chaud ou à l\'abri'**
+  String get fqIndoorSub;
+
+  /// No description provided for @fqOutdoor.
+  ///
+  /// In fr, this message translates to:
+  /// **'En plein air'**
+  String get fqOutdoor;
+
+  /// No description provided for @fqOutdoorSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre l\'air'**
+  String get fqOutdoorSub;
+
+  /// No description provided for @fqAnywhere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Peu importe'**
+  String get fqAnywhere;
+
+  /// No description provided for @fqAnywhereSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On vous propose tout'**
+  String get fqAnywhereSub;
+
+  /// No description provided for @fqQWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est pour quand ?'**
+  String get fqQWhen;
+
+  /// No description provided for @fqQWhenSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On cherche aussi les events du moment.'**
+  String get fqQWhenSub;
+
+  /// No description provided for @fqToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get fqToday;
+
+  /// No description provided for @fqTodaySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour une sortie tout de suite'**
+  String get fqTodaySub;
+
+  /// No description provided for @fqWeekend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce week-end'**
+  String get fqWeekend;
+
+  /// No description provided for @fqWeekendSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Samedi et dimanche'**
+  String get fqWeekendSub;
+
+  /// No description provided for @fqWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette semaine'**
+  String get fqWeek;
+
+  /// No description provided for @fqWeekSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les 7 prochains jours'**
+  String get fqWeekSub;
+
+  /// No description provided for @fqEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Events du moment'**
+  String get fqEvents;
+
+  /// No description provided for @fqPlaces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieux à essayer'**
+  String get fqPlaces;
+
+  /// No description provided for @fqSeeCalendar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir tout l\'agenda famille'**
+  String get fqSeeCalendar;
+
+  /// No description provided for @fqResultsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos idées en famille à {ville}'**
+  String fqResultsTitle(String ville);
+
+  /// No description provided for @fqNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien pour cette envie à {ville} pour l\'instant.'**
+  String fqNothing(String ville);
+
+  /// No description provided for @nightFindParty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouver ma soirée'**
+  String get nightFindParty;
+
+  /// No description provided for @nightPartySoirees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soirées'**
+  String get nightPartySoirees;
+
+  /// No description provided for @nightPartyConcerts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Concerts'**
+  String get nightPartyConcerts;
+
+  /// No description provided for @nightPartyEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune soirée ni aucun concert à venir à {ville} pour l\'instant.'**
+  String nightPartyEmpty(String ville);
 }
 
 class _AppLocalizationsDelegate

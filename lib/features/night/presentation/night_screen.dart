@@ -18,6 +18,7 @@ import 'package:pulz_app/features/night/data/closing_hour.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/refine_map_section.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/core/widgets/commerce_pager_view.dart';
+import 'package:pulz_app/features/night/presentation/night_find_party.dart';
 import 'package:pulz_app/features/night/presentation/night_bars_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_clubs_fullscreen_map.dart';
 import 'package:pulz_app/features/night/presentation/night_hub_grid.dart';
@@ -225,7 +226,21 @@ class NightScreen extends ConsumerWidget {
 
     // Landing uniforme style Food (remplace NightHubGrid).
     if (selectedCategory == null) {
-      return RubriqueLandingView(config: _config(context, ref));
+      // « Trouver ma soirée » flotte en bas de l'écran : visible dès
+      // l'arrivée, sans scroller (la landing garde 120 px de marge en bas).
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: RubriqueLandingView(config: _config(context, ref)),
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 14,
+            child: Center(child: NightPartyButton()),
+          ),
+        ],
+      );
     }
 
     return Container(

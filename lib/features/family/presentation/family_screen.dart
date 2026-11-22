@@ -21,6 +21,8 @@ import 'package:pulz_app/features/family/presentation/family_hub_grid.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/family/presentation/widgets/family_venue_row_card.dart';
 import 'package:pulz_app/features/family/state/family_venues_provider.dart';
+import 'package:pulz_app/features/city/state/search_area_provider.dart';
+import 'package:pulz_app/features/family_quiz/presentation/family_quiz_sheet.dart';
 import 'package:pulz_app/features/mode/state/mode_subcategory_provider.dart';
 import 'package:pulz_app/features/sport/presentation/widgets/refine_map_section.dart';
 
@@ -135,7 +137,23 @@ class FamilyScreen extends ConsumerWidget {
     final selectedCategory = ref.watch(familyCategoryProvider);
 
     if (selectedCategory == null) {
-      return RubriqueLandingView(config: _config(context, ref));
+      // « Trouver mon activité » flotte en bas de l'écran : visible dès
+      // l'arrivée, sans scroller (la landing garde 120 px de marge en bas).
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: RubriqueLandingView(config: _config(context, ref)),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 14,
+            child: Center(
+              child: FamilyQuizButton(ville: ref.watch(areaVilleProvider)),
+            ),
+          ),
+        ],
+      );
     }
 
     return Container(

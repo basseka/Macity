@@ -199,7 +199,7 @@ class _TonightQuizSheetState extends ConsumerState<TonightQuizSheet> {
 
   static String wishEmoji(TonightWish w) => switch (w) {
         TonightWish.concert => '🎤',
-        TonightWish.soiree => '🪩',
+        TonightWish.soiree => '🕺',
         TonightWish.cocktail => '🍸',
         TonightWish.balade => '🌙',
         TonightWish.activite => '🎳',
@@ -443,7 +443,7 @@ class _TonightQuizSheetState extends ConsumerState<TonightQuizSheet> {
 
   Widget _eventCard(Event e) {
     final time = e.horaires.split(',').first.trim();
-    return _ResultCard(
+    return QuizResultCard(
       imageUrl: e.photoPath ?? '',
       emoji: '🎫',
       title: e.titre,
@@ -463,7 +463,7 @@ class _TonightQuizSheetState extends ConsumerState<TonightQuizSheet> {
     );
   }
 
-  Widget _placeCard(CommerceModel c) => _ResultCard(
+  Widget _placeCard(CommerceModel c) => QuizResultCard(
         imageUrl: c.photo,
         emoji: '📍',
         title: c.nom,
@@ -485,7 +485,7 @@ class _TonightQuizSheetState extends ConsumerState<TonightQuizSheet> {
       if (w.distanceKm > 0)
         '${w.distanceKm.toStringAsFixed(1).replaceAll('.', sep)} km',
     ].join(' · ');
-    return _ResultCard(
+    return QuizResultCard(
       imageUrl: w.photo,
       emoji: '🌙',
       title: w.titre,
@@ -563,9 +563,10 @@ const _accentShadow = <BoxShadow>[
   ),
 ];
 
-/// Carte d'une proposition : vignette (photo ou emoji), titre, lignes
+/// Carte d'une proposition (partagée avec « Trouver mon activité » Famille) :
+/// vignette (photo ou emoji), titre, lignes
 /// d'infos, description éventuelle (balades) et flèche ou bouton d'action.
-class _ResultCard extends StatelessWidget {
+class QuizResultCard extends StatelessWidget {
   final String imageUrl;
   final String emoji;
   final String title;
@@ -574,7 +575,8 @@ class _ResultCard extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback onTap;
 
-  const _ResultCard({
+  const QuizResultCard({
+    super.key,
     required this.imageUrl,
     required this.emoji,
     required this.title,
