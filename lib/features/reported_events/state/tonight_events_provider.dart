@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pulz_app/core/data/scraped_events_supabase_service.dart';
+import 'package:pulz_app/features/city/domain/city_aliases.dart';
 import 'package:pulz_app/features/city/state/city_provider.dart';
+import 'package:pulz_app/features/day/data/user_event_supabase_service.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 
 /// Dernier resultat reussi par ville, garde en memoire process. Sert de
@@ -49,6 +51,9 @@ final tonightEventsProvider =
         if (d == null) return false;
         return '${d.year}-${pad(d.month)}-${pad(d.day)}' == todayStr;
       }).toList();
+      // + les events publiés par les pros et particuliers (user_events) :
+      // sans eux, un event « À la une » du soir n'apparaissait pas ici.
+      result = [...await _todayUserEvents(city, todayStr), ...result];
       break;
     } catch (_) {
       if (attempt < 3) {
@@ -66,6 +71,30 @@ final tonightEventsProvider =
   ref.read(tonightEventsFetchFailedProvider.notifier).state = true;
   return _lastKnownTodayEvents[city] ?? const <Event>[];
 });
+
+/// Events `user_events` du jour de la ville (et de sa métropole). Exclut les
+/// copies `autofeat_%` (doublons d'events scrapés déjà présents). Best-effort :
+/// liste vide sur erreur, pour ne pas faire échouer toute la page.
+Future<List<Event>> _todayUserEvents(String city, String todayStr) async {
+  try {
+    final aliases = cityAliasesFor(city).map((c) => c.toLowerCase()).toSet()
+      ..add(city.toLowerCase());
+    final rows = await UserEventSupabaseService().fetchEventsByDateRange(
+      startIso: todayStr,
+      endIso: todayStr,
+    );
+    return rows
+        .where(
+          (u) =>
+              !u.id.startsWith('autofeat_') &&
+              aliases.contains(u.ville.trim().toLowerCase()),
+        )
+        .map((u) => u.toEvent())
+        .toList();
+  } catch (_) {
+    return const <Event>[];
+  }
+}
 
 /// Nombre d'evenements d'aujourd'hui (tous, sans filtre horaire) — alimente
 /// la pastille compteur du bandeau "Les bons plans". Toujours egal a la
@@ -88,7 +117,8 @@ const _eveningShowHour = 17;
 /// pour ne jamais laisser passer un event de journee par defaut.
 bool _hasEveningShow(String raw) {
   if (raw.isEmpty) return false;
-  final matches = RegExp(r'(\d{1,2})h(\d{0,2})').allMatches(raw);
+  // « 20h30 » (events scrapés) ou « 18:30 » (events publiés dans l'app).
+  final matches = RegExp(r'(\d{1,2})\s*[h:](\d{0,2})').allMatches(raw);
   return matches
       .any((m) => (int.tryParse(m.group(1)!) ?? -1) >= _eveningShowHour);
 }

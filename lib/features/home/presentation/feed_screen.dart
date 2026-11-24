@@ -1047,10 +1047,19 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       if (!mounted || _dateRange != picked) return;
       final scraped = res[0] as List<Event>;
       final userEv = res[1] as List<UserEvent>;
-      final merged = <Event>[
-        ...scraped,
+      // Events qui commencent dans la période triés par date, puis les
+      // multi-jours déjà en cours (ordre du service conservé), en dernier.
+      final starting = <Event>[
+        ...scraped.where((e) => e.dateDebut.compareTo(start) >= 0),
         ...userEv.map((e) => e.toEvent()),
-      ]..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
+      ]..sort((a, b) {
+          final c = a.dateDebut.compareTo(b.dateDebut);
+          return c != 0 ? c : a.horaires.compareTo(b.horaires);
+        });
+      final merged = <Event>[
+        ...starting,
+        ...scraped.where((e) => e.dateDebut.compareTo(start) < 0),
+      ];
       setState(() {
         _dateResults = merged;
         _dateLoading = false;

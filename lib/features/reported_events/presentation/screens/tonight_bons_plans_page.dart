@@ -53,12 +53,14 @@ class TonightBonsPlansPage extends ConsumerWidget {
     AppMode.family,
   ];
 
-  /// Ordre des sections en mode [nightOnly] : concerts, soirees, spectacles,
-  /// le reste, et le cinema tout a la fin.
+  /// Ordre des sections en mode [nightOnly] (« Ce soir ») : soirées (Night)
+  /// d'abord, puis concerts, puis culture (spectacles), le reste, et le
+  /// cinéma tout à la fin.
   static const _nightSectionOrder = [
-    'Concerts',
     'Soirées',
+    'Concerts',
     'Spectacles',
+    'Culture',
     'Autres sorties',
     'Cinéma',
   ];
@@ -91,6 +93,9 @@ class TonightBonsPlansPage extends ConsumerWidget {
     ])) {
       return 'Spectacles';
     }
+    // Le reste de la rubrique Culture (expos, visites, conférences...) reste
+    // groupé juste après les spectacles, avant les « Autres sorties ».
+    if (e.rubrique == 'culture') return 'Culture';
     return 'Autres sorties';
   }
 

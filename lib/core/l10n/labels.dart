@@ -80,6 +80,7 @@ String nightSectionLabel(BuildContext context, String key) {
     'Concerts' => l10n.tonightSectionConcerts,
     'Soirées' => l10n.tonightSectionParties,
     'Spectacles' => l10n.tonightSectionShows,
+    'Culture' => modeLabel(context, AppMode.culture),
     'Autres sorties' => l10n.tonightSectionOther,
     'Cinéma' => l10n.catCinema,
     _ => key,

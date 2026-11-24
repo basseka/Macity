@@ -301,12 +301,32 @@ class ScrapedEventsSupabaseService {
     final ongoingEvents =
         await compute(_parseAndFilter, results[1].data as List);
 
+    // Multi-jours « en cours » : on écarte les séries récurrentes mal
+    // datées (ex. « Cours de Danse Latino » : une ligne par jeudi, chacune
+    // avec date_fin à +1 an). Un même titre présent plusieurs fois parmi les
+    // en-cours, ou déjà présent dans la fenêtre, n'est pas une expo qui dure.
+    String norm(Event e) => e.titre.trim().toLowerCase();
+    final inRangeTitles = inRangeEvents.map(norm).toSet();
+    final ongoingCount = <String, int>{};
+    for (final e in ongoingEvents) {
+      ongoingCount[norm(e)] = (ongoingCount[norm(e)] ?? 0) + 1;
+    }
     final seen = inRangeEvents.map((e) => e.identifiant).toSet();
-    final merged = [
-      ...inRangeEvents,
-      ...ongoingEvents.where((e) => !seen.contains(e.identifiant)),
-    ]..sort((a, b) => a.dateDebut.compareTo(b.dateDebut));
-    return merged;
+    final ongoingKept = ongoingEvents
+        .where(
+          (e) =>
+              !seen.contains(e.identifiant) &&
+              ongoingCount[norm(e)] == 1 &&
+              !inRangeTitles.contains(norm(e)),
+        )
+        .toList()
+      ..sort((a, b) => a.dateFin.compareTo(b.dateFin));
+
+    // Ordre : d'abord les events qui commencent dans la période (par date),
+    // puis ceux déjà en cours (ceux qui finissent le plus tôt en premier).
+    // Avant, tout était trié par date_debut : les expos commencées en
+    // septembre passaient en tête et semblaient hors de la période choisie.
+    return [...inRangeEvents, ...ongoingKept];
   }
 }
 
