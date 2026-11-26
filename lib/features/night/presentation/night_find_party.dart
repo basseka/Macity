@@ -11,16 +11,20 @@ import 'package:pulz_app/features/city/state/city_provider.dart';
 import 'package:pulz_app/features/day/domain/models/event.dart';
 import 'package:pulz_app/features/day/state/user_events_provider.dart';
 import 'package:pulz_app/features/food/presentation/food_design_tokens.dart';
+import 'package:pulz_app/features/night/presentation/night_party_quiz_sheet.dart';
 
 /// « Trouver ma soirée » (rubrique Night, 2026-11-22) : bouton flottant en
-/// bas de la landing Night, qui ouvre la liste de toutes les soirées et de
-/// tous les concerts à venir (events scrapés + events de la communauté),
-/// groupés par jour, avec un filtre Tout / Soirées / Concerts.
+/// bas de la landing Night. Depuis le 2026-11-26 il ouvre un questionnaire
+/// (NightPartyQuizSheet) qui oriente vers des établissements ; la liste de
+/// toutes les soirées et de tous les concerts à venir (events scrapés + events
+/// de la communauté), groupés par jour, avec un filtre Tout / Soirées /
+/// Concerts, reste accessible en bas des propositions.
 
 enum NightPartyKind { soiree, concert }
 
-final _concertMeta =
-    RegExp(r'(?<![a-zà-ÿ])(concerts?|musique|showcase|live)(?![a-zà-ÿ])', caseSensitive: false);
+final _concertMeta = RegExp(
+    r'(?<![a-zà-ÿ])(concerts?|musique|showcase|live)(?![a-zà-ÿ])',
+    caseSensitive: false);
 final _concertTitle = RegExp(r'(?<![a-zà-ÿ])concert', caseSensitive: false);
 final _soiree = RegExp(
   r'(?<![a-zà-ÿ])(soir[ée]es?|club(bing)?|dj|party|disco|techno|house|after|electro|[ée]lectro|bal)(?![a-zà-ÿ])',
@@ -96,14 +100,12 @@ final nightPartiesProvider =
   final scraped = [for (final (events, _) in pages) ...events];
 
   // Events de la communauté de la ville (hub), à venir.
-  final community = userEvents
-      .where((ue) {
-        final hub = CityHubResolver.resolveHub(ue.ville);
-        if (hub.toLowerCase() != city.toLowerCase()) return false;
-        final d = DateTime.tryParse(ue.date);
-        return d != null && !DateTime(d.year, d.month, d.day).isBefore(today);
-      })
-      .map((ue) => ue.toEvent());
+  final community = userEvents.where((ue) {
+    final hub = CityHubResolver.resolveHub(ue.ville);
+    if (hub.toLowerCase() != city.toLowerCase()) return false;
+    final d = DateTime.tryParse(ue.date);
+    return d != null && !DateTime(d.year, d.month, d.day).isBefore(today);
+  }).map((ue) => ue.toEvent());
 
   final seen = <String>{};
   final out = <Event>[];
@@ -137,7 +139,9 @@ class NightPartyButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => NightPartyPage.show(context),
+      // Questionnaire d'abord ; la liste complète reste en bas des
+      // propositions.
+      onTap: () => NightPartyQuizSheet.show(context),
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 7, 14, 7),
         decoration: BoxDecoration(
@@ -273,10 +277,14 @@ class _NightPartyPageState extends ConsumerState<NightPartyPage> {
     final l = context.l10n;
     final options = <(NightPartyKind?, String)>[
       (null, '${l.refineAll} · $total'),
-      (NightPartyKind.soiree,
-          '${l.nightPartySoirees} · ${counts[NightPartyKind.soiree]}'),
-      (NightPartyKind.concert,
-          '${l.nightPartyConcerts} · ${counts[NightPartyKind.concert]}'),
+      (
+        NightPartyKind.soiree,
+        '${l.nightPartySoirees} · ${counts[NightPartyKind.soiree]}'
+      ),
+      (
+        NightPartyKind.concert,
+        '${l.nightPartyConcerts} · ${counts[NightPartyKind.concert]}'
+      ),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),

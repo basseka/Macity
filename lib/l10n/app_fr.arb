@@ -2192,5 +2192,74 @@
         "type": "String"
       }
     }
+  },
+  "npqQWho": "Tu sors avec qui ?",
+  "npqQWhoSub": "On adapte les lieux à ta soirée.",
+  "npqSolo": "Solo",
+  "npqSoloSub": "Envie de faire des rencontres",
+  "npqCouple": "En couple",
+  "npqCoupleSub": "Un date, un verre à deux",
+  "npqFriends": "Entre amis",
+  "npqFriendsSub": "Une soirée entre potes",
+  "npqGang": "En grosse bande",
+  "npqGangSub": "Anniversaire, EVJF, EVG…",
+  "npqQVibe": "Quelle ambiance ?",
+  "npqQVibeSub": "Plusieurs choix possibles.",
+  "npqVerre": "Un verre au calme",
+  "npqVerreSub": "Bars à cocktails, pubs, bars à vin",
+  "npqBar": "Un bar qui bouge",
+  "npqBarSub": "Bars de nuit, ambiance festive",
+  "npqDance": "Danser",
+  "npqDanceSub": "Clubs et discothèques",
+  "npqConcert": "Un concert",
+  "npqConcertSub": "Live et salles de concert",
+  "npqTheme": "Une soirée à thème",
+  "npqThemeSub": "Afterworks, soirées spéciales, karaokés",
+  "npqQMusic": "Quelle musique ?",
+  "npqQMusicSub": "Plusieurs choix possibles. Sans choix, on te propose de tout.",
+  "npqAnyMusic": "Peu importe",
+  "npqQWhen": "C'est pour quand ?",
+  "npqQWhenSub": "On te montre les soirées de la période.",
+  "npqTonight": "Ce soir",
+  "npqTomorrow": "Demain soir",
+  "npqWeekend": "Ce week-end",
+  "npqWeekendSub": "Vendredi, samedi et dimanche",
+  "npqQLate": "Jusqu'à quelle heure ?",
+  "npqQLateSub": "On privilégie les lieux qui ferment à cette heure-là.",
+  "npqEarly": "Pas trop tard",
+  "npqEarlySub": "Rentrer vers minuit, 1 h",
+  "npqTwo": "Jusqu'à 2 h",
+  "npqTwoSub": "La soirée classique",
+  "npqAllNight": "Toute la nuit",
+  "npqAllNightSub": "Jusqu'au petit matin",
+  "npqResults": "Ta soirée à {ville}",
+  "@npqResults": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "npqPlaces": "Les établissements",
+  "npqEvents": "Les soirées de la période",
+  "npqNothing": "Rien pour cette ambiance à {ville} pour le moment.",
+  "@npqNothing": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "npqSeeAll": "Voir toutes les soirées et concerts",
+  "npqAllTonight": "Toutes les soirées de ce soir",
+  "npqAllTomorrow": "Toutes les soirées de demain soir",
+  "npqAllWeekend": "Toutes les soirées du week-end",
+  "npqAllNone": "Aucune soirée annoncée pour cette période à {ville}.",
+  "@npqAllNone": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
   }
 }

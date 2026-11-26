@@ -4439,4 +4439,155 @@ class AppLocalizationsEn extends AppLocalizations {
   String nightPartyEmpty(String ville) {
     return 'No parties or concerts coming up in $ville yet.';
   }
+
+  @override
+  String get npqQWho => 'Who are you going out with?';
+
+  @override
+  String get npqQWhoSub => 'We match the places to your night.';
+
+  @override
+  String get npqSolo => 'Solo';
+
+  @override
+  String get npqSoloSub => 'Up for meeting people';
+
+  @override
+  String get npqCouple => 'As a couple';
+
+  @override
+  String get npqCoupleSub => 'A date, a drink for two';
+
+  @override
+  String get npqFriends => 'With friends';
+
+  @override
+  String get npqFriendsSub => 'A night out with your mates';
+
+  @override
+  String get npqGang => 'Big group';
+
+  @override
+  String get npqGangSub => 'Birthday, hen or stag party…';
+
+  @override
+  String get npqQVibe => 'What vibe?';
+
+  @override
+  String get npqQVibeSub => 'Pick as many as you like.';
+
+  @override
+  String get npqVerre => 'A quiet drink';
+
+  @override
+  String get npqVerreSub => 'Cocktail bars, pubs, wine bars';
+
+  @override
+  String get npqBar => 'A lively bar';
+
+  @override
+  String get npqBarSub => 'Late-night bars, party vibe';
+
+  @override
+  String get npqDance => 'Dancing';
+
+  @override
+  String get npqDanceSub => 'Clubs and nightclubs';
+
+  @override
+  String get npqConcert => 'A gig';
+
+  @override
+  String get npqConcertSub => 'Live music and concert halls';
+
+  @override
+  String get npqTheme => 'A themed night';
+
+  @override
+  String get npqThemeSub => 'Afterworks, special nights, karaoke';
+
+  @override
+  String get npqQMusic => 'What music?';
+
+  @override
+  String get npqQMusicSub =>
+      'Pick as many as you like. No pick, we suggest everything.';
+
+  @override
+  String get npqAnyMusic => 'Anything';
+
+  @override
+  String get npqQWhen => 'When?';
+
+  @override
+  String get npqQWhenSub => 'We show you the nights out for that time.';
+
+  @override
+  String get npqTonight => 'Tonight';
+
+  @override
+  String get npqTomorrow => 'Tomorrow night';
+
+  @override
+  String get npqWeekend => 'This weekend';
+
+  @override
+  String get npqWeekendSub => 'Friday, Saturday and Sunday';
+
+  @override
+  String get npqQLate => 'Until what time?';
+
+  @override
+  String get npqQLateSub => 'We favour places closing around then.';
+
+  @override
+  String get npqEarly => 'Not too late';
+
+  @override
+  String get npqEarlySub => 'Home around midnight, 1 am';
+
+  @override
+  String get npqTwo => 'Until 2 am';
+
+  @override
+  String get npqTwoSub => 'The classic night out';
+
+  @override
+  String get npqAllNight => 'All night';
+
+  @override
+  String get npqAllNightSub => 'Until the early hours';
+
+  @override
+  String npqResults(String ville) {
+    return 'Your night in $ville';
+  }
+
+  @override
+  String get npqPlaces => 'Places';
+
+  @override
+  String get npqEvents => 'Nights out for that time';
+
+  @override
+  String npqNothing(String ville) {
+    return 'Nothing for this vibe in $ville yet.';
+  }
+
+  @override
+  String get npqSeeAll => 'See all nights out and gigs';
+
+  @override
+  String get npqAllTonight => 'All tonight\'s events';
+
+  @override
+  String get npqAllTomorrow => 'All tomorrow night\'s events';
+
+  @override
+  String get npqAllWeekend => 'All weekend events';
+
+  @override
+  String npqAllNone(String ville) {
+    return 'No nights out listed for this time in $ville.';
+  }
 }

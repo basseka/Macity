@@ -8127,6 +8127,294 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucune soirée ni aucun concert à venir à {ville} pour l\'instant.'**
   String nightPartyEmpty(String ville);
+
+  /// No description provided for @npqQWho.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu sors avec qui ?'**
+  String get npqQWho;
+
+  /// No description provided for @npqQWhoSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On adapte les lieux à ta soirée.'**
+  String get npqQWhoSub;
+
+  /// No description provided for @npqSolo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solo'**
+  String get npqSolo;
+
+  /// No description provided for @npqSoloSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envie de faire des rencontres'**
+  String get npqSoloSub;
+
+  /// No description provided for @npqCouple.
+  ///
+  /// In fr, this message translates to:
+  /// **'En couple'**
+  String get npqCouple;
+
+  /// No description provided for @npqCoupleSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un date, un verre à deux'**
+  String get npqCoupleSub;
+
+  /// No description provided for @npqFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entre amis'**
+  String get npqFriends;
+
+  /// No description provided for @npqFriendsSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une soirée entre potes'**
+  String get npqFriendsSub;
+
+  /// No description provided for @npqGang.
+  ///
+  /// In fr, this message translates to:
+  /// **'En grosse bande'**
+  String get npqGang;
+
+  /// No description provided for @npqGangSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Anniversaire, EVJF, EVG…'**
+  String get npqGangSub;
+
+  /// No description provided for @npqQVibe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quelle ambiance ?'**
+  String get npqQVibe;
+
+  /// No description provided for @npqQVibeSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plusieurs choix possibles.'**
+  String get npqQVibeSub;
+
+  /// No description provided for @npqVerre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un verre au calme'**
+  String get npqVerre;
+
+  /// No description provided for @npqVerreSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bars à cocktails, pubs, bars à vin'**
+  String get npqVerreSub;
+
+  /// No description provided for @npqBar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un bar qui bouge'**
+  String get npqBar;
+
+  /// No description provided for @npqBarSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bars de nuit, ambiance festive'**
+  String get npqBarSub;
+
+  /// No description provided for @npqDance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Danser'**
+  String get npqDance;
+
+  /// No description provided for @npqDanceSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clubs et discothèques'**
+  String get npqDanceSub;
+
+  /// No description provided for @npqConcert.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un concert'**
+  String get npqConcert;
+
+  /// No description provided for @npqConcertSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Live et salles de concert'**
+  String get npqConcertSub;
+
+  /// No description provided for @npqTheme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une soirée à thème'**
+  String get npqTheme;
+
+  /// No description provided for @npqThemeSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afterworks, soirées spéciales, karaokés'**
+  String get npqThemeSub;
+
+  /// No description provided for @npqQMusic.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quelle musique ?'**
+  String get npqQMusic;
+
+  /// No description provided for @npqQMusicSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plusieurs choix possibles. Sans choix, on te propose de tout.'**
+  String get npqQMusicSub;
+
+  /// No description provided for @npqAnyMusic.
+  ///
+  /// In fr, this message translates to:
+  /// **'Peu importe'**
+  String get npqAnyMusic;
+
+  /// No description provided for @npqQWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est pour quand ?'**
+  String get npqQWhen;
+
+  /// No description provided for @npqQWhenSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On te montre les soirées de la période.'**
+  String get npqQWhenSub;
+
+  /// No description provided for @npqTonight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce soir'**
+  String get npqTonight;
+
+  /// No description provided for @npqTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demain soir'**
+  String get npqTomorrow;
+
+  /// No description provided for @npqWeekend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce week-end'**
+  String get npqWeekend;
+
+  /// No description provided for @npqWeekendSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vendredi, samedi et dimanche'**
+  String get npqWeekendSub;
+
+  /// No description provided for @npqQLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu\'à quelle heure ?'**
+  String get npqQLate;
+
+  /// No description provided for @npqQLateSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'On privilégie les lieux qui ferment à cette heure-là.'**
+  String get npqQLateSub;
+
+  /// No description provided for @npqEarly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas trop tard'**
+  String get npqEarly;
+
+  /// No description provided for @npqEarlySub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rentrer vers minuit, 1 h'**
+  String get npqEarlySub;
+
+  /// No description provided for @npqTwo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu\'à 2 h'**
+  String get npqTwo;
+
+  /// No description provided for @npqTwoSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'La soirée classique'**
+  String get npqTwoSub;
+
+  /// No description provided for @npqAllNight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toute la nuit'**
+  String get npqAllNight;
+
+  /// No description provided for @npqAllNightSub.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jusqu\'au petit matin'**
+  String get npqAllNightSub;
+
+  /// No description provided for @npqResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ta soirée à {ville}'**
+  String npqResults(String ville);
+
+  /// No description provided for @npqPlaces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les établissements'**
+  String get npqPlaces;
+
+  /// No description provided for @npqEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les soirées de la période'**
+  String get npqEvents;
+
+  /// No description provided for @npqNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien pour cette ambiance à {ville} pour le moment.'**
+  String npqNothing(String ville);
+
+  /// No description provided for @npqSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir toutes les soirées et concerts'**
+  String get npqSeeAll;
+
+  /// No description provided for @npqAllTonight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les soirées de ce soir'**
+  String get npqAllTonight;
+
+  /// No description provided for @npqAllTomorrow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les soirées de demain soir'**
+  String get npqAllTomorrow;
+
+  /// No description provided for @npqAllWeekend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les soirées du week-end'**
+  String get npqAllWeekend;
+
+  /// No description provided for @npqAllNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune soirée annoncée pour cette période à {ville}.'**
+  String npqAllNone(String ville);
 }
 
 class _AppLocalizationsDelegate
